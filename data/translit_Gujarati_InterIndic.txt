@@ -6,7 +6,7 @@
 // THIS IS A MACHINE-GENERATED FILE
 // Tool: dumpICUrules.bat
 // Source: ../../text/resources/Transliterator_Gujarati_InterIndic.txt
-// Date: Fri Nov 30 19:39:30 2001
+// Date: Tue Nov 20 21:43:01 2001
 //--------------------------------------------------------------------
 
 // Gujarati_InterIndic
@@ -109,8 +109,6 @@ translit_Gujarati_InterIndic {
 "\u0aed>\ue06d;" // DIGIT SEVEN
 "\u0aee>\ue06e;" // DIGIT EIGHT
 "\u0aef>\ue06f;" // DIGIT NINE
-"\u0964>\ue064;"        // DANDA
-"\u0965>\ue065;"        // DOUBLE DANDA
 //    :: NFC (NFD) ;
 // eof
   }

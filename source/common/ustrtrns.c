@@ -106,7 +106,7 @@ u_strFromUTF32(UChar   *dest,
         }
     }else{
         const uint32_t* pSrcLimit = ((const uint32_t*)pSrc) + srcLength;
-        while((pSrc < pSrcLimit) && (pDest < pDestLimit)){
+        while(((ch=*pSrc)!=0) && (pDest < pDestLimit)){
             ch = *pSrc++;
             if(ch<=0xFFFF){
                 *(pDest++)=(UChar)ch;
@@ -129,7 +129,6 @@ u_strFromUTF32(UChar   *dest,
         }
     }
 
-    reqLength += pDest - dest;
     if(pDestLength){
         *pDestLength = reqLength;
     }
@@ -167,6 +166,10 @@ u_strToUTF32(UChar32 *dest,
     if((srcLength < -1) || (destCapacity<0) || (!dest && destCapacity > 0)){
         *pErrorCode = U_ILLEGAL_ARGUMENT_ERROR;
         return NULL;
+    }
+
+    if(srcLength == -1){
+        srcLength = u_strlen(pSrc);
     }
 
     if(srcLength==-1) {
@@ -288,24 +291,30 @@ u_strFromUTF8(UChar *dest,
 
     return dest;
 }
-
-U_INLINE uint8_t *
-_appendUTF8(uint8_t *pDest, UChar32 c) {
-    /* c<=0x7f is handled by the caller, here it is 0x80<=c<=0x10ffff */
-    if((c)<=0x7ff) {
+int32_t
+_appendUTF8(uint8_t *pDest,UChar32 c, UErrorCode* pErrorCode){
+    if((c)<=0x7f)  {
+        *pDest++=(uint8_t)c;
+        return 1;
+    } else if((c)<=0x7ff) {
         *pDest++=(uint8_t)((c>>6)|0xc0);
         *pDest++=(uint8_t)((c&0x3f)|0x80);
+        return 2;
     } else if((uint32_t)(c)<=0xffff) {
         *pDest++=(uint8_t)((c>>12)|0xe0);
         *pDest++=(uint8_t)(((c>>6)&0x3f)|0x80);
         *pDest++=(uint8_t)(((c)&0x3f)|0x80);
-    } else /* if((uint32_t)(c)<=0x10ffff) */ {
+        return 3;
+    } else if((uint32_t)(c)<=0x10ffff) {
         *pDest++=(uint8_t)(((c)>>18)|0xf0);
         *pDest++=(uint8_t)((((c)>>12)&0x3f)|0x80);
         *pDest++=(uint8_t)((((c)>>6)&0x3f)|0x80);
         *pDest++=(uint8_t)(((c)&0x3f)|0x80);
+        return 4;
+    }else{
+        *pErrorCode =U_INVALID_CHAR_FOUND;
+        return -1;
     }
-    return pDest;
 }
 
    
@@ -337,12 +346,6 @@ u_strToUTF8(char *dest,
     if(srcLength==-1) {
         while((ch=*pSrc)!=0 && pDest!=pDestLimit) {
             ++pSrc;
-            if(ch <= 0x7f) {
-                *pDest++ = (char)ch;
-                ++reqLength;
-                continue;
-            }
-
             /*need not check for NUL because NUL fails UTF_IS_TRAIL() anyway*/
             if(UTF_IS_LEAD(ch) && UTF_IS_TRAIL(ch2=*pSrc)) { 
                 ++pSrc;
@@ -354,7 +357,10 @@ u_strToUTF8(char *dest,
                 break;
             }
             /* convert and append*/
-            pDest=_appendUTF8(pDest, ch);
+            pDest+=_appendUTF8(pDest,ch,pErrorCode);
+            if(U_FAILURE(*pErrorCode)){
+                return NULL;
+            }
         }
         while((ch=*pSrc++)!=0) {
             if(UTF_IS_LEAD(ch) && UTF_IS_TRAIL(ch2=*pSrc)) {
@@ -368,12 +374,6 @@ u_strToUTF8(char *dest,
         pSrcLimit = pSrc+srcLength;
         while(pSrc<pSrcLimit && pDest<pDestLimit) {
             ch=*pSrc++;
-            if(ch <= 0x7f) {
-                *pDest++ = (char)ch;
-                ++reqLength;
-                continue;
-            }
-
             if(UTF_IS_LEAD(ch) && pSrc<pSrcLimit && UTF_IS_TRAIL(ch2=*pSrc)) { 
                 ++pSrc;
                 ch=UTF16_GET_PAIR_VALUE(ch, ch2);
@@ -384,7 +384,10 @@ u_strToUTF8(char *dest,
                 break;
             }
             /* convert and append*/
-            pDest=_appendUTF8(pDest, ch);
+            pDest+=_appendUTF8(pDest,ch,pErrorCode);
+            if(U_FAILURE(*pErrorCode)){
+                return NULL;
+            }
         }
         while(pSrc<pSrcLimit) {
             ch=*pSrc++;
@@ -435,11 +438,7 @@ _strToWCS(wchar_t *dest,
         return NULL;
     }
     
-    if(srcLength == -1){
-        srcLength = u_strlen(pSrc);
-    }
-
-    for(;;) {
+    do{
         /* reset the error state */
         *pErrorCode = U_ZERO_ERROR;
 
@@ -461,15 +460,13 @@ _strToWCS(wchar_t *dest,
            tempBufLimit = tempBuf + tempBufCapacity;
            tempBuf = tempBuf + count;
 
-        } else {
-            break;
+        }else if(U_FAILURE(*pErrorCode)){
+            goto cleanup;
         }
-    }
 
-    if(U_FAILURE(*pErrorCode)){
-        goto cleanup;
-    }
-
+    }while (*pErrorCode == U_BUFFER_OVERFLOW_ERROR);
+    
+ 
     /* done with conversion null terminate the char buffer */
     if(count>=tempBufCapacity){
         tempBuf = saveBuf;
@@ -541,8 +538,11 @@ _strToWCS(wchar_t *dest,
         }
         count = (int32_t)(pIntTarget-intTarget);
        
-        if(0 < count && count <= destCapacity){
+        if(count < destCapacity){
             uprv_memcpy(dest,intTarget,count*sizeof(wchar_t));
+
+        }else{
+            *pErrorCode = U_BUFFER_OVERFLOW_ERROR;
         }  
 
         if(pDestLength){
@@ -575,6 +575,8 @@ u_strToWCS(wchar_t *dest,
            int32_t srcLength,
            UErrorCode *pErrorCode){
     
+    const UChar *pSrc = src;
+
     /* args check */
     if(pErrorCode==NULL || U_FAILURE(*pErrorCode)){
         return NULL;
@@ -585,13 +587,16 @@ u_strToWCS(wchar_t *dest,
         return NULL;
     }
     
+    if(srcLength == -1){
+        srcLength = u_strlen(pSrc);
+    }
+
 #ifdef U_WCHAR_IS_UTF16
     /* wchar_t is UTF-16 just do a memcpy */
-    if(srcLength == -1){
-        srcLength = u_strlen(src);
-    }
-    if(0 < srcLength && srcLength <= destCapacity){
+    if(srcLength <= destCapacity){
         uprv_memcpy(dest,src,srcLength*U_SIZEOF_UCHAR);
+    }else{
+        *pErrorCode = U_BUFFER_OVERFLOW_ERROR;
     }
     if(pDestLength){
        *pDestLength = srcLength;
@@ -774,7 +779,7 @@ _strFromWCS( UChar   *dest,
         goto cleanup;
     }
     
-    for(;;) {
+    do{
         
         *pErrorCode = U_ZERO_ERROR;
         
@@ -788,11 +793,9 @@ _strFromWCS( UChar   *dest,
             target = uStack;
             pTarget = uStack;
             pTargetLimit = uStack + _STACK_BUFFER_CAPACITY;
-        } else {
-            break;
         }
         
-    }
+    }while(*pErrorCode ==U_BUFFER_OVERFLOW_ERROR);  
     
     if(pDestLength){
         *pDestLength =count;
@@ -835,15 +838,22 @@ u_strFromWCS(UChar   *dest,
     }
 
 #ifdef U_WCHAR_IS_UTF16
-    /* wchar_t is UTF-16 just do a memcpy */
-    if(srcLength == -1){
-        srcLength = u_strlen(src);
-    }
-    if(0 < srcLength && srcLength <= destCapacity){
-        uprv_memcpy(dest,src,srcLength*U_SIZEOF_UCHAR);
-    }
-    if(pDestLength){
-       *pDestLength = srcLength;
+    {
+        const wchar_t* pSrc = src;
+        /* wchar_t is UTF-16 just do a memcpy */
+        if(srcLength==-1){
+            srcLength =0;
+            while(pSrc[srcLength++]!=0){
+            }
+        }
+        if(srcLength <= destCapacity){
+            uprv_memcpy(dest,src,srcLength*U_SIZEOF_UCHAR);
+        }else{
+            *pErrorCode = U_BUFFER_OVERFLOW_ERROR;
+        }
+        if(pDestLength){
+           *pDestLength = srcLength;
+        }
     }
 
     u_terminateUChars(dest,destCapacity,srcLength,pErrorCode);

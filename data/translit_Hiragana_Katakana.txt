@@ -4,9 +4,9 @@
 // Corporation and others.  All Rights Reserved.
 //--------------------------------------------------------------------
 // THIS IS A MACHINE-GENERATED FILE
-// Tool: dumpicurules.bat
+// Tool: dumpICUrules.bat
 // Source: ../../text/resources/Transliterator_Hiragana_Katakana.txt
-// Date: Fri Nov 30 13:01:41 2001
+// Date: Tue Nov 27 20:47:50 2001
 //--------------------------------------------------------------------
 
 // Hiragana_Katakana

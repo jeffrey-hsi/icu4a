@@ -39,12 +39,12 @@ class TestReplaceable : public Replaceable {
     static const UChar defaultStyle;
 public:    
     TestReplaceable (const UnicodeString& text, 
-                     const UnicodeString& newStyles) {
+                     const UnicodeString& styles) {
         chars = text;
         UnicodeString s;
         for (int i = 0; i < text.length(); ++i) {
-            if (i < newStyles.length()) {
-                s.append(newStyles.charAt(i));
+            if (i < styles.length()) {
+                s.append(styles.charAt(i));
             } else {
                 s.append((UChar)(i + 0x0041));
             }

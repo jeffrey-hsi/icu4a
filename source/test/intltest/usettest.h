@@ -27,12 +27,6 @@ class UnicodeSetTest: public IntlTest {
     
 private:
 
-    /**
-     * Test that toPattern() round trips with syntax characters and
-     * whitespace.
-     */
-    void TestToPattern();
-    
     void TestPatterns(void);
     void TestCategories(void);
     void TestAddRemove(void);
@@ -57,10 +51,6 @@ private:
     void TestExhaustive(void);
 
 private:
-
-    UBool toPatternAux(UChar32 start, UChar32 end);
-    
-    UBool checkPat(const UnicodeString& source, const UnicodeSet& testSet, const UnicodeString& pat);
 
     void _testComplement(int32_t a, UnicodeSet&, UnicodeSet&);
 

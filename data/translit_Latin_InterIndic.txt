@@ -4,9 +4,9 @@
 // Corporation and others.  All Rights Reserved.
 //--------------------------------------------------------------------
 // THIS IS A MACHINE-GENERATED FILE
-// Tool: dumpicurules.bat
+// Tool: dumpICUrules.bat
 // Source: ../../text/resources/Transliterator_Latin_InterIndic.txt
-// Date: Fri Nov 30 13:01:42 2001
+// Date: Tue Nov 27 20:47:50 2001
 //--------------------------------------------------------------------
 
 // Latin_InterIndic
