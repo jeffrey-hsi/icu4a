@@ -55,7 +55,6 @@ static void TestEBCDIC_STATEFUL(void);
 static void TestGB18030(void);
 static void TestLMBCS(void);
 static void TestJitterbug255(void);
-static void TestJitterbug792(void);
 static void TestEBCDICUS4XML(void);
 
 #define NEW_MAX_BUFFER 999
@@ -201,7 +200,6 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestGB18030, "tsconv/nucnvtst/TestGB18030");
    addTest(root, &TestLMBCS, "tsconv/nucnvtst/TestLMBCS");
    addTest(root, &TestJitterbug255, "tsconv/nucnvtst/TestJitterbug255");
-   addTest(root, &TestJitterbug792, "tsconv/nucnvtst/TestJitterbug792");
    addTest(root, &TestEBCDICUS4XML, "tsconv/nucnvtst/TestEBCDICUS4XML");
 }
 
@@ -1176,55 +1174,10 @@ static void TestConverterTypesAndStarters()
     ucnv_close(myConverter[2]);
 }
 
-static void
-TestAmbiguousConverter(UConverter *cnv) {
-    static const char inBytes[2]={ 0x61, 0x5c };
-    UChar outUnicode[20]={ 0, 0, 0, 0 };
-
-    const char *s;
-    UChar *u;
-    UErrorCode errorCode;
-    UBool isAmbiguous;
-
-    /* try to convert an 'a' and a US-ASCII backslash */
-    errorCode=U_ZERO_ERROR;
-    s=inBytes;
-    u=outUnicode;
-    ucnv_toUnicode(cnv, &u, u+20, &s, s+2, NULL, TRUE, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        /* we do not care about general failures in this test; the input may just not be mappable */
-        return;
-    }
-
-    if(outUnicode[0]!=0x61 || outUnicode[1]==0xfffd) {
-        /* not an ASCII-family encoding, or 0x5c is unassigned/illegal: this test is not applicable */
-        return;
-    }
-
-    isAmbiguous=ucnv_isAmbiguous(cnv);
-
-    /* check that outUnicode[1]!=0x5c is exactly the same as ucnv_isAmbiguous() */
-    if((outUnicode[1]!=0x5c)!=isAmbiguous) {
-        log_err("error: converter \"%s\" needs a backslash fix: %d but ucnv_isAmbiguous()==%d\n",
-            ucnv_getName(cnv, &errorCode), outUnicode[1]!=0x5c, isAmbiguous);
-        return;
-    }
-
-    if(outUnicode[1]!=0x5c) {
-        /* needs fixup, fix it */
-        ucnv_fixFileSeparator(cnv, outUnicode, (int32_t)(u-outUnicode));
-        if(outUnicode[1]!=0x5c) {
-            /* the fix failed */
-            log_err("error: ucnv_fixFileSeparator(%s) failed\n", ucnv_getName(cnv, &errorCode));
-            return;
-        }
-    }
-}
-
 static void TestAmbiguous()
 {
     UErrorCode status = U_ZERO_ERROR;
-    UConverter *ascii_cnv = 0, *sjis_cnv = 0, *cnv;
+    UConverter *ascii_cnv = 0, *sjis_cnv = 0;
     const char target[] = {
         /* "\\usr\\local\\share\\data\\icutest.txt" */
         0x5c, 0x75, 0x73, 0x72,
@@ -1235,22 +1188,8 @@ static void TestAmbiguous()
         0
     };
     UChar *asciiResult = 0, *sjisResult = 0;
-    int32_t asciiLength = 0, sjisLength = 0, i;
-    const char *name;
-
-    /* enumerate all converters */
-    status=U_ZERO_ERROR;
-    for(i=0; (name=ucnv_getAvailableName(i))!=NULL; ++i) {
-        cnv=ucnv_open(name, &status);
-        if(U_SUCCESS(status)) {
-            TestAmbiguousConverter(cnv);
-            ucnv_close(cnv);
-        } else {
-            log_err("error: unable to open available converter \"%s\"\n", name);
-            status=U_ZERO_ERROR;
-        }
-    }
-
+    int32_t asciiLength = 0, sjisLength = 0;
+    
     sjis_cnv = ucnv_open("ibm-943", &status);
     if (U_FAILURE(status))
     {
@@ -3761,65 +3700,6 @@ static void TestJitterbug255()
     ucnv_close(cnv);
 }
 
-
-static void TestJitterbug792()
-{
-#define U_NUM_792_CONVERTERS 3
-#define U_MAX_792_TEST_SIZE  21
-    /* FOR ICU 1.8 we have patched the UCM files. 
-      This test is to make sure there are no accidental regressions to the old mappings 
-      Some day the patch may be unnecessary, after the IBM repository catches up.
-    */
-    const char * ConverterNames [U_NUM_792_CONVERTERS] =
-    {
-    "ibm-5351", 
-    "ibm-5352", 
-    "ibm-5353"
-    };
-    const uint16_t inChars [U_NUM_792_CONVERTERS][U_MAX_792_TEST_SIZE] = 
-    {
-    {0x00A1, 0x00D7, 0x00B8, 0x00F7, 0x00BF, 0x05F3, 0x05F4,0x000},
-    {0x0679, 0xFB66, 0xFB68, 0x0688, 0xFB88, 0x06A9, 0xFB8E, 0xFB90,0x0691 ,0xFB8C,0x06BA, 0xFB9E,0x06BE, 0xFBAA,0xFBAC,0x06C1, 0xFBA6, 0xFBA8, 0x06D2, 0xFBAE, 0x000},
-    {0x00A8, 0x02C7, 0x00B8, 0x00AF, 0x02DB, 0x00B4, 0x02D9, 0x000}
-    };
-    const uint16_t * pInChars;
-    
-    const uint8_t outBytes [U_NUM_792_CONVERTERS][U_MAX_792_TEST_SIZE] =
-    {
-    {0xA1, 0xAA, 0xB8, 0xBA, 0xBF, 0xD7, 0xD8, 0x00},
-    {0x8A, 0x8A, 0x8A, 0x8F, 0x8F, 0x98, 0x98,0x98,0x9A,0x9A,0x9F,0x9F,0xAA,0xAA,0xAA,0xC0,0xC0,0xC0,0xFF,0xFF, 0x00},
-    {0x8D, 0x8E, 0x8F, 0x9D, 0x9E, 0xB4, 0xFF, 0x00}
-    };
-    uint8_t outBuffer [U_MAX_792_TEST_SIZE];
-    UErrorCode status = U_ZERO_ERROR;
-    uint8_t * pOutBuffer;
-    UConverter *cnv = 0;
-    int i;
-
-    for (i=0; i<U_NUM_792_CONVERTERS; i++)
-    {
-        cnv = ucnv_open(ConverterNames[i], &status); 
-        if (U_FAILURE(status) || cnv == 0) {
-            log_err("Failed to open the converter for %s\n", ConverterNames[i]);
-            return;
-        }
-        ucnv_setFallback(cnv, TRUE);
-        pOutBuffer = outBuffer;
-        pInChars = inChars[i];
-        ucnv_fromUnicode(cnv, 
-                &pOutBuffer, outBuffer + sizeof(outBuffer), 
-                (const UChar**)&pInChars, pInChars + u_strlen(pInChars) +1, 
-                NULL, TRUE, &status);
-        
-        if (U_FAILURE(status)) {
-            log_err("Failed to convert correctly for %s\n", ConverterNames[i]);
-        }
-        if (strcmp(outBuffer, outBytes[i])){
-            log_err("Failed to correctly convert buffer for %s\n", ConverterNames[i]);
-        }
-        ucnv_close(cnv);
-    }
-}
 static void TestEBCDICUS4XML()
 {
     UChar unicodes_x[] = {0x0000, 0x0000, 0x0000, 0x0000};

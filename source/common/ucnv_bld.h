@@ -6,8 +6,15 @@
 *
 *
 *  ucnv_bld.h:
-*  Contains internal data structure definitions
-* Created by Bertrand A. Damiba
+*  Contains all internal and external data structure definitions
+* Created & Maitained by Bertrand A. Damiba
+*
+*
+*
+* ATTENTION:
+* ---------
+* Although the data structures in this file are open and stack allocatable
+* we reserve the right to hide them in further releases.
 *
 *   Change history:
 *
@@ -25,6 +32,18 @@
 #define UCNV_ERROR_BUFFER_LENGTH 32
 
 #define UCNV_MAX_SUBCHAR_LEN 4
+#define UCNV_MAX_AMBIGUOUSCCSIDS 5
+
+/* ### move the following typedef and array into implementation files! */
+typedef struct
+{
+    int32_t ccsid;
+    UChar mismapped;
+    UChar replacement;
+} UAmbiguousConverter;
+
+extern const UAmbiguousConverter UCNV_AMBIGUOUSCONVERTERS[UCNV_MAX_AMBIGUOUSCCSIDS];
+
 
 U_CDECL_BEGIN /* We must declare the following as 'extern "C"' so that if ucnv
                  itself is compiled under C++, the linkage of the funcptrs will
