@@ -59,15 +59,7 @@ typedef struct UConverter UConverter;
 
 #ifndef __USET_H__
 
-/**
- * USet is the C API type for Unicode sets.
- * It is forward-declared here to avoid including the header file if related
- * conversion APIs are not used.
- * See unicode/uset.h
- *
- * @see ucnv_getUnicodeSet
- * @draft ICU 2.6
- */
+/* see unicode/uset.h */
 struct USet;
 typedef struct USet USet;
 

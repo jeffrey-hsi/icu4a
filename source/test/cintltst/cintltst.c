@@ -299,7 +299,7 @@ const char *  ctest_dataSrcDir()
 {
     static const char *dataSrcDir = NULL;
 
-    if(dataSrcDir) {
+    if(dataSrcDir != NULL) {
         return dataSrcDir;
     }
 
@@ -322,11 +322,10 @@ const char *  ctest_dataSrcDir()
      *             Change to    "wherever\icu\source\data"
      */
     {
-        static char p[sizeof(__FILE__) + 20];
+        static char p[sizeof(__FILE__) + 10];
         char *pBackSlash;
         int i;
 
-        dataSrcDir = p;
         strcpy(p, __FILE__);
         /* We want to back over three '\' chars.                            */
         /*   Only Windows should end up here, so looking for '\' is safe.   */
@@ -342,10 +341,7 @@ const char *  ctest_dataSrcDir()
              *  Now append "source\data" and set the environment
              */
             strcpy(pBackSlash, U_FILE_SEP_STRING "data" U_FILE_SEP_STRING );
-        }
-        else {
-            /* __FILE__ on MSVC7 does not contain the directory */
-            strcpy(p, ".."U_FILE_SEP_STRING".."U_FILE_SEP_STRING "data" U_FILE_SEP_STRING);
+            dataSrcDir = p;
         }
     }
 #endif
@@ -382,11 +378,10 @@ const char *ctest_dataOutDir()
      *             Change to    "wherever\icu\source\data"
      */
     {
-        static char p[sizeof(__FILE__) + 20];
+        static char p[sizeof(__FILE__) + 10];
         char *pBackSlash;
         int i;
 
-        dataOutDir = p;
         strcpy(p, __FILE__);
         /* We want to back over three '\' chars.                            */
         /*   Only Windows should end up here, so looking for '\' is safe.   */
@@ -402,15 +397,13 @@ const char *ctest_dataOutDir()
              *  Now append "source\data" and set the environment
              */
             strcpy(pBackSlash, U_FILE_SEP_STRING "data" U_FILE_SEP_STRING "out" U_FILE_SEP_STRING);
-        }
-        else {
-            /* __FILE__ on MSVC7 does not contain the directory */
-            strcpy(p, ".."U_FILE_SEP_STRING".."U_FILE_SEP_STRING "data" U_FILE_SEP_STRING "out" U_FILE_SEP_STRING);
+            dataOutDir = p;
         }
     }
 #endif
 
     return dataOutDir;
+
 }
 
 /*  ctest_setICU_DATA  - if the ICU_DATA environment variable is not already

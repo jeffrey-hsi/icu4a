@@ -17,9 +17,6 @@
 #include "ucln.h"
 #include "ucln_in.h"
 
-/* Leave this copyright notice here! It needs to go somewhere in this library. */
-static const char copyright[] = U_COPYRIGHT_STRING;
-
 static UBool i18n_cleanup(void)
 {
 #if !UCONFIG_NO_TRANSLITERATION
