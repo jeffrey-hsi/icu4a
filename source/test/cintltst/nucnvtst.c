@@ -30,7 +30,6 @@ void TestNewConvertWithBufferSizes(int32_t osize, int32_t isize) ;
 void TestConverterTypesAndStarters(void);
 void TestAmbiguous(void);
 void TestUTF8(void);
-void TestLMBCS(void);
 void TestJitterbug255(void);
 void TestEBCDICUS4XML(void);
 
@@ -107,7 +106,6 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestConverterTypesAndStarters, "tsconv/nucnvtst/TestConverterTypesAndStarters");
    addTest(root, &TestAmbiguous, "tsconv/nucnvtst/TestAmbiguous");
    addTest(root, &TestUTF8, "tsconv/nucnvtst/TestUTF8");
-   addTest(root, &TestLMBCS, "tsconv/nucnvtst/TestLMBCS");
    addTest(root, &TestJitterbug255, "tsconv/nucnvtst/TestJitterbug255");
    addTest(root, &TestEBCDICUS4XML, "tsconv/nucnvtst/TestEBCDICUS4XML");
 }
@@ -631,15 +629,7 @@ void TestAmbiguous()
 {
     UErrorCode status = U_ZERO_ERROR;
     UConverter *ascii_cnv = 0, *sjis_cnv = 0;
-    const char target[] = {
-        /* "\\usr\\local\\share\\data\\icutest.txt" */
-        0x5c, 0x75, 0x73, 0x72,
-        0x5c, 0x6c, 0x6f, 0x63, 0x61, 0x6c,
-        0x5c, 0x73, 0x68, 0x61, 0x72, 0x65,
-        0x5c, 0x64, 0x61, 0x74, 0x61,
-        0x5c, 0x69, 0x63, 0x75, 0x74, 0x65, 0x73, 0x74, 0x2e, 0x74, 0x78, 0x74,
-        0
-    };
+    const char *target = "\\usr\\local\\share\\data\\icutest.txt";
     UChar *asciiResult = 0, *sjisResult = 0;
     int32_t asciiLength = 0, sjisLength = 0;
     
@@ -712,8 +702,7 @@ TestUTF8() {
         0x61,
         0xc0, 0x80,
         0xe0, 0x80, 0x80,
-        0xf0, 0x80, 0x80, 0x80,
-        0xf4, 0x84, 0x8c, 0xa1
+        0xf0, 0x80, 0x80, 0x80
     };
 
     /* expected test results */
@@ -723,7 +712,6 @@ TestUTF8() {
         2, 0,
         3, 0,
         4, 0,
-        4, 0x104321
     };
 
     const char *s=(const char *)in, *s0, *limit=(const char *)in+sizeof(in);
@@ -743,7 +731,7 @@ TestUTF8() {
         if(U_FAILURE(errorCode)) {
             log_err("UTF-8 ucnv_getNextUChar() failed: %s\n", u_errorName(errorCode));
             break;
-        } else if((uint32_t)(s-s0)!=*r || c!=(UChar32)*(r+1)) {
+        } else if((uint32_t)(s-s0)!=*r || c!=*(r+1)) {
             log_err("UTF-8 ucnv_getNextUChar() result %lx from %d bytes, should have been %lx from %d bytes.\n",
                 c, (s-s0), *(r+1), *r);
             break;
@@ -754,80 +742,13 @@ TestUTF8() {
     ucnv_close(cnv);
 }
 
-void
-TestLMBCS() {
-    /* test input */
-    static const uint8_t in[]={
-        0x61,
-        0x01, 0x29,
-        0x81,
-        0xA0,
-        0x0F, 0x27,
-        0x0F, 0x91,
-        0x14, 0x0a, 0x74,
-        0x14, 0xF6, 0x02, 
-        0x10, 0x88, 0xA0,
-        0x14, 0xd8, 0x4d, /* single UTF-16 high (first) surrogate */
-        0x14, 0x01, 0x09, /* followed by a Unicode c^ */
-        0x14, 0xd8, 0x4d, 0x14, 0xdc, 0x56 /* UTF-16 surrogate pair */
-    };
-
-    /* expected test results */
-    static const uint32_t results[]={
-        /* number of bytes read, code point */
-        1, 0x0061,
-        2, 0x2013,
-        1, 0x00FC,
-        1, 0x00E1,
-        2, 0x0007,
-        2, 0x0091,
-        3, 0x0a74,
-        3, 0x0200,
-        3, 0x5516,
-        3, 0xd84d,
-        3, 0x0109,
-        6, 0x23456 /* code point for above surrogate pair */
-    };
-
-    const char *s=(const char *)in, *s0, *limit=(const char *)in+sizeof(in);
-    const uint32_t *r=results;
-
-    UErrorCode errorCode=U_ZERO_ERROR;
-    uint32_t c;
-
-    UConverter *cnv=ucnv_open("LMBCS-1", &errorCode);
-    if(U_FAILURE(errorCode)) {
-        log_err("Unable to open a LMBCS-1 converter: %s\n", u_errorName(errorCode));
-    }
-    else
-    {
-
-      while(s<limit) {
-         s0=s;
-         c=ucnv_getNextUChar(cnv, &s, limit, &errorCode);
-         if(U_FAILURE(errorCode)) {
-               log_err("LMBCS-1 ucnv_getNextUChar() failed: %s\n", u_errorName(errorCode));
-               break;
-         } else if((uint32_t)(s-s0)!=*r || c!=(UChar32)*(r+1)) {
-               log_err("LMBCS-1 ucnv_getNextUChar() result %lx from %d bytes, should have been %lx from %d bytes.\n",
-                   c, (s-s0), *(r+1), *r);
-               break;
-         }
-         r+=2;
-      }
-
-      ucnv_close(cnv);
-    }
-}
-
-
 void TestJitterbug255()
 {
     const char testBytes[] = { (char)0x95, (char)0xcf, (char)0x8a, 
                                (char)0xb7, (char)0x0d, (char)0x0a, 0x0000 };
-    const char *testBuffer = testBytes, *testEnd = testBytes+strlen(testBytes)+1;
+    char *testBuffer = (char*)testBytes, *testEnd = (char*)testBytes+strlen(testBytes)+1;
     UErrorCode status = U_ZERO_ERROR;
-    UChar32 result;
+    UChar result;
     UConverter *cnv = 0;
 
     cnv = ucnv_open("shift-jis", &status); 
@@ -876,4 +797,3 @@ void TestEBCDICUS4XML()
     }
     ucnv_close(cnv);
 }
-

@@ -147,6 +147,7 @@ ubidi_setLine(const UBiDi *pParaBiDi,
             const UBiDiLevel *levels=pLineBiDi->levels;
             UTextOffset i, trailingWSStart;
             UBiDiLevel level;
+            Flags flags=0;
 
             setTrailingWSStart(pLineBiDi);
             trailingWSStart=pLineBiDi->trailingWSStart;
@@ -565,7 +566,7 @@ reorderLine(UBiDi *pBiDi, UBiDiLevel minLevel, UBiDiLevel maxLevel) {
     Run *runs;
     UBiDiLevel *levels;
     UTextOffset firstRun, endRun, limitRun, runCount,
-	temp;
+          temp, trailingWSStart=pBiDi->trailingWSStart;
 
     /* nothing to do? */
     if(maxLevel<=(minLevel|1)) {
@@ -893,13 +894,13 @@ ubidi_getLogicalIndex(UBiDi *pBiDi, UTextOffset visualIndex, UErrorCode *pErrorC
                     for(i=0; visualIndex>=runs[i].visualLimit; ++i) {}
                 } else {
                     /* binary search for the run */
-                    UTextOffset begin=0, limit=runCount;
+                    UTextOffset start=0, limit=runCount;
 
                     /* the middle if() will guaranteed find the run, we don't need a loop limit */
                     for(;;) {
-                        i=(begin+limit)/2;
+                        i=(start+limit)/2;
                         if(visualIndex>=runs[i].visualLimit) {
-                            begin=i+1;
+                            start=i+1;
                         } else if(i==0 || visualIndex>=runs[i-1].visualLimit) {
                             break;
                         } else {

@@ -35,6 +35,9 @@
 #include "unicode/dcfmtsym.h"
 #include "mutex.h"
 #include <float.h>
+#ifdef _DEBUG
+#include <iostream.h>
+#endif
 
 // *****************************************************************************
 // class SimpleDateFormat
@@ -260,7 +263,7 @@ void SimpleDateFormat::construct(EStyle timeStyle,
 
     // load up the DateTimePatters resource from the appropriate locale (throw
     // an error if for some weird reason the resource is malformed)
-    ResourceBundle resources(u_getDataDirectory(), locale, status);
+    ResourceBundle resources(Locale::getDataDirectory(), locale, status);
     int32_t dtCount;
     const UnicodeString *dateTimePatterns = resources.getStringArray(fgDateTimePatternsTag, dtCount, status);
     if (U_FAILURE(status)) return;
@@ -414,7 +417,7 @@ SimpleDateFormat::format(UDate date, UnicodeString& toAppendTo, FieldPosition& p
             // Consecutive single quotes are a single quote literal,
             // either outside of quotes or between quotes
             if ((i+1) < fPattern.length() && fPattern[i+1] == 0x0027 /*'\''*/) {
-                toAppendTo += (UChar)0x0027 /*'\''*/;
+                toAppendTo += 0x0027 /*'\''*/;
                 ++i;
             } else {
                 inQuote = ! inQuote;
@@ -614,7 +617,7 @@ SimpleDateFormat::subFormat(UnicodeString& result,
                 zoneString += fgGmtPlus;
             
             zoneString += zeroPaddingNumber(str, (int32_t)(value/U_MILLIS_PER_HOUR), 2, 2);
-            zoneString += (UChar)0x003A /*':'*/;
+            zoneString += 0x003A /*':'*/;
             zoneString += zeroPaddingNumber(str, (int32_t)((value%U_MILLIS_PER_HOUR)/U_MILLIS_PER_MINUTE), 2, 2);
             
             result = zoneString;

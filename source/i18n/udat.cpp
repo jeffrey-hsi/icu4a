@@ -36,7 +36,7 @@ udat_open(            UDateFormatStyle        timeStyle,
   else
     fmt = DateFormat::createDateTimeInstance((DateFormat::EStyle)dateStyle,
                          (DateFormat::EStyle)timeStyle,
-                                             Locale(locale));
+                         Locale().init(locale));
   
   if(fmt == 0) {
     *status = U_MEMORY_ALLOCATION_ERROR;
@@ -77,7 +77,7 @@ udat_openPattern(    const   UChar           *pattern,
   else
     retVal = (UDateFormat*)new SimpleDateFormat(UnicodeString((UChar*)pattern,
                                   len, len),
-                        Locale(locale),
+                        Locale().init(locale),
                         *status);
 
   if(retVal == 0) {

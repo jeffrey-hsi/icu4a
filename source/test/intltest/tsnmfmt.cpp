@@ -104,17 +104,10 @@ IntlTestNumberFormat::testFormat(char *par)
 
     if (1)
     {
-#ifdef OS390
-        tryIt(-2.02147304840132e-68);
-        tryIt(3.88057859588817e-68); // Test rounding when only some digits are shown because exponent is close to -maxfrac
-        tryIt(-2.64651110485945e+65); // Overflows to +INF when shown as a percent
-        tryIt(9.29526819488338e+64); // Ok -- used to fail?
-#else
         tryIt(-2.02147304840132e-100);
         tryIt(3.88057859588817e-096); // Test rounding when only some digits are shown because exponent is close to -maxfrac
         tryIt(-2.64651110485945e+306); // Overflows to +INF when shown as a percent
         tryIt(9.29526819488338e+250); // Ok -- used to fail?
-#endif
     }
 
     if (1)
@@ -124,37 +117,28 @@ IntlTestNumberFormat::testFormat(char *par)
         // These fail due to round-off
         // The least significant digit drops by one during each format-parse cycle.
         // Both numbers DON'T have a round-off problem when multiplied by 100! (shown as %)
-#ifdef OS390
-        tryIt(-9.18228054496402e+64);
-        tryIt(-9.69413034454191e+64);
-#else
         tryIt(-9.18228054496402e+255);
         tryIt(-9.69413034454191e+273);
-#endif
     }
 
     if (1)
     {
-        tryIt((int32_t)251887531);
-#ifndef OS390
+        tryIt(T_INT32(251887531));
         tryIt(-2.3e-168);
 
         tryIt(uprv_getNaN());
         tryIt(uprv_getInfinity());
         tryIt(-uprv_getInfinity());
-#endif
 
         tryIt(5e-20 / 9);
         tryIt(5e20 / 9);
-#ifndef OS390
         tryIt(1.234e-200);
-#endif
         tryIt(1.234e-50);
         tryIt(9.99999999999996);
         tryIt(9.999999999999996);
 
-        tryIt((int32_t)INT32_MIN);
-        tryIt((int32_t)INT32_MAX);
+        tryIt((int32_t)LONG_MIN);
+        tryIt((int32_t)LONG_MAX);
         tryIt((double)LONG_MIN);
         tryIt((double)LONG_MAX);
         tryIt((double)LONG_MIN - 1.0);
@@ -166,7 +150,7 @@ IntlTestNumberFormat::testFormat(char *par)
         tryIt(4.0 / 9.0 * 1e+20);
 
         tryIt(2147483647.);
-        tryIt((int32_t)0);
+        tryIt(T_INT32(0));
         tryIt(0.0);
         tryIt((int32_t)1);
         tryIt((int32_t)10);
@@ -187,20 +171,18 @@ IntlTestNumberFormat::testFormat(char *par)
         double it = randDouble() * 10000;
         tryIt(0.0);
         tryIt(it);
-        tryIt((int32_t)0);
-        tryIt((int32_t)uprv_floor(it));
+        tryIt(T_INT32(0));
+        tryIt(T_INT32(uprv_floor(it)));
 
         // try again
         it = randDouble() * 10;
         tryIt(it);
-        tryIt((int32_t)uprv_floor(it));
+        tryIt(T_INT32(uprv_floor(it)));
 
-#ifndef OS390
         // try again with very larget numbers
         it = randDouble() * 10000000000.0;
         tryIt(it);
-        tryIt((int32_t)uprv_floor(it));
-#endif
+        tryIt(T_INT32(uprv_floor(it)));
     }
 
     delete fFormat;
@@ -352,7 +334,7 @@ void IntlTestNumberFormat::testAvailableLocales(char *par)
         for (int32_t i=0; i<count; ++i)
         {
             if (i!=0) all += ", ";
-            all += locales[i].getName();
+            all += locales[i].getName(name);
         }
         logln(all);
     }
@@ -372,7 +354,8 @@ void IntlTestNumberFormat::monsterTest(char *par)
         }
         for (int32_t i=0; i<count; ++i)
         {
-            UnicodeString name(locales[i].getName(), "");
+            UnicodeString name;
+            locales[i].getName(name);
             logln(SEP);
             testLocale(par, locales[i], name);
         }

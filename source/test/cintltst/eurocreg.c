@@ -113,7 +113,6 @@ bool_t isEuroAware(const UConverter* myConv)
 	  target,
 			       2,
 			       euroString,
-                   -1,
 			       &err);
   if (U_FAILURE(err))
     {

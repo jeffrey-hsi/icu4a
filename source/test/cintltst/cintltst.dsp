@@ -175,10 +175,6 @@ SOURCE=.\cg7coll.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\chashtst.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\cintltst.c
 # End Source File
 # Begin Source File
@@ -248,10 +244,6 @@ SOURCE=.\nucnvtst.c
 # Begin Source File
 
 SOURCE=.\susctest.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\udatatst.c
 # End Source File
 # End Group
 # Begin Group "Header Files"

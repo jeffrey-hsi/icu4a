@@ -9,12 +9,12 @@
 * Modification History:
 *
 *   Date        Name        Description
-*   08/21/98    stephen     Creation.
+*   08/21/98    stephen	    Creation.
 *******************************************************************************
 */
 
-#include <stdio.h>
-#include <float.h>              // DBL_MAX
+#include <iostream.h>		// cout, cerr
+#include <float.h>		// DBL_MAX
 
 #include "ieeetest.h"
 #include "unicode/utypes.h"
@@ -32,23 +32,23 @@ main(int argc,
     if(argv[i][0] == '-') {
       switch(argv[i][1]) {
       case 'v':
-        flags += IEEETest::kVerboseMode;
-        break;
-                                
+	flags += IEEETest::kVerboseMode;
+	break;
+				
       case '?':
       case 'h':
       case 'H':
-        usage(argv[0]);
-        return 0;
-        break;
+	usage(argv[0]);
+	return 0;
+	break;
 
       default:
-        break;
+	break;
       }
     }
   }
 
-  IEEETest test(flags); 
+  IEEETest test(flags);	
 
   return test.run();
 }
@@ -58,9 +58,10 @@ main(int argc,
 void
 usage(const char *execName)
 {
-  fprintf(stdout, "usage: %s [flags]\n\n"
-      "Flags:\n"
-       "-v  Verbose mode\n", execName);
+  cout << endl;
+  cout << "usage: " <<  execName << " [flags]" << endl << endl;
+  cout << "Flags:" << endl;
+  cout << " -v  Verbose mode" << endl;
 }
 
 //==============================
@@ -93,7 +94,7 @@ IEEETest::run(void)
   errCount += runTest("+Infinity behavior", &IEEETest::testPositiveInfinity);
   errCount += runTest("-Infinity behavior", &IEEETest::testNegativeInfinity);
   errCount += runTest("Zero behavior", &IEEETest::testZero);
-        
+	
   decreaseTestLevel();
   if(errCount == 0)
     log("IEEETest Passed");
@@ -104,7 +105,7 @@ IEEETest::run(void)
   logln();
 
   if(errCount == 0 && ! (mFlags & kVerboseMode))
-    fprintf(stdout, "\nAll tests passed without error.\n");
+    cout << endl << "All tests passed without error." << endl;
 
   return errCount;
 }
@@ -112,7 +113,7 @@ IEEETest::run(void)
 //==============================
 int
 IEEETest::runTest(const char *testName, 
-                  int (IEEETest::*testFunc)(void))
+		  int (IEEETest::*testFunc)(void))
 {
   logln().log("Running test ").log(testName).logln();
   increaseTestLevel();
@@ -160,13 +161,13 @@ IEEETest::testNaN(void)
 
 //==============================
 
-int                     
+int			
 IEEETest::testPositiveInfinity(void)
 {
   int errCount = 0;
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        ten             = 10.0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	ten		= 10.0;
 
   if(uprv_isInfinite(pinf) != TRUE) {
     err("FAIL: isInfinite(+Infinity) returned FALSE, should be TRUE.").errln();
@@ -208,13 +209,13 @@ IEEETest::testPositiveInfinity(void)
 
 //==============================
 
-int                     
+int			
 IEEETest::testNegativeInfinity(void)
 {
   int errCount = 0;
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        ten                     = 10.0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	ten			= 10.0;
 
   if(uprv_isInfinite(ninf) != TRUE) {
     err("FAIL: isInfinite(-Infinity) returned FALSE, should be TRUE.").errln();
@@ -260,13 +261,13 @@ IEEETest::testNegativeInfinity(void)
 // -0.0 == 0.0 == TRUE
 // -0.0 <  0.0 == FALSE
 // generating -0.0 must be done at runtime.  compiler apparently ignores sign?
-int                     
+int			
 IEEETest::testZero(void)
 {
   int errCount = 0;
-  double        ten                     = 10.0;
-  double        pzero           = 0.0;
-  double        nzero           = 0.0;
+  double	ten			= 10.0;
+  double	pzero		= 0.0;
+  double	nzero		= 0.0;
 
   nzero *= -1;
 
@@ -323,11 +324,11 @@ IEEETest::testZero(void)
 int
 IEEETest::testIsNaN(void)
 {
-  int numErrors = 0;
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        nan                     = uprv_getNaN();
-  double        ten                     = 10.0;
+  int numErrors	= 0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	nan			= uprv_getNaN();
+  double	ten			= 10.0;
 
   if(uprv_isNaN(nan) == FALSE) {
     err("FAIL: isNaN() returned FALSE for NaN.").errln();
@@ -357,11 +358,11 @@ IEEETest::testIsNaN(void)
 int
 IEEETest::NaNGT(void)
 {
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        nan                     = uprv_getNaN();
-  double        ten                     = 10.0;
-  int numErrors = 0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	nan			= uprv_getNaN();
+  double	ten			= 10.0;
+  int numErrors	= 0;
 
   if(nan > nan != FALSE) {
     log("WARNING: NaN > NaN returned TRUE, should be FALSE").logln();
@@ -384,14 +385,14 @@ IEEETest::NaNGT(void)
 
 //==============================
 
-int                             
+int				
 IEEETest::NaNLT(void)
 {
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        nan                     = uprv_getNaN();
-  double        ten                     = 10.0;
-  int numErrors = 0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	nan			= uprv_getNaN();
+  double	ten			= 10.0;
+  int numErrors	= 0;
 
   if(nan < nan != FALSE) {
     log("WARNING: NaN < NaN returned TRUE, should be FALSE").logln();
@@ -414,14 +415,14 @@ IEEETest::NaNLT(void)
 
 //==============================
 
-int                             
+int				
 IEEETest::NaNGTE(void)
 {
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        nan                     = uprv_getNaN();
-  double        ten                     = 10.0;
-  int numErrors = 0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	nan			= uprv_getNaN();
+  double	ten			= 10.0;
+  int numErrors	= 0;
 
   if(nan >= nan != FALSE) {
     log("WARNING: NaN >= NaN returned TRUE, should be FALSE").logln();
@@ -444,14 +445,14 @@ IEEETest::NaNGTE(void)
 
 //==============================
 
-int                             
+int				
 IEEETest::NaNLTE(void)
 {
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        nan                     = uprv_getNaN();
-  double        ten                     = 10.0;
-  int numErrors = 0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	nan			= uprv_getNaN();
+  double	ten			= 10.0;
+  int numErrors	= 0;
 
   if(nan <= nan != FALSE) {
     log("WARNING: NaN <= NaN returned TRUE, should be FALSE").logln();
@@ -474,14 +475,14 @@ IEEETest::NaNLTE(void)
 
 //==============================
 
-int                             
+int				
 IEEETest::NaNE(void)
 {
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        nan                     = uprv_getNaN();
-  double        ten                     = 10.0;
-  int numErrors = 0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	nan			= uprv_getNaN();
+  double	ten			= 10.0;
+  int numErrors	= 0;
 
   if(nan == nan != FALSE) {
     log("WARNING: NaN == NaN returned TRUE, should be FALSE").logln();
@@ -504,14 +505,14 @@ IEEETest::NaNE(void)
 
 //==============================
 
-int                             
+int				
 IEEETest::NaNNE(void)
 {
-  double        pinf            = uprv_getInfinity();
-  double        ninf            = -uprv_getInfinity();
-  double        nan                     = uprv_getNaN();
-  double        ten                     = 10.0;
-  int numErrors = 0;
+  double	pinf		= uprv_getInfinity();
+  double	ninf		= -uprv_getInfinity();
+  double	nan			= uprv_getNaN();
+  double	ten			= 10.0;
+  int numErrors	= 0;
 
   if(nan != nan != TRUE) {
     log("WARNING: NaN != NaN returned FALSE, should be TRUE").logln();
@@ -540,10 +541,10 @@ IEEETest::log(char c)
   if(mFlags & kVerboseMode) {
     if(mNeedLogIndent) {
       for(int j = 0; j < 2 * getTestLevel(); ++j)
-        fputc(' ', stdout);
+	cout << ' ';
       mNeedLogIndent = FALSE;
     }
-    fputc(c, stdout);
+    cout << c;
   }
   return *this;
 }
@@ -556,10 +557,10 @@ IEEETest::log(const char *s)
   if(mFlags & kVerboseMode) {
     if(mNeedLogIndent) {
       for(int j = 0; j < 2 * getTestLevel(); ++j)
-        fputc(' ', stdout);
+	cout << ' ';
       mNeedLogIndent = FALSE;
     }
-    fprintf(stdout, "%s", s);
+    cout << s;
   }
   return *this;
 }
@@ -572,10 +573,10 @@ IEEETest::log(int i)
   if(mFlags & kVerboseMode) {
     if(mNeedLogIndent) {
       for(int j = 0; j < 2 * getTestLevel(); ++j)
-        fputc(' ', stdout);
+	cout << ' ';
       mNeedLogIndent = FALSE;
     }
-    fprintf(stdout, "%d", i);
+    cout << i;
   }
   return *this;
 }
@@ -588,10 +589,10 @@ IEEETest::log(long l)
   if(mFlags & kVerboseMode) {
     if(mNeedLogIndent) {
       for(int j = 0; j < 2 * getTestLevel(); ++j)
-        fputc(' ', stdout);
+	cout << ' ';
       mNeedLogIndent = FALSE;
     }
-    fprintf(stdout, "%ld", l);
+    cout << l;
   }
   return *this;
 }
@@ -604,10 +605,10 @@ IEEETest::log(double d)
   if(mFlags & kVerboseMode) {
     if(mNeedLogIndent) {
       for(int j = 0; j < 2 * getTestLevel(); ++j)
-        fputc(' ', stdout);
+	cout << ' ';
       mNeedLogIndent = FALSE;
     }
-    fprintf(stdout, "%g", d);
+    cout << d;
   }
   return *this;
 }
@@ -618,7 +619,7 @@ IEEETest&
 IEEETest::logln(void)
 {
   if(mFlags & kVerboseMode)
-    fputc('\n', stdout);
+    cout << endl;
   mNeedLogIndent = TRUE;
   return *this;
 }
@@ -630,10 +631,10 @@ IEEETest::err(char c)
 {
   if(mNeedErrIndent) {
     for(int j = 0; j < 2 * getTestLevel(); ++j)
-      fputc(' ', stderr);
+      cerr << ' ';
     mNeedErrIndent = FALSE;
   }
-  fputc(c, stderr);
+  cerr << c;
   return *this;
 }
 
@@ -644,10 +645,10 @@ IEEETest::err(const char *s)
 {
   if(mNeedErrIndent) {
     for(int j = 0; j < 2 * getTestLevel(); ++j)
-      fputc(' ', stderr);
+      cerr << ' ';
     mNeedErrIndent = FALSE;
   }
-  fprintf(stderr, "%s", s);
+  cerr << s;
   return *this;
 }
 
@@ -658,10 +659,10 @@ IEEETest::err(int i)
 {
   if(mNeedErrIndent) {
     for(int j = 0; j < 2 * getTestLevel(); ++j)
-        fputc(' ', stderr);
+      cerr << ' ';
     mNeedErrIndent = FALSE;
   }
-  fprintf(stderr, "%d", i);
+  cerr << i;
   return *this;
 }
 
@@ -672,10 +673,10 @@ IEEETest::err(long l)
 {
   if(mNeedErrIndent) {
     for(int j = 0; j < 2 * getTestLevel(); ++j)
-        fputc(' ', stderr);
+      cerr << ' ';
     mNeedErrIndent = FALSE;
   }
-  fprintf(stderr, "%ld", l);
+  cerr << l;
   return *this;
 }
 
@@ -686,10 +687,10 @@ IEEETest::err(double d)
 {
   if(mNeedErrIndent) {
     for(int j = 0; j < 2 * getTestLevel(); ++j)
-        fputc(' ', stderr);
+      cerr << ' ';
     mNeedErrIndent = FALSE;
   }
-  fprintf(stderr, "%g", d);
+  cerr << d;
   return *this;
 }
 
@@ -698,7 +699,7 @@ IEEETest::err(double d)
 IEEETest& 
 IEEETest::errln(void)
 {
-  fputc('\n', stderr);
+  cerr << endl;
   mNeedErrIndent = TRUE;
   return *this;
 }

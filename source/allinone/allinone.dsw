@@ -66,7 +66,7 @@ Package=<4>
     Project_Dep_Name ieeetest
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gentest
+    Project_Dep_Name testmap
     End Project Dependency
 }}}
 
@@ -97,9 +97,6 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name genrb
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name gentest
     End Project Dependency
 }}}
 
@@ -260,27 +257,6 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name makeconv
     End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name ustdio
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "gentest"=..\tools\gentest\gentest.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name common
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name toolutil
-    End Project Dependency
 }}}
 
 ###############################################################################
@@ -431,8 +407,23 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name makeconv
     End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "testmap"=..\test\testmap\testmap.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
     Begin Project Dependency
-    Project_Dep_Name gentest
+    Project_Dep_Name common
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name makedata
     End Project Dependency
 }}}
 

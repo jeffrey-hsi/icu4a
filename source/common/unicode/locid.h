@@ -20,8 +20,7 @@
 *   04/24/97    aliu        Numerous changes per code review.
 *   08/18/98    stephen     Added tokenizeString(),changed getDisplayName()
 *   09/08/98    stephen     Moved definition of kEmptyString for Mac Port
-*   11/09/99	weiv        Added const char * getName() const;
-*   04/12/00    srl         removing unicodestring api's and cached hash code
+*	11/09/99	weiv		Added const char * getName() const;
 *****************************************************************************************
 */
 
@@ -49,13 +48,18 @@ typedef struct UHashtable UHashtable;
  * region, or culture.
  *
  * <P>
- * You create a <code>Locale</code> object using the constructor in
+ * You create a <code>Locale</code> object using one of the three constructors in
  * this class:
  * <blockquote>
  * <pre>
- * .      Locale( const   char*  language, 
- * .              const   char*  country, 
- * .              const   char*  variant);
+ * .      Locale( const   UnicodeString&  newLanguage);
+ * .
+ * .      Locale( const   UnicodeString&  language, 
+ * .              const   UnicodeString&  country);
+ * .
+ * .      Locale( const   UnicodeString&  language, 
+ * .              const   UnicodeString&  country, 
+ * .              const   UnicodeString&  variant);
  * </pre>
  * </blockquote>
  * The first argument to the constructors is a valid <STRONG>ISO
@@ -196,7 +200,7 @@ public:
     static const Locale KOREA;
     static const Locale CHINA;      // Alias for PRC
     static const Locale PRC;        // Peoples Republic of China
-    static const Locale TAIWAN;
+    static const Locale TAIWAN;     // Republic of China
     static const Locale UK;
     static const Locale US;
     static const Locale CANADA;
@@ -205,7 +209,6 @@ public:
    /**
     * Construct an empty locale. It's only used when a fill-in parameter is
     * needed.
-    * @stable
     */
                                 Locale(); 
 
@@ -216,57 +219,28 @@ public:
      * @param country  Uppercase two-letter ISO-3166 code. (optional)
      * @param variant  Uppercase vendor and browser specific code. See class
      *                 description. (optional)
-     * @draft
-     */
-                                Locale( const   char * language,
-                                        const   char * country  = 0, 
-                                        const   char * variant  = 0);
-#ifndef ICU_LOCID_NO_DEPRECATES
-    /**
-     * Construct a locale from language, country, variant.
-     *
-     * @param language Lowercase two-letter ISO-639 code.
-     * @param country  Uppercase two-letter ISO-3166 code. (optional)
-     * @param variant  Uppercase vendor and browser specific code. See class
-     *                 description. (optional)
-     * @deprecated Remove in the first release of 2001.
      */
                                 Locale( const   UnicodeString&  language, 
                                         const   UnicodeString&  country , 
                                         const   UnicodeString&  variant );
 
-     /**
-     * Construct a locale from language, country.
-     *
-     * @param language Lowercase two-letter ISO-639 code.
-     * @param country  Uppercase two-letter ISO-3166 code. (optional)
-     * @deprecated Remove in the first release of 2001.
-     */
-               Locale( const   UnicodeString&  language, 
+                Locale( const   UnicodeString&  language, 
                                         const   UnicodeString&  country );
                 
-    /**
-     * Construct a locale from language.
-     *
-     * @param language Lowercase two-letter ISO-639 code.
-     * @deprecated Remove in the first release of 2001.
-     */
                 Locale( const   UnicodeString&  language);
 
 
-#endif // ICU_LOCID_NO_DEPRECATES
+
     /**
      * Initializes a Locale object from another Locale object.
      *
      * @param other The Locale object being copied in.
-     * @stable
      */
                                 Locale(const    Locale& other);
 
 
     /**
      * Destructor
-     * @stable
      */
                                 ~Locale() ;
                   
@@ -275,7 +249,6 @@ public:
      *
      * @param other The Locale object being copied in.
      * @return      *this
-     * @stable
      */
     Locale&                     operator=(const Locale& other);
 
@@ -284,7 +257,6 @@ public:
      *
      * @param other The locale key object to be compared with this.
      * @return      True if the two locale keys are the same, false otherwise.
-     * @stable
      */
                 bool_t          operator==(const    Locale&     other) const;   
 
@@ -294,7 +266,6 @@ public:
      * @param other The locale key object to be compared with this.
      * @return      True if the two locale keys are not the same, false
      *              otherwise.
-     * @stable
      */
                 bool_t          operator!=(const    Locale&     other) const;
 
@@ -309,8 +280,6 @@ public:
      * different fields, e.g. in a spreadsheet.
      *
      * Note that the initial setting will match the host system.
-     * @system
-     * @stable
      */
     static  Locale&             getDefault(void);
 
@@ -319,77 +288,26 @@ public:
      * application, then never reset. setDefault does NOT reset the host locale.
      *
      * @param newLocale Locale to set to.
-     * @system
-     * @stable
      */
     static      void            setDefault(const    Locale&     newLocale,
                                                     UErrorCode&  success);
 
     /**
-     * Returns the locale's two-letter ISO-639 language code.
-     * @return      An alias to the code
-     * @draft
-     */
-                const char *  getLanguage( ) const;
-    /**
-     * Returns the locale's two-letter ISO-3166 country code.
-     * @return      An alias to the code
-     * @draft
-     */
-                const char *   getCountry( ) const;
-    /**
-     * Returns the locale's variant code.
-     * @return      An alias to the code
-     * @draft
-     */
-                const char *  getVariant( ) const;
-
-    /**
-     * Returns the programmatic name of the entire locale, with the language,
-     * country and variant separated by underbars. If a field is missing, up
-     * to two leading underbars will occur. Example: "en", "de_DE", "en_US_WIN",
-     * "de__POSIX", "fr__MAC", "__MAC", "_MT", "_FR_EURO"
-     * @return      A pointer to "name".
-     */
-                const char * getName() const;
-
-    /**
-     * returns the locale's three-letter language code, as specified
-     * in ISO draft standard ISO-639-2..
-     * @return      An alias to the code, or NULL
-     * @draft
-     */
-                const char * getISO3Language() const;
-
-    /**
-     * Fills in "name" with the locale's three-letter ISO-3166 country code.
-     * @return      An alias to the code, or NULL
-     * @draft
-     */
-                const char * getISO3Country() const;
-
-#ifndef ICU_LOCID_NO_DEPRECATES
-// begin deprecated versions
-
-    /**
      * Fills in "lang" with the locale's two-letter ISO-639 language code.
      * @param lang  Receives the language code.
-     * @return      A reference to "lang"
-     * @deprecated Remove in the first release of 2001.
+     * @return      A reference to "lang".
      */
-                UnicodeString&    getLanguage(        UnicodeString&  lang) const;
+                UnicodeString&  getLanguage(        UnicodeString&  lang) const;
     /**
      * Fills in "cntry" with the locale's two-letter ISO-3166 country code.
      * @param cntry Receives the country code.
      * @return      A reference to "cntry".
-     * @deprecated Remove in the first release of 2001.
      */
-                UnicodeString&   getCountry(         UnicodeString&  cntry) const;
+                UnicodeString&  getCountry(         UnicodeString&  cntry) const;
     /**
      * Fills in "var" with the locale's variant code.
      * @param var   Receives the variant code.
      * @return      A reference to "var".
-     * @deprecated Remove in the first release of 2001.
      */
                 UnicodeString&  getVariant(         UnicodeString&  var) const;
 
@@ -400,10 +318,17 @@ public:
      * "de_POSIX", "fr_MAC"
      * @param var   Receives the programmatic locale name.
      * @return      A reference to "name".
-     * @deprecated Remove in the first release of 2001.
      */
                 UnicodeString&  getName(        UnicodeString&  name) const;
 
+	/**
+     * Returns the programmatic name of the entire locale, with the language,
+     * country and variant separated by underbars. If a field is missing, at
+     * most one underbar will occur. Example: "en", "de_DE", "en_US_WIN",
+     * "de_POSIX", "fr_MAC"
+     * @return      A pointer to "name".
+     */
+				const char * getName() const;
 
     /**
      * Fills in "name" with the locale's three-letter language code, as specified
@@ -411,27 +336,28 @@ public:
      * @param name  Receives the three-letter language code.
      * @param status An UErrorCode to receive any MISSING_RESOURCE_ERRORs
      * @return      A reference to "name".
-     * @deprecated Remove in the first release of 2001.
      */
                 UnicodeString&  getISO3Language(UnicodeString&  name, UErrorCode& status) const;
+
+    // this version is deprecated, use getISO3Language(UnicodeString&, UErrorCode&)
+                UnicodeString&  getISO3Language(UnicodeString&  name) const;
 
     /**
      * Fills in "name" with the locale's three-letter ISO-3166 country code.
      * @param name  Receives the three-letter country code.
      * @param status An UErrorCode to receive any MISSING_RESOURCE_ERRORs
      * @return      A reference to "name".
-     * @deprecated Remove in the first release of 2001.
      */
                 UnicodeString&  getISO3Country( UnicodeString&  name, UErrorCode& status) const;
 
-// END deprecated [ ICU_LOCID_NO_DEPRECATES ]
-#endif // ICU_LOCID_NO_DEPRECATES
+    // this version is deprecated, use getISO3Country(UnicodeString&, UErrorCode&);
+                UnicodeString&  getISO3Country( UnicodeString&  name) const;
+
     /**
      * Returns the Windows LCID value corresponding to this locale.
      * This value is stored in the resource data for the locale as a one-to-four-digit
      * hexadecimal number.  If the resource is missing, in the wrong format, or
      * there is no Windows LCID value that corresponds to this locale, returns 0.
-     * @stable
      */
                 uint32_t        getLCID(void) const;
 
@@ -442,7 +368,6 @@ public:
      * dispLang to "French".
      * @param dispLang  Receives the language's display name.
      * @return          A reference to "dispLang".
-     * @stable
      */
                 UnicodeString&  getDisplayLanguage(UnicodeString&   dispLang) const;
 
@@ -457,7 +382,6 @@ public:
      *                  for inLocale would result in "Englisch".
      * @param dispLang  Receives the language's display name.
      * @return          A reference to "dispLang".
-     * @stable
      */
                 UnicodeString&  getDisplayLanguage( const   Locale&         inLocale,
                                                             UnicodeString&  dispLang) const;
@@ -468,7 +392,6 @@ public:
      * dispCountry to "France".
      * @param dispCountry   Receives the country's display name.
      * @return              A reference to "dispCountry".
-     * @stable
      */
                 UnicodeString&  getDisplayCountry(          UnicodeString& dispCountry) const;
     /**
@@ -483,7 +406,6 @@ public:
      *                      "Vereinigte Staaten".
      * @param dispCountry   Receives the country's display name.
      * @return              A reference to "dispCountry".
-     * @stable
      */
                 UnicodeString&  getDisplayCountry(  const   Locale&         inLocale,
                                                             UnicodeString&  dispCountry) const;
@@ -493,7 +415,6 @@ public:
      * for user display in the default locale.
      * @param dispVar   Receives the variant's name.
      * @return          A reference to "dispVar".
-     * @stable
      */
                 UnicodeString&  getDisplayVariant(      UnicodeString& dispVar) const;
     /**
@@ -502,7 +423,6 @@ public:
      * @param inLocale  Specifies the locale to be used to display the name.
      * @param dispVar   Receives the variant's display name.
      * @return          A reference to "dispVar".
-     * @stable
      */
                 UnicodeString&  getDisplayVariant(  const   Locale&         inLocale,
                                                             UnicodeString&  dispVar) const;
@@ -515,7 +435,6 @@ public:
      * would be "Spanish (Mexico,Traditional)".
      * @param name  Receives the locale's display name.
      * @return      A reference to "name".
-     * @stable
      */
                 UnicodeString&  getDisplayName(         UnicodeString&  name) const;
     /**
@@ -528,13 +447,12 @@ public:
      * @param inLocale  Specifies the locale to be used to display the name.
      * @param name      Receives the locale's display name.
      * @return          A reference to "name".
-     * @stable
      */
                 UnicodeString&  getDisplayName( const   Locale&         inLocale,
                                                         UnicodeString&  name) const;
     /**
-     * Generates a hash code for the locale.
-     * @stable
+     * Generates a hash code for the locale. Since Locales are often used in hashtables, 
+     * caches the value for speed.
      */
                 int32_t         hashCode(void) const;
 
@@ -544,39 +462,15 @@ public:
      * @return      A pointer to an array of Locale objects.  This array is the list
      *              of all locales with installed resource files.  The called does NOT
      *              get ownership of this list, and must NOT delete it.
-     * @stable
      */
     static  const   Locale*     getAvailableLocales(int32_t& count);
 
-    /**
-     * Gets a list of all available 2-letter country codes defined in ISO 639.  This is a
-     * pointer to an array of pointers to arrays of char.  All of these pointers are
-     * owned by ICU-- do not delete them, and do not write through them.  The array is
-     * terminated with a null pointer.
-     * @return a list of all available country codes
-     * @draft
-     */
-    static const char* const* getISOCountries();
-
-    /**
-     * Gets a list of all available language codes defined in ISO 639.  This is a pointer
-     * to an array of pointers to arrays of char.  All of these pointers are owned
-     * by ICU-- do not delete them, and do not write through them.  The array is
-     * terminated with a null pointer.
-     * @return a list of all available language codes
-     * @draft
-     */
-    static const char* const*  getISOLanguages();
-
-
-#ifndef ICU_LOCID_NO_DEPRECATES
     /**
      * Returns a list of all 2-letter country codes defined in ISO 3166.
      * Can be used to create Locales.
      * @param count Receives the number of countries in the list.
      * @return A pointer to an array of UnicodeString objects. The caller does NOT
      *  get ownership of this list, and must NOT delete it.
-     * @deprecated Remove in the first release of 2001.
      */
     static const UnicodeString* getISOCountries(int32_t& count);
 
@@ -589,12 +483,34 @@ public:
      * @param count Receives the number of languages in the list.
      * @return A pointer to an array of UnicodeString objects. The caller does NOT
      *  get ownership of this list, and must NOT delete it.
-     * @deprecated Remove in the first release of 2001.
      */
     static const UnicodeString* getISOLanguages(int32_t& count);
-#endif // ICU_LOCID_NO_DEPRECATES
+    
+    /**
+     * Deprecated 1999dec14 - Get the path to the ResourceBundle locale files. This path will be a
+     * platform-specific path name ending in a directory separator, so that file
+     * names may be concatenated to it. This path may be changed by calling
+     * setDataDirectory(). If setDataDirectory() has not been called yet,
+     * getDataDirectory() will return a platform-dependent default path as
+     * specified by TPlatformUtilities::getDefaultDataDirectory().
+     *
+     * @return Current data path.
+     */
+    static  const   char*       getDataDirectory(void);
+
+    /**
+     * Deprecated 1999dec14 - Set the path to the ResourceBundle locale files. After making this call,
+     * all objects in the Unicode Analytics package will read ResourceBundle
+     * data files in the specified directory in order to obtain locale data.
+     *
+     * @param path The new data path to be set to.
+     */
+    static  void                setDataDirectory(const char* path);
+
+    Locale& init(const char* cLocaleID);
     
 protected: // only protected for testing purposes. DO NOT USE.
+    void setFromPOSIXID(const UnicodeString& posixID); // set it from a single string.
     void setFromPOSIXID(const char *posixID); // set it from a single string.
 
     /**
@@ -617,38 +533,30 @@ protected: // only protected for testing purposes. DO NOT USE.
 
 
 private:
+    
     /**
-     * Initialize the locale object with a new name.
-     * Was deprecated - used in implementation - moved internal
-     *
-     * @param cLocaleID The new locale name.
+     * Initializes a Locale object from a ULocale struct, which is the C locale object,
+     * and where the actual implementation is.
      */
-    Locale& init(const char* cLocaleID);
     
-    
+    void setHashCode(void);
     char language[ULOC_LANG_CAPACITY];
     char country[ULOC_COUNTRY_CAPACITY];
     char* variant;
     char* fullName;
     char fullNameBuffer[ULOC_FULLNAME_CAPACITY];
+    int32_t khashCode;
     
     static Locale *localeList;
     static int32_t localeListCount;
-
-// Begin deprecated fields
     static UnicodeString *isoLanguages;
     static int32_t isoLanguagesCount;
     static UnicodeString *isoCountries;
     static int32_t isoCountriesCount;
-// End deprecated fields
-
     static UHashtable *ctry2LangMapping;
     static const UnicodeString compressedCtry2LangMapping;
 
     static Locale fgDefaultLocale;
-
-friend  void locale_set_default_internal(const char *);
-
 };
 
 inline bool_t

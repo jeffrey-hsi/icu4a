@@ -204,8 +204,6 @@
  * Gets the system's default locale.
  *
  * @return the system default locale
- * @system
- * @stable
  */
 
 U_CAPI const char* U_EXPORT2
@@ -216,8 +214,6 @@ uloc_getDefault(void);
  *
  * @param localeID the new system default locale
  * @param status the error information if the setting of default locale fails
- * @system
- * @stable
  */
 U_CAPI void U_EXPORT2
 uloc_setDefault(const char* localeID,
@@ -233,7 +229,6 @@ uloc_setDefault(const char* localeID,
  * @param err error information if retrieving the  language code failed
  * @return the actual buffer size needed for the  langauge code.  If it's greater 
  * than languageCapacity, the returned language code will be truncated.  
- * @stable
  */
 
 U_CAPI int32_t U_EXPORT2
@@ -252,7 +247,6 @@ uloc_getLanguage(const char*    localeID,
  * @param err error information if retrieving the country code failed
  * @return the actual buffer size needed for the country code.  If it's greater 
  * than countryCapacity, the returned country code will be truncated.  
- * @stable
  */
 
 U_CAPI int32_t U_EXPORT2
@@ -271,7 +265,6 @@ uloc_getCountry(const char*    localeID,
  * @param err error information if retrieving the variant code failed
  * @return the actual buffer size needed for the variant code.  If it's greater 
  * than variantCapacity, the returned variant code will be truncated.  
- * @stable
  */
 
 U_CAPI int32_t U_EXPORT2
@@ -289,7 +282,6 @@ uloc_getVariant(const char*    localeID,
  * @param err error information if retrieving the full name failed
  * @return the actual buffer size needed for the full name.  If it's greater 
  * than nameCapacity, the returned full name will be truncated.  
- * @stable
  */
 
 U_CAPI int32_t U_EXPORT2
@@ -303,7 +295,6 @@ uloc_getName(const char*    localeID,
  *
  * @param localeID the locale to get the ISO langauge code with
  * @return language the ISO langauge code for localeID
- * @stable
  */
 U_CAPI const char* U_EXPORT2
 uloc_getISO3Language(const char* localeID);
@@ -314,7 +305,6 @@ uloc_getISO3Language(const char* localeID);
  *
  * @param localeID the locale to get the ISO country code with
  * @return country the ISO country code for localeID
- * @stable
  */
 
 U_CAPI const char* U_EXPORT2
@@ -325,7 +315,6 @@ uloc_getISO3Country(const char* localeID);
  *
  * @param localeID the locale to get the Win32 LCID value with
  * @return country the Win32 LCID for localeID
- * @stable
  */
 
 U_CAPI uint32_t U_EXPORT2
@@ -341,7 +330,6 @@ uloc_getLCID(const char* localeID);
  * @param err error information if retrieving the displayable language code failed
  * @return the actual buffer size needed for the displayable langauge code.  If it's greater 
  * than languageCapacity, the returned language code will be truncated.  
- * @stable
  */
 U_CAPI int32_t U_EXPORT2
 uloc_getDisplayLanguage(const char* locale,
@@ -360,7 +348,6 @@ uloc_getDisplayLanguage(const char* locale,
  * @param err error information if retrieving the displayable country code failed
  * @return the actual buffer size needed for the displayable country code.  If it's greater 
  * than countryCapacity, the returned displayable country code will be truncated.  
- * @stable
  */
 
 U_CAPI int32_t U_EXPORT2
@@ -381,7 +368,6 @@ uloc_getDisplayCountry(const char* locale,
  * @param err error information if retrieving the displayable variant code failed
  * @return the actual buffer size needed for the displayable variant code.  If it's greater 
  * than variantCapacity, the returned displayable variant code will be truncated.  
- * @stable
  */
  
 U_CAPI int32_t U_EXPORT2
@@ -401,7 +387,6 @@ uloc_getDisplayVariant(const char* locale,
  * @param err error information if retrieving the displayable name failed
  * @return the actual buffer size needed for the displayable name.  If it's greater 
  * than variantCapacity, the returned displayable name will be truncated.  
- * @stable
  */
 
 U_CAPI int32_t U_EXPORT2
@@ -419,18 +404,16 @@ uloc_getDisplayName(const char* localeID,
  * a locale name array.  Both this array and the pointers
  * it contains are owned by ICU and should not be deleted or written through
  * by the caller.  The locale name is terminated by a null pointer.
- * @param n the specific locale name index of the available locale list
+ * @param index the specific locale name index of the available locale list
  * @return a specified locale name of all available locales
- * @stable
  */
 U_CAPI const char* U_EXPORT2
-uloc_getAvailable(int32_t n);
+uloc_getAvailable(int32_t index);
 
 /**
  * Gets the size of the all available locale list.
  *
  * @return the size of the locale list
- * @stable
  */
 U_CAPI int32_t U_EXPORT2 uloc_countAvailable(void);
 
@@ -441,7 +424,6 @@ U_CAPI int32_t U_EXPORT2 uloc_countAvailable(void);
  * by ICU-- do not delete them, and do not write through them.  The array is
  * terminated with a null pointer.
  * @return a list of all available language codes
- * @stable
  */
 U_CAPI const char* const* U_EXPORT2
 uloc_getISOLanguages(void);
@@ -453,7 +435,6 @@ uloc_getISOLanguages(void);
  * owned by ICU-- do not delete them, and do not write through them.  The array is
  * terminated with a null pointer.
  * @return a list of all available country codes
- * @stable
  */
 U_CAPI const char* const* U_EXPORT2
 uloc_getISOCountries(void);
@@ -462,7 +443,6 @@ uloc_getISOCountries(void);
  * Deprecated 1999dec14 - Gets the directory containing the locale data files.
  *
  * @return the locale data file directory
- * @deprecated 1999dec14
  */
 #define uloc_getDataDirectory u_getDataDirectory
 
@@ -470,7 +450,6 @@ uloc_getISOCountries(void);
  * Deprecated 1999dec14 - Sets the directory containing the locale data files.
  *
  * @return the new directory to fetch locale data from
- * @deprecated 1999dec14
  */
 #define uloc_setDataDirectory u_setDataDirectory
 

@@ -39,7 +39,6 @@ class UnicodeString;
  * <code>extractBetween()</code>.
  *
  * @author Alan Liu
- * @draft
  */
 class U_COMMON_API Replaceable {
 
@@ -47,36 +46,22 @@ public:
 
     /**
      * Destructor.
-     * @draft
      */
     virtual ~Replaceable();
 
     /**
      * Return the number of characters in the text.
      * @return number of characters in text
-     * @draft
      */ 
     virtual int32_t length() const = 0;
 
     /**
-     * Return the Unicode code unit at the given offset into the text.
+     * Return the character at the given offset into the text.
      * @param offset an integer between 0 and <code>length()</code>-1
      * inclusive
-     * @return code unit of text at given offset
-     * @draft
+     * @return character of text at given offset
      */
     virtual UChar charAt(UTextOffset offset) const = 0;
-
-    /**
-     * Return the Unicode code point that contains the code unit
-     * at the given offset into the text.
-     * @param offset an integer between 0 and <code>length()</code>-1
-     * inclusive that indicates the text offset of any of the code units
-     * that will be assembled into a code point (21-bit value) and returned
-     * @return code point of text at given offset
-     * @draft
-     */
-    virtual UChar32 char32At(UTextOffset offset) const = 0;
 
     /**
      * Copy characters from this object into the destination character
@@ -93,9 +78,7 @@ public:
      * @param srcLimit the ending index to copy, exclusive;
      * <code>srcStart <= srcLimit <= length()</code>.
      * @param dst the destination array.
-     * @param dstStart the start offset in the destination array.  
-     * @draft
-     */
+     * @param dstStart the start offset in the destination array.  */
     virtual void extractBetween(UTextOffset srcStart,
                                 UTextOffset srcLimit,
                                 UChar* dst,
@@ -111,9 +94,7 @@ public:
      * @param limit the ending index, exclusive; <code>start <= limit
      * <= length()</code>.
      * @param text the text to replace characters <code>start</code>
-     * to <code>limit - 1</code> 
-     * @draft
-     */
+     * to <code>limit - 1</code> */
     virtual void handleReplaceBetween(UTextOffset start,
                                       UTextOffset limit,
                                       const UnicodeString& text) = 0;

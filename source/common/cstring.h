@@ -27,12 +27,8 @@
 
 #include <string.h>
 #include <ctype.h>
-#include "unicode/utypes.h"
 
-/* Do this after utypes.h so that we have U_HAVE_WCHAR_H . */
-#if U_HAVE_WCHAR_H
-#   include <wchar.h>
-#endif
+#include "unicode/utypes.h"
 
 #define uprv_strcpy(dst, src) strcpy(dst, src)
 #define uprv_strcpyWithSize(dst, src, size) strncpy(dst, src, size)
@@ -59,22 +55,12 @@
 /*===========================================================================*/
 /* Wide-character functions                                                  */
 /*===========================================================================*/
-
-/* The following are not available on all systems, defined in wchar.h or string.h . */
-#if U_HAVE_WCHAR_H
-#   define uprv_wcscat wcscat
-#   define uprv_wcscpy wcscpy
-#   define uprv_wcslen wcslen
-#else
-U_CAPI wchar_t *uprv_wcscat(wchar_t *dst, const wchar_t *src);
-U_CAPI wchar_t *uprv_wcscpy(wchar_t *dst, const wchar_t *src);
-U_CAPI size_t uprv_wcslen(const wchar_t *src);
-#endif
-#define uprv_strdup(s) strdup(s)
-
-/* The following are part of the ANSI C standard, defined in stdlib.h . */
+#define uprv_wcscat(dst, src) wcscat(dst, src)
+#define uprv_wcscpy(dst, src) wcscpy(dst, src)
+#define uprv_wcslen(src) wcslen(src)
 #define uprv_wcstombs(mbstr, wcstr, count) wcstombs(mbstr, wcstr, count)
 #define uprv_mbstowcs(wcstr, mbstr, count) mbstowcs(wcstr, mbstr, count)
+#define uprv_strdup(s) strdup(s)
 
 U_CAPI char* U_EXPORT2
 T_CString_toLowerCase(char* str);

@@ -137,7 +137,7 @@ void TimeZoneRegressionTest:: Test4073215()
     failure(status, "new GregorianCalendar");
     cal.adoptTimeZone(z);
 
-    SimpleDateFormat sdf((UnicodeString)"E d MMM yyyy G HH:mm", status); 
+    SimpleDateFormat sdf("E d MMM yyyy G HH:mm", status); 
     sdf.setCalendar(cal); 
     failure(status, "new SimpleDateFormat");
 
@@ -365,7 +365,7 @@ TimeZoneRegressionTest::checkCalendar314(GregorianCalendar *testCal, TimeZone *t
     UDate testDate = testCal->getTime(status); 
 
     bool_t inDaylightTime = testTZ->inDaylightTime(testDate, status); 
-    SimpleDateFormat *sdf = new SimpleDateFormat((UnicodeString)"MM/dd/yyyy HH:mm", status); 
+    SimpleDateFormat *sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm", status); 
     sdf->setCalendar(*testCal); 
     UnicodeString inDaylightTimeString; 
 
@@ -663,7 +663,7 @@ TimeZoneRegressionTest::Test4154525()
         0, BAD,
         -1, BAD,
         60*60*1000, GOOD,
-        INT32_MIN, BAD,
+        LONG_MIN, BAD,
         // Integer.MAX_VALUE, ?, // no upper limit on DST savings at this time
     };
 

@@ -19,7 +19,6 @@ usage()
     echo "          8. 'HP/UX11ACC' if you are using Advanced C++ compiler on HP-UX11"
     echo "          9. 'AIX4.3xlC' if you are using xlC on AIX4.3"
     echo "          10. 'SOL2.7CC'if you are using native CC compiler on Solaris"
-    echo "          11. 'PTX' if you are using c++ on Dynix/PTX v4.5"
 
  }
 
@@ -78,35 +77,27 @@ case $platform in
 		        CC=gcc; export CC
                 CXXFLAGS=-g; export CXXFLAGS
 		        CFLAGS=-g; export CFLAGS
-                ./configure $mapped $mapdll ;;
+		        ./configure $mapped $mapdll ;; 
         HP/UX10.2CC)
                 echo Running configure for HP10.2 using native CC compiler ...
 				CC=cc; export CC
 				CXX=CC; export CXX
-			    ./configure;;
+			    ./configure  ;;
         HP/UX10.2ACC)
                 echo Running configure for HP10.2 using aCC compiler ...
 				CC=cc; export CC
 				CXX=aCC; export CXX
-                ./configure;;
+                ./configure ;;
         HP/UX11CC)
                 echo Running configure for HP11 using native CC compiler ...
                 CC=cc; export CC
 				CXX=/opt/CC/bin/CC; export CXX
-                ./configure;;
+                ./configure  ;;
         HP/UX11ACC)
                 echo Running configure for HP11 using aCC compiler ...
                 CC=cc; export CC
 				CXX=/opt/aCC/bin/aCC; export CXX
-			    ./configure;;
-        PTX)
-                echo Running configure for PTX using c++ compiler ...
-                CC=cc; export CC
-				CXX=c++; export CXX
-		if test ${XMLINSTALL}o = "o"; then 
-			XMLINSTALL=/usr/local; export XMLINSTALL
-		fi
-			    ./configure --prefix=$XMLINSTALL;;
+			    ./configure  ;;
         *)
                 echo I do not recognize the option \"$platform\". Please type ${0} -h for help.
                 exit 0;;

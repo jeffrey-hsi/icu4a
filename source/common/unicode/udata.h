@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2000, International Business Machines
+*   Copyright (C) 1999, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -18,8 +18,6 @@
 #define __UDATA_H__
 
 #include "unicode/utypes.h"
-
-U_CDECL_BEGIN
 
 /**
  * Information about data memory.
@@ -97,7 +95,6 @@ typedef struct UDataMemory UDataMemory;
  *              by <code>udata_openChoice()</code> if this function
  *              returns <code>TRUE</code>.
  * @return TRUE if the current data memory is acceptable
- * @stable
  */
 typedef bool_t
 UDataMemoryIsAcceptable(void *context,
@@ -110,7 +107,6 @@ UDataMemoryIsAcceptable(void *context,
  * This function works the same as <code>udata_openChoice</code>
  * except that any data that matches the type and name
  * is assumed to be acceptable.
- * @stable
  */
 U_CAPI UDataMemory * U_EXPORT2
 udata_open(const char *path, const char *type, const char *name,
@@ -172,7 +168,6 @@ udata_open(const char *path, const char *type, const char *name,
  * @return A pointer (handle) to a data memory object, or <code>NULL</code>
  *         if an error occurs. Call <code>udata_getMemory()</code>
  *         to get a pointer to the actual data.
- * @stable
  */
 U_CAPI UDataMemory * U_EXPORT2
 udata_openChoice(const char *path, const char *type, const char *name,
@@ -183,7 +178,6 @@ udata_openChoice(const char *path, const char *type, const char *name,
  * Close the data memory.
  * This function must be called to allow the system to
  * release resources associated with this data memory.
- * @stable
  */
 U_CAPI void U_EXPORT2
 udata_close(UDataMemory *pData);
@@ -191,7 +185,6 @@ udata_close(UDataMemory *pData);
 /**
  * Get the pointer to the actual data inside the data memory.
  * The data is read-only.
- * @stable
  */
 U_CAPI const void * U_EXPORT2
 udata_getMemory(UDataMemory *pData);
@@ -212,11 +205,49 @@ udata_getMemory(UDataMemory *pData);
  * in the data memory object. If this structure is smaller than
  * <code>pInfo->size</code>, then the <code>size</code> will be
  * adjusted and only part of the structure will be filled.
- * @stable
  */
 U_CAPI void U_EXPORT2
 udata_getInfo(UDataMemory *pData, UDataInfo *pInfo);
 
-U_CDECL_END
+/**
+ * This function bypasses the normal ICU data loading process
+ * and allows you to force the data to come out of a user-specified
+ * pointer.
+ * 
+ * The format of this data is that of the icu common data file, 'icudata.dat'.
+ * You can read in that whole file and pass the address to the start of the
+ * data, or (with the appropriate link options) pass in the pointer to
+ * a 'genccode'-generated library as follows:
+ *
+ *       extern const uint8_t icudata_dat[];
+ * 
+ *       UErrorCode  status = U_ZERO_ERROR;
+ *       udata_setCommonData((const void*)icudata_dat, &status);
+ * 
+ *   ( link with ICUDATA.DLL / libicudata.so/a/sl .. see the release notes
+ *     for how to build the 'common mapped dll'. )
+ *
+ * This function will automatically skip over the 'double' padding
+ * present in genccode symbols, if present.
+ *
+ * Warning: ICU must NOT have even attempted to load it's data already
+ * when this call is made, or U_USING_DEFAULT_ERROR [non-failing] will
+ * be returned.  Be careful of UnicodeStrings in static initialization which 
+ * may attempt to load a converter (use the UNICODE_STRING(x) macro instead).
+ *  At the time of this release [icu v1.4.1.2] this means that you 
+ *  CANNOT LINK WITH THE I18N LIBRARY AND USE THIS FUNCTION!!
+ * 
+ * This function has no effect on application (non ICU) data, and will
+ * return U_UNSUPPORTED_ERROR if mapped data support is not available on
+ * the currently compiled ICU.
+ * 
+ * @draft
+ * @param data pointer to ICU common data
+ * @param err outgoing error status <TT>U_USING_DEFAULT_ERROR, U_UNSUPPORTED_ERROR</TT>
+ *
+ */
+
+U_CAPI void U_EXPORT2
+udata_setCommonData(const void *data, UErrorCode *err);
 
 #endif

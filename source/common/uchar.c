@@ -23,361 +23,8 @@
 #include "ucmp8.h"
 #include "umutex.h"
 #include "unicode/uchar.h"
-#include "unicode/udata.h"
 #include "cmemory.h"
 #include "cstring.h"
-
-/* dynamically loaded Unicode character properties -------------------------- */
-
-/* fallback properties for the ASCII range if the data cannot be loaded */
-/* these are printed by genprops in verbose mode */
-static uint32_t staticProps32Table[0xa0]={
-    /* 0x00 */ 0x48f,
-    /* 0x01 */ 0x48f,
-    /* 0x02 */ 0x48f,
-    /* 0x03 */ 0x48f,
-    /* 0x04 */ 0x48f,
-    /* 0x05 */ 0x48f,
-    /* 0x06 */ 0x48f,
-    /* 0x07 */ 0x48f,
-    /* 0x08 */ 0x48f,
-    /* 0x09 */ 0x20c,
-    /* 0x0a */ 0x1ce,
-    /* 0x0b */ 0x20c,
-    /* 0x0c */ 0x24d,
-    /* 0x0d */ 0x1ce,
-    /* 0x0e */ 0x48f,
-    /* 0x0f */ 0x48f,
-    /* 0x10 */ 0x48f,
-    /* 0x11 */ 0x48f,
-    /* 0x12 */ 0x48f,
-    /* 0x13 */ 0x48f,
-    /* 0x14 */ 0x48f,
-    /* 0x15 */ 0x48f,
-    /* 0x16 */ 0x48f,
-    /* 0x17 */ 0x48f,
-    /* 0x18 */ 0x48f,
-    /* 0x19 */ 0x48f,
-    /* 0x1a */ 0x48f,
-    /* 0x1b */ 0x48f,
-    /* 0x1c */ 0x1ce,
-    /* 0x1d */ 0x1ce,
-    /* 0x1e */ 0x1ce,
-    /* 0x1f */ 0x20c,
-    /* 0x20 */ 0x24c,
-    /* 0x21 */ 0x297,
-    /* 0x22 */ 0x297,
-    /* 0x23 */ 0x117,
-    /* 0x24 */ 0x119,
-    /* 0x25 */ 0x117,
-    /* 0x26 */ 0x297,
-    /* 0x27 */ 0x297,
-    /* 0x28 */ 0x100a94,
-    /* 0x29 */ 0xfff00a95,
-    /* 0x2a */ 0x297,
-    /* 0x2b */ 0x118,
-    /* 0x2c */ 0x197,
-    /* 0x2d */ 0x113,
-    /* 0x2e */ 0x197,
-    /* 0x2f */ 0xd7,
-    /* 0x30 */ 0x89,
-    /* 0x31 */ 0x100089,
-    /* 0x32 */ 0x200089,
-    /* 0x33 */ 0x300089,
-    /* 0x34 */ 0x400089,
-    /* 0x35 */ 0x500089,
-    /* 0x36 */ 0x600089,
-    /* 0x37 */ 0x700089,
-    /* 0x38 */ 0x800089,
-    /* 0x39 */ 0x900089,
-    /* 0x3a */ 0x197,
-    /* 0x3b */ 0x297,
-    /* 0x3c */ 0x200a98,
-    /* 0x3d */ 0x298,
-    /* 0x3e */ 0xffe00a98,
-    /* 0x3f */ 0x297,
-    /* 0x40 */ 0x297,
-    /* 0x41 */ 0x2000001,
-    /* 0x42 */ 0x2000001,
-    /* 0x43 */ 0x2000001,
-    /* 0x44 */ 0x2000001,
-    /* 0x45 */ 0x2000001,
-    /* 0x46 */ 0x2000001,
-    /* 0x47 */ 0x2000001,
-    /* 0x48 */ 0x2000001,
-    /* 0x49 */ 0x2000001,
-    /* 0x4a */ 0x2000001,
-    /* 0x4b */ 0x2000001,
-    /* 0x4c */ 0x2000001,
-    /* 0x4d */ 0x2000001,
-    /* 0x4e */ 0x2000001,
-    /* 0x4f */ 0x2000001,
-    /* 0x50 */ 0x2000001,
-    /* 0x51 */ 0x2000001,
-    /* 0x52 */ 0x2000001,
-    /* 0x53 */ 0x2000001,
-    /* 0x54 */ 0x2000001,
-    /* 0x55 */ 0x2000001,
-    /* 0x56 */ 0x2000001,
-    /* 0x57 */ 0x2000001,
-    /* 0x58 */ 0x2000001,
-    /* 0x59 */ 0x2000001,
-    /* 0x5a */ 0x2000001,
-    /* 0x5b */ 0x200a94,
-    /* 0x5c */ 0x297,
-    /* 0x5d */ 0xffe00a95,
-    /* 0x5e */ 0x29a,
-    /* 0x5f */ 0x296,
-    /* 0x60 */ 0x29a,
-    /* 0x61 */ 0x2000002,
-    /* 0x62 */ 0x2000002,
-    /* 0x63 */ 0x2000002,
-    /* 0x64 */ 0x2000002,
-    /* 0x65 */ 0x2000002,
-    /* 0x66 */ 0x2000002,
-    /* 0x67 */ 0x2000002,
-    /* 0x68 */ 0x2000002,
-    /* 0x69 */ 0x2000002,
-    /* 0x6a */ 0x2000002,
-    /* 0x6b */ 0x2000002,
-    /* 0x6c */ 0x2000002,
-    /* 0x6d */ 0x2000002,
-    /* 0x6e */ 0x2000002,
-    /* 0x6f */ 0x2000002,
-    /* 0x70 */ 0x2000002,
-    /* 0x71 */ 0x2000002,
-    /* 0x72 */ 0x2000002,
-    /* 0x73 */ 0x2000002,
-    /* 0x74 */ 0x2000002,
-    /* 0x75 */ 0x2000002,
-    /* 0x76 */ 0x2000002,
-    /* 0x77 */ 0x2000002,
-    /* 0x78 */ 0x2000002,
-    /* 0x79 */ 0x2000002,
-    /* 0x7a */ 0x2000002,
-    /* 0x7b */ 0x200a94,
-    /* 0x7c */ 0x298,
-    /* 0x7d */ 0xffe00a95,
-    /* 0x7e */ 0x298,
-    /* 0x7f */ 0x48f,
-    /* 0x80 */ 0x48f,
-    /* 0x81 */ 0x48f,
-    /* 0x82 */ 0x48f,
-    /* 0x83 */ 0x48f,
-    /* 0x84 */ 0x48f,
-    /* 0x85 */ 0x1ce,
-    /* 0x86 */ 0x48f,
-    /* 0x87 */ 0x48f,
-    /* 0x88 */ 0x48f,
-    /* 0x89 */ 0x48f,
-    /* 0x8a */ 0x48f,
-    /* 0x8b */ 0x48f,
-    /* 0x8c */ 0x48f,
-    /* 0x8d */ 0x48f,
-    /* 0x8e */ 0x48f,
-    /* 0x8f */ 0x48f,
-    /* 0x90 */ 0x48f,
-    /* 0x91 */ 0x48f,
-    /* 0x92 */ 0x48f,
-    /* 0x93 */ 0x48f,
-    /* 0x94 */ 0x48f,
-    /* 0x95 */ 0x48f,
-    /* 0x96 */ 0x48f,
-    /* 0x97 */ 0x48f,
-    /* 0x98 */ 0x48f,
-    /* 0x99 */ 0x48f,
-    /* 0x9a */ 0x48f,
-    /* 0x9b */ 0x48f,
-    /* 0x9c */ 0x48f,
-    /* 0x9d */ 0x48f,
-    /* 0x9e */ 0x48f,
-    /* 0x9f */ 0x48f
-};
-
-/*
- * loaded uprops.dat -
- * for a description of the file format, see icu/source/tools/genprops/store.c
- */
-#define DATA_NAME "uprops"
-#define DATA_TYPE "dat"
-
-static UDataMemory *propsData=NULL;
-
-static uint8_t formatVersion[4]={ 0, 0, 0, 0 };
-static UVersionInfo dataVersion={ 3, 0, 0, 0 };
-
-static const uint16_t *propsTable=NULL;
-#define props32Table ((uint32_t *)propsTable)
-
-static int8_t havePropsData=0;
-
-/* index values loaded from uprops.dat */
-static uint16_t indexes[8];
-
-enum {
-    INDEX_STAGE_2_BITS,
-    INDEX_STAGE_3_BITS,
-    INDEX_EXCEPTIONS
-};
-
-/* access values calculated from indexes */
-static uint16_t stage23Bits, stage2Mask, stage3Mask;
-
-static bool_t
-isAcceptable(void *context,
-             const char *type, const char *name,
-             UDataInfo *pInfo) {
-    if(
-        pInfo->size>=20 &&
-        pInfo->isBigEndian==U_IS_BIG_ENDIAN &&
-        pInfo->charsetFamily==U_CHARSET_FAMILY &&
-        pInfo->dataFormat[0]==0x55 &&   /* dataFormat="UPro" */
-        pInfo->dataFormat[1]==0x50 &&
-        pInfo->dataFormat[2]==0x72 &&
-        pInfo->dataFormat[3]==0x6f &&
-        pInfo->formatVersion[0]==1
-    ) {
-        uprv_memcpy(formatVersion, pInfo->formatVersion, 4);
-        uprv_memcpy(dataVersion, pInfo->dataVersion, 4);
-        return TRUE;
-    } else {
-        return FALSE;
-    }
-}
-
-static int8_t
-loadPropsData() {
-    /* load Unicode character properties data from file if necessary */
-    if(havePropsData==0) {
-        UErrorCode errorCode=U_ZERO_ERROR;
-        UDataMemory *data;
-        const uint16_t *p=NULL;
-
-        /* open the data outside the mutex block */
-        data=udata_openChoice(NULL, DATA_TYPE, DATA_NAME, isAcceptable, NULL, &errorCode);
-        if(U_FAILURE(errorCode)) {
-            return havePropsData=-1;
-        }
-
-        p=(const uint16_t *)udata_getMemory(data);
-
-        /* in the mutex block, set the data for this process */
-        umtx_lock(NULL);
-        if(propsData==NULL) {
-            propsData=data;
-            data=NULL;
-            propsTable=p;
-            p=NULL;
-        }
-        umtx_unlock(NULL);
-
-        /* initialize some variables */
-        uprv_memcpy(indexes, propsTable, 16);
-        stage23Bits=indexes[INDEX_STAGE_2_BITS]+indexes[INDEX_STAGE_3_BITS];
-        stage2Mask=(1<<indexes[INDEX_STAGE_2_BITS])-1;
-        stage3Mask=(1<<indexes[INDEX_STAGE_3_BITS])-1;
-        havePropsData=1;
-
-        /* if a different thread set it first, then close the extra data */
-        if(data!=NULL) {
-            udata_close(data); /* NULL if it was set correctly */
-        }
-    }
-
-    return havePropsData;
-}
-
-/* constants and macros for access to the data */
-enum {
-    EXC_UPPERCASE,
-    EXC_LOWERCASE,
-    EXC_TITLECASE,
-    EXC_NUMERIC_VALUE,
-    EXC_DENOMINATOR_VALUE,
-
-    EXC_MIRROR_MAPPING
-};
-
-enum {
-    EXCEPTION_SHIFT=5,
-    BIDI_SHIFT,
-    MIRROR_SHIFT=BIDI_SHIFT+5,
-    VALUE_SHIFT=20,
-
-    VALUE_BITS=32-VALUE_SHIFT
-};
-
-/* getting a uint32_t properties word from the data */
-#define HAVE_DATA (havePropsData>0 || havePropsData==0 && loadPropsData()>0)
-#define VALIDATE(c) (((uint32_t)(c))<=0x10ffff && HAVE_DATA)
-#define GET_PROPS(c) \
-    (((uint32_t)(c))<=0x10ffff ? \
-        HAVE_DATA ? \
-            props32Table[ \
-                propsTable[ \
-                    propsTable[ \
-                        propsTable[8+(c>>stage23Bits)]+ \
-                        (c>>indexes[INDEX_STAGE_3_BITS]&stage2Mask)]+ \
-                    (c&stage3Mask)] \
-            ] \
-        : (c)<=0x9f ? \
-            staticProps32Table[c] \
-        : 0 \
-    : 0)
-#define PROPS_VALUE_IS_EXCEPTION(props) ((props)&(1UL<<EXCEPTION_SHIFT))
-#define GET_CATEGORY(props) ((props)&0x1f)
-#define GET_UNSIGNED_VALUE(props) ((props)>>VALUE_SHIFT)
-#define GET_SIGNED_VALUE(props) ((int32_t)(props)>>VALUE_SHIFT)
-#define GET_EXCEPTIONS(props) (props32Table+indexes[INDEX_EXCEPTIONS]+GET_UNSIGNED_VALUE(props))
-
-/* finding an exception value */
-#define HAVE_EXCEPTION_VALUE(flags, index) ((flags)&(1UL<<(index)))
-
-/* number of bits in an integer value 0..31 */
-static uint8_t flagsOffset[32]={
-    0, 1, 1, 2, 1, 2, 2, 3,
-    1, 2, 2, 3, 2, 3, 3, 4,
-    1, 2, 2, 3, 2, 3, 3, 4,
-    2, 3, 3, 4, 3, 4, 4, 5
-};
-
-#define ADD_EXCEPTION_OFFSET(flags, index, offset) { \
-    if((index)>=5) { \
-        (offset)+=flagsOffset[(flags)&0x1f]; \
-        (flags)>>=5; \
-        (index)-=5; \
-    } \
-    (offset)+=flagsOffset[(flags)&((1<<(index))-1)]; \
-}
-
-U_CAPI bool_t U_EXPORT2
-u_isMirrored(UChar32 c) {
-    return GET_PROPS(c)&(1UL<<MIRROR_SHIFT) ? TRUE : FALSE;
-}
-
-U_CAPI UChar32 U_EXPORT2
-u_charMirror(UChar32 c) {
-    uint32_t props=GET_PROPS(c);
-    if((props&(1UL<<MIRROR_SHIFT))==0) {
-        /* not mirrored - the value is not a mirror offset */
-        return c;
-    } else if(!PROPS_VALUE_IS_EXCEPTION(props)) {
-        return c+GET_SIGNED_VALUE(props);
-    } else {
-        uint32_t *pe=GET_EXCEPTIONS(props);
-        uint32_t firstExceptionValue=*pe;
-        if(HAVE_EXCEPTION_VALUE(firstExceptionValue, EXC_MIRROR_MAPPING)) {
-            int i=EXC_MIRROR_MAPPING;
-            ++pe;
-            ADD_EXCEPTION_OFFSET(firstExceptionValue, i, pe);
-            return (UChar32)*pe;
-        } else {
-            return c;
-        }
-    }
-}
-
-/* static data tables ------------------------------------------------------- */
 
 struct UCharDigitPair{
     uint16_t fUnicode;
@@ -400,6 +47,8 @@ static  void    createDirTables(void);
 
 char* _ucdVersion=NULL;
 
+const   UChar   MIN_VALUE = 0x0000;
+const   UChar   MAX_VALUE = 0xffff;
 static CompactByteArray *tables;
 static CompactShortArray *ulTables; 
 static CompactByteArray *dirTables;
@@ -5165,13 +4814,8 @@ const int16_t numCellWidthValues = 16;
 
 /* Checks if ch is a lower case letter.*/
 bool_t
-u_islower(UChar32 ch) 
+u_islower(UChar ch) 
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     /* Lazy evaluate the character type table; only instantiate when necessary.*/
     if (!tablesCreated) {
         createTables();
@@ -5181,13 +4825,8 @@ u_islower(UChar32 ch)
 
 /*Checks if ch is a upper case letter.*/
 bool_t
-u_isupper(UChar32 ch) 
+u_isupper(UChar ch) 
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5196,13 +4835,8 @@ u_isupper(UChar32 ch)
 
 /* Checks if ch is a title case letter; usually upper case letters.*/
 bool_t
-u_istitle(UChar32 ch) 
+u_istitle(UChar ch) 
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5211,26 +4845,16 @@ u_istitle(UChar32 ch)
 
 /* Checks if ch is a letter or a decimal digit */
 bool_t 
-u_isalnum(UChar32 ch)
+u_isalnum(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
 	return (u_isdigit(ch) || u_isalpha(ch));
 }
 
 
 /* Checks if ch is a decimal digit. */
 bool_t
-u_isdigit(UChar32 ch)
+u_isdigit(UChar ch)
 {    int8_t type;
-
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
 
     if (!tablesCreated) {
         createTables();
@@ -5241,13 +4865,8 @@ u_isdigit(UChar32 ch)
 
 /* Checks if ch is a unicode character with assigned character type.*/
 bool_t
-u_isdefined(UChar32 ch) 
+u_isdefined(UChar ch) 
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5257,13 +4876,8 @@ u_isdefined(UChar32 ch)
 
 /* Gets the character's linguistic directionality.*/
 UCharDirection
-u_charDirection(UChar32 ch )
+u_charDirection(UChar ch )
 {   
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return U_BOUNDARY_NEUTRAL;
-    }
-
     /* Lazy evaluate the character directionality table; only instantiate when necessary.*/
     if (!dirTablesCreated) {
         createDirTables();
@@ -5273,28 +4887,23 @@ u_charDirection(UChar32 ch )
 
 /* Get the script associated with the character*/
 UCharScript
-u_charScript(UChar32 ch)
+u_charScript(UChar ch)
 {
-    int32_t i, j;
+    int32_t index, j;
     UCharScript returnValue = U_NO_SCRIPT;
 
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return U_NO_SCRIPT;
-    }
-
-    i = -1;
-    for( j = 0; i == -1 && fScriptIndex[j].fFirstCode != 0xFFFF; ++j )
+    index = -1;
+    for( j = 0; index == -1 && fScriptIndex[j].fFirstCode != 0xFFFF; ++j )
         if( fScriptIndex[j].fFirstCode <= ch && ch <= fScriptIndex[j].fLastCode ) {
-            i = j;
+            index = j;
 	    if(j == U_CHAR_SCRIPT_COUNT) /* "U_SPECIALS 2" */
-	      i = U_SPECIALS;
+	      index = U_SPECIALS;
         }
-    if(i >= U_CHAR_SCRIPT_COUNT) {
+    if(index >= U_CHAR_SCRIPT_COUNT) {
         returnValue = U_NO_SCRIPT;
     }
-    else if( i != -1 ) {
-        returnValue = (UCharScript)i;
+    else if( index != -1 ) {
+        returnValue = (UCharScript)index;
     } 
 
     return returnValue;
@@ -5302,13 +4911,8 @@ u_charScript(UChar32 ch)
 
 /* Checks if the Unicode character is a base form character that can take a diacritic.*/
 bool_t
-u_isbase(UChar32 ch)
+u_isbase(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5322,14 +4926,9 @@ u_isbase(UChar32 ch)
 
 /* Checks if the Unicode character is a control character.*/
 bool_t
-u_iscntrl(UChar32 ch)
+u_iscntrl(UChar ch)
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5343,14 +4942,9 @@ u_iscntrl(UChar32 ch)
 
 /* Checks if the Unicode character is printable.*/
 bool_t
-u_isprint(UChar32 ch)
+u_isprint(UChar ch)
 {    
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5361,14 +4955,9 @@ u_isprint(UChar32 ch)
 
 /* Checks if the Unicode character is a letter.*/
 bool_t
-u_isalpha(UChar32 ch) 
+u_isalpha(UChar ch) 
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5379,27 +4968,17 @@ u_isalpha(UChar32 ch)
 
 /* Checks if the Unicode character can start a Unicode identifier.*/
 bool_t 
-u_isIDStart(UChar32 ch)
+u_isIDStart(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     return(u_isalpha(ch));
 }
 
 /* Checks if the Unicode character can be a Unicode identifier part other than starting the
  identifier.*/
 bool_t 
-u_isIDPart(UChar32 ch)
+u_isIDPart(UChar ch)
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5415,13 +4994,8 @@ u_isIDPart(UChar32 ch)
 
 /*Checks if the Unicode character can be ignorable in a Java or Unicode identifier.*/
 bool_t 
-u_isIDIgnorable(UChar32 ch)
+u_isIDIgnorable(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     return( ( ch <= 0x0008) ||
             (ch >= 0x000E && ch <= 0x001B) ||
             (ch >= 0x007F && ch <= 0x009F) ||
@@ -5430,14 +5004,9 @@ u_isIDIgnorable(UChar32 ch)
             (ch == 0xFEFF) );
 }
 /*Checks if the Unicode character can start a Java identifier.*/
-bool_t u_isJavaIDStart(UChar32 ch)
+bool_t u_isJavaIDStart(UChar ch)
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5450,14 +5019,9 @@ bool_t u_isJavaIDStart(UChar32 ch)
 /*Checks if the Unicode character can be a Java identifier part other than starting the
  * identifier.
  */
-bool_t u_isJavaIDPart(UChar32 ch)
+bool_t u_isJavaIDPart(UChar ch)
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5472,15 +5036,10 @@ bool_t u_isJavaIDPart(UChar32 ch)
            u_isIDIgnorable(ch));
 }
 /* Transforms the Unicode character to its lower case equivalent.*/
-UChar32         
-u_tolower(UChar32 ch) 
+UChar         
+u_tolower(UChar ch) 
 {
     UChar up_ch;
-
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return ch;
-    }
 
     if (!ulTablesCreated) {
         createUlTables();
@@ -5512,15 +5071,10 @@ u_tolower(UChar32 ch)
 }
     
 /*Transforms the Unicode character to its upper case equivalent.*/
-UChar32 
-u_toupper(UChar32 ch) 
+UChar 
+u_toupper(UChar ch) 
 {
     UChar lw_ch; 
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return ch;
-    }
-
     if (!ulTablesCreated) {
         createUlTables();
     }
@@ -5531,14 +5085,9 @@ u_toupper(UChar32 ch)
 }
 
 /* Transforms the Unicode character to its title case equivalent.*/
-UChar32 
-u_totitle(UChar32 ch)
+UChar 
+u_totitle(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return ch;
-    }
-
     switch(ch) {
     case 0x01C4: case 0x01C5: case 0x01C6:
         return 0x01C5;
@@ -5555,14 +5104,9 @@ u_totitle(UChar32 ch)
 
 /* Checks if the Unicode character is a space character.*/
 bool_t
-u_isspace(UChar32 ch) 
+u_isspace(UChar ch) 
 {
     int32_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5574,13 +5118,8 @@ u_isspace(UChar32 ch)
 
 /* Gets if the Unicode character's character property.*/
 int8_t
-u_charType(UChar32 ch)
+u_charType(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return U_UNASSIGNED;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5591,15 +5130,10 @@ u_charType(UChar32 ch)
 
 /* Gets table cell width of the Unicode character.*/
 uint16_t
-u_charCellWidth(UChar32 ch)
+u_charCellWidth(UChar ch)
 {
     int16_t i;
     int32_t type = u_charType(ch);
-
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return U_ZERO_WIDTH;
-    }
 
     /* these Unicode character types are scattered throughout the Unicode range, so
      special-case for them*/
@@ -5625,15 +5159,10 @@ u_charCellWidth(UChar32 ch)
 }
 
 int32_t            
-u_charDigitValue(UChar32 ch)
+u_charDigitValue(UChar ch)
 {
     int32_t returnValue = -1;
     int32_t i = 0;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return 0;
-    }
-
     while (u_isdefined(fCodeDigitTable[i].fUnicode)) {
         if ( ch == fCodeDigitTable[i].fUnicode ) {
             returnValue = fCodeDigitTable[i].fValue;
@@ -5724,12 +5253,10 @@ createDirTables()
 #endif
 }
 
-/* ### this function will become public */
+/* this function will become public */
 U_CFUNC void
 u_versionFromString(UVersionInfo versionArray, const char *versionString);
 
 void u_getUnicodeVersion(UVersionInfo versionArray) {
-    if(versionArray!=NULL) {
-        uprv_memcpy(versionArray, dataVersion, U_MAX_VERSION_LENGTH);
-    }
+    u_versionFromString(versionArray, U_UNICODE_VERSION);
 }

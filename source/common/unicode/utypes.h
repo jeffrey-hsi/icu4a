@@ -32,13 +32,51 @@
 #ifndef UTYPES_H
 #define UTYPES_H
 
-#include "unicode/umachine.h"
-#include "unicode/utf.h"
-
 #ifndef __OS400__
 #include <memory.h>
 #endif
+#include <wchar.h>
 #include <stdlib.h>
+
+/*===========================================================================*/
+/* Include platform-dependent definitions                                    */
+/* which are contained in the platform-specific file platform.h              */
+/*===========================================================================*/
+
+#if defined(WIN32) || defined(_WIN32)
+#   include "unicode/pwin32.h"
+#elif defined(__OS2__)
+#   include "unicode/pos2.h"
+#elif defined(__OS400__)
+#   include "unicode/pos400.h"
+#else
+#   include "unicode/platform.h"
+#endif
+
+/* XP_CPLUSPLUS is a cross-platform symbol which should be defined when 
+   using C++.  It should not be defined when compiling under C. */
+#ifdef __cplusplus
+#   ifndef XP_CPLUSPLUS
+#       define XP_CPLUSPLUS
+#   endif
+#else
+#   undef XP_CPLUSPLUS
+#endif
+
+/*===========================================================================*/
+/* Boolean data type                                                         */
+/*===========================================================================*/
+
+#if ! HAVE_BOOL_T
+typedef int8_t bool_t;
+#endif
+
+#ifndef TRUE
+#   define TRUE  1
+#endif
+#ifndef FALSE
+#   define FALSE 0
+#endif
 
 /*===========================================================================*/
 /* char Character set family                                                 */
@@ -85,15 +123,54 @@
 #endif
 
 /*===========================================================================*/
+/* sizeof(whar_t)                                                            */
+/*===========================================================================*/
+
+/* U_SIZEOF_WCHAR_T==sizeof(wchar_t) */
+#ifndef U_SIZEOF_WCHAR_T
+#   define U_SIZEOF_WCHAR_T 4
+#endif
+
+/*===========================================================================*/
+/* Unicode string offset                                                     */
+/*===========================================================================*/
+typedef int32_t UTextOffset;
+
+/*===========================================================================*/
+/* Unicode character                                                         */
+/*===========================================================================*/
+typedef uint16_t UChar;
+
+/* U_SIZEOF_UCHAR==sizeof(UChar) */
+#define U_SIZEOF_UCHAR 2
+
+/*===========================================================================*/
 /* Related version information                                               */
 /*===========================================================================*/
-#define U_ICU_VERSION "1.4.2"
+#define U_ICU_VERSION "1.4.1.2"
 
 #define U_MAX_VERSION_LENGTH 4
 #define U_VERSION_DELIMITER '.'
 #define U_MAX_VERSION_STRING_LENGTH 20
 
 typedef uint8_t UVersionInfo[U_MAX_VERSION_LENGTH];
+
+/*===========================================================================*/
+/* For C wrappers, we use the symbol U_CAPI.                                   */
+/* This works properly if the includer is C or C++.                          */
+/* Functions are declared   U_CAPI return-type U_EXPORT2 function-name() ...   */
+/*===========================================================================*/
+
+#ifdef XP_CPLUSPLUS
+#   define U_CFUNC extern "C"
+#   define U_CDECL_BEGIN extern "C" {
+#   define U_CDECL_END   }
+#else
+#   define U_CFUNC
+#   define U_CDECL_BEGIN
+#   define U_CDECL_END
+#endif
+#define U_CAPI U_CFUNC U_EXPORT
 
 /* Work around the OS390 compiler issue, to be removed when the compiler 
 updates come out.  */
@@ -103,19 +180,19 @@ updates come out.  */
 #    define U_CALLCONV 
 #endif
 
-/* Define U_NULL pointer value, and NULL if it isn't already defined */
-
-#define U_NULL	0
+/* Define NULL pointer value  if it isn't already defined */
 
 #ifndef NULL
-#define NULL    U_NULL
+#ifdef XP_CPLUSPLUS
+#define NULL    0
+#else
+#define NULL    ((void *)0)
+#endif
 #endif
 
 /* Maximum value of a (void*) - use to indicate the limit of
    an 'infinite' buffer.  */
-#ifndef U_MAX_PTR
 #define U_MAX_PTR ((void*)-1)
-#endif
 
 /*===========================================================================*/
 /* Calendar/TimeZone data types                                              */
@@ -241,14 +318,10 @@ typedef enum UErrorCode UErrorCode;
 /* Use the following to determine if an UErrorCode represents */
 /* operational success or failure. */
 #ifdef XP_CPLUSPLUS
-/** @stable */
 inline bool_t U_SUCCESS(UErrorCode code) { return (bool_t)(code<=U_ZERO_ERROR); }
-/** @stable */
 inline bool_t U_FAILURE(UErrorCode code) { return (bool_t)(code>U_ZERO_ERROR); }
 #else
-/** @stable */
 #define U_SUCCESS(x) ((x)<=U_ZERO_ERROR)
-/** @stable */
 #define U_FAILURE(x) ((x)>U_ZERO_ERROR)
 #endif
 

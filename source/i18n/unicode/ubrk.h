@@ -197,7 +197,7 @@ ubrk_open(UBreakIteratorType type,
  * @param status A UErrorCode to receive any errors.
  * @return A UBreakIterator for the specified rules.
  * @see ubrk_open
- * @draft
+ * @stable
  */
 U_CAPI UBreakIterator*
 ubrk_openRules(const UChar *rules,

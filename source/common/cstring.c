@@ -53,9 +53,10 @@ void T_CString_integerToString(char* buffer, int32_t i, int32_t radix)
   int32_t length=0;
   int32_t num = 0;
   int8_t digit;
+  int32_t j;
   char temp;
   
-  while (i>=radix)
+  while (i>radix)
     {
       num = i/radix;
       digit = (int8_t)(i - num*radix);
@@ -68,11 +69,12 @@ void T_CString_integerToString(char* buffer, int32_t i, int32_t radix)
   
   
   /*Reverses the string*/
-  for (i = 0; i < length; ++i, --length) {
-    temp = buffer[length];
-    buffer[length] = buffer[i];
-    buffer[i] = temp;
-  }
+  for (j=0 ; j<(length/2) + 1 ; j++)
+    {
+      temp = buffer[length - j];
+      buffer[length - j] = buffer[j];
+      buffer[j] = temp;
+    }
   
   return;
 }
@@ -125,34 +127,3 @@ T_CString_stricmp(const char *str1, const char *str2) {
         }
     }
 }
-
-#if !U_HAVE_WCHAR_H
-U_CAPI wchar_t *uprv_wcscat(wchar_t *dst, const wchar_t *src) {
-    wchar_t *start=dst;
-    while(*dst!=0) {
-        ++dst;
-    }
-    while((*dst=*src)!=0) {
-        ++dst;
-        ++src;
-    }
-    return start;
-}
-
-U_CAPI wchar_t *uprv_wcscpy(wchar_t *dst, const wchar_t *src) {
-    wchar_t *start=dst;
-    while((*dst=*src)!=0) {
-        ++dst;
-        ++src;
-    }
-    return start;
-}
-
-U_CAPI size_t uprv_wcslen(const wchar_t *src) {
-    const wchar_t *start=src;
-    while(*src!=0) {
-        ++src;
-    }
-    return src-start;
-}
-#endif

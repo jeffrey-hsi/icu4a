@@ -60,7 +60,7 @@ void CollationIteratorTest::TestPrevious(char *par)
     UnicodeString source;
     RuleBasedCollator *c1 = NULL;
     c1 = new RuleBasedCollator(
-        (UnicodeString)"< a,A < b,B < c,C, d,D < z,Z < ch,cH,Ch,CH", status);
+        "< a,A < b,B < c,C, d,D < z,Z < ch,cH,Ch,CH", status);
 
     if (c1 == NULL || U_FAILURE(status))
     {
@@ -77,7 +77,7 @@ void CollationIteratorTest::TestPrevious(char *par)
 
     // Test with an expanding character sequence
     RuleBasedCollator *c2 = NULL;
-    c2 = new RuleBasedCollator((UnicodeString)"< a < b < c/abd < d", status);
+    c2 = new RuleBasedCollator("< a < b < c/abd < d", status);
 
     if (c2 == NULL || U_FAILURE(status))
     {
@@ -94,7 +94,7 @@ void CollationIteratorTest::TestPrevious(char *par)
 
     // Now try both
     RuleBasedCollator *c3 = NULL;
-    c3 = new RuleBasedCollator((UnicodeString)"< a < b < c/aba < d < z < ch", status);
+    c3 = new RuleBasedCollator("< a < b < c/aba < d < z < ch", status);
 
     if (c3 == NULL || U_FAILURE(status))
     {
@@ -206,9 +206,9 @@ void CollationIteratorTest::TestMaxExpansion(char *par)
     rule1 += " < b < e";
     ExpansionRecord test1[] =
     {
-        {0x61, 1},
-        {0x62, 1},
-        {0x65, 2}
+        {'a', 1},
+        {'b', 1},
+        {'e', 2}
     };
     verifyExpansion(rule1, test1, ARRAY_LENGTH(test1));
     
@@ -219,10 +219,10 @@ void CollationIteratorTest::TestMaxExpansion(char *par)
     UnicodeString rule2("< a & ae = a1 & aeef = z < b < e < f");
     ExpansionRecord test2[] =
     {
-        {0x61, 1},
-        {0x62, 1},
-        {0x65, 2},
-        {0x66, 4}
+        {'a', 1},
+        {'b', 1},
+        {'e', 2},
+        {'f', 4}
     };
     verifyExpansion(rule2, test2, ARRAY_LENGTH(test2));
 }
@@ -234,7 +234,7 @@ void CollationIteratorTest::TestClearBuffers(char *par)
 {
     UErrorCode status = U_ZERO_ERROR;
     RuleBasedCollator *c = NULL;
-    c = new RuleBasedCollator((UnicodeString)"< a < b < c & ab = d", status);
+    c = new RuleBasedCollator("< a < b < c & ab = d", status);
 
     if (c == NULL || U_FAILURE(status))
     {

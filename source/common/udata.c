@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 /*
 *******************************************************************************
 *
@@ -33,11 +35,6 @@
 #define COMMON_DATA_NAME "icudata"
 #define COMMON_DATA_NAME_LENGTH 7
 #define DATA_TYPE "dat"
-
-#ifdef OS390BATCH
-/* prefixed with "//" to search MVS first regardless of the POSIX setting */
-#define MVS_COMMON_DATA_NAME "//icudata"
-#endif
 
 static UDataMemory *
 doOpenChoice(const char *path, const char *type, const char *name,
@@ -81,6 +78,11 @@ udata_openChoice(const char *path, const char *type, const char *name,
  * See after the platform-specific code.
  */
 #define UDATA_INDIRECT
+
+static bool_t
+isCommonDataAcceptable(void *context,
+                       const char *type, const char *name,
+                       UDataInfo *pInfo);
 
 #if defined(WIN32) /* Win32 implementations --------------------------------- */
 
@@ -130,6 +132,16 @@ struct UDataMemory {
 };
 
 typedef UDataMemory *Library;
+
+UDataMemory *udata_createCommonData( MappedData* data)
+{
+  static UDataMemory myMemory;
+
+  myMemory.p = data;
+  
+  return &myMemory;
+}
+
 
 static MappedData *
 getChoice(Library lib, const char *entry,
@@ -223,7 +235,7 @@ udata_close(UDataMemory *pData) {
 
 /* POSIX implementations ---------------------------------------------------- */
 
-#elif defined (LINUX)||defined(POSIX)||defined(SOLARIS)||defined(AIX)||defined(HPUX)||defined(OS390)
+#elif defined (LINUX)||defined(POSIX)||defined(SOLARIS)||defined(AIX)||defined(HPUX)
 
 /* If you are excruciatingly bored turn this on .. */
 /*  #define UDATA_DEBUG 1 */
@@ -257,7 +269,7 @@ struct UDataMemory {
 
 #if defined(ICU_USE_SHL_LOAD)
 
-#if !defined(OS390)
+
 # include <dl.h>
  /* HPUX compatibility stubs:  shl_load, etc.. */
 #define  RTLD_LAZY 0
@@ -311,59 +323,13 @@ int dlclose (void *handle)
 	return shl_unload((shl_t)handle);
 }
 
-#elif defined(OS390)     /* OS390 */
 
-#include <dll.h>
 
-#define  RTLD_LAZY 0
-#define  RTLD_GLOBAL 0
-
-void *dlopen (const char *filename, int flag)
-{
-        dllhandle *handle; 
-
-#ifdef UDATA_DEBUG
-        fprintf(stderr, "dllload: %s ", filename);
-#endif
-
-        handle = dllload(filename);
-
-#ifdef UDATA_DEBUG
-        fprintf(stderr, " -> %08X\n", handle );
-#endif
-
-        return handle;
-}
-
-void *dlsym(void *h, const char *symbol)
-{
-        void *val = 0;
-
-        val = dllqueryvar((dllhandle*)h,symbol);
-
-#ifdef UDATA_DEBUG
-        fprintf(stderr, "dllqueryvar(%08X, %s) -> %08X\n", h,
-                symbol, val);
-#endif
-
-        return val;
-
-}
-
-int dlclose (void *handle)
-{
-#ifdef UDATA_DEBUG
-        fprintf(stderr, "dllfree: %08X\n", handle);
-#endif
-
-        return dllfree((dllhandle*)handle);
-}
-
-#endif
 #else
  /* 'de facto standard' dlopen etc */
 # include <dlfcn.h>
 #endif
+
 
 typedef void *Library;
 
@@ -411,6 +377,15 @@ struct UDataMemory {
 };
 
 typedef UDataMemory *Library;
+
+/* Set a static data memory and use it */
+UDataMemory *udata_createCommonData( MappedData* data)
+{
+  static UDataMemory myMemory;
+  myMemory.p = data;
+  return &myMemory;
+}
+
 
 static MappedData *
 getChoice(Library lib, const char *entry,
@@ -707,6 +682,54 @@ udata_getInfo(UDataMemory *pData, UDataInfo *pInfo) {
 
 static Library commonLib=NO_LIBRARY;
 
+
+void
+udata_setCommonData(const void *data, UErrorCode *err)
+{
+#ifndef UDATA_MAP
+  *err = U_UNSUPPORTED_ERROR;
+  return;
+
+#else
+  MappedData *p;
+
+  if(U_FAILURE(*err))
+  {
+    return;
+  }
+
+  if(IS_LIBRARY(commonLib)) /* ... already got one */
+  {
+    *err = U_USING_DEFAULT_ERROR;
+    return;
+  }
+
+  if(data == NULL)
+  {
+    *err = U_ILLEGAL_ARGUMENT_ERROR;
+    return;
+  }
+  
+  /* try it direct */
+  p = (MappedData*)data;
+  if(p->magic1!=0xda || p->magic2!=0x27)
+  {
+    /* Didn't work, offset it */
+    p = (MappedData*) (((double *)data)+1);
+
+    if(p->magic1!=0xda || p->magic2!=0x27)
+    {
+      *err = U_INVALID_FORMAT_ERROR;  /* Didn't find the magic. */
+      return;
+    }
+  }
+
+  commonLib = udata_createCommonData(p); 
+
+#endif
+}
+
+
 static const char *strcpy_dllentry(char *target, const char *src)
 {
     int i, length;
@@ -753,10 +776,15 @@ doOpenChoice(const char *path, const char *type, const char *name,
     const char *entryName;
     bool_t isICUData, hasPath, hasBasename;
 
-    Library lib = 0;
+    Library lib;
     MappedData *p;
     UErrorCode errorCode=U_ZERO_ERROR;
 
+#ifdef OS390BATCH
+    /* Try DD:ICUDATA first */
+    char *c;
+    char tmpPathName[23];
+#endif
     /* set up path and basename */
     if(path==NULL) {
         isICUData=TRUE;
@@ -879,6 +907,43 @@ doOpenChoice(const char *path, const char *type, const char *name,
     /* try the common data first */
     p=NULL;
 
+#ifdef OS390BATCH
+    /*
+    Try DD:ICUDATA first.
+    */
+    uprv_strcpy(tmpPathName, "//DD:ICUDATA(");
+    /*
+    Delete the '-' character from the file name. It is not a vaild 
+    charater for a MVS data set name. 
+    We could convert it to '@', but because icu supports 9 character   
+    converter file name(for example, ibm-12712.cnv), it's better to
+    delete it(member name of a PDS must be <= 8 characters).
+    */
+    c = uprv_strstr(name, "-");
+    if (c != NULL) {
+	uprv_strncat(tmpPathName, name, c-name);
+	uprv_strcat(tmpPathName, c+1);
+    }
+    else
+	uprv_strcat(tmpPathName, name);
+    uprv_strcat(tmpPathName, ")");
+    lib=LOAD_LIBRARY(tmpPathName, name, FALSE);
+
+    if(IS_LIBRARY(lib)) {
+        /* look for the entry point */
+#       ifdef UDATA_MAP
+            /* entryName passed as NULL: prevent TOC lookup for single, mapped files */
+            p=getChoice(lib, NULL, type, name, isAcceptable, context, &errorCode);
+#       else
+            p=getChoice(lib, entryName, type, name, isAcceptable, context, &errorCode);
+#       endif
+        if(p==NULL) 
+            UNLOAD_LIBRARY(lib);
+    }
+
+    if(p==NULL) {
+
+#endif
 #   ifdef UDATA_INDIRECT
         if(hasBasename) {
             /* get the common data */
@@ -893,11 +958,7 @@ doOpenChoice(const char *path, const char *type, const char *name,
             if(!IS_LIBRARY(lib)) {
                 /* try path/basename first */
                 uprv_strcpy(suffix, LIB_SUFFIX);
-#ifdef OS390BATCH
-                lib=LOAD_LIBRARY(MVS_COMMON_DATA_NAME, MVS_COMMON_DATA_NAME, TRUE);
-#       else
                 lib=LOAD_LIBRARY(path, basename, TRUE);
-#endif
                 if(!IS_LIBRARY(lib)) {
                     /* try basename only next */
                     lib=LOAD_LIBRARY(basename, basename, TRUE);
@@ -939,6 +1000,9 @@ doOpenChoice(const char *path, const char *type, const char *name,
         }
 #   endif
 
+#ifdef OS390BATCH
+    }
+#endif
     /* if the data is not found in the common data, then look for a separate library */
 
     /* try basename+"_"+entryName[+LIB_SUFFIX] first */

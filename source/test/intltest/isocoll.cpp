@@ -16,6 +16,9 @@
 //  Date         Name          Description
 //
 //===============================================================================
+#ifndef _IOSTREAM
+#include <iostream.h>
+#endif
 
 #define generate_source 1
 #if generate_source

@@ -12,6 +12,7 @@
 *   created by: Markus W. Scherer
 */
 
+#include <wchar.h>
 #include "unicode/utypes.h"
 #include "unicode/putil.h"
 #include "intltest.h"

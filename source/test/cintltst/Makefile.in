@@ -54,8 +54,8 @@ TARGET = cintltst
 DEFS = @DEFS@
 
 # we define ICU_UNICODE_VERSION so we can test it
-CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/ctestfw  \
- -DICU_UNICODE_VERSION=\"$(UNICODE_VERSION)\" -DICU_VERSION=\"@VERSION@\"
+CPPFLAGS = @CPPFLAGS@ -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/ctestfw  \
+ -DICU_UNICODE_VERSION=\"$(UNICODE_VERSION)\"
 CFLAGS = @CFLAGS@
 CXXFLAGS = @CXXFLAGS@
 LDFLAGS = @LDFLAGS@ \
@@ -65,10 +65,10 @@ LIBS = $(LIBICU-UC) $(LIBICU-I18N) $(LIBCTESTFW) @LIBS@ @LIB_M@
 OBJECTS = callcoll.o calltest.o capitst.o cbiapts.o cbkittst.o		\
 ccaltst.o ccapitst.o ccolltst.o cconvtst.o ccurrtst.o cdantst.o		\
 cdattst.o cdetst.o cdtdptst.o cdtrgtst.o cestst.o cfintst.o cformtst.o	\
-cfrtst.o cg7coll.o chashtst.o cintltst.o citertst.o cjaptst.o cloctst.o cmsgtst.o	\
+cfrtst.o cg7coll.o cintltst.o citertst.o cjaptst.o cloctst.o cmsgtst.o	\
 cnmdptst.o cnormtst.o cnumtst.o cregrtst.o crestst.o cturtst.o		\
 cucdtst.o cutiltst.o encoll.o nucnvtst.o susctest.o nccbtst.o \
-cbiditst.o cbididat.o eurocreg.o udatatst.o
+cbiditst.o cbididat.o eurocreg.o
 
 DEPS = $(OBJECTS:.o=.d)
 
@@ -101,7 +101,7 @@ distclean-local: clean-local
 	rm -f Makefile $(DEPS)
 
 check-local: $(TARGET)
-	ICU_DATA=@DATABUILDDIR@/ TZ=PST8PDT ./$(TARGET)
+	HOME=$(top_builddir)/../.. ICU_DATA=$(top_builddir)/../data/ TZ=PST8PDT ./$(TARGET)
 
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
@@ -110,10 +110,6 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 $(TARGET) : $(OBJECTS)
 	$(LINK.c) -o $@ $^ $(LIBS)
 
-ifeq (,$(MAKECMDGOALS))
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
-else
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
--include $(DEPS)
-endif
 endif

@@ -5,7 +5,6 @@
  ********************************************************************/
 
 
-
 /**
  * IntlTest is a base class for tests.
  */
@@ -15,11 +14,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <iostream.h>
 #include <assert.h>
 
 #include "unicode/utypes.h"
 #include "unicode/unistr.h"
-#include "unicode/ures.h"
 #include "unicode/coll.h"
 #include "unicode/smpdtfmt.h"
 
@@ -376,11 +375,8 @@ IntlTest::pathnameInContext( char* fullname, int32_t maxsize, const char* relPat
             mainDirBuffer[0]='\0';
         }
         mainDir=mainDirBuffer;
-    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX) || defined(OS390)
-        char mainDirBuffer[200];
-        strcpy(mainDirBuffer, u_getDataDirectory());
-        strcat(mainDirBuffer, "/../");
-        mainDir = mainDirBuffer;
+    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX)
+        mainDir = getenv("HOME");
     #elif defined(XP_MAC)
         Str255 volName;
         int16_t volNum;
@@ -402,7 +398,7 @@ IntlTest::pathnameInContext( char* fullname, int32_t maxsize, const char* relPat
         }
         mainDir=mainDirBuffer;
         sepChar = '\\';
-    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(OS390)
+    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX)
         mainDir = getenv("HOME");
         sepChar = '/';
     #elif defined(XP_MAC)
@@ -443,11 +439,7 @@ IntlTest::getTestDirectory()
 {
        if (_testDirectory == NULL) 
     {
-#if defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX) || defined(OS390)
-      setTestDirectory("source|test|testdata|");
-#else
       setTestDirectory("icu|source|test|testdata|");
-#endif
     }
     return _testDirectory;
 }
@@ -525,6 +517,9 @@ IntlTest& operator<<(IntlTest& test, const int32_t num)
     return test;
 }
 
+//inline _CRTIMP ostream& __cdecl endl(ostream& _outs) { return _outs << '\n' << flush; }
+//inline ostream& ostream::operator<<(ostream& (__cdecl * _f)(ostream&)) { (*_f)(*this); return *this; }
+
 IntlTest& endl( IntlTest& test )
 {
     test.logln();
@@ -548,7 +543,7 @@ IntlTest::IntlTest()
     no_err_msg = FALSE;
     quick = FALSE;
     leaks = FALSE;
-    testoutfp = stdout;
+    testout = &cout;
     LL_indentlevel = indentLevel_offset;
 }
 
@@ -559,7 +554,7 @@ void IntlTest::setCaller( IntlTest* callingTest )
         verbose = caller->verbose;
         no_err_msg = caller->no_err_msg;
         quick = caller->quick;
-        testoutfp = caller->testoutfp;
+        testout = caller->testout;
         LL_indentlevel = caller->LL_indentlevel + indentLevel_offset;
     }
 }
@@ -749,43 +744,42 @@ void IntlTest::errln( const UnicodeString &message )
 
 void IntlTest::LL_message( UnicodeString message, bool_t newline )
 {
-    // string that starts with a LineFeed character and continues
-    // with spaces according to the current indentation
-    static UChar indentUChars[] = {
-        10,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32,
-        32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32
-    };
-    UnicodeString indent(FALSE, indentUChars, 1 + LL_indentlevel);
+    UChar     c;
 
-    char buffer[1000];
-    int32_t length;
+    ostream&    stream = *testout;
+    int32_t        saveFlags = stream.flags();
+    stream << hex;
 
-    // stream out the indentation string first if necessary
-    if(LL_linestart) {
-        length = indent.extract(0, indent.length(), buffer);
-        fwrite(buffer, sizeof(*buffer), length, testoutfp);
-    }
+    int32_t len = message.length();
+    UTextOffset pos = 0;
+    bool_t gen = FALSE;
+    do{
+        if (LL_linestart) {
+            stream << '\n';
+            for (int32_t i = 0; i < LL_indentlevel; i++) stream << ' ';
+            gen = TRUE;
+            LL_linestart = FALSE;
+        }
+        if (pos >= len) break;
 
-    // replace each LineFeed by the indentation string
-    message.findAndReplace(UnicodeString((UChar)10), indent);
+        c = message[pos++];
+        if (c >= ' ' && c <= '~') {
+            stream << (char)c;
+            gen = TRUE;
+        }else if (c == '\n') {
+            LL_linestart = TRUE;
+        }else if (c == 9) {         // tab
+            stream << "   ";
+            gen = TRUE;
+        }else{
+            stream << "[$" << c << "]";
+            gen = TRUE;
+        }
+    }while (pos < len);
 
-    // stream out the message
-    length = message.extract(0, message.length(), buffer);
-    fwrite(buffer, sizeof(*buffer), length, testoutfp);
-    fflush(testoutfp);
-
-    // keep the terminating newline as a state for the next call,
-    // for use with the then active indentation
-    LL_linestart = newline;
+    if (gen) stream.flush();
+    stream.setf(saveFlags & ios::basefield, ios::basefield);
+    if (newline) LL_linestart = TRUE;
 }
 
 /**
@@ -871,8 +865,7 @@ main(int argc, char* argv[])
     if (!all && !name) syntax = TRUE;
  
     if (syntax) {
-        fprintf(stdout,
-                "### Syntax:\n"
+        cout << "### Syntax:\n"
                 "### IntlTest [-option1 -option2 ...] [testname1 testname2 ...] \n"
                 "### where options are: verbose (v), all (a), noerrormsg (n), \n"
                 "### exhaustive (e) and leaks (l). \n"
@@ -887,7 +880,7 @@ main(int argc, char* argv[])
                 "### To run just the Locale test type: intltest utility/LocaleTest \n"
                 "### \n"
                 "### A parameter can be specified for a test by appending '@' and the value \n"
-                "### to the testname. \n\n");
+                "### to the testname. \n\n";
         return 1;
     }
 
@@ -897,17 +890,17 @@ main(int argc, char* argv[])
     major.setNoErrMsg( no_err_msg );
     major.setQuick( quick );
     major.setLeaks( leaks );
-    fprintf(stdout, "-----------------------------------------------\n");
-    fprintf(stdout, " IntlTest Test Suite for                       \n");
-    fprintf(stdout, "   International Classes for Unicode           \n");
-    fprintf(stdout, "-----------------------------------------------\n");
-    fprintf(stdout, " Options:                                       \n");
-    fprintf(stdout, "   all (a)               : %s\n", (all?        "On" : "Off"));
-    fprintf(stdout, "   Verbose (v)           : %s\n", (verbose?    "On" : "Off"));
-    fprintf(stdout, "   No error messages (n) : %s\n", (no_err_msg? "On" : "Off"));
-    fprintf(stdout, "   Exhaustive (e)        : %s\n", (!quick?     "On" : "Off"));
-    fprintf(stdout, "   Leaks (l)             : %s\n", (leaks?      "On" : "Off"));
-    fprintf(stdout, "-----------------------------------------------\n");
+    cout << "-----------------------------------------------" << endl;
+    cout << " IntlTest Test Suite for                       " << endl;
+    cout << "   International Classes for Unicode           " << endl;
+    cout << "-----------------------------------------------" << endl;
+    cout << " Options:                                       " << endl;
+    cout << "   all (a)               : " << (all?        "On" : "Off") << endl;
+    cout << "   Verbose (v)           : " << (verbose?    "On" : "Off") << endl;
+    cout << "   No error messages (n) : " << (no_err_msg? "On" : "Off") << endl;
+    cout << "   Exhaustive (e)        : " << (!quick?     "On" : "Off") << endl;
+    cout << "   Leaks (l)             : " << (leaks?      "On" : "Off") << endl;
+    cout << "-----------------------------------------------" << endl << endl;
 
     // initial check for the default converter
     UErrorCode errorCode = U_ZERO_ERROR;
@@ -916,35 +909,9 @@ main(int argc, char* argv[])
         // ok
         ucnv_close(cnv);
     } else {
-        fprintf(stdout,
-                "*** Failure! The default converter cannot be opened.\n"
-                "*** Check the ICU_DATA environment variable and\n"
-                "*** check that the data files are present.\n");
-        return 1;
-    }
-
-    // try more data
-    cnv = ucnv_open("iso-8859-7", &errorCode);
-    if(cnv != 0) {
-        // ok
-        ucnv_close(cnv);
-    } else {
-        fprintf(stdout,
-                "*** Failure! The converter for iso-8859-7 cannot be opened.\n"
-                "*** Check the ICU_DATA environment variable and \n"
-                "*** check that the data files are present.\n");
-        return 1;
-    }
-
-    UResourceBundle *rb = ures_open(0, "en", &errorCode);
-    if(U_SUCCESS(errorCode)) {
-        // ok
-        ures_close(rb);
-    } else {
-        fprintf(stdout,
-                "*** Failure! The \"en\" locale resource bundle cannot be opened.\n"
-                "*** Check the ICU_DATA environment variable and \n"
-                "*** check that the data files are present.\n");
+        cout << "*** Failure! The default converter cannot be opened." << endl <<
+                "*** Check the ICU_DATA environment variable and " << endl <<
+                "*** check that the data files are present." << endl;
         return 1;
     }
 
@@ -957,7 +924,7 @@ main(int argc, char* argv[])
         for (int i = 1; i < argc; ++i) {
             if (argv[i][0] != '-') {
                 char* name = argv[i];
-                fprintf(stdout, "\n=== Handling test: %s: ===\n", name);
+                cout << "\n=== Handling test: " << name << ": ===\n";
                 char* parameter = strchr( name, '@' );
                 if (parameter) {
                     *parameter = 0;
@@ -969,74 +936,24 @@ main(int argc, char* argv[])
                     major.run_phase2( name, parameter );
                 }
                 if (!res || (execCount <= 0)) {
-                    fprintf(stdout, "\n---ERROR: Test doesn't exist: %s!\n", name);
+                    cout << "\n---ERROR: Test doesn't exist: " << name << " !\n";
                     all_tests_exist = FALSE;
                 }
             }
         }
     }
-    fprintf(stdout, "\n--------------------------------------\n");
+    cout << "\n--------------------------------------\n";
     if (major.getErrors() == 0) {
-        fprintf(stdout, "OK: All tests passed without error.\n");
+        cout << "OK: All tests passed without error.\n";
     }else{
-	fprintf(stdout, "Errors in total: %ld.\n", major.getErrors());
+        cout << "Errors in total: " << major.getErrors() << ".\n";
     }
 
-    fprintf(stdout, "--------------------------------------\n");
+    cout << "--------------------------------------\n";
 
     if (execCount <= 0) {
-        fprintf(stdout, "***** Not all called tests actually exist! *****\n");
+        cout << "***** Not all called tests actually exist! *****\n";
     }
 
     return major.getErrors();
 }
-
-/*
- * This is a variant of cintltst/ccolltst.c:CharsToUChars().
- * It converts a character string into a UnicodeString, with
- * unescaping \u sequences.
- */
-UnicodeString CharsToUnicodeString(const char* chars)
-{
-    int unicode;
-    int i;
-    UnicodeString result;
-    UChar buffer[400];
-
-    for (;;) {
-        /* repeat the following according to the length of the buffer */
-        do {
-            /* search for \u or the end */
-            for(i = 0; i < 400 && chars[i] != 0 && !(chars[i] == '\\' && chars[i+1] == 'u'); ++i) {}
-
-            /* convert characters between escape sequences */
-            if(i > 0) {
-                u_charsToUChars(chars, buffer, i);
-                result.append(buffer, i);
-                chars += i;
-            }
-        } while(i == 400);
-
-        /* did we reach the end or an escape sequence? */
-        if(*chars == 0) {
-            break;
-        }
-
-        /* unescape one character: we know that there is a \u sequence at chars[limit] */
-        chars += 2;
-        sscanf(chars, "%4X", &unicode);
-        result.append((UChar)unicode);
-        chars += 4;
-    }
-    return result;
-}
-
-/*
- * Hey, Emacs, please set the following:
- *
- * Local Variables:
- * indent-tabs-mode: nil
- * End:
- *
- */
-

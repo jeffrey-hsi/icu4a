@@ -147,7 +147,6 @@ typedef void* UResourceBundle;
      * fall back locales could be found.
 *@return      : a newly allocated resource bundle.
 *@see ures_close
-*@draft
 */
 U_CAPI UResourceBundle*  U_EXPORT2 ures_open(const char*    path,   /* NULL if none */
 					   const char*  locale, /* NULL if none */
@@ -171,7 +170,6 @@ U_CAPI UResourceBundle*  U_EXPORT2 ures_open(const char*    path,   /* NULL if n
 *@param status: fills in the outgoing error code.
 *@see ures_close
 *@return : a newly allocated resource bundle.
-*@draft
 */
 U_CAPI UResourceBundle* U_EXPORT2 ures_openW(const wchar_t* path, 
                   const char* locale, 
@@ -191,7 +189,6 @@ U_CAPI UResourceBundle* U_EXPORT2 ures_openW(const wchar_t* path,
  * @see ures_getArrayItem
  * @see ures_get2dArrayItem
  * @see ures_getTaggedItem
- *@draft
  */
 U_CAPI const UChar* U_EXPORT2 ures_get(const UResourceBundle*    resourceBundle,
                const char*              resourceTag,
@@ -213,7 +210,6 @@ U_CAPI const UChar* U_EXPORT2 ures_get(const UResourceBundle*    resourceBundle,
  * @see ures_get
  * @see ures_get2dArrayItem
  * @see ures_getTaggedItem
- *@draft
  */
 U_CAPI const UChar* U_EXPORT2 ures_getArrayItem(const UResourceBundle*     resourceBundle,
                     const char*               resourceTag,
@@ -237,7 +233,6 @@ U_CAPI const UChar* U_EXPORT2 ures_getArrayItem(const UResourceBundle*     resou
  * @see ures_get
  * @see ures_getArrayItem
  * @see ures_getTaggedItem
- *@draft
  */
 
 U_CAPI const UChar* U_EXPORT2 ures_get2dArrayItem(const UResourceBundle*   resourceBundle,
@@ -262,7 +257,6 @@ U_CAPI const UChar* U_EXPORT2 ures_get2dArrayItem(const UResourceBundle*   resou
  * @see ures_get
  * @see ures_getArrayItem
  * @see ures_get2dItem
- *@draft
  */
 
 U_CAPI const UChar* U_EXPORT2 ures_getTaggedArrayItem(const UResourceBundle*   resourceBundle,
@@ -289,7 +283,6 @@ U_CAPI const UChar* U_EXPORT2 ures_getTaggedArrayItem(const UResourceBundle*   r
  *@see ures_getArrayItem
  *@see ures_getTaggedArrayItem
  *@see ures_get2dArrayItem
- *@draft
  */
 
 U_CAPI int32_t U_EXPORT2 ures_countArrayItems(const UResourceBundle* resourceBundle,
@@ -306,7 +299,6 @@ U_CAPI int32_t U_EXPORT2 ures_countArrayItems(const UResourceBundle* resourceBun
  *                e.g.: <TT>U_USING_FALLBACK_ERROR</TT>,<TT>U_USING_DEFAULT_ERROR </TT>
  * @see ures_open
  * @see ures_openW
- *@draft
  */
 U_CAPI void U_EXPORT2 ures_close(UResourceBundle*    resourceBundle);
 /**
@@ -325,7 +317,6 @@ U_CAPI void U_EXPORT2 ures_close(UResourceBundle*    resourceBundle);
  *          representing the code version, and n is the minor version number,
  *          representing the resource data file. The caller does not own this
  *          string.
- *@draft
  */
 U_CAPI const char* U_EXPORT2 ures_getVersionNumber(const UResourceBundle*   resourceBundle);
 
@@ -334,7 +325,6 @@ U_CAPI const char* U_EXPORT2 ures_getVersionNumber(const UResourceBundle*   reso
  * @param resourceBundle: resource bundle in question
  * @param status: just for catching illegal arguments
  * @return  A Locale name
- *@draft
  */
 U_CAPI const char* ures_getLocale(const UResourceBundle* resourceBundle, UErrorCode* status);
 #endif /*_URES*/

@@ -15,12 +15,6 @@
 #include "unicode/brkiter.h"
 #include "filestrm.h"
 
-U_CDECL_BEGIN
-#ifndef UCMP8_H
-typedef struct _CompactByteArray CompactByteArray;
-#endif
-U_CDECL_END
-
 /* forward declarations */
 class RuleBasedBreakIterator;
 class DictionaryBasedBreakIterator;

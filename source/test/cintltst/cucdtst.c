@@ -30,9 +30,6 @@
 static void
 TestCharNames();
 
-static void
-TestMirroring();
-
 /* test data ---------------------------------------------------------------- */
 #define MIN(a,b) (a < b ? a : b)
 
@@ -107,7 +104,6 @@ void addUnicodeTest(TestNode** root)
     addTest(root, &TestUnicodeData, "tsutil/cucdtst/TestUnicodeData");
     addTest(root, &TestStringFunctions, "tsutil/cucdtst/TestStringFunctions");
     addTest(root, &TestCharNames, "tsutil/cucdtst/TestCharNames");
-    addTest(root, &TestMirroring, "tsutil/cucdtst/TestMirroring");
 }
 
 /*==================================================== */
@@ -115,13 +111,9 @@ void addUnicodeTest(TestNode** root)
 /*==================================================== */
 void TestUpperLower()
 {
-    U_STRING_DECL(upperTest, "abcdefg123hij.?:klmno", 21);
-    U_STRING_DECL(lowerTest, "ABCDEFG123HIJ.?:KLMNO", 21);
+    static char* upperTest = "abcdefg123hij.?:klmno";
+    static char* lowerTest = "ABCDEFG123HIJ.?:KLMNO";
     int i;
-
-    U_STRING_INIT(upperTest, "abcdefg123hij.?:klmno", 21);
-    U_STRING_INIT(lowerTest, "ABCDEFG123HIJ.?:KLMNO", 21);
-
     log_verbose("testing upper lower\n");
     for (i = 0; i < 21; i++) {
         
@@ -206,7 +198,7 @@ void TestLetterNumber()
 void TestMisc()
 {
     const UChar sampleSpaces[] = {0x0020, 0x00a0, 0x2000, 0x2001, 0x2005};
-    const UChar sampleNonSpaces[] = {0x61, 0x62, 0x63, 0x64, 0x74};
+    const UChar sampleNonSpaces[] = {'a', 'b', 'c', 'd', 't'};
     const UChar sampleUndefined[] = {0xfff1, 0xfff7, 0xfa30};
     const UChar sampleDefined[] = {0x523E, 0x4f88, 0xfffd};
     const UChar sampleBase[] = {0x0061, 0x0031, 0x03d2};
@@ -288,16 +280,8 @@ void TestMisc()
     }
     if (strncmp(icuVersion, U_ICU_VERSION, MIN(strlen(icuVersion), strlen(U_ICU_VERSION))) != 0)
     {
-        log_err("ICU version test failed. Header says=%s, got=%s \n", U_ICU_VERSION, icuVersion);
+        log_err("ICU version test failed.\n");
     }
-#if defined(ICU_VERSION)
-    /* test only happens where we have configure.in with VERSION - sanity check. */
-    if(strcmp(U_ICU_VERSION, ICU_VERSION))
-      {
-        log_err("ICU version mismatch: Header says %s, build environment says %s.\n",  U_ICU_VERSION, ICU_VERSION);
-      }
-#endif
-
 }
 
 
@@ -305,7 +289,7 @@ void TestMisc()
 void TestControlPrint()
 {
     const UChar sampleControl[] = {0x001b, 0x0097, 0x0082};
-    const UChar sampleNonControl[] = {0x61, 0x0031, 0x00e2};
+    const UChar sampleNonControl[] = {'a', 0x0031, 0x00e2};
     const UChar samplePrintable[] = {0x0042, 0x005f, 0x2014};
     const UChar sampleNonPrintable[] = {0x200c, 0x009f, 0x001c};
     int i;
@@ -647,26 +631,5 @@ TestCharNames() {
         if(length<=0 || 0!=uprv_strcmp(name, names[i].name)) {
             log_err("u_charName(0x%lx) gets %s instead of %s\n", names[i].code, name, names[i].name);
         }
-    }
-}
-
-/* test u_isMirrored() and u_charMirror() ----------------------------------- */
-
-static void
-TestMirroring() {
-    log_verbose("Testing u_isMirrored()\n");
-    if(!(u_isMirrored(0x28) && u_isMirrored(0xbb) && u_isMirrored(0x2045) && u_isMirrored(0x232a) &&
-         !u_isMirrored(0x27) && !u_isMirrored(0x61) && !u_isMirrored(0x284) && !u_isMirrored(0x3400)
-        )
-    ) {
-        log_err("u_isMirrored() does not work correctly\n");
-    }
-
-    log_verbose("Testing u_charMirror()\n");
-    if(!(u_charMirror(0x3c)==0x3e && u_charMirror(0x5d)==0x5b && u_charMirror(0x208d)==0x208e && u_charMirror(0x3017)==0x3016 &&
-         u_charMirror(0x2e)==0x2e && u_charMirror(0x6f3)==0x6f3 && u_charMirror(0x301c)==0x301c && u_charMirror(0xa4ab)==0xa4ab
-        )
-    ) {
-        log_err("u_charMirror() does not work correctly\n");
     }
 }

@@ -233,7 +233,7 @@ void IntlTestDateFormat::testAvailableLocales(char *par)
         for (int32_t i=0; i<count; ++i)
         {
             if (i!=0) all += ", ";
-            all += locales[i].getName();
+            all += locales[i].getName(name);
         }
         logln(all);
     }
@@ -252,7 +252,8 @@ void IntlTestDateFormat::monsterTest(char *par)
         }
         for (int32_t i=0; i<count; ++i)
         {
-            UnicodeString name = UnicodeString(locales[i].getName(), "");
+            UnicodeString name;
+            locales[i].getName(name);
             logln((UnicodeString)"Testing " + name + "...");
             testLocale(par, locales[i], name);
         }

@@ -17,7 +17,6 @@
 *******************************************************************************
 */
 
-#include "unicode/utypes.h"
 #include "uprintf.h"
 #include "uprntf_p.h"
 #include "unicode/ustdio.h"
@@ -33,6 +32,8 @@
 #include <math.h>
 #include <float.h>
 #include <limits.h>
+#include <wchar.h>
+
 
 u_printf_handler     g_u_printf_handlers     [256];
 u_printf_info       g_u_printf_infos     [256];

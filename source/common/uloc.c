@@ -36,7 +36,7 @@
 /* UnicodeString stuff */
 typedef struct UnicodeString UnicodeString;
 
-U_CFUNC int32_t T_UnicodeString_length(const UnicodeString *s);
+U_CAPI const UChar* T_UnicodeString_getUChars(const UnicodeString *s);
 
 U_CAPI int32_t
 T_UnicodeString_extract(const UnicodeString *s, char *dst);
@@ -161,7 +161,7 @@ static int16_t _findIndex(const char* list, int32_t listLength, const char* key)
 static const char* _findCharSeparator(const char* string);
 
 /*Lazy evaluated the list of installed locales*/
-static void _lazyEvaluate_installedLocales(void);
+static void _lazyEvaluate_installedLocales();
 
 /*returns TRUE if a is an ID separator FALSE otherwise*/
 #define _isIDSeparator(a) (a == '_' || a == '-')
@@ -187,6 +187,7 @@ int16_t _findIndex(const char* list, int32_t listLength, const char* key)
   const char* anchor = list;
   const char* listEnd = anchor + listLength;
   bool_t found = FALSE;
+  int index = 0;
   int tokenSize = uprv_strlen(list)+1; /*gets the size of the tokens*/
   
   while (!found && list<listEnd)
@@ -465,31 +466,31 @@ int32_t uloc_getName(const char* localeID,
 
 const char* uloc_getISO3Language(const char* localeID) 
 {
-  int16_t offset;
+  int16_t index;
   char lang[TEMPBUFSIZE];
   UErrorCode err = U_ZERO_ERROR;
   
   if (localeID == NULL)    localeID = uloc_getDefault();
   uloc_getLanguage(localeID, lang, TEMPBUFSIZE, &err);
   if (U_FAILURE(err)) return "";
-  offset = _findIndex(_languages, sizeof(_languages),lang);
-  if (offset < 0) return "";
-  return &(_languages3[offset * 4]);
+  index = _findIndex(_languages, sizeof(_languages),lang);
+  if (index < 0) return "";
+  return &(_languages3[index * 4]);
 }
 
 const char* uloc_getISO3Country(const char* localeID) 
 {
-  int16_t offset;
+  int16_t index;
   char cntry[TEMPBUFSIZE];
   UErrorCode err = U_ZERO_ERROR;
   
   if (localeID == NULL)    localeID = uloc_getDefault();
   uloc_getCountry(localeID, cntry, TEMPBUFSIZE, &err);
   if (U_FAILURE(err)) return "";
-  offset = _findIndex(_countries, sizeof(_countries), cntry);
-  if (offset < 0) return "";
+  index = _findIndex(_countries, sizeof(_countries), cntry);
+  if (index < 0) return "";
 
-  return &(_countries3[offset * 4]);
+  return &(_countries3[index * 4]);
 }
 
 uint32_t uloc_getLCID(const char* localeID) 
@@ -524,6 +525,7 @@ int32_t uloc_getDisplayLanguage(const char* locale,
   const UChar* result = NULL;
   int32_t i = 0;
   int langBufSize;
+  bool_t doneDefaultLocale = FALSE;
   char inLanguageBuffer[TEMPBUFSIZE];
   char inLocaleBuffer[TEMPBUFSIZE];
   UErrorCode err = U_ZERO_ERROR;
@@ -583,7 +585,7 @@ int32_t uloc_getDisplayLanguage(const char* locale,
       
       if (U_SUCCESS(err))
         {
-          err = U_ZERO_ERROR;
+          UErrorCode err = U_ZERO_ERROR;
           temp = ures_getTaggedArrayItem(bundle,
                          _kLanguages,
                          inLanguageBuffer, 
@@ -649,6 +651,7 @@ int32_t uloc_getDisplayCountry(const char* locale,
   const UChar* result = NULL;
   int32_t i = 0;
   int cntryBufSize;
+  bool_t doneDefaultLocale = FALSE;
   char inCountryBuffer[TEMPBUFSIZE];
   UErrorCode err = U_ZERO_ERROR;
   UResourceBundle* bundle = NULL;
@@ -769,6 +772,7 @@ int32_t uloc_getDisplayVariant(const char* locale,
   const UChar* result = NULL;
   int32_t i = 0;
   int varBufSize;
+  bool_t doneDefaultLocale = FALSE;
   char inVariantBuffer[TEMPBUFSIZE];
   char* inVariant = inVariantBuffer;
   UErrorCode err = U_ZERO_ERROR;
@@ -1016,13 +1020,13 @@ int32_t uloc_getDisplayName(const char* locale,
 U_CAPI UnicodeString** T_ResourceBundle_listInstalledLocales(const char* path, int32_t* numInstalledLocales);
 
 const char*
-uloc_getAvailable(int32_t offset) 
+uloc_getAvailable(int32_t index) 
 {
   
   if (_installedLocales == NULL) _lazyEvaluate_installedLocales();
   
-  if (offset > _installedLocalesCount) return NULL;
-  else  return _installedLocales[offset];
+  if (index > _installedLocalesCount) return NULL;
+  else  return _installedLocales[index];
   
 }
 
@@ -1047,7 +1051,7 @@ void _lazyEvaluate_installedLocales()
       
       for (i = 0; i < _installedLocalesCount; i++)
     {
-      strSize = T_UnicodeString_length(temp[i]);
+      strSize = u_strlen(T_UnicodeString_getUChars(temp[i]));
 
       temp2[i] = (char*) uprv_malloc(sizeof(char) *
                         (strSize + 1));

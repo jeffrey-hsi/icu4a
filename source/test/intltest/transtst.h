@@ -81,21 +81,6 @@ class TransliteratorTest : public IntlTest {
      */
     void TestFiltering(void);
 
-    /**
-     * Regression test for bugs found in Greek transliteration.
-     */
-    void TestJ277(void);
-
-    /**
-     * Prefix, suffix support in hex transliterators.
-     */
-    void TestJ243(void);
-
-    /**
-     * Parsers need better syntax error messages.
-     */
-    void TestJ329(void);
-
     //======================================================================
     // Support methods
     //======================================================================
@@ -120,6 +105,11 @@ class TransliteratorTest : public IntlTest {
     void expectAux(const UnicodeString& tag,
                    const UnicodeString& summary, bool_t pass,
                    const UnicodeString& expectedResult);
+
+    /**
+     * Escape non-ASCII characters as Unicode.
+     */
+    static UnicodeString escape(const UnicodeString& s);
 };
 
 #endif

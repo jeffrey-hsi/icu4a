@@ -11,6 +11,7 @@
  *
  */
 
+#include "uhash.h"
 #include "ucmp8.h"
 #include "ucmp16.h"
 #include "unicode/ucnv_bld.h"
@@ -47,7 +48,7 @@ static void   itou (UChar * buffer, int32_t i, int32_t radix, int32_t pad)
   int32_t j;
   UChar temp;
 
-  while (i >= radix)
+  while (i > radix)
     {
       num = i / radix;
       digit = (int8_t) (i - num * radix);
@@ -206,6 +207,7 @@ void   UCNV_FROM_U_CALLBACK_ESCAPE (UConverter * _this,
 
   UChar valueString[VALUE_STRING_LENGTH];
   int32_t valueStringLength = 0;
+  const UChar *mySource = *source;
   UChar codepoint[CODEPOINT_STRING_LENGTH];
   int32_t i = 0;
   /*Makes a bitwise copy of the converter passwd in */
@@ -281,8 +283,8 @@ void   UCNV_FROM_U_CALLBACK_ESCAPE (UConverter * _this,
 
       if (offsets)
 	{
-	  int j=0;
-	  for (j=0;j<valueStringLength;j++) offsets[j]=0;
+	  int i=0;
+	  for (i=0;i<valueStringLength;i++) offsets[i]=0;
 	  offsets += valueStringLength;
 	}
     }
@@ -296,8 +298,8 @@ void   UCNV_FROM_U_CALLBACK_ESCAPE (UConverter * _this,
 
       if (offsets)
 	{
-	  int j=0;
-	  for (j=0;j<(targetLimit - *target);j++) offsets[j]=0;
+	  int i=0;
+	  for (i=0;i<(targetLimit - *target);i++) offsets[i]=0;
 	  offsets += (targetLimit - *target);
 	}
       uprv_memcpy (*target, myTarget, (targetLimit - *target));
@@ -371,8 +373,10 @@ void  UCNV_TO_U_CALLBACK_ESCAPE (UConverter * _this,
 {
   UChar uniValueString[VALUE_STRING_LENGTH];
   int32_t valueStringLength = 0;
+  const unsigned char *mySource = (const unsigned char *) *source;
   UChar codepoint[CODEPOINT_STRING_LENGTH];
-  int32_t i = 0;
+  int32_t j = 0, i = 0;
+  const int32_t* offsets_end = offsets +( targetLimit - *target);
   
   if (CONVERSION_U_SUCCESS (*err))   return;
   

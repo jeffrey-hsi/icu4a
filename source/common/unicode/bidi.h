@@ -31,114 +31,81 @@
  * Unicode BiDi algorithm, see ubidi.h.
  *
  * @see UBiDi
- * @stable
  */
 class U_COMMON_API BiDi {
 public:
-    /** @memo Default constructor, calls ubidi_open(). 
-     *  @stable
-     */
+    /** @memo Default constructor, calls ubidi_open(). */
     BiDi();
 
-    /** @memo Constructor, calls ubidi_open(). 
-     *  @stable
-     */
+    /** @memo Constructor, calls ubidi_open(). */
     BiDi(UErrorCode &rErrorCode);
 
-    /** @memo Preallocating constructor, calls ubidi_openSized(). 
-     *  @stable
-     */
+    /** @memo Preallocating constructor, calls ubidi_openSized(). */
     BiDi(UTextOffset maxLength, UTextOffset maxRunCount, UErrorCode &rErrorCode);
 
-    /** @memo Destructor, calls ubidi_close(). 
-     *  @stable
-     */
+    /** @memo Destructor, calls ubidi_close(). */
     ~BiDi();
 
-    /** @memo Set this object for one paragraph's text. 
-     *  @stable
-     */
+    /** @memo Set this object for one paragraph's text. */
     BiDi &
     setPara(const UChar *text, UTextOffset length,
             UBiDiLevel paraLevel, UBiDiLevel *embeddingLevels,
             UErrorCode &rErrorCode);
 
 
-    /** @memo Set this object for one line of the paragraph object's text. 
-     *  @stable
-     */
+    /** @memo Set this object for one line of the paragraph object's text. */
     BiDi &
     setLine(const BiDi &rParaBiDi,
             UTextOffset start, UTextOffset limit,
             UErrorCode &rErrorCode);
 
-    /** @memo Get the directionality of the text. 
-     *  @stable
-     */
+    /** @memo Get the directionality of the text. */
     UBiDiDirection
     getDirection() const;
 
-    /** @memo Get the length of the text. 
-     *  @stable
-     */
+    /** @memo Get the length of the text. */
     UTextOffset
     getLength() const;
 
-    /** @memo Get the paragraph level of the text. 
-     *  @stable
-     */
+    /** @memo Get the paragraph level of the text. */
     UBiDiLevel
     getParaLevel() const;
 
-    /** @memo Get the level for one character. 
-     *  @stable
-     */
+    /** @memo Get the level for one character. */
     UBiDiLevel
     getLevelAt(UTextOffset charIndex) const;
 
-    /** @memo Get an array of levels for each character. 
-     *  @stable
-     */
+    /** @memo Get an array of levels for each character. */
     const UBiDiLevel *
     getLevels(UErrorCode &rErrorCode);
 
-    /** @memo Get a logical run. 
-     *  @stable
-     */
+    /** @memo Get a logical run. */
     void
     getLogicalRun(UTextOffset logicalStart,
                   UTextOffset &rLogicalLimit, UBiDiLevel &rLevel) const;
 
-    /** @memo Get the number of runs. 
-     *  @stable
-     */
+    /** @memo Get the number of runs. */
     UTextOffset
     countRuns(UErrorCode &rErrorCode);
 
     /**
      * @memo Get one run's logical start, length, and directionality,
-     *       which can be 0 for LTR or 1 for RTL.     
-     *  @stable
+     *       which can be 0 for LTR or 1 for RTL.
      */
     UBiDiDirection
     getVisualRun(UTextOffset runIndex, UTextOffset &rLogicalStart, UTextOffset &rLength);
 
-    /** @memo Get the visual position from a logical text position. 
-     *  @stable
-     */
+    /** @memo Get the visual position from a logical text position. */
     UTextOffset
     getVisualIndex(UTextOffset logicalIndex, UErrorCode &rErrorCode);
 
-    /** @memo Get the logical text position from a visual position. 
-     *  @stable
-     */
+    /** @memo Get the logical text position from a visual position. */
     UTextOffset
     getLogicalIndex(UTextOffset visualIndex, UErrorCode &rErrorCode);
 
     /**
-     *  @memo Get a logical-to-visual index map (array) for the characters in the UBiDi
+     * @memo Get a logical-to-visual index map (array) for the characters in the UBiDi
      *       (paragraph or line) object.
-     *  @stable
      */
     void
     getLogicalMap(UTextOffset *indexMap, UErrorCode &rErrorCode);
@@ -146,26 +113,19 @@ public:
     /**
      * @memo Get a visual-to-logical index map (array) for the characters in the UBiDi
      *       (paragraph or line) object.
-     * @stable
      */
     void
     getVisualMap(UTextOffset *indexMap, UErrorCode &rErrorCode);
 
-    /** @memo Same as ubidi_reorderLogical(). 
-     *  @stable
-     */
+    /** @memo Same as ubidi_reorderLogical(). */
     static void
     reorderLogical(const UBiDiLevel *levels, UTextOffset length, UTextOffset *indexMap);
 
-    /** @memo Same as ubidi_reorderVisual(). 
-     *  @stable
-     */
+    /** @memo Same as ubidi_reorderVisual(). */
     static void
     reorderVisual(const UBiDiLevel *levels, UTextOffset length, UTextOffset *indexMap);
 
-    /** @memo Same as ubidi_invertMap(). 
-     *  @stable
-     */
+    /** @memo Same as ubidi_invertMap(). */
     static void
     invertMap(const UTextOffset *srcMap, UTextOffset *destMap, UTextOffset length);
 

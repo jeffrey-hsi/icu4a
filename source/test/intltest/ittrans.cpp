@@ -12,7 +12,6 @@
 /***********************************************************************
 *   Date        Name        Description
 *   01/03/2000  Madhu        Creation.
-*   03/2000     Madhu        Added additional tests
 ***********************************************************************/
 /**
  * IntlTestTransliterator is the medium level test class for Transliterator 
@@ -22,12 +21,6 @@
 #include "ittrans.h"
 #include "transtst.h"
 #include "transapi.h"
-#include "cpdtrtst.h"
-#include "unhxtrts.h"
-#include "hxuntrts.h"
-#include "jahatrts.h"
-#include "hajatrts.h"
-#include "ufltlgts.h"
 
 void IntlTestTransliterator::runIndexedTest( int32_t index, bool_t exec, char* &name, char* par )
 {
@@ -50,55 +43,6 @@ void IntlTestTransliterator::runIndexedTest( int32_t index, bool_t exec, char* &
                 callTest( test, par );
 			}
             break;
-	    case 2:
-            name = "CompoundTransliteratorTest"; 
-            if (exec) {
-                logln("CompoundTransliteratorTest---"); logln("");
-                CompoundTransliteratorTest test;
-                callTest( test, par );
-			}
-            break;
-		case 3:
-            name = "UniToHexTransliteratorTest"; 
-            if (exec) {
-                logln("UnicodeToHexadecimalTransliteratorTest---"); logln("");
-                UniToHexTransliteratorTest test;
-                callTest( test, par );
-			}
-            break;
-		case 4:
-            name = "HexToUniTransliteratorTest"; 
-            if (exec) {
-                logln("HexadecimalToUnicodeTransliteratorTest---"); logln("");
-                HexToUniTransliteratorTest test;
-                callTest( test, par );
-			}
-            break;
-		case 5:
-            name = "JamoToHangTransliteratorTest"; 
-            if (exec) {
-                logln("JamoToHangulTransliteratorTest---"); logln("");
-                JamoToHangTransliteratorTest test;
-                callTest( test, par );
-			}
-            break;
-		case 6:
-            name = "HangToJamoTransliteratorTest"; 
-            if (exec) {
-                logln("HangulToJamoTransliteratorTest---"); logln("");
-                HangToJamoTransliteratorTest test;
-                callTest( test, par );
-			}
-            break;
-		case 7:
-            name = "UnicodeFilterLogicTest"; 
-            if (exec) {
-                logln("UnicodeFilterLogicTest---"); logln("");
-                UnicodeFilterLogicTest test;
-                callTest( test, par );
-			}
-            break;
-
 
 		default: name=""; break;		
 	}

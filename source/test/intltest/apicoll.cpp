@@ -26,6 +26,7 @@
 //                          testing.
 //  02/10/98    damiba      Added test for compare(UnicodeString&, UnicodeString&, int32_t)
 //===============================================================================
+#include <iostream.h>
 
 #ifndef COLL_H
 #include "unicode/coll.h"
@@ -572,7 +573,7 @@ CollationAPITest::TestGetAll( char* par )
     for (int32_t i = 0; i < count; ++i) {
         UnicodeString locName, dispName;
         log("Locale name: "); 
-        log(list[i].getName());
+        log(list[i].getName(locName));
         log(" , the display name is : ");
         logln(list[i].getDisplayName(dispName));
     }

@@ -125,41 +125,35 @@ UChar* CharsToUChars(const char* chars)
     int i;
     UChar *buffer;
     UChar *alias;
+    int len = strlen(chars);
     int count = 0;
 
     /* preflight */
-    for (i = 0; chars[i] != 0;) {
-        if ((chars[i] == '\\') && (chars[i+1] == 'u')) {
+    for (i = 0; i < len;) {
+        if ((chars[i] == '\\') && (i+1 < len) && (chars[i+1] == 'u')) {
+            ++count;
             i += 6;
         } else {
+            ++count;
             i++;
         }
-        ++count;
     }
 
-    alias = buffer = (UChar*) malloc(sizeof(UChar) * (count + 1));
+    buffer = (UChar*) malloc(sizeof(UChar) * (count + 1));
+    alias = buffer;
     
-    for (;;) {
-        /* search for \u or the end */
-        for(i = 0; chars[i] != 0 && !(chars[i] == '\\' && chars[i+1] == 'u'); ++i) {}
-
-        /* convert characters between escape sequences */
-        if(i > 0) {
-            u_charsToUChars(chars, alias, i);
-            chars += i;
-            alias += i;
-        }
-
-        /* did we reach the end or an escape sequence? */
-        if(*chars == 0) {
-            break;
-        }
-
-        /* unescape one character: we know that there is a \u sequence at chars[limit] */
-        chars += 2;
-        sscanf(chars, "%4X", &unicode);
-        *alias++ = (UChar)unicode;
-        chars += 4;
+    for (i = 0; i < len;) {
+        if ((chars[i] == '\\') && (i+1 < len) && (chars[i+1] == 'u')) {
+            
+            sscanf(&(chars[i+2]), "%4X", &unicode);
+            *alias = (UChar)unicode;
+            i += 6;
+            ++alias;
+        } else {
+            *alias = (UChar)chars[i];
+            ++alias;
+            ++i;
+           }
     }
     *alias = 0x0000;
     return buffer;

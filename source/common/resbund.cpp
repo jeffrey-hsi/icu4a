@@ -45,10 +45,9 @@
 *******************************************************************************
 */
 
-#include "unicode/utypes.h"
-#include "unicode/resbund.h"
-
 #include "rbcache.h"
+
+#include "unicode/resbund.h"
 #include "mutex.h"
 
 #include "unistrm.h"
@@ -59,9 +58,9 @@
 #include "rbdata.h"
 #include "rbread.h"
 
+#include <iostream.h>
 #include <string.h>
-
-#include "cmemory.h"
+#include <wchar.h>
 
 /*-----------------------------------------------------------------------------
  * Implementation Notes
@@ -204,13 +203,10 @@ ResourceBundle::LocaleFallbackIterator::LocaleFallbackIterator(const UnicodeStri
 :   fLocale(startingLocale),
     fRoot(root),
     fUseDefaultLocale(useDefaultLocale),
-
-    // Init from the default locale, if asked for.
-    fDefaultLocale( (useDefaultLocale)? (Locale::getDefault().getName()) : U_NULL, ""),
-
     fTriedDefaultLocale(FALSE),
     fTriedRoot(FALSE)
 {
+    if (fUseDefaultLocale) Locale::getDefault().getName(fDefaultLocale);
 }
 
 bool_t
@@ -287,14 +283,14 @@ ResourceBundle::ResourceBundle( const UnicodeString&    path,
  * API constructor.  
  */
 ResourceBundle::ResourceBundle( const UnicodeString&    path,
-                                const char *localeName,
+                                const UnicodeString&    localeName,
                                 UErrorCode&              status)
-  :   fgCache(fgUserCache),
-      fgVisitedFiles(fgUserVisitedFiles),
-      fPath(path, UnicodeString(kDefaultSuffix,"")),
+  :   fPath(path, UnicodeString(kDefaultSuffix,"")),
+	  fRealLocale(localeName),
       fIsDataOwned(TRUE),
-      fRealLocale(localeName),
-      fVersionID(0)
+      fVersionID(0),
+      fgCache(fgUserCache),
+      fgVisitedFiles(fgUserVisitedFiles)
 {
   status = U_ZERO_ERROR;
   
@@ -308,8 +304,8 @@ ResourceBundle::ResourceBundle( const UnicodeString&    path,
   fLocaleIterator = 0;
   
   // If the file doesn't exist, return an error
-  if(fPath.fileExists(UnicodeString(localeName,""))) {
-    parse(fPath, UnicodeString(localeName, ""), saveCollationHashtable, 
+  if(fPath.fileExists(localeName)) {
+    parse(fPath, localeName, saveCollationHashtable, 
 	  (void*)this, fgCache, status);
   }
   else {
@@ -322,10 +318,10 @@ ResourceBundle::ResourceBundle( const UnicodeString&    path,
 }
 
 void
-ResourceBundle::saveCollationHashtable(const UnicodeString&,
+ResourceBundle::saveCollationHashtable(const UnicodeString& localeName,
 				       UHashtable* hashtable,
 				       void* context,
-				       ResourceBundleCache*)
+				       ResourceBundleCache* fgCache)
 {
   ResourceBundle* bundle = (ResourceBundle*)context;
   for(int32_t i = 0; i < kDataCount; ++i) {
@@ -346,7 +342,7 @@ ResourceBundle::ResourceBundle(const wchar_t* path,
   : fgCache(fgUserCache),
     fgVisitedFiles(fgUserVisitedFiles)
 {
-  int32_t wideNameLen = uprv_mbstowcs(U_NULL, kDefaultSuffix, kDefaultSuffixLen);
+  int32_t wideNameLen = uprv_mbstowcs(NULL, kDefaultSuffix, kDefaultSuffixLen);
   wchar_t* wideName = new wchar_t[wideNameLen + 1];
   uprv_mbstowcs(wideName, kDefaultSuffix, kDefaultSuffixLen);
   wideName[wideNameLen] = 0;
@@ -377,10 +373,11 @@ ResourceBundle::constructForLocale(const PathInfo& path,
   fVersionID = 0;
 
   // fRealLocale can be inited in three ways, see 1), 2), 3)
-  UnicodeString returnedLocale(locale.getName(), "");
+  UnicodeString returnedLocale;
+  locale.getName(returnedLocale);
   if (returnedLocale.length()!=0) {
 	// 1) Desired Locale has a name
-        fRealLocale = locale;
+	fRealLocale = Locale(returnedLocale); 
   } else {
 	// 2) Desired Locale name is empty, so we use default locale for the system
 	fRealLocale = Locale(kDefaultLocaleName); 
@@ -398,14 +395,7 @@ ResourceBundle::constructForLocale(const PathInfo& path,
   fDataStatus[0] = U_ZERO_ERROR;
   if(U_SUCCESS(error))
 		// 3) We're unable to get the desired Locale, so we're using what is provided (fallback occured)
-    {
-      /* To avoid calling deprecated api's */
-      char *ch;
-      ch = new char[returnedLocale.size() + 1];
-      ch[returnedLocale.extract(0, 0x7fffffff, ch, "")] = 0;
-      fRealLocale = Locale(ch);
-      delete [] ch;
-    }
+		fRealLocale = Locale(returnedLocale);
   
   fLocaleIterator = new LocaleFallbackIterator(fRealLocale.getName(), 
 					       kDefaultLocaleName, FALSE);
@@ -426,7 +416,7 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
 				      UnicodeString& returnedLocale,
 				      UErrorCode& error)
 {
-  if(U_FAILURE(error)) return U_NULL;
+  if(U_FAILURE(error)) return 0;
 
   error = U_ZERO_ERROR;
   const UHashtable* h = getFromCache(fPath, desiredLocale, fgCache);
@@ -452,7 +442,7 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
     if(parseIfUnparsed(fPath, iterator.getLocale(), 
 		       fgCache, fgVisitedFiles, error)) {
       if(U_FAILURE(error)) 
-          return U_NULL;
+          return 0;
       
       error = U_ZERO_ERROR;
       h = getFromCacheWithFallback(fPath, desiredLocale, 
@@ -474,7 +464,7 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
   // parsing them again.  In this case we still want to make an
   // attempt to load our locale from the cache.
   if(didTryCacheWithFallback) 
-    return U_NULL;
+    return 0;
   error = U_ZERO_ERROR;
   return getFromCacheWithFallback(fPath, desiredLocale, 
 				  returnedLocale, fgCache, error);
@@ -490,7 +480,7 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
 				      UErrorCode& error)
 {
   if(U_FAILURE(error)) 
-    return U_NULL;
+    return 0;
   error = U_ZERO_ERROR;
   
   // First try the cache
@@ -507,7 +497,7 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
 		       fgCache, fgVisitedFiles, parseError)) {
       if(U_FAILURE(parseError)) {
 	error = parseError;
-	return U_NULL;
+	return 0;
       }
       
       const UHashtable* h = getFromCache(fPath, desiredLocale, fgCache);
@@ -516,7 +506,7 @@ ResourceBundle::getHashtableForLocale(const UnicodeString& desiredLocale,
     }
     
     if(!iterator.nextLocale(error)) 
-      return U_NULL;
+      return 0;
   }
 }
 
@@ -533,7 +523,7 @@ ResourceBundle::getFromCacheWithFallback(const PathInfo& path,
 					 UErrorCode& error)
 {
   if(U_FAILURE(error)) 
-    return U_NULL;
+    return 0;
   error = U_ZERO_ERROR;
   
   LocaleFallbackIterator iterator(desiredLocale, kDefaultLocaleName, TRUE);
@@ -546,7 +536,7 @@ ResourceBundle::getFromCacheWithFallback(const PathInfo& path,
     }
     
     if(!iterator.nextLocale(error)) 
-      return U_NULL;
+      return 0;
   }
 }
 
@@ -608,9 +598,9 @@ ResourceBundle::getDataForTag(const char *tag,
 
     
     if(fData[i] != 0) {
-      UnicodeString t(tag, "");
       const ResourceBundleData* s = 
-	(const ResourceBundleData*)uhash_get(fData[i], &t);
+	(const ResourceBundleData*)uhash_get(fData[i], 
+					     UnicodeString(tag, "").hashCode() & 0x7FFFFFFF);
       if(s != 0) {
 	err = fDataStatus[i];  /* restore the error from the original lookup. */
 	return s;
@@ -623,7 +613,7 @@ ResourceBundle::getDataForTag(const char *tag,
   //  cerr << *this;
 #endif
   err = U_MISSING_RESOURCE_ERROR;
-  return U_NULL;
+  return 0;
 }
 
 void
@@ -644,7 +634,7 @@ ResourceBundle::getString(  const char              *resourceTag,
                             UErrorCode&              err) const
 {
   if(U_FAILURE(err)) 
-    return U_NULL;
+    return NULL;
   
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
   if(data != 0 
@@ -653,7 +643,7 @@ ResourceBundle::getString(  const char              *resourceTag,
     return &(((StringList*)data)->fStrings[0]);
   }
   else err = U_MISSING_RESOURCE_ERROR;
-  return U_NULL;
+  return NULL;
 }
 
 const UnicodeString*
@@ -662,7 +652,7 @@ ResourceBundle::getStringArray( const char             *resourceTag,
                                 UErrorCode&              err) const
 {
   if(U_FAILURE(err)) 
-    return U_NULL;
+    return 0;
   
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
   if(data != 0 
@@ -671,7 +661,7 @@ ResourceBundle::getStringArray( const char             *resourceTag,
     return ((StringList*)data)->fStrings;
   }
   err = U_MISSING_RESOURCE_ERROR;
-  return U_NULL;
+  return 0;
 }
 
 void
@@ -694,7 +684,7 @@ ResourceBundle::getArrayItem(   const char             *resourceTag,
                                 UErrorCode&              err) const
 {
   if(U_FAILURE(err)) 
-    return U_NULL;
+    return NULL;
 
   // Casting to unsigned turns a signed value into a large unsigned
   // value.  This allows us to do one comparison to check that 0 <=
@@ -708,7 +698,7 @@ ResourceBundle::getArrayItem(   const char             *resourceTag,
   }
   else
     err = U_MISSING_RESOURCE_ERROR;
-  return U_NULL;
+  return NULL;
 }
 
 const UnicodeString** 
@@ -718,7 +708,7 @@ ResourceBundle::get2dArray(const char *resourceTag,
 			   UErrorCode&           err) const
 {
   if(U_FAILURE(err)) 
-    return U_NULL;
+    return 0;
 
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
   if(data != 0 
@@ -730,7 +720,7 @@ ResourceBundle::get2dArray(const char *resourceTag,
     return (const UnicodeString**)list->fStrings; 
   }
   err = U_MISSING_RESOURCE_ERROR;
-  return U_NULL;
+  return 0;
 }
 
 void
@@ -757,7 +747,7 @@ ResourceBundle::get2dArrayItem(const char *resourceTag,
 			       UErrorCode&           err) const
 {
   if(U_FAILURE(err)) 
-    return U_NULL;
+    return NULL;
 
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
   if(data != 0 
@@ -773,7 +763,7 @@ ResourceBundle::get2dArrayItem(const char *resourceTag,
     }
   }
   err = U_MISSING_RESOURCE_ERROR;
-  return U_NULL;
+  return NULL;
 }
 
 void
@@ -797,7 +787,7 @@ ResourceBundle::getTaggedArrayItem( const char             *resourceTag,
                                     UErrorCode&              err) const
 {
   if(U_FAILURE(err)) 
-    return U_NULL;
+    return NULL;
 
   const ResourceBundleData* data = getDataForTag(resourceTag, err);
   if(data != 0 
@@ -808,7 +798,7 @@ ResourceBundle::getTaggedArrayItem( const char             *resourceTag,
   }
   
   err = U_MISSING_RESOURCE_ERROR;
-  return U_NULL;
+  return NULL;
 }
 
 extern "C" void 
@@ -854,14 +844,19 @@ getTaggedArrayUCharsImplementation( const ResourceBundle*   bundle,
     return;
   }
   
+  UHashtable* forEnumerationValues = ((TaggedList*)data)->fHashtableValues;
+  void*                   value;
+  
   numItems = 0;
   int32_t pos = -1;
-  const UnicodeString *key, *value;
-  while (((TaggedList*)data)->nextElement(key, value, pos) &&
-         numItems < maxItems) {
-      itemTags[numItems] = key->getUChars();
-      items[numItems] = value->getUChars();
-      numItems++;
+  while(value = uhash_nextElement(forEnumerationValues, &pos)) {
+    if(numItems < maxItems) {
+      itemTags[numItems] = 
+	((const UnicodeString*)uhash_get(((TaggedList*)data)->fHashtableKeys,
+					 numItems+1))->getUChars();
+      items[numItems] = ((const UnicodeString*)value)->getUChars();
+    }
+    numItems++;
   }
 }
 
@@ -884,20 +879,24 @@ ResourceBundle::getTaggedArray( const char             *resourceTag,
   
   // go through the resource once and count how many items there are
   
-  numItems = ((TaggedList*)data)->count();
+  numItems = uhash_size(((TaggedList*)data)->fHashtableValues);
   
   // now create the string arrays and go through the hash table again, this
   // time copying the keys and values into the string arrays
   itemTags = new UnicodeString[numItems];
   items = new UnicodeString[numItems];
   
+  UHashtable* forEnumerationValues = ((TaggedList*)data)->fHashtableValues;
+  void*                   value;
+    
   numItems = 0;
   int32_t pos = -1;
-  const UnicodeString *key, *value;
-  while (((TaggedList*)data)->nextElement(key, value, pos)) {
-      itemTags[numItems] = *key;
-      items[numItems] = *value;
-      numItems++;
+  while(value = uhash_nextElement(forEnumerationValues, &pos)) {
+    itemTags[numItems] = 
+      *((const UnicodeString*)uhash_get(((TaggedList*)data)->fHashtableKeys, 
+					numItems+1));
+    items[numItems] = *((const UnicodeString*)value);
+    numItems++;
   }
 }
 
@@ -962,7 +961,7 @@ ResourceBundle::listInstalledLocales(const UnicodeString& path,
   if(h != 0) {
     UnicodeString ukIndexTag = UnicodeString(kIndexTag,"");
     ResourceBundleData *data = 
-      (ResourceBundleData*) uhash_get(h, &ukIndexTag);
+      (ResourceBundleData*) uhash_get(h, ukIndexTag.hashCode() & 0x7FFFFFFF);
     if(data != 0 
        && data->getDynamicClassID() == StringList::getStaticClassID()) {
       numInstalledLocales = ((StringList*)data)->fCount;
@@ -971,7 +970,7 @@ ResourceBundle::listInstalledLocales(const UnicodeString& path,
   }
   
   numInstalledLocales = 0;
-  return U_NULL;
+  return 0;
 }
 
 extern "C" const UnicodeString** 
@@ -1026,7 +1025,7 @@ T_ResourceBundle_countArrayItemsImplementation(const ResourceBundle* resourceBun
     numItems = ((StringList*)data)->fCount;
   }
   else if(rbkeyClassID == TaggedList::getStaticClassID()) {
-    numItems =  ((TaggedList*)data)->count();
+    numItems =  uhash_size(((TaggedList*)data)->fHashtableValues);
   }
   else if(rbkeyClassID == String2dList::getStaticClassID()) {
     numItems = ((String2dList*)data)->fRowCount; 
@@ -1051,7 +1050,7 @@ T_ResourceBundle_countArrayItems(const ResourceBundle* resourceBundle,
 }
 
 /**
- * Retrieve a ResourceBundle from the cache.  Return U_NULL if not found.
+ * Retrieve a ResourceBundle from the cache.  Return NULL if not found.
  */
 const UHashtable* 
 ResourceBundle::getFromCache(const PathInfo& path,
@@ -1060,7 +1059,9 @@ ResourceBundle::getFromCache(const PathInfo& path,
 {
     UnicodeString keyname(path.makeHashkey(localeName));
     Mutex lock;
-    return fgCache->get(keyname);
+    
+    return (const UHashtable*)
+      uhash_get(fgCache->hashTable, keyname.hashCode() & 0x7FFFFFFF);
 }
 
 /**
@@ -1124,9 +1125,11 @@ ResourceBundle::addToCache(const UnicodeString& localeName,
 {
   PathInfo *c = (PathInfo*)context;
   UnicodeString keyName(c->makeHashkey(localeName));
+  UErrorCode err = U_ZERO_ERROR;
   Mutex lock;
-  if (fgCache->get(keyName) == 0) {
-      fgCache->put(keyName, hashtable);
+  if(uhash_get(fgCache->hashTable, keyName.hashCode() & 0x7FFFFFFF) == 0) {
+    uhash_putKey(fgCache->hashTable, keyName.hashCode() & 0x7FFFFFFF, 
+		 hashtable, &err);
   }
 }
 
@@ -1136,13 +1139,13 @@ const Locale &ResourceBundle::getLocale(void) const
 }
 
 ResourceBundle::PathInfo::PathInfo()
-  : fWPrefix(U_NULL), fWSuffix(U_NULL)
+  : fWPrefix(NULL), fWSuffix(NULL)
 {}
 
 ResourceBundle::PathInfo::PathInfo(const PathInfo& source) 
   : fPrefix(source.fPrefix), 
     fSuffix(source.fSuffix), 
-    fWPrefix(U_NULL), fWSuffix(U_NULL)
+    fWPrefix(NULL), fWSuffix(NULL)
 {
   if(source.fWPrefix) {
     fWPrefix = new wchar_t[uprv_wcslen(source.fWPrefix)+1];
@@ -1154,24 +1157,24 @@ ResourceBundle::PathInfo::PathInfo(const PathInfo& source)
 
 ResourceBundle::PathInfo::PathInfo(const UnicodeString& path)
   : fPrefix(path), 
-    fWPrefix(U_NULL), 
-    fWSuffix(U_NULL)
+    fWPrefix(NULL), 
+    fWSuffix(NULL)
 {}
 
 ResourceBundle::PathInfo::PathInfo(const UnicodeString& path, 
 				   const UnicodeString& suffix)
   : fPrefix(path), 
     fSuffix(suffix), 
-    fWPrefix(U_NULL), 
-    fWSuffix(U_NULL)
+    fWPrefix(NULL), 
+    fWSuffix(NULL)
 {}
 
 ResourceBundle::PathInfo::PathInfo(const wchar_t* path,
 				   const wchar_t* suffix)
   : fPrefix(), 
     fSuffix(), 
-    fWPrefix(U_NULL), 
-    fWSuffix(U_NULL)
+    fWPrefix(NULL), 
+    fWSuffix(NULL)
 {
   fWPrefix = new wchar_t[uprv_wcslen(path)+1];
   fWSuffix = new wchar_t[uprv_wcslen(suffix)+1];
@@ -1189,8 +1192,8 @@ ResourceBundle::PathInfo&
 ResourceBundle::PathInfo::operator=(const PathInfo& source)
 {
   if(this != &source) {
-    wchar_t* tempPref = U_NULL;
-    wchar_t* tempSuff = U_NULL;
+    wchar_t* tempPref = NULL;
+    wchar_t* tempSuff = NULL;
     if(source.fWPrefix) {
       tempPref = new wchar_t[uprv_wcslen(source.fWPrefix)+1];
       tempSuff = new wchar_t[uprv_wcslen(source.fWSuffix)+1];
@@ -1226,8 +1229,8 @@ ResourceBundle::PathInfo::makeCacheKey(const UnicodeString& name) const
   if(fWPrefix) {
     UnicodeString key;
     
-    size_t prefSize = uprv_wcstombs(U_NULL, fWPrefix, ((size_t)-1) >> 1);
-    size_t suffSize = uprv_wcstombs(U_NULL, fWSuffix, ((size_t)-1) >> 1);
+    size_t prefSize = uprv_wcstombs(NULL, fWPrefix, ((size_t)-1) >> 1);
+    size_t suffSize = uprv_wcstombs(NULL, fWSuffix, ((size_t)-1) >> 1);
     size_t tempSize = uprv_max((int32_t)prefSize, (int32_t)suffSize);
     char *temp = new char[tempSize + 1];
 
@@ -1262,8 +1265,8 @@ ResourceBundle::PathInfo::makeHashkey(const UnicodeString& localeName) const
     
     key += kSeparator;
     
-    size_t prefSize = uprv_wcstombs(U_NULL, fWPrefix, ((size_t)-1) >> 1);
-    size_t suffSize = uprv_wcstombs(U_NULL, fWSuffix, ((size_t)-1) >> 1);
+    size_t prefSize = uprv_wcstombs(NULL, fWPrefix, ((size_t)-1) >> 1);
+    size_t suffSize = uprv_wcstombs(NULL, fWSuffix, ((size_t)-1) >> 1);
     size_t tempSize = uprv_max((int32_t)prefSize, (int32_t)suffSize);
     char *temp = new char[tempSize + 1];
     
@@ -1300,7 +1303,7 @@ ResourceBundle::PathInfo::openFile(const UnicodeString& localeName) const
     char* temp = new char[nameSize + 1];
     localeName.extract(0, nameSize, temp);
     temp[nameSize] = 0;
-    int32_t wideNameLen = uprv_mbstowcs(U_NULL, temp, nameSize);
+    int32_t wideNameLen = uprv_mbstowcs(NULL, temp, nameSize);
     wchar_t* wideName = new wchar_t[wideNameLen + 1];
     uprv_mbstowcs(wideName, temp, nameSize);
     wideName[wideNameLen] = 0;
@@ -1320,7 +1323,7 @@ ResourceBundle::PathInfo::openFile(const UnicodeString& localeName) const
     uprv_wcscat(dest, fWSuffix);
     dest[destSize] = 0;
     
-    int32_t fmodeLen = uprv_mbstowcs(U_NULL, "rb", 2);
+    int32_t fmodeLen = uprv_mbstowcs(NULL, "rb", 2);
     wchar_t* fmode = new wchar_t[fmodeLen + 1];
     uprv_mbstowcs(fmode, "rb", 2);
     fmode[fmodeLen] = 0;

@@ -8,9 +8,8 @@ SHELL = @SHELL@
 VERSION = @VERSION@
 UNICODE_VERSION = @UNICODE_VERSION@
 
-ICUDATADIR=@DATABUILDDIR@/
-UNICODEDATADIR=$(top_srcdir)/../data/unidata
-UNICODEFILE=$(UNICODEDATADIR)/UnicodeData.txt
+ICUDATADIR=$(top_builddir)/../data/
+UNICODEFILE=$(top_builddir)/../data/UnicodeData-$(UNICODE_VERSION).txt
 
 ## Install directory information
 srcdir = @srcdir@
@@ -55,7 +54,7 @@ CLEANFILES = *~
 TARGET = gennames
 
 DEFS = @DEFS@
-CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcdir)/../toolutil
+CPPFLAGS = @CPPFLAGS@ -I$(top_srcdir)/common -I../toolutil
 CFLAGS = @CFLAGS@
 CXXFLAGS = @CXXFLAGS@
 LDFLAGS = @LDFLAGS@ \
@@ -69,7 +68,7 @@ DEPS = $(OBJECTS:.o=.d)
 
 ## List of phony targets
 .PHONY : all all-local install install-local clean clean-local		\
-distclean distclean-local dist dist-local check	\
+distclean distclean-local target-clean-local dist dist-local check	\
 check-local build-data
 
 ## Clear suffix list
@@ -85,20 +84,25 @@ check: check-local
 
 all-local: $(TARGET) build-data
 
-install-local: all-local build-data
-	$(mkinstalldirs) $(DESTDIR)$(sbindir)
-	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)/$(TARGET)
+install-local: target-clean-local all-local build-data
+	$(mkinstalldirs) $(sbindir)
+	$(INSTALL) $(TARGET) $(sbindir)/$(TARGET)
 
 build-data: $(ICUDATADIR)/unames.dat
 
+# we set the ICU_DATA directory here so that unames.dat ends up in 
+# icu/data rather than PREFIX/share/icu/VERSION/
 $(ICUDATADIR)/unames.dat: $(UNICODEFILE) $(TARGET)
-	./$(TARGET) -d $(ICUDATADIR) $(UNICODEFILE) -u $(UNICODE_VERSION)
+	ICU_DATA=$(ICUDATADIR) ./$(TARGET) -v- -c- $(UNICODEFILE)
 
 dist-local:
 
-clean-local: 
+target-clean-local:
+	rm -f $(TARGET)
+
+clean-local: target-clean-local
 	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
-	rm -f $(TARGET) $(OBJECTS)
+	rm -f $(OBJECTS)
 
 distclean-local: clean-local
 	rm -f Makefile $(DEPS) $(RES_FILES) $(TEST_FILES)
@@ -112,10 +116,8 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 $(TARGET) : $(OBJECTS)
 	$(LINK.cc) -o $@ $^ $(LIBS) 
 
-ifeq (,$(MAKECMDGOALS))
--include $(DEPS)
-else
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
 endif
-endif
+
+

@@ -20,7 +20,6 @@
 #include <string.h>
 #include "unicode/ustring.h"
 #include "cintltst.h"
-#include "ccolltst.h"
 
 void PrintDataTable();
 
@@ -65,6 +64,8 @@ enum {
 
 void addLocaleTest(TestNode** root)
 {
+  static void TestCPforLocale();
+
     setUpDataTable();
     
     addTest(root, &TestBasicGetters, "tsutil/cloctst/TestBasicGetters");
@@ -72,6 +73,7 @@ void addLocaleTest(TestNode** root)
     addTest(root, &TestGetAvailableLocales, "tsutil/cloctst/TestGetAvailableLocales");
     addTest(root, &TestDataDirectory, "tsutil/cloctst/TestDataDirectory");
     addTest(root, &TestISOFunctions, "tsutil/cloctst/TestISOFunctions");
+    addTest(root, &TestCPforLocale, "tsutil/cloctst/TestCPforLocale");
 }
         
 
@@ -592,6 +594,7 @@ void TestISOFunctions()
     count--;
     if(count!=239)
         log_err("There is an error in getISOCountries %d \n", count);
+
     
   
 }
@@ -629,13 +632,13 @@ static  char* rawData2[23][5] = {
     {   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway, Nynorsk)" },
 
     /* display langage (French) */
-    {   "anglais",  "fran\\u00E7ais",   "", "grec",    "norv\\u00E9gien" },
+    {   "anglais",  "français",   "", "grec",    "norvégien" },
     /* display country (French) */
-    {   "\\u00C9tats-Unis",    "France",   "",  "Gr\\u00E8ce",   "Norv\\u00E8ge"    },
+    {   "États-Unis",    "France",   "",  "Grèce",   "Norvège"    },
     /* display variant (French) */
     {   "",     "",     "",     "",     "Nynorsk"    },
     /* display name (French) */
-    {   "anglais (\\u00C9tats-Unis)", "fran\\u00E7ais (France)", "", "grec (Gr\\u00E8ce)", "norv\\u00E9gien (Norv\\u00E8ge, Nynorsk)" },
+    {   "anglais (États-Unis)", "français (France)", "", "grec (Grèce)", "norvégien (Norvège, Nynorsk)" },
 
     /* display langage (Croatian) */
     {   "",  "", "hrvatski", "",    "" },
@@ -659,7 +662,7 @@ static  char* rawData2[23][5] = {
 static UChar greekDisplayLanguage[] = { 0x03b5, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba, 0x03ac, 0 };
 static UChar greekDisplayCountry[] = { 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, 0 };
 static UChar greekDisplayName[] = { 0x03b5, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba,
-    0x03ac, 0x20, 0x28, 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, 0x29, 0 };
+    0x03ac, ' ', '(', 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, ')', 0 };
     
 
 void setUpDataTable()
@@ -670,7 +673,8 @@ void setUpDataTable()
         for (i = 0; i < 23; i++) {
           dataTable[i] = calloc(sizeof(UChar*),5);
             for (j = 0; j < 5; j++){
-                dataTable[i][j] = CharsToUChars(rawData2[i][j]);
+                dataTable[i][j] = (UChar*) malloc(sizeof(UChar)*(strlen(rawData2[i][j])+1));
+                u_uastrcpy(dataTable[i][j],rawData2[i][j]);
             }
         }
         dataTable[DLANG_EL][GREEKS]=(UChar*)realloc(dataTable[DLANG_EL][GREEKS],sizeof(UChar)*(u_strlen(greekDisplayLanguage)+1)); 
@@ -680,4 +684,73 @@ void setUpDataTable()
         dataTable[DNAME_EL][GREEKS]=(UChar*)realloc(dataTable[DNAME_EL][GREEKS],sizeof(UChar)*(u_strlen(greekDisplayName)+1));        
     u_strncpy(dataTable[DNAME_EL][GREEKS],greekDisplayName,17);
     
+}
+
+void TestCPforLocale()
+{
+  int32_t i;
+  const char *c;
+
+  /* not API */
+  U_CAPI const char *uprv_defaultCodePageForLocale(const char *locale);
+
+
+  struct
+  {
+    const char *l;
+    const char *c;
+  }
+  data[] = 
+  {
+    { "zh", "gb2312"   },
+    { "zh_TW", "Big5"   },
+    { "zh_TW_Taipei", "Big5" }, /* variant even */
+    { "zh_CN_Beijing", "gb2312" },
+    { "z", NULL },               /* nothing */
+    { "es", "iso-8859-1" },
+    { "mt_MT_QORMI", "iso-8859-3" }, /* variant, of a language w/ no variant */
+    { "ja_JP", "Shift_JIS" },       /* Specific tests: */
+    { "ko_KR", "euc-kr" },          /* " */
+    { ""  , NULL    },
+    { NULL, NULL }
+    
+  };
+
+  log_info("Testing uprv_defaultCodePageForLocale()\n");
+
+  for(i=0; data[i].l != NULL; i++)
+  {
+    c = uprv_defaultCodePageForLocale(data[i].l);
+
+    if((c == NULL) && (data[i].c != NULL))
+      {
+        log_err("uprv_defaultCodePageForLocale(\"%s\") == NULL, expected \"%s\" **ERR**\n",
+                data[i].l,
+                data[i].c);
+      }
+    else if((data[i].c == NULL) && (c != NULL))
+      {
+        log_err("uprv_defaultCodePageForLocale(\"%s\") == \"%s\", expected NULL **ERR**\n",
+                data[i].l,
+                c);
+      }
+    else if(c == NULL)
+      {
+        log_verbose("uprv_defaultCodePageForLocale(\"%s\") == NULL\n",
+                data[i].l);
+      }
+    else if(0 != strcmp(c, data[i].c))
+      {
+        log_err("uprv_defaultCodePageForLocale(\"%s\") == \"%s\", expected \"%s\" **ERR**\n",
+                data[i].l,
+                c,
+                data[i].c);
+      }
+    else
+      {
+        log_verbose("uprv_defaultCodePageForLocale(\"%s\") == \"%s\"\n",
+                 data[i].l,
+                 (c!=NULL) ? c:"NULL" );
+      }
+  }
 }

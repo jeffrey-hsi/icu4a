@@ -19,9 +19,7 @@
 
 /* This file contains miscellaneous definitions for the C APIs. */
 
-/** A struct representing a range of text containing a specific field 
- *  @stable
- */
+/** A struct representing a range of text containing a specific field */
 struct UFieldPosition {
   /** The field */
   int32_t field;

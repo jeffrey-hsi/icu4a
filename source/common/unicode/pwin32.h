@@ -24,22 +24,6 @@
 /* Define whether inttypes.h is available */
 #define HAVE_INTTYPES_H 0
 
-/*
- * Define what support for C++ streams is available.
- *     If U_IOSTREAM_SOURCE is set to 199711, then <iostream> is available
- * (1997711 is the date the ISO/IEC C++ FDIS was published), and then
- * one should qualify streams using the std namespace in ICU header
- * files.
- *     If U_IOSTREAM_SOURCE is set to 198506, then <iostream.h> is
- * available instead (198506 is the date when Stroustrup published
- * "An Extensible I/O Facility for C++" at the summer USENIX conference).
- *     If U_IOSTREAM_SOURCE is 0, then C++ streams are not available and
- * support for them will be silently suppressed in ICU.
- *
- */
-
-#define U_IOSTREAM_SOURCE 198506	/* Wish we could use 199711 but that breaks while compiling chariter.cpp */
-
 /* Determines whether specific types are available */
 #define HAVE_INT8_T 0
 #define HAVE_UINT8_T 0
@@ -79,32 +63,17 @@ typedef unsigned short uint16_t;
 #endif
 
 #if ! HAVE_INT32_T
-#   if defined(_LP64)
-      typedef signed int  int32_t;
-#   else
-      typedef signed long int32_t;
-#   endif
+typedef signed long int32_t;
 #endif
 
 #if ! HAVE_UINT32_T
-#   if defined(_LP64)
-      typedef unsigned int  uint32_t;
-#   else
-      typedef unsigned long uint32_t;
-#   endif
+typedef unsigned long uint32_t;
 #endif
 
 #endif
 
 #include <limits.h>
-#if defined(_LP64)
-#   define T_INT32_MAX (INT_MAX)
-#   define T_INT32_MIN (INT_MIN)
-#else
-#   define T_INT32_MAX (LONG_MAX)
-#   define T_INT32_MIN (LONG_MIN)
-#endif
-
+#define T_INT32_MAX (LONG_MAX)
 
 /*===========================================================================*/
 /* Character data types                                                      */

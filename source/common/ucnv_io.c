@@ -18,6 +18,9 @@
 *
 *   Use the binary cnvalias.dat (created from convrtrs.txt) to work
 *   with aliases for converter names.
+*
+*   Date          Name        Description
+*   04/27/2000    helena      Added detection code to look for system default codepage.
 ********************************************************************************
 */
 
@@ -237,17 +240,17 @@ ucnv_io_getAliases(const char *alias, const char **aliases, UErrorCode *pErrorCo
 }
 
 U_CFUNC const char *
-ucnv_io_getAlias(const char *alias, uint16_t n, UErrorCode *pErrorCode) {
+ucnv_io_getAlias(const char *alias, uint16_t index, UErrorCode *pErrorCode) {
     if(haveAliasData(pErrorCode) && isAlias(alias, pErrorCode)) {
         const uint16_t *p=findAlias(alias);
         if(p!=NULL) {
             uint16_t count=*(p+1);
-            if(n<count) {
+            if(index<count) {
                 const char *aliases=(const char *)aliasTable+*p;
-                while(n>0) {
+                while(index>0) {
                     /* skip a name, first the canonical converter name */
                     aliases+=uprv_strlen(aliases)+1;
-                    --n;
+                    --index;
                 }
                 return aliases;
             }
@@ -265,11 +268,11 @@ ucnv_io_countAvailableConverters(UErrorCode *pErrorCode) {
 }
 
 U_CFUNC const char *
-ucnv_io_getAvailableConverter(uint16_t n, UErrorCode *pErrorCode) {
+ucnv_io_getAvailableConverter(uint16_t index, UErrorCode *pErrorCode) {
     if(haveAliasData(pErrorCode)) {
         const uint16_t *p=aliasTable+1+2*(*aliasTable);
-        if(n<*p) {
-            return (const char *)aliasTable+p[1+2*n];
+        if(index<*p) {
+            return (const char *)aliasTable+p[1+2*index];
         }
     }
     return NULL;
@@ -297,9 +300,9 @@ ucnv_io_countAvailableAliases(UErrorCode *pErrorCode) {
 }
 
 U_CFUNC const char *
-ucnv_io_getAvailableAlias(uint16_t n, UErrorCode *pErrorCode) {
-    if(haveAliasData(pErrorCode) && n<*aliasTable) {
-        return (const char *)aliasTable+*(aliasTable+1+n);
+ucnv_io_getAvailableAlias(uint16_t index, UErrorCode *pErrorCode) {
+    if(haveAliasData(pErrorCode) && index<*aliasTable) {
+        return (const char *)aliasTable+*(aliasTable+1+index);
     }
     return NULL;
 }
@@ -328,7 +331,7 @@ ucnv_io_fillAvailableAliases(const char **aliases, UErrorCode *pErrorCode) {
  */
 
 static char defaultConverterNameBuffer[100];
-static const char *defaultConverterName = NULL;
+static const char *defaultConverterName;
 
 U_CFUNC const char *
 ucnv_io_getDefaultConverterName() {

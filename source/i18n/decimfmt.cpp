@@ -197,7 +197,7 @@ DecimalFormat::construct(UErrorCode&             status,
     // one specified.
     if (pattern == NULL)
     {
-        ResourceBundle resource(u_getDataDirectory(), Locale::getDefault(), status);
+        ResourceBundle resource(Locale::getDataDirectory(), Locale::getDefault(), status);
         resource.getArrayItem(fgNumberPatterns, 0, str, status);
         pattern = &str;
     }
@@ -481,12 +481,12 @@ DecimalFormat::format(int32_t number,
 
         if (number < 0) // This can only happen if number == Long.MIN_VALUE
         {
-            int32_t cutoff = INT32_MIN / fMultiplier;
+            int32_t cutoff = LONG_MIN / fMultiplier;
             useDouble = (number < cutoff);
         }
         else
         {
-            int32_t cutoff = INT32_MAX / fMultiplier;
+            int32_t cutoff = T_INT32_MAX / fMultiplier;
             useDouble = (number > cutoff);
         }
         // use double to format the number instead so we don't get out
@@ -1920,8 +1920,8 @@ DecimalFormat::appendAffix(    UnicodeString& buffer,
             || affix.indexOf(kCurrencySign) >= 0;
     }
     if (needQuote)
-        buffer += (UChar)0x0027 /*'\''*/;
-    if (affix.indexOf((UChar)0x0027 /*'\''*/) < 0)
+        buffer += 0x0027 /*'\''*/;
+    if (affix.indexOf(0x0027 /*'\''*/) < 0)
         buffer += affix;
     else {
         for (int32_t j = 0; j < affix.length(); ++j) {
@@ -1930,7 +1930,7 @@ DecimalFormat::appendAffix(    UnicodeString& buffer,
             if (c == 0x0027 /*'\''*/) buffer += c;
         }
     }
-    if (needQuote) buffer += (UChar)0x0027 /*'\''*/;
+    if (needQuote) buffer += 0x0027 /*'\''*/;
 }
 
 //------------------------------------------------------------------------------
@@ -1959,7 +1959,7 @@ DecimalFormat::toPattern(UnicodeString& result, bool_t localized) const
     }
     if(fRoundingIncrement != NULL) {
       for(i=0; i<fRoundingIncrement->fCount; ++i) {
-        roundingDigits.append((UChar)fRoundingIncrement->fDigits[i]);
+	roundingDigits.append(fRoundingIncrement->fDigits[i]);
       }
       roundingDecimalPos = fRoundingIncrement->fDecimalAt;
     }

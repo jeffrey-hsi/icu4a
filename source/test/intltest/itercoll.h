@@ -43,7 +43,7 @@ public:
     enum EToken_Len { MAX_TOKEN_LEN = 128 };
 
     CollationIteratorTest();
-    virtual ~CollationIteratorTest();
+    ~CollationIteratorTest();
 
     void runIndexedTest(int32_t index, bool_t exec, char* &name, char* par = NULL);
 

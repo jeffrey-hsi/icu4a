@@ -18,7 +18,6 @@ void addLocaleTest(TestNode**);
 void addUnicodeTest(TestNode**);
 void addResourceBundleTest(TestNode**);
 void addSCSUTest(TestNode** root);
-void addHashtableTest(TestNode** root);
 
 void addUtility(TestNode** root)
 {
@@ -26,6 +25,6 @@ void addUtility(TestNode** root)
     addUnicodeTest(root);
     addResourceBundleTest(root);
     addSCSUTest(root);
-    addHashtableTest(root);
+
 }
 

@@ -40,9 +40,6 @@ typedef struct UNewDataMemory UNewDataMemory;
  *
  * See udata.h .
  *
- * @param dir A string that specifies the directory where the data will be
- *            written. If <code>NULL</code>, then
- *            <code>u_getDataDirectory</code> is used.
  * @param type A string that specifies the type of data to be written.
  *             For example, resource bundles are written with type "res",
  *             conversion tables with type "cnv".
@@ -57,7 +54,7 @@ typedef struct UNewDataMemory UNewDataMemory;
  * @param pErrorCode An ICU UErrorCode parameter. It must not be <code>NULL</code>.
  */
 U_CAPI UNewDataMemory * U_EXPORT2
-udata_create(const char *dir, const char *type, const char *name,
+udata_create(const char *type, const char *name,
              const UDataInfo *pInfo,
              const char *comment,
              UErrorCode *pErrorCode);
@@ -93,15 +90,5 @@ udata_writeString(UNewDataMemory *pData, const char *s, UTextOffset length);
 /** @memo Write a <code>UChar*</code> string of Unicode character code units to the file. */
 U_CAPI void U_EXPORT2
 udata_writeUString(UNewDataMemory *pData, const UChar *s, UTextOffset length);
-
-
-/*
- * Hey, Emacs, please set the following:
- *
- * Local Variables:
- * indent-tabs-mode: nil
- * End:
- *
- */
 
 #endif

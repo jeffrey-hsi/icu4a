@@ -41,7 +41,7 @@ VERSION = @VERSION@
 ## Files to remove for 'make clean'
 CLEANFILES = *~
 
-SUBDIRS = intltest cintltst ieeetest
+SUBDIRS = testmap intltest cintltst ieeetest
 
 ## List of phony targets
 .PHONY : all all-local all-recursive install install-local		\
@@ -72,7 +72,7 @@ all-recursive install-recursive clean-recursive distclean-recursive dist-recursi
 	  else \
 	    local_target="$$target"; \
 	  fi; \
-	  (cd $$subdir && $(MAKE) $$local_target) || exit; \
+	  (cd $$subdir && $(MAKE) $$local_target); \
 	done; \
 	if test "$$dot_seen" = "no"; then \
 	  $(MAKE) "$$target-local" || exit 1; \
@@ -87,7 +87,7 @@ dist-local:
 clean-local:
 	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
-distclean-local: clean-local
+distclean-local:
 	rm -f Makefile
 
 check-local:

@@ -29,6 +29,8 @@
 #include "unicode/utypes.h"
 #endif
 
+#include <wchar.h>
+
 typedef struct _FileStream FileStream;
 
 U_CAPI FileStream* U_EXPORT2

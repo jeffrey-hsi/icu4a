@@ -21,28 +21,28 @@
 ###################################################################
 
 ifeq (${IEEE390}, 1)
-ICU_IEEE          = -Wc,"float(ieee)" -DIEEE_754=1
+ICU_IEEE          = -Wc,"float(ieee)" -DIEEE_ON
 else
-ICU_IEEE          = -DIEEE_754=0
+ICU_IEEE          = 
 endif
 
-CFLAGS390=      -Wc,"langlvl(extended),spill(2000)" $(ICU_BUILD_OPTIONS)  $(ICU_IEEE) -Wc,dll,expo
+CFLAGS390=      -Wc,"langlvl(extended),spill(2000)"  $(ICU_IEEE) -Wc,dll,expo
 ## OS390BATCH
 ifeq (${OS390BATCH},1)
-DEFS390=        -D_OPEN_THREADS -D_XOPEN_SOURCE_EXTENDED -DOS390BATCH -D_SHR_TZNAME -D_SHR_TIMEZONE
+DEFS390=        -D_OPEN_THREADS -D_XOPEN_SOURCE_EXTENDED -DOS390BATCH -D_SHARE_EXT_VARS
 else
-DEFS390=        -D_OPEN_THREADS -D_XOPEN_SOURCE_EXTENDED -D_SHR_TZNAME -D_SHR_TIMEZONE
+DEFS390=        -D_OPEN_THREADS -D_XOPEN_SOURCE_EXTENDED -D_SHARE_EXT_VARS
 endif
 ARFLAGS=        -cr
 
 
 ## Commands to generate dependency files
-GEN_DEPS.c=	makedep                        
+GEN_DEPS.c=	makedep                         
 GEN_DEPS.cc=	makedep
 
 ## Commands to compile
 COMPILE.c=	_CXX_CXXSUFFIX="cpp" _CXX_STEPS="-1" $(CXX) $(DEFS) $(CPPFLAGS) $(CFLAGS) $(CFLAGS390) $(DEFS390) -c
-COMPILE.cc=	_CXX_CXXSUFFIX="cpp" _CXX_STEPS="-1" $(CXX) $(DEFS) $(CPPFLAGS) $(CFLAGS) $(CFLAGS390) $(DEFS390) -c
+COMPILE.cc=	_CXX_CXXSUFFIX="cpp" _CXX_STEPS="-1" $(CXX) $(DEFS) $(CPPFLAGS) $(CPPFLAGS) $(CFLAGS390) $(DEFS390) -c
 
 ## Commands to link
 LINK.c=		$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)
@@ -63,7 +63,6 @@ LIBICU-UC= 	$(top_builddir)/common/libicu-uc.x
 LIBICU-I18N= 	$(top_builddir)/i18n/libicu-i18n.x
 LIBCTESTFW= 	$(top_builddir)/tools/ctestfw/libctestfw.x
 LIBICU-TOOLUTIL=$(top_builddir)/tools/toolutil/libicu-toolutil.x
-LIBUSTDIO=      $(top_builddir)/extra/ustdio/libustdio.x
 
 ## Special 390 rules
 
@@ -77,6 +76,7 @@ LIBUSTDIO=      $(top_builddir)/extra/ustdio/libustdio.x
 
 %.o :$(srcdir)/%.cpp
 	$(COMPILE.cc) -o $@ $<
+
 
 ## Dependency rules
 %.d : %.u

@@ -9,12 +9,9 @@
 #define RBT_PARS_H
 
 #include "unicode/rbt.h"
-#include "uvector.h"
-#include "unicode/parseerr.h"
 
 class TransliterationRuleData;
 class UnicodeSet;
-class ParseData;
 
 class TransliterationRuleParser {
 
@@ -33,24 +30,6 @@ class TransliterationRuleParser {
      * through each API, we keep it here.
      */
     UErrorCode status;
-
-    /**
-     * Pointer to user structure in which to return parse error information.
-     * May be NULL.
-     */
-    ParseError* parseError;
-
-    /**
-     * Temporary symbol table used during parsing.
-     */
-    ParseData* parseData;
-
-    /**
-     * Temporary vector of set variables.  When parsing is complete, this
-     * is copied into the array data.setVariables.  As with data.setVariables,
-     * element 0 corresponds to character data.setVariablesBase.
-     */
-    UVector setVariablesVector;
 
     /**
      * The next available stand-in for variables.  This starts at some point in
@@ -91,8 +70,7 @@ public:
 
     static TransliterationRuleData*
         parse(const UnicodeString& rules,
-              RuleBasedTransliterator::Direction direction,
-              ParseError* parseError = 0);
+              RuleBasedTransliterator::Direction direction);
     
 private:
 
@@ -102,13 +80,7 @@ private:
      * rules
      */
     TransliterationRuleParser(const UnicodeString& rules,
-                              RuleBasedTransliterator::Direction direction,
-                              ParseError* parseError = 0);
-
-    /**
-     * Destructor.
-     */
-    ~TransliterationRuleParser();
+                              RuleBasedTransliterator::Direction direction);
 
     /**
      * Parse the given string as a sequence of rules, separated by newline
@@ -144,7 +116,7 @@ private:
      * @param rule pattern string
      * @param start position of first character of current rule
      */
-    int32_t syntaxError(int32_t parseErrorCode, const UnicodeString&, int32_t start);
+    int32_t syntaxError(const char* msg, const UnicodeString&, int32_t start);
 
     /**
      * Allocate a private-use substitution character for the given set,
@@ -164,20 +136,24 @@ private:
     void determineVariableRange(void);
 
     /**
-     * Returns the index of a character, ignoring quoted text.
+     * Returns the index of the first character in a set, ignoring quoted text.
      * For example, in the string "abc'hide'h", the 'h' in "hide" will not be
-     * found by a search for 'h'.
+     * found by a search for "h".  Unlike String.indexOf(), this method searches
+     * not for a single character, but for any character of the string
+     * <code>setOfChars</code>.
      * @param text text to be searched
      * @param start the beginning index, inclusive; <code>0 <= start
      * <= limit</code>.
      * @param limit the ending index, exclusive; <code>start <= limit
      * <= text.length()</code>.
-     * @param c character to search for
-     * @return Offset of the first instance of c, or -1 if not found.
+     * @param setOfChars string with one or more distinct characters
+     * @return Offset of the first character in <code>setOfChars</code>
+     * found, or -1 if not found.
+     * @see #indexOf
      */
     static int32_t quotedIndexOf(const UnicodeString& text,
                                  int32_t start, int32_t limit,
-                                 UChar c);
+                                 const UnicodeString& setOfChars);
 };
 
 #endif

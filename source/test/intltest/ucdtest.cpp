@@ -6,10 +6,10 @@
 
 #include "ucdtest.h"
 #include "unicode/unicode.h"
-#include "unicode/ustring.h"
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <iostream.h>
 
 UnicodeTest::UnicodeTest()
 {
@@ -98,12 +98,9 @@ const char dirStrings[][5] = {
 //====================================================
 void UnicodeTest::TestUpperLower()
 {
-    U_STRING_DECL(upperTest, "abcdefg123hij.?:klmno", 21);
-    U_STRING_DECL(lowerTest, "ABCDEFG123HIJ.?:KLMNO", 21);
+    static char* upperTest = "abcdefg123hij.?:klmno";
+    static char* lowerTest = "ABCDEFG123HIJ.?:KLMNO";
     uint16_t i;
-
-    U_STRING_INIT(upperTest, "abcdefg123hij.?:klmno", 21);
-    U_STRING_INIT(lowerTest, "ABCDEFG123HIJ.?:KLMNO", 21);
 
 //Checks LetterLike Symbols which were previously a source of confusion
 //[Bertrand A. D. 02/04/98]
@@ -163,7 +160,7 @@ void UnicodeTest::TestLetterNumber()
 void UnicodeTest::TestMisc()
 {
     const UChar sampleSpaces[] = {0x0020, 0x00a0, 0x2000, 0x2001, 0x2005};
-    const UChar sampleNonSpaces[] = {0x61, 0x62, 0x63, 0x64, 0x74};
+    const UChar sampleNonSpaces[] = {'a', 'b', 'c', 'd', 't'};
     const UChar sampleUndefined[] = {0xfff1, 0xfff7, 0xfa30};
     const UChar sampleDefined[] = {0x523E, 0x4f88, 0xfffd};
     const UChar sampleBase[] = {0x0061, 0x0031, 0x03d2};
@@ -218,7 +215,7 @@ void UnicodeTest::TestMisc()
 void UnicodeTest::TestControlPrint()
 {
     const UChar sampleControl[] = {0x001b, 0x0097, 0x0082};
-    const UChar sampleNonControl[] = {0x61, 0x0031, 0x00e2};
+    const UChar sampleNonControl[] = {'a', 0x0031, 0x00e2};
     const UChar samplePrintable[] = {0x0042, 0x005f, 0x2014};
     const UChar sampleNonPrintable[] = {0x200c, 0x009f, 0x001c};
     int32_t i;
@@ -354,22 +351,6 @@ void UnicodeTest::TestUnicodeData()
     UnicodeString name(buffer, length, "");
     if(name!=UNICODE_STRING("LATIN SMALL LETTER DOTLESS J WITH STROKE AND HOOK", 49)) {
         errln("Unicode character name lookup failed\n");
-    }
-
-    // test Unicode::isMirrored() and charMirror()
-    // see also cintltst/cucdtest.c
-    if(!(Unicode::isMirrored(0x28) && Unicode::isMirrored(0xbb) && Unicode::isMirrored(0x2045) && Unicode::isMirrored(0x232a) &&
-         !Unicode::isMirrored(0x27) && !Unicode::isMirrored(0x61) && !Unicode::isMirrored(0x284) && !Unicode::isMirrored(0x3400)
-        )
-    ) {
-        errln("Unicode::isMirrored() does not work correctly\n");
-    }
-
-    if(!(Unicode::charMirror(0x3c)==0x3e && Unicode::charMirror(0x5d)==0x5b && Unicode::charMirror(0x208d)==0x208e && Unicode::charMirror(0x3017)==0x3016 &&
-         Unicode::charMirror(0x2e)==0x2e && Unicode::charMirror(0x6f3)==0x6f3 && Unicode::charMirror(0x301c)==0x301c && Unicode::charMirror(0xa4ab)==0xa4ab
-        )
-    ) {
-        errln("Unicode::charMirror() does not work correctly\n");
     }
 }
 

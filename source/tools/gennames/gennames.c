@@ -27,10 +27,9 @@
 #include "unicode/utypes.h"
 #include "cmemory.h"
 #include "cstring.h"
+#include "filestrm.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
-#include "uoptions.h"
-#include "uparse.h"
 
 #define STRING_STORE_SIZE 1000000
 #define GROUP_STORE_SIZE 5000
@@ -49,7 +48,7 @@
 #define NAME_SEPARATOR_CHAR ';'
 
 /* UDataInfo cf. udata.h */
-static UDataInfo dataInfo={
+static const UDataInfo dataInfo={
     sizeof(UDataInfo),
     0,
 
@@ -63,7 +62,7 @@ static UDataInfo dataInfo={
     3, 0, 0, 0                  /* dataVersion */
 };
 
-static bool_t beVerbose=FALSE, beQuiet=FALSE, haveCopyright=TRUE;
+static bool_t beVerbose=FALSE, haveCopyright=TRUE;
 
 static uint8_t stringStore[STRING_STORE_SIZE],
                groupStore[GROUP_STORE_SIZE],
@@ -102,7 +101,7 @@ static void
 init();
 
 static void
-parseDB(const char *filename, bool_t store10Names);
+parseDB(FileStream *in, bool_t store10Names);
 
 static void
 parseName(char *name, int16_t length);
@@ -129,7 +128,7 @@ static int
 compareWords(const void *word1, const void *word2);
 
 static void
-generateData(const char *dataDir);
+generateData();
 
 static uint32_t
 generateAlgorithmicData(UNewDataMemory *pData);
@@ -169,96 +168,67 @@ allocWord(uint32_t length);
 
 /* -------------------------------------------------------------------------- */
 
-/* ### this must become public in putil.c */
-static void
-__versionFromString(UVersionInfo versionArray, const char *versionString) {
-    char *end;
-    uint16_t part=0;
-
-    if(versionArray==NULL) {
-        return;
-    }
-
-    if(versionString!=NULL) {
-        for(;;) {
-            versionArray[part]=(uint8_t)uprv_strtoul(versionString, &end, 10);
-            if(end==versionString || ++part==U_MAX_VERSION_LENGTH || *end!=U_VERSION_DELIMITER) {
-                break;
-            }
-            versionString=end+1;
-        }
-    }
-
-    while(part<U_MAX_VERSION_LENGTH) {
-        versionArray[part++]=0;
-    }
-}
-
-static UOption options[]={
-    UOPTION_HELP_H,
-    UOPTION_HELP_QUESTION_MARK,
-    UOPTION_VERBOSE,
-    UOPTION_QUIET,
-    UOPTION_COPYRIGHT,
-    UOPTION_DESTDIR,
-    UOPTION_SOURCEDIR,
-    { "unicode", NULL, NULL, NULL, 'u', UOPT_REQUIRES_ARG, 0 },
-    { "unicode1names", NULL, NULL, NULL, '1', UOPT_NO_ARG, 0 }
-};
-
 extern int
-main(int argc, const char *argv[]) {
-    UVersionInfo version;
+main(int argc, char *argv[]) {
+    FileStream *in;
+    char *arg, *filename=NULL;
+    int i;
     bool_t store10Names=FALSE;
 
-    /* preset then read command line options */
-    options[5].value=u_getDataDirectory();
-    options[6].value="";
-    options[7].value="3.0.0";
-    argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
-
-    /* error handling, printing usage message */
-    if(argc<0) {
-        fprintf(stderr,
-            "error in command line argument \"%s\"\n",
-            argv[-argc]);
-    } else if(argc<2) {
-        argc=-1;
-    }
-    if(argc<0 || options[0].doesOccur || options[1].doesOccur) {
+    if(argc<=1) {
         fprintf(stderr,
             "usage: %s [-1[+|-]] [-v[+|-]] [-c[+|-]] filename\n"
             "\tread the UnicodeData.txt file and \n"
             "\tcreate a binary file " DATA_NAME "." DATA_TYPE " with the character names\n"
-            "\t\tfilename  absolute path/filename for the\n"
-            "\t\t\tUnicode database text file (default: standard input)\n"
             "\toptions:\n"
-            "\t\t-h or -? or --help  this usage text\n"
-            "\t\t-v or --verbose     verbose output\n"
-            "\t\t-q or --quiet       no output\n"
-            "\t\t-c or --copyright   include a copyright notice\n"
-            "\t\t-d or --destdir     destination directory, followed by the path\n"
-            "\t\t-s or --sourcedir   source directory, followed by the path\n"
-            "\t\t-u or --unicode     Unicode version, followed by the version like 3.0.0\n"
-            "\t\t-1 or --unicode1names  store Unicode 1.0 character names\n",
+            "\t\t-1[-]  do not store Unicode 1.0 character names (default)\n"
+            "\t\t-1+  do store Unicode 1.0 character names\n"
+            "\t\t-v[+|-]  verbose output\n"
+            "\t\t-c[+|-]  do (not) include a copyright notice\n"
+            "\t\tfilename  absolute path/filename for the\n"
+            "\t\t\tUnicode database text file (default: standard input)\n",
             argv[0]);
-        return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
-    /* get the options values */
-    beVerbose=options[2].doesOccur;
-    beQuiet=options[3].doesOccur;
-    haveCopyright=options[4].doesOccur;
-    store10Names=options[8].doesOccur;
+    for(i=1; i<argc; ++i) {
+        arg=argv[i];
+        if(arg[0]=='-') {
+            switch(arg[1]) {
+            case '1':
+                store10Names= arg[2]=='+';
+                break;
+            case 'v':
+                beVerbose= arg[2]=='+';
+                break;
+            case 'c':
+                haveCopyright= arg[2]=='+';
+                break;
+            default:
+                break;
+            }
+        } else {
+            filename=arg;
+        }
+    }
 
-    /* set the Unicode version */
-    __versionFromString(version, options[7].value);
-    uprv_memcpy(dataInfo.dataVersion, version, 4);
+    if(filename==NULL) {
+        in=T_FileStream_stdin();
+    } else {
+        in=T_FileStream_open(filename, "r");
+        if(in==NULL) {
+            fprintf(stderr, "gennames: unable to open input file %s\n", filename);
+            exit(U_FILE_ACCESS_ERROR);
+        }
+    }
 
     init();
-    parseDB(argc>=2 ? argv[1] : "-", store10Names);
+    parseDB(in, store10Names);
     compress();
-    generateData(options[5].value);
+    generateData();
+
+    if(in!=T_FileStream_stdin()) {
+        T_FileStream_close(in);
+    }
 
     return 0;
 }
@@ -275,61 +245,71 @@ init() {
 /* parsing ------------------------------------------------------------------ */
 
 static void
-lineFn(void *context,
-       char *fields[][2], int32_t fieldCount,
-       UErrorCode *pErrorCode) {
+parseDB(FileStream *in, bool_t store10Names) {
+    char line[300];
     uint32_t code=0;
-    char *name1Start, *name2Start;
-    int16_t name1Length, name2Length;
+    int16_t limit, length, name1Start, name1Length, name2Start, name2Length=0;
+    int i;
 
-    /* get the character code */
-    code=uprv_strtoul(fields[0][0], NULL, 16);
+    while(T_FileStream_readLine(in, line, sizeof(line))!=NULL) {
+        length=uprv_strlen(line);
 
-    /* get the character name */
-    name1Start=fields[1][0];
-    if(fields[1][0][0]!='<') {
-        name1Length=fields[1][1]-name1Start;
-    } else {
+        /* get the character code */
+        limit=getField(line, 0, length);
+        if(limit<1 || limit==length) {
+            fprintf(stderr, "gennames: too few fields at code 0x%lx\n", code);
+            exit(U_PARSE_ERROR);
+        }
+        code=uprv_strtoul(line, NULL, 16);
+
+        /* get the character name */
+        name1Start=limit+1;
+        if(name1Start>=length) {
+            fprintf(stderr, "gennames: too few fields at code 0x%lx\n", code);
+            exit(U_PARSE_ERROR);
+        }
+        limit=getField(line, name1Start, length);
+
         /* do not store pseudo-names in <> brackets */
-        name1Length=0;
+        if(line[name1Start]!='<') {
+            name1Length=limit-name1Start;
+        } else {
+            name1Length=0;
+        }
+
+        if(store10Names) {
+            /* skip 8 fields and get the following one */
+            for(i=0; i<9; ++i) {
+                name2Start=limit+1;
+                if(name2Start>=length) {
+                    fprintf(stderr, "gennames: too few fields at code 0x%lx\n", code);
+                    exit(U_PARSE_ERROR);
+                }
+                limit=getField(line, name2Start, length);
+            }
+
+            /* get the second character name, the one from Unicode 1.0 */
+            /* do not store pseudo-names in <> brackets */
+            if(line[name2Start]!='<') {
+                name2Length=limit-name2Start;
+            } else {
+                name2Length=0;
+            }
+        }
+
+        if(name1Length>0 || name2Length>0) {
+            /* printf("%lx:%.*s(%.*s)\n", code, name1Length, line+name1Start, name2Length, line+name2Start); */
+
+            parseName(line+name1Start, name1Length);
+            parseName(line+name2Start, name2Length);
+
+            addLine(code, line+name1Start, name1Length, line+name2Start, name2Length);
+        }
     }
 
-    /* store 1.0 names */
-    /* get the second character name, the one from Unicode 1.0 */
-    /* do not store pseudo-names in <> brackets */
-    name2Start=fields[10][0];
-    if(*(bool_t *)context && fields[10][0][0]!='<') {
-        name2Length=fields[10][1]-name2Start;
-    } else {
-        name2Length=0;
-    }
-
-    if(name1Length+name2Length>0) {
-        /* printf("%lx:%.*s(%.*s)\n", code, name1Length, line+name1Start, name2Length, line+name2Start); */
-
-        parseName(name1Start, name1Length);
-        parseName(name2Start, name2Length);
-
-        addLine(code, name1Start, name1Length, name2Start, name2Length);
-    }
-}
-
-static void
-parseDB(const char *filename, bool_t store10Names) {
-    char *fields[11][2];
-    UErrorCode errorCode=U_ZERO_ERROR;
-
-    /* parsing the 11 fields 0..10 is enough for gennames */
-    u_parseDelimitedFile(filename, ';', fields, 11, lineFn, &store10Names, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        exit(errorCode);
-    }
-
-    if(!beQuiet) {
-        printf("size of all names in the database: %lu\n", lineTop);
-        printf("number of named Unicode characters: %lu\n", lineCount);
-        printf("number of words in the dictionary from these names: %lu\n", wordCount);
-    }
+    printf("size of all names in the database: %lu\n", lineTop);
+    printf("number of named Unicode characters: %lu\n", lineCount);
+    printf("number of words in the dictionary from these names: %lu\n", wordCount);
 }
 
 static void
@@ -438,9 +418,7 @@ compress() {
             ++letterCount;
         }
     }
-    if(!beQuiet) {
-        printf("number of letters used in the names: %d\n", letterCount);
-    }
+    printf("number of letters used in the names: %d\n", letterCount);
 
     /* do we need double-byte tokens? */
     if(wordCount+letterCount<=256) {
@@ -529,11 +507,9 @@ compress() {
         }
     }
 
-    if(!beQuiet) {
-        printf("number of lead bytes: %d\n", leadByteCount);
-        printf("number of single-byte tokens: %lu\n", 256-letterCount-leadByteCount);
-        printf("number of tokens: %lu\n", tokenCount);
-    }
+    printf("number of lead bytes: %d\n", leadByteCount);
+    printf("number of single-byte tokens: %lu\n", 256-letterCount-leadByteCount);
+    printf("number of tokens: %lu\n", tokenCount);
 
     compressLines();
 }
@@ -591,9 +567,7 @@ compressLines() {
         appendLineLength(compressLine(line->s, line->length, &groupTop));
     }
 
-    if(!beQuiet) {
-        printf("number of groups: %lu\n", lineCount);
-    }
+    printf("number of groups: %lu\n", lineCount);
 }
 
 static int16_t
@@ -646,7 +620,7 @@ compareWords(const void *word1, const void *word2) {
 /* generate output data ----------------------------------------------------- */
 
 static void
-generateData(const char *dataDir) {
+generateData() {
     UNewDataMemory *pData;
     UErrorCode errorCode=U_ZERO_ERROR;
     uint16_t groupWords[3];
@@ -655,7 +629,7 @@ generateData(const char *dataDir) {
     long dataLength;
     int16_t token;
 
-    pData=udata_create(dataDir, DATA_TYPE, DATA_NAME, &dataInfo,
+    pData=udata_create(DATA_TYPE, DATA_NAME, &dataInfo,
                        haveCopyright ? U_COPYRIGHT_STRING : NULL, &errorCode);
     if(U_FAILURE(errorCode)) {
         fprintf(stderr, "gennames: unable to create data memory, error %d\n", errorCode);
@@ -697,11 +671,9 @@ generateData(const char *dataDir) {
     offset=generateAlgorithmicData(NULL);
     size=algNamesOffset+offset;
 
-    if(!beQuiet) {
-        printf("size of the Unicode Names data:\n"
-               "total data length %lu, token strings %lu, compressed strings %lu, algorithmic names %lu\n",
-                size, (lineTop-groupTop), groupTop, offset);
-    }
+    printf("size of the Unicode Names data:\n"
+           "total data length %lu, token strings %lu, compressed strings %lu, algorithmic names %lu\n",
+            size, (lineTop-groupTop), groupTop, offset);
 
     /* write the data to the file */
     /* offsets */
@@ -1049,12 +1021,3 @@ allocWord(uint32_t length) {
     wordBottom=bottom;
     return stringStore+bottom;
 }
-
-/*
- * Hey, Emacs, please set the following:
- *
- * Local Variables:
- * indent-tabs-mode: nil
- * End:
- *
- */

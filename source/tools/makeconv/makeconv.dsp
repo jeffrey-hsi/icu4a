@@ -89,10 +89,6 @@ LINK32=link.exe
 
 SOURCE=.\makeconv.c
 # End Source File
-# Begin Source File
-
-SOURCE=.\ucnvstat.c
-# End Source File
 # End Group
 # Begin Group "Header Files"
 

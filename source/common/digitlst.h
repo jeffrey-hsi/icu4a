@@ -52,7 +52,8 @@
 class U_COMMON_API DigitList { // Declare external to make compiler happy
 public:
     DigitList();
-    ~DigitList();
+
+    ~DigitList(); // Make this virtual if subclassing is desired later
 
     DigitList(const DigitList&); // copy constructor
 
@@ -75,13 +76,13 @@ public:
      * you hit the decimal point, you set myDigitList.fDecimalAt = myDigitList.fCount;
      * then go on appending digits.
      */
-    void clear(void);
+    virtual void clear(void);
 
     /**
      * Appends digits to the list. Ignores all digits beyond the first DBL_DIG,
      * since they are not significant for either longs or doubles.
      */
-    void append(char digit);
+    virtual void append(char digit);
 
     /**
      * Utility routine to get the value of the digit list

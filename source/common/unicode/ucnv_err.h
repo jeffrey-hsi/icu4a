@@ -38,10 +38,7 @@
 #include "unicode/utypes.h"
 
 
-/**
- * Functor STOPS at the ILLEGAL_SEQUENCE 
- * @stable
- */
+/*Functor STOPS at the ILLEGAL_SEQUENCE */
 U_CAPI void U_EXPORT2 UCNV_FROM_U_CALLBACK_STOP (UConverter * _this,
 				     char **target,
 				     const char *targetLimit,
@@ -52,10 +49,7 @@ U_CAPI void U_EXPORT2 UCNV_FROM_U_CALLBACK_STOP (UConverter * _this,
 				     UErrorCode * err);
 
 
-/**
- * Functor STOPS at the ILLEGAL_SEQUENCE 
- * @stable
- */
+/*Functor STOPS at the ILLEGAL_SEQUENCE */
 U_CAPI void U_EXPORT2 UCNV_TO_U_CALLBACK_STOP (UConverter * _this,
 				  UChar ** target,
 				  const UChar * targetLimit,
@@ -68,10 +62,7 @@ U_CAPI void U_EXPORT2 UCNV_TO_U_CALLBACK_STOP (UConverter * _this,
 
 
 
-/**
- * Functor SKIPs the ILLEGAL_SEQUENCE 
- * @stable
- */
+/*Functor SKIPs the ILLEGAL_SEQUENCE */
 U_CAPI void U_EXPORT2 UCNV_FROM_U_CALLBACK_SKIP (UConverter * _this,
 				     char **target,
 				     const char *targetLimit,
@@ -81,12 +72,10 @@ U_CAPI void U_EXPORT2 UCNV_FROM_U_CALLBACK_SKIP (UConverter * _this,
 				     bool_t flush,
 				     UErrorCode * err);
 
-/**
- * Functor Substitute the ILLEGAL SEQUENCE with the current substitution string assiciated with _this,
+/* Functor Substitute the ILLEGAL SEQUENCE with the current substitution string assiciated with _this,
  * in the event target buffer is too small, it will store the extra info in the UConverter, and err
  * will be set to U_INDEX_OUTOFBOUNDS_ERROR. The next time T_UConverter_fromUnicode is called, it will
  * store the left over data in target, before transcoding the "source Stream"
- * @stable
  */
 
 U_CAPI void U_EXPORT2 UCNV_FROM_U_CALLBACK_SUBSTITUTE (UConverter * _this,
@@ -98,15 +87,13 @@ U_CAPI void U_EXPORT2 UCNV_FROM_U_CALLBACK_SUBSTITUTE (UConverter * _this,
 					   bool_t flush,
 					   UErrorCode * err);
 
-/**
- * Functor Substitute the ILLEGAL SEQUENCE with a sequence escaped codepoints corresponding to the ILLEGAL
+/* Functor Substitute the ILLEGAL SEQUENCE with a sequence escaped codepoints corresponding to the ILLEGAL
  * SEQUENCE (format  %UXXXX, e.g. "%uFFFE%u00AC%uC8FE"). In the Event the Converter doesn't support the
  * characters {u,%}[A-F][0-9], it will substitute  the illegal sequence with the substitution characters
  * (it will behave like the above functor).
  * in the event target buffer is too small, it will store the extra info in the UConverter, and err
  * will be set to U_INDEX_OUTOFBOUNDS_ERROR. The next time T_UConverter_fromUnicode is called, it will
  * store the left over data in target, before transcoding the "source Stream"
- * @stable
  */
 
 U_CAPI void U_EXPORT2 UCNV_FROM_U_CALLBACK_ESCAPE (UConverter * _this,
@@ -119,10 +106,7 @@ U_CAPI void U_EXPORT2 UCNV_FROM_U_CALLBACK_ESCAPE (UConverter * _this,
 						    UErrorCode * err);
 
 
-/**
- * Functor SKIPs the ILLEGAL_SEQUENCE 
- * @stable
- */
+/*Functor SKIPs the ILLEGAL_SEQUENCE */
 U_CAPI void U_EXPORT2 UCNV_TO_U_CALLBACK_SKIP (UConverter * _this,
 				  UChar ** target,
 				  const UChar * targetLimit,
@@ -133,12 +117,10 @@ U_CAPI void U_EXPORT2 UCNV_TO_U_CALLBACK_SKIP (UConverter * _this,
 				  UErrorCode * err);
 
 
-/**
- * Functor Substitute the ILLEGAL SEQUENCE with the current substitution string assiciated with _this,
+/* Functor Substitute the ILLEGAL SEQUENCE with the current substitution string assiciated with _this,
  * in the event target buffer is too small, it will store the extra info in the UConverter, and err
  * will be set to U_INDEX_OUTOFBOUNDS_ERROR. The next time T_UConverter_fromUnicode is called, it will
  * store the left over data in target, before transcoding the "source Stream"
- * @stable
  */
 U_CAPI void U_EXPORT2 UCNV_TO_U_CALLBACK_SUBSTITUTE (UConverter * _this,
 					UChar ** target,
@@ -149,13 +131,11 @@ U_CAPI void U_EXPORT2 UCNV_TO_U_CALLBACK_SUBSTITUTE (UConverter * _this,
 					bool_t flush,
 					UErrorCode * err);
 
-/**
- * Functor Substitute the ILLEGAL SEQUENCE with a sequence escaped codepoints corresponding to the
+/* Functor Substitute the ILLEGAL SEQUENCE with a sequence escaped codepoints corresponding to the
  * ILLEGAL SEQUENCE (format  %XNN, e.g. "%XFF%X0A%XC8%X03").
  * in the event target buffer is too small, it will store the extra info in the UConverter, and err
  * will be set to U_INDEX_OUTOFBOUNDS_ERROR. The next time T_UConverter_fromUnicode is called, it will
  * store the left over data in target, before transcoding the "source Stream"
- * @stable
  */
 
 U_CAPI void U_EXPORT2 UCNV_TO_U_CALLBACK_ESCAPE (UConverter * _this,

@@ -47,13 +47,13 @@ CLEANFILES = *~
 TARGET = libicu-toolutil.$(SO)
 
 DEFS = @DEFS@
-CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/ctestfw
+CPPFLAGS = @CPPFLAGS@ -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/ctestfw
 CFLAGS = @CFLAGS@
 CXXFLAGS = @CXXFLAGS@
 LDFLAGS = @LDFLAGS@  $(LD_RPATH)$(LD_RPATH_PRE)$(libdir)
 LIBS = $(LIBICU-UC) @LIBS@ 
 
-OBJECTS = toolutil.o unewdata.o ucmpwrit.o uoptions.o uparse.o
+OBJECTS = toolutil.o unewdata.o ucmpwrit.o
 
 DEPS = $(OBJECTS:.o=.d)
 
@@ -77,8 +77,8 @@ all-local: $(TARGET)
 install-local: install-library
 
 install-library: all-local
-	$(mkinstalldirs) $(DESTDIR)$(libdir)
-	$(INSTALL) $(TARGET) $(DESTDIR)$(libdir)/$(TARGET)
+	$(mkinstalldirs) $(libdir)
+	$(INSTALL) $(TARGET) $(libdir)/$(TARGET)
 
 
 dist-local:
@@ -99,10 +99,15 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 $(TARGET) : $(OBJECTS)
 	$(SHLIB.cc) -o $@ $^ $(LIBS)
 
-ifeq (,$(MAKECMDGOALS))
--include $(DEPS)
-else
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
 endif
-endif
+
+
+
+
+
+
+
+
+

@@ -95,14 +95,6 @@ SOURCE=.\ucmpwrit.c
 
 SOURCE=.\unewdata.c
 # End Source File
-# Begin Source File
-
-SOURCE=.\uoptions.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\uparse.c
-# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -114,14 +106,6 @@ SOURCE=.\toolutil.h
 # Begin Source File
 
 SOURCE=.\unewdata.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uoptions.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uparse.h
 # End Source File
 # End Group
 # End Target

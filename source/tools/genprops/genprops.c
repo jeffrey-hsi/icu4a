@@ -24,191 +24,20 @@
 #include <stdlib.h>
 #include "unicode/utypes.h"
 #include "unicode/uchar.h"
-#include "unicode/putil.h"
 #include "cmemory.h"
 #include "cstring.h"
+#include "filestrm.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
-#include "uoptions.h"
-#include "uparse.h"
 #include "genprops.h"
 
-bool_t beVerbose=FALSE, haveCopyright=TRUE;
-
-/* prototypes --------------------------------------------------------------- */
-
-static void
-init(void);
-
-static void
-parseMirror(const char *filename, UErrorCode *pErrorCode);
-
-static void
-parseDB(const char *filename, UErrorCode *pErrorCode);
-
-/* -------------------------------------------------------------------------- */
-
-static UOption options[]={
-    UOPTION_HELP_H,
-    UOPTION_HELP_QUESTION_MARK,
-    UOPTION_VERBOSE,
-    UOPTION_COPYRIGHT,
-    UOPTION_DESTDIR,
-    UOPTION_SOURCEDIR,
-    { "unicode", NULL, NULL, NULL, 'u', UOPT_REQUIRES_ARG, 0 }
-};
-
-extern int
-main(int argc, const char *argv[]) {
-    char filename[300];
-    const char *srcDir=NULL, *destDir=NULL, *suffix=NULL;
-    char *basename=NULL;
-    UErrorCode errorCode=U_ZERO_ERROR;
-
-    /* preset then read command line options */
-    options[4].value=u_getDataDirectory();
-    options[5].value="";
-    options[6].value="3.0.0";
-    argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
-
-    /* error handling, printing usage message */
-    if(argc<0) {
-        fprintf(stderr,
-            "error in command line argument \"%s\"\n",
-            argv[-argc]);
-    }
-    if(argc<0 || options[0].doesOccur || options[1].doesOccur) {
-        fprintf(stderr,
-            "usage: %s [-options] [suffix]\n"
-            "\tread the UnicodeData.txt file and other Unicode properties files and\n"
-            "\tcreate a binary file " DATA_NAME "." DATA_TYPE " with the character properties\n"
-            "\toptions:\n"
-            "\t\t-h or -? or --help  this usage text\n"
-            "\t\t-v or --verbose     verbose output\n"
-            "\t\t-c or --copyright   include a copyright notice\n"
-            "\t\t-d or --destdir     destination directory, followed by the path\n"
-            "\t\t-s or --sourcedir   source directory, followed by the path\n"
-            "\t\t-u or --unicode     Unicode version, followed by the version like 3.0.0\n"
-            "\t\tsuffix              suffix that is to be appended with a '-'\n"
-            "\t\t                    to the source file basenames before opening;\n"
-            "\t\t                    'genprops new' will read UnicodeData-new.txt etc.\n",
-            argv[0]);
-        return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
-    }
-
-    /* get the options values */
-    beVerbose=options[2].doesOccur;
-    haveCopyright=options[3].doesOccur;
-    srcDir=options[5].value;
-    destDir=options[4].value;
-
-    if(argc>=2) {
-        suffix=argv[1];
-    } else {
-        suffix=NULL;
-    }
-
-    setUnicodeVersion(options[6].value);
-
-    /* prepare the filename beginning with the source dir */
-    uprv_strcpy(filename, srcDir);
-    basename=filename+uprv_strlen(filename);
-    if(basename>filename && *(basename-1)!=U_FILE_SEP_CHAR) {
-        *basename++=U_FILE_SEP_CHAR;
-    }
-
-    /* initialize */
-    init();
-    initStore();
-
-    /* process Mirror.txt */
-    if(suffix==NULL) {
-        uprv_strcpy(basename, "Mirror.txt");
-    } else {
-        uprv_strcpy(basename, "Mirror");
-        basename[6]='-';
-        uprv_strcpy(basename+7, suffix);
-        uprv_strcat(basename+7, ".txt");
-    }
-    parseMirror(filename, &errorCode);
-
-    /* process UnicodeData.txt */
-    if(suffix==NULL) {
-        uprv_strcpy(basename, "UnicodeData.txt");
-    } else {
-        uprv_strcpy(basename, "UnicodeData");
-        basename[11]='-';
-        uprv_strcpy(basename+12, suffix);
-        uprv_strcat(basename+12, ".txt");
-    }
-    parseDB(filename, &errorCode);
-
-    /* process parsed data */
-    if(U_SUCCESS(errorCode)) {
-        repeatProps();
-        compactProps();
-        compactStage3();
-        compactStage2();
-
-        /* write the properties data file */
-        generateData(destDir);
-    }
-
-    return errorCode;
-}
-
-static void
-init(void) {
-}
-
-/* parser for Mirror.txt ---------------------------------------------------- */
-
-#define MAX_MIRROR_COUNT 2000
-
-static uint32_t mirrorMappings[MAX_MIRROR_COUNT][2];
-static int32_t mirrorCount=0;
-
-static void
-mirrorLineFn(void *context,
-             char *fields[][2], int32_t fieldCount,
-             UErrorCode *pErrorCode) {
-    char *end;
-
-    mirrorMappings[mirrorCount][0]=uprv_strtoul(fields[0][0], &end, 16);
-    if(end<=fields[0][0] || end!=fields[0][1]) {
-        fprintf(stderr, "genprops: syntax error in Mirror.txt field 0 at %s\n", fields[0][0]);
-        exit(U_PARSE_ERROR);
-    }
-
-    mirrorMappings[mirrorCount][1]=uprv_strtoul(fields[1][0], &end, 16);
-    if(end<=fields[1][0] || end!=fields[1][1]) {
-        fprintf(stderr, "genprops: syntax error in Mirror.txt field 1 at %s\n", fields[1][0]);
-        exit(U_PARSE_ERROR);
-    }
-
-    if(++mirrorCount==MAX_MIRROR_COUNT) {
-        fprintf(stderr, "genprops: too many mirror mappings\n");
-        exit(U_INDEX_OUTOFBOUNDS_ERROR);
-    }
-}
-
-static void
-parseMirror(const char *filename, UErrorCode *pErrorCode) {
-    char *fields[2][2];
-
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return;
-    }
-
-    u_parseDelimitedFile(filename, ';', fields, 2, mirrorLineFn, NULL, pErrorCode);
-}
-
-/* parser for UnicodeData.txt ----------------------------------------------- */
+extern bool_t beVerbose=FALSE, haveCopyright=TRUE;
 
 /* general categories */
-const char *const
+
+extern const char *const
 genCategoryNames[U_CHAR_CATEGORY_COUNT]={
-    NULL,
+	NULL,
     "Lu", "Ll", "Lt", "Lm", "Lo", "Mn", "Me",
     "Mc", "Nd", "Nl", "No",
     "Zs", "Zl", "Zp",
@@ -219,199 +48,324 @@ genCategoryNames[U_CHAR_CATEGORY_COUNT]={
     "Cn"
 };
 
-const char *const
+extern const char *const
 bidiNames[U_CHAR_DIRECTION_COUNT]={
-    "L", "R", "EN", "ES", "ET", "AN", "CS", "B", "S",
+	"L", "R", "EN", "ES", "ET", "AN", "CS", "B", "S",
     "WS", "ON", "LRE", "LRO", "AL", "RLE", "RLO", "PDF", "NSM", "BN"
 };
 
-/* control code properties */
-static const struct {
-    uint32_t code;
-    uint8_t generalCategory;
-} controlProps[]={
-    /* TAB */   0x9, U_SPACE_SEPARATOR,
-    /* VT */    0xb, U_SPACE_SEPARATOR,
-    /* LF */    0xa, U_PARAGRAPH_SEPARATOR,
-    /* FF */    0xc, U_LINE_SEPARATOR,
-    /* CR */    0xd, U_PARAGRAPH_SEPARATOR,
-    /* FS */    0x1c, U_PARAGRAPH_SEPARATOR,
-    /* GS */    0x1d, U_PARAGRAPH_SEPARATOR,
-    /* RS */    0x1e, U_PARAGRAPH_SEPARATOR,
-    /* US */    0x1f, U_SPACE_SEPARATOR,
-    /* NL */    0x85, U_PARAGRAPH_SEPARATOR
-};
+/* prototypes --------------------------------------------------------------- */
 
 static void
-unicodeDataLineFn(void *context,
-                  char *fields[][2], int32_t fieldCount,
-                  UErrorCode *pErrorCode) {
-    static int32_t mirrorIndex=0;
-    Props p;
-    char *end;
-    uint32_t value;
+init(void);
+
+static void
+parseDB(FileStream *in);
+
+static int16_t
+getField(char *line, int16_t start, int16_t limit);
+
+static void
+checkLineIndex(uint32_t code, int16_t limit, int16_t length);
+
+/* -------------------------------------------------------------------------- */
+
+extern int
+main(int argc, char *argv[]) {
+    FileStream *in;
+    char *arg, *filename=NULL;
     int i;
-    bool_t hasNumericValue=FALSE;
 
-    /* reset the properties */
-    uprv_memset(&p, 0, sizeof(Props));
-
-    /* get the character code, field 0 */
-    p.code=uprv_strtoul(fields[0][0], &end, 16);
-    if(end<=fields[0][0] || end!=fields[0][1]) {
-        fprintf(stderr, "genprops: syntax error in field 0 at %s\n", fields[0][0]);
-        exit(U_PARSE_ERROR);
+    if(argc<=1) {
+        fprintf(stderr,
+            "usage: %s [-1[+|-]] [-v[+|-]] [-c[+|-]] filename\n"
+            "\tread the UnicodeData.txt file and \n"
+            "\tcreate a binary file " DATA_NAME "." DATA_TYPE " with the character properties\n"
+            "\toptions:\n"
+            "\t\t-v[+|-]  verbose output\n"
+            "\t\t-c[+|-]  do (not) include a copyright notice\n"
+            "\t\tfilename  absolute path/filename for the\n"
+            "\t\t\tUnicode database text file (default: standard input)\n",
+            argv[0]);
     }
 
-    /* get general category, field 2 */
-    *fields[2][1]=0;
-    for(i=1;;) {
-        if(uprv_strcmp(fields[2][0], genCategoryNames[i])==0) {
-            p.generalCategory=(uint8_t)i;
-            break;
+    for(i=1; i<argc; ++i) {
+        arg=argv[i];
+        if(arg[0]=='-') {
+            switch(arg[1]) {
+            case 'v':
+                beVerbose= arg[2]=='+';
+                break;
+            case 'c':
+                haveCopyright= arg[2]=='+';
+                break;
+            default:
+                break;
+            }
+        } else {
+            filename=arg;
         }
-        if(++i==U_CHAR_CATEGORY_COUNT) {
-            fprintf(stderr, "genprops: unknown general category \"%s\" at code 0x%lx\n", fields[2][0], p.code);
+    }
+
+    if(filename==NULL) {
+        in=T_FileStream_stdin();
+    } else {
+        in=T_FileStream_open(filename, "r");
+        if(in==NULL) {
+            fprintf(stderr, "genprops: unable to open input file %s\n", filename);
+            exit(U_FILE_ACCESS_ERROR);
+        }
+    }
+
+    init();
+    initStore();
+    parseDB(in);
+    repeatProps();
+    compactProps();
+    compactStage3();
+    compactStage2();
+    generateData();
+
+    if(in!=T_FileStream_stdin()) {
+        T_FileStream_close(in);
+    }
+
+    return 0;
+}
+
+static void
+init(void) {
+}
+
+/* parsing ------------------------------------------------------------------ */
+
+static void
+parseDB(FileStream *in) {
+    char line[300];
+    char *end;
+    Props p;
+    uint32_t value;
+    int16_t start, limit, length, i;
+    bool_t hasNumericValue;
+
+    while(T_FileStream_readLine(in, line, sizeof(line))!=NULL) {
+        length=uprv_strlen(line);
+
+        /* remove trailing newline characters */
+        while(length>0 && (line[length-1]=='\r' || line[length-1]=='\n')) {
+            line[--length]=0;
+        }
+
+        /* reset the properties */
+        uprv_memset(&p, 0, sizeof(p));
+        hasNumericValue=FALSE;
+
+        /* get the character code, field 0 */
+        p.code=uprv_strtoul(line, &end, 16);
+        limit=end-line;
+        if(limit<1 || *end!=';') {
+            fprintf(stderr, "genprops: syntax error in field 0 at code 0x%lx\n", p.code);
             exit(U_PARSE_ERROR);
         }
-    }
 
-    /* get canonical combining class, field 3 */
-    p.canonicalCombining=(uint8_t)uprv_strtoul(fields[3][0], &end, 10);
-    if(end<=fields[3][0] || end!=fields[3][1]) {
-        fprintf(stderr, "genprops: syntax error in field 3 at code 0x%lx\n", p.code);
-        exit(U_PARSE_ERROR);
-    }
+        /* skip character name, field 1 */
+        checkLineIndex(p.code, ++limit, length);
+        limit=getField(line, limit, length);
 
-    /* get BiDi category, field 4 */
-    *fields[4][1]=0;
-    for(i=0;;) {
-        if(uprv_strcmp(fields[4][0], bidiNames[i])==0) {
-            p.bidi=(uint8_t)i;
-            break;
+        /* get general category, field 2 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        limit=getField(line, start, length);
+        line[limit]=0;
+        for(i=1;;) {
+            if(uprv_strcmp(line+start, genCategoryNames[i])==0) {
+                p.generalCategory=(uint8_t)i;
+                break;
+            }
+            if(++i==U_CHAR_CATEGORY_COUNT) {
+                fprintf(stderr, "genprops: unknown general category \"%s\" at code 0x%lx\n", line+start, p.code);
+                exit(U_PARSE_ERROR);
+            }
         }
-        if(++i==U_CHAR_DIRECTION_COUNT) {
-            fprintf(stderr, "genprops: unknown BiDi category \"%s\" at code 0x%lx\n", fields[4][0], p.code);
+
+        /* get canonical combining class, field 3 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        p.canonicalCombining=(uint8_t)uprv_strtoul(line+start, &end, 10);
+        limit=end-line;
+        if(start>=limit || *end!=';') {
+            fprintf(stderr, "genprops: syntax error in field 3 at code 0x%lx\n", p.code);
             exit(U_PARSE_ERROR);
         }
-    }
 
-    /* decimal digit value, field 6 */
-    if(fields[6][0]<fields[6][1]) {
-        value=uprv_strtoul(fields[6][0], &end, 10);
-        if(end!=fields[6][1]) {
+        /* get BiDi category, field 4 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        limit=getField(line, start, length);
+        line[limit]=0;
+        for(i=0;;) {
+            if(uprv_strcmp(line+start, bidiNames[i])==0) {
+                p.bidi=(uint8_t)i;
+                break;
+            }
+            if(++i==U_CHAR_DIRECTION_COUNT) {
+                fprintf(stderr, "genprops: unknown BiDi category \"%s\" at code 0x%lx\n", line+start, p.code);
+                exit(U_PARSE_ERROR);
+            }
+        }
+
+        /* character decomposition mapping, field 5 */
+        /* ### skip for now */
+        checkLineIndex(p.code, ++limit, length);
+        limit=getField(line, limit, length);
+
+        /* decimal digit value, field 6 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        value=uprv_strtoul(line+start, &end, 10);
+        if(*end!=';') {
             fprintf(stderr, "genprops: syntax error in field 6 at code 0x%lx\n", p.code);
             exit(U_PARSE_ERROR);
         }
-        p.numericValue=value;
-        hasNumericValue=TRUE;
-    }
+        limit=end-line;
+        if(start<limit) {
+            p.numericValue=value;
+            hasNumericValue=TRUE;
+        }
 
-    /* digit value, field 7 */
-    if(fields[7][0]<fields[7][1]) {
-        value=uprv_strtoul(fields[7][0], &end, 10);
-        if(end!=fields[7][1]) {
+        /* digit value, field 7 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        value=uprv_strtoul(line+start, &end, 10);
+        if(*end!=';') {
             fprintf(stderr, "genprops: syntax error in field 7 at code 0x%lx\n", p.code);
             exit(U_PARSE_ERROR);
         }
-        if(hasNumericValue) {
-            if(p.numericValue!=value) {
-                fprintf(stderr, "genprops: more than one numeric value at code 0x%lx\n", p.code);
-                exit(U_PARSE_ERROR);
+        limit=end-line;
+        if(start<limit) {
+            if(hasNumericValue) {
+                if(p.numericValue!=value) {
+                    fprintf(stderr, "genprops: more than one numeric value at code 0x%lx\n", p.code);
+                    exit(U_PARSE_ERROR);
+                }
+            } else {
+                p.numericValue=value;
+                hasNumericValue=TRUE;
             }
-        } else {
-            p.numericValue=value;
-            hasNumericValue=TRUE;
         }
-    }
 
-    /* numeric value, field 8 */
-    if(fields[8][0]<fields[8][1]) {
-        value=uprv_strtoul(fields[8][0], &end, 10);
+        /* numeric value, field 8 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        value=uprv_strtoul(line+start, &end, 10);
         if(value>0 && *end=='/') {
-            /* field 8 may contain a fractional value, get the denominator */
             p.denominator=uprv_strtoul(end+1, &end, 10);
         }
-        if(end!=fields[8][1]) {
+        if(*end!=';') {
             fprintf(stderr, "genprops: syntax error in field 8 at code 0x%lx\n", p.code);
             exit(U_PARSE_ERROR);
         }
-        if(hasNumericValue) {
-            if(p.numericValue!=value) {
-                fprintf(stderr, "genprops: more than one numeric value at code 0x%lx\n", p.code);
+        limit=end-line;
+        if(start<limit) {
+            if(hasNumericValue) {
+                if(p.numericValue!=value) {
+                    fprintf(stderr, "genprops: more than one numeric value at code 0x%lx\n", p.code);
+                    exit(U_PARSE_ERROR);
+                }
+            } else {
+                p.numericValue=value;
+                hasNumericValue=TRUE;
+            }
+        }
+
+        /* get Mirrored flag, field 9 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        limit=getField(line, start, length);
+        if(line[start]=='Y') {
+            p.isMirrored=1;
+        } else if(limit-start!=1 || line[start]!='N') {
+            fprintf(stderr, "genprops: syntax error in field 9 at code 0x%lx\n", p.code);
+            exit(U_PARSE_ERROR);
+        }
+
+        /* skip Unicode 1.0 character name, field 10 */
+        checkLineIndex(p.code, ++limit, length);
+        limit=getField(line, limit, length);
+
+        /* skip comment, field 11 */
+        checkLineIndex(p.code, ++limit, length);
+        limit=getField(line, limit, length);
+
+        /* get uppercase mapping, field 12 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        p.upperCase=uprv_strtoul(line+start, &end, 16);
+        limit=end-line;
+        if(*end!=';') {
+            fprintf(stderr, "genprops: syntax error in field 12 at code 0x%lx\n", p.code);
+            exit(U_PARSE_ERROR);
+        }
+
+        /* get lowercase mapping, field 13 */
+        start=limit+1;
+        checkLineIndex(p.code, start, length);
+        p.lowerCase=uprv_strtoul(line+start, &end, 16);
+        limit=end-line;
+        if(*end!=';') {
+            fprintf(stderr, "genprops: syntax error in field 13 at code 0x%lx\n", p.code);
+            exit(U_PARSE_ERROR);
+        }
+
+        /* get titlecase mapping, field 14 */
+        start=limit+1;
+        if(start<length) {
+            /* this is the last field */
+            p.titleCase=uprv_strtoul(line+start, &end, 16);
+            if(*end!=';' && *end!=0) {
+                fprintf(stderr, "genprops: syntax error in field 14 at code 0x%lx\n", p.code);
                 exit(U_PARSE_ERROR);
             }
-        } else {
-            p.numericValue=value;
-            hasNumericValue=TRUE;
         }
-    }
 
-    /* get Mirrored flag, field 9 */
-    if(*fields[9][0]=='Y') {
-        p.isMirrored=1;
-    } else if(fields[9][1]-fields[9][0]!=1 || *fields[9][0]!='N') {
-        fprintf(stderr, "genprops: syntax error in field 9 at code 0x%lx\n", p.code);
-        exit(U_PARSE_ERROR);
-    }
-
-    /* get uppercase mapping, field 12 */
-    value=uprv_strtoul(fields[12][0], &end, 16);
-    if(end!=fields[12][1]) {
-        fprintf(stderr, "genprops: syntax error in field 12 at code 0x%lx\n", p.code);
-        exit(U_PARSE_ERROR);
-    }
-    p.upperCase=value;
-
-    /* get lowercase value, field 13 */
-    value=uprv_strtoul(fields[13][0], &end, 16);
-    if(end!=fields[13][1]) {
-        fprintf(stderr, "genprops: syntax error in field 13 at code 0x%lx\n", p.code);
-        exit(U_PARSE_ERROR);
-    }
-    p.lowerCase=value;
-
-    /* get titlecase value, field 14 */
-    value=uprv_strtoul(fields[14][0], &end, 16);
-    if(end!=fields[14][1]) {
-        fprintf(stderr, "genprops: syntax error in field 14 at code 0x%lx\n", p.code);
-        exit(U_PARSE_ERROR);
-    }
-    p.titleCase=value;
-
-    /* override properties for some common control characters */
-    if(p.generalCategory==U_CONTROL_CHAR) {
-        for(i=0; i<sizeof(controlProps)/sizeof(controlProps[0]); ++i) {
-            if(controlProps[i].code==p.code) {
-                p.generalCategory=controlProps[i].generalCategory;
-            }
+#if 0
+        /* debug output */
+        if(beVerbose) {
+            printf(
+                "0x%06lx "
+                "%s(%2d) "
+                "comb=%3d "
+                "bidi=%3s(%2d) "
+                "num=%7d/%7d "
+                "mirr=%d "
+                "u%06lx l%06lx t%06lx"
+                "\n",
+                p.code,
+                genCategoryNames[p.generalCategory], p.generalCategory,
+                p.canonicalCombining,
+                bidiNames[p.bidi], p.bidi,
+                p.numericValue, p.denominator,
+                p.isMirrored,
+                p.upperCase, p.lowerCase, p.titleCase);
         }
-    }
+#endif
 
-    /* set additional properties from previously parsed files */
-    if(mirrorIndex<mirrorCount && p.code==mirrorMappings[mirrorIndex][0]) {
-        p.mirrorMapping=mirrorMappings[mirrorIndex++][1];
+        addProps(&p);
     }
+}
 
-    addProps(&p);
+static int16_t
+getField(char *line, int16_t start, int16_t limit) {
+    while(start<limit && line[start]!=';') {
+        ++start;
+    }
+    return start;
 }
 
 static void
-parseDB(const char *filename, UErrorCode *pErrorCode) {
-    char *fields[15][2];
-
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return;
+checkLineIndex(uint32_t code, int16_t index, int16_t length) {
+    if(index>=length) {
+        fprintf(stderr, "genprops: too few fields at code 0x%lx\n", code);
+        exit(U_PARSE_ERROR);
     }
-
-    u_parseDelimitedFile(filename, ';', fields, 15, unicodeDataLineFn, NULL, pErrorCode);
 }
-
-/*
- * Hey, Emacs, please set the following:
- *
- * Local Variables:
- * indent-tabs-mode: nil
- * End:
- *
- */

@@ -9,12 +9,11 @@
 #define TRANSLIT_H
 
 #include "unicode/unistr.h"
-#include "unicode/parseerr.h"
 
 class Replaceable;
 class UnicodeFilter;
 class TransliterationRuleData;
-class Hashtable;
+struct UHashtable;
 class U_I18N_API UVector;
 class CompoundTransliterator;
 
@@ -219,7 +218,6 @@ class CompoundTransliterator;
  * performance obtained by the default implementations in this class.
  *
  * @author Alan Liu
- * @draft
  */
 class U_I18N_API Transliterator {
 
@@ -230,15 +228,12 @@ public:
      * the forward or reverse rules of a RuleBasedTransliterator.  An "A-B"
      * transliterator transliterates A to B when operating in the forward
      * direction, and B to A when operating in the reverse direction.
-     * @draft
      */
     enum Direction {
         FORWARD,
         REVERSE
     };
-    /**
-     * @draft
-     */
+
     class Position {
     public:
         /**
@@ -256,30 +251,6 @@ public:
          * considered for transliteration
          */
         int32_t cursor;
-
-        /**
-         * In <code>transliterate()</code>, the limit character to be
-         * considered for transliteration
-         */
-        int32_t end;
-
-        /**
-         * Constructor from start, limit.  Sets cursor to start and
-         * end to limit.
-         */
-        Position(int32_t start, int32_t limit);
-
-        /**
-         * Constructor from start, limit, cursor.  Sets
-         * end to limit.
-         */
-        Position(int32_t start, int32_t limit, int32_t cursor);
-
-        /**
-         * Constructor from start, limit, cursor, end.
-         */
-        Position(int32_t start, int32_t limit,
-                 int32_t cursor, int32_t end);
     };
 
 private:
@@ -321,7 +292,7 @@ private:
      * RuleBasedTransliterator constructor.
      * </ul>
      */
-    static Hashtable* cache;
+    static UHashtable* cache;
 
     /**
      * The mutex controlling access to the cache.
@@ -431,7 +402,6 @@ public:
 
     /**
      * Destructor.
-     * @draft
      */
     virtual ~Transliterator();
 
@@ -446,7 +416,6 @@ public:
      * will return null, and calls to createInstance() will fail.
      *
      * @see #registerInstance
-     * @draft
      */
     virtual Transliterator* clone() const { return 0; }
 
@@ -466,7 +435,6 @@ public:
      * limit)</code> has been transliterated, possibly to a string of a different
      * length, at <code>[start, </code><em>new-limit</em><code>)</code>, where
      * <em>new-limit</em> is the return value.
-     * @draft
      */
     virtual int32_t transliterate(Replaceable& text,
                                   int32_t start, int32_t limit) const;
@@ -474,7 +442,6 @@ public:
     /**
      * Transliterates an entire string in place. Convenience method.
      * @param text the string to be transliterated
-     * @draft
      */
     virtual void transliterate(Replaceable& text) const;
 
@@ -538,7 +505,6 @@ public:
      * @see #handleTransliterate
      * @exception IllegalArgumentException if <code>index</code>
      * is invalid
-     * @draft
      */
     virtual void transliterate(Replaceable& text, Position& index,
                                const UnicodeString& insertion,
@@ -558,7 +524,6 @@ public:
      * transliterated into the translation buffer at
      * <code>index.limit</code>.
      * @see #transliterate(Replaceable, int[], String)
-     * @draft
      */
     virtual void transliterate(Replaceable& text, Position& index,
                                UChar insertion,
@@ -574,7 +539,6 @@ public:
      * @param index an array of three integers.  See {@link
      * #transliterate(Replaceable, int[], String)}.
      * @see #transliterate(Replaceable, int[], String)
-     * @draft
      */
     virtual void transliterate(Replaceable& text, Position& index,
                                UErrorCode& status) const;
@@ -588,7 +552,6 @@ public:
      * untransliterated text.
      * @param index the array of indices previously passed to {@link
      * #transliterate}
-     * @draft
      */
     virtual void finishTransliteration(Replaceable& text,
                                        Position& index) const;
@@ -654,7 +617,6 @@ public:
      *
      * @return The maximum number of preceding context characters this
      * transliterator needs to examine
-     * @draft
      */
     int32_t getMaximumContextLength(void) const;
 
@@ -675,7 +637,6 @@ public:
      * @see #registerInstance
      * @see #registerClass
      * @see #getAvailableIDs
-     * @draft
      */
     virtual const UnicodeString& getID(void) const;
 
@@ -683,7 +644,6 @@ public:
      * Returns a name for this transliterator that is appropriate for
      * display to the user in the default locale.  See {@link
      * #getDisplayName(Locale)} for details.
-     * @draft
      */
     static UnicodeString& getDisplayName(const UnicodeString& ID,
                                          UnicodeString& result);
@@ -705,26 +665,16 @@ public:
      * @param inLocale the Locale in which the display name should be
      * localized.
      * @see java.text.MessageFormat
-     * @draft
      */
     static UnicodeString& getDisplayName(const UnicodeString& ID,
                                          const Locale& inLocale,
                                          UnicodeString& result);
 
     /**
-     * Returns the filter used by this transliterator, or <tt>NULL</tt>
+     * Returns the filter used by this transliterator, or <tt>null</tt>
      * if this transliterator uses no filter.
-     * @draft
      */
     virtual const UnicodeFilter* getFilter(void) const;
-
-    /**
-     * Returns the filter used by this transliterator, or <tt>NULL</tt> if this
-     * transliterator uses no filter.  The caller must eventually delete the
-     * result.  After this call, this transliterator's filter is set to
-     * <tt>NULL</tt>.  Calls adoptFilter().
-     */
-    UnicodeFilter* orphanFilter(void);
 
     /**
      * Changes the filter used by this transliterator.  If the filter
@@ -733,7 +683,6 @@ public:
      * <p>Callers must take care if a transliterator is in use by
      * multiple threads.  The filter should not be changed by one
      * thread while another thread may be transliterating.
-     * @draft
      */
     virtual void adoptFilter(UnicodeFilter* adoptedFilter);
 
@@ -756,7 +705,6 @@ public:
      * exact, of this transliterator, or <code>null</code> if no such
      * transliterator is registered.
      * @see #registerInstance
-     * @draft
      */
     Transliterator* createInverse(void) const;
 
@@ -771,11 +719,9 @@ public:
      * @see #registerInstance
      * @see #getAvailableIDs
      * @see #getID
-     * @draft
      */
     static Transliterator* createInstance(const UnicodeString& ID,
-                                          Direction dir = FORWARD,
-                                          ParseError* parseError = 0);
+                                          Direction dir = FORWARD);
 
 private:
 
@@ -800,12 +746,13 @@ private:
      */
     static const char* getDataDirectory(void);
 
+    static int32_t hash(const UnicodeString& str);
+
     /**
      * Returns a transliterator object given its ID.  Unlike getInstance(),
      * this method returns null if it cannot make use of the given ID.
      */
-    static Transliterator* _createInstance(const UnicodeString& ID,
-                                           ParseError* parseError = 0);
+    static Transliterator* _createInstance(const UnicodeString& ID);
 
 public:
 
@@ -824,7 +771,6 @@ public:
      * @see #getInstance
      * @see #registerClass
      * @see #unregister
-     * @draft
      */
     static void registerInstance(Transliterator* adoptedObj,
                                  UErrorCode& status);
@@ -849,7 +795,6 @@ public:
      * <code>ID</code>, or <code>null</code> if none was
      * @see #registerInstance
      * @see #registerClass
-     * @draft
      */
     static void unregister(const UnicodeString& ID);
 
@@ -886,7 +831,6 @@ public:
      * Return the number of IDs currently registered with the system.
      * To retrieve the actual IDs, call getAvailableID(i) with
      * i from 0 to countAvailableIDs() - 1.
-     * @draft
      */
     static int32_t countAvailableIDs(void);
 
@@ -894,7 +838,6 @@ public:
      * Return the index-th available ID.  index must be between 0
      * and countAvailableIDs() - 1, inclusive.  If index is out of
      * range, the result of getAvailableID(0) is returned.
-     * @draft
      */
     static const UnicodeString& getAvailableID(int32_t index);
 
@@ -906,12 +849,6 @@ protected:
      */
     UChar filteredCharAt(const Replaceable& text, int32_t i) const;
 
-    /**
-     * Set the ID of this transliterators.  Subclasses shouldn't do
-     * this, unless the underlying script behavior has changed.
-     */
-    void setID(const UnicodeString& id);
-
 private:
     /**
      * Comparison function for UVector.  Compares two UnicodeString
@@ -920,32 +857,10 @@ private:
     static bool_t compareIDs(void* a, void* b);
 
     static void initializeCache(void);
-
-    /* IDs take the form <source> ID_SEP <target>, where
-     * <source> and <target> are (usually) script names.
-     * Compound IDs take the form <ID> ( ID_DELIM <ID> )+.
-     */
-    static const UChar ID_SEP;   // ((UChar)0x002D) /*-*/
-    static const UChar ID_DELIM; // ((UChar)0x003B) /*;*/
 };
 
 inline int32_t Transliterator::getMaximumContextLength(void) const {
     return maximumContextLength;
 }
-
-inline void Transliterator::setID(const UnicodeString& id) {
-    ID = id;
-}
-
-inline Transliterator::Position::Position(int32_t aStart, int32_t aLimit) :
-    start(aStart), limit(aLimit), cursor(aStart), end(aLimit) {}
-
-inline Transliterator::Position::Position(int32_t aStart, int32_t aLimit,
-                                          int32_t aCursor) :
-    start(aStart), limit(aLimit), cursor(aCursor), end(aLimit) {}
-
-inline Transliterator::Position::Position(int32_t aStart, int32_t aLimit,
-                                          int32_t aCursor, int32_t anEnd) :
-    start(aStart), limit(aLimit), cursor(aCursor), end(anEnd) {}
 
 #endif

@@ -12,6 +12,13 @@
 #include "unicode/normlzr.h"
 
 /**
+ * Constant that indicates the iteration has completed.
+ * {@link #next} returns this value when there are no more composed characters
+ * over which to iterate.
+ */
+const UChar ComposedCharIter::DONE = Normalizer::DONE;
+
+/**
  * Construct a new <tt>ComposedCharIter</tt>.  The iterator will return
  * all Unicode characters with canonical decompositions, including Korean
  * Hangul characters.

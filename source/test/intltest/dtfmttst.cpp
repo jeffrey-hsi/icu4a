@@ -58,7 +58,7 @@ void DateFormatTest::TestWallyWedel()
      * Instantiate a SimpleDateFormat set up to produce a full time
      zone name.
      */
-    SimpleDateFormat *sdf = new SimpleDateFormat((UnicodeString)"zzzz", status);
+    SimpleDateFormat *sdf = new SimpleDateFormat("zzzz", status);
     /*
      * A String array for the time zone ids.
      */
@@ -157,8 +157,8 @@ void
 DateFormatTest::TestTwoDigitYearDSTParse(void)
 {
     UErrorCode status = U_ZERO_ERROR;
-    SimpleDateFormat* fullFmt = new SimpleDateFormat((UnicodeString)"EEE MMM dd HH:mm:ss.SSS zzz yyyy G", status);
-    SimpleDateFormat *fmt = new SimpleDateFormat((UnicodeString)"dd-MMM-yy h:mm:ss 'o''clock' a z", Locale::ENGLISH, status);
+    SimpleDateFormat* fullFmt = new SimpleDateFormat("EEE MMM dd HH:mm:ss.SSS zzz yyyy G", status);
+    SimpleDateFormat *fmt = new SimpleDateFormat("dd-MMM-yy h:mm:ss 'o''clock' a z", Locale::ENGLISH, status);
     //DateFormat* fmt = DateFormat::createDateTimeInstance(DateFormat::MEDIUM, DateFormat::FULL, Locale::ENGLISH);
     UnicodeString* s = new UnicodeString("03-Apr-04 2:20:47 o'clock AM PST");
     int32_t hour = 2;
@@ -180,7 +180,7 @@ DateFormatTest::TestTwoDigitYearDSTParse(void)
  
 // -------------------------------------
  
-UChar toHexString(int32_t i) { return i + (i < 10 ? 0x30 : (0x41 - 10)); }
+char toHexString(int32_t i) { return i + (i < 10 ? '0' : ('A' - 10)); }
 
 UnicodeString&
 DateFormatTest::escape(UnicodeString& s)
@@ -191,7 +191,7 @@ DateFormatTest::escape(UnicodeString& s)
         UChar c = s[(UTextOffset)i];
         if (c <= (UChar)0x7F) buf += c;
         else {
-            buf += (UChar)0x5c; buf += (UChar)0x55;
+            buf += '\\'; buf += 'U';
             buf += toHexString((c & 0xF000) >> 12);
             buf += toHexString((c & 0x0F00) >> 8);
             buf += toHexString((c & 0x00F0) >> 4);
@@ -257,7 +257,7 @@ DateFormatTest::TestFieldPosition(void)
         "", "1997", "August", "", "", "13", "", "Wednesday", "", "PM", "2", "", 
         "34", "12", "", "PDT", "", 
         /* Following two added by weiv for two new fields */ "", "", 
-        "", "1997", "#",/* # is a marker for "ao\xfbt" == "aou^t" */  "", "", "13", "", "mercredi", 
+        "", "1997", "ao\373t",/* 373 = 0xFB */  "", "", "13", "", "mercredi", 
         "", "", "", "14", "34", "", "", "GMT-07:00", "", 
         /* Following two added by weiv for two new fields */ "", "", 
         "AD", "97", "8", "33", "3", "13", "225", "Wed", "2", "PM", "2", 
@@ -276,8 +276,8 @@ DateFormatTest::TestFieldPosition(void)
 
     dateFormats[0] = DateFormat::createDateTimeInstance(DateFormat::FULL, DateFormat::FULL, Locale::US);
     dateFormats[1] = DateFormat::createDateTimeInstance(DateFormat::FULL, DateFormat::FULL, Locale::FRANCE);
-    dateFormats[2] = new SimpleDateFormat((UnicodeString)"G, y, M, d, k, H, m, s, S, E, D, F, w, W, a, h, K, z, Y, e", status);
-    dateFormats[3] = new SimpleDateFormat((UnicodeString)"GGGG, yyyy, MMMM, dddd, kkkk, HHHH, mmmm, ssss, SSSS, EEEE, DDDD, FFFF, wwww, WWWW, aaaa, hhhh, KKKK, zzzz, YYYY, eeee", status);
+    dateFormats[2] = new SimpleDateFormat("G, y, M, d, k, H, m, s, S, E, D, F, w, W, a, h, K, z, Y, e", status);
+    dateFormats[3] = new SimpleDateFormat("GGGG, yyyy, MMMM, dddd, kkkk, HHHH, mmmm, ssss, SSSS, EEEE, DDDD, FFFF, wwww, WWWW, aaaa, hhhh, KKKK, zzzz, YYYY, eeee", status);
     for (j = 0, exp = 0; j < dateFormats_length;++j) {
         UnicodeString str;
         DateFormat* df = dateFormats[j];
@@ -287,14 +287,7 @@ DateFormatTest::TestFieldPosition(void)
         for (int32_t i = 0; i < Calendar::FIELD_COUNT;++i) {
             UnicodeString field;
             getFieldText(df, i, someDate, field);
-            UnicodeString expStr;
-            if(expected[exp][0]!='#') {
-                expStr=UnicodeString(expected[exp]);
-            } else {
-                /* we cannot have latin-1 characters in source code, therefore we fix up the string for "aou^t" */
-                expStr.append((UChar)0x61).append((UChar)0x6f).append((UChar32)0xfb).append((UChar)0x74);
-            }
-            
+            UnicodeString expStr(expected[exp]);
             if (!(field == expStr)) errln(UnicodeString("FAIL: field #") + i + " " +
                 fieldNames[i] + " = \"" + escape(field) + "\", expected \"" + escape(expStr) + "\"");
             ++exp;
@@ -415,11 +408,11 @@ DateFormatTest::TestRunTogetherPattern917()
     UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat* fmt;
     UnicodeString myDate;
-    fmt = new SimpleDateFormat((UnicodeString)"yyyy/MM/dd", status);
+    fmt = new SimpleDateFormat("yyyy/MM/dd", status);
     myDate = "1997/02/03";
     testIt917(fmt, myDate, date(97, 2 - 1, 3));
     delete fmt;
-    fmt = new SimpleDateFormat((UnicodeString)"yyyyMMdd", status);
+    fmt = new SimpleDateFormat("yyyyMMdd", status);
     myDate = "19970304";
     testIt917(fmt, myDate, date(97, 3 - 1, 4));
     delete fmt;
@@ -574,7 +567,7 @@ void
 DateFormatTest::TestQuotePattern161()
 {
     UErrorCode status = U_ZERO_ERROR;
-    SimpleDateFormat* formatter = new SimpleDateFormat((UnicodeString)"MM/dd/yyyy 'at' hh:mm:ss a zzz", status);
+    SimpleDateFormat* formatter = new SimpleDateFormat("MM/dd/yyyy 'at' hh:mm:ss a zzz", status);
     UDate currentTime_1 = date(97, Calendar::AUGUST, 13, 10, 42, 28);
     UnicodeString dateString; ((DateFormat*)formatter)->format(currentTime_1, dateString);
     UnicodeString exp("08/13/1997 at 10:42:28 AM ");
@@ -781,7 +774,7 @@ DateFormatTest::TestDateFormatZone061()
     DateFormat *formatter;
     date= 859248000000.0;
     logln((UnicodeString)"Date 1997/3/25 00:00 GMT: " + date);
-    formatter = new SimpleDateFormat((UnicodeString)"dd-MMM-yyyyy HH:mm", Locale::UK, status);
+    formatter = new SimpleDateFormat("dd-MMM-yyyyy HH:mm", Locale::UK, status);
     formatter->adoptTimeZone(TimeZone::createTimeZone("GMT"));
     UnicodeString temp; formatter->format(date, temp);
     logln((UnicodeString)"Formatted in GMT to: " + temp);

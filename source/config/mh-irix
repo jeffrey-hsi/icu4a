@@ -41,7 +41,6 @@ LIBICU-UC= 	-L$(top_builddir)/common -licu-uc
 LIBICU-I18N= 	-L$(top_builddir)/i18n -licu-i18n
 LIBCTESTFW= 	-L$(top_builddir)/tools/ctestfw -lctestfw
 LIBICU-TOOLUTIL=-L$(top_builddir)/tools/toolutil -licu-toolutil
-LIBUSTDIO=      -L$(top_builddir)/extra/ustdio -lustdio
 
 ## Compilation rules
 %.o : $(srcdir)/%.c
@@ -49,9 +48,6 @@ LIBUSTDIO=      -L$(top_builddir)/extra/ustdio -lustdio
 
 %.o : $(srcdir)/%.cpp
 	$(COMPILE.cc) -o $@ $<
-
-../data/%.o : ../data/%.c
-	$(COMPILE.c) -o $@ $<
 
 ## Dependency rules
 %.d : $(srcdir)/%.c

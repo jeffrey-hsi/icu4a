@@ -19,7 +19,7 @@
 #define RBDATA_H 1
 
 #include "unicode/utypes.h"
-#include "hash.h"
+#include "uhash.h"
 #include "unicode/unistr.h"
 
 /**
@@ -74,23 +74,19 @@ public:
  */
 class TaggedList : public ResourceBundleData
 {
-    Hashtable *hash;
-
 public:
-    TaggedList();
-    virtual ~TaggedList();
-    
-    void put(const UnicodeString& tag, const UnicodeString& data);
-    const UnicodeString* get(const UnicodeString& tag) const;
-    bool_t nextElement(const UnicodeString*& key,
-                       const UnicodeString*& value,
-                       int32_t& pos) const;
-    int32_t count() const;
+  TaggedList();
+  virtual ~TaggedList();
+  void put(const UnicodeString& tag, const UnicodeString& data);
+  const UnicodeString* get(const UnicodeString& tag) const;
+  virtual UClassID getDynamicClassID(void) const;
+  static UClassID getStaticClassID(void);
 
-    virtual UClassID getDynamicClassID(void) const;
-    static UClassID getStaticClassID(void);
-    
-    static UClassID  fgClassID;
+  static void U_CALLCONV deleteValue(void* value);
+
+  static UClassID  fgClassID;
+  UHashtable      *fHashtableValues;
+  UHashtable      *fHashtableKeys;
 };
 
 #endif

@@ -11,10 +11,6 @@
 #ifndef UCMP8_H
 #define UCMP8_H
 
-/* 32-bits.
-  Bump this whenever the internal structure changes.
-*/
-#define ICU_UCMP8_VERSION 0x01260000
 
 #include "unicode/utypes.h"
 
@@ -37,7 +33,6 @@ typedef struct CompactByteArray {
   bool_t fCompact;
   bool_t fBogus;
   bool_t fAlias;
-  bool_t fIAmOwned; /* don't free CBA on close */
 } CompactByteArray;
 
 #define UCMP8_kUnicodeCount 65536
@@ -49,9 +44,6 @@ typedef struct CompactByteArray {
 
 
 U_CAPI  CompactByteArray* U_EXPORT2 ucmp8_open(int8_t defaultValue);
-
-U_CAPI  void U_EXPORT2 ucmp8_init(CompactByteArray* array, int8_t defaultValue);
-
 U_CAPI  CompactByteArray* U_EXPORT2 ucmp8_openAdopt(uint16_t* indexArray, 
                                int8_t* newValues,
                                int32_t count);
@@ -67,7 +59,7 @@ U_CAPI  bool_t U_EXPORT2 isBogus(const CompactByteArray* array);
 
 
 U_CAPI  void U_EXPORT2 ucmp8_set(CompactByteArray* array,
-                 UChar character,
+                 UChar index,
                  int8_t value);
 
 U_CAPI  void U_EXPORT2 ucmp8_setRange(CompactByteArray* array, 
@@ -92,9 +84,8 @@ U_CAPI  void U_EXPORT2 ucmp8_compact(CompactByteArray* array,
 /* Expanded takes the array back to a 65536 element array*/
 U_CAPI  void U_EXPORT2 ucmp8_expand(CompactByteArray* array);
 
-/** (more) INTERNAL USE ONLY **/
-/* initializes an existing CBA from memory.  Will cause ucmp8_close() to not deallocate anything. */
-U_CAPI  void U_EXPORT2 ucmp8_initFromData(CompactByteArray* array, const uint8_t **source, UErrorCode *status);
+/** INTERNAL USE ONLY **/
+U_CAPI  CompactByteArray * U_EXPORT2 ucmp8_cloneFromData(const uint8_t **source, UErrorCode *status);
 
 #endif
 

@@ -78,7 +78,7 @@
 /* floating point implementations ------------------------------------------- */
 
 /* We return QNAN rather than SNAN*/
-#if IEEE_754
+#ifdef IEEE_754
 #define NAN_TOP ((int16_t)0x7FF8)
 #define INF_TOP ((int16_t)0x7FF0)
 #else
@@ -89,6 +89,8 @@
 #endif
 
 #define SIGN 0x80000000L
+
+static char tempString[10] = "";
 
 /* statics */
 static bool_t fgNaNInitialized = FALSE;
@@ -164,7 +166,7 @@ uprv_getUTCtime()
 bool_t 
 uprv_isNaN(double number)
 {
-#if IEEE_754
+#ifdef IEEE_754
   /* This should work in theory, but it doesn't, so we resort to the more*/
   /* complicated method below.*/
   /*  return number != number;*/
@@ -207,7 +209,7 @@ uprv_isNaN(double number)
 bool_t
 uprv_isInfinite(double number)
 {
-#if IEEE_754
+#ifdef IEEE_754
   /* We know the top bit is the sign bit, so we mask that off in a copy of */
   /* the number and compare against infinity. [LIU]*/
   /* The following approach doesn't work for some reason, so we go ahead and */
@@ -245,7 +247,7 @@ return ((highBits  & ~SIGN) == 0x70FF0000L) && (lowBits == 0x00000000L);
 bool_t   
 uprv_isPositiveInfinity(double number)
 {
-#if IEEE_754 || defined(OS390)
+#if defined(IEEE_754) || defined(OS390)
   return (number > 0 && uprv_isInfinite(number));
 #else
   return uprv_isInfinite(number);
@@ -255,7 +257,7 @@ uprv_isPositiveInfinity(double number)
 bool_t   
 uprv_isNegativeInfinity(double number)
 {
-#if IEEE_754 || defined(OS390)
+#if defined(IEEE_754) || defined(OS390)
   return (number < 0 && uprv_isInfinite(number));
 #else
   uint32_t highBits = *(uint32_t*)u_topNBytesOfDouble(&number,
@@ -268,7 +270,7 @@ uprv_isNegativeInfinity(double number)
 double 
 uprv_getNaN()
 {
-#if IEEE_754 || defined(OS390)
+#if defined(IEEE_754) || defined(OS390)
   if( ! fgNaNInitialized) {
     umtx_lock(NULL);
     if( ! fgNaNInitialized) {
@@ -293,7 +295,7 @@ uprv_getNaN()
 double 
 uprv_getInfinity()
 {
-#if IEEE_754 || defined(OS390)
+#if defined(IEEE_754  ) || defined(OS390)
   if (!fgInfInitialized)
     {
       int i;
@@ -352,35 +354,10 @@ uprv_pow10(int32_t x)
 #endif
 }
 
-/**
- * Computes the remainder of an implied division of its operands, as
- * defined by the IEEE 754 standard.  Commonly used to bring a value
- * into range without losing accuracy; e.g., bringing a large argument
- * to sin() into range.
- *
- * Returns r, where x = n * p + r.  Here n is the integer nearest to
- * x / p.  If two integers are equidistant from x / p, n is the even
- * integer.  If r is zero, then it should have the same sign as the
- * dividend x.
- *
- * The IEEE remainder may be negative or positive.
- * IEEEremainder(5,3) = -1.  IEEEremainder(4,3) = 1.
- *
- * The IEEE remainder r is always less than or equal to p/2 in
- * absolute value.  That is, |r| <= |p/2|.  By comparison, fmod()
- * returns a remainder r such that |r| <= |p|.
- *
- * Some floating point processors can compute this value in hardware.
- * We provide two implementations here, one that manipulates the IEEE
- * bit pattern directly, and one that is built upon other floating
- * point operations.  The former implementation has superior accuracy
- * and is preferred; the latter may work on platforms where the former
- * fails, but will introduce inaccuracies.
- */
 double 
 uprv_IEEEremainder(double x, double p)
 {
-#if IEEE_754
+#ifdef IEEE_754
   int32_t hx, hp;
   uint32_t sx, lx, lp;
   double p_half;
@@ -431,35 +408,15 @@ uprv_IEEEremainder(double x, double p)
   
   return x;
 #else
-    /* INACCURATE but portable implementation of IEEEremainder.  This
-     * implementation should work on platforms that do not have IEEE
-     * bit layouts.  Deficiencies of this implementation are its
-     * inaccuracy and that it does not attempt to handle NaN or
-     * infinite parameters and it returns the dividend if the divisor
-     * is zero.  This is probably not an issue on non-IEEE
-     * platforms. - aliu
-     */
-    if (p != 0.0) { /* exclude zero divisor */
-        double a = x / p;
-        double aint = uprv_floor(a);
-        double afrac = a - aint;
-        if (afrac > 0.5) {
-            aint += 1.0;
-        } else if (!(afrac < 0.5)) { /* avoid == comparison */
-            if (uprv_modf(aint / 2.0, &a) > 0.0) {
-                aint += 1.0;
-            }
-        }
-        x -= (p * aint);
-    }
-    return x;
+  /* {sfb} need to fix this*/
+  return uprv_fmod(x, p);
 #endif
 }
 
 double 
 uprv_fmax(double x, double y)
 {
-#if IEEE_754
+#ifdef IEEE_754
   int32_t lowBits;
   
   /* first handle NaN*/
@@ -492,7 +449,7 @@ uprv_max(int32_t x, int32_t y)
 double 
 uprv_fmin(double x, double y)
 {
-#if IEEE_754
+#ifdef IEEE_754
   int32_t lowBits;
 
   /* first handle NaN*/
@@ -533,7 +490,7 @@ uprv_min(int32_t x, int32_t y)
 double 
 uprv_trunc(double d)
 {
-#if IEEE_754
+#ifdef IEEE_754
 
   int32_t lowBits;
   
@@ -573,18 +530,18 @@ uprv_log10(double d)
   /* log and dividing by log10 yields a result which may be off*/
   /* by 1 due to rounding errors.  For example, the naive log10*/
   /* of 1.0e300 taken this way is 299, rather than 300.*/
-  double alog10 = log(d) / log(10.0);
-  int16_t ailog10 = (int16_t) floor(alog10);
+  double log10 = log(d) / log(10.0);
+  int16_t ilog10 = (int16_t)floor(log10);
   
   /* Positive logs could be too small, e.g. 0.99 instead of 1.0*/
-  if (alog10 > 0 && d >= pow(10.0, ailog10 + 1))
-    ++ailog10;
+  if (log10 > 0 && d >= pow(10.0, ilog10 + 1))
+    ++ilog10;
   
   /* Negative logs could be too big, e.g. -0.99 instead of -1.0*/
-  else if (alog10 < 0 && d < pow(10.0, ailog10))
-    --ailog10;
+  else if (log10 < 0 && d < pow(10.0, ilog10))
+    --ilog10;
   
-  return ailog10;
+  return ilog10;
 }
 
 int32_t 
@@ -657,7 +614,7 @@ uprv_tzset()
 int32_t 
 uprv_timezone()
 {
-#if defined(POSIX) && !defined(RHAPSODY)
+#ifdef POSIX
 #ifdef OS390
   return _timezone;
 #else
@@ -665,7 +622,7 @@ uprv_timezone()
 #endif
 #endif
 
-#if defined(OS400) || defined(XP_MAC) || defined(RHAPSODY)
+#if defined(OS400) || defined(XP_MAC)
   time_t t, t1, t2;
   struct tm tmrec;
   bool_t dst_checked;
@@ -690,18 +647,18 @@ uprv_timezone()
 }
 
 char* 
-uprv_tzname(int n)
+uprv_tzname(int index)
 {
-#if defined(POSIX) && !defined(RHAPSODY)
-  return tzname[n];
+#ifdef POSIX
+  return tzname[index];
 #endif
 
-#if defined(OS400) || defined(XP_MAC) || defined(RHAPSODY)
+#if defined(OS400) || defined(XP_MAC)
   return "";
 #endif
 
 #if defined(WIN32) || defined(OS2)
-  return _tzname[n];
+  return _tzname[index];
 #endif
 }
 
@@ -744,8 +701,6 @@ u_setDataDirectory(const char *directory) {
         }
     }
 }
-
-#ifndef ICU_DATA_DIR
 
 /*
  * get the system drive or volume path
@@ -790,8 +745,6 @@ getSystemPath(char *path, int size) {
 #   endif
     return 0;
 }
-
-#endif
 
 /*
  * get the path to the ICU dynamic library
@@ -1037,7 +990,7 @@ u_getDataDirectory(void) {
     if(!gHaveDataDirectory) {
         /* we need to look for it */
         char pathBuffer[1024];
-        const char *path;
+        char *path;
         int length;
 
 #       if !defined(XP_MAC)
@@ -1052,6 +1005,10 @@ u_getDataDirectory(void) {
 /* 		puts(__environ[i]); */
 /* 	    } */
 #       endif
+#ifdef OS390BATCH
+  path = "DD:ICUDATA";
+#endif
+
 #       ifdef WIN32
             /* next, try to read the path from the registry */
             if(path==NULL || *path==0) {
@@ -1231,7 +1188,7 @@ const char*
 uprv_getDefaultLocaleID()
 {
 #ifdef POSIX
-  const char* posixID = getenv("LC_ALL");
+  char* posixID = getenv("LC_ALL");
   if (posixID == 0) posixID = getenv("LANG");
   if (posixID == 0) posixID = setlocale(LC_ALL, NULL);
   if (uprv_strcmp("C", posixID) == 0) posixID = "en_US";
@@ -1303,7 +1260,7 @@ uprv_getDefaultLocaleID()
 double 
 uprv_nextDouble(double d, bool_t next)
 {
-#if IEEE_754
+#ifdef IEEE_754
   int32_t highBits;
   uint32_t lowBits;
   int32_t highMagnitude;
@@ -1320,11 +1277,11 @@ uprv_nextDouble(double d, bool_t next)
   /* zero's are also a special case */
   if (d == 0.0) {
     double smallestPositiveDouble = 0.0;
-    uint32_t *plowBits = 
+    uint32_t *lowBits = 
       (uint32_t *)u_bottomNBytesOfDouble(&smallestPositiveDouble, 
                      sizeof(uint32_t));
     
-    *plowBits = 1;
+    *lowBits = 1;
     
     if (next) {
       return smallestPositiveDouble;
@@ -1405,7 +1362,6 @@ static char* u_bottomNBytesOfDouble(double* d, int n)
 {
   return U_IS_BIG_ENDIAN ? (char*)(d + 1) - n : (char*)d;
 }
-
 U_CAPI const char *
 uprv_defaultCodePageForLocale(const char *locale);
 
@@ -1414,15 +1370,17 @@ const char* uprv_getDefaultCodepage()
 #if defined(OS400)
   return "ibm-37";
 #elif defined(OS390)
-  return "ibm-1047-s390";
+  return "ibm-1047";
 #elif defined(XP_MAC)
   /* TBD */
 #elif defined(WIN32)
-  static char tempString[10] = "";
   static char codepage[12]={ "cp" };
   uprv_strcpy(codepage+2, _itoa(GetACP(), tempString, 10));
   return codepage;
-#elif defined(POSIX)
+#elif defined(POSIX) 
+#if defined(HPUX)
+  return "LATIN_1";
+#else
     static char codesetName[100];
     char *name = NULL;
     char *euro = NULL;
@@ -1470,6 +1428,7 @@ const char* uprv_getDefaultCodepage()
         uprv_strcpy(codesetName, "LATIN_1");
     } 
     return codesetName;
+#endif
 #else
   return "LATIN_1";
 #endif
@@ -1484,28 +1443,15 @@ const char* uprv_getDefaultCodepage()
  * control and graphical characters that are in ASCII-based
  * codepages at 0x80 and above.
  * Also, unlike in Version 6.0 of the UTR on UTF-EBCDIC,
- * the Line Feed mapping varies according to the environment.
+ * the Line Feed mapping is exactly as described in the CDRA.
  *
  * These tables do not establish a converter or a codepage.
  */
 
-/* Line Feed mappings for CDRA and S/390 Open Edition */
-#ifdef OS390
-    /* on S/390 Open Edition, ASCII 0xa (LF) maps to 0x15 and ISO-8 0x85 maps to 0x25 */
-#   define E_LF 0x15
-#   define A_15 0x0a
-#   define A_25 0x00
-#else
-    /* in standard EBCDIC (CDRA), ASCII 0xa (LF) maps to 0x25 and ISO-8 0x85 maps to 0x15 */
-#   define E_LF 0x25
-#   define A_15 0x00
-#   define A_25 0x0a
-#endif
-
 static uint8_t asciiFromEbcdic[256]={
     0x00, 0x01, 0x02, 0x03, 0x00, 0x09, 0x00, 0x7F, 0x00, 0x00, 0x00, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
-    0x10, 0x11, 0x12, 0x13, 0x00, A_15, 0x08, 0x00, 0x18, 0x19, 0x00, 0x00, 0x1C, 0x1D, 0x1E, 0x1F,
-    0x00, 0x00, 0x00, 0x00, 0x00, A_25, 0x17, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x06, 0x07,
+    0x10, 0x11, 0x12, 0x13, 0x00, 0x00, 0x08, 0x00, 0x18, 0x19, 0x00, 0x00, 0x1C, 0x1D, 0x1E, 0x1F,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x0A, 0x17, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x06, 0x07,
     0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x14, 0x15, 0x00, 0x1A,
     0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x3C, 0x28, 0x2B, 0x7C,
     0x26, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x24, 0x2A, 0x29, 0x3B, 0x5E,
@@ -1522,7 +1468,7 @@ static uint8_t asciiFromEbcdic[256]={
 };
 
 static uint8_t ebcdicFromAscii[256]={
-    0x00, 0x01, 0x02, 0x03, 0x37, 0x2D, 0x2E, 0x2F, 0x16, 0x05, E_LF, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+    0x00, 0x01, 0x02, 0x03, 0x37, 0x2D, 0x2E, 0x2F, 0x16, 0x05, 0x25, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
     0x10, 0x11, 0x12, 0x13, 0x3C, 0x3D, 0x32, 0x26, 0x18, 0x19, 0x3F, 0x27, 0x1C, 0x1D, 0x1E, 0x1F,
     0x40, 0x5A, 0x7F, 0x7B, 0x5B, 0x6C, 0x50, 0x7D, 0x4D, 0x5D, 0x5C, 0x4E, 0x6B, 0x60, 0x4B, 0x61,
     0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0x7A, 0x5E, 0x4C, 0x7E, 0x6E, 0x6F,
@@ -1561,7 +1507,7 @@ u_UCharsToChars(const UChar *us, char *cs, UTextOffset length) {
 #if U_CHARSET_FAMILY==U_ASCII_FAMILY
         *cs++=(char)(*us++);
 #elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
-        *cs++=(char)ebcdicFromAscii[(uint8_t)(*us++)];
+        *cs++=(char)ebcdicFromAscii[*us++];
 #else
 #   error U_CHARSET_FAMILY is not valid
 #endif

@@ -35,7 +35,7 @@ public:
     enum EToken_Len { MAX_TOKEN_LEN = 128 };
 
     CollationDummyTest();
-    virtual ~CollationDummyTest();
+    ~CollationDummyTest();
     void runIndexedTest( int32_t index, bool_t exec, char* &name, char* par = NULL );
 
     // main test method called with different strengths,
@@ -55,6 +55,9 @@ public:
     void TestExtra( char* par );
 
 private:
+    static const UChar testCases[][MAX_TOKEN_LEN];
+    static const UChar testSourceCases[][MAX_TOKEN_LEN];
+    static const UChar testTargetCases[][MAX_TOKEN_LEN];
     static const Collator::EComparisonResult results[];
 
     RuleBasedCollator *myCollation;
