@@ -66,8 +66,7 @@ writeObjRules(UPKGOptions *o,  FileStream *makefile, CharList **objects)
     parents = pkg_appendToList(parents, NULL, uprv_strdup(infiles->str));
 
     /* make up commands.. */
-    sprintf(stanza, "$(INVOKE) $(GENCCODE) -n $(ENTRYPOINT) -d $(TEMP_DIR) $<");
-
+    sprintf(stanza, "$(INVOKE) $(GENCCODE) -n %s -d $(TEMP_DIR) $<", o->shortName);
     commands = pkg_appendToList(commands, NULL, uprv_strdup(stanza));
 
     sprintf(stanza, "$(COMPILE.c) -o $@ $(TEMP_DIR)/%s", cfile);
@@ -94,7 +93,9 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
     return;
   }
 
-  uprv_strcpy(tmp, LIB_PREFIX "$(NAME)" UDATA_SO_SUFFIX);
+  uprv_strcpy(tmp, LIB_PREFIX);
+  uprv_strcat(tmp, o->shortName);
+  uprv_strcat(tmp, UDATA_SO_SUFFIX);
 
   /* We should be the only item. So we don't care about the order. */
   o->outFiles = pkg_appendToList(o->outFiles, &tail, uprv_strdup(tmp));
@@ -122,55 +123,20 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
     T_FileStream_writeLine(makefile, tmp);
 #endif
 
-  T_FileStream_writeLine(makefile, "# Version numbers:\nVERSIONED=");
-  if (o->version) {
-      sprintf(tmp, ".%s", o->version);
-      if (!uprv_strchr(o->version, '.')) {
-           uprv_strcat(tmp, ".0");
-      }
-      T_FileStream_writeLine(makefile, tmp);
-      T_FileStream_writeLine(makefile, "\nDLL_LDFLAGS=$(LD_SONAME) $(RPATH_LDFLAGS) $(BIR_LDFLAGS)\nDLL_DEPS=$(BIR_DEPS)\n");
-  } else {
-      T_FileStream_writeLine(makefile, "\nDLL_LDFLAGS=$(BIR_LDFLAGS)\nDLL_DEPS=$(BIR_DEPS)\n"); 
-  }
-  T_FileStream_writeLine(makefile, "\n");
-
   sprintf(tmp, "# File to make:\nTARGET=%s\n\n", o->outFiles->str);
   T_FileStream_writeLine(makefile, tmp);
-  if (o->version) {
-      char *p;
-      const char *v;
 
-      T_FileStream_writeLine(makefile, "SO_TARGET=$(TARGET)\n");
-      sprintf(tmp, "SO_TARGET_VERSION=%s\n", o->version);
-      T_FileStream_writeLine(makefile, tmp);
-      uprv_strcpy(tmp, "SO_TARGET_VERSION_MAJOR=");
-      for (p = tmp + uprv_strlen(tmp), v = o->version; *v && *v != '.'; ++v) {
-         *p++ = *v;
-      }
-      *p++ = '\n';
-      *p++ = '\n';
-      *p++ = 0;
-      T_FileStream_writeLine(makefile, tmp);
-  } else {
-      T_FileStream_writeLine(makefile, "FINAL_SO_TARGET=$(TARGET)\n");
-      T_FileStream_writeLine(makefile, "MIDDLE_SO_TARGET=$(TARGET)\n");
-  }
-
-  uprv_strcpy(tmp, "all: $(TARGETDIR)/$(FINAL_SO_TARGET) $(BATCH_TARGET)");
-  if (o->version) {
-      uprv_strcat(tmp, " $(TARGETDIR)/$(MIDDLE_SO_TARGET) $(TARGETDIR)/$(SO_TARGET)");
-  }
-  uprv_strcat(tmp, "\n\n");
+  sprintf(tmp, "all: $(TARGETDIR)/$(TARGET) $(BATCH_TARGET)\n\n");
   T_FileStream_writeLine(makefile, tmp);
 
   /* Write compile rules */
   writeObjRules(o, makefile, &objects);
 
   sprintf(tmp, "# List file for gencmn:\n"
-          "CMNLIST=%s%s$(NAME)_dll.lst\n\n",
+          "CMNLIST=%s%s%s_dll.lst\n\n",
           o->tmpDir,
-          U_FILE_SEP_STRING);
+          U_FILE_SEP_STRING,
+          o->shortName);
   T_FileStream_writeLine(makefile, tmp);
 
   if(o->hadStdin == FALSE) { /* shortcut */
@@ -178,24 +144,25 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
                                    "\tcat $(LISTFILES) > $(CMNLIST)\n\n");
   } else {
     T_FileStream_writeLine(makefile, "$(CMNLIST): \n"
-                                   "\t@echo \"generating $@ (list of data files)\"\n"
+                                   "\t@echo Generating $@ list of data files\n"
                                    "\t@-$(RMV) $@\n"
                                    "\t@for file in $(DATAFILEPATHS); do \\\n"
                                    "\t  echo $$file >> $@; \\\n"
                                    "\tdone;\n\n");
   }
 
-  sprintf(tmp,"$(TEMP_DIR)/$(NAME)_dat.o : $(TEMP_DIR)/$(NAME)_dat.c\n"
-                         "\t$(COMPILE.c) -o $@ $<\n\n");
+  sprintf(tmp,"$(TEMP_DIR)/%s_dat.o : $(TEMP_DIR)/%s_dat.c\n"
+                         "\t$(COMPILE.c) -o $@ $<\n\n",
+          o->shortName,
+          o->shortName);
   T_FileStream_writeLine(makefile, tmp);
 
   T_FileStream_writeLine(makefile, "# 'TOCOBJ' contains C Table of Contents objects [if any]\n");
 
-  sprintf(tmp, "$(TEMP_DIR)/$(NAME)_dat.c: $(CMNLIST)\n"
-                         "\t$(INVOKE) $(GENCMN) -e $(ENTRYPOINT) -n $(NAME) -S -d $(TEMP_DIR) 0 $(CMNLIST)\n\n");
-
+  sprintf(tmp, "$(TEMP_DIR)/%s_dat.c: $(CMNLIST)\n"
+                         "\t$(INVOKE) $(GENCMN) -e %s -n %s -S -d $(TEMP_DIR) 0 $(CMNLIST)\n\n", o->shortName, o->entryName, o->shortName);
   T_FileStream_writeLine(makefile, tmp);
-  sprintf(tmp, "TOCOBJ= $(NAME)_dat%s \n\n", OBJ_SUFFIX);
+  sprintf(tmp, "TOCOBJ= %s_dat%s \n\n", o->shortName,OBJ_SUFFIX);
   T_FileStream_writeLine(makefile, tmp);
   sprintf(tmp, "TOCSYM= %s_dat \n\n", o->entryName); /* entrypoint not always shortname! */
   T_FileStream_writeLine(makefile, tmp);
@@ -211,8 +178,8 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
   T_FileStream_writeLine(makefile,"build-objs: $(SOURCES) $(OBJECTS)\n\n$(OBJECTS): $(SOURCES)\n\n");
 
 #ifdef HPUX
-  T_FileStream_writeLine(makefile, "$(TARGETDIR)/$(FINAL_SO_TARGET): $(OBJECTS) $(HPUX_JUNK_OBJ) $(LISTFILES) $(DLL_DEPS)\n"
-                                   "\t$(SHLIB.cc) -o $@ $(OBJECTS) $(HPUX_JUNK_OBJ) $(DLL_LDFLAGS)\n"
+  T_FileStream_writeLine(makefile, "$(TARGETDIR)/$(TARGET): $(OBJECTS) $(HPUX_JUNK_OBJ) $(LISTFILES) $(BIR_DEPS)\n"
+                                   "\t$(SHLIB.cc) -o $@ $(OBJECTS) $(HPUX_JUNK_OBJ) $(BIR_LDFLAGS)\n"
                                    "\t-ls -l $@\n\n");
 
   T_FileStream_writeLine(makefile, "$(TEMP_DIR)/hpux_junk_obj.cpp:\n"
@@ -225,25 +192,21 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
 
 /*390port*/
 #ifdef OS390BATCH
-  T_FileStream_writeLine(makefile, "$(BATCH_TARGET): $(OBJECTS) $(LISTFILES) $(DLL_DEPS)\n"
-                                   "\t$(SHLIB.c) -o $@ $(OBJECTS) $(DLL_LDFLAGS)\n"
+  T_FileStream_writeLine(makefile, "$(BATCH_TARGET): $(OBJECTS) $(LISTFILES) $(BIR_DEPS)\n"
+                                   "\t$(SHLIB.c) -o $@ $(OBJECTS) $(BIR_LDFLAGS)\n"
                                    "#  \t-ls -l $@\n\n");
 #endif
 
-  T_FileStream_writeLine(makefile, "$(TARGETDIR)/$(FINAL_SO_TARGET): $(OBJECTS) $(LISTFILES) $(DLL_DEPS)\n"
-                                   "\t$(SHLIB.c) -o $@ $(OBJECTS) $(DLL_LDFLAGS)\n"
+  T_FileStream_writeLine(makefile, "$(TARGETDIR)/$(TARGET): $(OBJECTS) $(LISTFILES) $(BIR_DEPS)\n"
+                                   "\t$(SHLIB.c) -o $@ $(OBJECTS) $(BIR_LDFLAGS)\n"
                                    "\t-ls -l $@\n\n");
 #endif
 
-  T_FileStream_writeLine(makefile, "CLEANFILES= $(CMNLIST) $(OBJECTS) $(HPUX_JUNK_OBJ) $(TARGETDIR)/$(FINAL_SO_TARGET) $(TARGETDIR)/$(MIDDLE_SO_TARGET) $(TARGETDIR)/$(TARGET)\n\nclean:\n\t-$(RMV) $(CLEANFILES) $(MAKEFILE)");
+  T_FileStream_writeLine(makefile, "CLEANFILES= $(OBJECTS) $(HPUX_JUNK_OBJ) $(TARGETDIR)/$(TARGET)\n\nclean:\n\t-$(RMV) $(CLEANFILES) $(MAKEFILE)");
   T_FileStream_writeLine(makefile, "\n\n");
 
-  T_FileStream_writeLine(makefile, "install: $(TARGETDIR)/$(FINAL_SO_TARGET)\n"
-                                   "\t$(INSTALL-L) $(TARGETDIR)/$(FINAL_SO_TARGET) $(INSTALLTO)/$(FINAL_SO_TARGET)\n");
-  if (o->version) {
-      T_FileStream_writeLine(makefile, "\tcd $(INSTALLTO) && $(RM) $(MIDDLE_SO_TARGET) && ln -s $(FINAL_SO_TARGET) $(MIDDLE_SO_TARGET)\n\tcd $(INSTALLTO) && $(RM) $(SO_TARGET) && ln -s $(FINAL_SO_TARGET) $(SO_TARGET)\n");
-  }
-  T_FileStream_writeLine(makefile, "\n");
+  T_FileStream_writeLine(makefile, "install: $(TARGETDIR)/$(TARGET)\n"
+                                   "\t$(INSTALL-L) $(TARGETDIR)/$(TARGET) $(INSTALLTO)/$(TARGET)\n\n");
 
 #ifdef U_SOLARIS
   T_FileStream_writeLine(makefile, "$(NAME).map:\n\techo \"{global: $(TOCSYM); local: *; };\" > $@\n\n");

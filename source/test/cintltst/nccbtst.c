@@ -189,11 +189,6 @@ static void TestSkip(int32_t inputsize, int32_t outputsize)
             expskipIBM_930, sizeof(expskipIBM_930), "ibm-930",
             UCNV_FROM_U_CALLBACK_SKIP, toIBM930Offsskip , NULL, 0))
         log_err("u-> ibm-930 with skip did not match.\n");
-    
-    if(!testConvertFromUnicodeWithContext(sampleText2, sizeof(sampleText2)/sizeof(sampleText2[0]),
-            expskipIBM_930, sizeof(expskipIBM_930), "ibm-930",
-            UCNV_FROM_U_CALLBACK_SKIP, toIBM930Offsskip , NULL, 0,"i", U_ILLEGAL_CHAR_FOUND))
-        log_err("u-> ibm-930 with skip did not match.\n");
 
     {
         static const UChar fromU[] = { 0x61, 0xff5e, 0x62, 0x6d63, 0xff5e, 0x6d64, 0x63, 0xff5e, 0x6d66 };
@@ -521,16 +516,9 @@ static void TestSkip(int32_t inputsize, int32_t outputsize)
             UCNV_TO_U_CALLBACK_SKIP, fromIBM943Offs, NULL, 0 ))
         log_err("ibm-943->u with skip did not match.\n");
 
-
     if(!testConvertToUnicode(expskipIBM_930, sizeof(expskipIBM_930),
              IBM_930skiptoUnicode, sizeof(IBM_930skiptoUnicode)/sizeof(IBM_930skiptoUnicode[0]),"ibm-930",
             UCNV_TO_U_CALLBACK_SKIP, fromIBM930Offs, NULL, 0 ))
-        log_err("ibm-930->u with skip did not match.\n");
-
-    
-    if(!testConvertToUnicodeWithContext(expskipIBM_930, sizeof(expskipIBM_930),
-             IBM_930skiptoUnicode, sizeof(IBM_930skiptoUnicode)/sizeof(IBM_930skiptoUnicode[0]),"ibm-930",
-            UCNV_TO_U_CALLBACK_SKIP, fromIBM930Offs, NULL, 0,"i",U_ILLEGAL_CHAR_FOUND ))
         log_err("ibm-930->u with skip did not match.\n");
 
     {
@@ -584,41 +572,41 @@ static void TestSkip(int32_t inputsize, int32_t outputsize)
     }
 
     {
-        static const uint8_t sampleTxtEBCIDIC_STATEFUL [] ={
+        const uint8_t sampleTxtEBCIDIC_STATEFUL [] ={
             0x0e, 0x5d, 0x5f , 0x41, 0x79, 0x41, 0x44
         };
-        static const UChar EBCIDIC_STATEFUL_toUnicode[] ={  0x6d63, 0x03b4 
+        UChar EBCIDIC_STATEFUL_toUnicode[] ={  0x6d63, 0x03b4 
         };
-        static const int32_t from_EBCIDIC_STATEFULOffsets []={ 1, 5};
+        int32_t from_EBCIDIC_STATEFULOffsets []={ 1, 5};
        
 
          /* euc-jp*/
-        static const uint8_t sampleTxt_euc_jp[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
+        const uint8_t sampleTxt_euc_jp[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
             0x8f, 0xda, 0xa1,  /*unassigned*/
            0x8e, 0xe0,
         };
-        static const UChar euc_jptoUnicode[]={ 0x0061, 0x4edd, 0x5bec, 0x00a2};
-        static const int32_t from_euc_jpOffs [] ={ 0, 1, 3, 9};
+        UChar euc_jptoUnicode[]={ 0x0061, 0x4edd, 0x5bec, 0x00a2};
+        int32_t from_euc_jpOffs [] ={ 0, 1, 3, 9};
 
          /*EUC_TW*/
-        static const uint8_t sampleTxt_euc_tw[]={ 0x61, 0xa2, 0xd3, 0x8e, 0xa2, 0xdc, 0xe5,
+        const uint8_t sampleTxt_euc_tw[]={ 0x61, 0xa2, 0xd3, 0x8e, 0xa2, 0xdc, 0xe5,
             0x8e, 0xaa, 0xbb, 0xcc,/*unassigned*/
            0xe6, 0xca, 0x8a,
         };
-        static const UChar euc_twtoUnicode[]={ 0x0061, 0x2295, 0x5BF2, 0x8706, 0x8a, };
-        static const int32_t from_euc_twOffs [] ={ 0, 1, 3, 11, 13};
+        UChar euc_twtoUnicode[]={ 0x0061, 0x2295, 0x5BF2, 0x8706, 0x8a, };
+        int32_t from_euc_twOffs [] ={ 0, 1, 3, 11, 13};
                 /*iso-2022-jp*/
-        static const uint8_t sampleTxt_iso_2022_jp[]={ 
+        const uint8_t sampleTxt_iso_2022_jp[]={ 
             0x41,
             0x1b,   0x24,   0x42,   0x2A, 0x44, /*unassigned*/
              0x1b,   0x28,   0x42,   0x42,
             
         };
-        static const UChar iso_2022_jptoUnicode[]={    0x41,0x42 };
-        static const int32_t from_iso_2022_jpOffs [] ={  0,9   };
+        UChar iso_2022_jptoUnicode[]={    0x41,0x42 };
+        int32_t from_iso_2022_jpOffs [] ={  0,9   };
         
         /*iso-2022-cn*/
-        static const uint8_t sampleTxt_iso_2022_cn[]={ 
+        const uint8_t sampleTxt_iso_2022_cn[]={ 
             0x0f,   0x41,   0x44,
             0x1B,   0x24,   0x29,   0x47, 
             0x0E,   0x40,   0x6f, /*unassigned*/
@@ -626,11 +614,11 @@ static void TestSkip(int32_t inputsize, int32_t outputsize)
             
         };
 
-        static const UChar iso_2022_cntoUnicode[]={    0x41, 0x44,0x42 };
-        static const int32_t from_iso_2022_cnOffs [] ={  1,   2,   11   };
+        UChar iso_2022_cntoUnicode[]={    0x41, 0x44,0x42 };
+        int32_t from_iso_2022_cnOffs [] ={  1,   2,   11   };
 
         /*iso-2022-kr*/
-        static const uint8_t sampleTxt_iso_2022_kr[]={ 
+        const uint8_t sampleTxt_iso_2022_kr[]={ 
           0x1b, 0x24, 0x29,  0x43,
           0x41,
           0x0E, 0x7f, 0x1E,
@@ -639,11 +627,11 @@ static void TestSkip(int32_t inputsize, int32_t outputsize)
           0x42, 0x43,
             
         };
-        static const UChar iso_2022_krtoUnicode[]={     0x41,0x03A0,0x51, 0x42,0x43};
-        static const int32_t from_iso_2022_krOffs [] ={  4,    9,    12,   13  , 14 };
+        UChar iso_2022_krtoUnicode[]={     0x41,0x03A0,0x51, 0x42,0x43};
+        int32_t from_iso_2022_krOffs [] ={  4,    9,    12,   13  , 14 };
         
         /*hz*/
-        static const uint8_t sampleTxt_hz[]={ 
+        const uint8_t sampleTxt_hz[]={ 
             0x41,   
             0x7e,   0x7b,   0x26,   0x30,   
             0x7f,   0x1E, /*unassigned*/ 
@@ -652,17 +640,17 @@ static void TestSkip(int32_t inputsize, int32_t outputsize)
             0x7e,   0x7b,   0x7f,   0x1E,/*unassigned*/ 
             0x7e,   0x7d,   0x42,
         };
-        static const UChar hztoUnicode[]={  
+        UChar hztoUnicode[]={  
             0x41,
             0x03a0,
             0x03A0, 
             0x42,
             0x42,};
 
-        static const int32_t from_hzOffs [] ={0,3,7,11,18,  };
+        int32_t from_hzOffs [] ={0,3,7,11,18,  };
 
         /*ISCII*/
-        static const uint8_t sampleTxt_iscii[]={ 
+        const uint8_t sampleTxt_iscii[]={ 
             0x41,   
             0xa1,   
             0xEB,    /*unassigned*/ 
@@ -672,7 +660,7 @@ static void TestSkip(int32_t inputsize, int32_t outputsize)
             0xEC,    /*unassigned*/ 
             0x42,
         };
-        static const UChar isciitoUnicode[]={  
+        UChar isciitoUnicode[]={  
             0x41,
             0x0901,
             0x26,
@@ -681,25 +669,22 @@ static void TestSkip(int32_t inputsize, int32_t outputsize)
             0x42,
             };
 
-        static const int32_t from_isciiOffs [] ={0,1,3,4,5,7 };
+        int32_t from_isciiOffs [] ={0,1,3,4,5,7 };
 
         /*LMBCS*/
-        static const uint8_t sampleTxtLMBCS[]={ 0x12, 0xc9, 0x50, 
+        const uint8_t sampleTxtLMBCS[]={ 0x12, 0xc9, 0x50, 
             0x12, 0x92, 0xa0, /*unassigned*/
             0x12, 0x92, 0xA1,
         };
-        static const UChar LMBCSToUnicode[]={ 0x4e2e, 0xe5c4};
-        static const int32_t fromLMBCS[] = {0, 6};
+        UChar LMBCSToUnicode[]={ 0x4e2e, 0xe5c4};
+        int32_t fromLMBCS[] = {0, 6};
  
         if(!testConvertToUnicode(sampleTxtEBCIDIC_STATEFUL, sizeof(sampleTxtEBCIDIC_STATEFUL),
              EBCIDIC_STATEFUL_toUnicode, sizeof(EBCIDIC_STATEFUL_toUnicode)/sizeof(EBCIDIC_STATEFUL_toUnicode[0]),"ibm-930",
             UCNV_TO_U_CALLBACK_SKIP, from_EBCIDIC_STATEFULOffsets, NULL, 0 ))
         log_err("EBCIDIC_STATEFUL->u with skip did not match.\n");
 
-        if(!testConvertToUnicodeWithContext(sampleTxtEBCIDIC_STATEFUL, sizeof(sampleTxtEBCIDIC_STATEFUL),
-             EBCIDIC_STATEFUL_toUnicode, sizeof(EBCIDIC_STATEFUL_toUnicode)/sizeof(EBCIDIC_STATEFUL_toUnicode[0]),"ibm-930",
-            UCNV_TO_U_CALLBACK_SKIP, from_EBCIDIC_STATEFULOffsets, NULL, 0,"i",U_ILLEGAL_CHAR_FOUND ))
-        log_err("EBCIDIC_STATEFUL->u with skip did not match.\n");
+
 
         if(!testConvertToUnicode(sampleTxt_euc_jp, sizeof(sampleTxt_euc_jp),
                  euc_jptoUnicode, sizeof(euc_jptoUnicode)/sizeof(euc_jptoUnicode[0]),"euc-jp",
@@ -934,14 +919,14 @@ static void TestStop(int32_t inputsize, int32_t outputsize)
     }
     log_verbose("Testing fromUnicode for UTF-8 with UCNV_FROM_U_CALLBACK_STOP \n");
     {
-        static const UChar testinput[]={ 0x20ac, 0xd801, 0xdc01, 0xdc01, 0xd801, 0xffff, 0x0061,};
-        static const uint8_t expectedUTF8[]= { 0xe2, 0x82, 0xac, 
+        const UChar testinput[]={ 0x20ac, 0xd801, 0xdc01, 0xdc01, 0xd801, 0xffff, 0x0061,};
+        const uint8_t expectedUTF8[]= { 0xe2, 0x82, 0xac, 
                            0xf0, 0x90, 0x90, 0x81, 
                            0xed, 0xb0, 0x81, 0xed, 0xa0, 0x81,
                            0xef, 0xbf, 0xbf, 0x61,
                            
         };
-        static const int32_t offsets[]={ 0, 0, 0, 1, 1, 1, 1, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6 };
+        int32_t offsets[]={ 0, 0, 0, 1, 1, 1, 1, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6 };
         if(!testConvertFromUnicode(testinput, sizeof(testinput)/sizeof(testinput[0]),
                 expectedUTF8, sizeof(expectedUTF8), "utf8",
                 UCNV_FROM_U_CALLBACK_STOP, offsets, NULL, 0 ))
@@ -949,9 +934,9 @@ static void TestStop(int32_t inputsize, int32_t outputsize)
     }
     log_verbose("Testing fromUnicode for SCSU with UCNV_FROM_U_CALLBACK_STOP \n");
     {
-        static const UChar SCSU_inputText[]={ 0x0041, 0xd801/*illegal*/, 0x0042, };
+        UChar SCSU_inputText[]={ 0x0041, 0xd801/*illegal*/, 0x0042, };
 
-        static const uint8_t to_SCSU[]={    
+        const uint8_t to_SCSU[]={    
             0x41,   
            
         };
@@ -982,23 +967,23 @@ static void TestStop(int32_t inputsize, int32_t outputsize)
     log_verbose("Testing toUnicode with UCNV_TO_U_CALLBACK_STOP \n");
     {
 
-        static const uint8_t sampleTxtEBCIDIC_STATEFUL [] ={
+        const uint8_t sampleTxtEBCIDIC_STATEFUL [] ={
             0x0e, 0x5d, 0x5f , 0x41, 0x79, 0x41, 0x44
         };
-        static const UChar EBCIDIC_STATEFUL_toUnicode[] ={  0x6d63 };
-        static const int32_t from_EBCIDIC_STATEFULOffsets []={ 1};
+        UChar EBCIDIC_STATEFUL_toUnicode[] ={  0x6d63 };
+        int32_t from_EBCIDIC_STATEFULOffsets []={ 1};
 
 
          /*EUC-JP*/
-        static const uint8_t sampleTxt_euc_jp[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
+        const uint8_t sampleTxt_euc_jp[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
             0x8f, 0xda, 0xa1,  /*unassigned*/
            0x8e, 0xe0,
         };
-        static const UChar euc_jptoUnicode[]={ 0x0061, 0x4edd, 0x5bec};
-        static const int32_t from_euc_jpOffs [] ={ 0, 1, 3};
+        UChar euc_jptoUnicode[]={ 0x0061, 0x4edd, 0x5bec};
+        int32_t from_euc_jpOffs [] ={ 0, 1, 3};
 
           /*EUC_TW*/
-        static const uint8_t sampleTxt_euc_tw[]={ 0x61, 0xa2, 0xd3, 0x8e, 0xa2, 0xdc, 0xe5,
+        const uint8_t sampleTxt_euc_tw[]={ 0x61, 0xa2, 0xd3, 0x8e, 0xa2, 0xdc, 0xe5,
             0x8e, 0xaa, 0xbb, 0xcc,/*unassigned*/
            0xe6, 0xca, 0x8a,
         };
@@ -1024,10 +1009,10 @@ static void TestStop(int32_t inputsize, int32_t outputsize)
     }
     log_verbose("Testing toUnicode for UTF-8 with UCNV_TO_U_CALLBACK_STOP \n");
     {
-        static const uint8_t sampleText1[] = { 0x31, 0xe4, 0xba, 0x8c, 
+        const uint8_t sampleText1[] = { 0x31, 0xe4, 0xba, 0x8c, 
             0xe0, 0x80,  0x61,};
-        static const UChar    expected1[] = {  0x0031, 0x4e8c,};
-        static const int32_t offsets1[] = {   0x0000, 0x0001};
+        UChar    expected1[] = {  0x0031, 0x4e8c,};
+        int32_t offsets1[] = {   0x0000, 0x0001};
 
         if(!testConvertToUnicode(sampleText1, sizeof(sampleText1),
                  expected1, sizeof(expected1)/sizeof(expected1[0]),"utf8",
@@ -1036,9 +1021,9 @@ static void TestStop(int32_t inputsize, int32_t outputsize)
     }
     log_verbose("Testing toUnicode for SCSU with UCNV_TO_U_CALLBACK_STOP \n");
     {
-        static const uint8_t sampleText1[] = {  0xba, 0x8c,0xF8, 0x61,0x0c, 0x0c,0x04};
-        static const UChar    expected1[] = {  0x00ba,  0x008c,  0x00f8,  0x0061};
-        static const int32_t offsets1[] = {   0x0000, 0x0001,0x0002,0x0003};
+        const uint8_t sampleText1[] = {  0xba, 0x8c,0xF8, 0x61,0x0c, 0x0c,0x04};
+        UChar    expected1[] = {  0x00ba,  0x008c,  0x00f8,  0x0061};
+        int32_t offsets1[] = {   0x0000, 0x0001,0x0002,0x0003};
 
         if(!testConvertToUnicode(sampleText1, sizeof(sampleText1),
                  expected1, sizeof(expected1)/sizeof(expected1[0]),"SCSU",
@@ -1050,29 +1035,29 @@ static void TestStop(int32_t inputsize, int32_t outputsize)
 
 static void TestSub(int32_t inputsize, int32_t outputsize)
 {
-    static const UChar   sampleText[] =  { 0x0000, 0xAC00, 0xAC01, 0xEF67, 0xD700 };
-    static const UChar sampleText2[]=    { 0x6D63, 0x6D64, 0x6D65, 0x6D66 };
+    UChar   sampleText[] =  { 0x0000, 0xAC00, 0xAC01, 0xEF67, 0xD700 };
+    UChar sampleText2[]=    { 0x6D63, 0x6D64, 0x6D65, 0x6D66 };
     
-    static const uint8_t expsubIBM_949[] = 
+    const uint8_t expsubIBM_949[] = 
      { 0x00, 0xb0, 0xa1, 0xb0, 0xa2, 0xaf, 0xfe, 0xc8, 0xd3 };
 
-    static const uint8_t expsubIBM_943[] = { 
+    const uint8_t expsubIBM_943[] = { 
         0x9f, 0xaf, 0x9f, 0xb1, 0xfc, 0xfc, 0x89, 0x59 };
 
-    static const uint8_t expsubIBM_930[] = { 
+    const uint8_t expsubIBM_930[] = { 
         0x0e, 0x5d, 0x5f, 0x5d, 0x63, 0xfe, 0xfe, 0x46, 0x6b };
 
-    static const UChar IBM_949subtoUnicode[]= {0x0000, 0xAC00, 0xAC01, 0xfffd, 0xD700 };
-    static const UChar IBM_943subtoUnicode[]= {0x6D63, 0x6D64, 0xfffd, 0x6D66 };
-    static const UChar IBM_930subtoUnicode[]= {0x6D63, 0x6D64, 0xfffd, 0x6D66 };
+    UChar IBM_949subtoUnicode[]= {0x0000, 0xAC00, 0xAC01, 0xfffd, 0xD700 };
+    UChar IBM_943subtoUnicode[]= {0x6D63, 0x6D64, 0xfffd, 0x6D66 };
+    UChar IBM_930subtoUnicode[]= {0x6D63, 0x6D64, 0xfffd, 0x6D66 };
 
-    static const int32_t toIBM949Offssub [] ={ 0, 1, 1, 2, 2, 3, 3, 4, 4};
-    static const int32_t toIBM943Offssub [] ={ 0, 0, 1, 1, 2, 2, 3, 3};
-    static const int32_t toIBM930Offssub [] ={ 0, 0, 0, 1, 1, 2, 2, 3, 3};
+    int32_t toIBM949Offssub [] ={ 0, 1, 1, 2, 2, 3, 3, 4, 4};
+    int32_t toIBM943Offssub [] ={ 0, 0, 1, 1, 2, 2, 3, 3};
+    int32_t toIBM930Offssub [] ={ 0, 0, 0, 1, 1, 2, 2, 3, 3};
 
-    static const int32_t  fromIBM949Offs [] = { 0, 1, 3, 5, 7};
-    static const int32_t  fromIBM943Offs [] = { 0, 2, 4, 6};
-    static const int32_t  fromIBM930Offs [] = { 1, 3, 5, 7};
+    int32_t  fromIBM949Offs [] = { 0, 1, 3, 5, 7};
+    int32_t  fromIBM943Offs [] = { 0, 2, 4, 6};
+    int32_t  fromIBM930Offs [] = { 1, 3, 5, 7};
 
     gInBufferSize = inputsize;
     gOutBufferSize = outputsize;
@@ -1093,46 +1078,27 @@ static void TestSub(int32_t inputsize, int32_t outputsize)
 
     log_verbose("Testing fromUnicode with UCNV_FROM_U_CALLBACK_SUBSTITUTE  \n");
     {
-        static const UChar inputTest[] = { 0x0061, 0xd801, 0xdc01, 0xd801, 0x0061 };
-        static const uint8_t toIBM943[]= { 0x61, 0xfc, 0xfc, 0xfc, 0xfc, 0x61 };
-        static const int32_t offset[]= {0, 1, 1, 3, 3, 4};
+        UChar inputTest[] = { 0x0061, 0xd801, 0xdc01, 0xd801, 0x0061 };
+        const uint8_t toIBM943[]= { 0x61, 0xfc, 0xfc, 0xfc, 0xfc, 0x61 };
+        int32_t offset[]= {0, 1, 1, 3, 3, 4};
 
 
         /* EUC_JP*/
-        static const UChar euc_jp_inputText[]={ 0x0061, 0x4edd, 0x5bec, 0xd801, 0xdc01, 0xd801, 0x0061, 0x00a2 };
-        static const uint8_t to_euc_jp[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
+        UChar euc_jp_inputText[]={ 0x0061, 0x4edd, 0x5bec, 0xd801, 0xdc01, 0xd801, 0x0061, 0x00a2 };
+        const uint8_t to_euc_jp[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
             0xf4, 0xfe, 0xf4, 0xfe, 
             0x61, 0x8e, 0xe0,
         };
-        static const int32_t fromEUC_JPOffs [] ={ 0, 1, 1, 2, 2, 2, 3, 3, 5, 5, 6, 7, 7};
+        int32_t fromEUC_JPOffs [] ={ 0, 1, 1, 2, 2, 2, 3, 3, 5, 5, 6, 7, 7};
 
         /*EUC_TW*/
-        static const UChar euc_tw_inputText[]={ 0x0061, 0x2295, 0x5BF2, 0xd801, 0xdc01, 0xd801, 0x0061, 0x8706, 0x8a, };
-        static const uint8_t to_euc_tw[]={ 
+        UChar euc_tw_inputText[]={ 0x0061, 0x2295, 0x5BF2, 0xd801, 0xdc01, 0xd801, 0x0061, 0x8706, 0x8a, };
+        const uint8_t to_euc_tw[]={ 
             0x61, 0xa2, 0xd3, 0x8e, 0xa2, 0xdc, 0xe5,
             0xfd, 0xfe, 0xfd, 0xfe,
             0x61, 0xe6, 0xca, 0x8a,
         };
-
-        /*ISO-2022-JP*/
-        static const UChar iso_2022_jp_inputText[]={ 0x0041, 0x00E9, 0x0042,0x00E9,0x3000 };
-        static const uint8_t to_iso_2022_jp[]={  
-               0x41,   
-               0x1a, 
-               0x42,
-               0x1a,
-               0x1b,  0x24,   0x42,   0x21,   0x21, 
-        };
-
-        static const int32_t from_iso_2022_jpOffs [] ={ 
-            0,
-            1,
-            2,
-            3,
-            4,4,4,4,4
-        };
-
-        static const int32_t from_euc_twOffs [] ={ 0, 1, 1, 2, 2, 2, 2, 3, 3, 5, 5, 6, 7, 7, 8,};
+        int32_t from_euc_twOffs [] ={ 0, 1, 1, 2, 2, 2, 2, 3, 3, 5, 5, 6, 7, 7, 8,};
 
         if(!testConvertFromUnicode(inputTest, sizeof(inputTest)/sizeof(inputTest[0]),
                 toIBM943, sizeof(toIBM943), "ibm-943",
@@ -1147,13 +1113,7 @@ static void TestSub(int32_t inputsize, int32_t outputsize)
         if(!testConvertFromUnicode(euc_tw_inputText, sizeof(euc_tw_inputText)/sizeof(euc_tw_inputText[0]),
                 to_euc_tw, sizeof(to_euc_tw), "euc-tw",
                 UCNV_FROM_U_CALLBACK_SUBSTITUTE, from_euc_twOffs, NULL, 0 ))
-            log_err("u-> euc-tw with substitute did not match.\n");
-
-        if(!testConvertFromUnicodeWithContext(iso_2022_jp_inputText, sizeof(iso_2022_jp_inputText)/sizeof(iso_2022_jp_inputText[0]),
-                to_iso_2022_jp, sizeof(to_iso_2022_jp), "iso-2022-jp",
-                UCNV_FROM_U_CALLBACK_SUBSTITUTE, from_iso_2022_jpOffs, NULL, 0,"i",U_ILLEGAL_CHAR_FOUND ))
-            log_err("u-> iso-2022-jp with substitute did not match.\n");
-        
+            log_err("u-> euc-tw with substitute did not match.\n");  
 
     }
     log_verbose("Testing fromUnicode for SCSU with UCNV_FROM_U_CALLBACK_SUBSTITUTE \n");
@@ -1173,23 +1133,10 @@ static void TestSub(int32_t inputsize, int32_t outputsize)
             2,
 
         };
-        const uint8_t to_SCSU_1[]={    
-            0x41,
-           
-        };
-        int32_t from_SCSUOffs_1 [] ={ 
-            0,
-
-        };
         if(!testConvertFromUnicode(SCSU_inputText, sizeof(SCSU_inputText)/sizeof(SCSU_inputText[0]),
                 to_SCSU, sizeof(to_SCSU), "SCSU",
                 UCNV_FROM_U_CALLBACK_SUBSTITUTE, from_SCSUOffs, NULL, 0 ))
             log_err("u-> SCSU with skip did not match.\n");
-                
-        if(!testConvertFromUnicodeWithContext(SCSU_inputText, sizeof(SCSU_inputText)/sizeof(SCSU_inputText[0]),
-                to_SCSU_1, sizeof(to_SCSU_1), "SCSU",
-                UCNV_FROM_U_CALLBACK_SUBSTITUTE, from_SCSUOffs_1, NULL, 0,"i",U_ILLEGAL_CHAR_FOUND ))
-            log_err("u-> SCSU with substitute did not match.\n");
 
     
     }
@@ -1253,13 +1200,6 @@ static void TestSub(int32_t inputsize, int32_t outputsize)
            euc_twtoUnicode, sizeof(euc_twtoUnicode)/sizeof(euc_twtoUnicode[0]),"euc-tw",
           UCNV_TO_U_CALLBACK_SUBSTITUTE, from_euc_twOffs, NULL, 0 ))
             log_err("euc-tw->u with substitute  did not match.\n");
-
-        
-        if(!testConvertToUnicodeWithContext(sampleTxt_euc_jp, sizeof(sampleTxt_euc_jp),
-           euc_jptoUnicode, sizeof(euc_jptoUnicode)/sizeof(euc_jptoUnicode[0]),"euc-jp",
-          UCNV_TO_U_CALLBACK_SUBSTITUTE, from_euc_jpOffs, NULL, 0 ,"i", U_ILLEGAL_CHAR_FOUND))
-            log_err("euc-jp->u with substitute did not match.\n");
-
 
 
     }
@@ -1402,24 +1342,24 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
 
     log_verbose("Testing fromUnicode with UCNV_FROM_U_CALLBACK_ESCAPE  \n");
     {
-        static const UChar inputTest[] = { 0x0061, 0xd801, 0xdc01, 0xd801, 0x0061 };
-        static const uint8_t toIBM943[]= { 0x61, 
+        UChar inputTest[] = { 0x0061, 0xd801, 0xdc01, 0xd801, 0x0061 };
+        const uint8_t toIBM943[]= { 0x61, 
             0x25, 0x55, 0x44, 0x38, 0x30, 0x31,
             0x25, 0x55, 0x44, 0x43, 0x30, 0x31,
             0x25, 0x55, 0x44, 0x38, 0x30, 0x31,
             0x61 };
-        static const int32_t offset[]= {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 4};
+        int32_t offset[]= {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 3, 3, 4};
 
 
          /* EUC_JP*/
-        static const UChar euc_jp_inputText[]={ 0x0061, 0x4edd, 0x5bec, 0xd801, 0xdc01, 0xd801, 0x0061, 0x00a2, };
-        static const uint8_t to_euc_jp[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
+        UChar euc_jp_inputText[]={ 0x0061, 0x4edd, 0x5bec, 0xd801, 0xdc01, 0xd801, 0x0061, 0x00a2, };
+        const uint8_t to_euc_jp[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
             0x25, 0x55, 0x44, 0x38, 0x30, 0x31,
             0x25, 0x55, 0x44, 0x43, 0x30, 0x31,
             0x25, 0x55, 0x44, 0x38, 0x30, 0x31,
             0x61, 0x8e, 0xe0,
         };
-        static const int32_t fromEUC_JPOffs [] ={ 0, 1, 1, 2, 2, 2, 
+        int32_t fromEUC_JPOffs [] ={ 0, 1, 1, 2, 2, 2, 
             3, 3, 3, 3, 3, 3, 
             3, 3, 3, 3, 3, 3,
             5, 5, 5, 5, 5, 5,
@@ -1427,21 +1367,21 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
         };
 
         /*EUC_TW*/
-        static const UChar euc_tw_inputText[]={ 0x0061, 0x2295, 0x5BF2, 0xd801, 0xdc01, 0xd801, 0x0061, 0x8706, 0x8a, };
-        static const uint8_t to_euc_tw[]={ 
+        UChar euc_tw_inputText[]={ 0x0061, 0x2295, 0x5BF2, 0xd801, 0xdc01, 0xd801, 0x0061, 0x8706, 0x8a, };
+        const uint8_t to_euc_tw[]={ 
             0x61, 0xa2, 0xd3, 0x8e, 0xa2, 0xdc, 0xe5,
             0x25, 0x55, 0x44, 0x38, 0x30, 0x31,
             0x25, 0x55, 0x44, 0x43, 0x30, 0x31,
             0x25, 0x55, 0x44, 0x38, 0x30, 0x31,
             0x61, 0xe6, 0xca, 0x8a,
         };
-        static const int32_t from_euc_twOffs [] ={ 0, 1, 1, 2, 2, 2, 2, 
+        int32_t from_euc_twOffs [] ={ 0, 1, 1, 2, 2, 2, 2, 
              3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5,
              6, 7, 7, 8,
         };
         /*ISO-2022-JP*/
-        static const UChar iso_2022_jp_inputText[]={ 0x0041, 0x00E9, 0x0042,0x00E9,0x3000 };
-        static const uint8_t to_iso_2022_jp[]={  
+        UChar iso_2022_jp_inputText[]={ 0x0041, 0x00E9, 0x0042,0x00E9,0x3000 };
+        const uint8_t to_iso_2022_jp[]={  
                0x41,   
                0x25,  0x55,   0x30,   0x30,   0x45,   0x39,   
                0x42,
@@ -1449,15 +1389,15 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                0x1b,  0x24,   0x42,   0x21,   0x21, 
         };
 
-        static const int32_t from_iso_2022_jpOffs [] ={ 
+        int32_t from_iso_2022_jpOffs [] ={ 
             0,
             1,1,1,1,1,1,
             2,
             3,3,3,3,3,3,
             4,4,4,4,4
         };
-        static const UChar iso_2022_jp_inputText1[]={ 0x3000, 0x00E9, 0x3001,0x00E9, 0x0042} ;
-        static const uint8_t to_iso_2022_jp1[]={  
+        UChar iso_2022_jp_inputText1[]={ 0x3000, 0x00E9, 0x3001,0x00E9, 0x0042} ;
+        const uint8_t to_iso_2022_jp1[]={  
             0x1b,   0x24,   0x42,   0x21, 0x21,   
             0x1b,   0x28,   0x42,   0x25, 0x55,   0x30,   0x30,   0x45,   0x39,   
             0x1b,   0x24,   0x42,   0x21, 0x22,
@@ -1465,7 +1405,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0x42,
         };
 
-        static const int32_t from_iso_2022_jpOffs1 [] ={ 
+        int32_t from_iso_2022_jpOffs1 [] ={ 
             0,0,0,0,0,
             1,1,1,1,1,1,1,1,1,
             2,2,2,2,2,
@@ -1473,8 +1413,8 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             4,
         };
         /* surrogate pair*/
-        static const UChar iso_2022_jp_inputText2[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042} ;
-        static const uint8_t to_iso_2022_jp2[]={  
+        UChar iso_2022_jp_inputText2[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042} ;
+        const uint8_t to_iso_2022_jp2[]={  
                                 0x1b,   0x24,   0x42,   0x21,   0x21,   
                                 0x1b,   0x28,   0x42,   0x25,   0x55,   0x44,   0x38,   0x34,   0x44,   
                                 0x25,   0x55,   0x44,   0x43,   0x35,   0x36,   
@@ -1483,7 +1423,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                                 0x25,   0x55,   0x44,   0x43,   0x35,   0x36,   
                                 0x42,
                                 };
-        static const int32_t from_iso_2022_jpOffs2 [] ={ 
+        int32_t from_iso_2022_jpOffs2 [] ={ 
             0,0,0,0,0,
             1,1,1,1,1,1,1,1,1,
             1,1,1,1,1,1,
@@ -1494,54 +1434,54 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
         };
 
         /*ISO-2022-cn*/
-        static const UChar iso_2022_cn_inputText[]={ 0x0041, 0x3712, 0x0042, };
-        static const uint8_t to_iso_2022_cn[]={  
+        UChar iso_2022_cn_inputText[]={ 0x0041, 0x3712, 0x0042, };
+        const uint8_t to_iso_2022_cn[]={  
             0x0F,   0x41,   
             0x0f,   0x25, 0x55,   0x33,   0x37,   0x31,   0x32,   
             0x42, 
         };
-        static const int32_t from_iso_2022_cnOffs [] ={ 
+        int32_t from_iso_2022_cnOffs [] ={ 
             0,0,
             1,1,1,1,1,1,1,
             2,
         };
-        static const UChar iso_2022_cn_inputText1[]={ 0x4e00, 0x3712, 0x4e01, };
-        static const uint8_t to_iso_2022_cn1[]={  
+        UChar iso_2022_cn_inputText1[]={ 0x4e00, 0x3712, 0x4e01, };
+        const uint8_t to_iso_2022_cn1[]={  
                         0x1b,   0x24,   0x29,   0x41,   0x0e,   0x52,   0x3b,   
                         0x0f,   0x25,   0x55,   0x33,   0x37,   0x31,   0x32, 
                         0x1b,   0x24,   0x29,   0x41,   0x0e,   0x36,   0x21,
         };
-        static const int32_t from_iso_2022_cnOffs1 [] ={ 
+        int32_t from_iso_2022_cnOffs1 [] ={ 
                 0, 0, 0, 0, 0, 0, 0, 
                 1, 1, 1, 1, 1, 1, 1, 
                 2, 2, 2, 2, 2, 2, 2,
         };
-        static const UChar iso_2022_cn_inputText3[]={ 0x3000, 0x3712, 0x3001, };
-        static const uint8_t to_iso_2022_cn3[]={  
+        UChar iso_2022_cn_inputText3[]={ 0x3000, 0x3712, 0x3001, };
+        const uint8_t to_iso_2022_cn3[]={  
                0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x21,   
               0x0f,   0x25,   0x55,   0x33,   0x37,   0x31,   0x32,   
              0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x22, 
         };
-        static const int32_t from_iso_2022_cnOffs3 [] ={ 
+        int32_t from_iso_2022_cnOffs3 [] ={ 
             0,0,0,0,0,0,0,
             1,1,1,1,1,1,1,
             2,2,2,2,2,2,2
         };
-        static const UChar iso_2022_cn_inputText2[]={ 0x0041, 0x3712, 0x4e00, };
-        static const uint8_t to_iso_2022_cn2[]={  
+        UChar iso_2022_cn_inputText2[]={ 0x0041, 0x3712, 0x4e00, };
+        const uint8_t to_iso_2022_cn2[]={  
             0x0F,   0x41,   
             0x0f,   0x25,   0x55,   0x33,   0x37,   0x31,   0x32,   
             0x1b,   0x24,   0x29,   0x41,   0x0e,   0x52,   0x3b,
         };
-        static const int32_t from_iso_2022_cnOffs2 [] ={ 
+        int32_t from_iso_2022_cnOffs2 [] ={ 
             0,0,
             1,1,1,1,1,1,1,
             2,2,2,2,2,2,2
         };
         
-        static const UChar iso_2022_cn_inputText4[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042};
+        UChar iso_2022_cn_inputText4[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042};
 
-        static const uint8_t to_iso_2022_cn4[]={  
+        const uint8_t to_iso_2022_cn4[]={  
                              0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x21,   
                              0x0f,   0x25,   0x55,   0x44,   0x38,   0x34,   0x44,   
                              0x25,   0x55,   0x44,   0x43,   0x35,   0x36,   
@@ -1550,7 +1490,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                              0x25,   0x55,   0x44,   0x43,   0x35,   0x36,   
                              0x42, 
                              };
-        static const int32_t from_iso_2022_cnOffs4 [] ={ 
+        int32_t from_iso_2022_cnOffs4 [] ={ 
             0,0,0,0,0,0,0,
             1,1,1,1,1,1,1,
             1,1,1,1,1,1,
@@ -1562,8 +1502,8 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
         };
 
         /*ISO-2022-kr*/
-        static const UChar iso_2022_kr_inputText2[]={ 0x0041, 0x03A0,0xD84D, 0xDC56/*unassigned*/,0x03A0, 0x0042,0xD84D, 0xDC56/*unassigned*/,0x43 };
-        static const uint8_t to_iso_2022_kr2[]={  
+        UChar iso_2022_kr_inputText2[]={ 0x0041, 0x03A0,0xD84D, 0xDC56/*unassigned*/,0x03A0, 0x0042,0xD84D, 0xDC56/*unassigned*/,0x43 };
+        const uint8_t to_iso_2022_kr2[]={  
             0x1b,   0x24,   0x29,   0x43,   
             0x41,   
             0x0e,   0x25,   0x50,   
@@ -1575,7 +1515,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0x25,   0x55,   0x44,   0x43,   0x35,   0x36,  
             0x43
         };
-        static const int32_t from_iso_2022_krOffs2 [] ={ 
+        int32_t from_iso_2022_krOffs2 [] ={ 
             -1,-1,-1,-1,
              0,
             1,1,1,
@@ -1588,8 +1528,8 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             8,
         };
 
-        static const UChar iso_2022_kr_inputText[]={ 0x0041, 0x03A0,0x3712/*unassigned*/,0x03A0, 0x0042,0x3712/*unassigned*/,0x43 };
-        static const uint8_t to_iso_2022_kr[]={  
+        UChar iso_2022_kr_inputText[]={ 0x0041, 0x03A0,0x3712/*unassigned*/,0x03A0, 0x0042,0x3712/*unassigned*/,0x43 };
+        const uint8_t to_iso_2022_kr[]={  
             0x1b,   0x24,   0x29,   0x43,   
             0x41,   
             0x0e,   0x25,   0x50,   
@@ -1601,7 +1541,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
         };
      
 
-        static const int32_t from_iso_2022_krOffs [] ={ 
+        int32_t from_iso_2022_krOffs [] ={ 
             -1,-1,-1,-1,
              0,
             1,1,1,
@@ -1612,9 +1552,9 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             6,
         };
         /* HZ encoding */       
-        static const UChar hz_inputText[]={ 0x0041, 0x03A0,0x0662/*unassigned*/,0x03A0, 0x0042, };
+        UChar hz_inputText[]={ 0x0041, 0x03A0,0x0662/*unassigned*/,0x03A0, 0x0042, };
 
-        static const uint8_t to_hz[]={    
+        const uint8_t to_hz[]={    
             0x7e,   0x7d,   0x41,   
             0x7e,   0x7b,   0x26,   0x30,   
             0x7e,   0x7d,   0x25,   0x55,   0x30,   0x36,   0x36,   0x32,  /*unassigned*/ 
@@ -1622,7 +1562,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0x7e,   0x7d,   0x42, 
            
         };
-        static const int32_t from_hzOffs [] ={ 
+        int32_t from_hzOffs [] ={ 
             0,0,0,
             1,1,1,1,
             2,2,2,2,2,2,2,2,
@@ -1630,8 +1570,8 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             4,4,4
         };
 
-        static const UChar hz_inputText2[]={ 0x0041, 0x03A0,0xD84D, 0xDC56/*unassigned*/,0x03A0, 0x0042,0xD84D, 0xDC56/*unassigned*/,0x43 };
-        static const uint8_t to_hz2[]={   
+        UChar hz_inputText2[]={ 0x0041, 0x03A0,0xD84D, 0xDC56/*unassigned*/,0x03A0, 0x0042,0xD84D, 0xDC56/*unassigned*/,0x43 };
+        const uint8_t to_hz2[]={   
             0x7e,   0x7d,   0x41,   
             0x7e,   0x7b,   0x26,   0x30,   
             0x7e,   0x7d,   0x25,   0x55,   0x44,   0x38,   0x34,   0x44,   
@@ -1642,7 +1582,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0x25,   0x55,   0x44,   0x43,   0x35,   0x36,  
             0x43
         };
-        static const int32_t from_hzOffs2 [] ={ 
+        int32_t from_hzOffs2 [] ={ 
             0,0,0,
             1,1,1,1,
             2,2,2,2,2,2,2,2,
@@ -1655,8 +1595,8 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
         };
 
                 /*ISCII*/
-        static const UChar iscii_inputText2[]={ 0x0041, 0x0901,0xD84D, 0xDC56/*unassigned*/,0x0902, 0x0042,0xD84D, 0xDC56/*unassigned*/,0x43 };
-        static const uint8_t to_iscii2[]={  
+        UChar iscii_inputText2[]={ 0x0041, 0x0901,0xD84D, 0xDC56/*unassigned*/,0x0902, 0x0042,0xD84D, 0xDC56/*unassigned*/,0x43 };
+        const uint8_t to_iscii2[]={  
             0x41,   
             0xef,   0x42,   0xa1,    
             0x25,   0x55,   0x44,   0x38,   0x34,   0x44,   
@@ -1667,7 +1607,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0x25,   0x55,   0x44,   0x43,   0x35,   0x36,  
             0x43
         };
-        static const int32_t from_isciiOffs2 [] ={ 
+        int32_t from_isciiOffs2 [] ={ 
             0,
             1,1,1,
             2,2,2,2,2,2,
@@ -1679,8 +1619,8 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             8,
         };
 
-        static const UChar iscii_inputText[]={ 0x0041, 0x0901,0x3712/*unassigned*/,0x0902, 0x0042,0x3712/*unassigned*/,0x43 };
-        static const uint8_t to_iscii[]={   
+        UChar iscii_inputText[]={ 0x0041, 0x0901,0x3712/*unassigned*/,0x0902, 0x0042,0x3712/*unassigned*/,0x43 };
+        const uint8_t to_iscii[]={   
             0x41,   
             0xef,   0x42,   0xa1,   
             0x25,   0x55,   0x33,   0x37,   0x31,   0x32,  /*unassigned*/ 
@@ -1691,7 +1631,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
         };
      
 
-        static const int32_t from_isciiOffs [] ={ 
+        int32_t from_isciiOffs [] ={ 
             0,
             1,1,1,
             2,2,2,2,2,2,
@@ -1737,9 +1677,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             log_err("u-> iso_2022_jp with subst with value did not match.\n");
         /*ESCAPE OPTIONS*/
         {
-            /* surrogate pair*/
-            static const UChar iso_2022_jp_inputText3[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042,0x0901c } ;
-            static const uint8_t to_iso_2022_jp3_v2[]={  
+            const uint8_t to_iso_2022_jp2_v2[]={  
                     0x1b,   0x24,   0x42,   0x21,   0x21,   
                     0x1b,   0x28,   0x42,   0x26,   0x23,   0x31,  0x34,   0x34,   0x34,   0x37, 0x30, 0x3b,   
                       
@@ -1747,10 +1685,9 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                     0x1b,   0x28,   0x42,   0x26,   0x23,  0x31,  0x34,   0x34,   0x34,   0x37, 0x30, 0x3b, 
                     
                     0x42,
-                    0x26,   0x23,   0x33,   0x36,   0x38,   0x39,   0x32,   0x3b, 
                     };
 
-            static const int32_t from_iso_2022_jpOffs3_v2 [] ={ 
+            int32_t from_iso_2022_jpOffs2_v2 [] ={ 
                 0,0,0,0,0,
                 1,1,1,1,1,1,1,1,1,1,1,1,
 
@@ -1758,18 +1695,15 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                 4,4,4,4,4,4,4,4,4,4,4,4,
 
                 6,
-                7,7,7,7,7,7,7,7,7
             };
 
-            if(!testConvertFromUnicodeWithContext(iso_2022_jp_inputText3, sizeof(iso_2022_jp_inputText3)/sizeof(iso_2022_jp_inputText3[0]),
-                    to_iso_2022_jp3_v2, sizeof(to_iso_2022_jp3_v2), "iso-2022-jp",
-                    UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_jpOffs3_v2, NULL, 0,UCNV_ESCAPE_XML_DEC,U_ZERO_ERROR ))
-                log_err("u-> iso-2022-jp with sub & UCNV_ESCAPE_XML_DEC did not match.\n"); 
+            if(!testConvertFromUnicodeWithContext(iso_2022_jp_inputText2, sizeof(iso_2022_jp_inputText2)/sizeof(iso_2022_jp_inputText2[0]),
+                    to_iso_2022_jp2_v2, sizeof(to_iso_2022_jp2_v2), "iso-2022-jp",
+                    UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_jpOffs2_v2, NULL, 0,UCNV_ESCAPE_XML_DEC,U_ZERO_ERROR ))
+                log_err("u-> iso-2022-jp with skip & UCNV_ESCAPE_XML_DEC did not match.\n"); 
         }
         {
-            /* surrogate pair*/
-            static const UChar iso_2022_jp_inputText4[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042,0x0901c } ;
-            static const uint8_t to_iso_2022_jp4_v3[]={  
+             const uint8_t to_iso_2022_jp2_v3[]={  
                     0x1b,   0x24,   0x42,   0x21,   0x21,   
                     0x1b,   0x28,   0x42,   0x26,   0x23,   0x78,  0x32,   0x33,   0x34,   0x35, 0x36, 0x3b ,  
                       
@@ -1777,10 +1711,9 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                     0x1b,   0x28,   0x42,   0x26,   0x23,   0x78,  0x32,   0x33,   0x34,   0x35, 0x36, 0x3b ,
                     
                     0x42,
-                    0x26,   0x23,   0x78,   0x39,   0x30,   0x31,   0x43,   0x3b,
                     };
 
-            static const int32_t from_iso_2022_jpOffs4_v3 [] ={ 
+            int32_t from_iso_2022_jpOffs2_v3 [] ={ 
                 0,0,0,0,0,
                 1,1,1,1,1,1,1,1,1,1,1,1,
 
@@ -1788,27 +1721,24 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                 4,4,4,4,4,4,4,4,4,4,4,4,
 
                 6,
-                7,7,7,7,7,7,7,7
             };
-            if(!testConvertFromUnicodeWithContext(iso_2022_jp_inputText4, sizeof(iso_2022_jp_inputText4)/sizeof(iso_2022_jp_inputText4[0]),
-                to_iso_2022_jp4_v3, sizeof(to_iso_2022_jp4_v3), "iso-2022-jp",
-                UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_jpOffs4_v3, NULL, 0,UCNV_ESCAPE_XML_HEX,U_ZERO_ERROR ))
-                log_err("u-> iso-2022-jp with sub & UCNV_ESCAPE_XML_HEX did not match.\n"); 
+            if(!testConvertFromUnicodeWithContext(iso_2022_jp_inputText2, sizeof(iso_2022_jp_inputText2)/sizeof(iso_2022_jp_inputText2[0]),
+                to_iso_2022_jp2_v3, sizeof(to_iso_2022_jp2_v3), "iso-2022-jp",
+                UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_jpOffs2_v3, NULL, 0,UCNV_ESCAPE_XML_HEX,U_ZERO_ERROR ))
+                log_err("u-> iso-2022-jp with skip & UCNV_ESCAPE_XML_HEX did not match.\n"); 
 
         }
         {
-            static const UChar iso_2022_cn_inputText5[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042,0x0902};
-            static const uint8_t to_iso_2022_cn5_v2[]={  
+            const uint8_t to_iso_2022_cn4_v2[]={  
                              0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x21,   
                              0x0f,   0x5c,   0x75,   0x44,   0x38,   0x34,   0x44,   
                              0x5c,   0x75,   0x44,   0x43,   0x35,   0x36,   
                              0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x22,   
                              0x0f,   0x5c,   0x75,   0x44,   0x38,   0x34,   0x44,   
                              0x5c,   0x75,   0x44,   0x43,   0x35,   0x36,   
-                             0x42,
-                             0x0f,   0x5c,   0x75,   0x30,   0x39,   0x30,   0x32,
+                             0x42, 
                              };
-            static const int32_t from_iso_2022_cnOffs5_v2 [] ={ 
+            int32_t from_iso_2022_cnOffs4_v2 [] ={ 
                 0,0,0,0,0,0,0,
                 1,1,1,1,1,1,1,
                 1,1,1,1,1,1,
@@ -1816,63 +1746,16 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                 4,4,4,4,4,4,4,
                 4,4,4,4,4,4,
                 6, 
-                7,7,7,7,7,7,7
+
             };
-            if(!testConvertFromUnicodeWithContext(iso_2022_cn_inputText5, sizeof(iso_2022_cn_inputText5)/sizeof(iso_2022_cn_inputText5[0]),
-                to_iso_2022_cn5_v2, sizeof(to_iso_2022_cn5_v2), "iso-2022-cn",
-                UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_cnOffs5_v2, NULL, 0,UCNV_ESCAPE_JAVA,U_ZERO_ERROR ))
-                log_err("u-> iso-2022-cn with sub & UCNV_ESCAPE_JAVA did not match.\n"); 
+            if(!testConvertFromUnicodeWithContext(iso_2022_cn_inputText4, sizeof(iso_2022_cn_inputText4)/sizeof(iso_2022_cn_inputText4[0]),
+                to_iso_2022_cn4_v2, sizeof(to_iso_2022_cn4_v2), "iso-2022-cn",
+                UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_cnOffs4_v2, NULL, 0,UCNV_ESCAPE_JAVA,U_ZERO_ERROR ))
+                log_err("u-> iso-2022-cn with skip & UCNV_ESCAPE_JAVA did not match.\n"); 
 
         }
         {
-            static const UChar iso_2022_cn_inputText6[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042,0x0902};
-            static const uint8_t to_iso_2022_cn6_v2[]={  
-                                0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x21,   
-                                0x0f,   0x7b,   0x55,   0x2b,   0x32,   0x33,   0x34,   0x35,   0x36,   0x7d,   
-                                0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x22,   
-                                0x0f,   0x7b,   0x55,   0x2b,   0x32,   0x33,   0x34,   0x35,   0x36,   0x7d,   
-                                0x42,   
-                                0x0f,   0x7b,   0x55,   0x2b,   0x30,   0x39,   0x30,   0x32,   0x7d
-                             };
-            static const int32_t from_iso_2022_cnOffs6_v2 [] ={ 
-                    0,  0,  0,  0,  0,  0,  0,  
-                    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  
-                    3,  3,  3,  3,  3,  3,  3,  
-                    4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  
-                    6, 
-                    7,  7,  7,  7,  7,  7,  7,  7,  7,
-            };
-            if(!testConvertFromUnicodeWithContext(iso_2022_cn_inputText6, sizeof(iso_2022_cn_inputText6)/sizeof(iso_2022_cn_inputText6[0]),
-                to_iso_2022_cn6_v2, sizeof(to_iso_2022_cn6_v2), "iso-2022-cn",
-                UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_cnOffs6_v2, NULL, 0,UCNV_ESCAPE_UNICODE,U_ZERO_ERROR ))
-                log_err("u-> iso-2022-cn with sub & UCNV_ESCAPE_UNICODE did not match.\n"); 
-
-        }
-        {
-            static const UChar iso_2022_cn_inputText7[]={ 0x3000, 0xD84D, 0xDC56, 0x3001,0xD84D,0xDC56, 0x0042,0x0902};
-            static const uint8_t to_iso_2022_cn7_v2[]={  
-                                0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x21,   
-                                0x0f,   0x25,   0x55,   0x44,   0x38,   0x34,   0x44,   0x25,   0x55,   0x44,   0x43,   0x35,   0x36,   
-                                0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x22,   
-                                0x0f,   0x25,   0x55,   0x44,   0x38,   0x34,   0x44,   0x25,   0x55,   0x44,   0x43,   0x35,   0x36,   
-                                0x42,   0x0f,   0x25,   0x55,   0x30,   0x39,   0x30,   0x32, 
-                            };
-            static const int32_t from_iso_2022_cnOffs7_v2 [] ={ 
-                                0,  0,  0,  0,  0,  0,  0,  
-                                1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  
-                                3,  3,  3,  3,  3,  3,  3,  
-                                4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  4,  
-                                6,  
-                                7,  7,  7,  7,  7,  7,  7,
-            };
-            if(!testConvertFromUnicodeWithContext(iso_2022_cn_inputText7, sizeof(iso_2022_cn_inputText7)/sizeof(iso_2022_cn_inputText7[0]),
-                to_iso_2022_cn7_v2, sizeof(to_iso_2022_cn7_v2), "iso-2022-cn",
-                UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_cnOffs7_v2, NULL, 0,"K" ,U_ZERO_ERROR ))
-                log_err("u-> iso-2022-cn with sub & K did not match.\n"); 
-
-        }
-        {
-            static const uint8_t to_iso_2022_cn4_v3[]={  
+            const uint8_t to_iso_2022_cn4_v3[]={  
                             0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x21,   
                             0x0f,   0x5c,   0x55,   0x30,   0x30,   0x30,   0x32,   0x33,   0x34,   0x35,   0x36,   
                             0x1b,   0x24,   0x29,   0x41,   0x0e,   0x21,   0x22,
@@ -1881,7 +1764,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                              };
 
 
-            static const int32_t from_iso_2022_cnOffs4_v3 [] ={ 
+            int32_t from_iso_2022_cnOffs4_v3 [] ={ 
                 0,0,0,0,0,0,0,
                 1,1,1,1,1,1,1,1,1,1,1,
 
@@ -1894,9 +1777,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             if(!testConvertFromUnicodeWithContext(iso_2022_cn_inputText4, sizeof(iso_2022_cn_inputText4)/sizeof(iso_2022_cn_inputText4[0]),
                 to_iso_2022_cn4_v3, sizeof(to_iso_2022_cn4_v3), "iso-2022-cn",
                 UCNV_FROM_U_CALLBACK_ESCAPE, from_iso_2022_cnOffs4_v3, NULL, 0,UCNV_ESCAPE_C,U_ZERO_ERROR ))
-            {
                 log_err("u-> iso-2022-cn with skip & UCNV_ESCAPE_C did not match.\n"); 
-            }
         }
         if(!testConvertFromUnicode(iso_2022_cn_inputText, sizeof(iso_2022_cn_inputText)/sizeof(iso_2022_cn_inputText[0]),
                 to_iso_2022_cn, sizeof(to_iso_2022_cn), "iso-2022-cn",
@@ -1951,63 +1832,63 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
     log_verbose("Testing toUnicode with UCNV_FROM_U_CALLBACK_ESCAPE \n");
     /*to Unicode*/
     {
-        static const uint8_t sampleTxtToU[]= { 0x00, 0x9f, 0xaf, 
+        const uint8_t sampleTxtToU[]= { 0x00, 0x9f, 0xaf, 
             0x81, 0xad, /*unassigned*/
             0x89, 0xd3 };
-        static const UChar IBM_943toUnicode[] = { 0x0000, 0x6D63, 
+        UChar IBM_943toUnicode[] = { 0x0000, 0x6D63, 
             0x25, 0x58, 0x38, 0x31, 0x25, 0x58, 0x41, 0x44,
             0x7B87};
-        static const int32_t  fromIBM943Offs [] =    { 0, 1, 3, 3, 3, 3, 3, 3, 3, 3, 5};
+        int32_t  fromIBM943Offs [] =    { 0, 1, 3, 3, 3, 3, 3, 3, 3, 3, 5};
 
         /* EUC_JP*/
-        static const uint8_t sampleTxt_EUC_JP[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
+        const uint8_t sampleTxt_EUC_JP[]={ 0x61, 0xa1, 0xb8, 0x8f, 0xf4, 0xae,
             0x8f, 0xda, 0xa1,  /*unassigned*/
            0x8e, 0xe0,
         };
-        static const UChar EUC_JPtoUnicode[]={ 0x0061, 0x4edd, 0x5bec,
+        UChar EUC_JPtoUnicode[]={ 0x0061, 0x4edd, 0x5bec,
             0x25, 0x58, 0x38, 0x46, 0x25, 0x58, 0x44, 0x41, 0x25, 0x58, 0x41, 0x31, 
             0x00a2 };
-        static const int32_t fromEUC_JPOffs [] ={ 0, 1, 3, 
+        int32_t fromEUC_JPOffs [] ={ 0, 1, 3, 
             6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
             9,
         };
 
         /*EUC_TW*/
-        static const uint8_t sampleTxt_euc_tw[]={ 
+        const uint8_t sampleTxt_euc_tw[]={ 
             0x61, 0xa2, 0xd3, 0x8e, 0xa2, 0xdc, 0xe5,
             0x8e, 0xaa, 0xbb, 0xcc,/*unassigned*/
             0xe6, 0xca, 0x8a,
         };
-        static const UChar euc_twtoUnicode[]={ 0x0061, 0x2295, 0x5BF2, 
+        UChar euc_twtoUnicode[]={ 0x0061, 0x2295, 0x5BF2, 
              0x25, 0x58, 0x38, 0x45, 0x25, 0x58, 0x41, 0x41, 0x25, 0x58, 0x42, 0x42, 0x25, 0x58, 0x43, 0x43, 
              0x8706, 0x8a, };
-        static const int32_t from_euc_twOffs [] ={ 0, 1, 3, 
+        int32_t from_euc_twOffs [] ={ 0, 1, 3, 
              7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
              11, 13};
         
         /*iso-2022-jp*/
-        static const uint8_t sampleTxt_iso_2022_jp[]={ 
+        const uint8_t sampleTxt_iso_2022_jp[]={ 
             0x1b,   0x28,   0x42,   0x41,
             0x1b,   0x24,   0x42,   0x2A, 0x44, /*unassigned*/
             0x1b,   0x28,   0x42,   0x42,
             
         };
-        static const UChar iso_2022_jptoUnicode[]={    0x41,0x25,0x58,0x32,0x41,0x25,0x58,0x34,0x34, 0x42 };
-        static const int32_t from_iso_2022_jpOffs [] ={  3,   7,   7,   7,   7,   7,   7,   7,   7,    12   };
+        UChar iso_2022_jptoUnicode[]={    0x41,0x25,0x58,0x32,0x41,0x25,0x58,0x34,0x34, 0x42 };
+        int32_t from_iso_2022_jpOffs [] ={  3,   7,   7,   7,   7,   7,   7,   7,   7,    12   };
         
         /*iso-2022-cn*/
-        static const uint8_t sampleTxt_iso_2022_cn[]={ 
+        const uint8_t sampleTxt_iso_2022_cn[]={ 
             0x0f,   0x41,   0x44,
             0x1B,   0x24,   0x29,   0x47, 
             0x0E,   0x40,   0x6c, /*unassigned*/
             0x0f,   0x42,
             
         };
-        static const UChar iso_2022_cntoUnicode[]={    0x41, 0x44,0x25,0x58,0x34,0x30,0x25,0x58,0x36,0x43,0x42 };
-        static const int32_t from_iso_2022_cnOffs [] ={  1,   2,   8,   8,   8,   8,   8,   8,   8,  8,    11   };
+        UChar iso_2022_cntoUnicode[]={    0x41, 0x44,0x25,0x58,0x34,0x30,0x25,0x58,0x36,0x43,0x42 };
+        int32_t from_iso_2022_cnOffs [] ={  1,   2,   8,   8,   8,   8,   8,   8,   8,  8,    11   };
 
         /*iso-2022-kr*/
-        static const uint8_t sampleTxt_iso_2022_kr[]={ 
+        const uint8_t sampleTxt_iso_2022_kr[]={ 
           0x1b, 0x24, 0x29,  0x43,
           0x41,
           0x0E, 0x7f, 0x1E,
@@ -2016,11 +1897,11 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
           0x42, 0x43,
             
         };
-        static const UChar iso_2022_krtoUnicode[]={     0x41,0x25,0x58,0x37,0x46,0x25,0x58,0x31,0x45,0x03A0,0x51, 0x42,0x43};
-        static const int32_t from_iso_2022_krOffs [] ={  4,   6,   6,   6,   6,   6,   6,   6,   6,    9,    12,   13  , 14 };
+        UChar iso_2022_krtoUnicode[]={     0x41,0x25,0x58,0x37,0x46,0x25,0x58,0x31,0x45,0x03A0,0x51, 0x42,0x43};
+        int32_t from_iso_2022_krOffs [] ={  4,   6,   6,   6,   6,   6,   6,   6,   6,    9,    12,   13  , 14 };
         
         /*hz*/
-        static const uint8_t sampleTxt_hz[]={ 
+        const uint8_t sampleTxt_hz[]={ 
             0x41,   
             0x7e,   0x7b,   0x26,   0x30,   
             0x7f,   0x1E, /*unassigned*/ 
@@ -2029,7 +1910,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0x7e,   0x7b,   0x7f,   0x1E,/*unassigned*/ 
             0x7e,   0x7d,   0x42,
         };
-        static const UChar hztoUnicode[]={  
+        UChar hztoUnicode[]={  
             0x41,
             0x03a0,
             0x25,0x58,0x37,0x46,0x25,0x58,0x31,0x45,
@@ -2038,11 +1919,11 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0x25,0x58,0x37,0x46,0x25,0x58,0x31,0x45,
             0x42,};
 
-        static const int32_t from_hzOffs [] ={0,3,5,5,5,5,5,5,5,5,7,11,14,14,14,14,14,14,14,14,18,  };
+        int32_t from_hzOffs [] ={0,3,5,5,5,5,5,5,5,5,7,11,14,14,14,14,14,14,14,14,18,  };
 
        
         /*iscii*/
-        static const uint8_t sampleTxt_iscii[]={ 
+        const uint8_t sampleTxt_iscii[]={ 
             0x41,   
             0x30,   
             0xEB, /*unassigned*/ 
@@ -2051,7 +1932,7 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0xEC, /*unassigned*/ 
             0x42,
         };
-        static const UChar isciitoUnicode[]={  
+        UChar isciitoUnicode[]={  
             0x41,
             0x30,
             0x25,  0x58,  0x45, 0x42,
@@ -2060,18 +1941,18 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
             0x25,  0x58,  0x45, 0x43,
             0x42,};
 
-        static const int32_t from_isciiOffs [] ={0,1,2,2,2,2,3,4,5,5,5,5,6  };
+        int32_t from_isciiOffs [] ={0,1,2,2,2,2,3,4,5,5,5,5,6  };
 
 
         /*LMBCS*/
-        static const uint8_t sampleTxtLMBCS[]={ 0x12, 0xc9, 0x50, 
+        const uint8_t sampleTxtLMBCS[]={ 0x12, 0xc9, 0x50, 
             0x12, 0x92, 0xa0, /*unassigned*/
             0x12, 0x92, 0xa1,
         };
-        static const UChar LMBCSToUnicode[]={ 0x4e2e, 
+        UChar LMBCSToUnicode[]={ 0x4e2e, 
             0x25, 0x58, 0x31, 0x32, 0x25, 0x58, 0x39, 0x32, 0x25, 0x58, 0x41, 0x30, 
             0xe5c4, };
-        static const int32_t fromLMBCS[] = {0, 
+        int32_t fromLMBCS[] = {0, 
             3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
             6, };
        
@@ -2095,40 +1976,32 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
                  iso_2022_jptoUnicode, sizeof(iso_2022_jptoUnicode)/sizeof(iso_2022_jptoUnicode[0]),"iso-2022-jp",
                 UCNV_TO_U_CALLBACK_ESCAPE, from_iso_2022_jpOffs, NULL, 0))
             log_err("iso-2022-jp->u with substitute with value did not match.\n");
-       
-        if(!testConvertToUnicodeWithContext(sampleTxt_iso_2022_jp, sizeof(sampleTxt_iso_2022_jp),
-                 iso_2022_jptoUnicode, sizeof(iso_2022_jptoUnicode)/sizeof(iso_2022_jptoUnicode[0]),"iso-2022-jp",
-                UCNV_TO_U_CALLBACK_ESCAPE, from_iso_2022_jpOffs, NULL, 0,"K",U_ZERO_ERROR))
-            log_err("iso-2022-jp->u with substitute with value did not match.\n");
         
         {/* test UCNV_TO_U_CALLBACK_ESCAPE with options */
             {
-                static const UChar iso_2022_jptoUnicodeDec[]={
-                                                  0x0041,   
+                UChar iso_2022_jptoUnicodeDec[]={ 0x0041,   
                                                   0x0026,   0x0023,   0x0034,   0x0032,   0x003b,   
                                                   0x0026,   0x0023,   0x0036,   0x0038,   0x003b,   
                                                   0x0042 };
-                static const int32_t from_iso_2022_jpOffsDec [] ={ 3,7,7,7,7,7,7,7,7,7,7,12,  };
+                int32_t from_iso_2022_jpOffsDec [] ={ 3,7,7,7,7,7,7,7,7,7,7,12,  };
                 if(!testConvertToUnicodeWithContext(sampleTxt_iso_2022_jp, sizeof(sampleTxt_iso_2022_jp),
                      iso_2022_jptoUnicodeDec, sizeof(iso_2022_jptoUnicodeDec)/sizeof(iso_2022_jptoUnicode[0]),"iso-2022-jp",
                     UCNV_TO_U_CALLBACK_ESCAPE, from_iso_2022_jpOffsDec, NULL, 0,UCNV_ESCAPE_XML_DEC,U_ZERO_ERROR ))
                 log_err("iso-2022-jp->u with substitute with value and UCNV_ESCAPE_XML_DEC did not match.\n");
             }
             {
-                static const UChar iso_2022_jptoUnicodeHex[]={
-                                                  0x0041, 
+                UChar iso_2022_jptoUnicodeHex[]={ 0x0041, 
                                                   0x0026, 0x0023, 0x0078, 0x0032, 0x0041, 0x003b, 
                                                   0x0026, 0x0023, 0x0078, 0x0034, 0x0034, 0x003b, 
                                                   0x0042 };
-                static const int32_t from_iso_2022_jpOffsHex [] ={  3,7,7,7,7,7,7,7,7,7,7,7,7,12   };
+                int32_t from_iso_2022_jpOffsHex [] ={  3,7,7,7,7,7,7,7,7,7,7,7,7,12   };
                 if(!testConvertToUnicodeWithContext(sampleTxt_iso_2022_jp, sizeof(sampleTxt_iso_2022_jp),
                      iso_2022_jptoUnicodeHex, sizeof(iso_2022_jptoUnicodeHex)/sizeof(iso_2022_jptoUnicode[0]),"iso-2022-jp",
                     UCNV_TO_U_CALLBACK_ESCAPE, from_iso_2022_jpOffsHex, NULL, 0,UCNV_ESCAPE_XML_HEX,U_ZERO_ERROR ))
                 log_err("iso-2022-jp->u with substitute with value and UCNV_ESCAPE_XML_HEX did not match.\n");
             }
             {
-                static const UChar iso_2022_jptoUnicodeC[]={
-                                                0x0041, 
+                UChar iso_2022_jptoUnicodeC[]={ 0x0041, 
                                                 0x005C, 0x0078, 0x0032, 0x0041,
                                                 0x005C, 0x0078, 0x0034, 0x0034, 
                                                 0x0042 };
@@ -2168,20 +2041,20 @@ static void TestSubWithValue(int32_t inputsize, int32_t outputsize)
 
 static void TestLegalAndOthers(int32_t inputsize, int32_t outputsize)
 {
-    static const UChar    legalText[] =  { 0x0000, 0xAC00, 0xAC01, 0xD700 };
-    static const uint8_t templegal949[] ={ 0x00, 0xb0, 0xa1, 0xb0, 0xa2, 0xc8, 0xd3 };
-    static const int32_t  to949legal[] = {0, 1, 1, 2, 2, 3, 3};
+    UChar    legalText[] =  { 0x0000, 0xAC00, 0xAC01, 0xD700 };
+    const uint8_t templegal949[] ={ 0x00, 0xb0, 0xa1, 0xb0, 0xa2, 0xc8, 0xd3 };
+    int32_t  to949legal[] = {0, 1, 1, 2, 2, 3, 3};
 
 
-    static const uint8_t text943[] = {
+    const uint8_t text943[] = {
         0x82, 0xa9, 0x82, 0x20, /*0xc8,*/  0x61, 0x8a, 0xbf, 0x8e, 0x9a };
-    static const UChar toUnicode943sub[] = { 0x304b, 0xfffd, /*0xff88,*/ 0x0061, 0x6f22,  0x5b57};
-    static const UChar toUnicode943skip[]= { 0x304b, /*0xff88,*/ 0x0061, 0x6f22,  0x5b57};
-    static const UChar toUnicode943stop[]= { 0x304b};
+        UChar toUnicode943sub[] = { 0x304b, 0xfffd, /*0xff88,*/ 0x0061, 0x6f22,  0x5b57};
+        UChar toUnicode943skip[]= { 0x304b, /*0xff88,*/ 0x0061, 0x6f22,  0x5b57};
+        UChar toUnicode943stop[]= { 0x304b};
 
-    static const int32_t  fromIBM943Offssub[]  = {0, 2, 4, 5, 7};
-    static const int32_t  fromIBM943Offsskip[] = { 0, 4, 5, 7};
-    static const int32_t  fromIBM943Offsstop[] = { 0};
+    int32_t  fromIBM943Offssub[]  = {0, 2, 4, 5, 7};
+    int32_t  fromIBM943Offsskip[] = { 0, 4, 5, 7};
+    int32_t  fromIBM943Offsstop[] = { 0};
 
     gInBufferSize = inputsize;
     gOutBufferSize = outputsize;
@@ -2212,11 +2085,11 @@ static void TestLegalAndOthers(int32_t inputsize, int32_t outputsize)
 
 static void TestSingleByte(int32_t inputsize, int32_t outputsize)
 {
-    static const uint8_t sampleText[] = {
+    const uint8_t sampleText[] = {
         0x82, 0xa9, 0x61, 0x62, 0x63 , 0x82,
         0xff, /*0x82, 0xa9,*/ 0x32, 0x33};
-    static const UChar toUnicode943sub[] = {0x304b, 0x0061, 0x0062, 0x0063,  0xfffd,/*0x304b,*/ 0x0032, 0x0033};
-    static const int32_t  fromIBM943Offssub[]  = {0, 2, 3, 4, 5, 7, 8};
+    UChar toUnicode943sub[] = {0x304b, 0x0061, 0x0062, 0x0063,  0xfffd,/*0x304b,*/ 0x0032, 0x0033};
+    int32_t  fromIBM943Offssub[]  = {0, 2, 3, 4, 5, 7, 8};
     /*checking illegal value for ibm-943 with substitute*/ 
     gInBufferSize = inputsize;
     gOutBufferSize = outputsize;
@@ -2230,15 +2103,15 @@ static void TestSingleByte(int32_t inputsize, int32_t outputsize)
 static void TestEBCDIC_STATEFUL_Sub(int32_t inputsize, int32_t outputsize)
 {
     /*EBCDIC_STATEFUL*/
-    static const UChar ebcdic_inputTest[] = { 0x0061, 0x6d64, 0x0061, 0x00A2, 0x6d65, 0x0061 };
-    static const uint8_t toIBM930[]= { 0x62, 0x0e, 0x5d, 0x63, 0x0f, 0x62, 0xb1, 0x0e, 0xfe, 0xfe, 0x0f, 0x62 };
-    static const int32_t offset_930[]=     { 0,    1,    1,    1,    2,    2,    3,    4,    4,    4,    5,    5    };
+    UChar ebcdic_inputTest[] = { 0x0061, 0x6d64, 0x0061, 0x00A2, 0x6d65, 0x0061 };
+    const uint8_t toIBM930[]= { 0x62, 0x0e, 0x5d, 0x63, 0x0f, 0x62, 0xb1, 0x0e, 0xfe, 0xfe, 0x0f, 0x62 };
+    int32_t offset_930[]=     { 0,    1,    1,    1,    2,    2,    3,    4,    4,    4,    5,    5    };
 /*                              s     SO    doubl       SI    sng   s     SO    fe    fe    SI    s    */
 
     /*EBCDIC_STATEFUL with subChar=3f*/
-    static const uint8_t toIBM930_subvaried[]= { 0x62, 0x0e, 0x5d, 0x63, 0x0f, 0x62, 0xb1, 0x3f, 0x62 };
-    static const int32_t offset_930_subvaried[]=     { 0,    1,    1,    1,    2,    2,    3,    4,    5    };
-    static const char mySubChar[]={ 0x3f};
+    const uint8_t toIBM930_subvaried[]= { 0x62, 0x0e, 0x5d, 0x63, 0x0f, 0x62, 0xb1, 0x3f, 0x62 };
+    int32_t offset_930_subvaried[]=     { 0,    1,    1,    1,    2,    2,    3,    4,    5    };
+    const char mySubChar[]={ 0x3f};
 
     gInBufferSize = inputsize;
     gOutBufferSize = outputsize;
@@ -2672,7 +2545,7 @@ UBool testConvertFromUnicodeWithContext(const UChar *source, int sourceLen,  con
     if(mySubChar != NULL){
         ucnv_setSubstChars(conv, mySubChar, len, &status);
         if (U_FAILURE(status))  { 
-            log_err("FAILURE in setting substitution chars! %s\n", myErrorName(status));
+            log_err("FAILURE in setting the callback Function! %s\n", myErrorName(status));
         }
     }
     /*------------*/

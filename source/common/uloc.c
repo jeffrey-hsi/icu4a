@@ -51,7 +51,7 @@ U_CFUNC const char *locale_get_default(void);
 static const char _kLocaleID[]       = "LocaleID";
 static const char _kLanguages[]      = "Languages";
 static const char _kCountries[]      = "Countries";
-static const char _kIndexLocaleName[] = "res_index";
+static const char _kIndexLocaleName[] = "index";
 static const char _kIndexTag[]       = "InstalledLocales";
 
 #if 0
@@ -76,8 +76,6 @@ static int32_t _installedLocalesCount = 0;
     3 character codes are duplicates.  This avoids bad searches
     going from 3 to 2 character codes.*/
 
-/* This list MUST be in sorted order, and MUST contain the two-letter codes
-if one exists otherwise use the three letter code */
 static const char * const _languages[] = {
     "aa",  "ab",  "ace", "ach", "ada", "ae",  "af",  "afa",
     "afh", "aka", "akk", "ale", "alg", "am",  "ang", "apa",
@@ -139,9 +137,9 @@ NULL,
 NULL
 };
 
-/* This list MUST contain a three-letter code for every two-letter code in the
-   list above, and they MUST ne in the same order (i.e., the same language must
-   be in the same place in both lists)! */
+/* This list MUST be in sorted order, and MUST contain the two-letter codes
+if one exists otherwise use the three letter code */
+
 static const char * const _languages3[] = {
 /*  "aa",  "ab",  "ace", "ach", "ada", "ae",  "af",  "afa",    */
     "aar", "abk", "ace", "ach", "ada", "ave", "afr", "afa",
@@ -258,17 +256,15 @@ NULL,
     "ind", "heb", "yid", "jaw", "srp",
 NULL
 };
+/* This list MUST contain a three-letter code for every two-letter code in the
+   list above, and they MUST ne in the same order (i.e., the same language must
+   be in the same place in both lists)! */
 
 /* ZR(ZAR) is now CD(COD) and FX(FXX) is PS(PSE) as per
  http://www.evertype.com/standards/iso3166/iso3166-1-en.html 
  added new codes keeping the old ones for compatibility
  updated to include 1999/12/03 revisions *CWB*/
 
-/* RO(ROM) is now RO(ROU) according to 
- http://www.iso.org/iso/en/prods-services/iso3166ma/03updates-on-iso-3166/nlv3e-rou.html
-*/
-
-/* This list MUST be in sorted order, and MUST contain only two-letter codes! */
 static const char * const _countries[] = {
     "AD",  "AE",  "AF",  "AG",  "AI",  "AL",  "AM",  "AN",
     "AO",  "AQ",  "AR",  "AS",  "AT",  "AU",  "AW",  "AZ",
@@ -301,12 +297,11 @@ static const char * const _countries[] = {
     "VA",  "VC",  "VE",  "VG",  "VI",  "VN",  "VU",  "WF",
     "WS",  "YE",  "YT",  "YU",  "ZA",  "ZM",  "ZW",  
 NULL,
-    "FX",  "RO",  "ZR",   /* obsolete country codes */
+    "FX",  "ZR",   /* obsolete country codes */
 NULL
 };
+/* This list MUST be in sorted order, and MUST contain only two-letter codes! */
 
-/* This list MUST contain a three-letter code for every two-letter code in
-   the above list, and they MUST be listed in the same order! */
 static const char * const _countries3[] = {
 /*  "AD",  "AE",  "AF",  "AG",  "AI",  "AL",  "AM",  "AN",     */
     "AND", "ARE", "AFG", "ATG", "AIA", "ALB", "ARM", "ANT",
@@ -353,7 +348,7 @@ static const char * const _countries3[] = {
 /*  "PH",  "PK",  "PL",  "PM",  "PN",  "PR",  "PS",  "PT",     */
     "PHL", "PAK", "POL", "SPM", "PCN", "PRI", "PSE", "PRT",
 /*  "PW",  "PY",  "QA",  "RE",  "RO",  "RU",  "RW",  "SA",     */
-    "PLW", "PRY", "QAT", "REU", "ROU", "RUS", "RWA", "SAU",
+    "PLW", "PRY", "QAT", "REU", "ROM", "RUS", "RWA", "SAU",
 /*  "SB",  "SC",  "SD",  "SE",  "SG",  "SH",  "SI",  "SJ",     */
     "SLB", "SYC", "SDN", "SWE", "SGP", "SHN", "SVN", "SJM",
 /*  "SK",  "SL",  "SM",  "SN",  "SO",  "SR",  "ST",  "SV",     */
@@ -369,10 +364,12 @@ static const char * const _countries3[] = {
 /*  "WS",  "YE",  "YT",  "YU",  "ZA",  "ZM",  "ZW",            */
     "WSM", "YEM", "MYT", "YUG", "ZAF", "ZMB", "ZWE",
 NULL,
-/*  "FX",  "RO",  "ZR",   */
-    "FXX", "ROM", "ZAR",
+/*  "FX",  "ZR",   */
+    "FXX", "ZAR",
 NULL
 };
+/* This list MUST contain a three-letter code for every two-letter code in
+   the above list, and they MUST be listed in the same order! */
 
 /*******************************************************************************
   Implementation function definitions
@@ -427,10 +424,10 @@ _copyCount(char *dest, int32_t destCapacity, const char *src) {
     anchor=src;
     for(;;) {
         if((c=*src)==0) {
-            return (int32_t)(src-anchor);
+            return src-anchor;
         }
         if(destCapacity<=0) {
-            return (int32_t)((src-anchor)+uprv_strlen(src));
+            return (src-anchor)+uprv_strlen(src);
         }
         ++src;
         *dest++=c;
@@ -801,22 +798,22 @@ U_CAPI uint32_t  U_EXPORT2
 uloc_getLCID(const char* localeID) 
 {
     UErrorCode err = U_ZERO_ERROR;
+    char temp[30];
+    const UChar* lcid = NULL;
+    int32_t lcidLen = 0;
     uint32_t result = 0;
     UResourceBundle* bundle = ures_open(NULL, localeID, &err);
     
     if (U_SUCCESS(err))
     {
-        UResourceBundle *resLocaleID = ures_getByKey(bundle, _kLocaleID, NULL, &err);
-        if (U_SUCCESS(err))
-        {
-            result = ures_getInt(resLocaleID, &err);
-            if (U_FAILURE(err))
-            {
-                result = 0;
-            }
-            ures_close(resLocaleID);
-        }
+        lcid = ures_getStringByKey(bundle, _kLocaleID, &lcidLen, &err);
         ures_close(bundle);
+        if (U_FAILURE(err) || !lcid || lcidLen == 0)
+        {
+            return 0;
+        }
+        u_UCharsToChars(lcid, temp, lcidLen + 1);
+        result = (uint32_t)T_CString_stringToInteger(temp, 16);
     }
     
     return result;
@@ -1030,7 +1027,7 @@ _getStringOrCopyKey(const char *path, const char *locale,
 
     /* no string from a resource bundle: convert the substitute */
     if(length==-1) {
-        length=(int32_t)uprv_strlen(substitute);
+        length=uprv_strlen(substitute);
         u_charsToUChars(substitute, dest, uprv_min(length, destCapacity));
         *pErrorCode=U_ZERO_ERROR;
     }
@@ -1324,7 +1321,7 @@ static void _lazyEvaluate_installedLocales()
     int32_t len = 0;
     int32_t localeCount;
     
-    ures_initStackObject(&installed);
+    ures_setIsStackObject(&installed, TRUE);
     index = ures_openDirect(NULL, _kIndexLocaleName, &status);
     ures_getByKey(index, _kIndexTag, &installed, &status);
     

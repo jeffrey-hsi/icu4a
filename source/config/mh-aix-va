@@ -1,32 +1,30 @@
 ## -*-makefile-*-
-## Aix-specific setup (for Visual Age 5+)
-## Copyright (c) 1999-2002, International Business Machines Corporation and
+## Aix-specific setup (for xlC)
+## Copyright (c) 1999-2000, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-aix-va,v 1.24 2002/05/13 23:50:12 grhoten-oss Exp $
+## $Id: mh-aix-va,v 1.17.2.3 2002/05/15 01:20:52 srl Exp $
 
 ## Commands to generate dependency files
 GEN_DEPS.c=	$(CC) -E -M $(DEFS) $(CPPFLAGS)
 GEN_DEPS.cc=	$(CXX) -E -M $(DEFS) $(CPPFLAGS)
 
-# Make the strings readonly. This helps in the common data library
-CFLAGS += -qroconst
-CXXFLAGS += -qroconst
-
-LDFLAGS += -brtl -bh:5
+## Commands to compile
+COMPILE.c=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS) -qroconst -c
+COMPILE.cc=	$(CXX) $(DEFS) $(CPPFLAGS) $(CXXFLAGS) -qroconst -c
 
 ## Commands to link
 ## We need to use the C++ linker, even when linking C programs, since
 ##  our libraries contain C++ code (C++ static init not called)
-LINK.c=		$(CXX) $(CXXFLAGS) $(LDFLAGS)
-LINK.cc=	$(CXX) $(CXXFLAGS) $(LDFLAGS)
+LINK.c=		$(CXX) -brtl $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
+LINK.cc=	$(CXX) -brtl -bh:5 $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
 
 ## Commands to make a shared library
 ## -G means -berok -brtl -bnortllib -bnosymbolic -bnoautoexp
 ## -bh:8 means halt on errors or worse.  We don't display warnings about
 ##      duplicate inline symbols.
-SHLIB.c=	$(CXX) -qmkshrobj -G $(LDFLAGS)
-SHLIB.cc=	$(CXX) -qmkshrobj -G $(LDFLAGS)
+SHLIB.c=	$(CXX) -qmkshrobj -G -brtl
+SHLIB.cc=	$(CXX) -qmkshrobj -G -brtl -bh:5
 
 ## Compiler switch to embed a runtime search path
 LD_RPATH=	-I
@@ -36,14 +34,12 @@ LD_RPATH_PRE=
 LDLIBRARYPATH_ENVVAR = LIBPATH
 
 ## Override Versioned target for a shared library.
-FINAL_SO_TARGET=  $(basename $(SO_TARGET))$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO)
-MIDDLE_SO_TARGET= $(basename $(SO_TARGET))$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX).$(SO)
+FINAL_SO_TARGET=  $(basename $(SO_TARGET))$(SO_TARGET_VERSION).$(SO)
+MIDDLE_SO_TARGET= $(basename $(SO_TARGET))$(SO_TARGET_VERSION_MAJOR).$(SO)
 
-# The following is for Makefile.inc's use.
+## Special AIX rules
+## for Makefile.inc and icudefs.mk to calculate library names.
 ICULIBSUFFIX_VERSION = $(LIB_VERSION_MAJOR)
-
-# this one is for icudefs.mk's use
-SO_TARGET_VERSION_SUFFIX = $(SO_TARGET_VERSION_MAJOR)
 
 LD_SONAME = 
 
@@ -82,17 +78,17 @@ STATIC_O = o
 		[ -s $@ ] || rm -f $@ ; rm -f $<'
 
 %.u : $(srcdir)/%.c
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.c) $< > /dev/null'
 
 %.u : $(srcdir)/%.cpp
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.cc) $< > /dev/null'
 
 ## Versioned libraries rules
-%$(SO_TARGET_VERSION_MAJOR).$(SO): %$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO)
-	$(RM) $@ && ln -s $*$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO) $@
-%.$(SO): %$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO)
-	$(RM) $@ && ln -s $*$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO) $@
+%$(SO_TARGET_VERSION_MAJOR).$(SO): %$(SO_TARGET_VERSION).$(SO)
+	$(RM) $@ && ln -s $*$(SO_TARGET_VERSION).$(SO) $@
+%.$(SO): %$(SO_TARGET_VERSION).$(SO)
+	$(RM) $@ && ln -s $*$(SO_TARGET_VERSION).$(SO) $@
 
 ## End Aix-specific setup

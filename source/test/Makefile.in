@@ -48,7 +48,7 @@ all-recursive install-recursive clean-recursive distclean-recursive dist-recursi
 	@dot_seen=no; \
 	target=`echo $@ | sed s/-recursive//`; \
 	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  echo "$(MAKE)[$(MAKELEVEL)]: Making \`$$target' in \`$$subdir'"; \
+	  echo "Making $$target in $$subdir"; \
 	  if test "$$subdir" = "."; then \
 	    dot_seen=yes; \
 	    local_target="$$target-local"; \
@@ -78,4 +78,3 @@ check-local: all-local
 Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	cd $(top_builddir) \
 	&& CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
-

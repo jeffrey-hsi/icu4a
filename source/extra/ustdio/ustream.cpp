@@ -16,27 +16,23 @@
 #include "unicode/utypes.h"
 #include "unicode/ustream.h"
 #include "unicode/ucnv.h"
-#include "unicode/uchar.h"
 #include "ustr_imp.h"
-#include <string.h>
 
 // console IO
 
 #if U_IOSTREAM_SOURCE >= 198506
 
 #if U_IOSTREAM_SOURCE >= 199711
-#define STD_NAMESPACE std::
+#define STD_OSTREAM std::ostream
 #else
-#define STD_NAMESPACE
+#define STD_OSTREAM ostream
 #endif
 
-#define STD_OSTREAM STD_NAMESPACE ostream
-#define STD_ISTREAM STD_NAMESPACE istream
 
 U_USTDIO_API STD_OSTREAM &
-operator<<(STD_OSTREAM& stream, const UnicodeString& str)
+operator<<(STD_OSTREAM& stream, const UnicodeString& s)
 {
-    if(str.length() > 0) {
+    if(s.length() > 0) {
         char buffer[200];
         UConverter *converter;
         UErrorCode errorCode = U_ZERO_ERROR;
@@ -44,8 +40,8 @@ operator<<(STD_OSTREAM& stream, const UnicodeString& str)
         // use the default converter to convert chunks of text
         converter = u_getDefaultConverter(&errorCode);
         if(U_SUCCESS(errorCode)) {
-            const UChar *us = str.getBuffer();
-            const UChar *uLimit = us + str.length();
+            const UChar *us = s.getBuffer();
+            const UChar *uLimit = us + s.length();
             char *s, *sLimit = buffer + sizeof(buffer);
             do {
                 errorCode = U_ZERO_ERROR;
@@ -61,78 +57,14 @@ operator<<(STD_OSTREAM& stream, const UnicodeString& str)
         }
     }
 
-/*    stream.flush();*/
+    stream.flush();
     return stream;
 }
-
-U_USTDIO_API STD_ISTREAM &
-operator>>(STD_ISTREAM& stream, UnicodeString& str)
-{
-    /* ipfx should eat whitespace when ios::skipws is set */
-    UChar uBuffer[16];
-    char buffer[16];
-    int32_t idx = 0;
-    UConverter *converter;
-    UErrorCode errorCode = U_ZERO_ERROR;
-
-    str.truncate(0);
-    // use the default converter to convert chunks of text
-    converter = u_getDefaultConverter(&errorCode);
-    if(U_SUCCESS(errorCode)) {
-        UChar *us = uBuffer;
-        const UChar *uLimit = uBuffer + sizeof(uBuffer)/sizeof(*uBuffer);
-        const char *s, *sLimit;
-        char ch;
-        UChar ch32;
-        UBool intialWhitespace = TRUE;
-
-        /* We need to consume one byte at a time to see what is considered whitespace. */
-        while (!stream.eof()) {
-            ch = stream.get();
-            sLimit = &ch + 1;
-            errorCode = U_ZERO_ERROR;
-            us = uBuffer;
-            s = &ch;
-            ucnv_toUnicode(converter, &us, uLimit, &s, sLimit, 0, FALSE, &errorCode);
-            if(U_FAILURE(errorCode)) {
-                /* Something really bad happened */
-                return stream;
-            }
-            /* Was the character consumed? */
-            if (us != uBuffer) {
-                UTF_GET_CHAR_SAFE(uBuffer, 0, 0, sizeof(uBuffer), ch32, FALSE);
-                if (u_isWhitespace(ch32)) {
-                    if (!intialWhitespace) {
-                        buffer[idx++] = ch;
-                        while (idx > 0) {
-                            stream.putback(buffer[--idx]);
-                        }
-                        break;
-                    }
-                    /* else skip intialWhitespace */
-                }
-                else {
-                    str.append(ch32);
-                    intialWhitespace = FALSE;
-                }
-                idx = 0;
-            }
-            else {
-                buffer[idx++] = ch;
-            }
-        }
-        u_releaseDefaultConverter(converter);
-    }
-
-/*    stream.flush();*/
-    return stream;
-}
-
 
 #endif
 
 #if 0
-/* UnicodeStringStreamer insternal API may be useful for future reference */
+/* UnicodeStringStreamer insteranl API may be useful for future reference */
 #ifndef UNISTRM_H
 #define UNISTRM_H
 

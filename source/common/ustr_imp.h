@@ -17,25 +17,6 @@
 
 #include "unicode/utypes.h"
 #include "unicode/ucnv.h"
-#include "unicode/uiter.h"
-
-/** Simple declaration for u_strToTitle() to avoid including unicode/ubrk.h. */
-#ifndef UBRK_TYPEDEF_UBREAK_ITERATOR
-#   define UBRK_TYPEDEF_UBREAK_ITERATOR
-    typedef void *UBreakIterator;
-#endif
-
-/**
- * Compare two strings in code point order.
- * Works in strcmp style (both lengths -1),
- * strncmp style (lengths equal and >=0, flag TRUE),
- * and memcmp/UnicodeString style (at least one length >=0).
- * @internal
- */
-U_CFUNC int32_t
-u_strCompareCodePointOrder(const UChar *s1, int32_t length1,
-                           const UChar *s2, int32_t length2,
-                           UBool strncmpStyle);
 
 /**
  * Are the Unicode properties loaded?
@@ -70,18 +51,15 @@ u_growBufferFromStatic(void *context,
                        int32_t length);
 
 /*
- * Internal string casing functions implementing
- * ustring.h/ustrcase.c and UnicodeString case mapping functions.
- *
- * Lowercases [srcStart..srcLimit[ but takes
- * context [0..srcLength[ into account.
+ * Internal string casing functions implementing ustring.c and UnicodeString
+ * case mapping functions.
  * @internal
  */
 U_CFUNC int32_t
 u_internalStrToLower(UChar *dest, int32_t destCapacity,
                      const UChar *src, int32_t srcLength,
-                     int32_t srcStart, int32_t srcLimit,
                      const char *locale,
+                     UGrowBuffer *growBuffer, void *context,
                      UErrorCode *pErrorCode);
 
 /**
@@ -91,16 +69,7 @@ U_CFUNC int32_t
 u_internalStrToUpper(UChar *dest, int32_t destCapacity,
                      const UChar *src, int32_t srcLength,
                      const char *locale,
-                     UErrorCode *pErrorCode);
-
-/**
- * @internal
- */
-U_CFUNC int32_t
-u_internalStrToTitle(UChar *dest, int32_t destCapacity,
-                     const UChar *src, int32_t srcLength,
-                     UBreakIterator *titleIter,
-                     const char *locale,
+                     UGrowBuffer *growBuffer, void *context,
                      UErrorCode *pErrorCode);
 
 /**
@@ -111,59 +80,24 @@ U_CFUNC int32_t
 u_internalStrFoldCase(UChar *dest, int32_t destCapacity,
                       const UChar *src, int32_t srcLength,
                       uint32_t options,
+                      UGrowBuffer *growBuffer, void *context,
                       UErrorCode *pErrorCode);
 
 /**
- * Get the full lowercase mapping for c.
- * @param iter Character iterator to check for context for SpecialCasing.
- *             The current index must be on the character after c.
- *             This function may or may not change the iterator index.
- *             If iter==NULL then a context-independent result is returned.
+ * Get the full title case mapping for c (does not check context!).
  * @return the length of the output, negative if same as c
  * @internal
  */
 U_CAPI int32_t U_EXPORT2
-u_internalToLower(UChar32 c, UCharIterator *iter,
-                  UChar *dest, int32_t destCapacity,
-                  const char *locale);
+u_internalTitleCase(UChar32 c, UChar *dest, int32_t destCapacity, const char *locale);
 
 /**
- * Get the full uppercase mapping for c.
- * @param iter Character iterator to check for context for SpecialCasing.
- *             The current index must be on the character after c.
- *             This function may or may not change the iterator index.
- *             If iter==NULL then a context-independent result is returned.
- * @return the length of the output, negative if same as c
+ * Return the full case folding mapping for c.
+ * Must be used only if uprv_haveProperties() is true.
  * @internal
  */
-U_CAPI int32_t U_EXPORT2
-u_internalToUpper(UChar32 c, UCharIterator *iter,
-                  UChar *dest, int32_t destCapacity,
-                  const char *locale);
-
-/**
- * Get the full titlecase mapping for c.
- * @param iter Character iterator to check for context for SpecialCasing.
- *             The current index must be on the character after c.
- *             This function may or may not change the iterator index.
- *             If iter==NULL then a context-independent result is returned.
- * @return the length of the output, negative if same as c
- * @internal
- */
-U_CAPI int32_t U_EXPORT2
-u_internalToTitle(UChar32 c, UCharIterator *iter,
-                  UChar *dest, int32_t destCapacity,
-                  const char *locale);
-
-/**
- * Get the full case folding mapping for c.
- * @return the length of the output, negative if same as c
- * @internal
- */
-U_CAPI int32_t U_EXPORT2
-u_internalFoldCase(UChar32 c,
-                   UChar *dest, int32_t destCapacity,
-                   uint32_t options);
+U_CFUNC int32_t
+u_internalFoldCase(UChar32 c, UChar dest[32], uint32_t options);
 
 /**
  * Internal case-insensitive string compare function.
@@ -173,6 +107,16 @@ U_CFUNC int32_t
 u_internalStrcasecmp(const UChar *s1, int32_t length1,
                      const UChar *s2, int32_t length2,
                      uint32_t options);
+
+/**
+ * Internal, somewhat faster version of u_getCombiningClass()
+ * for use by normalization quick check etc.
+ * First make sure that data is loaded by u_getCombiningClass(0x300)!=0
+ * or uprv_haveProperties() is true.
+ * @internal
+ */
+U_CFUNC uint8_t
+u_internalGetCombiningClass(UChar32 c);
 
 /**
  * Get the default converter. This is a commonly used converter
@@ -229,21 +173,5 @@ U_CAPI int32_t U_EXPORT2
 u_terminateWChars(wchar_t *dest, int32_t destCapacity, int32_t length, UErrorCode *pErrorCode);
 
 #define u_getMaxCaseExpansion() 10
-
-/**
- * Find a single (unmatched) surrogate code point in the string s[0..length[ .
- * Find the first such surrogate.
- * @internal
- */
-U_CFUNC const UChar *
-uprv_strFindSurrogate(const UChar *s, int32_t length, UChar surrogate);
-
-/**
- * Find a single (unmatched) surrogate code point in the string s[0..length[ .
- * Find the last such surrogate.
- * @internal
- */
-U_CFUNC const UChar *
-uprv_strFindLastSurrogate(const UChar *s, int32_t length, UChar surrogate);
 
 #endif

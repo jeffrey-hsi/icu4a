@@ -20,25 +20,8 @@
 */
 
 #ifdef WIN32
-#   define VC_EXTRALEAN
-#   define WIN32_LEAN_AND_MEAN
-#   define NOGDI
-#   define NOUSER
-#   define NOSERVICE
-#   define NOIME
-#   define NOMCX
 #include <windows.h>
 #include <time.h>
-
-/* _M_IA64 should be defined in windows.h */
-#ifdef _M_IA64
-#   define ICU_OBJECT_MACHINE_TYPE IMAGE_FILE_MACHINE_IA64
-#   define ICU_ENTRY_OFFSET 0
-#else
-#   define ICU_OBJECT_MACHINE_TYPE IMAGE_FILE_MACHINE_I386
-#   define ICU_ENTRY_OFFSET 1
-#endif
-
 #endif
 
 #include <stdio.h>
@@ -89,29 +72,25 @@ char symPrefix[100];
 
 extern int
 main(int argc, char* argv[]) {
-    UBool verbose = TRUE;
-
-    U_MAIN_INIT_ARGS(argc, argv);
-
     options[2].value = ".";
 
     /* read command line options */
     argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
-    
-    if( options[3].doesOccur ) /* be consistent with gencmn! */
+
+#ifndef U_HAVE_BIND_INTERNAL_REFERENCES
+
+    if( (options[3].doesOccur) && uprv_strcmp(options[3].value, U_ICUDATA_NAME)) /* be consistent with gencmn! */
     {
       uprv_strcpy(symPrefix, options[3].value);
+      uprv_strcat(symPrefix, "_");
     }
     else
     {
       symPrefix[0] = 0;
     }
-
-    /* add an underscore to the prefix if non empty */
-    if(symPrefix[0] != 0)
-    {
-      uprv_strcat(symPrefix, "_");
-    }
+#else
+    symPrefix[0] = 0;
+#endif
 
     /* error handling, printing usage message */
     if(argc<0) {
@@ -124,14 +103,11 @@ main(int argc, char* argv[]) {
             "usage: %s [-options] filename1 filename2 ...\n"
             "\tread each binary input file and \n"
             "\tcreate a .c file with a byte array that contains the input file's data\n"
-            "options:\n"
-            "\t-h or -? or --help  this usage text\n"
-            "\t-d or --destdir     destination directory, followed by the path\n"
-            "\t-n or --name        symbol prefix, followed by the prefix\n"
-            "\t-e or --entrypoint  entry point name, followed by the name\n"
-            "\t-r or --revision    Specify a version\n"
+            "\toptions:\n"
+            "\t\t-h or -? or --help  this usage text\n"
+            "\t\t-d or --destdir     destination directory, followed by the path\n"
 #ifdef CAN_GENERATE_OBJECTS
-            "\t-o or --object      write a .obj file instead of .c\n"
+            "\t\t-o or --object      write a .obj file instead of .c\n"
 #endif
             , argv[0]);
     } else {
@@ -139,19 +115,17 @@ main(int argc, char* argv[]) {
         void (*writeCode)(const char *, const char *);
 #ifdef CAN_GENERATE_OBJECTS
         if(options[5].doesOccur) {
-            message="generating object code for %s\n";
+            message="Generating object code for %s\n";
             writeCode=&writeObjectCode;
         } else
 #endif
         {
-            message="generating C code for %s\n";
+            message="Generating C code for %s\n";
             writeCode=&writeCCode;
         }
         while(--argc) {
             filename=getLongPathname(argv[argc]);
-            if (verbose) {
-                fprintf(stdout, message, filename);
-            }
+            fprintf(stdout, message, filename);
             column=0xffff;
             writeCode(filename, options[2].value);
         }
@@ -187,15 +161,13 @@ writeCCode(const char *filename, const char *destdir) {
         }
     }
 
-    /* Function renaming shouldn't be done in data */
     sprintf(buffer,
-        "#define U_DISABLE_RENAMING 1\n"
-        "#include \"unicode/umachine.h\"\n"
+        "#include \"unicode/utypes.h\"\n"
         "U_CDECL_BEGIN\n"
         "const struct {\n"
         "    double bogus;\n"
         "    uint8_t bytes[%ld]; \n"
-        "} %s%s={ 0.0, {\n",
+        "} %s%s={ 0, {\n",
         (long)T_FileStream_size(in), symPrefix, entry);
     T_FileStream_writeLine(out, buffer);
 
@@ -250,10 +222,10 @@ writeObjectCode(const char *filename, const char *destdir) {
 
     /* entry have a leading '_' */
     entry[0]='_';
-    getOutFilename(filename, destdir, buffer, entry+ICU_ENTRY_OFFSET, ".obj");
+    getOutFilename(filename, destdir, buffer, entry+1, ".obj");
 
     if(options[4].doesOccur) {
-        uprv_strcpy(entry+ICU_ENTRY_OFFSET, options[4].value);
+        uprv_strcpy(entry+1, options[4].value);
         uprv_strcat(entry, "_dat");
     }
     /* turn dashes in the entry name into underscores */
@@ -286,7 +258,7 @@ writeObjectCode(const char *filename, const char *destdir) {
     length+=6;
 
     /* set the file header */
-    objHeader.fileHeader.Machine=ICU_OBJECT_MACHINE_TYPE;
+    objHeader.fileHeader.Machine=IMAGE_FILE_MACHINE_I386;
     objHeader.fileHeader.NumberOfSections=2;
     objHeader.fileHeader.TimeDateStamp=time(NULL);
     objHeader.fileHeader.PointerToSymbolTable=IMAGE_SIZEOF_FILE_HEADER+2*IMAGE_SIZEOF_SECTION_HEADER+length+size; /* start of symbol table */

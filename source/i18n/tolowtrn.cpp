@@ -68,39 +68,45 @@ void LowercaseTransliterator::handleTransliterate(Replaceable& text,
                                  UBool isIncremental) const
 {
     int32_t textPos = offsets.start;
+    int32_t loop;
     if (textPos >= offsets.limit) return;
 
     // get string for context
-
-    UnicodeString original;
-    text.extractBetween(offsets.contextStart, offsets.contextLimit, original);
+    // TODO: add convenience method to do this, since we do it all over
     
-    UCharIterator iter;
-    uiter_setReplaceable(&iter, &text);
-    iter.start = offsets.contextStart;
-    iter.limit = offsets.contextLimit;
-
+    UnicodeString original;
+    /*UChar *original = new UChar[offsets.contextLimit - offsets.contextStart+1];*/ // get whole context
+    /* Extract the characters from Replaceable */
+    for (loop = offsets.contextStart; loop < offsets.contextLimit; loop++) {
+        original.append(text.charAt(loop));
+    }
+    
     // Walk through original string
     // If there is a case change, modify corresponding position in replaceable
     
     int32_t i = textPos - offsets.contextStart;
     int32_t limit = offsets.limit - offsets.contextStart;
-    UChar32 cp;
+    UChar32 cp, bufferCH;
     int32_t oldLen;
     
     for (; i < limit; ) { 
+        UErrorCode status = U_ZERO_ERROR;
+        int32_t s = i;
+        bufferCH = original.char32At(s);
+
         UTF_GET_CHAR(original.getBuffer(), 0, i, original.length(), cp);
         oldLen = UTF_CHAR_LENGTH(cp);
         i += oldLen;
-        iter.index = i; // Point _past_ current char
-        int32_t newLen = u_internalToLower(cp, &iter, buffer, u_getMaxCaseExpansion(), loc.getName());
-        if (newLen >= 0) {
-            UnicodeString temp(buffer, newLen);
+        int32_t len = u_strToLower(buffer, u_getMaxCaseExpansion(), original.getBuffer()+s, i-s, loc.getName(), &status);
+        /* Skip checking of status code here because the buffer should not have overflowed. */
+        UTF_GET_CHAR(buffer, 0, 0, len, cp);
+        if ( bufferCH != cp ) {
+            UnicodeString temp(buffer);
             text.handleReplaceBetween(textPos, textPos + oldLen, temp);
-            if (newLen != oldLen) {
-                textPos += newLen;
-                offsets.limit += newLen - oldLen;
-                offsets.contextLimit += newLen - oldLen;
+            if (len != oldLen) {
+                textPos += len;
+                offsets.limit += len - oldLen;
+                offsets.contextLimit += len - oldLen;
                 continue;
             }
         }

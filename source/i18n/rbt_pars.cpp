@@ -8,16 +8,13 @@
 **********************************************************************
 */
 #include "cstring.h"
-#include "funcrepl.h"
 #include "hash.h"
 #include "quant.h"
 #include "rbt_data.h"
 #include "rbt_pars.h"
 #include "rbt_rule.h"
 #include "strmatch.h"
-#include "strrepl.h"
 #include "symtable.h"
-#include "tridpars.h"
 #include "uvector.h"
 #include "unicode/parseerr.h"
 #include "unicode/parsepos.h"
@@ -58,18 +55,6 @@ static const UChar DOT_SET[] = { // "[^[:Zp:][:Zl:]\r\n$]";
     108, 58, 93, 92, 114, 92, 110, 36, 93, 0
 };
 
-// A function is denoted &Source-Target/Variant(text)
-#define FUNCTION           ((UChar)38)     /*&*/
-
-// Special characters disallowed at the top level
-static const UChar ILLEGAL_TOP[] = {41,0}; // ")"
-
-// Special characters disallowed within a segment
-static const UChar ILLEGAL_SEG[] = {123,125,124,64,0}; // "{}|@"
-
-// Special characters disallowed within a function argument
-static const UChar ILLEGAL_FUNC[] = {94,40,46,42,43,63,123,125,124,64,0}; // "^(.*+?{}|@"
-
 // By definition, the ANCHOR_END special character is a
 // trailing SymbolTable.SYMBOL_REF character.
 // private static final char ANCHOR_END       = '$';
@@ -109,21 +94,10 @@ public:
 
     virtual const UnicodeString* lookup(const UnicodeString& s) const;
 
-    virtual const UnicodeFunctor* lookupMatcher(UChar32 ch) const;
+    virtual const UnicodeMatcher* lookupMatcher(UChar32 ch) const;
 
     virtual UnicodeString parseReference(const UnicodeString& text,
                                          ParsePosition& pos, int32_t limit) const;
-    /**
-     * Return true if the given character is a matcher standin or a plain
-     * character (non standin).
-     */
-    UBool isMatcher(UChar32 ch);
-
-    /**
-     * Return true if the given character is a replacer standin or a plain
-     * character (non standin).
-     */
-    UBool isReplacer(UChar32 ch);
 };
 
 ParseData::ParseData(const TransliterationRuleData* d,
@@ -140,15 +114,15 @@ const UnicodeString* ParseData::lookup(const UnicodeString& name) const {
 /**
  * Implement SymbolTable API.
  */
-const UnicodeFunctor* ParseData::lookupMatcher(UChar32 ch) const {
+const UnicodeMatcher* ParseData::lookupMatcher(UChar32 ch) const {
     // Note that we cannot use data.lookupSet() because the
     // set array has not been constructed yet.
-    const UnicodeFunctor* set = NULL;
+    const UnicodeMatcher* set = NULL;
     int32_t i = ch - data->variablesBase;
     if (i >= 0 && i < variablesVector->size()) {
         int32_t i = ch - data->variablesBase;
         set = (i < variablesVector->size()) ?
-            (UnicodeFunctor*) variablesVector->elementAt(i) : 0;
+            (UnicodeMatcher*) variablesVector->elementAt(i) : 0;
     }
     return set;
 }
@@ -177,32 +151,6 @@ UnicodeString ParseData::parseReference(const UnicodeString& text,
     return result;
 }
 
-UBool ParseData::isMatcher(UChar32 ch) {
-    // Note that we cannot use data.lookup() because the
-    // set array has not been constructed yet.
-    int32_t i = ch - data->variablesBase;
-    if (i >= 0 && i < variablesVector->size()) {
-        UnicodeFunctor *f = (UnicodeFunctor*) variablesVector->elementAt(i);
-        return f != NULL && f->toMatcher() != NULL;
-    }
-    return TRUE;
-}
-
-/**
- * Return true if the given character is a replacer standin or a plain
- * character (non standin).
- */
-UBool ParseData::isReplacer(UChar32 ch) {
-    // Note that we cannot use data.lookup() because the
-    // set array has not been constructed yet.
-    int i = ch - data->variablesBase;
-    if (i >= 0 && i < variablesVector->size()) {
-        UnicodeFunctor *f = (UnicodeFunctor*) variablesVector->elementAt(i);
-        return f != NULL && f->toReplacer() != NULL;
-    }
-    return TRUE;
-}
-
 //----------------------------------------------------------------------
 // BEGIN RuleHalf
 //----------------------------------------------------------------------
@@ -221,6 +169,8 @@ public:
     int32_t cursor; // position of cursor in text
     int32_t ante;   // position of ante context marker '{' in text
     int32_t post;   // position of post context marker '}' in text
+
+    int32_t maxRef; // n where maximum segment ref is $n; 1-based
 
     // Record the offset to the cursor either to the left or to the
     // right of the key.  This is indicated by characters on the output
@@ -243,8 +193,13 @@ public:
     UErrorCode ec;
 
     /**
-     * The segment number from 1..n of the next '(' we see
-     * during parsing; 1-based.
+     * UnicodeMatcher objects corresponding to each segment.
+     */
+    UVector segments;
+        
+    /**
+     * The segment number from 0..n-1 of the next '(' we see
+     * during parsing; 0-based.
      */
     int32_t nextSegmentNumber;
 
@@ -260,7 +215,6 @@ public:
 
     int32_t parseSection(const UnicodeString& rule, int32_t pos, int32_t limit,
                          UnicodeString& buf,
-                         const UnicodeString& illegal,
                          UBool isSegment);
 
     /**
@@ -269,16 +223,10 @@ public:
     void removeContext();
 
     /**
-     * Return true if this half looks like valid output, that is, does not
-     * contain quantifiers or other special input-only elements.
+     * Create and return a UnicodeMatcher*[] array of segments,
+     * or NULL if there are no segments.
      */
-    UBool isValidOutput(TransliteratorParser& parser);
-
-    /**
-     * Return true if this half looks like valid input, that is, does not
-     * contain functions or other special output-only elements.
-     */
-    UBool isValidInput(TransliteratorParser& parser);
+    UnicodeMatcher** createSegments(UErrorCode& status) const;
 
     int syntaxError(UErrorCode code,
                     const UnicodeString& rule,
@@ -294,15 +242,18 @@ private:
 
 RuleHalf::RuleHalf(TransliteratorParser& p) :
     ec(U_ZERO_ERROR),
+    segments(ec),
     parser(p)
 {
     cursor = -1;
     ante = -1;
     post = -1;
+    maxRef = -1;
     cursorOffset = 0;
     cursorOffsetPos = 0;
     anchorStart = anchorEnd = FALSE;
-    nextSegmentNumber = 1;
+    segments.removeAllElements();
+    nextSegmentNumber = 0;
 }
 
 RuleHalf::~RuleHalf() {
@@ -317,7 +268,7 @@ RuleHalf::~RuleHalf() {
 int32_t RuleHalf::parse(const UnicodeString& rule, int32_t pos, int32_t limit) {
     int32_t start = pos;
     text.truncate(0);
-    pos = parseSection(rule, pos, limit, text, ILLEGAL_TOP, FALSE);
+    pos = parseSection(rule, pos, limit, text, FALSE);
 
     if (cursorOffset > 0 && cursor != cursorOffsetPos) {
         return syntaxError(U_MISPLACED_CURSOR_OFFSET, rule, start);
@@ -336,8 +287,6 @@ int32_t RuleHalf::parse(const UnicodeString& rule, int32_t pos, int32_t limit) {
  * @param buf buffer into which to accumulate the rule pattern
  * characters, either literal characters from the rule or
  * standins for UnicodeMatcher objects including segments.
- * @param illegal the set of special characters that is illegal during
- * this parse.
  * @param isSegment if true, then we've already seen a '(' and
  * pos on entry points right after it.  Accumulate everything
  * up to the closing ')', put it in a segment matcher object,
@@ -351,7 +300,6 @@ int32_t RuleHalf::parse(const UnicodeString& rule, int32_t pos, int32_t limit) {
  */
 int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t limit,
                                UnicodeString& buf,
-                               const UnicodeString& illegal,
                                UBool isSegment) {
     int32_t start = pos;
     ParsePosition pp;
@@ -361,7 +309,15 @@ int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t l
     int32_t quoteLimit = -1;
     int32_t varStart = -1; // Most recent $variableReference
     int32_t varLimit = -1;
-    int32_t bufStart = buf.length();
+
+    // If isSegment, then bufSegStart is the offset in buf to
+    // the first character of the segment we are parsing.
+    int32_t bufSegStart = 0;
+    int32_t segmentNumber = 0;
+    if (isSegment) {
+        bufSegStart = buf.length();
+        segmentNumber = nextSegmentNumber++;
+    }
     
     while (pos < limit && !done) {
         // Since all syntax characters are in the BMP, fetching
@@ -415,10 +371,10 @@ int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t l
                 buf.append(c); // Parse [''] outside quotes as [']
                 ++pos;
             } else {
-                /* This loop picks up a run of quoted text of the
-                 * form 'aaaa' each time through.  If this run
+                /* This loop picks up a segment of quoted text of the
+                 * form 'aaaa' each time through.  If this segment
                  * hasn't really ended ('aaaa''bbbb') then it keeps
-                 * looping, each time adding on a new run.  When it
+                 * looping, each time adding on a new segment.  When it
                  * reaches the final quote it breaks.
                  */
                 quoteStart = buf.length();
@@ -453,10 +409,6 @@ int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t l
             return syntaxError(U_VARIABLE_RANGE_OVERLAP, rule, start);
         }
 
-        if (illegal.indexOf(c) >= 0) {
-            syntaxError(U_ILLEGAL_CHARACTER, rule, start);
-        }
-
         switch (c) {
                     
         //------------------------------------------------------
@@ -471,68 +423,7 @@ int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t l
             }
           break;
         case SEGMENT_OPEN:
-            {
-                // bufSegStart is the offset in buf to the first
-                // character of the segment we are parsing.
-                int32_t bufSegStart = buf.length();
-                
-                // Record segment number now, since nextSegmentNumber
-                // will be incremented during the call to parseSection
-                // if there are nested segments.
-                int32_t segmentNumber = nextSegmentNumber++; // 1-based
-                
-                // Parse the segment
-                pos = parseSection(rule, pos, limit, buf, ILLEGAL_SEG, TRUE);
-                
-                // After parsing a segment, the relevant characters are
-                // in buf, starting at offset bufSegStart.  Extract them
-                // into a string matcher, and replace them with a
-                // standin for that matcher.
-                StringMatcher* m =
-                    new StringMatcher(buf, bufSegStart, buf.length(),
-                                      segmentNumber, *parser.data);
-                
-                // Record and associate object and segment number
-                parser.setSegmentObject(segmentNumber, m);
-                buf.truncate(bufSegStart);
-                buf.append(parser.getSegmentStandin(segmentNumber));
-            }
-            break;
-        case FUNCTION:
-            {
-                int32_t iref = pos;
-                TransliteratorIDParser::SingleID* single =
-                    TransliteratorIDParser::parseFilterID(rule, iref);
-                // The next character MUST be a segment open
-                if (single == NULL ||
-                    !ICU_Utility::parseChar(rule, iref, SEGMENT_OPEN)) {
-                    return syntaxError(U_INVALID_FUNCTION, rule, start);
-                }
-                
-                Transliterator *t = single->createInstance();
-                delete single;
-                if (t == NULL) {
-                    return syntaxError(U_INVALID_FUNCTION, rule, start);
-                }
-                
-                // bufSegStart is the offset in buf to the first
-                // character of the segment we are parsing.
-                int32_t bufSegStart = buf.length();
-                
-                // Parse the segment
-                pos = parseSection(rule, iref, limit, buf, ILLEGAL_FUNC, TRUE);
-                
-                // After parsing a segment, the relevant characters are
-                // in buf, starting at offset bufSegStart.
-                UnicodeString output;
-                buf.extractBetween(bufSegStart, buf.length(), output);
-                FunctionReplacer *r =
-                    new FunctionReplacer(t, new StringReplacer(output, parser.data));
-                
-                // Replace the buffer contents with a stand-in
-                buf.truncate(bufSegStart);
-                buf.append(parser.generateStandInFor(r));
-            }
+            pos = parseSection(rule, pos, limit, buf, TRUE);
             break;
         case SymbolTable::SYMBOL_REF:
             // Handle variable references and segment references "$1" .. "$9"
@@ -549,12 +440,24 @@ int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t l
                 }
                 // Parse "$1" "$2" .. "$9" .. (no upper limit)
                 c = rule.charAt(pos);
-                int32_t r = u_digit(c, 10);
+                int32_t r = u_charDigitValue(c);
                 if (r >= 1 && r <= 9) {
-                    r = ICU_Utility::parseNumber(rule, pos, 10);
-                    if (r < 0) {
-                        return syntaxError(U_UNDEFINED_SEGMENT_REFERENCE,
-                                           rule, start);
+                    ++pos;
+                    while (pos < limit) {
+                        c = rule.charAt(pos);
+                        int32_t d = u_charDigitValue(c);
+                        if (d < 0) {
+                            break;
+                        }
+                        if (r > 214748364 ||
+                            (r == 214748364 && d > 7)) {
+                            return syntaxError(U_UNDEFINED_SEGMENT_REFERENCE,
+                                               rule, start);
+                        }
+                        r = 10*r + d;
+                    }
+                    if (r > maxRef) {
+                        maxRef = r;
                     }
                     buf.append(parser.getSegmentStandin(r));
                 } else {
@@ -594,7 +497,7 @@ int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t l
             //  $v+     matches  xyxyxy if $v == xy
             //  (seg)+  matches  segsegseg
             {
-                if (isSegment && buf.length() == bufStart) {
+                if (isSegment && buf.length() == bufSegStart) {
                     // The */+ immediately follows '('
                     return syntaxError(U_MISPLACED_QUANTIFIER, rule, start);
                 }
@@ -617,8 +520,8 @@ int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t l
                     qlimit = qstart + 1;
                 }
 
-                UnicodeFunctor *m =
-                    new StringMatcher(buf, qstart, qlimit, 0, *parser.data);
+                UnicodeMatcher *m =
+                    new StringMatcher(buf, qstart, qlimit, FALSE, *parser.data);
                 int32_t min = 0;
                 int32_t max = Quantifier::MAX;
                 switch (c) {
@@ -642,33 +545,67 @@ int32_t RuleHalf::parseSection(const UnicodeString& rule, int32_t pos, int32_t l
         // Elements allowed ONLY WITHIN segments
         //------------------------------------------------------
         case SEGMENT_CLOSE:
-            // assert(isSegment);
-            // We're done parsing a segment.
-            done = TRUE;
-            break;
+            if (isSegment) {
+                // We're done parsing a segment.  The relevant
+                // characters are in buf, starting at offset
+                // bufSegStart.  Extract them into a string
+                // matcher, and replace them with a standin
+                // for that matcher.
+                StringMatcher *m =
+                    new StringMatcher(buf, bufSegStart, buf.length(),
+                                      TRUE, *parser.data);
+                // Since we call parseSection() recursively,
+                // nested segments will result in segment i+1
+                // getting parsed and stored before segment i;
+                // be careful with the vector handling here.
+                if ((segmentNumber+1) > segments.size()) {
+                    segments.setSize(segmentNumber+1);
+                }
+                segments.setElementAt(m, segmentNumber);
+                buf.truncate(bufSegStart);
+                buf.append(parser.generateStandInFor(m));
+                done = TRUE;
+                break;
+            }
+
+            // If we aren't in a segment, then a segment close
+            // character is a syntax error.
+            return syntaxError(U_UNQUOTED_SPECIAL, rule, start);
 
         //------------------------------------------------------
         // Elements allowed ONLY OUTSIDE segments
         //------------------------------------------------------
         case CONTEXT_ANTE:
+            if (isSegment) {
+                return syntaxError(U_ILLEGAL_CHAR_IN_SEGMENT, rule, start);
+            }
             if (ante >= 0) {
                 return syntaxError(U_MULTIPLE_ANTE_CONTEXTS, rule, start);
             }
             ante = buf.length();
             break;
         case CONTEXT_POST:
+            if (isSegment) {
+                return syntaxError(U_ILLEGAL_CHAR_IN_SEGMENT, rule, start);
+            }
             if (post >= 0) {
                 return syntaxError(U_MULTIPLE_POST_CONTEXTS, rule, start);
             }
             post = buf.length();
             break;
         case CURSOR_POS:
+            if (isSegment) {
+                return syntaxError(U_ILLEGAL_CHAR_IN_SEGMENT, rule, start);
+            }
             if (cursor >= 0) {
                 return syntaxError(U_MULTIPLE_CURSORS, rule, start);
             }
             cursor = buf.length();
             break;
         case CURSOR_OFFSET:
+            if (isSegment) {
+                return syntaxError(U_ILLEGAL_CHAR_IN_SEGMENT, rule, start);
+            }
             if (cursorOffset < 0) {
                 if (buf.length() > 0) {
                     return syntaxError(U_MISPLACED_CURSOR_OFFSET, rule, start);
@@ -730,33 +667,18 @@ void RuleHalf::removeContext() {
 }
 
 /**
- * Return true if this half looks like valid output, that is, does not
- * contain quantifiers or other special input-only elements.
+ * Create and return a UnicodeMatcher*[] array of segments,
+ * or NULL if there are no segments.
  */
-UBool RuleHalf::isValidOutput(TransliteratorParser& transParser) {
-    for (int32_t i=0; i<text.length(); ) {
-        UChar32 c = text.char32At(i);
-        i += UTF_CHAR_LENGTH(c);
-        if (!transParser.parseData->isReplacer(c)) {
-            return FALSE;
-        }
+UnicodeMatcher** RuleHalf::createSegments(UErrorCode& status) const {
+    if (segments.size() == 0) {
+        return NULL;
     }
-    return TRUE;
-}
-
-/**
- * Return true if this half looks like valid input, that is, does not
- * contain functions or other special output-only elements.
- */
-UBool RuleHalf::isValidInput(TransliteratorParser& transParser) {
-    for (int32_t i=0; i<text.length(); ) {
-        UChar32 c = text.char32At(i);
-        i += UTF_CHAR_LENGTH(c);
-        if (!transParser.parseData->isMatcher(c)) {
-            return FALSE;
-        }
+    UnicodeMatcher** result = new UnicodeMatcher*[segments.size()];
+    if (result == NULL) {
+        status = U_MEMORY_ALLOCATION_ERROR;
     }
-    return TRUE;
+    return (UnicodeMatcher**) segments.toArray((void**) result);
 }
 
 //----------------------------------------------------------------------
@@ -771,7 +693,6 @@ TransliteratorParser::TransliteratorParser() {
     compoundFilter = NULL;
     parseData = NULL;
     variablesVector = NULL;
-    segmentObjects = NULL;
 }
 
 /**
@@ -782,7 +703,6 @@ TransliteratorParser::~TransliteratorParser() {
     delete compoundFilter;
     delete parseData;
     delete variablesVector;
-    delete segmentObjects;
 }
 
 void
@@ -827,7 +747,7 @@ TransliterationRuleData* TransliteratorParser::orphanData() {
  * @exception IllegalArgumentException if there is a syntax error in the
  * rules
  */
-void TransliteratorParser::parseRules(const UnicodeString& rule,
+void TransliteratorParser::parseRules(const UnicodeString& rules,
                                       UTransDirection theDirection) {
     // Clear error struct
     parseError.line = parseError.offset = -1;
@@ -870,7 +790,7 @@ void TransliteratorParser::parseRules(const UnicodeString& rule,
     idBlock.truncate(0);
     idSplitPoint = -1;
     int32_t pos = 0;
-    int32_t limit = rule.length();
+    int32_t limit = rules.length();
     // The mode marks whether we are in the header ::id block, the
     // rule block, or the footer ::id block.
     // mode == 0: start: rule->1, ::id->0
@@ -886,18 +806,15 @@ void TransliteratorParser::parseRules(const UnicodeString& rule,
     compoundFilter = NULL;
     int32_t compoundFilterOffset = -1;
 
-    // The number of ::ID block entries we have parsed
-    int32_t idBlockCount = 0;
-
     while (pos < limit && U_SUCCESS(status)) {
-        UChar c = rule.charAt(pos++);
+        UChar c = rules.charAt(pos++);
         if (u_isWhitespace(c)) {
             // Ignore leading whitespace.
             continue;
         }
         // Skip lines starting with the comment character
         if (c == RULE_COMMENT_CHAR) {
-            pos = rule.indexOf((UChar)0x000A /*\n*/, pos) + 1;
+            pos = rules.indexOf((UChar)0x000A /*\n*/, pos) + 1;
             if (pos == 0) {
                 break; // No "\n" found; rest of rule is a commnet
             }
@@ -909,99 +826,69 @@ void TransliteratorParser::parseRules(const UnicodeString& rule,
         // Look for an ID token.  Must have at least ID_TOKEN_LEN + 1
         // chars left.
         if ((pos + ID_TOKEN_LEN + 1) <= limit &&
-            rule.compare(pos, ID_TOKEN_LEN, ID_TOKEN) == 0) {
+            rules.compare(pos, ID_TOKEN_LEN, ID_TOKEN) == 0) {
             pos += ID_TOKEN_LEN;
-            c = rule.charAt(pos);
+            c = rules.charAt(pos);
             while (u_isWhitespace(c) && pos < limit) {
                 ++pos;
-                c = rule.charAt(pos);
+                c = rules.charAt(pos);
             }
-
+            int32_t lengthBefore = idBlock.length();
             if (mode == 1) {
-                // We have just entered the footer ::ID block
                 mode = 2;
-                // In the forward direction add elements at the end.
-                // In the reverse direction add elements at the start.
-                idSplitPoint = idBlockCount;
+                // In the forward direction parseID adds elements at the end.
+                // In the reverse direction parseID adds elements at the start.
+                idSplitPoint = (direction == UTRANS_REVERSE) ? 0 : lengthBefore;
             }
             int32_t p = pos;
-            
-            TransliteratorIDParser::SingleID* id =
-                TransliteratorIDParser::parseSingleID(rule, p, direction);
-            if (p != pos && ICU_Utility::parseChar(rule, p, END_OF_RULE)) {
-                // Successful ::ID parse.
-                
-                if (direction == UTRANS_FORWARD) {
-                    idBlock.append(id->canonID).append(END_OF_RULE);
-                } else {
-                    idBlock.insert(0, END_OF_RULE);
-                    idBlock.insert(0, id->canonID);
-                }
-                
-                ++idBlockCount;
-                
+            UBool sawDelim;
+            UnicodeSet* cpdFilter = NULL;
+            Transliterator::parseID(rules, idBlock, p, sawDelim, cpdFilter, direction,parseError, FALSE,status);
+            if (p == pos || !sawDelim) {
+                // Invalid ::id
+                delete cpdFilter;
+                syntaxError(U_ILLEGAL_ARGUMENT_ERROR, rules, pos);
             } else {
-                // Couldn't parse an ID.  Try to parse a global filter
-                int32_t withParens = -1;
-                UnicodeSet* f = TransliteratorIDParser::parseGlobalFilter(rule, p, direction, withParens, &idBlock);
-                if (f != NULL) {
-                    if (ICU_Utility::parseChar(rule, p, END_OF_RULE)
-                        && (direction == UTRANS_FORWARD) == (withParens == 0))
-                    {
-                        if (compoundFilter != NULL) {
-                            // Multiple compound filters
-                            syntaxError(U_MULTIPLE_COMPOUND_FILTERS, rule, pos);
-                            delete f;
-                        } else {
-                            compoundFilter = f;
-                            compoundFilterOffset = idBlockCount;
-                        }
-                    } else {
-                        delete f;
-                    }
-                } else {
-                    // Invalid ::id
-                    // Can be parsed as neither an ID nor a global filter
-                    syntaxError(U_INVALID_ID, rule, pos);
+                if (direction == UTRANS_REVERSE && idSplitPoint >= 0) {
+                    // In the reverse direction parseID adds elements at the start.
+                    idSplitPoint += idBlock.length() - lengthBefore;
                 }
+                if (cpdFilter != NULL) {
+                    if (compoundFilter != NULL) {
+                        syntaxError(U_MULTIPLE_COMPOUND_FILTERS, rules, pos);
+                    }
+                    compoundFilter = cpdFilter;
+                    compoundFilterOffset = (direction == UTRANS_FORWARD) ?
+                        lengthBefore : idBlock.length();
+                }
+                pos = p;
             }
-            delete id;
-            
-            pos = p;
-        } else if (resemblesPragma(rule, pos, limit)) {
-            int32_t ppp = parsePragma(rule, pos, limit);
+        } else if (resemblesPragma(rules, pos, limit)) {
+            int32_t ppp = parsePragma(rules, pos, limit);
             if (ppp < 0) {
-                syntaxError(U_MALFORMED_PRAGMA, rule, pos);
+                syntaxError(U_MALFORMED_PRAGMA, rules, pos);
             }
             pos = ppp;
         } else {
             // Parse a rule
-            pos = parseRule(rule, pos, limit);
+            pos = parseRule(rules, pos, limit);
             if (U_SUCCESS(status)) {
                 ++ruleCount;
                 if (mode == 2) {
                     // ::id in illegal position (because a rule
                     // occurred after the ::id footer block)
-                    syntaxError(U_ILLEGAL_ARGUMENT_ERROR,rule,pos);
+                    syntaxError(U_ILLEGAL_ARGUMENT_ERROR,rules,pos);
                 }
             }else{
-                syntaxError(status,rule,pos);
+                syntaxError(status,rules,pos);
             }
             mode = 1;
         }
     }
     
-    if (idSplitPoint < 0) {
-        idSplitPoint = idBlockCount;
-    }
-    
-    if (direction == UTRANS_REVERSE) {
-        idSplitPoint = idBlockCount - idSplitPoint;
-    }
-
     // Convert the set vector to an array
     data->variablesLength = variablesVector->size();
-    data->variables = data->variablesLength == 0 ? 0 : new UnicodeFunctor*[data->variablesLength];
+    data->variables = data->variablesLength == 0 ? 0 : new UnicodeMatcher*[data->variablesLength];
     // orphanElement removes the given element and shifts all other
     // elements down.  For performance (and code clarity) we work from
     // the end back to index 0.
@@ -1018,7 +905,7 @@ void TransliteratorParser::parseRules(const UnicodeString& rule,
             if ((direction == UTRANS_FORWARD &&
                  compoundFilterOffset != 0) ||
                 (direction == UTRANS_REVERSE &&
-                 compoundFilterOffset != idBlockCount)) {
+                 compoundFilterOffset != idBlock.length())) {
                 status = U_MISPLACED_COMPOUND_FILTER;
             }
         }        
@@ -1045,6 +932,10 @@ void TransliteratorParser::setVariableRange(int32_t start, int32_t end) {
         return;
     }
     
+    // Segment references work down; variables work up.  We don't
+    // know how many of each we will need.
+    data->segmentBase = (UChar) end;
+    data->segmentCount = 0;
     data->variablesBase = variableNext = (UChar) start; // first private use
     variableLimit = (UChar) (end + 1);
 }
@@ -1162,15 +1053,6 @@ int32_t TransliteratorParser::parseRule(const UnicodeString& rule, int32_t pos, 
     // Locate the left side, operator, and right side
     int32_t start = pos;
     UChar op = 0;
-    int32_t i;
-
-    // Set up segments data
-    segmentStandins.truncate(0);
-    if (segmentObjects == NULL) {
-        segmentObjects = new UVector(status);
-    } else {
-        segmentObjects->removeAllElements();
-    }
 
     // Use pointers to automatics to make swapping possible.
     RuleHalf _left(*this), _right(*this);
@@ -1244,21 +1126,6 @@ int32_t TransliteratorParser::parseRule(const UnicodeString& rule, int32_t pos, 
                     rule, start);
     }
 
-    // Verify segments
-    if (segmentStandins.length() > segmentObjects->size()) {
-        syntaxError(U_UNDEFINED_SEGMENT_REFERENCE, rule, start);
-    }
-    for (i=0; i<segmentStandins.length(); ++i) {
-        if (segmentStandins.charAt(i) == 0) {
-            syntaxError(U_INTERNAL_TRANSLITERATOR_ERROR, rule, start); // will never happen
-        }
-    }
-    for (i=0; i<segmentObjects->size(); ++i) {
-        if (segmentObjects->elementAt(i) == NULL) {
-            syntaxError(U_INTERNAL_TRANSLITERATOR_ERROR, rule, start); // will never happen
-        }
-    }
-    
     // If the direction we want doesn't match the rule
     // direction, do nothing.
     if (op != FWDREV_RULE_OP &&
@@ -1278,7 +1145,8 @@ int32_t TransliteratorParser::parseRule(const UnicodeString& rule, int32_t pos, 
     // apply.
     if (op == FWDREV_RULE_OP) {
         right->removeContext();
-        left->cursor = -1;
+        right->segments.removeAllElements();
+        left->cursor = left->maxRef = -1;
         left->cursorOffset = 0;
     }
 
@@ -1297,6 +1165,7 @@ int32_t TransliteratorParser::parseRule(const UnicodeString& rule, int32_t pos, 
     // cannot place the cursor outside the limits of the context.
     // Anchors are only allowed on the input side.
     if (right->ante >= 0 || right->post >= 0 || left->cursor >= 0 ||
+        right->segments.size() > 0 || left->maxRef >= 0 ||
         (right->cursorOffset != 0 && right->cursor < 0) ||
         // - The following two checks were used to ensure that the
         // - the cursor offset stayed within the ante- or postcontext.
@@ -1305,29 +1174,44 @@ int32_t TransliteratorParser::parseRule(const UnicodeString& rule, int32_t pos, 
         //(right->cursorOffset > (left->text.length() - left->post)) ||
         //(-right->cursorOffset > left->ante) ||
         right->anchorStart || right->anchorEnd ||
-        !left->isValidInput(*this) || !right->isValidOutput(*this) ||
+        !isValidOutput(right->text) ||
         left->ante > left->post) {
 
         return syntaxError(U_MALFORMED_RULE, rule, start);
     }
 
-    // Flatten segment objects vector to an array
-    UnicodeFunctor** segmentsArray = NULL;
-    if (segmentObjects->size() > 0) {
-        segmentsArray = new UnicodeFunctor*[segmentObjects->size()];
-        segmentObjects->toArray((void**) segmentsArray);
+    // Check integrity of segments and segment references.  Each
+    // segment's start must have a corresponding limit, and the
+    // references must not refer to segments that do not exist.
+    if (right->maxRef > left->segments.size()) {
+        return syntaxError(U_UNDEFINED_SEGMENT_REFERENCE, rule, start);
     }
 
     data->ruleSet.addRule(new TransliterationRule(
                                  left->text, left->ante, left->post,
                                  right->text, right->cursor, right->cursorOffset,
-                                 segmentsArray,
-                                 segmentObjects->size(),
+                                 left->createSegments(status),
+                                 left->segments.size(),
                                  left->anchorStart, left->anchorEnd,
                                  data,
                                  status), status);
 
     return pos;
+}
+
+/**
+ * Return true if the given string looks like valid output, that is,
+ * does not contain quantifiers or other special input-only elements.
+ */
+UBool TransliteratorParser::isValidOutput(const UnicodeString& output) const {
+    for (int32_t i=0; i<output.length(); ++i) {
+        UChar32 c = output.char32At(i);
+        i += UTF_CHAR_LENGTH(c);
+        if (parseData->lookupMatcher(c) != NULL) {
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 /**
@@ -1379,74 +1263,19 @@ UChar TransliteratorParser::parseSet(const UnicodeString& rule,
 }
 
 /**
- * Generate and return a stand-in for a new UnicodeFunctor.  Store
+ * Generate and return a stand-in for a new UnicodeMatcher.  Store
  * the matcher (adopt it).
  */
-UChar TransliteratorParser::generateStandInFor(UnicodeFunctor* adopted) {
-    // assert(obj != null);
-    
-    // Look up previous stand-in, if any.  This is a short list
-    // (typical n is 0, 1, or 2); linear search is optimal.
-    for (int32_t i=0; i<variablesVector->size(); ++i) {
-        if (variablesVector->elementAt(i) == adopted) { // [sic] pointer comparison
-            return (UChar) (data->variablesBase + i);
-        }
-    }
-    
+UChar TransliteratorParser::generateStandInFor(UnicodeMatcher* adopted) {
+    // assert(adopted != 0);
     if (variableNext >= variableLimit) {
+        // throw new RuntimeException("Private use variables exhausted");
         delete adopted;
         status = U_VARIABLE_RANGE_EXHAUSTED;
         return 0;
     }
     variablesVector->addElement(adopted, status);
     return variableNext++;
-}
-
-/**
- * Return the standin for segment seg (1-based).
- */
-UChar TransliteratorParser::getSegmentStandin(int32_t seg) {
-    // Special character used to indicate an empty spot
-    UChar empty = data->variablesBase - 1;
-    while (segmentStandins.length() < seg) {
-        segmentStandins.append(empty);
-    }
-    UChar c = segmentStandins.charAt(seg-1);
-    if (c == empty) {
-        if (variableNext >= variableLimit) {
-            status = U_VARIABLE_RANGE_EXHAUSTED;
-            return 0;
-        }
-        c = variableNext++;
-        // Set a placeholder in the master variables vector that will be
-        // filled in later by setSegmentObject().  We know that we will get
-        // called first because setSegmentObject() will call us.
-        variablesVector->addElement((void*) NULL, status);
-        segmentStandins.setCharAt(seg-1, c);
-    }
-    return c;
-}
-
-/**
- * Set the object for segment seg (1-based).
- */
-void TransliteratorParser::setSegmentObject(int32_t seg, StringMatcher* adopted) {
-    // Since we call parseSection() recursively, nested
-    // segments will result in segment i+1 getting parsed
-    // and stored before segment i; be careful with the
-    // vector handling here.
-    if (segmentObjects->size() < seg) {
-        segmentObjects->setSize(seg);
-    }
-    int32_t index = getSegmentStandin(seg) - data->variablesBase;
-    if (segmentObjects->elementAt(seg-1) != NULL ||
-        variablesVector->elementAt(index) != NULL) {
-        // should never happen
-        status = U_INTERNAL_TRANSLITERATOR_ERROR;
-        return;
-    }
-    segmentObjects->setElementAt(adopted, seg-1);
-    variablesVector->setElementAt(adopted, index);
 }
 
 /**
@@ -1491,11 +1320,16 @@ void TransliteratorParser::appendVariableDef(const UnicodeString& name,
     }
 }
 
-/**
- * Glue method to get around access restrictions in C++.
- */
-Transliterator* TransliteratorParser::createBasicInstance(const UnicodeString& id, const UnicodeString* canonID) {
-    return Transliterator::createBasicInstance(id, canonID);
+UChar TransliteratorParser::getSegmentStandin(int32_t r) {
+    // assert(r>=1);
+    if (r > data->segmentCount) {
+        data->segmentCount = r;
+        variableLimit = data->segmentBase - r + 1;
+        if (variableNext >= variableLimit) {
+            status = U_ILLEGAL_ARGUMENT_ERROR;
+        }
+    }
+    return data->getSegmentStandin(r);
 }
 
 U_NAMESPACE_END

@@ -18,25 +18,6 @@
 U_NAMESPACE_BEGIN
 
 /**
- * A token comparison function.
- * @param tok1 A token (object or integer)
- * @param tok2 A token (object or integer)
- * @return 0 if the two tokens are equal, -1 if tok1 is < tok2, or
- * +1 if tok1 is > tok2.
- */
-typedef int8_t (U_EXPORT2 * U_CALLCONV USortComparator)(UHashTok tok1,
-                                                        UHashTok tok2);
-
-/**
- * A token assignment function.  It may copy an integer, copy
- * a pointer, or clone a pointer, as appropriate.
- * @param dst The token to be assigned to
- * @param src The token to assign from
- */
-typedef void (U_EXPORT2 * U_CALLCONV UTokenAssigner)(UHashTok dst,
-                                                     UHashTok src);
-
-/**
  * <p>Ultralightweight C++ implementation of a <tt>void*</tt> vector
  * that is (mostly) compatible with java.util.Vector.
  *
@@ -113,26 +94,7 @@ public:
     UVector(UObjectDeleter d, UKeyComparator c, UErrorCode &status);
 
     UVector(UObjectDeleter d, UKeyComparator c, int32_t initialCapacity, UErrorCode &status);
-
     ~UVector();
-
-    /**
-     * Assign this object to another (make this a copy of 'other').
-     * Use the 'assign' function to assign each element.
-     */
-    void assign(const UVector& other, UTokenAssigner assign, UErrorCode &ec);
-
-    /**
-     * Compare this vector with another.  They will be considered
-     * equal if they are of the same size and all elements are equal,
-     * as compared using this object's comparer.
-     */
-    UBool operator==(const UVector& other);
-
-    /**
-     * Equivalent to !operator==()
-     */
-    inline UBool operator!=(const UVector& other);
 
     //------------------------------------------------------------
     // java.util.Vector API
@@ -156,21 +118,9 @@ public:
 
     void* lastElement(void) const;
 
-    int32_t lastElementi(void) const;
-
     int32_t indexOf(void* obj, int32_t startIndex = 0) const;
 
-    int32_t indexOf(int32_t obj, int32_t startIndex = 0) const;
-
     UBool contains(void* obj) const;
-
-    UBool contains(int32_t obj) const;
-
-    UBool containsAll(const UVector& other) const;
-
-    UBool removeAll(const UVector& other);
-
-    UBool retainAll(const UVector& other);
 
     void removeElementAt(int32_t index);
 
@@ -218,34 +168,8 @@ public:
      */
     void* orphanElementAt(int32_t index);
 
-    /**
-     * Returns true if this vector contains none of the elements
-     * of the given vector.
-     * @param other vector to be checked for containment
-     * @return true if the test condition is met
-     */
-    UBool containsNone(const UVector& other) const;
-
-    /**
-     * Insert the given object into this vector at its sorted position
-     * as defined by 'compare'.  The current elements are assumed to
-     * be sorted already.
-     */
-    void sortedInsert(void* obj, USortComparator compare, UErrorCode& ec);
-
-    /**
-     * Insert the given integer into this vector at its sorted position
-     * as defined by 'compare'.  The current elements are assumed to
-     * be sorted already.
-     */
-    void sortedInsert(int32_t obj, USortComparator compare, UErrorCode& ec);
-
 private:
     void _init(int32_t initialCapacity, UErrorCode &status);
-
-    int32_t indexOf(UHashTok key, int32_t startIndex = 0) const;
-
-    void sortedInsert(UHashTok tok, USortComparator compare, UErrorCode& ec);
 
     // Disallow
     UVector(const UVector&);
@@ -287,8 +211,6 @@ public:
     UBool empty(void) const;
 
     void* peek(void) const;
-
-    int32_t peeki(void) const;
     
     void* pop(void);
     
@@ -323,10 +245,6 @@ inline UBool UVector::contains(void* obj) const {
     return indexOf(obj) >= 0;
 }
 
-inline UBool UVector::contains(int32_t obj) const {
-    return indexOf(obj) >= 0;
-}
-
 inline void* UVector::firstElement(void) const {
     return elementAt(0);
 }
@@ -335,16 +253,8 @@ inline void* UVector::lastElement(void) const {
     return elementAt(count-1);
 }
 
-inline int32_t UVector::lastElementi(void) const {
-    return elementAti(count-1);
-}
-
 inline void* UVector::operator[](int32_t index) const {
     return elementAt(index);
-}
-
-inline UBool UVector::operator!=(const UVector& other) {
-    return !operator==(other);
 }
 
 // UStack inlines
@@ -355,10 +265,6 @@ inline UBool UStack::empty(void) const {
 
 inline void* UStack::peek(void) const {
     return lastElement();
-}
-
-inline int32_t UStack::peeki(void) const {
-    return lastElementi();
 }
 
 inline void* UStack::push(void* obj, UErrorCode &status) {

@@ -11,11 +11,10 @@
 #include "unicode/translit.h"
 #include "unicode/rbt.h"
 #include "unicode/uniset.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "unicode/normlzr.h"
 #include "unicode/uchar.h"
 #include "unicode/parseerr.h"
-#include "unicode/usetiter.h"
 #include "transrt.h"
 #include "testutil.h"
 #include <string.h>
@@ -211,40 +210,142 @@ UBool LegalGreek::isRho(UChar c) {
     return FALSE;
 }
 
-// AbbreviatedUnicodeSetIterator Interface ---------------------------------------------
+// UnicodeSetIterator Interface ---------------------------------------------
 
-class AbbreviatedUnicodeSetIterator : public UnicodeSetIterator {
+class UnicodeSetIterator {
 
 public :
+    UnicodeSet set;
 
-    AbbreviatedUnicodeSetIterator();
-    virtual ~AbbreviatedUnicodeSetIterator();
-    void reset(UnicodeSet& set, UBool abb = FALSE);
+    UnicodeSetIterator(UnicodeSet& set, UBool abb);
+    UnicodeSetIterator(UnicodeSet& set);
+    UnicodeSetIterator();
+    ~UnicodeSetIterator();
+    void setAbbreviated(UBool value);
+    UBool getAbbreviated();
+    int next();
+    void reset(UnicodeSet& set, UBool abb);
+    void reset(UnicodeSet& set);
+    void reset();
+    // tests whether a string is in a set.
+    // should be in UnicodeSet
+    static UBool containsSome(const UnicodeSet& set, const UnicodeString& s);
+    // tests whether a string is in a set.
+    // should be in UnicodeSet
+    static UBool containsAll(const UnicodeSet& set, const UnicodeString& s);
 
 private :
+    int   endRange;
+    int   range;
+    int   startElement;
+    int   endElement;
+    int   element;
     UBool abbreviated;
-    virtual void loadRange(int32_t range);
+
+    void resetInternal();
 };
 
-// AbbreviatedUnicodeSetIterator Implementation ---------------------------------------
+// UnicodeSetIterator Implementation ---------------------------------------
 
-AbbreviatedUnicodeSetIterator::AbbreviatedUnicodeSetIterator() :
-    UnicodeSetIterator(), abbreviated(FALSE) {
+UnicodeSetIterator::UnicodeSetIterator(UnicodeSet& newSet, UBool abb) {
+    reset(newSet, abb);
 }
-
-AbbreviatedUnicodeSetIterator::~AbbreviatedUnicodeSetIterator() {
+    
+UnicodeSetIterator::UnicodeSetIterator(UnicodeSet& newSet) {
+    reset(newSet);
 }
         
-void AbbreviatedUnicodeSetIterator::reset(UnicodeSet& newSet, UBool abb) {
-    UnicodeSetIterator::reset(newSet);
-    abbreviated = abb;
+UnicodeSetIterator::UnicodeSetIterator() {
+    reset();
 }
 
-void AbbreviatedUnicodeSetIterator::loadRange(int32_t range) {
-    UnicodeSetIterator::loadRange(range);
-    if (abbreviated && (endElement > nextElement + 50)) {
-        endElement = nextElement + 50;
+UnicodeSetIterator::~UnicodeSetIterator() {
+}
+        
+void UnicodeSetIterator::setAbbreviated(UBool value) {
+    abbreviated = value;
+}
+    
+UBool UnicodeSetIterator::getAbbreviated() {
+     return abbreviated;
+}
+        
+/* returns -1 when done */
+int UnicodeSetIterator::next() {
+    if (abbreviated) {
+        if (element >= startElement + 50 && element <= endElement - 50) {
+            element = endElement - 50;
+        }
     }
+    if (element < endElement) {
+        return ++element;
+    }
+    if (range >= endRange) {
+        return -1;
+    }
+    ++range;
+    endElement = set.getRangeEnd(range);
+    startElement = set.getRangeStart(range);
+    element = set.getRangeStart(range);
+    return element;
+}
+        
+void UnicodeSetIterator::reset(UnicodeSet& newSet, UBool abb) {
+     abbreviated = abb;
+     this->set = newSet;
+     endRange = set.getRangeCount() - 1;
+     resetInternal();
+}
+        
+void UnicodeSetIterator::reset(UnicodeSet& newSet) {
+    reset(newSet, FALSE);
+}
+        
+void UnicodeSetIterator::reset() {
+    abbreviated = FALSE;
+    set.clear();
+    endRange = set.getRangeCount() - 1;
+    resetInternal();
+}
+        
+void UnicodeSetIterator::resetInternal() {
+    range = 0;
+    endElement = 0;
+    element = 0;            
+    startElement = 0;
+    if (endRange >= 0) {
+        element = set.getRangeStart(range);
+        endElement = set.getRangeEnd(range);
+        startElement = set.getRangeStart(range);
+    }
+}
+        
+// tests whether a string is in a set.
+// should be in UnicodeSet
+UBool UnicodeSetIterator::containsSome(const UnicodeSet& set, 
+                                       const UnicodeString& s) {
+    int cp;
+    for (int i = 0; i < s.length(); i += UTF_CHAR_LENGTH(i)) {
+         cp = s.char32At(i);
+         if (set.contains(cp)) {
+             return TRUE;
+         }
+    }
+    return FALSE;
+}
+        
+// tests whether a string is in a set.
+// should be in UnicodeSet
+UBool UnicodeSetIterator::containsAll(const UnicodeSet& set, 
+                                      const UnicodeString& s) {
+    int cp;
+    for (int i = 0; i < s.length(); i += UTF_CHAR_LENGTH(i)) {
+        cp = s.char32At(i);
+        if (set.contains(cp) == FALSE) {
+            return FALSE;
+        }
+    }
+    return TRUE;
 }
 
 //--------------------------------------------------------------------
@@ -508,8 +609,8 @@ void RTTest::test2(UBool quickRt) {
         return;
     }
 
-    AbbreviatedUnicodeSetIterator usi;
-    AbbreviatedUnicodeSetIterator usi2;
+    UnicodeSetIterator usi;
+    UnicodeSetIterator usi2;
 
     parent->logln("Checking that at least one irrelevant character is not NFC'ed");
     // string is from NFC_NO in the UCD
@@ -550,8 +651,8 @@ void RTTest::test2(UBool quickRt) {
 
       usi.reset(sourceRange);
       for (;;) {
-          if (!usi.next() || usi.isString()) break;
-          UChar32 c = usi.getCodepoint();
+          int c = usi.next();
+          if (c < 0) break;
                     
           UnicodeString cs((UChar32)c);
           UnicodeString targ = cs;
@@ -565,8 +666,8 @@ void RTTest::test2(UBool quickRt) {
       
       usi.reset(targetRange);
       for (;;) {
-          if (!usi.next() || usi.isString()) break;
-          UChar32 c = usi.getCodepoint();
+          int c = usi.next();
+          if (c < 0) break;
               
           UnicodeString cs((UChar32)c);
           UnicodeString targ = cs;
@@ -586,22 +687,23 @@ void RTTest::test2(UBool quickRt) {
     UnicodeSet failSourceTarg;
     usi.reset(sourceRange);
     for (;;) {
-        if (!usi.next() || usi.isString()) break;
-        UChar32 c = usi.getCodepoint();
+        int c = usi.next();
+        if (c < 0) break;
                 
         UnicodeString cs((UChar32)c);
         UnicodeString targ = cs;
         sourceToTarget->transliterate(targ);
-        if (toTarget.containsAll(targ) == FALSE
-            || badCharacters.containsSome(targ) == TRUE) {
+        if (UnicodeSetIterator::containsAll(toTarget, targ) == FALSE
+            || UnicodeSetIterator::containsSome(badCharacters, targ) == TRUE) {
             UnicodeString targD;
             Normalizer::decompose(targ, FALSE, 0, targD, status);
             if (U_FAILURE(status)) {
                 parent->errln("FAIL: Internal error during decomposition %s\n", u_errorName(status));
                 return;
             }
-            if (toTarget.containsAll(targD) == FALSE || 
-                badCharacters.containsSome(targD) == TRUE) {
+            if (UnicodeSetIterator::containsAll(toTarget, targD) == FALSE || 
+                UnicodeSetIterator::containsSome(badCharacters, targD) == 
+                TRUE) {
                 logWrongScript("Source-Target", cs, targ);
                 failSourceTarg.add(c);
                 continue;
@@ -627,22 +729,23 @@ void RTTest::test2(UBool quickRt) {
     sourceRangeMinusFailures.removeAll(failSourceTarg);
             
     usi.reset(sourceRangeMinusFailures, quickRt);
-    for (;;) { 
-        if (!usi.next() || usi.isString()) break;
-        UChar32 c = usi.getCodepoint();
+    for (;;) {
+        int c = usi.next();
+        if (c < 0) break;
              
         usi2.reset(sourceRangeMinusFailures, quickRt);
         for (;;) {
-            if (!usi2.next() || usi2.isString()) break;
-            UChar32 d = usi2.getCodepoint();
+            int d = usi2.next();
+            if (d < 0) break;
                     
             UnicodeString cs;
             cs += (UChar32)c;
             cs += (UChar32)d;
             UnicodeString targ = cs;
             sourceToTarget->transliterate(targ);
-            if (toTarget.containsAll(targ) == FALSE || 
-                badCharacters.containsSome(targ) == TRUE)
+            if (UnicodeSetIterator::containsAll(toTarget,targ) == FALSE || 
+                UnicodeSetIterator::containsSome(badCharacters, targ) 
+                == TRUE)
             {
                 UnicodeString targD;
                 Normalizer::decompose(targ, FALSE, 0, targD, status);
@@ -650,8 +753,9 @@ void RTTest::test2(UBool quickRt) {
                     parent->errln("FAIL: Internal error during decomposition %s\n", u_errorName(status));
                     return;
                 }
-                if (toTarget.containsAll(targD) == FALSE ||
-                    badCharacters.containsSome(targD) == TRUE) {
+                if (UnicodeSetIterator::containsAll(toTarget,targD) == FALSE ||
+                    UnicodeSetIterator::containsSome(badCharacters, targD) 
+                    == TRUE) {
                     logWrongScript("Source-Target", cs, targ);
                     continue;
                 }
@@ -677,8 +781,10 @@ void RTTest::test2(UBool quickRt) {
 
     usi.reset(targetRange);
     for (;;) {
-        if (!usi.next() || usi.isString()) break;
-        UChar32 c = usi.getCodepoint();
+        int c = usi.next();
+        if (c < 0) { 
+            break;
+        }
 
         UnicodeString cs((UChar32)c);
         targ = cs;
@@ -686,16 +792,17 @@ void RTTest::test2(UBool quickRt) {
         reverse = targ;
         sourceToTarget->transliterate(reverse);
 
-        if (toSource.containsAll(targ) == FALSE ||
-            badCharacters.containsSome(targ) == TRUE) {
+        if (UnicodeSetIterator::containsAll(toSource, targ) == FALSE ||
+            UnicodeSetIterator::containsSome(badCharacters, targ) == TRUE) {
             UnicodeString targD;
             Normalizer::decompose(targ, FALSE, 0, targD, status);
             if (U_FAILURE(status)) {
                 parent->errln("FAIL: Internal error during decomposition%s\n", u_errorName(status));
                 return;
             }
-            if (toSource.containsAll(targD) == FALSE || 
-                badCharacters.containsSome(targD) == TRUE) {
+            if (UnicodeSetIterator::containsAll(toSource, targD) == FALSE || 
+                UnicodeSetIterator::containsSome(badCharacters, targD) 
+                == TRUE) {
                 logWrongScript("Target-Source", cs, targ);
                 failTargSource.add((UChar32)c);
                 continue;
@@ -730,8 +837,10 @@ void RTTest::test2(UBool quickRt) {
 
     usi.reset(targetRangeMinusFailures, quickRt);
     for (;;) {
-        if (!usi.next() || usi.isString()) break;
-        UChar32 c = usi.getCodepoint();
+        int c = usi.next();
+        if (c < 0) {
+            break;
+        }
         if (++count > pairLimit) {
             //throw new TestTruncated("Test truncated at " + pairLimit + " x 64k pairs");
             parent->logln("");
@@ -741,8 +850,10 @@ void RTTest::test2(UBool quickRt) {
 
         usi2.reset(targetRangeMinusFailures, quickRt);
         for (;;) {
-            if (!usi2.next() || usi2.isString()) break;
-            UChar32 d = usi2.getCodepoint();
+            int d = usi.next();
+            if (d < 0) {
+                break;
+            }
             UnicodeString cs;
             cs += (UChar32)c;
             cs += (UChar32)d;
@@ -752,8 +863,8 @@ void RTTest::test2(UBool quickRt) {
             reverse = targ;
             sourceToTarget->transliterate(reverse);
 
-            if (toSource.containsAll(targ) == FALSE || 
-                badCharacters.containsSome(targ) == TRUE) 
+            if (UnicodeSetIterator::containsAll(toSource, targ) == FALSE || 
+                UnicodeSetIterator::containsSome(badCharacters, targ) == TRUE) 
             {
                 UnicodeString targD;
                 Normalizer::decompose(targ, FALSE, 0, targD, status);
@@ -762,8 +873,9 @@ void RTTest::test2(UBool quickRt) {
                                u_errorName(status));
                     return;
                 }
-                if (toSource.containsAll(targD) == FALSE 
-                    || badCharacters.containsSome(targD) == TRUE) {
+                if (UnicodeSetIterator::containsAll(toSource, targD) == FALSE 
+                    || UnicodeSetIterator::containsSome(badCharacters, targD)
+                       == TRUE) {
                     logWrongScript("Target-Source", cs, targ);
                     continue;
                 }
@@ -1004,7 +1116,7 @@ UBool LegalIndic::is(const UnicodeString& sourceString) const{
     return TRUE;
 }
 
-static const char latinForIndic[] = "[['.0-9A-Za-z~\\u00C0-\\u00C5\\u00C7-\\u00CF\\u00D1-\\u00D6\\u00D9-\\u00DD"
+static const char* latinForIndic = "[['.0-9A-Za-z~\\u00C0-\\u00C5\\u00C7-\\u00CF\\u00D1-\\u00D6\\u00D9-\\u00DD"
                                    "\\u00E0-\\u00E5\\u00E7-\\u00EF\\u00F1-\\u00F6\\u00F9-\\u00FD\\u00FF-\\u010F"
                                    "\\u0112-\\u0125\\u0128-\\u0130\\u0134-\\u0137\\u0139-\\u013E\\u0143-\\u0148"
                                    "\\u014C-\\u0151\\u0154-\\u0165\\u0168-\\u017E\\u01A0-\\u01A1\\u01AF-\\u01B0"
@@ -1043,7 +1155,7 @@ void TransliteratorRoundTripTest::TestDevanagariLatin() {
 
 /* Defined this way for HP/UX11CC :-( */
 static const int32_t INTER_INDIC_ARRAY_WIDTH = 4;
-static const char * const interIndicArray[] = {
+static const char * interIndicArray[] = {
     "BENGALI-DEVANAGARI", "[:BENGALI:]", "[:Devanagari:]", 
     "[\\u0951-\\u0954\\u0943-\\u0949\\u094a\\u0962\\u0963\\u090D\\u090e\\u0911\\u0912\\u0929\\u0933\\u0934\\u0935\\u093d\\u0950\\u0958\\u0959\\u095a\\u095b\\u095e\\u09f0\\u09f1]", /*roundtrip exclusions*/
 

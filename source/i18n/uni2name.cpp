@@ -8,9 +8,6 @@
 **********************************************************************
 */
 
-#include <stdio.h>
-
-#include "cstring.h"
 #include "uni2name.h"
 #include "unicode/unifilt.h"
 #include "unicode/uchar.h"
@@ -80,7 +77,6 @@ void UnicodeNameTransliterator::handleTransliterate(Replaceable& text, UTransPos
                                                     UBool /*isIncremental*/) const {
     // As of Unicode 3.0.0, the longest name is 83 characters long.
     // Adjust this buffer size as needed.
-
     char buf[128];
     
     int32_t cursor = offsets.start;
@@ -88,21 +84,24 @@ void UnicodeNameTransliterator::handleTransliterate(Replaceable& text, UTransPos
 
     UnicodeString str(openDelimiter);
     UErrorCode status;
-    int32_t len;
+    UTextOffset len;
 
     while (cursor < limit) {
-        UChar32 c = text.char32At(cursor);
-        int32_t clen = UTF_CHAR_LENGTH(c);
         status = U_ZERO_ERROR;
-        if ((len = u_charName(c, U_EXTENDED_CHAR_NAME, buf, sizeof(buf), &status)) >0 && !U_FAILURE(status)) {
+        UChar32 c = text.char32At(cursor);
+        if ((len=u_charName(c, U_UNICODE_CHAR_NAME, buf, sizeof(buf), &status)) > 0 &&
+            !U_FAILURE(status)) {
+            
             str.truncate(1);
             str.append(UnicodeString(buf, len, "")).append(closeDelimiter);
+            
+            int32_t clen = UTF_CHAR_LENGTH(c);
             text.handleReplaceBetween(cursor, cursor+clen, str);
             len += 2; // adjust for delimiters
             cursor += len; // advance cursor and adjust for new text
             limit += len-clen; // change in length
         } else {
-            cursor += clen;
+            ++cursor;
         }
     }
 

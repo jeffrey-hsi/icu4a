@@ -17,12 +17,6 @@
 #define USTRING_H
 #include "unicode/utypes.h"
 
-/** Simple declaration for u_strToTitle() to avoid including unicode/ubrk.h. */
-#ifndef UBRK_TYPEDEF_UBREAK_ITERATOR
-#   define UBRK_TYPEDEF_UBREAK_ITERATOR
-    typedef void *UBreakIterator;
-#endif
-
 /**
  * \file
  * \brief C API: Unicode string handling functions
@@ -144,19 +138,6 @@ u_strstr(const UChar *s, const UChar *substring);
 /**
  * Find the first occurence of a specified code point in a string.
  *
- * This function finds code points, which differs for BMP code points
- * from u_strchr() only for surrogates:
- * While u_strchr() finds any surrogate code units in a string,
- * u_strchr32() finds only unmatched surrogate code points,
- * i.e., only those that do not combine with an adjacent surrogate
- * to form a supplementary code point.
- * For example, in a string "\ud800\udc00" u_strchr()
- * will find code units U+d800 at 0 and U+dc00 at 1,
- * but u_strchr32() will find neither because they
- * combine to the code point U+10000.
- * Either function will find U+d800 in "a\ud800b".
- * This behavior ensures that UTF_GET_CHAR(u_strchr32(c))==c.
- *
  * @param s The string to search.
  * @param c The code point (0..0x10ffff) to find.
  * @return A pointer to the first occurrence of <TT>c</TT> in <TT>s</TT>,
@@ -210,19 +191,14 @@ u_strspn(const UChar *string, const UChar *matchSet);
  * return successive tokens of that string, src must be specified as
  * NULL. The value saveState is set by this function to maintain the
  * function's position within the string, and on each subsequent call
- * you must give this argument the same variable. This function does
- * handle surrogate pairs. This function is similar to the strtok_r()
- * the POSIX Threads Extension (1003.1c-1995) version.
+ * you must return the same value. This function does handle surrogate
+ * pairs. This function is similar to the strtok_r() the POSIX Threads
+ * Extension (1003.1c-1995) version.
  *
- * @param src String containing token(s). This string will be modified.
- *            After the first call to u_strtok_r(), this argument must
- *            be NULL to get to the next token.
+ * @param src String containing token(s). This will be modified.
  * @param delim Set of delimiter characters (Unicode code points).
  * @param saveState The current pointer within the original string,
- *              which is set by this function. The saveState
- *              parameter should the address of a local variable of type
- *              UChar *. (i.e. defined "Uhar *myLocalSaveState" and use
- *              &myLocalSaveState for this parameter).
+ *                which is set by this function.
  * @return A pointer to the next token found in src, or NULL
  *         when there are no more tokens.
  * @stable
@@ -466,7 +442,7 @@ u_memset(UChar *dest, UChar c, int32_t count);
  * @stable
  */
 U_CAPI int32_t U_EXPORT2
-u_memcmp(const UChar *buf1, const UChar *buf2, int32_t count);
+u_memcmp(UChar *buf1, UChar *buf2, int32_t count);
 
 /**
  * Compare two Unicode strings in code point order.
@@ -497,23 +473,11 @@ u_memcmpCodePointOrder(const UChar *s1, const UChar *s2, int32_t count);
  * @stable
  */
 U_CAPI UChar* U_EXPORT2
-u_memchr(const UChar *src, UChar ch, int32_t count);
+u_memchr(UChar *src, UChar ch, int32_t count);
 
 /**
- * Find the first occurence of a specified code point in a string.
- *
- * This function finds code points, which differs for BMP code points
- * from u_memchr() only for surrogates:
- * While u_memchr() finds any surrogate code units in a string,
- * u_memchr32() finds only unmatched surrogate code points,
- * i.e., only those that do not combine with an adjacent surrogate
- * to form a supplementary code point.
- * For example, in a string "\ud800\udc00" u_memchr()
- * will find code units U+d800 at 0 and U+dc00 at 1,
- * but u_memchr32() will find neither because they
- * combine to the code point U+10000.
- * Either function will find U+d800 in "a\ud800b".
- * This behavior ensures that UTF_GET_CHAR(u_memchr32(c))==c.
+ * Search for a UChar32 within a Unicode string until <TT>count</TT>
+ * is reached. This also includes surrogates in UTF-16.
  *
  * @param src string to search in
  * @param ch character to find
@@ -524,7 +488,7 @@ u_memchr(const UChar *src, UChar ch, int32_t count);
  * @stable
  */
 U_CAPI UChar* U_EXPORT2
-u_memchr32(const UChar *src, UChar32 ch, int32_t count);
+u_memchr32(UChar *src, UChar32 ch, int32_t count);
 
 /**
  * Unicode String literals in C.
@@ -718,51 +682,6 @@ u_strToUpper(UChar *dest, int32_t destCapacity,
 U_CAPI int32_t U_EXPORT2
 u_strToLower(UChar *dest, int32_t destCapacity,
              const UChar *src, int32_t srcLength,
-             const char *locale,
-             UErrorCode *pErrorCode);
-
-/**
- * Titlecase a string.
- * Casing is locale-dependent and context-sensitive.
- * Titlecasing uses a break iterator to find the first characters of words
- * that are to be titlecased. It titlecases those characters and lowercases
- * all others.
- *
- * The titlecase break iterator can be provided to customize for arbitrary
- * styles, using rules and dictionaries beyond the standard iterators.
- * It may be more efficient to always provide an iterator to avoid
- * opening and closing one for each string.
- * The standard titlecase iterator for the root locale implements the
- * algorithm of Unicode TR 21.
- *
- * This function uses only the first() and next() methods of the
- * provided break iterator.
- *
- * The result may be longer or shorter than the original.
- * The source string and the destination buffer are allowed to overlap.
- *
- * @param dest      A buffer for the result string. The result will be zero-terminated if
- *                  the buffer is large enough.
- * @param destCapacity The size of the buffer (number of UChars). If it is 0, then
- *                  dest may be NULL and the function will only return the length of the result
- *                  without writing any of the result string.
- * @param src       The original string
- * @param srcLength The length of the original string. If -1, then src must be zero-terminated.
- * @param titleIter A break iterator to find the first characters of words
- *                  that are to be titlecased.
- *                  If none is provided (NULL), then a standard titlecase
- *                  break iterator is opened.
- * @param locale    The locale to consider, or "" for the root locale or NULL for the default locale.
- * @param pErrorCode Must be a valid pointer to an error code value,
- *                  which must not indicate a failure before the function call.
- * @return The length of the result string. It may be greater than destCapacity. In that case,
- *         only some of the result was written to the destination buffer.
- * @draft ICU 2.1
- */
-U_CAPI int32_t U_EXPORT2
-u_strToTitle(UChar *dest, int32_t destCapacity,
-             const UChar *src, int32_t srcLength,
-             UBreakIterator *titleIter,
              const char *locale,
              UErrorCode *pErrorCode);
 

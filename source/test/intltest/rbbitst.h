@@ -52,10 +52,6 @@ public:
      **/  
     void TestHindiWordBreak(void);
     /**
-     * Tests Title Case break iteration
-     **/  
-    void TestTitleBreak(void);
-    /**
     * Test Hindi Danda i.e make sure we have a break point before and after danda 
     **/ 
 //    void TestDanda(void); 

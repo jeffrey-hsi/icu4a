@@ -3,7 +3,7 @@
 ## Copyright (c) 1999-2000, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-hpux-cc,v 1.30 2002/03/01 17:47:41 grhoten-oss Exp $
+## $Id: mh-hpux-cc,v 1.28 2001/10/03 23:32:11 grhoten-oss Exp $
 
 
 ## This causes source/tools/pkgdata generated makefiles  to create and link
@@ -17,7 +17,7 @@ GEN_DEPS.cc= 	:
 
 ## Commands to compile
 COMPILE.c=	$(CC) -D__STDC__ +z -Ae $(DEFS) $(CPPFLAGS) $(CFLAGS) -c
-COMPILE.cc=	$(CXX) -D__STDC__ +z -ext +dup_static_removal +d $(DEFS) $(CPPFLAGS) $(CXXFLAGS) -c
+COMPILE.cc=	$(CXX) +dup_static_removal +d -D__STDC__ +z +a1 $(DEFS) $(CPPFLAGS) $(CXXFLAGS) -c
 
 ## Commands to link
 ## We need to use the C++ linker, even when linking C programs, since
@@ -62,11 +62,11 @@ STATIC_O = o
 
 ## Dependency rules
 %.d : $(srcdir)/%.c
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(GEN_DEPS.c) $< > $@
 
 %.d : $(srcdir)/%.cpp
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(GEN_DEPS.cc) $< > $@
 
 ## Versioned libraries rules

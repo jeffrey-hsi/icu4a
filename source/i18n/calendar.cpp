@@ -493,87 +493,34 @@ Calendar::complete(UErrorCode& status)
 
 // -------------------------------------
 
-int32_t Calendar::fieldDifference(UDate targetMs, EDateFields field, UErrorCode& ec) {
-    if (U_FAILURE(ec)) return 0;
-    int32_t min = 0;
-    double startMs = getTimeInMillis(ec);
-    // Always add from the start millis.  This accomodates
-    // operations like adding years from February 29, 2000 up to
-    // February 29, 2004.  If 1, 1, 1, 1 is added to the year
-    // field, the DOM gets pinned to 28 and stays there, giving an
-    // incorrect DOM difference of 1.  We have to add 1, reset, 2,
-    // reset, 3, reset, 4.
-    if (startMs < targetMs) {
-        int32_t max = 1;
-        // Find a value that is too large
-        while (U_SUCCESS(ec)) {
-            setTimeInMillis(startMs, ec);
-            add(field, max, ec);
-            double ms = getTimeInMillis(ec);
-            if (ms == targetMs) {
-                return max;
-            } else if (ms > targetMs) {
+int32_t Calendar::fieldDifference(UDate when, EDateFields field, UErrorCode& status) {
+    if (U_FAILURE(status)) return 0;
+    int32_t result = 0;
+    double ms = getTimeInMillis(status);
+    if (ms < when) {
+        while (U_SUCCESS(status)) {
+            add(field, 1, status);
+            double newMs = getTimeInMillis(status);
+            if (newMs > when) {
+                setTimeInMillis(ms, status);
                 break;
-            } else {
-                max <<= 1;
-                if (max < 0) {
-                    // Field difference too large to fit into int32_t
-                    ec = U_ILLEGAL_ARGUMENT_ERROR;
-                }
             }
+            ms = newMs;
+            ++result;
         }
-        // Do a binary search
-        while ((max - min) > 1 && U_SUCCESS(ec)) {
-            int32_t t = (min + max) / 2;
-            setTimeInMillis(startMs, ec);
-            add(field, t, ec);
-            double ms = getTimeInMillis(ec);
-            if (ms == targetMs) {
-                return t;
-            } else if (ms > targetMs) {
-                max = t;
-            } else {
-                min = t;
-            }
-        }
-    } else if (startMs > targetMs) {
-        int32_t max = -1;
-        // Find a value that is too small
-        while (U_SUCCESS(ec)) {
-            setTimeInMillis(startMs, ec);
-            add(field, max, ec);
-            double ms = getTimeInMillis(ec);
-            if (ms == targetMs) {
-                return max;
-            } else if (ms < targetMs) {
+    } else if (ms > when) {
+        while (U_SUCCESS(status)) {
+            add(field, -1, status);
+            double newMs = getTimeInMillis(status);
+            if (newMs < when) {
+                setTimeInMillis(ms, status);
                 break;
-            } else {
-                max <<= 1;
-                if (max == 0) {
-                    // Field difference too large to fit into int32_t
-                    ec = U_ILLEGAL_ARGUMENT_ERROR;
-                }
             }
-        }
-        // Do a binary search
-        while ((min - max) > 1 && U_SUCCESS(ec)) {
-            int32_t t = (min + max) / 2;
-            setTimeInMillis(startMs, ec);
-            add(field, t, ec);
-            double ms = getTimeInMillis(ec);
-            if (ms == targetMs) {
-                return t;
-            } else if (ms < targetMs) {
-                max = t;
-            } else {
-                min = t;
-            }
+            ms = newMs;
+            --result;
         }
     }
-    // Set calendar to end point
-    setTimeInMillis(startMs, ec);
-    add(field, min, ec);
-    return min;
+    return result;
 }
 
 // -------------------------------------
@@ -749,55 +696,72 @@ Calendar::getActualMaximum(EDateFields field, UErrorCode& status) const
 
 // -------------------------------------
 
+int32_t Calendar::stringToDayNumber(const UnicodeString& string, UErrorCode& status)
+{
+    // Convert a UnicodeString to a long integer, using the standard C library.
+    // Return both the value obtained, and a UErrorCode indicating success or failure.
+    // We fail if the string is zero length, of if strtol() does not parse all
+    // of the characters in the string, or if the value is not in the range
+    // 1..7.  (This is used to read the week-count data from the resource files;
+    // ResourceBundle returns all data in string form, so we have to convert it here.)
+    if (U_FAILURE(status)) return 0;
+
+    int32_t len = string.length();
+    char number[32];
+    char *end;
+
+    string.extract(0, len, number, "");
+    int32_t value = (int32_t)strtol(number, &end, 10); // Radix 10
+
+    if (end-number != len || len == 0 || value < 1 || value > 7)
+        status = U_INVALID_FORMAT_ERROR;
+
+    return value;
+}
+
+// -------------------------------------
+
 void
 Calendar::setWeekCountData(const Locale& desiredLocale, UErrorCode& status)
 {
     // Read the week count data from the resource bundle.  This should
     // have the form:
     //
-    //   DateTimeElements:intvector {
-    //      1,    // first day of week
-    //      1     // min days in week
+    //   DateTimeElements {
+    //      "1",    // first day of week
+    //      "1"     // min days in week
     //   }
-    //   Both have a range of 1..7
 
 
     if (U_FAILURE(status)) return;
-
-    fFirstDayOfWeek = Calendar::SUNDAY;
-    fMinimalDaysInFirstWeek = 1;
-
-    UResourceBundle *resource = ures_open(NULL, desiredLocale.getName(), &status);
+    ResourceBundle resource((char *)0, desiredLocale, status);
 
     // If the resource data doesn't seem to be present at all, then use last-resort
     // hard-coded data.
     if (U_FAILURE(status))
     {
         status = U_USING_FALLBACK_ERROR;
-        ures_close(resource);
+        fFirstDayOfWeek = Calendar::SUNDAY;
+        fMinimalDaysInFirstWeek = 1;
         return;
     }
 
     //dateTimeElements = resource.getStringArray(kDateTimeElements, count, status);
-    UResourceBundle *dateTimeElements = ures_getByKey(resource, kDateTimeElements, NULL, &status);
-    if (U_SUCCESS(status)) {
-        int32_t arrLen;
-        const int32_t *dateTimeElementsArr = ures_getIntVector(dateTimeElements, &arrLen, &status);
+    ResourceBundle dateTimeElements = resource.get(kDateTimeElements, status);
 
-        if(U_SUCCESS(status) && arrLen == 2
-            && 1 <= dateTimeElementsArr[0] && dateTimeElementsArr[0] <= 7
-            && 1 <= dateTimeElementsArr[1] && dateTimeElementsArr[1] <= 7)
-        {
-            fFirstDayOfWeek = (Calendar::EDaysOfWeek)dateTimeElementsArr[0];
-            fMinimalDaysInFirstWeek = (uint8_t)dateTimeElementsArr[1];
-        }
-        else {
-            status = U_INVALID_FORMAT_ERROR;
-        }
+
+    if (U_FAILURE(status)) return;
+//    if (count != 2)
+    if(dateTimeElements.getSize()!=2)
+    {
+        status = U_INVALID_FORMAT_ERROR;
+        return;
     }
 
-    ures_close(dateTimeElements);
-    ures_close(resource);
+    //fFirstDayOfWeek = (Calendar::EDaysOfWeek)stringToDayNumber(dateTimeElements[0], status);
+    //fMinimalDaysInFirstWeek = (uint8_t)stringToDayNumber(dateTimeElements[1], status);
+    fFirstDayOfWeek = (Calendar::EDaysOfWeek)stringToDayNumber(dateTimeElements.getStringEx((int32_t)0, status), status);
+    fMinimalDaysInFirstWeek = (uint8_t)stringToDayNumber(dateTimeElements.getStringEx(1, status), status);
 }
 
 /**

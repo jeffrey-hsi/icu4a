@@ -10,35 +10,54 @@ top_builddir = ../..
 
 include $(top_builddir)/icudefs.mk
 
+## Platform-specific setup
+
+include @platform_make_fragment@
+
 ##
 
-SECTION = 1
+SECTION = 8
 
-MAN_FILES = $(TARGET).$(SECTION) $(DERB).$(SECTION)
+MAN_FILES = $(TARGET).$(SECTION)
 
 ## Build directory information
 subdir = tools/genrb
 
 ## Extra files to remove for 'make clean'
-CLEANFILES = *~ $(MAN_FILES) $(DEPS) 
+CLEANFILES = *~ $(TARGET).$(SECTION) $(DEPS) 
 
 ## Target information
 TARGET = genrb
-DERB = derb
 
-CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(srcdir)/../toolutil
-LIBS = $(LIBICUI18N) $(LIBICUTOOLUTIL) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
+ENABLE_STATIC = @ENABLE_STATIC@
 
-OBJECTS = errmsg.o genrb.o parse.o read.o reslist.o ustr.o util.o \
-wrtjava.o rle.o
-DERB_OBJ = derb.o
+ifneq ($(ENABLE_STATIC),)
+LINK = $(LINK.cc)
+else
+LINK = $(LINK.c)
+endif
+
+DEFS = @DEFS@
+CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(srcdir)/../toolutil
+CFLAGS = @CFLAGS@
+CXXFLAGS = @CXXFLAGS@
+ENABLE_RPATH = @ENABLE_RPATH@
+ifeq ($(ENABLE_RPATH),YES)
+RPATHLDFLAGS = $(LD_RPATH)$(LD_RPATH_PRE)$(libdir)
+endif
+LDFLAGS = @LDFLAGS@ $(RPATHLDFLAGS)
+LIBS = $(LIBICUI18N) $(LIBICUTOOLUTIL) $(LIBICUUC) @LIBS@ @LIB_M@ 
+
+##OBJECTS = error.o genrb.o ustr.o parse.o read.o write.o list.o	\
+##rblist.o  util.o
+OBJECTS = error.o genrb.o parse.o read.o reslist.o ustr.o util.o
 
 DEPS = $(OBJECTS:.o=.d)
-DERB_DEPS = $(DERB_OBJ:.o=.d)
+
 
 ## List of phony targets
-.PHONY : all all-local install install-local clean clean-local	\
-distclean distclean-local dist dist-local check \
+.PHONY : all all-local install install-local clean clean-local		\
+distclean distclean-local dist dist-local check	\
 check-local install-man
 
 ## Clear suffix list
@@ -52,18 +71,17 @@ distclean : distclean-local
 dist: dist-local
 check: all check-local
 
-all-local: $(TARGET) $(DERB) $(MAN_FILES) 
+all-local: $(TARGET) $(MAN_FILES) 
 
 install-local: all-local install-man
-	$(MKINSTALLDIRS) $(DESTDIR)$(bindir)
-	$(INSTALL) $(TARGET) $(DESTDIR)$(bindir)
-	$(INSTALL) $(DERB) $(DESTDIR)$(bindir)
+	$(MKINSTALLDIRS) $(DESTDIR)$(sbindir)
+	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)/$(TARGET)
 
 <dist-local:
 
 clean-local: 
 	test -z "$(CLEANFILES)" || $(RMV) $(CLEANFILES)
-	$(RMV) $(TARGET) $(DERB) $(OBJECTS) $(DERB_OBJ)
+	$(RMV) $(TARGET) $(OBJECTS)
 
 distclean-local: clean-local
 	$(RMV) Makefile
@@ -75,10 +93,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 $(TARGET) : $(OBJECTS)
-	$(LINK.c) -o $@ $^ $(LIBS) 
-
-$(DERB) : $(DERB_OBJ)
-	$(LINK.c) -o $@ $^ $(LIBS) 
+	$(LINK) -o $@ $^ $(LIBS) 
 
 
 # the 'mv' will always fail if you are building in the source dir
@@ -88,7 +103,7 @@ install-man: $(MAN_FILES)
 	$(MKINSTALLDIRS) $(DESTDIR)$(mandir)/man$(SECTION)
 	$(INSTALL_DATA) $< $(DESTDIR)$(mandir)/man$(SECTION)
 
-%.$(SECTION): $(srcdir)/%.$(SECTION).in
+$(TARGET).$(SECTION): $(srcdir)/$(TARGET).$(SECTION).in
 	cd $(top_builddir) \
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -101,10 +116,8 @@ $(TARGET).pdf: $(TARGET).ps
 
 ifeq (,$(MAKECMDGOALS))
 -include $(DEPS)
--include $(DERB_DEPS)
 else
 ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
 -include $(DEPS)
 endif
 endif
-

@@ -149,7 +149,7 @@ static void loadZoneData() {
         if (!DATA_LOADED) {
             UErrorCode status = U_ZERO_ERROR;
             UDATA_POINTER = udata_openChoice(0, TZ_DATA_TYPE, TZ_DATA_NAME, // THIS IS NOT A LEAK!
-                   (UDataMemoryIsAcceptable*)isTimeZoneDataAcceptable, 0, &status); // see the comment on udata_close line
+                                             isTimeZoneDataAcceptable, 0, &status); // see the comment on udata_close line
             UDataMemory *data = UDATA_POINTER;
             if (U_SUCCESS(status)) {
                 DATA = (TZHeader*)udata_getMemory(data);
@@ -453,7 +453,7 @@ TimeZone::setDefault(const TimeZone& zone)
 
 // -------------------------------------
 
-const UnicodeString** 
+const UnicodeString** const
 TimeZone::createAvailableIDs(int32_t rawOffset, int32_t& numIDs)
 {
     // We are creating a new array to existing UnicodeString pointers.
@@ -496,8 +496,8 @@ TimeZone::createAvailableIDs(int32_t rawOffset, int32_t& numIDs)
         }
         if (index->gmtOffset == rawOffset) {
             // Found our desired offset
-            const UnicodeString** result =
-                (const UnicodeString**) new UnicodeString*[index->count];
+            const UnicodeString** const result =
+                (const UnicodeString** const) new UnicodeString*[index->count];
             const uint16_t* zoneNumberArray = &(index->zoneNumber);
             for (uint16_t i=0; i<index->count; ++i) {
                 // Pointer assignment - use existing UnicodeString object!
@@ -522,7 +522,7 @@ TimeZone::createAvailableIDs(int32_t rawOffset, int32_t& numIDs)
 
 // -------------------------------------
 
-const UnicodeString** 
+const UnicodeString** const
 TimeZone::createAvailableIDs(const char* country, int32_t& numIDs) {
 
     // We are creating a new array to existing UnicodeString pointers.
@@ -565,8 +565,8 @@ TimeZone::createAvailableIDs(const char* country, int32_t& numIDs) {
         }
         if (index->intcode == intcode) {
             // Found our desired country
-            const UnicodeString** result =
-                (const UnicodeString**) new UnicodeString*[index->count];
+            const UnicodeString** const result =
+                (const UnicodeString** const) new UnicodeString*[index->count];
             const uint16_t* zoneNumberArray = &(index->zoneNumber);
             for (uint16_t i=0; i<index->count; ++i) {
                 // Pointer assignment - use existing UnicodeString object!
@@ -591,7 +591,7 @@ TimeZone::createAvailableIDs(const char* country, int32_t& numIDs) {
 
 // -------------------------------------
 
-const UnicodeString** 
+const UnicodeString** const
 TimeZone::createAvailableIDs(int32_t& numIDs)
 {
     // We are creating a new array to existing UnicodeString pointers.
@@ -611,8 +611,8 @@ TimeZone::createAvailableIDs(int32_t& numIDs)
         return 0;
     }
 
-    const UnicodeString** result =
-        (const UnicodeString** ) new UnicodeString*[DATA->count];
+    const UnicodeString** const result =
+        (const UnicodeString** const) new UnicodeString*[DATA->count];
 
     // Create a list of pointers to each and every zone ID
     for (uint32_t i=0; i<DATA->count; ++i) {

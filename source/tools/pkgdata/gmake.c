@@ -25,7 +25,7 @@ char linebuf[2048];
 void
 pkg_mak_writeHeader(FileStream *f, const UPKGOptions *o)
 {
-  sprintf(linebuf, "## Makefile for %s created by pkgdata\n"
+  sprintf(linebuf, "## Makefile for %s created by pkgtool\n"
                    "## from ICU Version %s\n"
                    "\n",
           o->shortName,
@@ -33,17 +33,14 @@ pkg_mak_writeHeader(FileStream *f, const UPKGOptions *o)
   T_FileStream_writeLine(f, linebuf);
 
   sprintf(linebuf, "NAME=%s\n"
-          "CNAME=%s\n"
           "TARGETDIR=%s\n"
           "TEMP_DIR=%s\n"
-          "srcdir=$(TEMP_DIR)\n"
           "MODE=%s\n"
           "MAKEFILE=%s\n"
           "ENTRYPOINT=%s\n"
           "include %s\n"
           "\n\n\n",
           o->shortName,
-          o->cShortName,
           o->targetDir,
           o->tmpDir,
           o->mode,
@@ -51,26 +48,6 @@ pkg_mak_writeHeader(FileStream *f, const UPKGOptions *o)
           o->entryName,
           o->options);
   T_FileStream_writeLine(f, linebuf);
-
-  /* TEMP_PATH  and TARG_PATH will be empty if the respective dir is . */
-  /* Avoid //'s and .'s which confuse make ! */
-  if(!strcmp(o->tmpDir,"."))
-  {
-    T_FileStream_writeLine(f, "TEMP_PATH=\n");
-  }
-  else
-  {
-    T_FileStream_writeLine(f, "TEMP_PATH=$(TEMP_DIR)/\n");
-  }
-
-  if(!strcmp(o->targetDir,"."))
-  {
-    T_FileStream_writeLine(f, "TARG_PATH=\n");
-  }
-  else
-  {
-    T_FileStream_writeLine(f, "TARG_PATH=$(TARGETDIR)/\n");
-  }
 
   sprintf(linebuf, "## List files [%d] containing data files to process (note: - means stdin)\n"
                             "LISTFILES= ",

@@ -4,6 +4,9 @@
 ## Makefile.in for ICU - tools/toolutil
 ## Steven R. Loomis
 
+SO_TARGET_VERSION = @LIB_VERSION@
+SO_TARGET_VERSION_MAJOR = @LIB_VERSION_MAJOR@
+
 ## Source directory information
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -11,6 +14,9 @@ top_srcdir = @top_srcdir@
 top_builddir = ../..
 
 include $(top_builddir)/icudefs.mk
+
+## Platform-specific setup
+include @platform_make_fragment@
 
 ## Build directory information
 subdir = tools/toolutil
@@ -20,8 +26,13 @@ CLEANFILES = *~ $(DEPS)
 
 ## Target information
 
+
+ENABLE_STATIC = @ENABLE_STATIC@
+ENABLE_SHARED = @ENABLE_SHARED@
+
 ifneq ($(ENABLE_STATIC),)
 TARGET = $(LIBICU)toolutil$(ICULIBSUFFIX).a
+RANLIB = @RANLIB@
 endif
 
 ifneq ($(ENABLE_SHARED),)
@@ -35,8 +46,16 @@ DYNAMICCPPFLAGS = $(SHAREDLIBCPPFLAGS)
 DYNAMICCFLAGS = $(SHAREDLIBCFLAGS)
 DYNAMICCXXFLAGS = $(SHAREDLIBCXXFLAGS)
 
-CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/ctestfw $(LIBCPPFLAGS)
-LIBS = $(LIBICUUC) $(DEFAULT_LIBS)
+DEFS = @DEFS@
+CPPFLAGS = @CPPFLAGS@ $(LIBCPPFLAGS) -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/ctestfw
+CFLAGS = @CFLAGS@
+CXXFLAGS = @CXXFLAGS@
+ENABLE_RPATH = @ENABLE_RPATH@
+ifeq ($(ENABLE_RPATH),YES)
+RPATHLDFLAGS = $(LD_RPATH)$(LD_RPATH_PRE)$(libdir)
+endif
+LDFLAGS = @LDFLAGS@ $(RPATHLDFLAGS)
+LIBS = $(LIBICUUC) @LIBS@ 
 
 OBJECTS = toolutil.o unewdata.o ucmpwrit.o uoptions.o uparse.o ucbuf.o
 

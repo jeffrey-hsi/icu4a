@@ -32,9 +32,6 @@ public:
      **/
     void TestLock(void);
 
-    /* Was the global mutex initialized. */
-    static UBool gMutexInitialized;
-
 private:
 };
 

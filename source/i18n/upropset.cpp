@@ -1,7 +1,11 @@
 /*
 **********************************************************************
-*   Copyright (c) 2001-2002, International Business Machines
+*   Copyright (c) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
+**********************************************************************
+* $Source: /xsrl/Nsvn/icu/icu/source/i18n/Attic/upropset.cpp,v $
+* $Date: 2001/11/30 00:06:11 $
+* $Revision: 1.11 $
 **********************************************************************
 */
 #include "upropset.h"
@@ -16,6 +20,7 @@
 #include "ucln_in.h"
 #include "charstr.h"
 
+U_NAMESPACE_BEGIN
 
 static Hashtable* NAME_MAP = NULL;
 
@@ -113,23 +118,6 @@ static const UChar INCLUSIONS_PATTERN[] =
 92,85,48,48,48,70,48,48,48,49,45,92,85,48,48,48,70,70,70,70,68,32,
 92,85,48,48,49,48,48,48,48,49,45,92,85,48,48,49,48,70,70,70,68,93,0};
 // "[^\\u3401-\\u4DB5 \\u4E01-\\u9FA5 \\uAC01-\\uD7A3 \\uD801-\\uDB7F \\uDB81-\\uDBFF \\uDC01-\\uDFFF \\uE001-\\uF8FF \\U0001044F-\\U0001CFFF \\U0001D801-\\U0001FFFF \\U00020001-\\U0002A6D6 \\U0002A6D8-\\U0002F7FF \\U0002FA1F-\\U000E0000 \\U000E0081-\\U000EFFFF \\U000F0001-\\U000FFFFD \\U00100001-\\U0010FFFD]"
-
-/**
- * Cleanup function for transliterator component; delegates to
- * Transliterator::cleanupRegistry().
- */
-U_CFUNC UBool unicodePropertySet_cleanup(void) {
-    if (NAME_MAP != NULL) {
-        delete NAME_MAP; NAME_MAP = NULL;
-        delete CATEGORY_MAP; CATEGORY_MAP = NULL;
-        delete[] CATEGORY_CACHE; CATEGORY_CACHE = NULL;
-        delete[] SCRIPT_CACHE; SCRIPT_CACHE = NULL;
-        delete INCLUSIONS; INCLUSIONS = NULL;
-    }
-    return TRUE;
-}
-
-U_NAMESPACE_BEGIN
 
 //----------------------------------------------------------------
 // Public API
@@ -335,15 +323,10 @@ UnicodeSet* UnicodePropertySet::createScriptSet(const UnicodeString& valueName) 
 // Utility methods
 //----------------------------------------------------------------
 
-U_CDECL_BEGIN
-static UBool U_CALLCONV
-_enumCategoryRange(const void * /*context*/,
-                   UChar32 start, UChar32 limit, UCharCategory type)
-{
-    CATEGORY_CACHE[type].add(start, limit-1);
-    return TRUE;
+static UBool _categoryFilter(UChar32 c, void* context) {
+    int32_t value = * (int32_t*) context;
+    return u_charType(c) == value;
 }
-U_CDECL_END
 
 /**
  * Returns a UnicodeSet for the given category.  This set is
@@ -353,12 +336,8 @@ U_CDECL_END
  * Callers MUST NOT MODIFY the returned set.
  */
 const UnicodeSet& UnicodePropertySet::getCategorySet(int32_t cat) {
-    if (CATEGORY_CACHE == 0) {
-        CATEGORY_CACHE = new UnicodeSet[32]; // 32 is guaranteed by the Unicode standard
-        if (CATEGORY_CACHE == 0) {
-            return *((const UnicodeSet *)0);
-        }
-        u_enumCharTypes(_enumCategoryRange, 0);
+    if (CATEGORY_CACHE[cat].isEmpty()) {
+        initSetFromFilter(CATEGORY_CACHE[cat], _categoryFilter, &cat);
     }
     return CATEGORY_CACHE[cat];
 }
@@ -522,6 +501,7 @@ void UnicodePropertySet::init() {
 
     NAME_MAP = new Hashtable(TRUE);
     CATEGORY_MAP = new Hashtable(TRUE);
+    CATEGORY_CACHE = new UnicodeSet[(size_t)U_CHAR_CATEGORY_COUNT];
     SCRIPT_CACHE = new UnicodeSet[(size_t)USCRIPT_CODE_LIMIT];
 
     ucln_i18n_registerCleanup(); // Call this when allocating statics
@@ -663,6 +643,16 @@ void UnicodePropertySet::init() {
              1 << U_PARAGRAPH_SEPARATOR);
     addValue(CATEGORY_MAP, "ZS", "SPACESEPARATOR",
              1 << U_SPACE_SEPARATOR);
+}
+
+void UnicodePropertySet::cleanup() {
+    if (NAME_MAP != NULL) {
+        delete NAME_MAP; NAME_MAP = NULL;
+        delete CATEGORY_MAP; CATEGORY_MAP = NULL;
+        delete[] CATEGORY_CACHE; CATEGORY_CACHE = NULL;
+        delete[] SCRIPT_CACHE; SCRIPT_CACHE = NULL;
+        delete INCLUSIONS; INCLUSIONS = NULL;
+    }
 }
 
 U_NAMESPACE_END

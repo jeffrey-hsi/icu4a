@@ -22,10 +22,6 @@ public:
      **/
     void TestBasicGetters(void);
     /**
-     * Test methods to set and get data fields
-     **/
-    void TestParallelAPIValues(void);
-    /**
      * Use Locale to access Resource file data and compare against expected values
      **/
     void TestSimpleResourceInfo(void);
@@ -70,8 +66,6 @@ public:
     void TestVariantParsing(void);
     
     void Test4105828(void) ;
-
-    void TestSetIsBogus(void);
 
     static UDate date(int32_t y, int32_t m, int32_t d, int32_t hr = 0, int32_t min = 0, int32_t sec = 0);
 

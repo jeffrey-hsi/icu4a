@@ -12,7 +12,6 @@
 #include "unicode/unifltlg.h"
 #include "unicode/uniset.h"
 #include "uvector.h"
-#include "tridpars.h"
 
 // keep in sync with Transliterator
 static const UChar ID_SEP   = 0x002D; /*-*/
@@ -57,40 +56,19 @@ CompoundTransliterator::CompoundTransliterator(
 CompoundTransliterator::CompoundTransliterator(const UnicodeString& id,
                               UTransDirection direction,
                               UnicodeFilter* adoptedFilter,
-                              UParseError& /*parseError*/,
+                              UParseError& parseError,
                               UErrorCode& status) :
     Transliterator(id, adoptedFilter),
     trans(0), compoundRBTIndex(-1) {
-    // TODO add code for parseError...currently unused, but
-    // later may be used by parsing code...
-    init(id, direction, -1, 0, TRUE, status);
+    init(id, direction, -1, 0, TRUE,parseError,status);
 }
 
 CompoundTransliterator::CompoundTransliterator(const UnicodeString& id,
-                              UParseError& /*parseError*/,
+                              UParseError& parseError,
                               UErrorCode& status) :
     Transliterator(id, 0), // set filter to 0 here!
     trans(0), compoundRBTIndex(-1) {
-    // TODO add code for parseError...currently unused, but
-    // later may be used by parsing code...
-    init(id, UTRANS_FORWARD, -1, 0, TRUE, status);
-}
-
-/**
- * Private constructor for Transliterator from a vector of
- * transliterators.  The caller is responsible for fixing up the
- * ID.
- */
-CompoundTransliterator::CompoundTransliterator(UVector& list,
-                                               UParseError& /*parseError*/,
-                                               UErrorCode& status) :
-    Transliterator(EMPTY, NULL),
-    trans(0), compoundRBTIndex(-1)
-{
-    // TODO add code for parseError...currently unused, but
-    // later may be used by parsing code...
-    init(list, UTRANS_FORWARD, FALSE, status);
-    // assume caller will fixup ID
+    init(id, UTRANS_FORWARD, -1, 0, TRUE,parseError,status);
 }
 
 /**
@@ -102,11 +80,28 @@ CompoundTransliterator::CompoundTransliterator(const UnicodeString& newID,
                                                const UnicodeString& idBlock,
                                                int32_t idSplitPoint,
                                                Transliterator *adoptedTrans,
+                                               UParseError& parseError,
                                                UErrorCode& status) :
     Transliterator(newID, 0),
     trans(0), compoundRBTIndex(-1)
 {
-    init(idBlock, UTRANS_FORWARD, idSplitPoint, adoptedTrans, FALSE, status);
+    init(idBlock, UTRANS_FORWARD, idSplitPoint, adoptedTrans, FALSE,parseError,status);
+}
+
+/**
+ * Private constructor for Transliterator from a vector of
+ * transliterators.  The vector order is FORWARD, so if dir is REVERSE
+ * then the vector order will be reversed.  The caller is responsible
+ * for fixing up the ID.
+ */
+CompoundTransliterator::CompoundTransliterator(UTransDirection dir,
+                                               UVector& list,
+                                               UErrorCode& status) :
+    Transliterator(UnicodeString("", ""), 0),
+    trans(0), compoundRBTIndex(-1)
+{
+    init(list, dir, FALSE, status);
+    // assume caller will fixup ID
 }
 
 /**
@@ -130,6 +125,7 @@ void CompoundTransliterator::init(const UnicodeString& id,
                                   int32_t idSplitPoint,
                                   Transliterator *adoptedSplitTrans,
                                   UBool fixReverseID,
+                                  UParseError& parseError,
                                   UErrorCode& status) {
     // assert(trans == 0);
 
@@ -141,15 +137,10 @@ void CompoundTransliterator::init(const UnicodeString& id,
     UVector list(status);
     UnicodeSet* compoundFilter = NULL;
     UnicodeString regenID;
-    if (!TransliteratorIDParser::parseCompoundID(id, direction,
-                                      regenID, list, compoundFilter)) {
-        status = U_INVALID_ID;
-        delete adoptedSplitTrans;
-        delete compoundFilter;
-        return;
-    }
-
-    compoundRBTIndex = TransliteratorIDParser::instantiateList(list, adoptedSplitTrans, idSplitPoint, status);
+    Transliterator::parseCompoundID(id, regenID, direction,
+                                    idSplitPoint, adoptedSplitTrans,
+                                    list, compoundRBTIndex, compoundFilter,
+                                    parseError, status);
 
     init(list, direction, fixReverseID, status);
 

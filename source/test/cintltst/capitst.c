@@ -108,8 +108,7 @@ void addCollAPITest(TestNode** root)
     addTest(root, &TestDecomposition, "tscoll/capitst/TestDecomposition");
     addTest(root, &TestSafeClone, "tscoll/capitst/TestSafeClone");
     addTest(root, &TestGetSetAttr, "tscoll/capitst/TestGetSetAttr");
-    addTest(root, &TestBounds, "tscoll/capitst/TestBounds");
-    addTest(root, &TestGetLocale, "tscoll/capitst/TestGetLocale");    
+    
 }
 
 static void doAssert(int condition, const char *message)
@@ -220,9 +219,8 @@ void TestProperty()
       All the collations have the same version in an ICU
       version.
       ICU 2.0 currVersionArray = {0x18, 0xC0, 0x02, 0x02};
-      ICU 2.1 currVersionArray = {0x19, 0x00, 0x03, 0x03};
     */
-    UVersionInfo currVersionArray = {0x19, 0x00, 0x03, 0x03};
+    UVersionInfo currVersionArray = {0x18, 0xC0, 0x02, 0x02};
     UVersionInfo versionArray;
     
     log_verbose("The property tests begin : \n");
@@ -845,7 +843,7 @@ void TestHashCode()
  */ 
 void TestElemIter()
 {
-    int32_t offset;
+    UTextOffset offset;
     int32_t order1, order2, order3;
     UChar *testString1, *testString2;
     UCollator *col;
@@ -963,94 +961,6 @@ void TestElemIter()
     log_verbose("testing CollationElementIterator ends...\n");
 }
 
-void TestGetLocale() {
-  UErrorCode status = U_ZERO_ERROR;
-  const char *rules = "&a<x<y<z";
-  UChar rlz[256] = {0};
-  uint32_t rlzLen = u_unescape(rules, rlz, 256);
-
-  UCollator *coll = NULL;
-  const char *locale = NULL;
-
-  int32_t i = 0;
-
-  static const struct {
-    const char* requestedLocale;
-    const char* validLocale;
-    const char* actualLocale;
-  } testStruct[] = {
-    { "sr_YU", "sr_YU", "root" },
-    { "sh_YU", "sh_YU", "sh" },
-    { "en_US_CALIFORNIA", "en_US", "root" },
-    { "fr_FR_NONEXISTANT", "fr_FR", "fr" }
-  };
-
-  /* test opening collators for different locales */
-  for(i = 0; i<sizeof(testStruct)/sizeof(testStruct[0]); i++) {
-    status = U_ZERO_ERROR;
-    coll = ucol_open(testStruct[i].requestedLocale, &status);
-    if(U_FAILURE(status)) {
-      log_err("Failed to open collator for %s with %s\n", testStruct[i].requestedLocale, u_errorName(status));
-      ucol_close(coll);
-      continue;
-    }
-    locale = ucol_getLocale(coll, ULOC_REQUESTED_LOCALE, &status);
-    if(strcmp(locale, testStruct[i].requestedLocale) != 0) {
-      log_err("[Coll %s]: Error in requested locale, expected %s, got %s\n", testStruct[i].requestedLocale, testStruct[i].requestedLocale, locale);
-    }
-    locale = ucol_getLocale(coll, ULOC_VALID_LOCALE, &status);
-    if(strcmp(locale, testStruct[i].validLocale) != 0) {
-      log_err("[Coll %s]: Error in valid locale, expected %s, got %s\n", testStruct[i].requestedLocale, testStruct[i].validLocale, locale);
-    }
-    locale = ucol_getLocale(coll, ULOC_ACTUAL_LOCALE, &status);
-    if(strcmp(locale, testStruct[i].actualLocale) != 0) {
-      log_err("[Coll %s]: Error in actual locale, expected %s, got %s\n", testStruct[i].requestedLocale, testStruct[i].actualLocale, locale);
-    }
-    ucol_close(coll);
-  }
-
-  /* completely non-existant locale for collator should get a default collator */
-  {
-    UCollator *defaultColl = ucol_open(NULL, &status);
-    coll = ucol_open("blahaha", &status);
-    if(strcmp(ucol_getLocale(coll, ULOC_REQUESTED_LOCALE, &status), "blahaha")) {
-      log_err("Nonexisting locale didn't preserve the requested locale\n");
-    }
-    if(strcmp(ucol_getLocale(coll, ULOC_VALID_LOCALE, &status), 
-      ucol_getLocale(defaultColl, ULOC_VALID_LOCALE, &status))) {
-      log_err("Valid locale for nonexisting locale locale collator differs "
-        "from valid locale for default collator\n");
-    }
-    if(strcmp(ucol_getLocale(coll, ULOC_ACTUAL_LOCALE, &status), 
-      ucol_getLocale(defaultColl, ULOC_ACTUAL_LOCALE, &status))) {
-      log_err("Actual locale for nonexisting locale locale collator differs "
-        "from actual locale for default collator\n");
-    }
-    ucol_close(coll);
-    ucol_close(defaultColl);
-  }
-
-    
-
-  /* collator instantiated from rules should have all three locales NULL */
-  coll = ucol_openRules(rlz, rlzLen, UCOL_DEFAULT, UCOL_DEFAULT, NULL, &status);
-  locale = ucol_getLocale(coll, ULOC_REQUESTED_LOCALE, &status);
-  if(locale != NULL) {
-    log_err("For collator instantiated from rules, requested locale returned %s instead of NULL\n", locale);
-  }
-  locale = ucol_getLocale(coll, ULOC_VALID_LOCALE, &status);
-  if(locale != NULL) {
-    log_err("For collator instantiated from rules,  valid locale returned %s instead of NULL\n", locale);
-  }
-  locale = ucol_getLocale(coll, ULOC_ACTUAL_LOCALE, &status);
-  if(locale != NULL) {
-    log_err("For collator instantiated from rules, actual locale returned %s instead of NULL\n", locale);
-  }
-  ucol_close(coll);
-
-}
-
-
 void TestGetAll()
 {
     int32_t i, count;
@@ -1067,164 +977,3 @@ void TestGetAll()
 
 
 }
-
-
-struct teststruct {
-    const char *original;
-    uint8_t key[256];
-  } ;
-
-static int compare_teststruct(const void *string1, const void *string2) {
-  return(strcmp((const char *)((struct teststruct *)string1)->key, (const char *)((struct teststruct *)string2)->key));
-}
-
-void TestBounds() {
-  UErrorCode status = U_ZERO_ERROR;
-
-  UCollator *coll = ucol_open("sh", &status);
-  
-  uint8_t sortkey[512], lower[512], upper[512];
-  UChar buffer[512];
-
-  const char *test[] = {
-    "John Smith",
-      "JOHN SMITH",
-      "john SMITH",
-      "j\\u00F6hn sm\\u00EFth",
-      "J\\u00F6hn Sm\\u00EFth",
-      "J\\u00D6HN SM\\u00CFTH",
-      "john smithsonian",
-      "John Smithsonian",
-  };
-
-  static struct teststruct tests[] = {  
- {"\\u010CAKI MIHALJ" } ,
- {"\\u010CAKI MIHALJ" } ,
- {"\\u010CAKI PIRO\\u0160KA" },
-{ "\\u010CABAI ANDRIJA" } ,
- {"\\u010CABAI LAJO\\u0160" } ,
- {"\\u010CABAI MARIJA" } ,
- {"\\u010CABAI STEVAN" } ,
- {"\\u010CABAI STEVAN" } ,
- {"\\u010CABARKAPA BRANKO" } ,
- {"\\u010CABARKAPA MILENKO" } ,
- {"\\u010CABARKAPA MIROSLAV" } ,
- {"\\u010CABARKAPA SIMO" } ,
- {"\\u010CABARKAPA STANKO" } ,
- {"\\u010CABARKAPA TAMARA" } ,
- {"\\u010CABARKAPA TOMA\\u0160" } ,
- {"\\u010CABDARI\\u0106 NIKOLA" } ,
- {"\\u010CABDARI\\u0106 ZORICA" } ,
- {"\\u010CABI NANDOR" } ,
- {"\\u010CABOVI\\u0106 MILAN" } ,
- {"\\u010CABRADI AGNEZIJA" } ,
- {"\\u010CABRADI IVAN" } ,
- {"\\u010CABRADI JELENA" } ,
- {"\\u010CABRADI LJUBICA" } ,
- {"\\u010CABRADI STEVAN" } ,
- {"\\u010CABRDA MARTIN" } ,
- {"\\u010CABRILO BOGDAN" } ,
- {"\\u010CABRILO BRANISLAV" } ,
- {"\\u010CABRILO LAZAR" } ,
- {"\\u010CABRILO LJUBICA" } ,
- {"\\u010CABRILO SPASOJA" } ,
- {"\\u010CADE\\u0160 ZDENKA" } ,
- {"\\u010CADESKI BLAGOJE" } ,
- {"\\u010CADOVSKI VLADIMIR" } ,
- {"\\u010CAGLJEVI\\u0106 TOMA" } ,
- {"\\u010CAGOROVI\\u0106 VLADIMIR" } ,
- {"\\u010CAJA VANKA" } ,
- {"\\u010CAJI\\u0106 BOGOLJUB" } ,
- {"\\u010CAJI\\u0106 BORISLAV" } ,
- {"\\u010CAJI\\u0106 RADOSLAV" } ,
- {"\\u010CAK\\u0160IRAN MILADIN" } ,
- {"\\u010CAKAN EUGEN" } ,
- {"\\u010CAKAN EVGENIJE" } ,
- {"\\u010CAKAN IVAN" } ,
- {"\\u010CAKAN JULIJAN" } ,
- {"\\u010CAKAN MIHAJLO" } ,
- {"\\u010CAKAN STEVAN" } ,
- {"\\u010CAKAN VLADIMIR" } ,
- {"\\u010CAKAN VLADIMIR" } ,
- {"\\u010CAKAN VLADIMIR" } ,
- {"\\u010CAKARA ANA" } ,
- {"\\u010CAKAREVI\\u0106 MOMIR" } ,
- {"\\u010CAKAREVI\\u0106 NEDELJKO" } ,
- {"\\u010CAKI \\u0160ANDOR" } ,
- {"\\u010CAKI AMALIJA" } ,
- {"\\u010CAKI ANDRA\\u0160" } ,
- {"\\u010CAKI LADISLAV" } ,
- {"\\u010CAKI LAJO\\u0160" } ,
- {"\\u010CAKI LASLO" } ,
-  };
-
-
-
-  int32_t i = 0, j = 0, k = 0, buffSize = 0, skSize = 0, lowerSize = 0, upperSize = 0;
-  int32_t arraySize = sizeof(tests)/sizeof(tests[0]);
-
-  for(i = 0; i<arraySize; i++) {
-    buffSize = u_unescape(tests[i].original, buffer, 512);
-    skSize = ucol_getSortKey(coll, buffer, buffSize, tests[i].key, 512);
-  }
-
-  qsort(tests, arraySize, sizeof(struct teststruct), compare_teststruct);
-
-  for(i = 0; i < arraySize-1; i++) {
-    for(j = i+1; j < arraySize; j++) {
-      lowerSize = ucol_getBound(tests[i].key, -1, UCOL_BOUND_LOWER, 1, lower, 512, &status);
-      upperSize = ucol_getBound(tests[j].key, -1, UCOL_BOUND_UPPER, 1, upper, 512, &status);
-      for(k = i; k <= j; k++) {
-        if(strcmp((const char *)lower, (const char *)tests[k].key) > 0) {
-          log_err("Problem with lower! j = %i (%s vs %s)\n", k, tests[k].original, tests[i].original);
-        }
-        if(strcmp((const char *)upper, (const char *)tests[k].key) <= 0) {
-          log_err("Problem with upper! j = %i (%s vs %s)\n", k, tests[k].original, tests[j].original);
-        }
-      }
-    }
-  }
-
-
-#if 0
-  for(i = 0; i < 1000; i++) {
-    lowerRND = (rand()/(RAND_MAX/arraySize));
-    upperRND = lowerRND + (rand()/(RAND_MAX/(arraySize-lowerRND)));
-
-    lowerSize = ucol_getBound(tests[lowerRND].key, -1, UCOL_BOUND_LOWER, 1, lower, 512, &status);
-    upperSize = ucol_getBound(tests[upperRND].key, -1, UCOL_BOUND_UPPER_LONG, 1, upper, 512, &status);
-
-    for(j = lowerRND; j<=upperRND; j++) {
-      if(strcmp(lower, tests[j].key) > 0) {
-        log_err("Problem with lower! j = %i (%s vs %s)\n", j, tests[j].original, tests[lowerRND].original);
-      }
-      if(strcmp(upper, tests[j].key) <= 0) {
-        log_err("Problem with upper! j = %i (%s vs %s)\n", j, tests[j].original, tests[upperRND].original);
-      }
-    }
-  }
-#endif
-
-
-
-
-
-  for(i = 0; i<sizeof(test)/sizeof(test[0]); i++) {
-    buffSize = u_unescape(test[i], buffer, 512);
-    skSize = ucol_getSortKey(coll, buffer, buffSize, sortkey, 512);
-    lowerSize = ucol_getBound(sortkey, skSize, UCOL_BOUND_LOWER, 1, lower, 512, &status);
-    upperSize = ucol_getBound(sortkey, skSize, UCOL_BOUND_UPPER_LONG, 1, upper, 512, &status);
-    for(j = i+1; j<sizeof(test)/sizeof(test[0]); j++) {
-      buffSize = u_unescape(test[j], buffer, 512);
-      skSize = ucol_getSortKey(coll, buffer, buffSize, sortkey, 512);
-      if(strcmp((const char *)lower, (const char *)sortkey) > 0) {
-        log_err("Problem with lower! i = %i, j = %i (%s vs %s)\n", i, j, test[i], test[j]);
-      }
-      if(strcmp((const char *)upper, (const char *)sortkey) <= 0) {
-        log_err("Problem with upper! i = %i, j = %i (%s vs %s)\n", i, j, test[i], test[j]);
-      }
-    }
-  }
-  ucol_close(coll);
-}
-

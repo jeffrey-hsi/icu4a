@@ -1307,15 +1307,12 @@ static FileStream * getFractionalUCA(void)
     /* As a fallback, try to guess where the source data was located
      *   at the time ICU was built, and look there.
      */
-#if defined (U_TOPSRCDIR)
-    strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING "data");
-#else
-    {
-        UErrorCode errorCode = U_ZERO_ERROR;
-        strcpy(backupPath, loadTestData(&errorCode));
-        strcat(backupPath, U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
-    }
-#endif
+    #if defined (U_TOPSRCDIR)
+        strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
+    #else
+        strcpy(backupPath, u_getDataDirectory());
+        strcat(backupPath, ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
+    #endif
     strcat(backupPath, U_FILE_SEP_STRING "unidata" U_FILE_SEP_STRING "FractionalUCA.txt");
 
     result = T_FileStream_open(newPath, "rb");
@@ -1737,7 +1734,7 @@ static void TestCEValidity()
 
         UColTokenParser src;
         uint32_t strength = 0;
-        uint16_t specs = 0;
+        uint8_t specs = 0;
 
         coll      = ucol_open(locale[count], &status);
         if (U_FAILURE(status)) {
@@ -1757,16 +1754,10 @@ static void TestCEValidity()
             src.extraCurrent = src.end;
             src.extraEnd = src.end + UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
 
-            while ((current = ucol_tok_parseNextToken(&src, startOfRules, &parseError,&status)) != NULL) {
-              strength = src.parsedToken.strength;
-              chOffset = src.parsedToken.charsOffset;
-              chLen = src.parsedToken.charsLen;
-              exOffset = src.parsedToken.extensionOffset;
-              exLen = src.parsedToken.extensionLen;
-              prefixOffset = src.parsedToken.prefixOffset;
-              prefixLen = src.parsedToken.prefixLen;
-              specs = src.parsedToken.flags;
-
+            while ((current = ucol_tok_parseNextToken(&src, &strength,
+                                     &chOffset, &chLen, &exOffset, &exLen,
+                                     &prefixOffset, &prefixLen,
+                                     &specs, startOfRules, &parseError,&status)) != NULL) {
                 startOfRules = FALSE;
                 uprv_memcpy(codepoints, rules + chOffset,
                                                        chLen * sizeof(UChar));
@@ -1917,7 +1908,7 @@ static void TestSortKeyValidity(void)
 
         UColTokenParser src;
         uint32_t strength = 0;
-        uint16_t specs = 0;
+        uint8_t specs = 0;
 
         coll      = ucol_open(locale[count], &status);
         if (U_FAILURE(status)) {
@@ -1937,16 +1928,10 @@ static void TestSortKeyValidity(void)
             src.extraCurrent = src.end;
             src.extraEnd = src.end + UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
 
-            while ((current = ucol_tok_parseNextToken(&src, startOfRules,&parseError, &status)) != NULL) {
-                strength = src.parsedToken.strength;
-                chOffset = src.parsedToken.charsOffset;
-                chLen = src.parsedToken.charsLen;
-                exOffset = src.parsedToken.extensionOffset;
-                exLen = src.parsedToken.extensionLen;
-                prefixOffset = src.parsedToken.prefixOffset;
-                prefixLen = src.parsedToken.prefixLen;
-                specs = src.parsedToken.flags;
-
+            while ((current = ucol_tok_parseNextToken(&src, &strength,
+                                     &chOffset, &chLen, &exOffset, &exLen,
+                                     &prefixOffset, &prefixLen,
+                                     &specs, startOfRules,&parseError, &status)) != NULL) {
                 startOfRules = FALSE;
                 uprv_memcpy(codepoints, rules + chOffset,
                                                        chLen * sizeof(UChar));

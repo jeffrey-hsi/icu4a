@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1998-2002, International Business Machines Corporation and
+ * Copyright (c) 1998-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*
@@ -17,9 +17,10 @@
 #include "unicode/utf8.h"
 #include "cmemory.h"
 #include "cintltst.h"
+#include <stdio.h>
 
 
-static void printUChars(const uint8_t *uchars, int16_t len);
+static void printUChars(uint8_t *uchars, int16_t len);
 
 static void TestCodeUnitValues(void);
 static void TestCharLength(void);
@@ -45,7 +46,7 @@ addUTF8Test(TestNode** root)
 
 static void TestCodeUnitValues()
 {
-    static const uint8_t codeunit[]={0x00, 0x65, 0x7e, 0x7f, 0xc0, 0xc4, 0xf0, 0xfd, 0x80, 0x81, 0xbc, 0xbe,};
+    static uint8_t codeunit[]={0x00, 0x65, 0x7e, 0x7f, 0xc0, 0xc4, 0xf0, 0xfd, 0x80, 0x81, 0xbc, 0xbe,};
     
     int16_t i;
     for(i=0; i<sizeof(codeunit)/sizeof(codeunit[0]); i++){
@@ -72,7 +73,7 @@ static void TestCodeUnitValues()
 
 static void TestCharLength()
 {
-    static const uint32_t codepoint[]={
+    static uint32_t codepoint[]={
         1, 0x0061,
         1, 0x007f,
         2, 0x016f,
@@ -107,7 +108,7 @@ static void TestCharLength()
 
 static void TestGetChar()
 {
-    static const uint8_t input[]={
+    static uint8_t input[]={
     /*  code unit,*/
         0x61,
         0x7f,
@@ -124,7 +125,7 @@ static void TestGetChar()
         0x9a,
         0xc9
     };
-    static const uint32_t result[]={
+    static uint32_t result[]={
      /*codepoint-unsafe,  codepoint-safe(not strict)  codepoint-safe(strict)*/
         0x61,             0x61,                       0x61, 
         0x7f,             0x7f,                       0x7f, 
@@ -167,8 +168,8 @@ static void TestGetChar()
 }
 
 static void TestNextPrevChar(){
-    static const uint8_t input[]={0x61, 0xf0, 0x90, 0x90, 0x81, 0xc0, 0x80, 0xfd, 0xbe, 0xc2, 0x61, 0x81, 0x90, 0x90, 0xf0, 0x00};
-    static const uint32_t result[]={
+    static uint8_t input[]={0x61, 0xf0, 0x90, 0x90, 0x81, 0xc0, 0x80, 0xfd, 0xbe, 0xc2, 0x61, 0x81, 0x90, 0x90, 0xf0, 0x00};
+    static uint32_t result[]={
     /*next_unsafe    next_safe_ns        next_safe_s          prev_unsafe   prev_safe_ns         prev_safe_s*/
         0x0061,        0x0061,             0x0061,              0x0000,       0x0000,             0x0000,
         0x10401,       0x10401,            0x10401,             0xf0,         UTF8_ERROR_VALUE_1, UTF8_ERROR_VALUE_1,
@@ -187,7 +188,7 @@ static void TestNextPrevChar(){
         0x0840,        UTF8_ERROR_VALUE_1, UTF8_ERROR_VALUE_1,  0xf0,         UTF8_ERROR_VALUE_1, UTF8_ERROR_VALUE_1,
         0x0000,        0x0000,             0x0000,              0x0061,       0x0061,             0x0061
     };
-    static const int32_t movedOffset[]={
+    static UTextOffset movedOffset[]={
    /*next_unsafe    next_safe_ns  next_safe_s       prev_unsafe   prev_safe_ns     prev_safe_s*/
         1,            1,           1,                15,           15,               15,
         5,            5,           5,                14,           14 ,              14, 
@@ -213,7 +214,7 @@ static void TestNextPrevChar(){
     UChar32 c=0x0000;
     uint32_t i=0;
     uint32_t offset=0;
-    int32_t setOffset=0;
+    UTextOffset setOffset=0;
     for(offset=0; offset<sizeof(input); offset++){
          if (offset < sizeof(input) - 2) { /* Can't have it go off the end of the array based on input */
              setOffset=offset;
@@ -281,17 +282,17 @@ static void TestNextPrevChar(){
 }
 
 static void TestFwdBack(){ 
-    static const uint8_t input[]={0x61, 0xF0, 0x90, 0x90, 0x81, 0xff, 0x62, 0xc0, 0x80, 0x7f, 0x8f, 0xc0, 0x63, 0x81, 0x90, 0x90, 0xF0, 0x00};
-    static const uint16_t fwd_unsafe[] ={1, 5, 6, 7,  9, 10, 11, 13, 14, 15, 16,  20, };
-    static const uint16_t fwd_safe[]   ={1, 5, 6, 7, 9, 10, 11,  12, 13, 14, 15, 16, 17, 18};
-    static const uint16_t back_unsafe[]={17, 16, 12, 11, 9, 7, 6, 5, 1, 0};
-    static const uint16_t back_safe[]  ={17, 16, 15, 14, 13, 12, 11, 10, 9, 7, 6, 5, 1, 0};
+    static uint8_t input[]={0x61, 0xF0, 0x90, 0x90, 0x81, 0xff, 0x62, 0xc0, 0x80, 0x7f, 0x8f, 0xc0, 0x63, 0x81, 0x90, 0x90, 0xF0, 0x00};
+    static uint16_t fwd_unsafe[] ={1, 5, 6, 7,  9, 10, 11, 13, 14, 15, 16,  20, };
+    static uint16_t fwd_safe[]   ={1, 5, 6, 7, 9, 10, 11,  12, 13, 14, 15, 16, 17, 18};
+    static uint16_t back_unsafe[]={17, 16, 12, 11, 9, 7, 6, 5, 1, 0};
+    static uint16_t back_safe[]  ={17, 16, 15, 14, 13, 12, 11, 10, 9, 7, 6, 5, 1, 0};
 
-    static const uint16_t Nvalue[]= {0, 1, 2, 3, 1, 2, 1, 5};
-    static const uint16_t fwd_N_unsafe[] ={0, 1, 6, 10, 11, 14, 15};
-    static const uint16_t fwd_N_safe[]   ={0, 1, 6, 10, 11, 13, 14, 18}; /*safe macro keeps it at the end of the string */
-    static const uint16_t back_N_unsafe[]={18, 17, 12, 7, 6, 1, 0};
-    static const uint16_t back_N_safe[]  ={18, 17, 15, 12, 11, 9, 7, 0};   
+    static uint16_t Nvalue[]= {0, 1, 2, 3, 1, 2, 1, 5};
+    static uint16_t fwd_N_unsafe[] ={0, 1, 6, 10, 11, 14, 15};
+    static uint16_t fwd_N_safe[]   ={0, 1, 6, 10, 11, 13, 14, 18}; /*safe macro keeps it at the end of the string */
+    static uint16_t back_N_unsafe[]={18, 17, 12, 7, 6, 1, 0};
+    static uint16_t back_N_safe[]  ={18, 17, 15, 12, 11, 9, 7, 0};   
 
 
     uint32_t offunsafe=0, offsafe=0;
@@ -361,20 +362,15 @@ static void TestFwdBack(){
 }
 
 static void TestSetChar(){
-    static const uint8_t input[]
-        = {0x61, 0xe4, 0xba, 0x8c, 0x7f, 0xfe, 0x62, 0xc5, 0x7f, 0x61, 0x80, 0x80, 0xe0, 0x00 };
-    static const int16_t start_unsafe[]
-        = {0,    1,    1,    1,    4,    5,    6,    7,    8,    9,    9,    9,    12,   13 };
-    static const int16_t start_safe[]
-        = {0,    1,    1,    1,    4,    5,    6,    7,    8,    9,    10,   11,   12,   13 };
-    static const int16_t limit_unsafe[]
-        = {0,    1,    4,    4,    4,    5,    6,    7,    9,    9,    10,   10,   10,   15 };
-    static const int16_t limit_safe[]
-        = {0,    1,    4,    4,    4,    5,    6,    7,    8,    9,    10,   11,   12,   13 };
+    static uint8_t input[]={         0x61, 0xe4, 0xba, 0x8c, 0x7f, 0xfe, 0x62, 0xc5, 0x7f, 0x61, 0x80, 0x80, 0xe0, 0x00 };
+    static uint16_t start_unsafe[]={ 0,    1,    1,    1,    4,    5,    6,    7,    8,    9,    9,    9,    12,   13 };
+    static uint16_t start_safe[]  ={ 0,    1,    1,    1,    4,    5,    6,    7,    8,    9,    10,   11,   12,   13 };
+    static uint16_t limit_unsafe[]={ 0,    1,    4,    4,    4,    5,    6,    7,    9,    9,    10,   10,   10,   15 };
+    static uint16_t limit_safe[]  ={ 0,    1,    4,    4,    4,    5,    6,    7,    8,    9,    10,   11,   12,   13 };
     
     uint32_t i=0;
-    int32_t offset=0, setOffset=0;
-    for(offset=0; offset<(int32_t)sizeof(input); offset++){
+    uint32_t offset=0, setOffset=0;
+    for(offset=0; offset<sizeof(input); offset++){
          setOffset=offset;
          UTF8_SET_CHAR_START_UNSAFE(input, setOffset);
          if(setOffset != start_unsafe[i]){
@@ -402,8 +398,8 @@ static void TestSetChar(){
 }
 
 static void TestAppendChar(){
-    static const uint8_t s[11]={0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x00};
-    static const uint32_t test[]={
+    static uint8_t s[11]={0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x00};
+    static uint32_t test[]={
      /*append-position(unsafe),  CHAR to be appended  */
         0,                        0x10401,
         2,                        0x0028,
@@ -435,7 +431,7 @@ static void TestAppendChar(){
         7,                        0xfe,
    
     };
-    static const uint16_t movedOffset[]={
+    static uint16_t movedOffset[]={
         /*offset-moved-to(unsafe)*/
           4,              /*for append-pos: 0 , CHAR 0x10401*/
           3,              
@@ -468,7 +464,7 @@ static void TestAppendChar(){
         
     };
           
-    static const uint8_t result[][11]={
+    static uint8_t result[][11]={
         /*unsafe*/
         {0xF0, 0x90, 0x90, 0x81, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x00},    
         {0x61, 0x62, 0x28, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x00}, 
@@ -523,9 +519,9 @@ static void TestAppendChar(){
             if(uprv_memcmp(str, result[count], size) !=0){
                 log_err("ERROR: UTF8_APPEND_CHAR_UNSAFE failed for count=%d. \nExpected:", count);
                 printUChars(result[count], size);
-                log_err("\nGot:      ");
+                printf("\nGot:      ");
                 printUChars(str, size);
-                log_err("\n");
+                printf("\n");
             }
         }else{
             UTF8_APPEND_CHAR_SAFE(str, offset, size, test[i+1]);
@@ -537,9 +533,9 @@ static void TestAppendChar(){
             if(uprv_memcmp(str, result[count], size) !=0){
                 log_err("ERROR: UTF8_APPEND_CHAR_SAFE failed for count=%d. \nExpected:", count);
                 printUChars(result[count], size);
-                log_err("\nGot:     ");
+                printf("\nGot:     ");
                 printUChars(str, size);
-                log_err("\n");
+                printf("\n");
             }
             /*call the API instead of MACRO
             uprv_memcpy(str, s, size);
@@ -548,7 +544,7 @@ static void TestAppendChar(){
             if((uint32_t)(c)<=0x7f) { 
                   (str)[(offset)++]=(uint8_t)(c); 
             } else { 
-                 (offset)=utf8_appendCharSafeBody(str, (int32_t)(offset), (int32_t)(size), c); 
+                 (offset)=utf8_appendCharSafeBody(str, (UTextOffset)(offset), (UTextOffset)(size), c); 
             }
             if(offset != movedOffset[count]){
                 log_err("ERROR: utf8_appendCharSafeBody() failed to move the offset correctly for count=%d.\nExpectedOffset=%d  currentOffset=%d\n", 
@@ -570,9 +566,9 @@ static void TestAppendChar(){
 
 }
 
-static void printUChars(const uint8_t *uchars, int16_t len){
+static void printUChars(uint8_t *uchars, int16_t len){
     int16_t i=0;
     for(i=0; i<len; i++){
-        log_err("0x%02x ", *(uchars+i));
+        printf("0x%02x ", *(uchars+i));
     }
 }

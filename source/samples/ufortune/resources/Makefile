@@ -1,4 +1,6 @@
-# Copyright (c) 2001-2002 IBM, Inc. and others
+
+# Copyright (c) 2001 IBM, Inc. and others
+
 #
 # File
 #    icu/source/samples/ufortune/resources/Makefile
@@ -23,28 +25,62 @@
 #               files, and genccode emits the data as C source
 #               code that can then be built into a .so
 #
+ICU_DEFAULT_PREFIX=/export/andy/icui
 
-include ../../defs.mk
+ifeq ($(strip $(ICU_PREFIX)),)
+  ICU_PREFIX=$(ICU_DEFAULT_PREFIX)
+endif
 
-# No conventional target - this dir is resources only.
-TARGET=
-CLEANFILES += *.mak *.[co] *.lst *.a *.$(SO) $(RESFILES) *.ao README*resources.txt
+ICU_INC=$(ICU_PREFIX)/lib/icu/Makefile.inc
+ICUPATH=
 
-include ../fortunedefs.mk
+include $(ICU_INC)
 
-# target file for resource bundle - this must be set, or 'make all' won't
-# build any resources.
-RESTARGET=lib$(RESNAME).$(SO)
+# Name of your target
+TARGET=libfortune_resources.$(SO)
+
+# Add implicit rule for .txt to .res
+# ICU resources are compiled into .res files by the genrb tool
+#
+%.res: %.txt
+	$(INVOKE) $(sbindir)/genrb -d . $<
 
 # Resource files.  Add new ones for additional locales here.
-# keep in sync with the file RESLIST
 RESFILES=root.res es.res
 
-# list of resource bundles  - keep in sync with RESFILES
-RESLIST=res-file-list.txt
 
-## Include standard rules 
-include ../../rules.mk
+# All object files (C or C++)
+OBJECTS=
 
-# for installing the library
-install: res-install
+CLEANFILES=*~ $(TARGET).out
+
+DEPS=$(OBJECTS:.o=.d)
+
+all: $(TARGET)
+
+.PHONY: all clean distclean check report
+
+distclean clean:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
+	-$(RMV) $(OBJECTS) $(TARGET) $(RESFILES)
+	-$(RMV) $(DEPS)
+
+$(TARGET): $(RESFILES)
+	$(INVOKE) $(sbindir)/pkgdata --name fortune_resources -v -O $(ICU_INC) --mode dll -d .  res-file-list.txt
+	cp $(TARGET) ..
+
+# Make check: simply runs the sample, logged to a file
+check: $(TARGET)
+
+# Make report: creates a 'report file' with both source and sample run
+report: 
+
+
+$(ICU_INC):
+	@echo "Please read the directions at the top of this file (Makefile)"
+	@echo "Can't open $(ICU_INC)"
+	@false
+
+ifneq ($(MAKECMDGOALS),distclean)
+# -include $(DEPS)
+endif

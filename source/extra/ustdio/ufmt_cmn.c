@@ -18,7 +18,7 @@
 ******************************************************************************
 */
 
-#include "cmemory.h"
+#include <stdlib.h>
 #include "ufmt_cmn.h"
 #include "unicode/uchar.h"
 #include "unicode/ucnv.h"
@@ -44,29 +44,36 @@ ufmt_isdigit(UChar     c,
 
 void 
 ufmt_ltou(UChar     *buffer, 
-          int32_t   *len,
-          uint32_t  value, 
-          uint32_t  radix,
-          UBool     uselower,
-          int32_t   minDigits)
+          int32_t     *len,
+          uint32_t         value, 
+          uint32_t     radix,
+          UBool    uselower,
+          int32_t    minDigits)
 {
-    int32_t  length = 0;
-    uint32_t digit;
+    int32_t     length     = 0;
+    uint32_t         q;
+    int8_t     digit;
     UChar    *left, *right, temp;
     
-    do {
-        digit = value % radix;
-        value = value / radix;
+    while(value > radix && length < *len) {
+        q = value / radix;
+        digit = (int8_t)(value - q * radix);
         buffer[length++] = (UChar)(uselower ? TO_LC_DIGIT(digit) 
             : TO_UC_DIGIT(digit));
-    } while(value);
-
+        value = q;
+    }
+    
+    if(length < *len) {
+        buffer[length++] = (UChar)(uselower ? TO_LC_DIGIT(value) 
+            : TO_UC_DIGIT(value));
+    }
+    
     /* pad with zeroes to make it minDigits long */
     if(minDigits != -1 && length < minDigits) {
         while(length < minDigits && length < *len)
-            buffer[length++] = 0x0030;  /*zero padding */
+            buffer[length++] = 0x0030;
     }
-
+    
     /* reverse the buffer */
     left     = buffer;
     right = buffer + length;
@@ -109,6 +116,19 @@ ufmt_utol(const UChar     *buffer,
     return result;
 }
 
+UBool
+ufmt_isws(UChar c)
+{
+    return (UBool)(c == 0x0020 || /* space */
+        c == 0x0009 || /* tab */
+        c == 0x000D || /* CR */
+        c == 0x000A || /* LF */
+        c == 0x000B || /* vertical tab */
+        c == 0x000C || /* form feed */
+        u_isspace(c));
+}
+
+
 UChar*
 ufmt_defaultCPToUnicode(const char *s,
                         int32_t len)
@@ -123,7 +143,7 @@ ufmt_defaultCPToUnicode(const char *s,
     
     /* perform the conversion in one swoop */
     size = (len + 1) / ucnv_getMinCharSize(defConverter);
-    target = (UChar*) uprv_malloc(size * sizeof(UChar));
+    target = (UChar*) malloc(size * sizeof(UChar));
     if(target != 0) {
         
         alias = target;
@@ -154,7 +174,7 @@ ufmt_unicodeToDefaultCP(const UChar *s,
     
     /* perform the conversion in one swoop */
     target = (char*) 
-        uprv_malloc((len + 1) * ucnv_getMaxCharSize(defConverter) * sizeof(char));
+        malloc((len + 1) * ucnv_getMaxCharSize(defConverter) * sizeof(char));
     size = (len) * ucnv_getMaxCharSize(defConverter) * sizeof(char);
     if(target != 0) {
         

@@ -85,13 +85,8 @@ CollationAPITest::TestProperty(/* char* par */)
 {
     UErrorCode success = U_ZERO_ERROR;
     Collator *col = 0;
-    /* 
-      All the collations have the same version in an ICU
-      version.
-      ICU 2.0 currVersionArray = {0x18, 0xC0, 0x02, 0x02};
-      ICU 2.1 currVersionArray = {0x19, 0x00, 0x03, 0x03};
-    */
-    UVersionInfo currVersionArray = {0x19, 0x00, 0x03, 0x03};
+    UVersionInfo minVersionArray = {0x01, 0x00, 0x00, 0x00};
+    UVersionInfo maxVersionArray = {0x01, 0x09, 0x09, 0x09};
     UVersionInfo versionArray;
     int i = 0;
 
@@ -104,12 +99,12 @@ CollationAPITest::TestProperty(/* char* par */)
         errln("Default Collator creation failed.");
         return;
     }
-
     col->getVersion(versionArray);
+
     for (i=0; i<4; ++i) {
-      if (versionArray[i] != currVersionArray[i]) {
-        errln("Testing ucol_getVersion() - unexpected result: %d.%d.%d.%d", 
-            versionArray[0], versionArray[1], versionArray[2], versionArray[3]);
+      if (versionArray[i] < minVersionArray[i] ||
+          versionArray[i] > maxVersionArray[i]) {
+              errln("Testing Collator::getVersion() failed - unexpected result received");
         break;
       }
     }
@@ -153,11 +148,11 @@ CollationAPITest::TestProperty(/* char* par */)
     UnicodeString name;
 
     logln("Get display name for the US English collation in German : ");
-    logln(Collator::getDisplayName(Locale::getUS(), Locale::getGerman(), name));
+    logln(Collator::getDisplayName(Locale::US, Locale::GERMAN, name));
     doAssert((name == UnicodeString("Englisch (Vereinigte Staaten)")), "getDisplayName failed");
 
     logln("Get display name for the US English collation in English : ");
-    logln(Collator::getDisplayName(Locale::getUS(), Locale::getEnglish(), name)); 
+    logln(Collator::getDisplayName(Locale::US, Locale::ENGLISH, name)); 
     doAssert((name == UnicodeString("English (United States)")), "getDisplayName failed");
 #if 0
     // weiv : this test is bogus if we're running on any machine that has different default locale than English.
@@ -214,7 +209,7 @@ CollationAPITest::TestProperty(/* char* par */)
 
     doAssert(((RuleBasedCollator *)col)->getRules() == ((RuleBasedCollator *)junk)->getRules(), 
                "The default collation should be returned.");
-    Collator *frCol = Collator::createInstance(Locale::getFrance(), success);
+    Collator *frCol = Collator::createInstance(Locale::FRANCE, success);
     if (U_FAILURE(success))
     {
         errln("Creating French collator failed.");
@@ -331,34 +326,6 @@ CollationAPITest::TestRuleBasedColl()
 }
 
 void 
-CollationAPITest::TestRules()
-{
-    RuleBasedCollator *coll;
-    UErrorCode status = U_ZERO_ERROR;
-    UnicodeString rules;
-
-    coll = (RuleBasedCollator *)Collator::createInstance(Locale::getEnglish(), status); 
-    if (U_FAILURE(status)) {
-        errln("English Collator creation failed.\n");
-        return;
-    }
-    else {
-        logln("PASS: RuleBased Collator creation passed\n");
-    }
-
-    coll->getRules(UCOL_TAILORING_ONLY, rules);
-    if (rules.length() != 0) {
-        errln("English tailored rules failed");
-    }
-    
-    coll->getRules(UCOL_FULL_RULES, rules);
-    if (rules.length() < 0) {
-        errln("English full rules failed");
-    }
-    delete coll;
-}
-
-void 
 CollationAPITest::TestDecomposition() {
   UErrorCode status = U_ZERO_ERROR;
   Collator *en_US = Collator::createInstance("en_US", status),
@@ -403,7 +370,7 @@ CollationAPITest::TestSafeClone() {
     UnicodeString test2("abcda");
 
     /* one default collator & two complex ones */
-    someCollators[0] = Collator::createInstance("en_US", err);
+    someCollators[0] = Collator::createInstance(err);
     someCollators[1] = Collator::createInstance("ko", err);
     someCollators[2] = Collator::createInstance("ja_JP", err);
 
@@ -587,10 +554,8 @@ CollationAPITest::TestCollationKey(/* char* par */)
     doAssert(sortk2 == sortk7, "sortk2 == sortk7 Failed.");
     doAssert(sortk1 != sortk7, "sortk1 != sortk7 Failed.");
 
-    uprv_free(byteArray1);
-    byteArray1 = 0;
-    uprv_free(byteArray2);
-    byteArray2 = 0;
+    delete [] byteArray1; byteArray1 = 0;
+    delete [] byteArray2; byteArray2 = 0;
 
     sortk3 = sortk1;
     doAssert(sortk1 == sortk3, "sortk1 = sortk3 assignment Failed.");
@@ -634,7 +599,7 @@ CollationAPITest::TestElemIter(/* char* par */)
     CollationElementIterator *iterator2 = ((RuleBasedCollator*)col)->createCollationElementIterator(testString1);
     CollationElementIterator *iterator3 = ((RuleBasedCollator*)col)->createCollationElementIterator(testString2);
 
-    int32_t offset = iterator1->getOffset();
+    UTextOffset offset = iterator1->getOffset();
     if (offset != 0) {
         errln("Error in getOffset for collation element iterator\n");
         return;
@@ -1248,8 +1213,8 @@ void CollationAPITest::TestDisplayName()
     }
     UnicodeString name;
     UnicodeString result;
-    coll->getDisplayName(Locale::getCanadaFrench(), result);
-    Locale::getCanadaFrench().getDisplayName(name);
+    coll->getDisplayName(Locale::CANADA_FRENCH, result);
+    Locale::CANADA_FRENCH.getDisplayName(name);
     if (result.compare(name)) {
         errln("Failure getting the correct name for locale en_US");
     }
@@ -1394,93 +1359,6 @@ void CollationAPITest::TestVariableTopSetting() {
 
 }
 
-void CollationAPITest::TestGetLocale() {
-  UErrorCode status = U_ZERO_ERROR;
-  const char *rules = "&a<x<y<z";
-  UChar rlz[256] = {0};
-
-  Collator *coll = NULL;
-  Locale locale;
-
-  int32_t i = 0;
-
-  static const struct {
-    const char* requestedLocale;
-    const char* validLocale;
-    const char* actualLocale;
-  } testStruct[] = {
-    { "sr_YU", "sr_YU", "root" },
-    { "sh_YU", "sh_YU", "sh" },
-    { "en_US_CALIFORNIA", "en_US", "root" },
-    { "fr_FR_NONEXISTANT", "fr_FR", "fr" }
-  };
-
-  u_unescape(rules, rlz, 256);
-
-  /* test opening collators for different locales */
-  for(i = 0; i<(int32_t)(sizeof(testStruct)/sizeof(testStruct[0])); i++) {
-    status = U_ZERO_ERROR;
-    coll = Collator::createInstance(testStruct[i].requestedLocale, status);
-    if(U_FAILURE(status)) {
-      log("Failed to open collator for %s with %s\n", testStruct[i].requestedLocale, u_errorName(status));
-      delete coll;
-      continue;
-    }
-    locale = coll->getLocale(ULOC_REQUESTED_LOCALE, status);
-    if(locale != testStruct[i].requestedLocale) {
-      log("[Coll %s]: Error in requested locale, expected %s, got %s\n", testStruct[i].requestedLocale, testStruct[i].requestedLocale, locale.getName());
-    }
-    locale = coll->getLocale(ULOC_VALID_LOCALE, status);
-    if(locale != testStruct[i].validLocale) {
-      log("[Coll %s]: Error in valid locale, expected %s, got %s\n", testStruct[i].requestedLocale, testStruct[i].validLocale, locale.getName());
-    }
-    locale = coll->getLocale(ULOC_ACTUAL_LOCALE, status);
-    if(locale != testStruct[i].actualLocale) {
-      log("[Coll %s]: Error in actual locale, expected %s, got %s\n", testStruct[i].requestedLocale, testStruct[i].actualLocale, locale.getName());
-    }
-    delete coll;
-  }
-
-  /* completely non-existant locale for collator should get a default collator */
-  {
-    Collator *defaultColl = Collator::createInstance(NULL, status);
-    coll = Collator::createInstance("blahaha", status);
-    if(coll->getLocale(ULOC_REQUESTED_LOCALE, status) != "blahaha") {
-      log("Nonexisting locale didn't preserve the requested locale\n");
-    }
-    if(coll->getLocale(ULOC_VALID_LOCALE, status) !=
-      defaultColl->getLocale(ULOC_VALID_LOCALE, status)) {
-      log("Valid locale for nonexisting locale locale collator differs "
-        "from valid locale for default collator\n");
-    }
-    if(coll->getLocale(ULOC_ACTUAL_LOCALE, status) != 
-      defaultColl->getLocale(ULOC_ACTUAL_LOCALE, status)) {
-      log("Actual locale for nonexisting locale locale collator differs "
-        "from actual locale for default collator\n");
-    }
-    delete coll;
-    delete defaultColl;
-  }
-
-    
-
-  /* collator instantiated from rules should have all three locales NULL */
-  coll = new RuleBasedCollator(rlz, status);
-  locale = coll->getLocale(ULOC_REQUESTED_LOCALE, status);
-  if(!locale.isBogus()) {
-    log("For collator instantiated from rules, requested locale %s is not bogus\n", locale.getName());
-  }
-  locale = coll->getLocale(ULOC_VALID_LOCALE, status);
-  if(!locale.isBogus()) {
-    log("For collator instantiated from rules, valid locale %s is not bogus\n", locale.getName());
-  }
-  locale = coll->getLocale(ULOC_ACTUAL_LOCALE, status);
-  if(!locale.isBogus()) {
-    log("For collator instantiated from rules, actual locale %s is not bogus\n", locale.getName());
-  }
-  delete coll;
-}
-
 void CollationAPITest::runIndexedTest( int32_t index, UBool exec, const char* &name, char* /*par */)
 {
     if (exec) logln("TestSuite CollationAPITest: ");
@@ -1501,8 +1379,6 @@ void CollationAPITest::runIndexedTest( int32_t index, UBool exec, const char* &n
         case 13: name = "TestDisplayName";   if (exec)   TestDisplayName(); break;
         case 14: name = "TestAttribute";   if (exec)   TestAttribute(); break;
         case 15: name = "TestVariableTopSetting"; if (exec) TestVariableTopSetting(); break;
-        case 16: name = "TestRules"; if (exec) TestRules(); break;
-        case 17: name = "TestGetLocale"; if (exec) TestGetLocale(); break;
         default: name = ""; break;
     }
 }

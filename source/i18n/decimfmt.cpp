@@ -41,10 +41,8 @@
 #include "digitlst.h"
 #include "unicode/dcfmtsym.h"
 #include "unicode/resbund.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "cmemory.h"
-#include "cstring.h"
-#include "unicode/currency.h"
 
 U_NAMESPACE_BEGIN
 
@@ -54,7 +52,7 @@ U_NAMESPACE_BEGIN
 #include <stdio.h>
 static void debugout(UnicodeString s) {
     char buf[2000];
-    s.extract((int32_t) 0, s.length(), buf);
+    s.extract((UTextOffset) 0, s.length(), buf);
     printf("%s", buf);
 }
 #define debug(x) printf("%s", x);
@@ -191,7 +189,8 @@ void
 DecimalFormat::construct(UErrorCode&             status,
                          UParseError&           parseErr,
                          const UnicodeString*   pattern,
-                         DecimalFormatSymbols*  symbolsToAdopt)
+                         DecimalFormatSymbols*  symbolsToAdopt,
+                         const Locale&          locale)
 {
     fSymbols = symbolsToAdopt; // Do this BEFORE aborting on status failure!!!
 //    fDigitList = new DigitList(); // Do this BEFORE aborting on status failure!!!
@@ -215,7 +214,7 @@ DecimalFormat::construct(UErrorCode&             status,
 
     if (fSymbols == NULL)
     {
-        fSymbols = new DecimalFormatSymbols(Locale::getDefault(), status);
+        fSymbols = new DecimalFormatSymbols(locale, status);
     }
 
     UnicodeString str;
@@ -233,13 +232,7 @@ DecimalFormat::construct(UErrorCode&             status,
     {
         return;
     }
-
-    if (symbolsToAdopt == NULL) {
-        UCurrency::forLocale(Locale::getDefault(), currency, status);
-    } else {
-        setCurrencyForSymbols();
-    }
-
+    
     applyPattern(*pattern, FALSE /*not localized*/,parseErr, status);
 }
 
@@ -321,7 +314,6 @@ DecimalFormat::operator=(const DecimalFormat& rhs)
     else 
         *fSymbols = *rhs.fSymbols;
     fUseExponentialNotation = rhs.fUseExponentialNotation;
-    fExponentSignAlwaysShown = rhs.fExponentSignAlwaysShown;
     /*Bertrand A. D. Update 98.03.17*/
     fIsCurrencyFormat = rhs.fIsCurrencyFormat;
     /*end of Update*/
@@ -1125,8 +1117,8 @@ is here if we change our minds.
 UBool DecimalFormat::subparse(const UnicodeString& text, ParsePosition& parsePosition,
                                DigitList& digits, UBool* status) const
 {
-    int32_t position = parsePosition.getIndex();
-    int32_t oldStart = position;
+    UTextOffset position = parsePosition.getIndex();
+    UTextOffset oldStart = position;
 
     // check for positivePrefix; take longest
     UBool gotPositive = text.compare(position,fPositivePrefix.length(),fPositivePrefix,0,
@@ -1254,10 +1246,9 @@ UBool DecimalFormat::subparse(const UnicodeString& text, ParsePosition& parsePos
                 digits.fDecimalAt = digitCount; // Not digits.fCount!
                 sawDecimal = TRUE;
             }
-            else if (!text.caseCompare(position,
+            else if (!text.compare(position,
                 fSymbols->getSymbol(DecimalFormatSymbols::kExponentialSymbol).length(),
-                fSymbols->getSymbol(DecimalFormatSymbols::kExponentialSymbol),
-                U_FOLD_CASE_DEFAULT))    // error code is set below if !sawDigit
+                fSymbols->getSymbol(DecimalFormatSymbols::kExponentialSymbol)))    // error code is set below if !sawDigit
             {
                 // Parse sign, if present
                 int32_t pos = position + 1; // position + exponentSep.length();
@@ -1281,7 +1272,7 @@ UBool DecimalFormat::subparse(const UnicodeString& text, ParsePosition& parsePos
                 }
 
                 while (pos < textLength) {
-                    ch = text[(int32_t)pos];
+                    ch = text[(UTextOffset)pos];
                     digit = ch - zero;
 
                     if (digit < 0 || digit > 9) {
@@ -1409,43 +1400,9 @@ void
 DecimalFormat::setDecimalFormatSymbols(const DecimalFormatSymbols& symbols)
 {
     adoptDecimalFormatSymbols(new DecimalFormatSymbols(symbols));
-    setCurrencyForSymbols();
     expandAffixes();
 }
  
-/**
- * Update the currency object to match the symbols.  This method
- * is used only when the caller has passed in a symbols object
- * that may not be the default object for its locale.
- */
-void
-DecimalFormat::setCurrencyForSymbols() {
-    /*Bug 4212072
-      Update the affix strings accroding to symbols in order to keep
-      the affix strings up to date.
-      [Richard/GCL]
-    */
-
-    // With the introduction of the Currency object, the currency
-    // symbols in the DFS object are ignored.  For backward
-    // compatibility, we check any explicitly set DFS object.  If it
-    // is a default symbols object for its locale, we change the
-    // currency object to one for that locale.  If it is custom,
-    // we set the currency to null.
-    UErrorCode ec = U_ZERO_ERROR;
-    DecimalFormatSymbols def(fSymbols->getLocale(), ec);
-
-    if (fSymbols->getSymbol(DecimalFormatSymbols::kCurrencySymbol) ==
-        def.getSymbol(DecimalFormatSymbols::kCurrencySymbol) &&
-        fSymbols->getSymbol(DecimalFormatSymbols::kIntlCurrencySymbol) ==
-        def.getSymbol(DecimalFormatSymbols::kIntlCurrencySymbol)) {
-        UCurrency::forLocale(fSymbols->getLocale(), currency, ec);
-    } else {
-        currency[0] = 0; // Use DFS currency info
-    }
-}
-
-
 //------------------------------------------------------------------------------
 // Gets the positive prefix of the number pattern.
  
@@ -1926,27 +1883,17 @@ void DecimalFormat::expandAffix(const UnicodeString& pattern,
         if (c == kQuote) {
             c = pattern.char32At(i++);
             switch (c) {
-            case kCurrencySign: {
-                // As of ICU 2.2 we use the currency object, and
-                // ignore the currency symbols in the DFS, unless
-                // we have a null currency object.  This occurs if
-                // resurrecting a pre-2.2 object or if the user
-                // sets a custom DFS.
-                UBool intl = i<pattern.length() &&
-                    pattern.char32At(i) == kCurrencySign;
-                if (intl) {
-                    ++i;
+            case kCurrencySign:
+                {
+                    if (i<pattern.length() &&
+                        pattern.char32At(i) == kCurrencySign) {
+                        ++i;
+                        affix += fSymbols->getSymbol(DecimalFormatSymbols::kIntlCurrencySymbol);
+                    } else {
+                        affix += fSymbols->getSymbol(DecimalFormatSymbols::kCurrencySymbol);
+                    }
                 }
-                UnicodeString s;
-                if (currency[0] != 0) {
-                    s = intl ? currency
-                        : UCurrency::getSymbol(currency, fSymbols->getLocale());
-                } else {
-                    s = intl ? fSymbols->getSymbol(DecimalFormatSymbols::kIntlCurrencySymbol)
-                        : fSymbols->getSymbol(DecimalFormatSymbols::kCurrencySymbol);
-                }
-                affix += s; }
-                break;
+                continue;
             case kPatternPercent:
                 affix.append(fSymbols->getSymbol(DecimalFormatSymbols::kPercentSymbol));
                 break;
@@ -2259,8 +2206,8 @@ DecimalFormat::toPattern(UnicodeString& result, UBool localized) const
                 {
                     int32_t length = fPosPrefixPattern->length();
                     isDefault = fNegPrefixPattern->length() == (length+2) &&
-                        (*fNegPrefixPattern)[(int32_t)0] == kQuote &&
-                        (*fNegPrefixPattern)[(int32_t)1] == kPatternMinus &&
+                        (*fNegPrefixPattern)[(UTextOffset)0] == kQuote &&
+                        (*fNegPrefixPattern)[(UTextOffset)1] == kPatternMinus &&
                         fNegPrefixPattern->compare(2, length, *fPosPrefixPattern, 0, length) == 0;
                 }
                 if (!isDefault &&
@@ -2377,7 +2324,7 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
     int32_t groupSepLen = groupingSeparator.length();
     int32_t decimalSepLen = decimalSeparator.length();
 
-    int32_t pos = 0;
+    UTextOffset pos = 0;
     int32_t patLen = pattern.length();
     // Part 0 is the positive pattern.  Part 1, if present, is the negative
     // pattern.
@@ -2502,7 +2449,7 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
                         }
                         // Check for positive prefix
                         if ((pos+1) < patLen
-                            && pattern.compare((int32_t) (pos+1), plus.length(), plus) == 0)
+                            && pattern.compare((UTextOffset) (pos+1), plus.length(), plus) == 0)
                         {
                             expSignAlways = TRUE;
                             pos += plus.length();
@@ -2512,7 +2459,7 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
                         expDigits = 0;
                         pos += exponent.length() - 1;
                         while (++pos < patLen &&
-                               pattern[(int32_t) pos] == zeroDigit)
+                               pattern[(UTextOffset) pos] == zeroDigit)
                         {
                             ++expDigits;
                         }
@@ -2774,8 +2721,8 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
             fUseExponentialNotation = (expDigits >= 0);
             if (fUseExponentialNotation) {
                 fMinExponentDigits = expDigits;
+                fExponentSignAlwaysShown = expSignAlways;
             }
-            fExponentSignAlwaysShown = expSignAlways;
             fIsCurrencyFormat = isCurrency;
             int digitTotalCount = digitLeftCount + zeroDigitCount + digitRightCount;
             // The effectiveDecimalPos is the position the decimal is at or
@@ -2921,49 +2868,6 @@ void DecimalFormat::setMaximumFractionDigits(int32_t newValue) {
  */
 void DecimalFormat::setMinimumFractionDigits(int32_t newValue) {
     NumberFormat::setMinimumFractionDigits(uprv_min(newValue, kDoubleFractionDigits));
-}
-
-/**
- * Sets the <tt>Currency</tt> object used to display currency
- * amounts.  This takes effect immediately, if this format is a
- * currency format.  If this format is not a currency format, then
- * the currency object is used if and when this object becomes a
- * currency format through the application of a new pattern.
- * @param theCurrency new currency object to use.  Must not be
- * null.
- * @since ICU 2.2
- */
-void DecimalFormat::setCurrency(const char* theCurrency) {
-    // If we are a currency format, then modify our affixes to
-    // encode the currency symbol for the given currency in our
-    // locale, and adjust the decimal digits and rounding for the
-    // given currency.
-
-    uprv_strncpy(currency, theCurrency, 3);
-    currency[3] = 0;
-
-    if (fIsCurrencyFormat) {
-        setRoundingIncrement(UCurrency::getRoundingIncrement(currency));
-
-        int32_t d = UCurrency::getDefaultFractionDigits(currency);
-        setMinimumFractionDigits(d);
-        setMaximumFractionDigits(d);
-
-        expandAffixes();
-    }
-}
-
-/**
- * Gets the <tt>Currency</tt> object used to display currency
- * amounts.  This will be null if a object is resurrected with a
- * custom DecimalFormatSymbols object, or if the user sets a
- * custom DecimalFormatSymbols object.  A custom
- * DecimalFormatSymbols object has currency symbols that are not
- * the standard ones for its locale.
- * @since ICU 2.2
- */
-const char* DecimalFormat::getCurrency() const {
-    return currency;
 }
 
 U_NAMESPACE_END

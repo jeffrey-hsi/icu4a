@@ -27,13 +27,14 @@
 
 #include "unicode/utypes.h"
 #include "unicode/ucnv.h"
-#include "unicode/utrans.h"
 
 /*
-    TODO
  The following is a small list as to what is currently wrong/suggestions for
  ustdio.
 
+ * The const char* format specification should use unescape
+ * ufile_locale2codepage should not be used.  Using one of putil.c's functions
+    would be better or some new API would be better.
  * %D and %T printf uses the current timezone, but the scanf version uses GMT.
  * %p should be deprecated. Pointers are 2-16 bytes big and scanf should
     really read them.
@@ -41,51 +42,31 @@
     the compiler dependent int.
  * We should consider using Microsoft's wprintf and wscanf format
     specification.
- * %C and %S are aliases of %lc and %ls, which are used for wchar_t.
-    We should consider using this for UChar and replace %K and %U,
-    or we should make them use wchar_t.
  * + in printf format specification is incomplete.
  * Make sure that #, blank and precision in the printf format specification
     works.
  * Make sure that * in the scanf format specification works.
+ * e and g should lowercase the scientific notation.
+ * E and F should uppercase the scientific notation.
  * Each UFILE takes up at least 2KB. This should be really reduced.
  * This library does buffering. The OS should do this for us already. Check on
     this, and remove it from this library, if this is the case. Double buffering
     wastes a lot of time and space.
+ * There is a locale cache.  It needs to be cleaned up when the library unloads.
  * Make sure that surrogates are supported.
- * The ustream header should also include operator<< and
-    operator>> for UDate (not double). This may not work on some compilers
-    that use these operators on a double.
+ * More testing is needed.
+ * #include <iostream> from common/unicode/unistr.h should go into a new
+    separate header (uios.h or ustream.h?) in the ustdio library.  Plenty of
+    people do not use the iostream functionality for Unicode strings, and it
+    will vastly speed up compilation time of .cpp files for those people that
+    don't use it. In some cases, libraries that use ICU should not include
+    iostream.  This new header file should also include operator<< and
+    operator>> for UDate (not double) and UChar *.
+ * fprintf/fscanf should use sprintf/sscanf in order to make testing easier.
  * Testing should be done for reading and writing multi-byte encodings,
     and make sure that a character that is contained across buffer boundries
     works even for incomplete characters.
  * Make sure that the last character is flushed when the file/string is closed.
- * snprintf should follow the C99 standard for the return value, which is
-    return the number of characters (excluding the trailing '\0')
-    which would have been written to the destination string regardless
-    of available space. This is like pre-flighting.
- * Everything that uses %s should do what operator>> does for UnicodeString.
-    It should convert one byte at a time, and once a character is
-    converted then check to see if it's whitespace or in the scanset.
-    If it's whitespace or in the scanset, put all the bytes back (do nothing
-    for sprintf/sscanf).
- * If bad string data is encountered, make sure that the function fails
-    without memory leaks and the unconvertable characters are valid
-    substitution or are escaped characters.
- * u_fungetc() can't unget a character when it's at the beginning of the
-    internal conversion buffer, and it shouldn't be writing new
-    characters to this buffer because they might be different characters.
-    This can be tested by writing a file, and reading it backwards by
-    using u_fgetc and two u_fungetc() calls with incorrect data.
-    FYI The behavior is undefined for ungetc() when an incorrect character
-    is put back, when its called multiple times in a row, or when
-    a its called without a read operation.
- * u_fflush() and u_fclose should return an int32_t like C99 functions.
-   0 is returned if the operation was successful and EOF otherwise.
- * u_fsettransliterator does not support U_READ side of transliteration.
- * The format specifier should limit the size of a format or honor it in
-   order to prevent buffer overruns.  (e.g. %1000.1000d).
- * More testing is needed.
 */
 
 
@@ -94,11 +75,7 @@
 /** Forward declaration of a Unicode-aware file */
 typedef struct UFILE UFILE;
 
-/** Enum for which direction of stream a transliterator applies to. */
-typedef enum { 
-   U_READ = 1, U_WRITE = 2, 
-   U_READWRITE =3  /* == (U_READ | U_WRITE) */ 
-} UFileDirection;
+
 
 /**
  * Open a UFILE.
@@ -115,7 +92,7 @@ typedef enum {
  * read from the file. If this paramter is NULL, data will be written and
  * read using the default codepage for <TT>locale</TT>, unless <TT>locale</TT>
  * is NULL, in which case the system default codepage will be used.
- * @return A new UFILE, or NULL if an error occurred.
+ * @return A new UFILE, or 0 if an error occurred.
  * @draft
  */
 U_CAPI UFILE* U_EXPORT2
@@ -134,7 +111,7 @@ u_fopen(const char    *filename,
  * read from the file. If this paramter is NULL, data will be written and
  * read using the default codepage for <TT>locale</TT>, unless <TT>locale</TT>
  * is NULL, in which case the system default codepage will be used.
- * @return A new UFILE, or NULL if an error occurred.
+ * @return A new UFILE, or 0 if an error occurred.
  * @draft
  */
 U_CAPI UFILE* U_EXPORT2
@@ -149,17 +126,6 @@ u_finit(FILE        *f,
  */
 U_CAPI void U_EXPORT2
 u_fclose(UFILE *file);
-
-/**
- * Flush output of a UFILE. Implies a flush of
- * converter/transliterator state. (That is, a logical break is
- * made in the output stream - for example if a different type of
- * output is desired.)  The underlying OS level file is also flushed.
- * @param file The UFILE to flush.
- * @draft
- */
-U_CAPI void U_EXPORT2
-u_fflush(UFILE *file);
 
 /**
  * Get the FILE* associated with a UFILE.
@@ -186,7 +152,7 @@ u_fgetlocale(UFILE *file);
  * @param locale The locale whose conventions will be used to format 
  * and parse output.
  * @param file The UFILE to query.
- * @return NULL if successful, otherwise a negative number.
+ * @return 0 if successful, otherwise a negative number.
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
@@ -199,7 +165,7 @@ u_fsetlocale(const char        *locale,
  * <TT>u_fsetcodepage</TT> or <TT>u_fopen</TT>.
  * @param file The UFILE to query.
  * @return The codepage in which data is written to and read from the UFILE,
- * or NULL if an error occurred.
+ * or 0 if an error occurred.
  * @draft
  */
 U_CAPI const char* U_EXPORT2
@@ -214,7 +180,7 @@ u_fgetcodepage(UFILE *file);
  * A value of NULL means the default codepage for the UFILE's current 
  * locale will be used.
  * @param file The UFILE to set.
- * @return NULL if successful, otherwise a negative number.
+ * @return 0 if successful, otherwise a negative number.
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
@@ -399,15 +365,13 @@ u_vfscanf_u(    UFILE        *f,
         va_list        ap);
 
 /**
- * Read one line of text into a UChar* string from a UFILE. The newline
- * at the end of the line is read into the string. The string is always
- * null terminated
+ * Read a UChar* from a UFILE.
  * @param f The UFILE from which to read.
  * @param n The maximum number of characters - 1 to read.
  * @param s The UChar* to receive the read data.  Characters will be
  * stored successively in <TT>s</TT> until a newline or EOF is
- * reached. A null character (U+0000) will be appended to <TT>s</TT>.
- * @return A pointer to <TT>s</TT>, or NULL if no characters were available.
+ * reached. A NULL character (U+0000) will be appended to <TT>s</TT>.
+ * @return A pointer to <TT>s</TT>, or 0 if no characters were available.
  * @draft
  */
 U_CAPI UChar* U_EXPORT2
@@ -469,26 +433,9 @@ u_file_read(UChar        *chars,
         int32_t        count, 
         UFILE         *f);
 
-/**
- * Set a transliterator on the UFILE. The transliterator will be owned by the
- * UFILE. 
- * @param file The UFILE to set transliteration on
- * @param adopt The UTransliterator to set. Can be NULL, which will
- * mean that no transliteration is used.
- * @param direction either U_READ, U_WRITE, or U_READWRITE - sets
- *  which direction the transliterator is to be applied to. If
- * U_READWRITE, the "Read" transliteration will be in the inverse
- * direction.
- * @param status ICU error code.
- * @return The previously set transliterator, owned by the
- * caller. If U_READWRITE is specified, only the WRITE transliterator
- * is returned. In most cases, the caller should call utrans_close()
- * on the result of this function.
- * @draft
- */
-U_CAPI UTransliterator* U_EXPORT2
-u_fsettransliterator(UFILE *file, UFileDirection direction,
-                     UTransliterator *adopt, UErrorCode *status);
+
+
+
 
 
 
@@ -768,6 +715,5 @@ u_vsscanf_u(UChar       *buffer,
 
 
 #endif
-
 
 

@@ -4,7 +4,6 @@
 # Only supported platforms are recognized
 
 me=`basename $0`
-OPTS=
 
 usage()
 {
@@ -13,37 +12,32 @@ usage()
     then
         uletter=U
     else
-        uletter=u
+ 	uletter=u
     fi
-
+    
     echo "${uletter}sage: $me [ -h, --help ]  [ --enable-debug | --disable-release ] platform [ configurearg ... ]"
     if test $ec -eq 0
     then
-        cat <<EOE
+	cat <<EOE
 
 Options: -h, --help         Print this message and exit
-         --enable-debug     Enable support for debugging
-         --disable-release  Disable presetting optimization flags
+         --enable-debug	    Enable support for debugging
+	 --disable-release  Disable presetting optimization flags
 
 The following names can be supplied as the argument for platform:
 
-    AIX4.3xlC               Use IBM's xlC on AIX 4.3
-    AIX4.3xlC_nothreads     Use IBM's xlC on AIX 4.3 with no multithreading
-    AIX4.3VA                Use IBM's Visual Age xlC_r compiler on AIX 4.3
-    AIX4.3VA_nothreads      Use IBM's Visual Age xlC_r compiler on AIX 4.3 with no multithreading
+    AIX4.3xlC               Use xlC on AIX 4.3
+    AIX4.3VA                Use the VA compiler on AIX 4.3
     ALPHA/LINUXGCC          Use GCC on Alpha/Linux systems
     ALPHA/LINUXCCC          Use Compaq C compiler on Alpha/Linux systems
     FreeBSD                 Use the GNU C++ compiler on Free BSD
     HP/UX11CC               Use HP's C++ compiler on HP-UX 11
     HP/UX11ACC              Use the Advanced C++ compiler on HP-UX 11
     LinuxRedHat             Use the GNU C++ compiler on Linux
-    CygWin                  Use the GNU C++ compiler on CygWin
-    MacOSX                  Use the GNU C++ compiler on MacOS X (Darwin)
-    SOLARISCC               Use Sun's CC compiler on Solaris
+    SOLARISCC               Use Sun's CC compiler on Solaris 
     SOLARISGCC              Use the GNU C++ compiler on Solaris
     SOLARISX86              Use Sun's CC compiler on Solaris x86
-    TRU64V5.1/CXX           Use Compaq's cxx compiler on Tru64 (OSF)
-    zOS/cxx                 Use IBM's cxx compiler on z/OS (os/390)
+    TRU64V5.1/CXX           Use Copmaq's cxx compiler on Tru64 (OSF) 
 EOE
     fi
 
@@ -117,39 +111,20 @@ fi
 case $platform in
     AIX4.3xlC)
         THE_OS=AIX
-        THE_COMP="xlC_r"
+        THE_COMP=xlC
         CC=/usr/ibmcxx/bin/xlc_r; export CC
         CXX=/usr/ibmcxx/bin/xlC_r; export CXX
         RELEASE_CFLAGS="-O -qmaxmem=-1"
         RELEASE_CXXFLAGS="-O -qmaxmem=-1"
         ;;
-    AIX4.3xlC_nothreads)
-        THE_OS=AIX
-        THE_COMP="xlC"
-        CC=/usr/ibmcxx/bin/xlc; export CC
-        CXX=/usr/ibmcxx/bin/xlC; export CXX
-        AIX_SHLIB=/usr/ibmcxx/bin/makeC++SharedLib; export AIX_SHLIB
-        RELEASE_CFLAGS="-O -qmaxmem=-1"
-        RELEASE_CXXFLAGS="-O -qmaxmem=-1"
-        OPTS="$OPTS --enable-threads=no"
-        ;;
     AIX4.3VA)
         THE_OS=AIX
-        THE_COMP="xlC_r"
+        THE_COMP=xlC
         CC=/usr/vacpp/bin/xlc_r; export CC
         CXX=/usr/vacpp/bin/xlC_r; export CXX
-        RELEASE_CFLAGS="-O2 -qmaxmem=-1"
-        RELEASE_CXXFLAGS="-O2 -qmaxmem=-1"
-        #LDFLAGS=-L/usr/lpp/xlC/lib; export LDFLAGS
-        ;;
-    AIX4.3VA_nothreads)
-        THE_OS=AIX
-        THE_COMP="xlC"
-        CC=/usr/vacpp/bin/xlc; export CC
-        CXX=/usr/vacpp/bin/xlC; export CXX
-        OPTS="$OPTS --enable-threads=no"
-        RELEASE_CFLAGS="-O2 -qmaxmem=-1"
-        RELEASE_CXXFLAGS="-O2 -qmaxmem=-1"
+        #RELEASE_CFLAGS=-O2
+        #RELEASE_CXXFLAGS=-O2
+        #CPPFLAGS=-I/usr/lpp/xlC/include; export CPPFLAGS
         #LDFLAGS=-L/usr/lpp/xlC/lib; export LDFLAGS
         ;;
     SOLARISX86)
@@ -198,14 +173,6 @@ case $platform in
         THE_COMP="Compaq's CC"
         CC=ccc; export CC
         CXX=cxx; export CXX
-        RELEASE_CFLAGS='-O4'
-        RELEASE_CXXFLAGS='-O4'
-        ;;
-    TRU64V5.1/CXX)
-        THE_OS="OSF1"
-        THE_COMP="Compaq cxx"
-        CC=cxx; export CC
-        CXX=cxx; export CXX
         ;;
     ALPHA/LINUXGCC)
         THE_OS="Linux"
@@ -213,36 +180,23 @@ case $platform in
         CC=gcc; export CC
         CXX=g++; export CXX
         ;;
+    TRU64V5.1/CXX)
+        THE_OS="OSF1"
+        THE_COMP="Compaq cxx"
+        CC=cxx; export CC
+        CXX=cxx; export CXX
+        ;;
     LinuxRedHat*)
         THE_OS="Linux"
         THE_COMP="the GNU C++"
         CC=gcc; export CC
-        CXX=g++; export CXX
-        ;;
-    CygWin)
-        THE_OS="CygWin"
-        THE_COMP="the GNU C++"
-        ;;
-    MacOSX)
-        THE_OS="MacOS X (Darwin)"
-        THE_COMP="the GNU C++"
-        RELEASE_CFLAGS='-O2'
-        RELEASE_CXXFLAGS='-O2'
+        CXX=g++; export CXX 
         ;;
     *BSD)
         THE_OS="BSD"
         THE_COMP="the GNU C++"
         CC=gcc; export CC
-        CXX=g++; export CXX
-        ;;
-    zOS/cxx)
-        THE_OS="z/OS"
-        THE_COMP="r10 cxx"
-        CC=cc; export CC
-        CXX=cxx; export CXX
-        export IEEE390=1
-        export RELEASE_CFLAGS='-2'
-        export RELEASE_CXXFLAGS='-2'
+        CXX=g++; export CXX 
         ;;
     *)
         >&2 echo "$me: unrecognized platform \"$platform\" (use --help for help)"
@@ -298,9 +252,9 @@ fi
 
 # Run configure
 
-echo "Running ./configure $OPTS $@ for $THE_OS using $THE_COMP compiler"
+echo "Running ./configure $@ for $THE_OS using $THE_COMP compiler"
 echo
-$configure $OPTS $@
+$configure $@
 echo
 echo If the result of the above commands looks okay to you, go to the directory
 echo source in the ICU distribution to build ICU. Please remember that ICU needs

@@ -25,7 +25,6 @@ void RbnfRoundTripTest::runIndexedTest(int32_t index, UBool exec, const char* &n
 {
     if (exec) logln("TestSuite RuleBasedNumberFormatRT");
     switch (index) {
-#if U_HAVE_RBNF
       TESTCASE(0, TestEnglishSpelloutRT);
       TESTCASE(1, TestDurationsRT);
       TESTCASE(2, TestSpanishSpelloutRT);
@@ -38,16 +37,11 @@ void RbnfRoundTripTest::runIndexedTest(int32_t index, UBool exec, const char* &n
       TESTCASE(9, TestJapaneseSpelloutRT);
       TESTCASE(10, TestRussianSpelloutRT);
       TESTCASE(11, TestGreekSpelloutRT);
-#else
-      TESTCASE(0, TestRBNFDisabled);
-#endif
     default:
       name = "";
       break;
     }
 }
-
-#if U_HAVE_RBNF
 
 /**
  * Perform an exhaustive round-trip test on the English spellout rules
@@ -111,7 +105,7 @@ RbnfRoundTripTest::TestFrenchSpelloutRT()
 {
   UErrorCode status = U_ZERO_ERROR;
   RuleBasedNumberFormat* formatter
-    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::getFrance(), status);
+    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::FRANCE, status);
 
   if (U_FAILURE(status)) {
     errln("failed to construct formatter");
@@ -165,7 +159,7 @@ RbnfRoundTripTest::TestGermanSpelloutRT()
 {
   UErrorCode status = U_ZERO_ERROR;
   RuleBasedNumberFormat* formatter
-    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::getGermany(), status);
+    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::GERMANY, status);
 
   if (U_FAILURE(status)) {
     errln("failed to construct formatter");
@@ -345,13 +339,3 @@ RbnfRoundTripTest::doTest(const RuleBasedNumberFormat* formatter,
   }
 }
 
-/* U_HAVE_RBNF */
-#else
-
-void
-RbnfRoundTripTest::TestRBNFDisabled() {
-    errln("*** RBNF currently disabled on this platform ***\n");
-}
-
-/* U_HAVE_RBNF */
-#endif

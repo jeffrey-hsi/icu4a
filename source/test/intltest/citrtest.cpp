@@ -7,15 +7,11 @@
  *   Date          Name        Description
  *   05/22/2000    Madhu       Added tests for testing new API for utf16 support and more
  **********************************************************************/
-
-#include <string.h>
-#include "unicode/chariter.h"
-#include "unicode/ustring.h"
-#include "unicode/unistr.h"
+#include "citrtest.h"
 #include "unicode/schriter.h"
 #include "unicode/uchriter.h"
-#include "unicode/uiter.h"
-#include "citrtest.h"
+#include "unicode/ustring.h"
+#include <string.h>
 
 CharIterTest::CharIterTest()
 {
@@ -29,7 +25,7 @@ void CharIterTest::runIndexedTest( int32_t index, UBool exec, const char* &name,
         case 1: name = "TestConstructionAndEqualityUChariter"; if (exec) TestConstructionAndEqualityUChariter(); break;
         case 2: name = "TestIteration"; if (exec) TestIteration(); break;
         case 3: name = "TestIterationUChar32"; if (exec) TestIterationUChar32(); break;
-        case 4: name = "TestUCharIterator"; if (exec) TestUCharIterator(); break;
+
 
         default: name = ""; break; //needed to end loop
     }
@@ -219,7 +215,7 @@ void CharIterTest::TestIteration() {
     UnicodeString text("Now is the time for all good men to come to the aid of their country.");
 
     UChar c;
-    int32_t i;
+    UTextOffset i;
     {
         StringCharacterIterator   iter(text, 5);
 
@@ -228,7 +224,7 @@ void CharIterTest::TestIteration() {
         if (iterText != text)
           errln("iter.getText() failed");
 
-        if (iter.current() != text[(int32_t)5])
+        if (iter.current() != text[(UTextOffset)5])
             errln("Iterator didn't start out in the right place.");
 
         c = iter.first();
@@ -333,7 +329,7 @@ void CharIterTest::TestIteration() {
         if (iter.startIndex() != 5 || iter.endIndex() != 15)
             errln("creation of a restricted-range iterator failed");
 
-        if (iter.getIndex() != 10 || iter.current() != text[(int32_t)10])
+        if (iter.getIndex() != 10 || iter.current() != text[(UTextOffset)10])
             errln("starting the iterator in the middle didn't work");
 
         c = iter.first();
@@ -393,7 +389,7 @@ void CharIterTest::TestIterationUChar32() {
     UChar textChars[]={ 0x0061, 0x0062, 0xd841, 0xdc02, 0x20ac, 0xd7ff, 0xd842, 0xdc06, 0xd801, 0xdc00, 0x0061, 0x0000};
     UnicodeString text(textChars);
     UChar32 c;
-    int32_t i;
+    UTextOffset i;
     {
         StringCharacterIterator   iter(text, 1);
 
@@ -402,31 +398,32 @@ void CharIterTest::TestIterationUChar32() {
         if (iterText != text)
           errln("iter.getText() failed");
 
-        if (iter.current32() != text[(int32_t)1])
+        if (iter.current32() != text[(UTextOffset)1])
             errln("Iterator didn't start out in the right place.");
-
+ 
         c=iter.setToStart();
         i=0;
         i=iter.move32(1, CharacterIterator::kStart);
         c=iter.current32();
         if(c != text.char32At(1) || i!=1)
-            errln("move32(1, kStart) didn't work correctly expected %X got %X", c, text.char32At(1) );
-
+            errln((UnicodeString)"move32(1, kStart) didn't work correctly expected " + c + " got " +  text.char32At(1) );
+       
         i=iter.move32(2, CharacterIterator::kCurrent);
         c=iter.current32();
         if(c != text.char32At(4) || i!=4)
-            errln("move32(2, kCurrent) didn't work correctly expected %X got %X i=%ld", c, text.char32At(4), i);
+            errln((UnicodeString)"move32(2, kCurrent) didn't work correctly expected " + c + " got " +  text.char32At(4)  + "i=" + i);
         
         i=iter.move32(-2, CharacterIterator::kCurrent);
         c=iter.current32();
         if(c != text.char32At(1) || i!=1)
-            errln("move32(-2, kCurrent) didn't work correctly expected %X got %X i=%d", c, text.char32At(1), i);
+            errln((UnicodeString)"move32(-2, kCurrent) didn't work correctly expected " + c + " got " +  text.char32At(1)  + "i=" + i);
+     
 
 
         i=iter.move32(-2, CharacterIterator::kEnd);
         c=iter.current32();
         if(c != text.char32At((text.length()-3)) || i!=(text.length()-3))
-            errln("move32(-2, kEnd) didn't work correctly expected %X got %X i=%d", c, text.char32At((text.length()-3)), i);
+            errln((UnicodeString)"move32(-2, kEnd) didn't work correctly expected " + c + " got " +  text.char32At((text.length()-3))  + "i=" + i);
         
 
         c = iter.first32();
@@ -443,7 +440,9 @@ void CharIterTest::TestIterationUChar32() {
             else if(iter.hasNext() == FALSE && i != text.length())
                 errln("Iterator reached end prematurely.  Failed at hasNext");
             else if (c != text.char32At(i))
-                errln("Character mismatch at position %d, iterator has %X, string has %X", i, c, text.char32At(i));
+                errln((UnicodeString)"Character mismatch at position " + i +
+                                    (UnicodeString)", iterator has " + c +
+                                    (UnicodeString)", string has " + text.char32At(i));
 
             if (iter.current32() != c)
                 errln("current32() isn't working right");
@@ -480,7 +479,9 @@ void CharIterTest::TestIterationUChar32() {
             else if(iter.hasPrevious() == FALSE && i>0)
                 errln((UnicodeString)"Iterator reached start prematurely for i=" + i);
             else if (c != text.char32At(i))
-                errln("Character mismatch at position %d, iterator has %X, string has %X", i, c, text.char32At(i));
+                errln(prettify((UnicodeString)"Character mismatch at position " + i +
+                                    (UnicodeString)", iterator has " + c +
+                                    (UnicodeString)", string has " + text.char32At(i)));
 
             if (iter.current32() != c)
                 errln("current32() isn't working right");
@@ -507,7 +508,7 @@ void CharIterTest::TestIterationUChar32() {
         i = 0;
         c=iter.first32PostInc();
         if(c != text.char32At(i))
-            errln("first32PostInc failed.  Expected->%X Got->%X", text.char32At(i), c);
+            errln((UnicodeString)"first32PostInc failed.  Expected->" +  text.char32At(i) + " Got->" + c);
         if(iter.getIndex() != UTF16_CHAR_LENGTH(c) + i)
             errln((UnicodeString)"getIndex() after first32PostInc() failed");
 
@@ -522,7 +523,9 @@ void CharIterTest::TestIterationUChar32() {
                 c = iter.next32PostInc();
 
             if(c != text.char32At(i))
-                errln("Character mismatch at position %d, iterator has %X, string has %X", i, c, text.char32At(i));
+                errln((UnicodeString)"Character mismatch at position " + i +
+                                    (UnicodeString)", iterator has " + c +
+                                    (UnicodeString)", string has " + text.char32At(i));
 
             i=UTF16_NEED_MULTIPLE_UCHAR(c) ? i+2 : i+1;
             if(iter.getIndex() != i)
@@ -556,7 +559,9 @@ void CharIterTest::TestIterationUChar32() {
             else if(iter.hasNext() == FALSE)
                 errln("Iterator reached end prematurely");
             else if (c != text.char32At(i))
-                errln("Character mismatch at position %d, iterator has %X, string has %X", i, c, text.char32At(i));
+                errln((UnicodeString)"Character mismatch at position " + i +
+                                    (UnicodeString)", iterator has " + c +
+                                    (UnicodeString)", string has " + text.char32At(i));
 
             if (iter.current32() != c)
                 errln("current32() isn't working right");
@@ -583,7 +588,9 @@ void CharIterTest::TestIterationUChar32() {
             else if(iter.hasPrevious() == FALSE && i > 5)
                 errln("Iterator reached start prematurely");
             else if (c != text.char32At(i))
-                errln("Character mismatch at position %d, iterator has %X, string has %X", i, c, text.char32At(i));
+                errln((UnicodeString)"Character mismatch at position " + i +
+                                    (UnicodeString)", iterator has " + c +
+                                    (UnicodeString)", string has " + text.char32At(i));
             if (iter.current32() != c)
                 errln("current32() isn't working right");
             if (iter.getIndex() != i)
@@ -603,186 +610,4 @@ void CharIterTest::TestIterationUChar32() {
 
                 
     }
-}
-
-void CharIterTest::TestUCharIterator(UCharIterator *iter, CharacterIterator &ci,
-                                     const char *moves, const char *which) {
-    int32_t m;
-    UChar32 c, c2;
-    UBool h, h2;
-
-    for(m=0;; ++m) {
-        // move both iter and s[index]
-        switch(moves[m]) {
-        case '0':
-            h=iter->hasNext(iter);
-            h2=ci.hasNext();
-            c=iter->current(iter);
-            c2=ci.current();
-            break;
-        case '|':
-            h=iter->hasNext(iter);
-            h2=ci.hasNext();
-            c=uiter_current32(iter);
-            c2=ci.current32();
-            break;
-
-        case '+':
-            h=iter->hasNext(iter);
-            h2=ci.hasNext();
-            c=iter->next(iter);
-            c2=ci.nextPostInc();
-            break;
-        case '>':
-            h=iter->hasNext(iter);
-            h2=ci.hasNext();
-            c=uiter_next32(iter);
-            c2=ci.next32PostInc();
-            break;
-
-        case '-':
-            h=iter->hasPrevious(iter);
-            h2=ci.hasPrevious();
-            c=iter->previous(iter);
-            c2=ci.previous();
-            break;
-        case '<':
-            h=iter->hasPrevious(iter);
-            h2=ci.hasPrevious();
-            c=uiter_previous32(iter);
-            c2=ci.previous32();
-            break;
-
-        case '2':
-            h=h2=FALSE;
-            c=(UChar32)iter->move(iter, 2, UITER_CURRENT);
-            c2=(UChar32)ci.move(2, CharacterIterator::kCurrent);
-            break;
-
-        case '8':
-            h=h2=FALSE;
-            c=(UChar32)iter->move(iter, -2, UITER_CURRENT);
-            c2=(UChar32)ci.move(-2, CharacterIterator::kCurrent);
-            break;
-
-        case 0:
-            return;
-        default:
-            errln("error: unexpected move character '%c' in \"%s\"", moves[m], moves);
-            return;
-        }
-
-        // compare results
-        if(c2==0xffff) {
-            c2=(UChar32)-1;
-        }
-        if(c!=c2 || h!=h2 || ci.getIndex()!=iter->getIndex(iter, UITER_CURRENT)) {
-            errln("error: UCharIterator(%s) misbehaving at \"%s\"[%d]='%c'", which, moves, m, moves[m]);
-        }
-    }
-}
-
-void CharIterTest::TestUCharIterator() {
-    // test string of length 8
-    UnicodeString s=UnicodeString("a \\U00010001b\\U0010fffdz", "").unescape();
-    const char *const moves=
-        "0+++++++++" // 10 moves per line
-        "----0-----"
-        ">>|>>>>>>>"
-        "<<|<<<<<<<"
-        "22+>8>-8+2";
-
-    StringCharacterIterator sci(s), compareCI(s);
-
-    UCharIterator sIter, cIter, rIter;
-
-    uiter_setString(&sIter, s.getBuffer(), s.length());
-    uiter_setCharacterIterator(&cIter, &sci);
-    uiter_setReplaceable(&rIter, &s);
-
-    TestUCharIterator(&sIter, compareCI, moves, "uiter_setString");
-    compareCI.setIndex(0);
-    TestUCharIterator(&cIter, compareCI, moves, "uiter_setCharacterIterator");
-    compareCI.setIndex(0);
-    TestUCharIterator(&rIter, compareCI, moves, "uiter_setReplaceable");
-
-    // test move & getIndex some more
-    sIter.start=2;
-    sIter.index=3;
-    sIter.limit=5;
-    if( sIter.getIndex(&sIter, UITER_ZERO)!=0 ||
-        sIter.getIndex(&sIter, UITER_START)!=2 ||
-        sIter.getIndex(&sIter, UITER_CURRENT)!=3 ||
-        sIter.getIndex(&sIter, UITER_LIMIT)!=5 ||
-        sIter.getIndex(&sIter, UITER_LENGTH)!=s.length()
-    ) {
-        errln("error: UCharIterator(string).getIndex returns wrong index");
-    }
-
-    if( sIter.move(&sIter, 4, UITER_ZERO)!=4 ||
-        sIter.move(&sIter, 1, UITER_START)!=3 ||
-        sIter.move(&sIter, 3, UITER_CURRENT)!=5 ||
-        sIter.move(&sIter, -1, UITER_LIMIT)!=4 ||
-        sIter.move(&sIter, -5, UITER_LENGTH)!=3 ||
-        sIter.move(&sIter, 0, UITER_CURRENT)!=sIter.getIndex(&sIter, UITER_CURRENT) ||
-        sIter.getIndex(&sIter, UITER_CURRENT)!=3
-    ) {
-        errln("error: UCharIterator(string).move sets/returns wrong index");
-    }
-
-    sci=StringCharacterIterator(s, 2, 5, 3);
-    uiter_setCharacterIterator(&cIter, &sci);
-    if( cIter.getIndex(&cIter, UITER_ZERO)!=0 ||
-        cIter.getIndex(&cIter, UITER_START)!=2 ||
-        cIter.getIndex(&cIter, UITER_CURRENT)!=3 ||
-        cIter.getIndex(&cIter, UITER_LIMIT)!=5 ||
-        cIter.getIndex(&cIter, UITER_LENGTH)!=s.length()
-    ) {
-        errln("error: UCharIterator(character iterator).getIndex returns wrong index");
-    }
-
-    if( cIter.move(&cIter, 4, UITER_ZERO)!=4 ||
-        cIter.move(&cIter, 1, UITER_START)!=3 ||
-        cIter.move(&cIter, 3, UITER_CURRENT)!=5 ||
-        cIter.move(&cIter, -1, UITER_LIMIT)!=4 ||
-        cIter.move(&cIter, -5, UITER_LENGTH)!=3 ||
-        cIter.move(&cIter, 0, UITER_CURRENT)!=cIter.getIndex(&cIter, UITER_CURRENT) ||
-        cIter.getIndex(&cIter, UITER_CURRENT)!=3
-    ) {
-        errln("error: UCharIterator(character iterator).move sets/returns wrong index");
-    }
-
-
-    if(cIter.getIndex(&cIter, (enum UCharIteratorOrigin)-1) != -1)
-    {
-      errln("error: UCharIterator(char iter).getIndex did not return error value");
-    }
-
-    if(cIter.move(&cIter, 0, (enum UCharIteratorOrigin)-1) != -1)
-    {
-      errln("error: UCharIterator(char iter).move did not return error value");
-    }
-
-
-    if(rIter.getIndex(&rIter, (enum UCharIteratorOrigin)-1) != -1)
-    {
-      errln("error: UCharIterator(repl iter).getIndex did not return error value");
-    }
-
-    if(rIter.move(&rIter, 0, (enum UCharIteratorOrigin)-1) != -1)
-    {
-      errln("error: UCharIterator(repl iter).move did not return error value");
-    }
-
-
-    if(sIter.getIndex(&sIter, (enum UCharIteratorOrigin)-1) != -1)
-    {
-      errln("error: UCharIterator(string iter).getIndex did not return error value");
-    }
-
-    if(sIter.move(&sIter, 0, (enum UCharIteratorOrigin)-1) != -1)
-    {
-      errln("error: UCharIterator(string iter).move did not return error value");
-    }
-
 }

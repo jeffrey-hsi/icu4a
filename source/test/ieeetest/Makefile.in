@@ -10,6 +10,9 @@ top_builddir = ../..
 
 include $(top_builddir)/icudefs.mk
 
+## Platform-specific setup
+include @platform_make_fragment@
+
 ## Build directory information
 subdir = test/ieeetest
 
@@ -19,8 +22,16 @@ CLEANFILES = *~ $(DEPS)
 ## Target information
 TARGET = ieeetest
 
-DEFS += -I$(top_builddir)/common -I$(top_srcdir)/common
-LIBS = $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
+DEFS = @DEFS@
+CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common
+CFLAGS = @CFLAGS@
+CXXFLAGS = @CXXFLAGS@
+ENABLE_RPATH = @ENABLE_RPATH@
+ifeq ($(ENABLE_RPATH),YES)
+RPATHLDFLAGS = $(LD_RPATH)$(LD_RPATH_PRE)$(libdir)
+endif
+LDFLAGS = @LDFLAGS@ $(RPATHLDFLAGS)
+LIBS = $(LIBICUUC) @LIBS@ @LIB_M@
 
 OBJECTS = ieeetest.o
 
@@ -71,8 +82,6 @@ ifeq (,$(MAKECMDGOALS))
 -include $(DEPS)
 else
 ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
-ifneq ($(patsubst %install,,$(MAKECMDGOALS)),)
 -include $(DEPS)
-endif
 endif
 endif

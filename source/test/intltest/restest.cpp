@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2002, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -8,11 +8,17 @@
 #include <time.h>
 #include <string.h>
 
+#define RESTEST_HEAP_CHECK 0
+
 #include "unicode/utypes.h"
+
+#if defined(_WIN32) && !defined(__WINDOWS__)
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
 
 #include "cstring.h"
 #include "unicode/unistr.h"
-#include "unicode/uniset.h"
 #include "unicode/resbund.h"
 #include "restest.h"
 #include <limits.h>
@@ -186,7 +192,7 @@ void ResourceBundleTest::runIndexedTest( int32_t index, UBool exec, const char* 
     switch (index) {
     case 0: name = "TestResourceBundles"; if (exec) TestResourceBundles(); break;
     case 1: name = "TestConstruction"; if (exec) TestConstruction(); break;
-    case 2: name = "TestExemplar"; if (exec) TestExemplar(); break;
+
         default: name = ""; break; //needed to end loop
     }
 }
@@ -196,6 +202,25 @@ void ResourceBundleTest::runIndexedTest( int32_t index, UBool exec, const char* 
 void
 ResourceBundleTest::TestResourceBundles()
 {
+#if defined(_WIN32) && !defined(__WINDOWS__)
+#if defined(_DEBUG) && RESTEST_HEAP_CHECK
+    /*
+     * Set the debug-heap flag to keep freed blocks in the
+     * heap's linked list - This will allow us to catch any
+     * inadvertent use of freed memory
+     */
+    int tmpDbgFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    tmpDbgFlag |= _CRTDBG_DELAY_FREE_MEM_DF;
+    tmpDbgFlag |= _CRTDBG_LEAK_CHECK_DF;
+    tmpDbgFlag |= _CRTDBG_CHECK_ALWAYS_DF;
+    _CrtSetDbgFlag(tmpDbgFlag);
+
+    _CrtMemState memstate;
+    _CrtMemCheckpoint(&memstate);
+    {
+#endif
+#endif
+
     testTag("only_in_Root", TRUE, FALSE, FALSE);
     testTag("only_in_te", FALSE, TRUE, FALSE);
     testTag("only_in_te_IN", FALSE, FALSE, TRUE);
@@ -204,7 +229,25 @@ ResourceBundleTest::TestResourceBundles()
     testTag("in_Root_te_IN", TRUE, FALSE, TRUE);
     testTag("in_te_te_IN", FALSE, TRUE, TRUE);
     testTag("nonexistent", FALSE, FALSE, FALSE);
-    logln("Passed: %d\nFailed: %d", pass, fail);
+    OUT << "Passed: " << pass << "\nFailed: " << fail << endl;
+
+#if defined(_WIN32) && !defined(__WINDOWS__)
+#if defined(_DEBUG) && RESTEST_HEAP_CHECK
+    }
+    _CrtMemDumpAllObjectsSince(&memstate);
+
+    /*
+     * Set the debug-heap flag to keep freed blocks in the
+     * heap's linked list - This will allow us to catch any
+     * inadvertent use of freed memory
+     */
+    tmpDbgFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    tmpDbgFlag |= _CRTDBG_DELAY_FREE_MEM_DF;
+    tmpDbgFlag &= ~_CRTDBG_LEAK_CHECK_DF;
+    tmpDbgFlag &= ~_CRTDBG_CHECK_ALWAYS_DF;
+    _CrtSetDbgFlag(tmpDbgFlag);
+#endif
+#endif
 }
 
 void
@@ -212,15 +255,14 @@ ResourceBundleTest::TestConstruction()
 {
     {
         UErrorCode   err = U_ZERO_ERROR;
-        const char* testdatapath;
+        const char   *directory;
+        char testdatapath[256];
         Locale       locale("te", "IN");
 
-        testdatapath=loadTestData(err);
-        if(U_FAILURE(err))
-        {
-            errln("Could not load testdata.dat %s " + UnicodeString(u_errorName(err)));
-            return;
-        }
+        directory=u_getDataDirectory();
+        uprv_strcpy(testdatapath, directory);
+        uprv_strcat(testdatapath, "testdata");
+
         ResourceBundle  test1((UnicodeString)testdatapath, err);
         ResourceBundle  test2(testdatapath, locale, err);
         //ResourceBundle  test1("c:\\icu\\icu\\source\\test\\testdata\\testdata", err);
@@ -264,15 +306,13 @@ ResourceBundleTest::TestConstruction()
     }
     {
         UErrorCode   err = U_ZERO_ERROR;
-        const char* testdatapath;
+        const char   *directory;
+        char testdatapath[256];
         Locale       locale("te", "IN");
 
-        testdatapath=loadTestData(err);
-        if(U_FAILURE(err))
-        {
-            errln("Could not load testdata.dat %s " + UnicodeString(u_errorName(err)));
-            return;
-        }
+        directory=u_getDataDirectory();
+        uprv_strcpy(testdatapath, directory);
+        uprv_strcat(testdatapath, "testdata");
 
 
         wchar_t* wideDirectory = new wchar_t[256];
@@ -321,21 +361,19 @@ ResourceBundleTest::testTag(const char* frag,
     int32_t i,j,actual_bundle;
 //    int32_t row,col;
     int32_t index;
-    UErrorCode status = U_ZERO_ERROR;
-    const char* testdatapath;
-    testdatapath=loadTestData(status);
-    if(U_FAILURE(status))
-    {
-        errln("Could not load testdata.dat %s " + UnicodeString(u_errorName(status)));
-        return FALSE;
-    }
+    const char *directory;
+    char testdatapath[256];
+
+    directory=u_getDataDirectory();
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
 
     for (i=0; i<bundles_count; ++i)
     {
         action = "Constructor for ";
         action += param[i].name;
 
-        status = U_ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         ResourceBundle theBundle( testdatapath, *param[i].locale, status);
         //ResourceBundle theBundle( "c:\\icu\\icu\\source\\test\\testdata\\testdata", *param[i].locale, status);
         CONFIRM_UErrorCode(status, param[i].expected_constructor_status, action);
@@ -486,32 +524,5 @@ ResourceBundleTest::record_fail(UnicodeString errMessage)
     err(errMessage);
     ++fail;
 }
-
-void
-ResourceBundleTest::TestExemplar(){
-
-    int32_t locCount = uloc_countAvailable();
-    int32_t locIndex=0;
-    int num=0;
-    UErrorCode status = U_ZERO_ERROR;
-    for(;locIndex<locCount;locIndex++){
-        const char* locale = uloc_getAvailable(locIndex);
-        UResourceBundle *resb =ures_open(NULL,locale,&status);
-        if(U_SUCCESS(status) && status!=U_USING_FALLBACK_WARNING && status!=U_USING_DEFAULT_WARNING){
-            int32_t len=0;
-            const UChar* strSet = ures_getStringByKey(resb,"ExemplarCharacters",&len,&status);
-            UnicodeSet set(strSet,status);
-            if(U_FAILURE(status)){
-                errln("Could not construct UnicodeSet from pattern for ExemplarCharacters in locale : %s. Error: %s",locale,u_errorName(status));
-                status=U_ZERO_ERROR;
-            }
-            num++;
-        }
-        ures_close(resb);
-    }
-    logln("Number of installed locales with exemplar characters that could be tested: %d",num);
-
-}
-            
 //eof
 

@@ -11,7 +11,6 @@
 #include "unicode/utypes.h"
 #include "unicode/unorm.h"
 #include "unicode/parseerr.h"
-#include "unicode/uloc.h"
 
 /**
  * \file
@@ -469,67 +468,8 @@ ucol_getSortKey(const    UCollator    *coll,
         uint8_t        *result,
         int32_t        resultLength);
 
-/** enum that is taken by ucol_getBound API */
-/* See below for explanation                */
-/* do not change the values assigned to the */
-/* members of this enum. Underlying code    */
-/* depends on them having these numbers     */
-typedef enum {
-  /** lower bound */
-  UCOL_BOUND_LOWER = 0,
-  /** upper bound that will match strings of exact size */
-  UCOL_BOUND_UPPER = 1,
-  /** upper bound that will match all the strings that have the same initial substring as the given string */
-  UCOL_BOUND_UPPER_LONG = 2,
-  UCOL_BOUND_VALUE_COUNT
-} UColBoundMode;
 
-/**
- * Produce a bound for a given sortkey and a number of levels.
- * Return value is always the number of bytes needed, regardless of 
- * whether the result buffer was big enough or even valid.<br>
- * Resulting bounds can be used to produce a range of strings that are
- * between upper and lower bounds. For example, if bounds are produced
- * for a sortkey of string "smith", strings between upper and lower 
- * bounds with one level would include "Smith", "SMITH", "sMiTh".<br>
- * There are two upper bounds that can be produced. If UCOL_BOUND_UPPER
- * is produced, strings matched would be as above. However, if bound
- * produced using UCOL_BOUND_UPPER_LONG is used, the above example will
- * also match "Smithsonian" and similar.<br>
- * For more on usage, see example in cintltst/capitst.c in procedure
- * TestBounds.
- * Sort keys may be compared using <TT>strcmp</TT>.
- * @param source The source sortkey.
- * @param sourceLength The length of source, or -1 if null-terminated. 
- *                     (If an unmodified sortkey is passed, it is always null 
- *                      terminated).
- * @param boundType Type of bound required. It can be UCOL_BOUND_LOWER, which 
- *                  produces a lower inclusive bound, UCOL_BOUND_UPPER, that 
- *                  produces upper bound that matches strings of the same length 
- *                  or UCOL_BOUND_UPPER_LONG that matches strings that have the 
- *                  same starting substring as the source string.
- * @param noOfLevels  Number of levels required in the resulting bound (for most 
- *                    uses, the recommended value is 1). See users guide for 
- *                    explanation on number of levels a sortkey can have.
- * @param result A pointer to a buffer to receive the resulting sortkey.
- * @param resultLength The maximum size of result.
- * @param status Used for returning error code if something went wrong. If the 
- *               number of levels requested is higher than the number of levels
- *               in the source key, a warning (U_SORT_KEY_TOO_SHORT_WARNING) is 
- *               issued.
- * @return The size needed to fully store the bound. 
- * @see ucol_keyHashCode
- * @draft ICU 2.1
- */
-U_CAPI int32_t U_EXPORT2 
-ucol_getBound(const uint8_t       *source,
-        int32_t             sourceLength,
-        UColBoundMode       boundType,
-        uint32_t            noOfLevels,
-        uint8_t             *result,
-        int32_t             resultLength,
-        UErrorCode          *status);
-        
+
 /**
  * Gets the version information for a Collator. 
  * @param info the version # information, the result will be filled in
@@ -613,8 +553,8 @@ ucol_getAttribute(const UCollator *coll, UColAttribute attr, UErrorCode *status)
  */
 U_CAPI uint32_t U_EXPORT2 
 ucol_setVariableTop(UCollator *coll, 
-                    const UChar *varTop, int32_t len, 
-                    UErrorCode *status);
+		    const UChar *varTop, int32_t len, 
+		    UErrorCode *status);
 
 /** 
  * Gets the variable top value of a Collator. 
@@ -647,14 +587,14 @@ ucol_restoreVariableTop(UCollator *coll, const uint32_t varTop, UErrorCode *stat
  * @param coll collator to be cloned
  * @param stackBuffer user allocated space for the new clone. 
  * If NULL new memory will be allocated. 
- *  If buffer is not large enough, new memory will be allocated.
- *  Clients can use the U_COL_SAFECLONE_BUFFERSIZE. 
- *  This will probably be enough to avoid memory allocations.
+ *	If buffer is not large enough, new memory will be allocated.
+ *	Clients can use the U_COL_SAFECLONE_BUFFERSIZE. 
+ *	This will probably be enough to avoid memory allocations.
  * @param pBufferSize pointer to size of allocated space. 
- *  If *pBufferSize == 0, a sufficient size for use in cloning will 
- *  be returned ('pre-flighting')
- *  If *pBufferSize is not enough for a stack-based safe clone, 
- *  new memory will be allocated.
+ *	If *pBufferSize == 0, a sufficient size for use in cloning will 
+ *	be returned ('pre-flighting')
+ *	If *pBufferSize is not enough for a stack-based safe clone, 
+ *	new memory will be allocated.
  * @param status to indicate whether the operation went on smoothly or there were errors
  *    An informational status value, U_SAFECLONE_ALLOCATED_ERROR, is used if any
  * allocations were necessary.
@@ -666,9 +606,9 @@ ucol_restoreVariableTop(UCollator *coll, const uint32_t varTop, UErrorCode *stat
  */
 U_CAPI UCollator* U_EXPORT2 
 ucol_safeClone(const UCollator *coll,
-               void            *stackBuffer,
-               int32_t         *pBufferSize,
-               UErrorCode      *status);
+	       void            *stackBuffer,
+	       int32_t         *pBufferSize,
+	       UErrorCode      *status);
 
 /** default memory size for the new clone */
 #define U_COL_SAFECLONE_BUFFERSIZE 384
@@ -678,7 +618,7 @@ ucol_safeClone(const UCollator *coll,
  * Returns number of UChars needed to store rules. If buffer is NULL or bufferLen is not enough 
  * to store rules, will store up to available space.
  * @param coll collator to get the rules from
- * @param delta one of UCOL_TAILORING_ONLY, UCOL_FULL_RULES. 
+ * @param delta one of 	UCOL_TAILORING_ONLY, UCOL_FULL_RULES. 
  * @param buffer buffer to store the result in. If NULL, you'll get no rules.
  * @param bufferLen lenght of buffer to store rules in. If less then needed you'll get only the part that fits in.
  * @draft ICU 1.8
@@ -745,30 +685,14 @@ ucol_setNormalization(  UCollator        *coll,
             UNormalizationMode    mode);
 
 /**
- * gets the locale name of the collator. If the collator
- * is instantiated from the rules, then this function returns
- * NULL.
- * @param coll The UCollator for which the locale is needed
- * @param type You can choose between requested, valid and actual
- *             locale. For description see the definition of
- *             ULocDataLocaleType in uloc.h
- * @param status error code of the operation
- * @return real locale name from which the collation data comes. 
- *         If the collator was instantiated from rules, returns
- *         NULL.
- */
-U_CAPI const char * U_EXPORT2
-ucol_getLocale(const UCollator *coll, ULocDataLocaleType type, UErrorCode *status);
-
-/**
  *@deprecated Remove after Aug 2002
  */
 #ifdef U_USE_DEPRECATED_FORMAT_API
 
-#if ((U_ICU_VERSION_MAJOR_NUM != 2) || (U_ICU_VERSION_MINOR_NUM !=1))
+#if ((U_ICU_VERSION_MAJOR_NUM != 2) || (U_ICU_VERSION_MINOR_NUM !=0))
 #   error "ICU version has changed. Please redefine the macros under U_USE_DEPRECATED_FORMAT_API pre-processor definition"
 #else 
-#   define ucol_openRules_2_1(rules,rulesLength,normalizationMode,strength,status) ucol_openRules(rules,rulesLength,(UColAttributeValue)normalizationMode,strength,NULL,status)
+#   define ucol_openRules_2_0(rules,rulesLength,normalizationMode,strength,status) ucol_openRules(rules,rulesLength,(UColAttributeValue)normalizationMode,strength,NULL,status)
 #endif
 
 #endif

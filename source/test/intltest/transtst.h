@@ -19,11 +19,6 @@
  */
 class TransliteratorTest : public IntlTest {
 
-public:
-    TransliteratorTest();
-    virtual ~TransliteratorTest() {}
-
-private:
     void runIndexedTest(int32_t index, UBool exec, const char* &name,
                         char* par=NULL);
 
@@ -318,14 +313,6 @@ private:
      */
     void TestSurrogateCasing (void);
 
-    void TestFunction(void);
-
-    void TestInvalidBackRef(void);
-
-    void TestMulticharStringSet(void);
-
-    void TestUserFunction(void);
-
     //======================================================================
     // Support methods
     //======================================================================
@@ -366,10 +353,6 @@ private:
                     const UnicodeString& testRulesForward);
     void CheckIncrementalAux(const Transliterator* t, 
                              const UnicodeString& input);
-
-
-    const UnicodeString DESERET_DEE;
-    const UnicodeString DESERET_dee;
 
 };
 

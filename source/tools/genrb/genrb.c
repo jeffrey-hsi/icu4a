@@ -16,7 +16,26 @@
 *******************************************************************************
 */
 
-#include "genrb.h"
+#include <stdio.h>
+#include "unicode/utypes.h"
+#include "unicode/putil.h"
+#include "cmemory.h"
+#include "cstring.h"
+#include "filestrm.h"
+
+
+#include "ucbuf.h"
+#include "error.h"
+#include "parse.h"
+#include "util.h"
+#include "reslist.h"
+
+
+#include "toolutil.h"
+#include "uoptions.h"
+
+#include "unicode/ucol.h"
+#include "unicode/uloc.h"
 
 /* Protos */
 static void  processFile(const char *filename, const char* cp, const char *inputDir, const char *outputDir, UErrorCode *status);
@@ -26,62 +45,64 @@ static char *make_res_filename(const char *filename, const char *outputDir, UErr
 #define RES_SUFFIX ".res"
 #define COL_SUFFIX ".col"
 
-static char theCurrentFileName[4096];
-const char *gCurrentFileName = theCurrentFileName;
-#ifdef XP_MAC_CONSOLE
-#include <console.h>
-#endif
+/* The version of genrb */
+#define GENRB_VERSION "3.0"
+
+const char *gCurrentFileName;
 
 enum
 {
     HELP1,
     HELP2,
-    VERBOSE,
+/*    VERBOSE, */
     QUIET,
     VERSION,
     SOURCEDIR,
     DESTDIR,
     ENCODING,
     ICUDATADIR,
-    WRITE_JAVA,
     COPYRIGHT
 };
 
 UOption options[]={
                       UOPTION_HELP_H,
                       UOPTION_HELP_QUESTION_MARK,
-                      UOPTION_VERBOSE,
+/*                      UOPTION_VERBOSE, */
                       UOPTION_QUIET,
                       UOPTION_VERSION,
                       UOPTION_SOURCEDIR,
                       UOPTION_DESTDIR,
                       UOPTION_ENCODING,
                       UOPTION_ICUDATADIR,
-                      UOPTION_WRITE_JAVA,
                       UOPTION_COPYRIGHT
                   };
 
-static     UBool       verbose = FALSE;
-static     UBool       write_java = FALSE;
-static     const char* outputEnc ="";
+
+#ifdef XP_MAC_CONSOLE
+#include <console.h>
+#endif
+
 int
 main(int argc,
-     char* argv[])
-{
+     char* argv[]) {
     UErrorCode  status    = U_ZERO_ERROR;
     const char *arg       = NULL;
     const char *outputDir = NULL; /* NULL = no output directory, use current */
     const char *inputDir  = NULL;
     const char *encoding  = "";
+/*    UBool       verbose; */
     int         i;
 
-    U_MAIN_INIT_ARGS(argc, argv);
+#ifdef XP_MAC_CONSOLE
+
+    argc = ccommand((char***)&argv);
+#endif
 
     argc = u_parseArgs(argc, argv, (int32_t)(sizeof(options)/sizeof(options[0])), options);
 
     /* error handling, printing usage message */
     if(argc<0) {
-        fprintf(stderr, "%s: error in command line argument \"%s\"\n", argv[0], argv[-argc]);
+        fprintf(stderr, "error in command line argument \"%s\"\n", argv[-argc]);
     } else if(argc<2) {
         argc = -1;
     }
@@ -107,9 +128,8 @@ main(int argc,
         fprintf(stderr,
                 "Options:\n"
                 "\t-h or -? or --help   this usage text\n"
-                "\t-q or --quiet        do not display warnings\n"
-                "\t-v or --verbose      prints out extra information about processing the files\n"
                 "\t-V or --version      prints out version number and exits\n"
+                "\t-q or --quiet        do not display warnings\n"
                 "\t-c or --copyright    include copyright notice\n");
         fprintf(stderr,
                 "\t-e or --encoding     encoding of source files, leave empty for system default encoding\n"
@@ -119,15 +139,12 @@ main(int argc,
                 "\t-i or --icudatadir   directory for locating any needed intermediate data files,\n"
                 "\t                     followed by path, defaults to %s\n",
                 u_getDataDirectory(), u_getDataDirectory(), u_getDataDirectory());
-        fprintf(stderr,
-                "\t-j or --write-java   write a Java ListResourceBundle for ICU4J, followed by optional encoding\n"
-                "\t                     defaults to ASCII and \\uXXXX format.\n");
         return argc < 0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
-    if(options[VERBOSE].doesOccur) {
+/*    if(options[VERBOSE].doesOccur) {
         verbose = TRUE;
-    }
+    }*/
 
     if(options[QUIET].doesOccur) {
         setShowWarning(FALSE);
@@ -152,10 +169,6 @@ main(int argc,
     if(options[ICUDATADIR].doesOccur) {
         u_setDataDirectory(options[ICUDATADIR].value);
     }
-    if(options[WRITE_JAVA].doesOccur) {
-        write_java = TRUE;
-        outputEnc = options[WRITE_JAVA].value;
-    }
 
     initParser();
 
@@ -164,17 +177,8 @@ main(int argc,
         status = U_ZERO_ERROR;
         arg    = getLongPathname(argv[i]);
 
-        if (inputDir) {
-            uprv_strcpy(theCurrentFileName, inputDir);
-            uprv_strcat(theCurrentFileName, U_FILE_SEP_STRING);
-        } else {
-            *theCurrentFileName = 0;
-        }
-        uprv_strcat(theCurrentFileName, arg);
+        printf("genrb: processing file \"%s\"\n", arg);
 
-        if (verbose) {
-            printf("processing file \"%s\"\n", theCurrentFileName);
-        }
         processFile(arg, encoding, inputDir, outputDir, &status);
     }
 
@@ -191,8 +195,6 @@ processFile(const char *filename, const char *cp, const char *inputDir, const ch
     char           *openFileName = NULL;
     char           *inputDirBuf  = NULL;
 
-    char           outputFileName[256];
-
     if (U_FAILURE(*status)) {
         return;
     }
@@ -201,9 +203,7 @@ processFile(const char *filename, const char *cp, const char *inputDir, const ch
     in = 0;
 
     /* Open the input file for reading */
-    if (!uprv_strcmp(filename, "-")) {
-        in = T_FileStream_stdin();
-    } else if(inputDir == NULL) {
+    if(inputDir == NULL) {
         const char *filenameBegin = uprv_strrchr(filename, U_FILE_SEP_CHAR);
         if (filenameBegin != NULL) {
             /*
@@ -251,22 +251,23 @@ processFile(const char *filename, const char *cp, const char *inputDir, const ch
 
     if(in == 0) {
         *status = U_FILE_ACCESS_ERROR;
-        fprintf(stderr, "couldn't open file %s\n", openFileName == NULL ? filename : openFileName);
+        fprintf(stderr, "Couldn't open file %s\n", openFileName == NULL ? filename : openFileName);
         goto finish;
     } else {
         /* auto detect popular encodings */
-        if (*cp=='\0' && ucbuf_autodetect(in, &cp) && verbose) {
-            printf("autodetected encoding %s\n", cp);
+        if (*cp=='\0' &&ucbuf_autodetect(in, &cp)) {
+            printf("Autodetected encoding %s\n", cp);
         }
     }
 
-    ucbuf = ucbuf_open(in, cp, 0, status);
+    ucbuf = ucbuf_open(in, cp,getShowWarning(), status);
 
     if (ucbuf == NULL || U_FAILURE(*status)) {
         goto finish;
     }
 
     /* Parse the data into an SRBRoot */
+    gCurrentFileName = filename;
     data = parse(ucbuf, inputDir, status);
 
     if (data == NULL || U_FAILURE(*status)) {
@@ -278,15 +279,9 @@ processFile(const char *filename, const char *cp, const char *inputDir, const ch
     if(U_FAILURE(*status)) {
         goto finish;
     }
-    if(write_java== FALSE){
-        /* Write the data to the file */
-        bundle_write(data, outputDir, outputFileName, sizeof(outputFileName), status);
-    }else{
-        bundle_write_java(data,outputDir,outputEnc, outputFileName, sizeof(outputFileName), status);
-    }
-    if (U_FAILURE(*status)) {
-        fprintf(stderr, "couldn't write bundle %s. Error:%s\n", outputFileName,u_errorName(*status));
-    }
+
+    /* Write the data to the file */
+    bundle_write(data, outputDir, status);
     bundle_close(data, status);
 
 finish:
@@ -304,9 +299,7 @@ finish:
     }
 
     /* Clean up */
-    if (in != T_FileStream_stdin()) {
-        T_FileStream_close(in);
-    }
+    T_FileStream_close(in);
 
     if (rbname) {
         uprv_free(rbname);

@@ -46,7 +46,6 @@ extern void pkg_mode_windows(UPKGOptions *o, FileStream *makefile, UErrorCode *s
 #else /*#ifdef WIN32*/
 #ifdef UDATA_SO_SUFFIX
 extern void pkg_mode_dll(UPKGOptions* o, FileStream *stream, UErrorCode *status);
-extern void pkg_mode_static(UPKGOptions* o, FileStream *stream, UErrorCode *status);
 #endif /*#ifdef UDATA_SO_SUFFIX*/
 extern void pkg_mode_common(UPKGOptions* o, FileStream *stream, UErrorCode *status);
 #endif /*#ifdef WIN32*/

@@ -33,15 +33,12 @@
 #define UNICODE_AMP_CODEPOINT           0x0026
 #define UNICODE_HASH_CODEPOINT          0x0023
 #define UNICODE_SEMICOLON_CODEPOINT     0x003B
-#define UNICODE_PLUS_CODEPOINT          0x002B
-#define UNICODE_LEFT_CURLY_CODEPOINT    0x007B
-#define UNICODE_RIGHT_CURLY_CODEPOINT   0x007D
 #define UCNV_PRV_ESCAPE_ICU      0
 #define UCNV_PRV_ESCAPE_C       'C'
 #define UCNV_PRV_ESCAPE_XML_DEC 'D'
 #define UCNV_PRV_ESCAPE_XML_HEX 'X'
 #define UCNV_PRV_ESCAPE_JAVA    'J'
-#define UCNV_PRV_ESCAPE_UNICODE 'U'
+
 
 /*Function Pointer STOPS at the ILLEGAL_SEQUENCE */
 U_CAPI void    U_EXPORT2
@@ -257,19 +254,6 @@ UCNV_FROM_U_CALLBACK_ESCAPE (
             }
             valueString[valueStringLength++] = (UChar) UNICODE_SEMICOLON_CODEPOINT; /* adding ; */
           break;
-
-        case UCNV_PRV_ESCAPE_UNICODE:
-          valueString[valueStringLength++] = (UChar) UNICODE_LEFT_CURLY_CODEPOINT;    /* adding { */
-          valueString[valueStringLength++] = (UChar) UNICODE_U_CODEPOINT;    /* adding U */
-          valueString[valueStringLength++] = (UChar) UNICODE_PLUS_CODEPOINT; /* adding + */
-          if (length == 2) {
-            valueStringLength += uprv_itou (valueString + valueStringLength, codePoint, 16, 4);
-          } else {
-            valueStringLength += uprv_itou (valueString + valueStringLength, codeUnits[0], 16, 4);
-          }
-          valueString[valueStringLength++] = (UChar) UNICODE_RIGHT_CURLY_CODEPOINT;    /* adding } */
-          break;
-
        default:
           while (i < length)
           {

@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2001-2002, International Business Machines
+*   Copyright (C) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -69,8 +69,6 @@ main(int argc, char* argv[]) {
     char *basename=NULL;
     UErrorCode errorCode=U_ZERO_ERROR;
 
-    U_MAIN_INIT_ARGS(argc, argv);
-
     /* preset then read command line options */
     options[4].value=u_getDataDirectory();
     options[5].value="";
@@ -92,7 +90,7 @@ main(int argc, char* argv[]) {
             "Usage: %s [-options] [suffix]\n"
             "\n"
             "Read the UnicodeData.txt file and other Unicode properties files and\n"
-            "create a binary file " DATA_NAME "." DATA_TYPE " with the normalization data\n"
+            "create a binary file " DATA_NAME "." DATA_TYPE " with the character properties\n"
             "\n",
             argv[0]);
         fprintf(stderr,
@@ -169,20 +167,137 @@ main(int argc, char* argv[]) {
     return errorCode;
 }
 
+/* parsing helpers ---------------------------------------------------------- */
+
+static const char *
+skipWhitespace(const char *s) {
+    while(*s==' ' || *s=='\t') {
+        ++s;
+    }
+    return s;
+}
+
+/*
+ * parse a list of code points
+ * store them as a UTF-32 string in dest[destCapacity] with the string length in dest[0]
+ * set the first code point in *pFirst
+ * return the number of code points
+ */
+static int32_t
+parseCodePoints(const char *s,
+                uint32_t *dest, int32_t destCapacity,
+                UErrorCode *pErrorCode) {
+    char *end;
+    uint32_t value;
+    int32_t count;
+
+    count=0;
+    for(;;) {
+        s=skipWhitespace(s);
+        if(*s==';' || *s==0) {
+            return count;
+        }
+
+        /* read one code point */
+        value=(uint32_t)uprv_strtoul(s, &end, 16);
+        if(end<=s || (*end!=' ' && *end!='\t' && *end!=';') || value>=0x110000) {
+            fprintf(stderr, "gennorm: syntax error parsing code point at %s\n", s);
+            *pErrorCode=U_PARSE_ERROR;
+            return -1;
+        }
+
+        /* overflow? */
+        if(count>=destCapacity) {
+            fprintf(stderr, "gennorm: code point sequence too long at at %s\n", s);
+            *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
+            return -1;
+        }
+
+        /* append it to the destination array */
+        dest[count++]=value;
+
+        /* go to the following characters */
+        s=end;
+    }
+}
+
+/* read a range like start or start..end */
+static int32_t
+parseCodePointRange(const char *s,
+                    uint32_t *pStart, uint32_t *pEnd,
+                    UErrorCode *pErrorCode) {
+    char *end;
+    uint32_t value;
+
+    s=skipWhitespace(s);
+    if(*s==';' || *s==0) {
+        fprintf(stderr, "gennorm: syntax error parsing range at %s - empty field\n", s);
+        *pErrorCode=U_PARSE_ERROR;
+        return -1;
+    }
+
+    /* read the start code point */
+    value=(uint32_t)uprv_strtoul(s, &end, 16);
+    if(end<=s || (*end!=' ' && *end!='\t' && *end!='.' && *end!=';') || value>=0x110000) {
+        fprintf(stderr, "gennorm: syntax error parsing range start code point at %s\n", s);
+        *pErrorCode=U_PARSE_ERROR;
+        return -1;
+    }
+    *pStart=*pEnd=value;
+
+    /* is there a "..end"? */
+    s=skipWhitespace(end);
+    if(*s==';' || *s==0) {
+        return 1;
+    }
+
+    if(*s!='.' || s[1]!='.') {
+        fprintf(stderr, "gennorm: syntax error parsing range at %s\n", s);
+        *pErrorCode=U_PARSE_ERROR;
+        return -1;
+    }
+    s+=2;
+
+    /* read the end code point */
+    value=(uint32_t)uprv_strtoul(s, &end, 16);
+    if(end<=s || (*end!=' ' && *end!='\t' && *end!=';') || value>=0x110000) {
+        fprintf(stderr, "gennorm: syntax error parsing range end code point at %s\n", s);
+        *pErrorCode=U_PARSE_ERROR;
+        return -1;
+    }
+    *pEnd=value;
+
+    /* is this a valid range? */
+    if(value<*pStart) {
+        fprintf(stderr, "gennorm: syntax error parsing range at %s - not a valid range\n", s);
+        *pErrorCode=U_PARSE_ERROR;
+        return -1;
+    }
+
+    /* no garbage after that? */
+    s=skipWhitespace(end);
+    if(*s==';' || *s==0) {
+        return value-*pStart+1;
+    } else {
+        fprintf(stderr, "gennorm: syntax error parsing range at %s\n", s);
+        *pErrorCode=U_PARSE_ERROR;
+        return -1;
+    }
+}
+
 /* parser for DerivedNormalizationProperties.txt ---------------------------- */
 
 static void
 derivedNormalizationPropertiesLineFn(void *context,
                                      char *fields[][2], int32_t fieldCount,
                                      UErrorCode *pErrorCode) {
-    UChar string[32];
     char *s;
     uint32_t start, end;
     int32_t count;
     uint8_t qcFlags;
 
     /* get code point range */
-    count=u_parseCodePointRange(fields[0][0], &start, &end, pErrorCode);
+    count=parseCodePointRange(fields[0][0], &start, &end, pErrorCode);
     if(U_FAILURE(*pErrorCode)) {
         fprintf(stderr, "gennorm: error parsing DerivedNormalizationProperties.txt mapping at %s\n", fields[0][0]);
         exit(*pErrorCode);
@@ -194,9 +309,8 @@ derivedNormalizationPropertiesLineFn(void *context,
     }
 
     /* get property - ignore unrecognized ones */
-    s=(char *)u_skipWhitespace(fields[1][0]);
+    s=(char *)skipWhitespace(fields[1][0]);
     if(*s=='N' && s[1]=='F') {
-        /* quick check flag */
         qcFlags=0x11;
         s+=2;
         if(*s=='K') {
@@ -226,28 +340,8 @@ derivedNormalizationPropertiesLineFn(void *context,
             setQCFlags(start++, qcFlags);
         }
     } else if(0==uprv_memcmp(s, "Comp_Ex", 7)) {
-        /* full composition exclusion */
         while(start<=end) {
             setCompositionExclusion(start++);
-        }
-    } else if(0==uprv_memcmp(s, "FNC", 3) && *(s=(char *)u_skipWhitespace(s+3))==';') {
-        /* FC_NFKC_Closure, parse field 2 to get the string */
-        char *t;
-
-        /* start of the field */
-        s=(char *)u_skipWhitespace(s+1);
-
-        /* find the end of the field */
-        for(t=s; *t!=';' && *t!='#' && *t!=0 && *t!='\n' && *t!='\r'; ++t) {}
-        *t=0;
-
-        string[0]=(UChar)u_parseString(s, string+1, 31, NULL, pErrorCode);
-        if(U_FAILURE(*pErrorCode)) {
-            fprintf(stderr, "gennorm error: illegal FNC string at %s\n", fields[0][0]);
-            exit(*pErrorCode);
-        }
-        while(start<=end) {
-            setFNC(start++, string);
         }
     }
 }
@@ -261,10 +355,6 @@ parseDerivedNormalizationProperties(const char *filename, UErrorCode *pErrorCode
     }
 
     u_parseDelimitedFile(filename, ';', fields, 2, derivedNormalizationPropertiesLineFn, NULL, pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
-        fprintf(stderr, "gennorm error: u_parseDelimitedFile(\"%s\") failed - %s\n", filename, u_errorName(*pErrorCode));
-        exit(*pErrorCode);
-    }
 }
 
 /* parser for UnicodeData.txt ----------------------------------------------- */
@@ -332,10 +422,8 @@ unicodeDataLineFn(void *context,
         }
 
         /* parse the decomposition string */
-        length=u_parseCodePoints(s, decomp, sizeof(decomp)/4, pErrorCode);
+        length=parseCodePoints(s, decomp, sizeof(decomp)/4, pErrorCode);
         if(U_FAILURE(*pErrorCode)) {
-            fprintf(stderr, "gennorm error parsing UnicodeData.txt decomposition of U+%04lx - %s\n",
-                    (long)code, u_errorName(*pErrorCode));
             exit(*pErrorCode);
         }
 
@@ -368,12 +456,10 @@ unicodeDataLineFn(void *context,
 
     if(something) {
         /* there are normalization values, so store them */
-#if 0
         if(beVerbose) {
             printf("store values for U+%04lx: cc=%d, lenNFD=%ld, lenNFKD=%ld\n",
                    (long)code, norm.udataCC, (long)norm.lenNFD, (long)norm.lenNFKD);
         }
-#endif
         storeNorm(code, &norm);
     }
 }
@@ -387,10 +473,6 @@ parseDB(const char *filename, UErrorCode *pErrorCode) {
     }
 
     u_parseDelimitedFile(filename, ';', fields, 15, unicodeDataLineFn, NULL, pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
-        fprintf(stderr, "gennorm error: u_parseDelimitedFile(\"%s\") failed - %s\n", filename, u_errorName(*pErrorCode));
-        exit(*pErrorCode);
-    }
 }
 
 /*

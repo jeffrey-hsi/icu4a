@@ -1,5 +1,5 @@
 /********************************************************************
- * COPYRIGHT:
+ * COPYRIGHT: 
  * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
@@ -8,7 +8,7 @@
 * File CLOCTST.C
 *
 * Modification History:
-*        Name                     Description 
+*        Name                     Description            
 *     Madhu Katragadda            Ported for C API
 *********************************************************************************
 */
@@ -19,16 +19,9 @@
 #include "unicode/putil.h"
 #include "cloctst.h"
 #include "unicode/uloc.h"
-#include "unicode/uchar.h"
 #include "unicode/ustring.h"
 #include "cintltst.h"
 #include "ccolltst.h"
-
-#include "unicode/ures.h"
-#ifdef WIN32
-/* Get the private functions. This is a hack! [grhoten] */
-#include "locmap.c"
-#endif
 
 void PrintDataTable();
 
@@ -82,13 +75,13 @@ static const char* rawData2[LOCALE_INFO_SIZE][LOCALE_SIZE] = {
     {   "", "", "hrvatski (Hrvatska)", "", "" },
 
     /* display langage (Greek) */
-    {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac", "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03b9\\u03ba\\u03ac", "\\u03b5\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac", "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac" },
+    {   "", "", "", "\\u03b5\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac", "" },
     /* display country (Greek) */
-    {   "\\u0397\\u03bd\\u03c9\\u03bc\\u03ad\\u03bd\\u03b5\\u03c2 \\u03a0\\u03bf\\u03bb\\u03b9\\u03c4\\u03b5\\u03af\\u03b5\\u03c2 \\u0391\\u03bc\\u03b5\\u03c1\\u03b9\\u03ba\\u03ae\\u03c2", "\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03af\\u03b1", "\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1", "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1" },
+    {   "", "", "", "\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1",               "" },
     /* display variant (Greek) */
     {   "", "", "", "",                                                         "" },
     /* display name (Greek) */
-    {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac (\\u0397\\u03bd\\u03c9\\u03bc\\u03ad\\u03bd\\u03b5\\u03c2 \\u03a0\\u03bf\\u03bb\\u03b9\\u03c4\\u03b5\\u03af\\u03b5\\u03c2 \\u0391\\u03bc\\u03b5\\u03c1\\u03b9\\u03ba\\u03ae\\u03c2)", "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac (\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1)", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03b9\\u03ba\\u03ac (\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03af\\u03b1)", "\\u03b5\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac (\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1)", "" }
+    {   "", "", "", "\\u03b5\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac (\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1)", "" }
 };
 
 static UChar*** dataTable=0;
@@ -143,8 +136,6 @@ void addLocaleTest(TestNode** root)
     addTest(root, &TestUninstalledISO3Names, "tsutil/cloctst/TestUninstalledISO3Names");
     addTest(root, &TestSimpleDisplayNames,   "tsutil/cloctst/TestSimpleDisplayNames");
     addTest(root, &TestVariantParsing,       "tsutil/cloctst/TestVariantParsing");
-    addTest(root, &TestLocaleStructure,      "tsutil/cloctst/TestLocaleStructure");
-    addTest(root, &TestConsistentCountryInfo,"tsutil/cloctst/TestConsistentCountryInfo");
 }
 
 
@@ -171,7 +162,7 @@ static void TestBasicGetters() {
             log_err("ERROR: in uloc_getLanguage  %s\n", myErrorName(status));
         }
         if (0 !=strcmp(temp,rawData2[LANG][i]))    {
-            log_err("  Language code mismatch: %s versus  %s\n", temp, rawData2[LANG][i]);
+            log_err("  Language code mismatch: %s versus  %s\n", temp, rawData2[LANG][i]); 
         }
 
 
@@ -186,7 +177,7 @@ static void TestBasicGetters() {
         }
         if (0 != strcmp(temp, rawData2[CTRY][i])) {
             log_err(" Country code mismatch:  %s  versus   %s\n", temp, rawData2[CTRY][i]);
-
+            
           }
 
         cap=uloc_getVariant(testLocale, temp, cap, &status);
@@ -234,8 +225,8 @@ static void TestPrefixes() {
   int row = 0;
   int n;
   const char *loc;
-
-  const char *testData[][5] =
+  
+  const char *testData[][5] = 
   {
     {"sv", "FI", "AL", "sv-fi-al", "sv_FI_AL" },
     {"en", "GB", "", "en-gb", "en_GB" },
@@ -267,7 +258,7 @@ static void TestPrefixes() {
   for(row=0;testData[row][0][0] != 0;row++) {
     loc = testData[row][NAME];
     log_verbose("Test #%d: %s\n", row, loc);
-
+    
     err = U_ZERO_ERROR;
     len=0;
     buf[0]=0;
@@ -295,12 +286,12 @@ static void TestPrefixes() {
       case NAME+1:
         len = uloc_getName(loc, buf, PREFIXBUFSIZ, &err);
         break;
-
+        
       default:
         strcpy(buf, "**??");
         len=4;
       }
-
+      
       if(U_FAILURE(err)) {
         log_err("#%d: %s on %s: err %s\n",
                 row, testTitles[n], loc, u_errorName(err));
@@ -313,7 +304,7 @@ static void TestPrefixes() {
                 row, testTitles[n], loc, buf, len, strlen(buf)+1);
 
         }
-
+        
         /* see if they smashed something */
         if(buf[len+1] != '%') {
           log_err("#%d: %s on %s: -> [%s] - wrote [%X] out ofbounds!\n",
@@ -378,10 +369,10 @@ setUpDataTable();
 cleanUpDataTable();
 }
 
-static void TestDisplayNames()
+static void TestDisplayNames() 
 {
   /* sfb 990721 
-     Can't just save a pointer to the default locale.
+     Can't just save a pointer to the default locale.  
      Although the pointer won't change, the contents will, so the
      restore at the end doesn't actually restore the original.
   */
@@ -463,7 +454,7 @@ static void TestGetAvailableLocales()
         log_err("countAvailable() returned an empty list!\n");
 
     /* use something sensible w/o hardcoding the count */
-    else if(locCount < 0){
+    else if(locCount < 0){ 
         log_err("countAvailable() returned a wrong value!= %d\n", locCount);
     }
     else{
@@ -487,10 +478,10 @@ static void TestDataDirectory()
     log_verbose("Testing getDataDirectory()\n");
     temp = u_getDataDirectory();
     strcpy(oldDirectory, temp);
-
+        
     testValue1=uloc_getISO3Language("en_US");
     log_verbose("first fetch of language retrieved  %s\n", testValue1);
-
+    
     if (0 != strcmp(testValue1,"eng")){
         log_err("Initial check of ISO3 language failed: expected \"eng\", got  %s \n", testValue1);
     }
@@ -555,7 +546,7 @@ setUpDataTable();
     if (defaultIsFrench && 0 != strcmp(temp, "fr"))    {
         log_err("Default locale should be French, but it's really  %s\n", temp);
     }
-    else if (!defaultIsFrench && 0 != strcmp(temp, "en")){
+    else if (!defaultIsFrench && 0 != strcmp(temp, "en")){  
         log_err("Default locale should be English, but it's really  %s\n", temp);
     }
 
@@ -631,9 +622,9 @@ setUpDataTable();
             }
             if(U_FAILURE(status)){
                     log_err("Error in getDisplayName()  %s\n", myErrorName(status));
-
+                
             }
-
+           
         }
         else {
             maxresultsize=0;
@@ -667,7 +658,7 @@ setUpDataTable();
             if(U_FAILURE(status)){
                 log_err("Error in getDisplayCountry()  %s\n", myErrorName(status));
             }
-
+            
             maxresultsize=0;
             maxresultsize=uloc_getDisplayVariant(testLocale, inLocale, NULL, maxresultsize, &status);
             if(status==U_BUFFER_OVERFLOW_ERROR)
@@ -683,7 +674,7 @@ setUpDataTable();
             if(U_FAILURE(status)){
                     log_err("Error in getDisplayVariant()  %s\n", myErrorName(status));
             }
-
+            
             maxresultsize=0;
             maxresultsize=uloc_getDisplayName(testLocale, inLocale, NULL, maxresultsize, &status);
             if(status==U_BUFFER_OVERFLOW_ERROR)
@@ -730,19 +721,19 @@ setUpDataTable();
 
 
         if (0 !=u_strcmp(testLang,expectedLang))  {
-            log_err(" Display Language mismatch: %s  versus  %s inLocale=%s\n", austrdup(testLang), austrdup(expectedLang), inLocale);
+            log_err(" Display Language mismatch: %s  versus  %s\n", austrdup(testLang), austrdup(expectedLang));
         }
 
         if (0 != u_strcmp(testCtry,expectedCtry))   {
-            log_err(" Display Country mismatch: %s  versus  %s inLocale=%s\n", austrdup(testCtry), austrdup(expectedCtry), inLocale);
+            log_err(" Display Country mismatch: %s  versus  %s\n", austrdup(testCtry), austrdup(expectedCtry));
         }
 
         if (0 != u_strcmp(testVar,expectedVar))    {
-            log_err(" Display Variant mismatch: %s  versus  %s inLocale=%s\n", austrdup(testVar), austrdup(expectedVar), inLocale);
+            log_err(" Display Variant mismatch: %s  versus  %s\n", austrdup(testVar), austrdup(expectedVar));
         }
 
-        if(0 != u_strcmp(testName, expectedName))    {
-            log_err(" Display Name mismatch: %s  versus  %s inLocale=%s\n", austrdup(testName), austrdup(expectedName), inLocale);
+        if(0 != u_strcmp(testName, expectedName))    {    
+            log_err(" Display Name mismatch: %s  versus  %s\n", austrdup(testName), austrdup(expectedName));
         }
 
         if(testName!=&_NUL) {
@@ -782,20 +773,15 @@ static void TestISOFunctions()
         {
             done = TRUE;
         }
-        else
-        {
-            test = *(str+count-1);
-            if(!strcmp(test,"in"))
-                log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
-            if(!strcmp(test,"iw"))
-                log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
-            if(!strcmp(test,"ji"))
-                log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
-            if(!strcmp(test,"jw"))
-                log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
-            if(!strcmp(test,"sh"))
-                log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
-        }
+	else
+	{
+	  test = *(str+count-1);
+	  if(!strcmp(test,"in")) log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
+	  if(!strcmp(test,"iw")) log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
+	  if(!strcmp(test,"ji")) log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
+	  if(!strcmp(test,"jw")) log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
+	  if(!strcmp(test,"sh")) log_err("FAIL getISOLanguages() has obsolete language code %s\n", test);
+	}
     }
     count--;
     expect = 437;
@@ -813,14 +799,12 @@ static void TestISOFunctions()
         {
             done=TRUE;
         }
-        else
-        {
-            test = *(str1+count-1);
-            if(!strcmp(test,"FX"))
-                log_err("FAIL getISOCountries() has obsolete country code %s\n", test);
-            if(!strcmp(test,"ZR"))
-                log_err("FAIL getISOCountries() has obsolete country code %s\n", test);
-        }
+	else
+	{
+	  test = *(str1+count-1);
+	  if(!strcmp(test,"FX")) log_err("FAIL getISOCountries() has obsolete country code %s\n", test);
+	  if(!strcmp(test,"ZR")) log_err("FAIL getISOCountries() has obsolete country code %s\n", test);
+	}
     }
     count--;
     expect=239;
@@ -861,7 +845,7 @@ static void cleanUpDataTable()
 /**
  * @bug 4011756 4011380
  */
-static void TestISO3Fallback()
+static void TestISO3Fallback() 
 {
     const char* test="xx_YY";
 
@@ -883,7 +867,7 @@ static void TestISO3Fallback()
 /**
  * @bug 4118587
  */
-static void TestSimpleDisplayNames()
+static void TestSimpleDisplayNames() 
 {
   /*
      This test is different from TestDisplayNames because TestDisplayNames checks
@@ -895,7 +879,7 @@ static void TestSimpleDisplayNames()
     const char* languageNames [] = { "Hebrew", "Indonesian", "Inukitut", "Uighur", "Yiddish",
                                "Zhuang" };
     UErrorCode status=U_ZERO_ERROR;
-
+    
     int32_t i;
     for (i = 0; i < 6; i++) {
         UChar *testLang=0;
@@ -910,28 +894,28 @@ static void TestSimpleDisplayNames()
         expectedLang=(UChar*)malloc(sizeof(UChar) * (strlen(languageNames[i])+1));
         u_uastrcpy(expectedLang, languageNames[i]);
         if (u_strcmp(testLang, expectedLang) != 0)
-            log_err("Got wrong display name for %s : Expected \"%s\", got \"%s\".\n",
+            log_err("Got wrong display name for %s : Expected \"%s\", got \"%s\".\n", 
                     languageCodes[i], languageNames[i], austrdup(testLang));
         free(testLang);
         free(expectedLang);
     }
-
+    
 }
 
 /**
  * @bug 4118595
  */
-static void TestUninstalledISO3Names()
+static void TestUninstalledISO3Names() 
 {
   /* This test checks to make sure getISO3Language and getISO3Country work right
      even for locales that are not installed. */
-    const char iso2Languages [][4] = {     "am", "ba", "fy", "mr", "rn",
+    const char iso2Languages [][4] = {     "am", "ba", "fy", "mr", "rn", 
                                         "ss", "tw", "zu" };
-    const char iso3Languages [][5] = {     "amh", "bak", "fry", "mar", "run",
+    const char iso3Languages [][5] = {     "amh", "bak", "fry", "mar", "run", 
                                         "ssw", "twi", "zul" };
-    char iso2Countries [][6] = {     "am_AF", "ba_BW", "fy_KZ", "mr_MO", "rn_MN",
+    char iso2Countries [][6] = {     "am_AF", "ba_BW", "fy_KZ", "mr_MO", "rn_MN", 
                                         "ss_SB", "tw_TC", "zu_ZW" };
-    char iso3Countries [][4] = {     "AFG", "BWA", "KAZ", "MAC", "MNG",
+    char iso3Countries [][4] = {     "AFG", "BWA", "KAZ", "MAC", "MNG", 
                                         "SLB", "TCA", "ZWE" };
     int32_t i;
 
@@ -940,7 +924,7 @@ static void TestUninstalledISO3Names()
       const char *test;
       test = uloc_getISO3Language(iso2Languages[i]);
       if(strcmp(test, iso3Languages[i]) !=0 || U_FAILURE(err))
-         log_err("Got wrong ISO3 code for %s : Expected \"%s\", got \"%s\". %s\n",
+         log_err("Got wrong ISO3 code for %s : Expected \"%s\", got \"%s\". %s\n", 
                      iso2Languages[i], iso3Languages[i], test, myErrorName(err));
     }
     for (i = 0; i < 8; i++) {
@@ -948,7 +932,7 @@ static void TestUninstalledISO3Names()
       const char *test;
       test = uloc_getISO3Country(iso2Countries[i]);
       if(strcmp(test, iso3Countries[i]) !=0 || U_FAILURE(err))
-         log_err("Got wrong ISO3 code for %s : Expected \"%s\", got \"%s\". %s\n",
+         log_err("Got wrong ISO3 code for %s : Expected \"%s\", got \"%s\". %s\n", 
                      iso2Countries[i], iso3Countries[i], test, myErrorName(err));
     }
 }
@@ -1054,7 +1038,7 @@ static void TestVariantParsing()
     if(strcmp(austrdup(got),"_FOO_")!=0) {
         log_err("FAIL: getDisplayVariant()  Wanted: _FOO_  Got: %s\n", austrdup(got));
     }
-    free(got);
+    free(got);  
 }
 
 
@@ -1063,7 +1047,7 @@ static void TestObsoleteNames(void)
     int32_t i;
     UErrorCode status = U_ZERO_ERROR;
     char buff[256];
-
+    
     struct
     {
         char locale[9];
@@ -1071,7 +1055,7 @@ static void TestObsoleteNames(void)
         char lang[6];
         char ctry3[6];
         char ctry[6];
-    } tests[] =
+    } tests[] = 
     {
         { "eng_USA", "eng", "en", "USA", "US" },
         { "kok",  "kok", "kok", "", "" },
@@ -1079,11 +1063,8 @@ static void TestObsoleteNames(void)
         { "id",  "ind", "id", "", "" }, /* NO aliasing */
         { "sh",  "srp", "sh", "", "" },
         { "zz_FX",  "", "zz", "FXX", "FX" },
-        { "zz_RO",  "", "zz", "ROU", "RO" },
         { "zz_ZR",  "", "zz", "ZAR", "ZR" },
         { "zz_FXX",  "", "zz", "FXX", "FX" }, /* no aliasing. Doesn't go to PS(PSE). */
-        { "zz_ROM",  "", "zz", "ROU", "RO" },
-        { "zz_ROU",  "", "zz", "ROU", "RO" },
         { "zz_ZAR",  "", "zz", "ZAR", "ZR" },
         { "mlt_PSE", "mlt", "mt", "PSE", "PS" },
         { "iw", "heb", "iw", "", "" },
@@ -1092,14 +1073,14 @@ static void TestObsoleteNames(void)
         { "sh", "srp", "sh", "", "" },
         { "", "", "", "", "" }
     };
-
+    
     for(i=0;tests[i].locale[0];i++)
     {
         const char *locale;
-
+        
         locale = tests[i].locale;
         log_verbose("** %s:\n", locale);
-
+        
         status = U_ZERO_ERROR;
         if(strcmp(tests[i].lang3,uloc_getISO3Language(locale)))
         {
@@ -1111,7 +1092,7 @@ static void TestObsoleteNames(void)
             log_verbose("   uloc_getISO3Language()==\t\"%s\"\n",
                 uloc_getISO3Language(locale) );
         }
-
+        
         status = U_ZERO_ERROR;
         uloc_getLanguage(locale, buff, 256, &status);
         if(U_FAILURE(status))
@@ -1140,7 +1121,7 @@ static void TestObsoleteNames(void)
             log_verbose("   uloc_getISO3Language()==\t\"%s\"\n",
                 uloc_getISO3Language(locale) );
         }
-
+        
         if(strcmp(tests[i].ctry3,uloc_getISO3Country(locale)))
         {
             log_err("FAIL: uloc_getISO3Country(%s)==\t\"%s\",\t expected \"%s\"\n",
@@ -1151,7 +1132,7 @@ static void TestObsoleteNames(void)
             log_verbose("   uloc_getISO3Country()==\t\"%s\"\n",
                 uloc_getISO3Country(locale) );
         }
-
+        
         status = U_ZERO_ERROR;
         uloc_getCountry(locale, buff, 256, &status);
         if(U_FAILURE(status))
@@ -1174,703 +1155,61 @@ static void TestObsoleteNames(void)
 
 #if 0
 
-    i = uloc_getLanguage("kok",NULL,0,&icu_err);
-    if(U_FAILURE(icu_err))
-    {
-        log_err("FAIL: Got %s trying to do uloc_getLanguage(kok)\n", u_errorName(icu_err));
-    }
+	i = uloc_getLanguage("kok",NULL,0,&icu_err);
+	if(U_FAILURE(icu_err))
+	{
+	  log_err("FAIL: Got %s trying to do uloc_getLanguage(kok)\n", u_errorName(icu_err));
+	}
 
-    icu_err = U_ZERO_ERROR;
-    uloc_getLanguage("kok",r1_buff,12,&icu_err);
-    if(U_FAILURE(icu_err))
-    {
-        log_err("FAIL: Got %s trying to do uloc_getLanguage(kok, buff)\n", u_errorName(icu_err));
-    }
+	icu_err = U_ZERO_ERROR;
+	uloc_getLanguage("kok",r1_buff,12,&icu_err);
+	if(U_FAILURE(icu_err))
+	{
+	  log_err("FAIL: Got %s trying to do uloc_getLanguage(kok, buff)\n", u_errorName(icu_err));
+	}
 
-    r1_addr = (char *)uloc_getISO3Language("kok");
+	r1_addr = (char *)uloc_getISO3Language("kok");
 
-    icu_err = U_ZERO_ERROR;
-    if (strcmp(r1_buff,"kok") != 0)
-    {
-        log_err("FAIL: uloc_getLanguage(kok)==%s not kok\n",r1_buff);
-        line--;
-    }
-    r1_addr = (char *)uloc_getISO3Language("in");
-    i = uloc_getLanguage(r1_addr,r1_buff,12,&icu_err);
-    if (strcmp(r1_buff,"id") != 0)
-    {
-        printf("uloc_getLanguage error (%s)\n",r1_buff);
-        line--;
-    }
-    r1_addr = (char *)uloc_getISO3Language("sh");
-    i = uloc_getLanguage(r1_addr,r1_buff,12,&icu_err);
-    if (strcmp(r1_buff,"sr") != 0)
-    {
-        printf("uloc_getLanguage error (%s)\n",r1_buff);
-        line--;
-    }
+	icu_err = U_ZERO_ERROR;
+	if (strcmp(r1_buff,"kok") != 0)
+	{
+		log_err("FAIL: uloc_getLanguage(kok)==%s not kok\n",r1_buff);
+		line--;
+	}
+	r1_addr = (char *)uloc_getISO3Language("in");
+	i = uloc_getLanguage(r1_addr,r1_buff,12,&icu_err);
+	if (strcmp(r1_buff,"id") != 0)
+	{
+		printf("uloc_getLanguage error (%s)\n",r1_buff);
+		line--;
+	}
+	r1_addr = (char *)uloc_getISO3Language("sh");
+	i = uloc_getLanguage(r1_addr,r1_buff,12,&icu_err);
+	if (strcmp(r1_buff,"sr") != 0)
+	{
+		printf("uloc_getLanguage error (%s)\n",r1_buff);
+		line--;
+	}
 
-    r1_addr = (char *)uloc_getISO3Country("zz_ZR");
-    strcpy(p1_buff,"zz_");
-    strcat(p1_buff,r1_addr);
-    i = uloc_getCountry(p1_buff,r1_buff,12,&icu_err);
-    if (strcmp(r1_buff,"ZR") != 0)
-    {
-        printf("uloc_getCountry error (%s)\n",r1_buff);
-        line--;
-    }
-    r1_addr = (char *)uloc_getISO3Country("zz_FX");
-    strcpy(p1_buff,"zz_");
-    strcat(p1_buff,r1_addr);
-    i = uloc_getCountry(p1_buff,r1_buff,12,&icu_err);
-    if (strcmp(r1_buff,"FX") != 0)
-    {
-        printf("uloc_getCountry error (%s)\n",r1_buff);
-        line--;
-    }
-
-#endif
-
-}
-
-static void
-TestKeyInRootRecursive(UResourceBundle *root, UResourceBundle *currentBundle, const char *locale) {
-    UErrorCode errorCode = U_ZERO_ERROR;
-    UResourceBundle *subRootBundle = NULL, *subBundle = NULL;
-
-    ures_resetIterator(root);
-    ures_resetIterator(currentBundle);
-    while (ures_hasNext(currentBundle)) {
-        const char *subBundleKey = NULL;
-
-        errorCode = U_ZERO_ERROR;
-        subBundle = ures_getNextResource(currentBundle, NULL, &errorCode);
-        if (U_FAILURE(errorCode)) {
-            log_err("Can't open a resource for locale %s\n", locale);
-            continue;
-        }
-        subBundleKey = ures_getKey(subBundle);
-
-        subRootBundle = ures_getByKey(root, subBundleKey, NULL, &errorCode);
-        if (U_FAILURE(errorCode)) {
-/*            if (ures_hasNext(root)) {
-                errorCode = U_ZERO_ERROR;
-                subRootBundle = ures_getNextResource(root, NULL, &errorCode);
-            }
-            if (errorCode!=U_ZERO_ERROR) {
-                if (ures_getKey(currentBundle) != 0 && strcmp(ures_getKey(currentBundle), "zoneStrings") == 0) {
-                    break;
-                }
-                else {*/
-                    if (subBundleKey == NULL
-                        || (strcmp(subBundleKey, "TransliterateLATIN") != 0 /* Ignore these special cases */
-                        && strcmp(subBundleKey, "BreakDictionaryData") != 0))
-                    {
-                        log_err("Can't open a resource with key \"%s\" in \"%s\" from root for locale \"%s\"\n",
-                                subBundleKey,
-                                ures_getKey(currentBundle),
-                                locale);
-                    }
-                    ures_close(subBundle);
-                    continue;
-/*                }
-            }*/
-        }
-        if (ures_getType(subRootBundle) != ures_getType(subBundle)) {
-            log_err("key \"%s\" in \"%s\" has a different type from root for locale \"%s\"\n"
-                    "\troot=%d, locale=%d\n",
-                    subBundleKey,
-                    ures_getKey(currentBundle),
-                    locale,
-                    ures_getType(subRootBundle),
-                    ures_getType(subBundle));
-            continue;
-        }
-        else if (ures_getType(subBundle) == RES_INT_VECTOR) {
-            int32_t minSize;
-            int32_t subBundleSize;
-            int32_t idx;
-            UBool sameArray = TRUE;
-            const int32_t *subRootBundleArr = ures_getIntVector(subRootBundle, &minSize, &errorCode);
-            const int32_t *subBundleArr = ures_getIntVector(subBundle, &subBundleSize, &errorCode);
-
-            if (minSize > subBundleSize) {
-                minSize = subBundleSize;
-                log_err("Arrays are different size with key \"%s\" in \"%s\" from root for locale \"%s\"\n",
-                        subBundleKey,
-                        ures_getKey(currentBundle),
-                        locale);
-            }
-
-            for (idx = 0; idx < minSize && sameArray; idx++) {
-                if (subRootBundleArr[idx] != subBundleArr[idx]) {
-                    sameArray = FALSE;
-                }
-                if (strcmp(subBundleKey, "DateTimeElements") == 0
-                    && (subBundleArr[idx] < 1 || 7 < subBundleArr[idx]))
-                {
-                    log_err("Value out of range with key \"%s\" at index %d in \"%s\" for locale \"%s\"\n",
-                            subBundleKey,
-                            idx,
-                            ures_getKey(currentBundle),
-                            locale);
-                }
-            }
-            /* Special exception es_US and DateTimeElements */
-            if (sameArray
-                && !(strcmp(locale, "es_US") == 0 && strcmp(subBundleKey, "DateTimeElements") == 0))
-            {
-                log_err("Arrays are the same with key \"%s\" in \"%s\" from root for locale \"%s\"\n",
-                        subBundleKey,
-                        ures_getKey(currentBundle),
-                        locale);
-            }
-        }
-        else if (ures_getType(subBundle) == RES_ARRAY) {
-            UResourceBundle *subSubBundle = ures_getByIndex(subBundle, 0, NULL, &errorCode);
-            UResourceBundle *subSubRootBundle = ures_getByIndex(subRootBundle, 0, NULL, &errorCode);
-
-            if (U_SUCCESS(errorCode)
-                && (ures_getType(subSubBundle) == RES_ARRAY || ures_getType(subSubRootBundle) == RES_ARRAY))
-            {
-                /* TODO: Properly check for 2D arrays and zoneStrings */
-                if (subBundleKey != NULL && strcmp(subBundleKey, "zoneStrings") == 0) {
-/*                    int32_t minSize = ures_getSize(subBundle);
-                    int32_t idx;
-
-                    for (idx = 0; idx < minSize; idx++) {
-                        UResourceBundle *subSubBundleAtIndex = ures_getByIndex(subBundle, idx, NULL, &errorCode);
-                        if (ures_getSize(subSubBundleAtIndex) != 6) {
-                            log_err("zoneStrings at index %d has wrong size for locale \"%s\". array size=%d\n",
-                                    idx,
-                                    locale,
-                                    ures_getSize(subSubBundleAtIndex));
-                        }
-                        ures_close(subSubBundleAtIndex);
-                    }*/
-                }
-                else {
-                    /* Here is one of the recursive parts */
-                    TestKeyInRootRecursive(subRootBundle, subBundle, locale);
-                }
-            }
-            else {
-                int32_t minSize = ures_getSize(subRootBundle);
-                int32_t idx;
-                UBool sameArray = TRUE;
-
-                if (minSize > ures_getSize(subBundle)) {
-                    minSize = ures_getSize(subBundle);
-                }
-
-                if ((subBundleKey == NULL
-                    || (subBundleKey != NULL && strcmp(subBundleKey, "LocaleScript") != 0))
-                    && ures_getSize(subRootBundle) != ures_getSize(subBundle))
-                {
-                    log_err("Different size array with key \"%s\" in \"%s\" from root for locale \"%s\"\n"
-                            "\troot array size=%d, locale array size=%d\n",
-                            subBundleKey,
-                            ures_getKey(currentBundle),
-                            locale,
-                            ures_getSize(subRootBundle),
-                            ures_getSize(subBundle));
-                }
-
-                for (idx = 0; idx < minSize; idx++) {
-                    int32_t rootStrLen, localeStrLen;
-                    const UChar *rootStr = ures_getStringByIndex(subRootBundle,idx,&rootStrLen,&errorCode);
-                    const UChar *localeStr = ures_getStringByIndex(subBundle,idx,&localeStrLen,&errorCode);
-                    if (rootStr && localeStr && U_SUCCESS(errorCode)) {
-                        if (u_strcmp(rootStr, localeStr) != 0) {
-                            sameArray = FALSE;
-                        }
-                    }
-                    else {
-                        log_err("Got a NULL string with key \"%s\" in \"%s\" at index %d for root or locale \"%s\"\n",
-                                subBundleKey,
-                                ures_getKey(currentBundle),
-                                idx,
-                                locale);
-                        continue;
-                    }
-                    if (localeStr[0] == (UChar)0x20) {
-                        log_err("key \"%s\" at index %d in \"%s\" starts with a space in locale \"%s\"\n",
-                                subBundleKey,
-                                idx,
-                                ures_getKey(currentBundle),
-                                locale);
-                    }
-                    else if (localeStr[localeStrLen - 1] == (UChar)0x20) {
-                        log_err("key \"%s\" at index %d in \"%s\" ends with a space in locale \"%s\"\n",
-                                subBundleKey,
-                                idx,
-                                ures_getKey(currentBundle),
-                                locale);
-                    }
-                    else if (subBundleKey != NULL
-                        && strcmp(subBundleKey, "DateTimePatterns") == 0)
-                    {
-                        int32_t quoted = 0;
-                        const UChar *localeStrItr = localeStr;
-                        while (*localeStrItr) {
-                            if (*localeStrItr == (UChar)0x27 /* ' */) {
-                                quoted++;
-                            }
-                            else if ((quoted % 2) == 0) {
-                                /* Search for unquoted characters */
-                                if (4 <= idx && idx <= 7
-                                    && (*localeStrItr == (UChar)0x6B /* k */
-                                    || *localeStrItr == (UChar)0x48 /* H */
-                                    || *localeStrItr == (UChar)0x6D /* m */
-                                    || *localeStrItr == (UChar)0x73 /* s */
-                                    || *localeStrItr == (UChar)0x53 /* S */
-                                    || *localeStrItr == (UChar)0x61 /* a */
-                                    || *localeStrItr == (UChar)0x68 /* h */
-                                    || *localeStrItr == (UChar)0x7A /* z */))
-                                {
-                                    log_err("key \"%s\" at index %d has time pattern chars in date for locale \"%s\"\n",
-                                            subBundleKey,
-                                            idx,
-                                            locale);
-                                }
-                                else if (0 <= idx && idx <= 3
-                                    && (*localeStrItr == (UChar)0x47 /* G */
-                                    || *localeStrItr == (UChar)0x79 /* y */
-                                    || *localeStrItr == (UChar)0x4D /* M */
-                                    || *localeStrItr == (UChar)0x64 /* d */
-                                    || *localeStrItr == (UChar)0x45 /* E */
-                                    || *localeStrItr == (UChar)0x44 /* D */
-                                    || *localeStrItr == (UChar)0x46 /* F */
-                                    || *localeStrItr == (UChar)0x77 /* w */
-                                    || *localeStrItr == (UChar)0x57 /* W */))
-                                {
-                                    log_err("key \"%s\" at index %d has date pattern chars in time for locale \"%s\"\n",
-                                            subBundleKey,
-                                            idx,
-                                            locale);
-                                }
-                            }
-                            localeStrItr++;
-                        }
-                    }
-                    else if (idx == 4 && subBundleKey != NULL
-                        && strcmp(subBundleKey, "NumberElements") == 0
-                        && u_charDigitValue(localeStr[0]) != 0)
-                    {
-                        log_err("key \"%s\" at index %d has a non-zero based number for locale \"%s\"\n",
-                                subBundleKey,
-                                idx,
-                                locale);
-                    }
-                }
-                if (sameArray) {
-                    log_err("Arrays are the same with key \"%s\" in \"%s\" from root for locale \"%s\"\n",
-                            subBundleKey,
-                            ures_getKey(currentBundle),
-                            locale);
-                }
-            }
-            ures_close(subSubBundle);
-            ures_close(subSubRootBundle);
-        }
-        else if (ures_getType(subBundle) == RES_STRING) {
-            int32_t len = 0;
-            const UChar *string = ures_getString(subBundle, &len, &errorCode);
-            if (U_FAILURE(errorCode) || string == NULL) {
-                log_err("Can't open a string with key \"%s\" in \"%s\" for locale \"%s\"\n",
-                        subBundleKey,
-                        ures_getKey(currentBundle),
-                        locale);
-            } else if (string[0] == (UChar)0x20) {
-                log_err("key \"%s\" in \"%s\" starts with a space in locale \"%s\"\n",
-                        subBundleKey,
-                        ures_getKey(currentBundle),
-                        locale);
-            } else if (string[len - 1] == (UChar)0x20) {
-                log_err("key \"%s\" in \"%s\" ends with a space in locale \"%s\"\n",
-                        subBundleKey,
-                        ures_getKey(currentBundle),
-                        locale);
-            } else if (strcmp(subBundleKey, "localPatternChars") == 0 && len != 20) {
-                log_err("key \"%s\" has the wrong number of characters in locale \"%s\"\n",
-                        subBundleKey,
-                        locale);
-            }
-            /* No fallback was done. Check for duplicate data */
-            /* The ures_* API does not do fallback of sub-resource bundles,
-               So we can't do this now. */
-            else if (strcmp(locale, "root") != 0 && errorCode == U_ZERO_ERROR) {
-
-                const UChar *rootString = ures_getString(subRootBundle, &len, &errorCode);
-                if (U_FAILURE(errorCode) || rootString == NULL) {
-                    log_err("Can't open a string with key \"%s\" in \"%s\" in root\n",
-                            ures_getKey(subRootBundle),
-                            ures_getKey(currentBundle));
-                    continue;
-                } else if (u_strcmp(string, rootString) == 0) {
-                    if (strcmp(locale, "de_CH") != 0 && strcmp(subBundleKey, "Countries") != 0) {
-                        log_err("Found duplicate data with key \"%s\" in \"%s\" in locale \"%s\"\n",
-                                ures_getKey(subRootBundle),
-                                ures_getKey(currentBundle),
-                                locale);
-                    }
-                    else {
-                        /* Ignore for now. */
-                        /* Can be fixed if fallback through de locale was done. */
-                        log_verbose("Skipping key %s in %s\n", subBundleKey, locale);
-                    }
-                }
-            }
-        }
-        else if (ures_getType(subBundle) == RES_TABLE) {
-            /* Here is one of the recursive parts */
-            TestKeyInRootRecursive(subRootBundle, subBundle, locale);
-        }
-        else if (ures_getType(subBundle) == RES_BINARY || ures_getType(subBundle) == RES_INT) {
-            /* Can't do anything to check it */
-            /* We'll assume it's all correct */
-            if (strcmp(subBundleKey, "LocaleID") != 0) {
-                log_verbose("Skipping key \"%s\" in \"%s\" for locale \"%s\"\n",
-                        subBundleKey,
-                        ures_getKey(currentBundle),
-                        locale);
-            }
-            /* Testing for LocaleID is done in testLCID */
-        }
-        else {
-            log_err("Type %d for key \"%s\" in \"%s\" is unknown for locale \"%s\"\n",
-                    ures_getType(subBundle),
-                    subBundleKey,
-                    ures_getKey(currentBundle),
-                    locale);
-        }
-        ures_close(subRootBundle);
-        ures_close(subBundle);
-    }
-}
-
-
-#ifdef WIN32
-
-static void
-testLCID(UResourceBundle *currentBundle,
-         const char *localeName)
-{
-    UErrorCode status = U_ZERO_ERROR;
-    uint32_t lcid;
-    uint32_t expectedLCID;
-    char lcidStringC[64] = {0};
-    int32_t lcidStringLen = 0;
-    const UChar *lcidString = NULL;
-    UResourceBundle *localeID = ures_getByKey(currentBundle, "LocaleID", NULL, &status);
-
-    expectedLCID = ures_getInt(localeID, &status);
-    ures_close(localeID);
-
-    if (U_FAILURE(status)) {
-        log_err("ERROR:   %s does not have a LocaleID (%s)\n",
-            localeName, u_errorName(status));
-        return;
-    }
-
-    lcid = T_convertToLCID(localeName, &status);
-    if (U_FAILURE(status)) {
-        if (expectedLCID == 0) {
-            log_verbose("INFO:    %-5s does not have any LCID mapping\n",
-                localeName);
-        }
-        else {
-            log_err("ERROR:   %-5s does not have an LCID mapping to 0x%.4X\n",
-                localeName, expectedLCID);
-        }
-        return;
-    }
-
-    status = U_ZERO_ERROR;
-    uprv_strcpy(lcidStringC, T_convertToPosix(expectedLCID, &status));
-    if (U_FAILURE(status)) {
-        log_err("ERROR:   %.4x does not have a POSIX mapping due to %s\n",
-            expectedLCID, u_errorName(status));
-    }
-
-    if(lcid != expectedLCID) {
-        log_err("ERROR:   %-5s wrongfully has 0x%.4x instead of 0x%.4x for LCID\n",
-            localeName, expectedLCID, lcid);
-    }
-    if(strcmp(localeName, lcidStringC) != 0) {
-        char langName[1024];
-        char langLCID[1024];
-        uloc_getLanguage(localeName, langName, sizeof(langName), &status);
-        uloc_getLanguage(lcidStringC, langLCID, sizeof(langLCID), &status);
-
-        if (expectedLCID == lcid && strcmp(langName, langLCID) == 0) {
-            log_verbose("WARNING: %-5s resolves to %s (0x%.4x)\n",
-                localeName, lcidStringC, lcid);
-        }
-        else if (expectedLCID == lcid) {
-            log_err("ERROR:   %-5s has 0x%.4x and the number resolves wrongfully to %s\n",
-                localeName, expectedLCID, lcidStringC);
-        }
-        else {
-            log_err("ERROR:   %-5s has 0x%.4x and the number resolves wrongfully to %s. It should be 0x%x.\n",
-                localeName, expectedLCID, lcidStringC, lcid);
-        }
-    }
-}
+	r1_addr = (char *)uloc_getISO3Country("zz_ZR");
+	strcpy(p1_buff,"zz_");
+	strcat(p1_buff,r1_addr);
+	i = uloc_getCountry(p1_buff,r1_buff,12,&icu_err);
+	if (strcmp(r1_buff,"ZR") != 0)
+	{
+		printf("uloc_getCountry error (%s)\n",r1_buff);
+		line--;
+	}
+	r1_addr = (char *)uloc_getISO3Country("zz_FX");
+	strcpy(p1_buff,"zz_");
+	strcat(p1_buff,r1_addr);
+	i = uloc_getCountry(p1_buff,r1_buff,12,&icu_err);
+	if (strcmp(r1_buff,"FX") != 0)
+	{
+		printf("uloc_getCountry error (%s)\n",r1_buff);
+		line--;
+	}
 
 #endif
 
-static void
-TestLocaleStructure(void) {
-    UResourceBundle *root, *currentLocale;
-    int32_t locCount = uloc_countAvailable();
-    int32_t locIndex;
-    UErrorCode errorCode = U_ZERO_ERROR;
-
-    /* TODO: Compare against parent's data too. This code can't handle fallbacks that some tools do already. */
-/*    char locName[ULOC_FULLNAME_CAPACITY];
-    char *locNamePtr;
-
-    for (locIndex = 0; locIndex < locCount; locIndex++) {
-        errorCode=U_ZERO_ERROR;
-        strcpy(locName, uloc_getAvailable(locIndex));
-        locNamePtr = strrchr(locName, '_');
-        if (locNamePtr) {
-            *locNamePtr = 0;
-        }
-        else {
-            strcpy(locName, "root");
-        }
-
-        root = ures_openDirect(NULL, locName, &errorCode);
-        if(U_FAILURE(errorCode)) {
-            log_err("Can't open %s\n", locName);
-            continue;
-        }
-*/
-    if (locCount <= 1) {
-        log_err("At least root needs to be installed\n");
-    }
-
-    root = ures_openDirect(NULL, "root", &errorCode);
-    if(U_FAILURE(errorCode)) {
-        log_err("Can't open root\n");
-        return;
-    }
-    for (locIndex = 0; locIndex < locCount; locIndex++) {
-        errorCode=U_ZERO_ERROR;
-        currentLocale = ures_open(NULL, uloc_getAvailable(locIndex), &errorCode);
-        if(errorCode != U_ZERO_ERROR) {
-            if(U_SUCCESS(errorCode)) {
-                if (strcmp(uloc_getAvailable(locIndex),"sv_FI_AL") != 0) {
-                    /* It's installed, but there is no data.
-                       It's installed for the g18n white paper [grhoten] */
-                    log_err("ERROR: Locale %-5s not installed, and it should be!\n",
-                        uloc_getAvailable(locIndex));
-                }
-            } else {
-                log_err("%%%%%%% Unexpected error %d in %s %%%%%%%",
-                    u_errorName(errorCode),
-                    uloc_getAvailable(locIndex));
-            }
-            ures_close(currentLocale);
-            continue;
-        }
-        ures_getStringByKey(currentLocale, "Version", NULL, &errorCode);
-        if(errorCode != U_ZERO_ERROR) {
-            log_err("No version information is available for locale %s, and it should be!\n",
-                uloc_getAvailable(locIndex));
-        }
-        else if (ures_getStringByKey(currentLocale, "Version", NULL, &errorCode)[0] == (UChar)(0x78)) {
-            log_verbose("WARNING: The locale %s is experimental! It shouldn't be listed as an installed locale.\n",
-                uloc_getAvailable(locIndex));
-        }
-        TestKeyInRootRecursive(root, currentLocale, uloc_getAvailable(locIndex));
-#ifdef WIN32
-        testLCID(currentLocale, uloc_getAvailable(locIndex));
-#endif
-        ures_close(currentLocale);
-    }
-
-    ures_close(root);
-}
-
-static void
-compareArrays(const char *keyName,
-              UResourceBundle *fromArray, const char *fromLocale,
-              UResourceBundle *toArray, const char *toLocale,
-              int32_t start, int32_t end)
-{
-    int32_t fromSize = ures_getSize(fromArray);
-    int32_t toSize = ures_getSize(fromArray);
-    int32_t idx;
-    UErrorCode errorCode = U_ZERO_ERROR;
-
-    if (fromSize > toSize) {
-        fromSize = toSize;
-        log_err("Arrays are different size from \"%s\" to \"%s\"\n",
-                fromLocale,
-                toLocale);
-    }
-
-    for (idx = start; idx <= end; idx++) {
-        const UChar *fromBundleStr = ures_getStringByIndex(fromArray, idx, NULL, &errorCode);
-        const UChar *toBundleStr = ures_getStringByIndex(toArray, idx, NULL, &errorCode);
-        if (fromBundleStr && toBundleStr && u_strcmp(fromBundleStr, toBundleStr) != 0)
-        {
-            log_err("Difference for %s at index %d from %s= \"%s\" to %s= \"%s\"\n",
-                    keyName,
-                    idx,
-                    fromLocale,
-                    austrdup(fromBundleStr),
-                    toLocale,
-                    austrdup(toBundleStr));
-        }
-    }
-}
-
-static void
-compareConsistentCountryInfo(const char *fromLocale, const char *toLocale) {
-    UErrorCode errorCode = U_ZERO_ERROR;
-    UResourceBundle *fromDateTimeElements, *toDateTimeElements;
-    UResourceBundle *fromArray, *toArray;
-    UResourceBundle *fromLocaleBund = ures_open(NULL, fromLocale, &errorCode);
-    UResourceBundle *toLocaleBund = ures_open(NULL, toLocale, &errorCode);
-
-    if(U_FAILURE(errorCode)) {
-        log_err("Can't open resource bundle %s or %s\n", fromLocale, toLocale);
-        return;
-    }
-
-    fromDateTimeElements = ures_getByKey(fromLocaleBund, "DateTimeElements", NULL, &errorCode);
-    toDateTimeElements = ures_getByKey(toLocaleBund, "DateTimeElements", NULL, &errorCode);
-    if (strcmp(fromLocale, "ar_IN") != 0)
-    {
-        int32_t fromSize;
-        int32_t toSize;
-        int32_t idx;
-        const int32_t *fromBundleArr = ures_getIntVector(fromDateTimeElements, &fromSize, &errorCode);
-        const int32_t *toBundleArr = ures_getIntVector(toDateTimeElements, &toSize, &errorCode);
-
-        if (fromSize > toSize) {
-            fromSize = toSize;
-            log_err("Arrays are different size with key \"DateTimeElements\" from \"%s\" to \"%s\"\n",
-                    fromLocale,
-                    toLocale);
-        }
-
-        for (idx = 0; idx < fromSize; idx++) {
-            if (fromBundleArr[idx] != toBundleArr[idx]) {
-                log_err("Difference with key \"DateTimeElements\" at index %d from \"%s\" to \"%s\"\n",
-                        idx,
-                        fromLocale,
-                        toLocale);
-            }
-        }
-    }
-    ures_close(fromDateTimeElements);
-    ures_close(toDateTimeElements);
-
-    fromArray = ures_getByKey(fromLocaleBund, "CurrencyElements", NULL, &errorCode);
-    toArray = ures_getByKey(toLocaleBund, "CurrencyElements", NULL, &errorCode);
-    if (strcmp(fromLocale, "en_CA") != 0)
-    {
-        /* The first one is probably localized. */
-        compareArrays("CurrencyElements", fromArray, fromLocale, toArray, toLocale, 1, 2);
-    }
-    ures_close(fromArray);
-    ures_close(toArray);
-
-    fromArray = ures_getByKey(fromLocaleBund, "NumberPatterns", NULL, &errorCode);
-    toArray = ures_getByKey(toLocaleBund, "NumberPatterns", NULL, &errorCode);
-    if (strcmp(fromLocale, "en_CA") != 0)
-    {
-        compareArrays("NumberPatterns", fromArray, fromLocale, toArray, toLocale, 0, 3);
-    }
-    ures_close(fromArray);
-    ures_close(toArray);
-
-    /* Difficult to test properly */
-/*
-    fromArray = ures_getByKey(fromLocaleBund, "DateTimePatterns", NULL, &errorCode);
-    toArray = ures_getByKey(toLocaleBund, "DateTimePatterns", NULL, &errorCode);
-    {
-        compareArrays("DateTimePatterns", fromArray, fromLocale, toArray, toLocale);
-    }
-    ures_close(fromArray);
-    ures_close(toArray);*/
-
-    fromArray = ures_getByKey(fromLocaleBund, "NumberElements", NULL, &errorCode);
-    toArray = ures_getByKey(toLocaleBund, "NumberElements", NULL, &errorCode);
-    if (strcmp(fromLocale, "en_CA") != 0)
-    {
-        compareArrays("NumberElements", fromArray, fromLocale, toArray, toLocale, 0, 3);
-        /* Index 4 is a script based 0 */
-        compareArrays("NumberElements", fromArray, fromLocale, toArray, toLocale, 5, 10);
-    }
-    ures_close(fromArray);
-    ures_close(toArray);
-
-    ures_close(fromLocaleBund);
-    ures_close(toLocaleBund);
-}
-
-static void
-TestConsistentCountryInfo(void) {
-/*    UResourceBundle *fromLocale, *toLocale;*/
-    int32_t locCount = uloc_countAvailable();
-    int32_t fromLocIndex, toLocIndex;
-
-    int32_t fromCountryLen, toCountryLen;
-    char fromCountry[ULOC_FULLNAME_CAPACITY], toCountry[ULOC_FULLNAME_CAPACITY];
-
-    int32_t fromVariantLen, toVariantLen;
-    char fromVariant[ULOC_FULLNAME_CAPACITY], toVariant[ULOC_FULLNAME_CAPACITY];
-
-    UErrorCode errorCode = U_ZERO_ERROR;
-
-    for (fromLocIndex = 0; fromLocIndex < locCount; fromLocIndex++) {
-        const char *fromLocale = uloc_getAvailable(fromLocIndex);
-
-        errorCode=U_ZERO_ERROR;
-        fromCountryLen = uloc_getCountry(fromLocale, fromCountry, ULOC_FULLNAME_CAPACITY, &errorCode);
-        if (fromCountryLen <= 0) {
-            /* Ignore countryless locales */
-            continue;
-        }
-        fromVariantLen = uloc_getVariant(fromLocale, fromVariant, ULOC_FULLNAME_CAPACITY, &errorCode);
-        if (fromVariantLen > 0) {
-            /* Most variants are ignorable like PREEURO, or collation variants. */
-            continue;
-        }
-        /* Start comparing only after the current index.
-           Previous loop should have already compared fromLocIndex.
-        */
-        for (toLocIndex = fromLocIndex + 1; toLocIndex < locCount; toLocIndex++) {
-            const char *toLocale = uloc_getAvailable(toLocIndex);
-
-            toCountryLen = uloc_getCountry(toLocale, toCountry, ULOC_FULLNAME_CAPACITY, &errorCode);
-            if(U_FAILURE(errorCode)) {
-                log_err("Unknown failure fromLocale=%s toLocale=%s errorCode=%s\n",
-                    fromLocale, toLocale, u_errorName(errorCode));
-                continue;
-            }
-
-            if (toCountryLen <= 0) {
-                /* Ignore countryless locales */
-                continue;
-            }
-            toVariantLen = uloc_getVariant(toLocale, toVariant, ULOC_FULLNAME_CAPACITY, &errorCode);
-            if (toVariantLen > 0) {
-                /* Most variants are ignorable like PREEURO, or collation variants. */
-                /* They're a variant for a reason. */
-                continue;
-            }
-            if (strcmp(fromCountry, toCountry) == 0) {
-                log_verbose("comparing fromLocale=%s toLocale=%s\n",
-                    fromLocale, toLocale);
-                compareConsistentCountryInfo(fromLocale, toLocale);
-            }
-        }
-    }
 }

@@ -60,6 +60,7 @@
 
 U_NAMESPACE_BEGIN
 
+class RuleBasedCollatorStreamer;
 class StringSearch;
 class CollationElementIterator;
 
@@ -264,8 +265,6 @@ public:
    * is less than, greater than or equal to another string array.
    * <p>Example of use:
    * <pre>
-   * .       UChar ABC[] = {0x41, 0x42, 0x43, 0};  // = "ABC"
-   * .       UChar abc[] = {0x61, 0x62, 0x63, 0};  // = "abc"
    * .       UErrorCode status = U_ZERO_ERROR;
    * .       Collator *myCollation =
    * .                         Collator::createInstance(Locale::US, status);
@@ -273,12 +272,13 @@ public:
    * .       myCollation->setStrength(Collator::PRIMARY);
    * .       // result would be Collator::EQUAL ("abc" == "ABC")
    * .       // (no primary difference between "abc" and "ABC")
-   * .       Collator::EComparisonResult result =
-   * .                             myCollation->compare(abc, 3, ABC, 3);
+   * .       Collator::UCollationResult result =
+   * .                              myCollation->compare(L"abc", 3, L"ABC", 3);
    * .       myCollation->setStrength(Collator::TERTIARY);
-   * .       // result would be Collator::LESS ("abc" &lt;&lt;&lt; "ABC")
+   * .       // result would be Collator::LESS (abc" &lt;&lt;&lt; "ABC")
    * .       // (with tertiary difference between "abc" and "ABC")
-   * .       result =  myCollation->compare(abc, 3, ABC, 3);
+   * .       Collator::UCollationResult result =
+   * .                              myCollation->compare(L"abc", 3, L"ABC", 3);
    * </pre>
    * @param source the source string array to be compared with.
    * @param sourceLength the length of the source string array. If this value
@@ -336,30 +336,12 @@ public:
   virtual int32_t hashCode(void) const;
 
   /**
-  * Gets the locale of the Collator
-  * @param type can be either requested, valid or actual locale. For more
-  *             information see the definition of ULocDataLocaleType in
-  *             uloc.h
-  * @return locale where the collation data lives. If the collator
-  *         was instantiated from rules, locale is empty.
-  * @draft ICU 2.1
-  */
-  virtual const Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
-
-  /**
    * Gets the table-based rules for the collation object.
    * @return returns the collation rules that the table collation object was
    *         created from.
    * @stable
    */
   const UnicodeString& getRules(void) const;
-
-  /**
-   * Gets the version information for a Collator. 
-   * @param info the version # information, the result will be filled in
-   * @stable
-   */
-  virtual void getVersion(UVersionInfo info) const;
 
   /**
    * Return the maximum length of any expansion sequences that end with the
@@ -371,7 +353,7 @@ public:
    * @see CollationElementIterator#getMaxExpansion
    * @stable
    */
-  int32_t getMaxExpansion(int32_t order) const;
+    int32_t getMaxExpansion(int32_t order) const;
 
   /**
    * Returns a unique class ID POLYMORPHICALLY. Pure virtual override. This
@@ -414,14 +396,14 @@ public:
    */
   uint8_t *cloneRuleData(int32_t &length, UErrorCode &status);
 
-  /**
-   * Returns current rules. Delta defines whether full rules are returned or
-   * just the tailoring.
-   * @param delta one of UCOL_TAILORING_ONLY, UCOL_FULL_RULES.
-   * @param buffer UnicodeString to store the result rules
-   * @draft ICU 1.8
-   */
-  void getRules(UColRuleOption delta, UnicodeString &buffer);
+    /**
+     * Returns current rules. Delta defines whether full rules are returned or
+     * just the tailoring.
+     * @param delta one of UCOL_TAILORING_ONLY, UCOL_FULL_RULES.
+     * @return UnicodeString with rules
+     * @draft ICU 1.8
+     */
+    UnicodeString getRules(UColRuleOption delta);
 
   /**
    * Universal attribute setter
@@ -640,6 +622,11 @@ private:
   UnicodeString *urulestring;
 
   // friend classes --------------------------------------------------------
+
+  /**
+  * Streamer used to read/write binary collation data files.
+  */
+  friend class RuleBasedCollatorStreamer;
 
   /**
   * Used to iterate over collation elements in a character source.

@@ -20,7 +20,6 @@
 #include "unicode/ushape.h"
 #include "cmemory.h"
 #include "cbiditst.h"
-#include "cstring.h"
 
 #define LENGTHOF(array) (sizeof(array)/sizeof((array)[0]))
 
@@ -33,7 +32,7 @@ static void
 doTests(UBiDi *pBiDi, UBiDi *pLine);
 
 static void
-doTest(UBiDi *pBiDi, int testNumber, BiDiTestData *test, int32_t lineStart);
+doTest(UBiDi *pBiDi, int testNumber, BiDiTestData *test, UTextOffset lineStart);
 
 static void
 testReordering(UBiDi *pBiDi, int testNumber);
@@ -62,14 +61,12 @@ doTashkeelSpecialVLTRArabicShapingTest(void);
 static void
 doLOGICALArabicDeShapingTest(void);
 
-static void TestReorder(void);
-
 /* helpers ------------------------------------------------------------------ */
 
 static const char *levelString="...............................................................";
 
 static UChar *
-getStringFromDirProps(const uint8_t *dirProps, int32_t length);
+getStringFromDirProps(const uint8_t *dirProps, UTextOffset length);
 
 static void
 printUnicode(const UChar *s, int32_t length, const UBiDiLevel *levels);
@@ -80,10 +77,9 @@ void addComplexTest(TestNode** root);
 
 void
 addComplexTest(TestNode** root) {
-    addTest(root, doBiDiTest, "complex/bidi/BiDiTest");
+    addTest(root, doBiDiTest, "complex/bidi");
     addTest(root, doInverseBiDiTest, "complex/bidi/inverse");
-    addTest(root, TestReorder,"complex/bidi/TestReorder");
-    addTest(root, doArabicShapingTest, "complex/arabic-shaping/ArabicShapingTest");
+    addTest(root, doArabicShapingTest, "complex/arabic-shaping");
     addTest(root, doLamAlefSpecialVLTRArabicShapingTest, "complex/arabic-shaping/lamalef");
     addTest(root, doTashkeelSpecialVLTRArabicShapingTest, "complex/arabic-shaping/tashkeel");
     addTest(root, doLOGICALArabicDeShapingTest, "complex/arabic-shaping/unshaping");
@@ -123,7 +119,7 @@ doTests(UBiDi *pBiDi, UBiDi *pLine) {
     int i;
     UChar *s;
     UErrorCode errorCode;
-    int32_t lineStart;
+    UTextOffset lineStart;
     UBiDiLevel paraLevel;
 
     for(i=0; i<bidiTestCount; ++i) {
@@ -154,289 +150,13 @@ doTests(UBiDi *pBiDi, UBiDi *pLine) {
         }
     }
 }
-static void TestReorder(){
-    static const char* const logicalOrder[] ={
-            "DEL(\\u062F\\u0625)ADD(\\u062F.\\u0625.\\u200F)",
-            "DEL(\\u0645\\u0627\\u064A\\u0648) ADD(\\u0623\\u064A\\u0627\\u0631)",
-            "DEL(\\u0644\\u0644)ADD(\\u0644.\\u0644.\\u0029\\u0644)\\u0644.\\u200F",
-            "DEL(\\u0631\\u064A)ADD(\\u0631.\\u064A.) \\u0631.\\u064A.\\u200F",
-            "DAY  2  \\u0646  \\u0627\\u0644\\u0627\\u062B\\u0646\\u064A\\u0646 DAYABBR",
-            "DAY  3  \\u062B  \\u0627\\u0644\\u062B\\u0644\\u0627\\u062B\\u0627\\u0621 DAYABBR",     
-            "DAY  4   \\u0631  \\u0627\\u0644\\u0623\\u0631\\u0628\\u0639\\u0627\\u0621 DAYABBR",   
-            "DAY  5  \\u062E  \\u0627\\u0644\\u062E\\u0645\\u064A\\u0633  DAYABBR",   
-            "DAY  6   \\u062C  \\u0627\\u0644\\u062C\\u0645\\u0639\\u0629    DAYABBR", 
-            "DAY  7  \\u0633  \\u0627\\u0644\\u0633\\u0628\\u062A  DAYABBR",
-            "HELLO\\u0627\\u0644\\u0633\\u0628\\u062A",
-    };
-    static const char* const visualOrder[]={
-            "DEL(\\u0625\\u062F)ADD(\\u200F.\\u0625.\\u062F)",
-            "DEL(\\u0648\\u064A\\u0627\\u0645) ADD(\\u0631\\u0627\\u064A\\u0623)",
-            "DEL(\\u0644\\u0644)ADD(\\u0644\\u0029.\\u0644.\\u0644)\\u200F.\\u0644",
-            /* I am doutful about this...
-             * what I would expect is :
-             * DEL(\\u064A\\u0631)ADD(.\\u064A.\\u0631) \\u200F.\\u064A.\\u0631
-             */
-            "DEL(\\u064A\\u0631)ADD(\\u200F.\\u064A.\\u0631 (.\\u064A.\\u0631",
-            "DAY  2  \\u0646\\u064A\\u0646\\u062B\\u0627\\u0644\\u0627  \\u0646 DAYABBR",
-            "DAY  3  \\u0621\\u0627\\u062B\\u0627\\u0644\\u062B\\u0644\\u0627  \\u062B DAYABBR",     
-            "DAY  4   \\u0621\\u0627\\u0639\\u0628\\u0631\\u0623\\u0644\\u0627  \\u0631 DAYABBR",   
-            "DAY  5  \\u0633\\u064A\\u0645\\u062E\\u0644\\u0627  \\u062E  DAYABBR",   
-            "DAY  6   \\u0629\\u0639\\u0645\\u062C\\u0644\\u0627  \\u062C    DAYABBR", 
-            "DAY  7  \\u062A\\u0628\\u0633\\u0644\\u0627  \\u0633  DAYABBR",
-            "HELLO\\u062A\\u0628\\u0633\\u0644\\u0627",
-    };
-    static const char* const visualOrder1[]={
-            ")\\u062F.\\u0625.\\u200F(DDA)\\u062F\\u0625(LED",
-            ")\\u0623\\u064A\\u0627\\u0631(DDA )\\u0645\\u0627\\u064A\\u0648(LED",
-            "\\u0644.\\u0644.(\\u0644(\\u0644.\\u200F(DDA)\\u0644\\u0644(LED", 
-            "\\u0631.\\u064A.( \\u0631.\\u064A.\\u200F(DDA)\\u0631\\u064A(LED",
-            "RBBAYAD \\u0646  \\u0627\\u0644\\u0627\\u062B\\u0646\\u064A\\u0646  2  YAD",
-            "RBBAYAD \\u062B  \\u0627\\u0644\\u062B\\u0644\\u0627\\u062B\\u0627\\u0621  3  YAD", 
-            "RBBAYAD \\u0631  \\u0627\\u0644\\u0623\\u0631\\u0628\\u0639\\u0627\\u0621   4  YAD",
-            "RBBAYAD  \\u062E  \\u0627\\u0644\\u062E\\u0645\\u064A\\u0633  5  YAD",
-            "RBBAYAD    \\u062C  \\u0627\\u0644\\u062C\\u0645\\u0639\\u0629   6  YAD",
-            "RBBAYAD  \\u0633  \\u0627\\u0644\\u0633\\u0628\\u062A  7  YAD",
-            "\\u0627\\u0644\\u0633\\u0628\\u062AOLLEH",
-    };
-
-    static const char* const visualOrder2[]={
-            "\\u200E)\\u200E\\u062F.\\u0625.\\u200F\\u200E(DDA)\\u200E\\u062F\\u0625\\u200E(LED",
-            "\\u200E)\\u200E\\u0623\\u064A\\u0627\\u0631\\u200E(DDA )\\u200E\\u0645\\u0627\\u064A\\u0648\\u200E(LED",
-            "\\u0644.\\u0644.)\\u0644)\\u0644.\\u200F\\u200E(DDA)\\u200E\\u0644\\u0644\\u200E(LED",
-            "\\u0631.\\u064A.) \\u0631.\\u064A.\\u200F\\u200E(DDA)\\u200E\\u0631\\u064A\\u200E(LED",
-            "RBBAYAD \\u200E\\u0646  \\u0627\\u0644\\u0627\\u062B\\u0646\\u064A\\u0646\\u200E  2  YAD",
-            "RBBAYAD \\u200E\\u062B  \\u0627\\u0644\\u062B\\u0644\\u0627\\u062B\\u0627\\u0621\\u200E  3  YAD",
-            "RBBAYAD \\u200E\\u0631  \\u0627\\u0644\\u0623\\u0631\\u0628\\u0639\\u0627\\u0621\\u200E   4  YAD",
-            "RBBAYAD  \\u200E\\u062E  \\u0627\\u0644\\u062E\\u0645\\u064A\\u0633\\u200E  5  YAD",
-            "RBBAYAD    \\u200E\\u062C  \\u0627\\u0644\\u062C\\u0645\\u0639\\u0629\\u200E   6  YAD",
-            "RBBAYAD  \\u200E\\u0633  \\u0627\\u0644\\u0633\\u0628\\u062A\\u200E  7  YAD",
-            "\\u0627\\u0644\\u0633\\u0628\\u062AOLLEH",
-    };
-    static const char* const visualOrder3[]={
-            ")\\u062F.\\u0625.\\u200F(DDA)\\u062F\\u0625(LED",
-            ")\\u0623\\u064A\\u0627\\u0631(DDA )\\u0645\\u0627\\u064A\\u0648(LED",
-            "\\u0644.\\u0644.)\\u0644)\\u0644.\\u200F(\\u0644\\u0644)DDA(LED",
-            "\\u0631.\\u064A.) \\u0631.\\u064A.\\u200F(\\u0631\\u064A)DDA(LED",
-            "RBBAYAD \\u0627\\u0644\\u0627\\u062B\\u0646\\u064A\\u0646   \\u0646  2 YAD",
-            "RBBAYAD \\u0627\\u0644\\u062B\\u0644\\u0627\\u062B\\u0627\\u0621   \\u062B  3 YAD",
-            "RBBAYAD \\u0627\\u0644\\u0623\\u0631\\u0628\\u0639\\u0627\\u0621     \\u0631 4 YAD",
-            "RBBAYAD  \\u0627\\u0644\\u062E\\u0645\\u064A\\u0633   \\u062E  5 YAD",
-            "RBBAYAD    \\u0627\\u0644\\u062C\\u0645\\u0639\\u0629     \\u062C",
-            "RBBAYAD  \\u0627\\u0644\\u0633\\u0628\\u062A   \\u0633  7 YAD",
-            "\\u0627\\u0644\\u0633\\u0628\\u062AOLLEH"
-    };
-    static const char* const visualOrder4[]={
-            "DEL(ADD(\\u0625\\u062F(.\\u0625.\\u062F)",
-            "DEL( (\\u0648\\u064A\\u0627\\u0645ADD(\\u0631\\u0627\\u064A\\u0623)",
-            "DEL(ADD(\\u0644\\u0644(.\\u0644(\\u0644(.\\u0644.\\u0644",
-            "DEL(ADD(\\u064A\\u0631(.\\u064A.\\u0631 (.\\u064A.\\u0631",
-            "DAY 2  \\u0646   \\u0646\\u064A\\u0646\\u062B\\u0627\\u0644\\u0627 DAYABBR",
-            "DAY 3  \\u062B   \\u0621\\u0627\\u062B\\u0627\\u0644\\u062B\\u0644\\u0627 DAYABBR",
-            "DAY 4 \\u0631     \\u0621\\u0627\\u0639\\u0628\\u0631\\u0623\\u0644\\u0627 DAYABBR",
-            "DAY 5  \\u062E   \\u0633\\u064A\\u0645\\u062E\\u0644\\u0627  DAYABBR",
-            "DAY 6 \\u062C     \\u0629\\u0639\\u0645\\u062C\\u0644\\u0627    DAYABBR",
-            "DAY 7  \\u0633   \\u062A\\u0628\\u0633\\u0644\\u0627  DAYABBR ",
-            "HELLO\\u062A\\u0628\\u0633\\u0644\\u0627"
-    };
-    UErrorCode ec = U_ZERO_ERROR;
-    UBiDi* bidi = ubidi_open();
-    int i=0;
-    for(;i<(sizeof(logicalOrder)/sizeof(logicalOrder[0]));i++){
-        int32_t srcSize = uprv_strlen(logicalOrder[i]);
-        int32_t destSize = srcSize*2;
-        UChar* src = (UChar*) uprv_malloc(sizeof(UChar)*srcSize );
-        UChar* dest = (UChar*) uprv_malloc(sizeof(UChar)*destSize);
-        char* chars=NULL;
-        ec = U_ZERO_ERROR;
-        u_unescape(logicalOrder[i],src,srcSize);
-        srcSize= u_strlen(src);
-        ubidi_setPara(bidi,src,srcSize,UBIDI_DEFAULT_LTR ,NULL,&ec);
-        if(U_FAILURE(ec)){
-            log_err("ubidi_setPara(tests[%d], paraLevel %d) failed with errorCode %s\n",
-                    i, UBIDI_DEFAULT_LTR, u_errorName(ec));
-        }
-        /* try pre-flighting */
-        destSize = ubidi_writeReordered(bidi,dest,0,UBIDI_DO_MIRRORING,&ec);
-        if(ec!=U_BUFFER_OVERFLOW_ERROR){
-            log_err("Pre-flighting did not give expected error: Expected: U_BUFFER_OVERFLOW_ERROR. Got: %s \n",u_errorName(ec));
-        }else if(destSize!=srcSize){
-            log_err("Pre-flighting did not give expected size: Expected: %d. Got: %d \n",srcSize,destSize);
-        }else{
-            ec= U_ZERO_ERROR;
-        }
-        destSize=ubidi_writeReordered(bidi,dest,destSize+1,UBIDI_DO_MIRRORING,&ec);
-        chars = aescstrdup(dest,-1);
-        if(destSize!=srcSize){
-            log_err("ubidi_writeReordered() destSize and srcSize do not match\n");
-        }else if(uprv_strncmp(visualOrder[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
-
-            
-        }
-        uprv_free(src);
-        uprv_free(dest);
-    }
-    
-    for(i=0;i<(sizeof(logicalOrder)/sizeof(logicalOrder[0]));i++){
-        int32_t srcSize = uprv_strlen(logicalOrder[i]);
-        int32_t destSize = srcSize*2;
-        UChar* src = (UChar*) uprv_malloc(sizeof(UChar)*srcSize );
-        UChar* dest = (UChar*) uprv_malloc(sizeof(UChar)*destSize);
-        char* chars=NULL;
-        ec = U_ZERO_ERROR;
-        u_unescape(logicalOrder[i],src,srcSize);
-        srcSize=u_strlen(src);
-        ubidi_setPara(bidi,src,srcSize,UBIDI_DEFAULT_LTR ,NULL,&ec);
-        if(U_FAILURE(ec)){
-            log_err("ubidi_setPara(tests[%d], paraLevel %d) failed with errorCode %s\n",
-                    i, UBIDI_DEFAULT_LTR, u_errorName(ec));
-        }
-        /* try pre-flighting */
-        destSize = ubidi_writeReordered(bidi,dest,0,UBIDI_DO_MIRRORING+UBIDI_OUTPUT_REVERSE,&ec);
-        if(ec!=U_BUFFER_OVERFLOW_ERROR){
-            log_err("Pre-flighting did not give expected error: Expected: U_BUFFER_OVERFLOW_ERROR. Got: %s \n",u_errorName(ec));
-        }else if(destSize!=srcSize){
-            log_err("Pre-flighting did not give expected size: Expected: %d. Got: %d \n",srcSize,destSize);
-        }else{
-            ec= U_ZERO_ERROR;
-        }
-        destSize=ubidi_writeReordered(bidi,dest,destSize+1,UBIDI_DO_MIRRORING+UBIDI_OUTPUT_REVERSE,&ec);
-        chars = aescstrdup(dest,destSize);
-        if(destSize!=srcSize){
-            log_err("ubidi_writeReordered() destSize and srcSize do not match\n");
-        }else if(uprv_strncmp(visualOrder1[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results for UBIDI_DO_MIRRORING+UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
-
-            
-        }
-        
-        uprv_free(src);
-        uprv_free(dest);
-    }
-
-    for(i=0;i<(sizeof(logicalOrder)/sizeof(logicalOrder[0]));i++){
-        int32_t srcSize = uprv_strlen(logicalOrder[i]);
-        int32_t destSize = srcSize*2;
-        UChar* src = (UChar*) uprv_malloc(sizeof(UChar)*srcSize );
-        UChar* dest = (UChar*) uprv_malloc(sizeof(UChar)*destSize);
-        char* chars=NULL;
-        ec = U_ZERO_ERROR;
-        u_unescape(logicalOrder[i],src,srcSize);
-        srcSize=u_strlen(src);
-        ubidi_setInverse(bidi,TRUE);
-        ubidi_setPara(bidi,src,srcSize,UBIDI_DEFAULT_LTR ,NULL,&ec);
-
-        if(U_FAILURE(ec)){
-            log_err("ubidi_setPara(tests[%d], paraLevel %d) failed with errorCode %s\n",
-                    i, UBIDI_DEFAULT_LTR, u_errorName(ec));
-        }
-                /* try pre-flighting */
-        destSize = ubidi_writeReordered(bidi,dest,0,UBIDI_INSERT_LRM_FOR_NUMERIC+UBIDI_OUTPUT_REVERSE,&ec);
-        if(ec!=U_BUFFER_OVERFLOW_ERROR){
-            log_err("Pre-flighting did not give expected error: Expected: U_BUFFER_OVERFLOW_ERROR. Got: %s \n",u_errorName(ec));
-        }else{
-            ec= U_ZERO_ERROR;
-        }
-        destSize=ubidi_writeReordered(bidi,dest,destSize+1,UBIDI_INSERT_LRM_FOR_NUMERIC+UBIDI_OUTPUT_REVERSE,&ec);
-        chars = aescstrdup(dest,destSize);
-
-        /*if(destSize!=srcSize){
-            log_err("ubidi_writeReordered() destSize and srcSize do not match. Dest Size = %d Source Size = %d\n",destSize,srcSize );
-        }else*/
-            if(uprv_strncmp(visualOrder2[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results for UBIDI_INSERT_LRM_FOR_NUMERIC+UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
-
-            
-        }
-        
-        uprv_free(src);
-        uprv_free(dest);
-    }
-        /* Max Explicit level */
-    for(i=0;i<(sizeof(logicalOrder)/sizeof(logicalOrder[0]));i++){
-        int32_t srcSize = uprv_strlen(logicalOrder[i]);
-        int32_t destSize = srcSize*2;
-        UChar* src = (UChar*) uprv_malloc(sizeof(UChar)*srcSize );
-        UChar* dest = (UChar*) uprv_malloc(sizeof(UChar)*destSize);
-        char* chars=NULL;
-        UBiDiLevel levels[UBIDI_MAX_EXPLICIT_LEVEL]={1,2,3,4,5,6,7,8,9,10};
-        ec = U_ZERO_ERROR;
-        u_unescape(logicalOrder[i],src,srcSize);
-        srcSize=u_strlen(src);
-        ubidi_setPara(bidi,src,srcSize,UBIDI_DEFAULT_LTR,levels,&ec);
-        if(U_FAILURE(ec)){
-            log_err("ubidi_setPara(tests[%d], paraLevel %d) failed with errorCode %s\n",
-                    i, UBIDI_MAX_EXPLICIT_LEVEL, u_errorName(ec));
-        }
-                /* try pre-flighting */
-        destSize = ubidi_writeReordered(bidi,dest,0,UBIDI_OUTPUT_REVERSE,&ec);
-        if(ec!=U_BUFFER_OVERFLOW_ERROR){
-            log_err("Pre-flighting did not give expected error: Expected: U_BUFFER_OVERFLOW_ERROR. Got: %s \n",u_errorName(ec));
-        }else if(destSize!=srcSize){
-            log_err("Pre-flighting did not give expected size: Expected: %d. Got: %d \n",srcSize,destSize);
-        }else{
-            ec= U_ZERO_ERROR;
-        }
-        destSize=ubidi_writeReordered(bidi,dest,destSize+1,UBIDI_OUTPUT_REVERSE,&ec);
-        chars = aescstrdup(dest,destSize);
-
-        if(destSize!=srcSize){
-            log_err("ubidi_writeReordered() destSize and srcSize do not match. Dest Size = %d Source Size = %d\n",destSize,srcSize );
-        }else if(uprv_strncmp(visualOrder3[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results for UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
-
-            
-        }
-        
-        uprv_free(src);
-        uprv_free(dest);
-    }
-    for(i=0;i<(sizeof(logicalOrder)/sizeof(logicalOrder[0]));i++){
-        int32_t srcSize = uprv_strlen(logicalOrder[i]);
-        int32_t destSize = srcSize*2;
-        UChar* src = (UChar*) uprv_malloc(sizeof(UChar)*srcSize );
-        UChar* dest = (UChar*) uprv_malloc(sizeof(UChar)*destSize);
-        char* chars=NULL;
-        UBiDiLevel levels[UBIDI_MAX_EXPLICIT_LEVEL]={1,2,3,4,5,6,7,8,9,10};
-        ec = U_ZERO_ERROR;
-        u_unescape(logicalOrder[i],src,srcSize);
-        srcSize=u_strlen(src);
-        ubidi_setPara(bidi,src,srcSize,UBIDI_DEFAULT_LTR,levels,&ec);
-        if(U_FAILURE(ec)){
-            log_err("ubidi_setPara(tests[%d], paraLevel %d) failed with errorCode %s\n",
-                    i, UBIDI_MAX_EXPLICIT_LEVEL, u_errorName(ec));
-        }
-        
-        /* try pre-flighting */
-        destSize = ubidi_writeReordered(bidi,dest,0,UBIDI_DO_MIRRORING+UBIDI_REMOVE_BIDI_CONTROLS,&ec);
-        if(ec!=U_BUFFER_OVERFLOW_ERROR){
-            log_err("Pre-flighting did not give expected error: Expected: U_BUFFER_OVERFLOW_ERROR. Got: %s \n",u_errorName(ec));
-        /*}else if(destSize!=srcSize){
-            log_err("Pre-flighting did not give expected size: Expected: %d. Got: %d \n",srcSize,destSize);*/
-        }else{
-            ec= U_ZERO_ERROR;
-        }
-        destSize=ubidi_writeReordered(bidi,dest,destSize+1,UBIDI_DO_MIRRORING+UBIDI_REMOVE_BIDI_CONTROLS,&ec);
-        chars = aescstrdup(dest,destSize);
-
-        /*if(destSize!=srcSize){
-            log_err("ubidi_writeReordered() destSize and srcSize do not match. Dest Size = %d Source Size = %d\n",destSize,srcSize );
-        }else*/ if(uprv_strncmp(visualOrder4[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results for UBIDI_DO_MIRRORING+UBIDI_REMOVE_BIDI_CONTROLS. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
-        }
-        
-        uprv_free(src);
-        uprv_free(dest);
-    }
-    ubidi_close(bidi);
-}
 
 static void
-doTest(UBiDi *pBiDi, int testNumber, BiDiTestData *test, int32_t lineStart) {
+doTest(UBiDi *pBiDi, int testNumber, BiDiTestData *test, UTextOffset lineStart) {
     const uint8_t *dirProps=test->text+lineStart;
     const UBiDiLevel *levels=test->levels;
     const uint8_t *visualMap=test->visualMap;
-    int32_t i, len=ubidi_getLength(pBiDi), logicalIndex, runCount;
+    UTextOffset i, len=ubidi_getLength(pBiDi), logicalIndex, runCount;
     UErrorCode errorCode=U_ZERO_ERROR;
     UBiDiLevel level, level2;
 
@@ -520,13 +240,13 @@ doTest(UBiDi *pBiDi, int testNumber, BiDiTestData *test, int32_t lineStart) {
 
 static void
 testReordering(UBiDi *pBiDi, int testNumber) {
-    int32_t
+    UTextOffset
         logicalMap1[200], logicalMap2[200], logicalMap3[200],
         visualMap1[200], visualMap2[200], visualMap3[200], visualMap4[200];
     UErrorCode errorCode=U_ZERO_ERROR;
     UBiDiLevel levels[200];
-    int32_t i, length=ubidi_getLength(pBiDi);
-    int32_t runCount, visualIndex, logicalStart, runLength;
+    UTextOffset i, length=ubidi_getLength(pBiDi);
+    UTextOffset runCount, visualIndex, logicalStart, runLength;
     UBool odd;
 
     if(length<=0) {
@@ -664,7 +384,6 @@ testReordering(UBiDi *pBiDi, int testNumber) {
         }
     }
 }
-
 
 /* inverse BiDi ------------------------------------------------------------- */
 
@@ -1338,9 +1057,9 @@ doLOGICALArabicDeShapingTest() {
 
 /* return a string with characters according to the desired directional properties */
 static UChar *
-getStringFromDirProps(const uint8_t *dirProps, int32_t length) {
+getStringFromDirProps(const uint8_t *dirProps, UTextOffset length) {
     static UChar s[MAX_STRING_LENGTH];
-    int32_t i;
+    UTextOffset i;
 
     /* this part would have to be modified for UTF-x */
     for(i=0; i<length; ++i) {

@@ -58,7 +58,7 @@ CollationElementIterator::~CollationElementIterator()
 
 /* CollationElementIterator public methods --------------------------------- */
 
-int32_t CollationElementIterator::getOffset() const
+UTextOffset CollationElementIterator::getOffset() const
 {
   return ucol_getOffset(m_data_);
 }
@@ -120,7 +120,7 @@ UBool CollationElementIterator::operator==(
 
     result = result && (uprv_memcmp(this->m_data_->iteratordata_.string, 
                          that.m_data_->iteratordata_.string, 
-                         thislength * U_SIZEOF_UCHAR) == 0);
+                         thislength * sizeof(UChar)) == 0);
     result = result && (this->getOffset() == that.getOffset());
   
     return result;
@@ -145,7 +145,7 @@ void CollationElementIterator::reset()
   ucol_reset(m_data_);
 }
 
-void CollationElementIterator::setOffset(int32_t newOffset, 
+void CollationElementIterator::setOffset(UTextOffset newOffset, 
                                          UErrorCode& status)
 {
   ucol_setOffset(m_data_, newOffset, &status);
@@ -160,7 +160,7 @@ void CollationElementIterator::setText(const UnicodeString& source,
   if (U_FAILURE(status)) {
     return;
   }
-
+  	
   int32_t length = source.length();
   UChar *string = NULL;
   if (m_data_->isWritable && m_data_->iteratordata_.string != NULL) {
@@ -168,11 +168,11 @@ void CollationElementIterator::setText(const UnicodeString& source,
   }
   m_data_->isWritable = TRUE;
   if (length > 0) {
-    string = (UChar *)uprv_malloc(U_SIZEOF_UCHAR * length);
-    u_memcpy(string, source.getBuffer(), length);
+    string = (UChar *)uprv_malloc(sizeof(UChar) * length);
+    source.extract(0, length, string);
   }
   else {
-    string = (UChar *)uprv_malloc(U_SIZEOF_UCHAR);
+    string = (UChar *)uprv_malloc(sizeof(UChar));
     *string = 0;
   }
   init_collIterate(m_data_->iteratordata_.coll, string, length, 
@@ -192,18 +192,18 @@ void CollationElementIterator::setText(CharacterIterator& source,
   UChar *buffer = NULL;
 
   if (length == 0) {
-    buffer = (UChar *)uprv_malloc(U_SIZEOF_UCHAR);
+    buffer = (UChar *)uprv_malloc(sizeof(UChar));
     *buffer = 0;
   }
   else {
-      buffer = (UChar *)uprv_malloc(U_SIZEOF_UCHAR * length);
+      buffer = (UChar *)uprv_malloc(sizeof(UChar) * length);
       /* 
       Using this constructor will prevent buffer from being removed when
       string gets removed
       */
       UnicodeString string;
       source.getText(string);
-      u_memcpy(buffer, string.getBuffer(), length);
+      string.extract(0, length, buffer);
   }
   
   if (m_data_->isWritable && m_data_->iteratordata_.string != NULL)
@@ -246,15 +246,15 @@ CollationElementIterator::CollationElementIterator(
   UChar *string = NULL;
   
   if (length > 0) {
-      string = (UChar *)uprv_malloc(U_SIZEOF_UCHAR * length);
+      string = (UChar *)uprv_malloc(sizeof(UChar) * length);
       /* 
       Using this constructor will prevent buffer from being removed when
       string gets removed
       */
-      u_memcpy(string, sourceText.getBuffer(), length);
+      sourceText.extract(0, length, string);
   }
   else {
-      string = (UChar *)uprv_malloc(U_SIZEOF_UCHAR);
+      string = (UChar *)uprv_malloc(sizeof(UChar));
       *string = 0;
   }
   m_data_ = ucol_openElements(order->ucollator, string, length, &status);
@@ -296,18 +296,17 @@ CollationElementIterator::CollationElementIterator(
   int32_t length = sourceText.getLength();
   UChar *buffer;
   if (length > 0) {
-      buffer = (UChar *)uprv_malloc(U_SIZEOF_UCHAR * length);
+      buffer = (UChar *)uprv_malloc(sizeof(UChar) * length);
       /* 
       Using this constructor will prevent buffer from being removed when
       string gets removed
       */
       UnicodeString string(buffer, length, length);
       ((CharacterIterator &)sourceText).getText(string);
-      const UChar *temp = string.getBuffer();
-      u_memcpy(buffer, temp, length);
+      string.extract(0, length, buffer);
   }
   else {
-      buffer = (UChar *)uprv_malloc(U_SIZEOF_UCHAR);
+      buffer = (UChar *)uprv_malloc(sizeof(UChar));
       *buffer = 0;
   }
   m_data_ = ucol_openElements(order->ucollator, buffer, length, &status);
@@ -346,9 +345,9 @@ const CollationElementIterator& CollationElementIterator::operator=(
     
       /* create a duplicate of string */
       if (length > 0) {
-          coliter->string = (UChar *)uprv_malloc(length * U_SIZEOF_UCHAR);
+          coliter->string = (UChar *)uprv_malloc(length * sizeof(UChar));
           uprv_memcpy(coliter->string, othercoliter->string,
-                      length * U_SIZEOF_UCHAR);
+                      length * sizeof(UChar));
       }
       else {
           coliter->string = NULL;
@@ -364,17 +363,17 @@ const CollationElementIterator& CollationElementIterator::operator=(
           if (wlength < coliter->writableBufSize) {
               uprv_memcpy(coliter->stackWritableBuffer, 
                         othercoliter->stackWritableBuffer, 
-                        othercoliter->writableBufSize * U_SIZEOF_UCHAR);
+                        othercoliter->writableBufSize * sizeof(UChar));
           }
           else {
               if (coliter->writableBuffer != coliter->stackWritableBuffer) {
                   delete coliter->writableBuffer;
               }
               coliter->writableBuffer = (UChar *)uprv_malloc(
-                                         wlength * U_SIZEOF_UCHAR);
+                                         wlength * sizeof(UChar));
               uprv_memcpy(coliter->writableBuffer, 
                           othercoliter->writableBuffer,
-                          wlength * U_SIZEOF_UCHAR);
+                          wlength * sizeof(UChar));
               coliter->writableBufSize = wlength;
           }
       }

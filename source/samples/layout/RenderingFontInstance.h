@@ -48,9 +48,6 @@ protected:
     le_int32 fDescent;
     le_int32 fLeading;
 
-    float fDeviceScaleX;
-    float fDeviceScaleY;
-
     TableCacheEntry *fTableCache;
     le_int32 fTableCacheCurr;
     le_int32 fTableCacheSize;
@@ -170,8 +167,8 @@ public:
 
     void transformFunits(float xFunits, float yFunits, LEPoint &pixels) const
     {
-        pixels.fX = xUnitsToPoints(xFunits) * fDeviceScaleX;
-        pixels.fY = yUnitsToPoints(yFunits) * fDeviceScaleY;
+        pixels.fX = xUnitsToPoints(xFunits);
+        pixels.fY = yUnitsToPoints(yFunits);
     }
 };
 

@@ -11,9 +11,12 @@ top_builddir = ../..
 
 include $(top_builddir)/icudefs.mk
 
+## Platform-specific setup
+include @platform_make_fragment@
+
 ##
 
-SECTION = 1
+SECTION = 8
 
 MANX_FILES = $(TARGET).$(SECTION)
 
@@ -31,8 +34,24 @@ CLEANFILES = *~ $(GENERATED_MAN_FILES) $(DEPS) $(CNV_FILES) $(TEST_CNV_FILES)
 ## Target information
 TARGET = makeconv
 
-CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcdir)/../toolutil
-LIBS = $(LIBICUTOOLUTIL) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
+ENABLE_STATIC = @ENABLE_STATIC@
+
+ifneq ($(ENABLE_STATIC),)
+LINK = $(LINK.cc)
+else
+LINK = $(LINK.c)
+endif
+
+DEFS = @DEFS@
+CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcdir)/../toolutil
+CFLAGS = @CFLAGS@
+CXXFLAGS = @CXXFLAGS@
+ENABLE_RPATH = @ENABLE_RPATH@
+ifeq ($(ENABLE_RPATH),YES)
+RPATHLDFLAGS = $(LD_RPATH)$(LD_RPATH_PRE)$(libdir)
+endif
+LDFLAGS = @LDFLAGS@ $(RPATHLDFLAGS)
+LIBS = $(LIBICUTOOLUTIL) $(LIBICUUC) @LIBS@ @LIB_M@
 
 OBJECTS = makeconv.o ucnvstat.o genmbcs.o
 
@@ -58,8 +77,8 @@ check: all check-local
 all-local: $(TARGET) $(ALL_MAN_FILES)
 
 install-local: all-local install-man
-	$(MKINSTALLDIRS) $(DESTDIR)$(bindir)
-	$(INSTALL) $(TARGET) $(DESTDIR)$(bindir)/$(TARGET)
+	$(MKINSTALLDIRS) $(DESTDIR)$(sbindir)
+	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)/$(TARGET)
 #	$(MKINSTALLDIRS) $(DESTDIR)$(pkglibdir)
 #	@list='$(notdir $(CNV_FILES)) convrtrs.txt'; for file in $$list; do \
 #		echo $(INSTALL_DATA) $(top_builddir)/data/$$file $(DESTDIR)$(pkglibdir)/$$file; \
@@ -87,7 +106,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 $(TARGET): $(OBJECTS)
-	$(LINK.cc) -o $@ $^ $(LIBS)
+	$(LINK) -o $@ $^ $(LIBS)
 
 install-man: install-manx
 install-manx: $(MANX_FILES)

@@ -25,20 +25,17 @@ U_NAMESPACE_USE
  * the characters in a UnicodeString to an ostream. The UChars in the
  * UnicodeString are truncated to char, leading to undefined results with
  * anything not in the Latin1 character set.
+ *
+ * @deprecated This will move to the unsupported ustdio library after 2002-feb-01
  */
 #if U_IOSTREAM_SOURCE >= 199711
 #include <iostream>
 U_USTDIO_API std::ostream &operator<<(std::ostream& stream, const UnicodeString& s);
-
-U_USTDIO_API std::istream &operator>>(std::istream& stream, UnicodeString& s);
 #elif U_IOSTREAM_SOURCE >= 198506
 #include <iostream.h>
 U_USTDIO_API ostream &operator<<(ostream& stream, const UnicodeString& s);
-
-U_USTDIO_API istream &operator>>(istream& stream, UnicodeString& s);
 #endif
 
-/* TODO: We should add the operator<< and the operator>> for UDate. */
-/* No operator for UChar because it can conflict with wchar_t  */
+/* TODO: We should add the operator<< for UChar* and UDate. Also add the operator>>. */
 
 #endif

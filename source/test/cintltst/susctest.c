@@ -24,8 +24,6 @@
 #include "cstring.h"
 #include "cmemory.h"
 
-#ifdef ICU_SCSU_USE_DEPRECATES
-
 #ifdef MIN
 #  undef MIN
 #endif
@@ -822,14 +820,11 @@ TestSCSU(void)
     i++;
   }
 }
-#endif
 
 void addSCSUTest(TestNode** root);
 
 void
 addSCSUTest(TestNode** root)
 {
-#ifdef ICU_SCSU_USE_DEPRECATES
   addTest(root, &TestSCSU, "scsutest/TestSCSU");
-#endif
 }

@@ -21,7 +21,6 @@
 #include "unicode/utypes.h"
 #include "unicode/ustring.h"
 #include "unicode/ucol.h"
-#include "cmemory.h"
 
 static void TestNextUChar(UConverter* cnv, const char* source, const char* limit, const uint32_t results[], const char* message);
 static void TestNextUCharError(UConverter* cnv, const char* source, const char* limit, UErrorCode expected, const char* message);
@@ -30,7 +29,6 @@ static void TestJitterbug1293(void);
 static void TestNewConvertWithBufferSizes(int32_t osize, int32_t isize) ;
 static void TestConverterTypesAndStarters(void);
 static void TestAmbiguous(void);
-static void TestSignatureDetection(void);
 static void TestUTF7(void);
 static void TestUTF8(void);
 static void TestUTF16BE(void);
@@ -66,8 +64,6 @@ static void TestConv(const uint16_t in[],
                      const char* lang, 
                      char byteArr[],
                      int byteArrLen);
-static void TestRoundTrippingAllUTF(void);
-static void TestCoverageMBCS(void);
 
 void addTestNewConvert(TestNode** root);
 
@@ -190,7 +186,6 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestOutBufSizes, "tsconv/nucnvtst/TestOutBufSizes");
    addTest(root, &TestConverterTypesAndStarters, "tsconv/nucnvtst/TestConverterTypesAndStarters");
    addTest(root, &TestAmbiguous, "tsconv/nucnvtst/TestAmbiguous");
-   addTest(root, &TestSignatureDetection, "tsconv/nucnvtst/TestSignatureDetection");
    addTest(root, &TestUTF7, "tsconv/nucnvtst/TestUTF7");
    addTest(root, &TestUTF8, "tsconv/nucnvtst/TestUTF8");
    addTest(root, &TestUTF16BE, "tsconv/nucnvtst/TestUTF16BE");
@@ -222,8 +217,6 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestISCII, "tsconv/nucnvtst/TestISCII");
    addTest(root, &TestJitterbug981, "tsconv/nucnvtst/TestJitterbug981");
    addTest(root, &TestJitterbug1293, "tsconv/nucnvtst/TestJitterbug1293");
-   addTest(root, &TestCoverageMBCS, "tsconv/nucnvtst/TestCoverageMBCS");
-   addTest(root, &TestRoundTrippingAllUTF, "tsconv/nucnvtst/TestRoundTrippingAllUTF");
 
 }
 
@@ -847,6 +840,82 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
                LMBCSUChars, sizeof(LMBCSUChars)/sizeof(LMBCSUChars[0]), "LMBCS-1", fmLMBCSOffs,FALSE))
       log_err("LMBCS-1 -> u  did not match.\n");
 
+
+    /*some more test to increase the code coverage in MBCS.  Create an test converter from test1.ucm
+      which is test file for MBCS conversion with single-byte codepage data.*/
+    {
+
+        /* MBCS with single byte codepage data test1.ucm*/
+        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0x0003};
+        const uint8_t expectedtest1[] = { 0x00, 0x05, 0xff, 0x07, 0xff,};
+        int32_t  totest1Offs[]        = { 0, 1, 2, 3, 5, };
+
+        const uint8_t test1input[]    = { 0x00, 0x05, 0x06, 0x07, 0x08, 0x09};
+        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0xfffd, 0xfffd};
+        int32_t fromtest1Offs[]       = { 0, 1, 2, 3, 3, 4, 5};
+
+        /*from Unicode*/
+        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
+                expectedtest1, sizeof(expectedtest1), "test1", totest1Offs,FALSE ))
+            log_err("u-> test1(MBCS conversion with single-byte) did not match.\n");
+
+        /*to Unicode*/
+        if(!testConvertToU(test1input, sizeof(test1input),
+               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test1", fromtest1Offs ,FALSE))
+            log_err("test1(MBCS conversion with single-byte) -> u  did not match.\n");
+
+    }
+
+    /*some more test to increase the code coverage in MBCS.  Create an test converter from test3.ucm
+      which is test file for MBCS conversion with three-byte codepage data.*/
+    {
+
+        /* MBCS with three byte codepage data test3.ucm*/
+        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0x000e};
+        const uint8_t expectedtest3[] = { 0x00, 0x05, 0xff, 0x01, 0x02, 0x0b,  0x07,  0x01, 0x02, 0x0a,  0xff,};
+        int32_t  totest3Offs[]        = { 0, 1, 2, 3, 3, 3, 4, 6, 6, 6, 8};
+
+        const uint8_t test3input[]    = { 0x00, 0x05, 0x06, 0x01, 0x02, 0x0b,  0x07,  0x01, 0x02, 0x0a, 0x01, 0x02, 0x0c,};
+        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd};
+        int32_t fromtest3Offs[]       = { 0, 1, 2, 3, 6, 6, 7, 7, 10 };
+
+        /*from Unicode*/
+        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
+                expectedtest3, sizeof(expectedtest3), "test3", totest3Offs,FALSE ))
+            log_err("u-> test3(MBCS conversion with three-byte) did not match.\n");
+
+        /*to Unicode*/
+        if(!testConvertToU(test3input, sizeof(test3input),
+               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test3", fromtest3Offs ,FALSE))
+            log_err("test3(MBCS conversion with three-byte) -> u  did not match.\n");
+
+    }
+
+    /*some more test to increase the code coverage in MBCS.  Create an test converter from test4.ucm
+      which is test file for MBCS conversion with four-byte codepage data.*/
+    {
+
+        /* MBCS with three byte codepage data test4.ucm*/
+        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0x000e};
+        const uint8_t expectedtest4[] = { 0x00, 0x05, 0xff, 0x01, 0x02, 0x03, 0x0b,  0x07,  0x01, 0x02, 0x03, 0x0a,  0xff,};
+        int32_t  totest4Offs[]        = { 0, 1, 2, 3, 3, 3, 3, 4, 6, 6, 6, 6, 8,};
+
+        const uint8_t test4input[]    = { 0x00, 0x05, 0x06, 0x01, 0x02, 0x03, 0x0b,  0x07,  0x01, 0x02, 0x03, 0x0a, 0x01, 0x02, 0x03, 0x0c,};
+        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd};
+        int32_t fromtest4Offs[]       = { 0, 1, 2, 3, 7, 7, 8, 8, 12,};
+
+        /*from Unicode*/
+        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
+                expectedtest4, sizeof(expectedtest4), "test4", totest4Offs,FALSE ))
+            log_err("u-> test4(MBCS conversion with four-byte) did not match.\n");
+
+        /*to Unicode*/
+        if(!testConvertToU(test4input, sizeof(test4input),
+               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test4", fromtest4Offs,FALSE ))
+            log_err("test4(MBCS conversion with four-byte) -> u  did not match.\n");
+
+    }
+
     /* UTF-7 examples are mostly from http://www.imc.org/rfc2152 */
     {
         /* encode directly set D and set O */
@@ -1032,134 +1101,10 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
     }
 }
 
-static void TestCoverageMBCS(){
-    char* saveDirectory = (char*)uprv_malloc(sizeof(char) *(strlen(u_getDataDirectory())+1));
-    const char *directory;
-    char* tdpath = NULL;
-    UErrorCode status = U_ZERO_ERROR;
-    int len = 0;
-    char* index=NULL;
-    directory = loadTestData(&status);
-    len = strlen(directory);
-    tdpath = (char*) uprv_malloc(sizeof(char) * (len * 2));
-    uprv_strcpy(saveDirectory,u_getDataDirectory());
-    log_verbose("Retrieved data directory %s \n",saveDirectory); 
-    uprv_strcpy(tdpath,directory); 
-    index=strrchr(tdpath,(char)U_FILE_SEP_CHAR); 
-    
-    if((unsigned int)(index-tdpath) != (strlen(tdpath)-1)){
-            *(index+1)=0;
-    }
-    u_setDataDirectory(tdpath);
-    log_verbose("ICU data directory is set to: %s \n" ,tdpath);
-
-    /*some more test to increase the code coverage in MBCS.  Create an test converter from test1.ucm
-      which is test file for MBCS conversion with single-byte codepage data.*/
-    {
-
-        /* MBCS with single byte codepage data test1.ucm*/
-        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0x0003};
-        const uint8_t expectedtest1[] = { 0x00, 0x05, 0xff, 0x07, 0xff,};
-        int32_t  totest1Offs[]        = { 0, 1, 2, 3, 5, };
-
-        const uint8_t test1input[]    = { 0x00, 0x05, 0x06, 0x07, 0x08, 0x09};
-        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0xfffd, 0xfffd};
-        int32_t fromtest1Offs[]       = { 0, 1, 2, 3, 3, 4, 5};
-
-        /*from Unicode*/
-        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
-                expectedtest1, sizeof(expectedtest1), "test1", totest1Offs,FALSE ))
-            log_err("u-> test1(MBCS conversion with single-byte) did not match.\n");
-
-        /*to Unicode*/
-        if(!testConvertToU(test1input, sizeof(test1input),
-               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test1", fromtest1Offs ,FALSE))
-            log_err("test1(MBCS conversion with single-byte) -> u  did not match.\n");
-
-    }
-
-    /*some more test to increase the code coverage in MBCS.  Create an test converter from test3.ucm
-      which is test file for MBCS conversion with three-byte codepage data.*/
-    {
-
-        /* MBCS with three byte codepage data test3.ucm*/
-        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0x000e};
-        const uint8_t expectedtest3[] = { 0x00, 0x05, 0xff, 0x01, 0x02, 0x0b,  0x07,  0x01, 0x02, 0x0a,  0xff,};
-        int32_t  totest3Offs[]        = { 0, 1, 2, 3, 3, 3, 4, 6, 6, 6, 8};
-
-        const uint8_t test3input[]    = { 0x00, 0x05, 0x06, 0x01, 0x02, 0x0b,  0x07,  0x01, 0x02, 0x0a, 0x01, 0x02, 0x0c,};
-        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd};
-        int32_t fromtest3Offs[]       = { 0, 1, 2, 3, 6, 6, 7, 7, 10 };
-
-        /*from Unicode*/
-        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
-                expectedtest3, sizeof(expectedtest3), "test3", totest3Offs,FALSE ))
-            log_err("u-> test3(MBCS conversion with three-byte) did not match.\n");
-
-        /*to Unicode*/
-        if(!testConvertToU(test3input, sizeof(test3input),
-               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test3", fromtest3Offs ,FALSE))
-            log_err("test3(MBCS conversion with three-byte) -> u  did not match.\n");
-
-    }
-
-    /*some more test to increase the code coverage in MBCS.  Create an test converter from test4.ucm
-      which is test file for MBCS conversion with four-byte codepage data.*/
-    {
-
-        /* MBCS with three byte codepage data test4.ucm*/
-        static const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0x000e};
-        static const uint8_t expectedtest4[] = { 0x00, 0x05, 0xff, 0x01, 0x02, 0x03, 0x0b,  0x07,  0x01, 0x02, 0x03, 0x0a,  0xff,};
-        static const int32_t totest4Offs[]   = { 0, 1, 2, 3, 3, 3, 3, 4, 6, 6, 6, 6, 8,};
-
-        static const uint8_t test4input[]    = { 0x00, 0x05, 0x06, 0x01, 0x02, 0x03, 0x0b,  0x07,  0x01, 0x02, 0x03, 0x0a, 0x01, 0x02, 0x03, 0x0c,};
-        static const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd};
-        static const int32_t fromtest4Offs[] = { 0, 1, 2, 3, 7, 7, 8, 8, 12,};
-
-        /*from Unicode*/
-        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
-                expectedtest4, sizeof(expectedtest4), "test4", totest4Offs,FALSE ))
-            log_err("u-> test4(MBCS conversion with four-byte) did not match.\n");
-
-        /*to Unicode*/
-        if(!testConvertToU(test4input, sizeof(test4input),
-               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test4", fromtest4Offs,FALSE ))
-            log_err("test4(MBCS conversion with four-byte) -> u  did not match.\n");
-
-    }
-    uprv_free(tdpath);
-    /* restore the original data directory */
-    log_verbose("Setting the data directory to %s \n", saveDirectory);
-    u_setDataDirectory(saveDirectory);
-    uprv_free(saveDirectory);
-
-}
-
-static void TestConverterType(const char *convName, UConverterType convType) {
-    UConverter* myConverter;
-    UErrorCode err = U_ZERO_ERROR;
-
-    myConverter = ucnv_open(convName, &err);
-    if (U_FAILURE(err)) {
-        log_err("Failed to create an %s converter\n", convName);
-        return;
-    }
-    else
-    {
-        if (ucnv_getType(myConverter)!=convType) {
-            log_err("ucnv_getType Failed for %s. Got enum value 0x%X\n",
-                convName, convType);
-        }
-        else {
-            log_verbose("ucnv_getType %s ok\n", convName);
-        }
-    }
-    ucnv_close(myConverter);
-}
 
 static void TestConverterTypesAndStarters()
 {
-    UConverter* myConverter;
+    UConverter* myConverter[3];
     UErrorCode err = U_ZERO_ERROR;
     UBool mystarters[256];
 
@@ -1192,22 +1137,22 @@ static void TestConverterTypesAndStarters()
         TRUE, TRUE, TRUE, TRUE, TRUE, TRUE};*/
 
 
-    log_verbose("Testing KSC, ibm-930, ibm-878  for starters and their conversion types.");
+  log_verbose("Testing KSC, ibm-930, ibm-878  for starters and their conversion types.");
 
-    myConverter = ucnv_open("ksc", &err);
+    myConverter[0] = ucnv_open("ksc", &err);
     if (U_FAILURE(err)) {
       log_err("Failed to create an ibm-ksc converter\n");
       return;
     }
     else
     {
-        if (ucnv_getType(myConverter)!=UCNV_MBCS)
+        if (ucnv_getType(myConverter[0])!=UCNV_MBCS)
             log_err("ucnv_getType Failed for ibm-949\n");
         else
             log_verbose("ucnv_getType ibm-949 ok\n");
 
-        if(myConverter!=NULL)
-            ucnv_getStarters(myConverter, mystarters, &err);
+        if(myConverter[0]!=NULL)
+            ucnv_getStarters(myConverter[0], mystarters, &err);
 
         /*if (memcmp(expectedKSCstarters, mystarters, sizeof(expectedKSCstarters)))
           log_err("Failed ucnv_getStarters for ksc\n");
@@ -1215,23 +1160,35 @@ static void TestConverterTypesAndStarters()
           log_verbose("ucnv_getStarters ok\n");*/
 
     }
-    ucnv_close(myConverter);
 
-    TestConverterType("ibm-930", UCNV_EBCDIC_STATEFUL);
-    TestConverterType("ibm-878", UCNV_SBCS);
-    TestConverterType("iso-8859-1", UCNV_LATIN_1);
-    TestConverterType("ibm-1208", UCNV_UTF8);
-    TestConverterType("utf-8", UCNV_UTF8);
-    TestConverterType("UTF-16BE", UCNV_UTF16_BigEndian);
-    TestConverterType("UTF-16LE", UCNV_UTF16_LittleEndian);
-    TestConverterType("UTF-32BE", UCNV_UTF32_BigEndian);
-    TestConverterType("UTF-32LE", UCNV_UTF32_LittleEndian);
-    TestConverterType("iso-2022", UCNV_ISO_2022);
-    TestConverterType("hz", UCNV_HZ);
-    TestConverterType("scsu", UCNV_SCSU);
-    TestConverterType("x-iscii-de", UCNV_ISCII);
-    TestConverterType("ascii", UCNV_US_ASCII);
-    TestConverterType("utf-7", UCNV_UTF7);
+    myConverter[1] = ucnv_open("ibm-930", &err);
+    if (U_FAILURE(err)) {
+        log_err("Failed to create an ibm-930 converter\n");
+        return;
+    }
+    else
+    {
+        if (ucnv_getType(myConverter[1])!=UCNV_EBCDIC_STATEFUL)
+            log_err("ucnv_getType Failed for ibm-930\n");
+        else
+            log_verbose("ucnv_getType ibm-930 ok\n");
+    }
+
+    myConverter[2] = ucnv_open("ibm-878", &err);
+    if (U_FAILURE(err)) {
+      log_err("Failed to create an ibm-815 converter\n");
+      return;
+    }
+    else
+      {
+        if (ucnv_getType(myConverter[2])!=UCNV_SBCS) log_err("ucnv_getType Failed for ibm-815\n");
+        else log_verbose("ucnv_getType ibm-815 ok\n");
+      }
+
+
+    ucnv_close(myConverter[0]);
+    ucnv_close(myConverter[1]);
+    ucnv_close(myConverter[2]);
 }
 
 static void
@@ -1361,197 +1318,6 @@ static void TestAmbiguous()
     }
     ucnv_close(sjis_cnv);
     ucnv_close(ascii_cnv);
-}
-
-static void 
-TestSignatureDetection(){
-    /* with null terminated strings */
-    {
-        static const char* data[] = { 
-                "\xFE\xFF\x00\x00",     /* UTF-16BE */
-                "\xFF\xFE\x00\x00",     /* UTF-16LE */
-                "\xEF\xBB\xBF\x00",     /* UTF-8    */
-                "\x0E\xFE\xFF\x00",     /* SCSU     */
-               
-                "\xFE\xFF",             /* UTF-16BE */
-                "\xFF\xFE",             /* UTF-16LE */
-                "\xEF\xBB\xBF",         /* UTF-8    */
-                "\x0E\xFE\xFF",         /* SCSU     */
-                
-                "\xFE\xFF\x41\x42",     /* UTF-16BE */
-                "\xFF\xFE\x41\x41",     /* UTF-16LE */
-                "\xEF\xBB\xBF\x41",     /* UTF-8    */
-                "\x0E\xFE\xFF\x41",     /* SCSU     */
-
-        };
-        static const char* expected[] = {
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-
-        };
-        static const int32_t expectedLength[] ={
-            2,
-            2,
-            3,
-            3,
-
-            2,
-            2,
-            3,
-            3,
-
-            2,
-            2,
-            3,
-            3,
-
-        };
-        int i=0;
-        UErrorCode err;
-        int32_t signatureLength = -1;
-        const char* source = NULL;
-        const char* enc = NULL;
-        for( ; i<sizeof(data)/sizeof(char*); i++){
-            err = U_ZERO_ERROR;
-            source = data[i];
-            enc = ucnv_detectUnicodeSignature(source, -1 , &signatureLength, &err);
-            if(U_FAILURE(err)){
-                log_err("ucnv_detectUnicodeSignature failed for source : %s at index :%i. Error: %s\n", source,i,u_errorName(err));
-                continue;
-            }
-            if(enc == NULL || strcmp(enc,expected[i]) !=0){
-                log_err("ucnv_detectUnicodeSignature failed for source : %s at index :%i. Expected: %s. Got: %s\n",source,i,expected[i],enc);
-                continue;
-            }
-            if(signatureLength != expectedLength[i]){
-                log_err("ucnv_detectUnicodeSignature failed for source : %s at index :%i.Expected Length: %i. Got length: %i\n",source,i,signatureLength,expectedLength[i]);
-            }
-        }
-    }
-    {
-        static const char* data[] = { 
-                "\xFE\xFF\x00",         /* UTF-16BE */
-                "\xFF\xFE\x00",         /* UTF-16LE */
-                "\xEF\xBB\xBF\x00",     /* UTF-8    */
-                "\x0E\xFE\xFF\x00",     /* SCSU     */
-                "\x00\x00\xFE\xFF",     /* UTF-32BE */
-                "\xFF\xFE\x00\x00",     /* UTF-32LE */
-                "\xFE\xFF",             /* UTF-16BE */
-                "\xFF\xFE",             /* UTF-16LE */
-                "\xEF\xBB\xBF",         /* UTF-8    */
-                "\x0E\xFE\xFF",         /* SCSU     */
-                "\x00\x00\xFE\xFF",     /* UTF-32BE */
-                "\xFF\xFE\x00\x00",     /* UTF-32LE */
-                "\xFE\xFF\x41\x42",     /* UTF-16BE */
-                "\xFF\xFE\x41\x41",     /* UTF-16LE */
-                "\xEF\xBB\xBF\x41",     /* UTF-8    */
-                "\x0E\xFE\xFF\x41",     /* SCSU     */
-                "\x00\x00\xFE\xFF\x41", /* UTF-32BE */
-                "\xFF\xFE\x00\x00\x42", /* UTF-32LE */
-                "\xFF\x41\x42"          /* NULL     */
-        };
-        static const int len[] = {
-            3,
-            3,
-            4,
-            4,
-            4,
-            4,
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            4,
-            4,
-            4,
-            4,
-            5,
-            5,
-            3
-        };
-
-        static const char* expected[] = {
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-                "UTF-32BE",
-                "UTF-32LE",
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-                "UTF-32BE",
-                "UTF-32LE",
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-                "UTF-32BE",
-                "UTF-32LE",
-                NULL
-        };
-        static const int32_t expectedLength[] ={
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            0
-        };
-        int i=0;
-        UErrorCode err;
-        int32_t signatureLength = -1;
-        int32_t sourceLength=-1;
-        const char* source = NULL;
-        const char* enc = NULL;
-        for( ; i<sizeof(data)/sizeof(char*); i++){
-            err = U_ZERO_ERROR;
-            source = data[i];
-            sourceLength = len[i];
-            enc = ucnv_detectUnicodeSignature(source, sourceLength , &signatureLength, &err);
-            if(U_FAILURE(err)){
-                log_err("ucnv_detectUnicodeSignature test2 failed for source : %s at index :%i. Error: %s\n", source,i,u_errorName(err));
-                continue;
-            }
-            if(enc == NULL || strcmp(enc,expected[i]) !=0){
-                if(expected[i] !=NULL){
-                 log_err("ucnv_detectUnicodeSignature test2 failed for source : %s at index :%i. Expected: %s. Got: %s\n",source,i,expected[i],enc);
-                 continue;
-                }
-            }
-            if(signatureLength != expectedLength[i]){
-                log_err("ucnv_detectUnicodeSignature test2 failed for source : %s at index :%i.Expected Length: %i. Got length: %i\n",source,i,signatureLength,expectedLength[i]);
-            }
-        }
-    }
 }
 
 void
@@ -2354,9 +2120,7 @@ static void TestSmallSourceBuffer(const uint16_t* source, const UChar* sourceLim
         uSourceLimit=uSource;
         do{
 
-            if (uSourceLimit < sourceLimit) {
-                uSourceLimit = uSourceLimit+1;
-            }
+            uSourceLimit = uSourceLimit+1;
             ucnv_fromUnicode( cnv , &cTarget, cTargetLimit,&uSource,uSourceLimit,NULL,FALSE, &errorCode);
             if(errorCode==U_BUFFER_OVERFLOW_ERROR){
                errorCode=U_ZERO_ERROR;
@@ -2372,9 +2136,7 @@ static void TestSmallSourceBuffer(const uint16_t* source, const UChar* sourceLim
 
         cSourceLimit =cBuf;
         do{
-            if (cSourceLimit < cBuf + (cTarget - cBuf)) {
-                cSourceLimit = cSourceLimit+1;
-            }
+            cSourceLimit =cSourceLimit+1;
             ucnv_toUnicode(cnv,&uTarget,uTargetLimit,&cSource,cSourceLimit,NULL,FALSE,&errorCode);
             if(errorCode==U_BUFFER_OVERFLOW_ERROR){
                errorCode=U_ZERO_ERROR;
@@ -2591,7 +2353,7 @@ TestISCII(){
         0x095F,0x0930,0x0931,0x0932,0x0933,0x0934,0x0935,0x0936,0x0937,
         0x0938,0x0939,0x200D,0x093E,0x093F,0x0940,0x0941,0x0942,0x0943,
         0x0946,0x0947,0x0948,0x0945,0x094A,0x094B,0x094C,0x0949,0x094D,
-        0x093d,0x0966,0x0967,0x0968,0x0969,0x096A,0x096B,0x096C,
+        0x0964,0x093C,0x0966,0x0967,0x0968,0x0969,0x096A,0x096B,0x096C,
         0x096D,0x096E,0x096F,
         /* test Soft halant*/
         0x0915,0x094d, 0x200D,
@@ -2616,29 +2378,9 @@ TestISCII(){
         0x0C85, 0xC82, 0x0C83,
         /* test Abbr sign and Anudatta */
         0x0970, 0x952,
-       /* 0x0958,
-        0x0959,
-        0x095A,
-        0x095B,
-        0x095C,
-        0x095D,
-        0x095E,
-        0x095F,*/
-        0x0960 /* Vocallic RRI 0xAB, 0xE9*/,
-        0x0944 /* Vowel Sign Vocallic RRI 0xDF, 0xE9 */,
-        0x090C ,
-        0x0962,
-        0x0961 /* Vocallic LL 0xa6, 0xE9 */,
-        0x0963 /* Vowel Sign Vocallic LL 0xdb, 0xE9, */,
-        0x0950 /* OM Symbol 0xa1, 0xE9,*/,
-        0x093D /* Avagraha  0xEA, 0xE9*/, 
-        0x0958,
-        0x0959,
-        0x095A,
-        0x095B,
-        0x095C,
-        0x095D,
-        0x095E,
+
+
+       
 
       };
     static const unsigned char byteArr[]={
@@ -2677,39 +2419,7 @@ TestISCII(){
         /* kannada range */
         0xEF, 0x48,0xa4, 0xa2, 0xa3,
         /* anudatta and abbreviation sign */
-        0xEF, 0x42, 0xF0, 0xBF, 0xF0, 0xB8,
-
-       
-        0xAA, 0xE9,/* RI + NUKTA 0x0960*/
-        
-        0xDF, 0xE9,/* Vowel sign RI + NUKTA 0x0944*/
-        
-        0xa6, 0xE9,/* Vowel I + NUKTA 0x090C*/
-        
-        0xdb, 0xE9,/* Vowel sign I + Nukta 0x0962*/
-        
-        0xa7, 0xE9,/* Vowel II + NUKTA 0x0961*/
-        
-        0xdc, 0xE9,/* Vowel sign II + Nukta 0x0963*/
-        
-        0xa1, 0xE9,/* chandrabindu + Nukta 0x0950*/
-        
-        0xEA, 0xE9, /* Danda + Nukta 0x093D*/
-        
-        0xB3, 0xE9, /* Ka + NUKTA */
-        
-        0xB4, 0xE9, /* Kha + NUKTA */
-        
-        0xB5, 0xE9, /* Ga + NUKTA */
-
-        0xBA, 0xE9,
-
-        0xBF, 0xE9,
-        
-        0xC0, 0xE9,
-
-        0xC9, 0xE9,
-
+        0xEF, 0x42, 0xF0, 0xBF, 0xF0, 0xB8
     };
       
     TestConv(in,(sizeof(in)/2),"ISCII,version=0","hindi", (char *)byteArr,sizeof(byteArr));
@@ -2804,10 +2514,10 @@ static void TestConv(const uint16_t in[],int len, const char* conv, const char* 
     const char *cTargetLimit;
     char *cBuf;
     UChar *uBuf,*test;
-    int32_t uBufSize = 120*10;
+    int32_t uBufSize = 120;
     UErrorCode errorCode=U_ZERO_ERROR;
     UConverter *cnv;
-    int32_t* offsets = (int32_t*) malloc(uBufSize * sizeof(int32_t) );
+    int32_t* offsets = (int32_t*) malloc(uBufSize * sizeof(int32_t) * 5);
     int32_t* myOff= offsets;
     cnv=ucnv_open(conv, &errorCode);
     if(U_FAILURE(errorCode)) {
@@ -2815,20 +2525,20 @@ static void TestConv(const uint16_t in[],int len, const char* conv, const char* 
         return;
     }
 
-    uBuf =  (UChar*)malloc(uBufSize * sizeof(UChar));
-    cBuf =(char*)malloc(uBufSize * sizeof(char));
+    uBuf =  (UChar*)malloc(uBufSize * sizeof(UChar)*5);
+    cBuf =(char*)malloc(uBufSize * sizeof(char) * 5);
     uSource = (const UChar*)&in[0];
     uSourceLimit=uSource+len;
     cTarget = cBuf;
-    cTargetLimit = cBuf +uBufSize;
+    cTargetLimit = cBuf +uBufSize*5;
     uTarget = uBuf;
-    uTargetLimit = uBuf+ uBufSize;
+    uTargetLimit = uBuf+ uBufSize*5;
     ucnv_fromUnicode( cnv , &cTarget, cTargetLimit,&uSource,uSourceLimit,myOff,TRUE, &errorCode);
     if(U_FAILURE(errorCode)){
         log_err("ucnv_fromUnicode conversion failed reason %s\n", u_errorName(errorCode));
         return;
     }
-    /*log_verbose("length of compressed string for language %s using %s:%i \n",conv,lang,(cTarget-cBuf));*/
+    log_verbose("length of compressed string for language %s using %s:%i \n",conv,lang,(cTarget-cBuf));
     cSource = cBuf;
     cSourceLimit =cTarget;
     test =uBuf;
@@ -2842,7 +2552,7 @@ static void TestConv(const uint16_t in[],int len, const char* conv, const char* 
     uSource = (const UChar*)&in[0];
     while(uSource<uSourceLimit){
         if(*test!=*uSource){
-            log_err("for codeapge %s : Expected : \\u%04X \t Got: \\u%04X\n",conv,*uSource,(int)*test) ;
+            log_err("Expected : \\u%04X \t Got: \\u%04X\n",*uSource,(int)*test) ;
         }
         uSource++;
         test++;
@@ -2880,144 +2590,26 @@ static void TestConv(const uint16_t in[],int len, const char* conv, const char* 
     free(cBuf);
     free(offsets);
 }
-static UChar
-_charAt(int32_t offset, void *context) {
-    return ((char*)context)[offset];
-}
-
-static int32_t
-unescape(UChar* dst, int32_t dstLen,const char* src,int32_t srcLen,UErrorCode *status){
-    int32_t srcIndex=0;
-    int32_t dstIndex=0;
-    if(U_FAILURE(*status)){
-        return 0;
-    }
-    if((dst==NULL && dstLen>0) || (src==NULL ) || dstLen < -1 || srcLen <-1 ){
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
-    if(srcLen==-1){
-        srcLen = uprv_strlen(src);
-    }
-
-    for (; srcIndex<srcLen; ) {
-        UChar32 c = src[srcIndex++];
-        if (c == 0x005C /*'\\'*/) {
-            c = u_unescapeAt(_charAt,&srcIndex,srcLen,(void*)src); /* advances i*/
-            if (c == (UChar32)0xFFFFFFFF) {
-                *status=U_INVALID_CHAR_FOUND; /* return empty string */
-                break; /* invalid escape sequence */
-            }
-        }
-        if(dstIndex < dstLen){
-            if(c>0xFFFF){
-               dst[dstIndex++] = UTF16_LEAD(c);
-               if(dstIndex<dstLen){
-                    dst[dstIndex]=UTF16_TRAIL(c);
-               }else{
-                   *status=U_BUFFER_OVERFLOW_ERROR;
-               }
-            }else{
-                dst[dstIndex]=(UChar)c;
-            }
-
-        }else{
-            *status = U_BUFFER_OVERFLOW_ERROR;
-        }
-        dstIndex++; /* for preflighting */
-    }
-    return dstIndex;
-}
-
-static void
-TestFullRoundtrip(const char* cp){
-    UChar usource[10] ={0};
-    UChar nsrc[10] = {0};
-    uint32_t i=1;
-    int len=0;
-    nsrc[0]=0x0061;
-    /* Test codepoint 0 */
-    TestConv(usource,1,cp,"",NULL,0);
-    TestConv(usource,2,cp,"",NULL,0);
-    nsrc[2]=0x5555;
-    TestConv(nsrc,3,cp,"",NULL,0);
-
-    for(;i<=0x10FFFF;i++){
-        if(i>=0xD800 && i<=0xDFFF){
-            continue;
-        }
-        if(i<=0xFFFF){
-            usource[0] =(UChar) i;
-            len=1;
-        }else{
-            usource[0]=UTF16_LEAD(i);
-            usource[1]=UTF16_TRAIL(i);
-            len=2;
-        }
-        /* Test only single code points */
-        TestConv(usource,u_strlen(usource),cp,"",NULL,0);
-        /* Test codepoint repeated twice */
-        u_strncat(usource,usource,len);
-        TestConv(usource,u_strlen(usource),cp,"",NULL,0);
-        /* Test codepoint repeated 3 times */
-        u_strncat(usource,usource,len);
-        TestConv(usource,u_strlen(usource),cp,"",NULL,0);
-        /* Test codepoint in between 2 codepoints */
-        nsrc[1]=0;
-        u_strncat(nsrc,usource,len);
-        nsrc[len+1]=0x5555;
-        TestConv(nsrc,len+2,cp,"",NULL,0);        
-        uprv_memset(usource,0,sizeof(UChar)*10);
-    }
-}
-
-static void
-TestRoundTrippingAllUTF(void){
-    if(!QUICK){
-        log_verbose("Running exhaustive round trip test for SCSU\n");
-        TestFullRoundtrip("SCSU");
-        log_verbose("Running exhaustive round trip test for UTF-8\n");
-        TestFullRoundtrip("UTF-8");
-        log_verbose("Running exhaustive round trip test for UTF-16BE\n");
-        TestFullRoundtrip("UTF-16BE");
-        log_verbose("Running exhaustive round trip test for UTF-16LE\n");
-        TestFullRoundtrip("UTF-16LE");
-        log_verbose("Running exhaustive round trip test for UTF-32BE\n");
-        TestFullRoundtrip("UTF-32BE");
-        log_verbose("Running exhaustive round trip test for UTF-32LE\n");
-        TestFullRoundtrip("UTF-32LE");
-        log_verbose("Running exhaustive round trip test for UTF-7\n");
-        TestFullRoundtrip("UTF-7");
-        log_verbose("Running exhaustive round trip test for UTF-7\n");
-        TestFullRoundtrip("UTF-7,version=1");
-        /*#### TODO: Enable this test when BOCU-1 is available */
-        /*log_verbose("Running exhaustive round trip test for BOCU-1");*/
-        /*TestFullRoundtrip("BOCU-1");*/
-        log_verbose("Running exhaustive round trip test for GB18030\n");
-        TestFullRoundtrip("GB18030");
-    }
-}
-
 static void
 TestSCSU() {
 
-    static const uint16_t germanUTF16[]={
+   uint16_t germanUTF16[]={
         0x00d6, 0x006c, 0x0020, 0x0066, 0x006c, 0x0069, 0x0065, 0x00df, 0x0074
     };
 
-    static const uint8_t germanSCSU[]={
+    uint8_t germanSCSU[]={
         0xd6, 0x6c, 0x20, 0x66, 0x6c, 0x69, 0x65, 0xdf, 0x74
     };
 
-    static const uint16_t russianUTF16[]={
+    uint16_t russianUTF16[]={
         0x041c, 0x043e, 0x0441, 0x043a, 0x0432, 0x0430
     };
 
-    static const uint8_t russianSCSU[]={
+    uint8_t russianSCSU[]={
         0x12, 0x9c, 0xbe, 0xc1, 0xba, 0xb2, 0xb0
     };
 
-    static const uint16_t japaneseUTF16[]={
+    uint16_t japaneseUTF16[]={
         0x3000, 0x266a, 0x30ea, 0x30f3, 0x30b4, 0x53ef, 0x611b,
         0x3044, 0x3084, 0x53ef, 0x611b, 0x3044, 0x3084, 0x30ea, 0x30f3,
         0x30b4, 0x3002, 0x534a, 0x4e16, 0x7d00, 0x3082, 0x524d, 0x306b,
@@ -3037,7 +2629,7 @@ TestSCSU() {
 
     /* SCSUEncoder produces a slightly longer result (179B vs. 178B) because of one different choice:
      it uses an SQn once where a longer look-ahead could have shown that SCn is more efficient */
-    static const uint8_t japaneseSCSU[]={
+    uint8_t japaneseSCSU[]={
         0x08, 0x00, 0x1b, 0x4c, 0xea, 0x16, 0xca, 0xd3, 0x94, 0x0f, 0x53, 0xef, 0x61, 0x1b, 0xe5, 0x84,
         0xc4, 0x0f, 0x53, 0xef, 0x61, 0x1b, 0xe5, 0x84, 0xc4, 0x16, 0xca, 0xd3, 0x94, 0x08, 0x02, 0x0f,
         0x53, 0x4a, 0x4e, 0x16, 0x7d, 0x00, 0x30, 0x82, 0x52, 0x4d, 0x30, 0x6b, 0x6d, 0x41, 0x88, 0x4c,
@@ -3052,7 +2644,7 @@ TestSCSU() {
         0xcb, 0x82
     };
 
-    static const uint16_t allFeaturesUTF16[]={
+    uint16_t allFeaturesUTF16[]={
         0x0041, 0x00df, 0x0401, 0x015f, 0x00df, 0x01df, 0xf000, 0xdbff,
         0xdfff, 0x000d, 0x000a, 0x0041, 0x00df, 0x0401, 0x015f, 0x00df,
         0x01df, 0xf000, 0xdbff, 0xdfff
@@ -3061,7 +2653,7 @@ TestSCSU() {
     /* see comment at japaneseSCSU: the same kind of different choice yields a slightly shorter
      * result here (34B vs. 35B)
      */
-    static const uint8_t allFeaturesSCSU[]={
+    uint8_t allFeaturesSCSU[]={
         0x41, 0xdf, 0x12, 0x81, 0x03, 0x5f, 0x10, 0xdf, 0x1b, 0x03,
         0xdf, 0x1c, 0x88, 0x80, 0x0b, 0xbf, 0xff, 0xff, 0x0d, 0x0a,
         0x41, 0x10, 0xdf, 0x12, 0x81, 0x03, 0x5f, 0x10, 0xdf, 0x13,
@@ -3097,9 +2689,7 @@ TestSCSU() {
         0xD869, 0xDEC1, 0xD869, 0xDEC2, 0xD869, 0xDEC3, 0xD869, 0xDEC4, 0xD869, 0xDEC8, 
         0xD869, 0xDECA, 0xD869, 0xDECB, 0xD869, 0xDECD, 0xD869, 0xDECE, 0xD869, 0xDECF, 
         0xD869, 0xDED0, 0xD869, 0xDED1, 0xD869, 0xDED2, 0xD869, 0xDED3, 0xD869, 0xDED4, 
-        0xD869, 0xDED5, 0xD800, 0xDC00, 0xD800, 0xDC00, 0xD800, 0xDC00, 0xDBFF, 0xDFFF,
-        0xDBFF, 0xDFFF, 0xDBFF, 0xDFFF,
-
+        0xD869, 0xDED5, 
 
         0x4DB3, 0x4DB4, 0x4DB5, 0x4E00, 0x4E00, 0x4E01, 0x4E02, 0x4E03, 0x000D, 0x000A,
         0x0392, 0x0393, 0x0394, 0x0395, 0x0396, 0x0397, 0x33E0, 0x33E6, 0x000D, 0x000A,
@@ -3107,67 +2697,6 @@ TestSCSU() {
         0x4E0C, 0x0021, 0x0022, 0x0023, 0x0024, 0xFF40, 0xFF41, 0xFF42, 0x000D, 0x000A,
         0xFF43, 0xFF44, 0xFF45, 0xFF46, 0xFF47, 0xFF48, 0xFF49, 0xFF4A, 0x000D, 0x000A,
     };
-    static const char *fTestCases [] = {
-          "\\ud800\\udc00", /* smallest surrogate*/
-          "\\ud8ff\\udcff",
-          "\\udBff\\udFff", /* largest surrogate pair*/
-          "\\ud834\\udc00",
-          "\\U0010FFFF",
-          "Hello \\u9292 \\u9192 World!",
-          "Hell\\u0429o \\u9292 \\u9192 W\\u00e4rld!",
-          "Hell\\u0429o \\u9292 \\u9292W\\u00e4rld!",
-  
-          "\\u0648\\u06c8", /* catch missing reset*/
-          "\\u0648\\u06c8",
-  
-          "\\u4444\\uE001", /* lowest quotable*/
-          "\\u4444\\uf2FF", /* highest quotable*/
-          "\\u4444\\uf188\\u4444",
-          "\\u4444\\uf188\\uf288",
-          "\\u4444\\uf188abc\\u0429\\uf288",
-          "\\u9292\\u2222",
-          "Hell\\u0429\\u04230o \\u9292 \\u9292W\\u00e4\\u0192rld!",
-          "Hell\\u0429o \\u9292 \\u9292W\\u00e4rld!",
-          "Hello World!123456",
-          "Hello W\\u0081\\u011f\\u0082!", /* Latin 1 run*/
-  
-          "abc\\u0301\\u0302",  /* uses SQn for u301 u302*/
-          "abc\\u4411d",      /* uses SQU*/
-          "abc\\u4411\\u4412d",/* uses SCU*/
-          "abc\\u0401\\u0402\\u047f\\u00a5\\u0405", /* uses SQn for ua5*/
-          "\\u9191\\u9191\\u3041\\u9191\\u3041\\u3041\\u3000", /* SJIS like data*/
-          "\\u9292\\u2222",
-          "\\u9191\\u9191\\u3041\\u9191\\u3041\\u3041\\u3000",
-          "\\u9999\\u3051\\u300c\\u9999\\u9999\\u3060\\u9999\\u3065\\u3065\\u3065\\u300c",
-          "\\u3000\\u266a\\u30ea\\u30f3\\u30b4\\u53ef\\u611b\\u3044\\u3084\\u53ef\\u611b\\u3044\\u3084\\u30ea\\u30f3\\u30b4\\u3002",
-  
-          "", /* empty input*/
-          "\\u0000", /* smallest BMP character*/
-          "\\uFFFF", /* largest BMP character*/
-  
-          /* regression tests*/
-          "\\u6441\\ub413\\ua733\\uf8fe\\ueedb\\u587f\\u195f\\u4899\\uf23d\\u49fd\\u0aac\\u5792\\ufc22\\ufc3c\\ufc46\\u00aa",
-          "\\u00df\\u01df\\uf000\\udbff\\udfff\\u000d\n\\u0041\\u00df\\u0401\\u015f\\u00df\\u01df\\uf000\\udbff\\udfff",
-          "\\u30f9\\u8321\\u05e5\\u181c\\ud72b\\u2019\\u99c9\\u2f2f\\uc10c\\u82e1\\u2c4d\\u1ebc\\u6013\\u66dc\\ubbde\\u94a5\\u4726\\u74af\\u3083\\u55b9\\u000c",
-          "\\u0041\\u00df\\u0401\\u015f",
-          "\\u9066\\u2123abc",
-          "\\ud266\\u43d7\\u\\ue386\\uc9c0\\u4a6b\\u9222\\u901f\\u7410\\ua63f\\u539b\\u9596\\u482e\\u9d47\\ucfe4\\u7b71\\uc280\\uf26a\\u982f\\u862a\\u4edd\\uf513\\ufda6\\u869d\\u2ee0\\ua216\\u3ff6\\u3c70\\u89c0\\u9576\\ud5ec\\ubfda\\u6cca\\u5bb3\\ubcea\\u554c\\u914e\\ufa4a\\uede3\\u2990\\ud2f5\\u2729\\u5141\\u0f26\\uccd8\\u5413\\ud196\\ubbe2\\u51b9\\u9b48\\u0dc8\\u2195\\u21a2\\u21e9\\u00e4\\u9d92\\u0bc0\\u06c5",
-          "\\uf95b\\u2458\\u2468\\u0e20\\uf51b\\ue36e\\ubfc1\\u0080\\u02dd\\uf1b5\\u0cf3\\u6059\\u7489",
-    };
-    int i=0;
-    for(;i<sizeof(fTestCases)/sizeof(*fTestCases);i++){
-        const char* cSrc = fTestCases[i];
-        UErrorCode status = U_ZERO_ERROR;
-        int32_t cSrcLen,srcLen;
-        UChar* src;
-        /* UConverter* cnv = ucnv_open("SCSU",&status); */
-        cSrcLen= srcLen =  uprv_strlen(fTestCases[i]);
-        src = (UChar*) uprv_malloc((sizeof(UChar) * srcLen) + sizeof(UChar));
-        srcLen=unescape(src,srcLen,cSrc,cSrcLen,&status);
-        log_verbose("Testing roundtrip for src: %s at index :%d\n",cSrc,i);
-        TestConv(src,srcLen,"SCSU","Coverage",NULL,0);
-        uprv_free(src);
-    }
     TestConv(allFeaturesUTF16,(sizeof(allFeaturesUTF16)/2),"SCSU","all features", (char *)allFeaturesSCSU,sizeof(allFeaturesSCSU));
     TestConv(allFeaturesUTF16,(sizeof(allFeaturesUTF16)/2),"SCSU","all features",(char *)allFeaturesSCSU,sizeof(allFeaturesSCSU));
     TestConv(japaneseUTF16,(sizeof(japaneseUTF16)/2),"SCSU","japaneese",(char *)japaneseSCSU,sizeof(japaneseSCSU));
@@ -4759,7 +4288,7 @@ static void TestJitterbug981(){
       ucnv_reset(utf8cnv);
       status = U_ZERO_ERROR;
       bytes_needed = ucnv_fromUChars(utf8cnv, buff, target_cap,
-                                     rules, rules_length, &status);
+				     rules, rules_length, &status);
       target_cap = (bytes_needed > target_cap) ? bytes_needed : target_cap +1;
       if(numNeeded!=0 && numNeeded!= bytes_needed){
           log_err("ucnv_fromUChars returns different values for required capacity in pre-flight and conversion modes");

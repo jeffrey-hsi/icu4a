@@ -13,14 +13,6 @@
 U_NAMESPACE_BEGIN
 
 /**
- * UnicodeFunctor API.  Cast 'this' to a UnicodeMatcher* pointer
- * and return the pointer.
- */
-UnicodeMatcher* UnicodeFilter::toMatcher() const {
-    return (UnicodeMatcher*) this;
-}
-
-/**
  * Default implementation of UnicodeMatcher::matches() for Unicode
  * filters.  Matches a single code point at offset (either one or
  * two 16-bit code units).

@@ -24,21 +24,9 @@
 #define UCHAR_H
 
 #include "unicode/utypes.h"
-
-U_CDECL_BEGIN
-
 /*==========================================================================*/
 /* Unicode version number                                                   */
 /*==========================================================================*/
-/**
- * Unicode version number, default for the current ICU version.
- * The actual Unicode Character Database (UCD) data is stored in uprops.dat
- * and may be generated from UCD files from a different Unicode version.
- * Call u_getUnicodeVersion to get the actual Unicode version of the data.
- *
- * @see u_getUnicodeVersion
- * @stable
- */
 #define U_UNICODE_VERSION "3.1.1"
 
 /**
@@ -71,158 +59,6 @@ U_CDECL_BEGIN
  * @stable 
  */
 #define UCHAR_MAX_VALUE 0x10ffff
-
-/**
- * Get a single-bit bit set (a flag) from a bit number 0..31.
- * @draft ICU 2.1
- */
-#define U_MASK(x) ((uint32_t)1<<(x))
-
-/**
- * Selection constants for Unicode properties.
- * These constants are used in functions like u_hasBinaryProperty to select
- * one of the Unicode properties.
- *
- * The properties APIs are intended to reflect Unicode properties as defined
- * in the Unicode Character Database (UCD) and Unicode Technical Reports (UTR).
- * For details about the properties see http://www.unicode.org/ .
- * For names of Unicode properties see the UCD file PropertyAliases.txt.
- *
- * Important: If ICU is built with UCD files from Unicode versions below 3.2,
- * then properties marked with "new in Unicode 3.2" are not or not fully available.
- * Check u_getUnicodeVersion to be sure.
- *
- * @see u_getUnicodeVersion
- * @draft ICU 2.1
- */
-enum UProperty {
-    /** Binary property Alphabetic. Same as u_isUAlphabetic, different from u_isalpha.
-        Lu+Ll+Lt+Lm+Lo+Other_Alphabetic @draft ICU 2.1 */
-    UCHAR_ALPHABETIC,
-    /** First constant for binary Unicode properties. @draft ICU 2.1 */
-    UCHAR_BINARY_START=UCHAR_ALPHABETIC,
-    /** Binary property ASCII_Hex_Digit. 0-9 A-F a-f @draft ICU 2.1 */
-    UCHAR_ASCII_HEX_DIGIT,
-    /** Binary property Bidi_Control.
-        Format controls which have specific functions
-        in the Bidi Algorithm. @draft ICU 2.1 */
-    UCHAR_BIDI_CONTROL,
-    /** Binary property Bidi_Mirrored.
-        Characters that may change display in RTL text.
-        Same as u_isMirrored.
-        See Bidi Algorithm, UTR 9. @draft ICU 2.1 */
-    UCHAR_BIDI_MIRRORED,
-    /** Binary property Dash. Variations of dashes. @draft ICU 2.1 */
-    UCHAR_DASH,
-    /** Binary property Default_Ignorable_Code_Point (new in Unicode 3.2).
-        Ignorable in most processing.
-        Cf+Cc+Cs+Other_Default_Ignorable_Code_Point-White_Space @draft ICU 2.1 */
-    UCHAR_DEFAULT_IGNORABLE_CODE_POINT,
-    /** Binary property Deprecated (new in Unicode 3.2).
-        The usage of deprecated characters is strongly discouraged. @draft ICU 2.1 */
-    UCHAR_DEPRECATED,
-    /** Binary property Diacritic. Characters that linguistically modify
-        the meaning of another character to which they apply. @draft ICU 2.1 */
-    UCHAR_DIACRITIC,
-    /** Binary property Extender.
-        Extend the value or shape of a preceding alphabetic character,
-        e.g., length and iteration marks. @draft ICU 2.1 */
-    UCHAR_EXTENDER,
-    /** Binary property Full_Composition_Exclusion.
-        CompositionExclusions.txt+Singleton Decompositions+
-        Non-Starter Decompositions. @draft ICU 2.1 */
-    UCHAR_FULL_COMPOSITION_EXCLUSION,
-    /** Binary property Grapheme_Base (new in Unicode 3.2).
-        For programmatic determination of grapheme cluster boundaries.
-        [0..10FFFF]-Cc-Cf-Cs-Co-Cn-Zl-Zp-Grapheme_Link-Grapheme_Extend @draft ICU 2.1 */
-    UCHAR_GRAPHEME_BASE,
-    /** Binary property Grapheme_Extend (new in Unicode 3.2).
-        For programmatic determination of grapheme cluster boundaries.
-        Me+Mn+Mc+Other_Grapheme_Extend-Grapheme_Link @draft ICU 2.1 */
-    UCHAR_GRAPHEME_EXTEND,
-    /** Binary property Grapheme_Link (new in Unicode 3.2).
-        For programmatic determination of grapheme cluster boundaries. @draft ICU 2.1 */
-    UCHAR_GRAPHEME_LINK,
-    /** Binary property Hex_Digit.
-        Characters commonly used for hexadecimal numbers. @draft ICU 2.1 */
-    UCHAR_HEX_DIGIT,
-    /** Binary property Hyphen. Dashes used to mark connections
-        between pieces of words, plus the Katakana middle dot. @draft ICU 2.1 */
-    UCHAR_HYPHEN,
-    /** Binary property ID_Continue.
-        Characters that can continue an identifier.
-        ID_Start+Mn+Mc+Nd+Pc @draft ICU 2.1 */
-    UCHAR_ID_CONTINUE,
-    /** Binary property ID_Start.
-        Characters that can start an identifier.
-        Lu+Ll+Lt+Lm+Lo+Nl @draft ICU 2.1 */
-    UCHAR_ID_START,
-    /** Binary property Ideographic.
-        CJKV ideographs. @draft ICU 2.1 */
-    UCHAR_IDEOGRAPHIC,
-    /** Binary property IDS_Binary_Operator (new in Unicode 3.2).
-        For programmatic determination of
-        Ideographic Description Sequences. @draft ICU 2.1 */
-    UCHAR_IDS_BINARY_OPERATOR,
-    /** Binary property IDS_Trinary_Operator (new in Unicode 3.2).
-        For programmatic determination of
-        Ideographic Description Sequences. @draft ICU 2.1 */
-    UCHAR_IDS_TRINARY_OPERATOR,
-    /** Binary property Join_Control.
-        Format controls for cursive joining and ligation. @draft ICU 2.1 */
-    UCHAR_JOIN_CONTROL,
-    /** Binary property Logical_Order_Exception (new in Unicode 3.2).
-        Characters that do not use logical order and
-        require special handling in most processing. @draft ICU 2.1 */
-    UCHAR_LOGICAL_ORDER_EXCEPTION,
-    /** Binary property Lowercase. Same as u_isULowercase, different from u_islower.
-        Ll+Other_Lowercase @draft ICU 2.1 */
-    UCHAR_LOWERCASE,
-    /** Binary property Math. Sm+Other_Math @draft ICU 2.1 */
-    UCHAR_MATH,
-    /** Binary property Noncharacter_Code_Point.
-        Code points that are explicitly defined as illegal
-        for the encoding of characters. @draft ICU 2.1 */
-    UCHAR_NONCHARACTER_CODE_POINT,
-    /** Binary property Quotation_Mark. @draft ICU 2.1 */
-    UCHAR_QUOTATION_MARK,
-    /** Binary property Radical (new in Unicode 3.2).
-        For programmatic determination of
-        Ideographic Description Sequences. @draft ICU 2.1 */
-    UCHAR_RADICAL,
-    /** Binary property Soft_Dotted (new in Unicode 3.2).
-        Characters with a "soft dot", like i or j.
-        An accent placed on these characters causes
-        the dot to disappear. @draft ICU 2.1 */
-    UCHAR_SOFT_DOTTED,
-    /** Binary property Terminal_Punctuation.
-        Punctuation characters that generally mark
-        the end of textual units. @draft ICU 2.1 */
-    UCHAR_TERMINAL_PUNCTUATION,
-    /** Binary property Unified_Ideograph (new in Unicode 3.2).
-        For programmatic determination of
-        Ideographic Description Sequences. @draft ICU 2.1 */
-    UCHAR_UNIFIED_IDEOGRAPH,
-    /** Binary property Uppercase. Same as u_isUUppercase, different from u_isupper.
-        Lu+Other_Uppercase @draft ICU 2.1 */
-    UCHAR_UPPERCASE,
-    /** Binary property White_Space.
-        Same as u_isUWhiteSpace, different from u_isspace and u_isWhitespace.
-        Space characters+TAB+CR+LF-ZWSP-ZWNBSP @draft ICU 2.1 */
-    UCHAR_WHITE_SPACE,
-    /** Binary property XID_Continue.
-        ID_Continue modified to allow closure under
-        normalization forms NFKC and NFKD. @draft ICU 2.1 */
-    UCHAR_XID_CONTINUE,
-    /** Binary property XID_Start. ID_Start modified to allow
-        closure under normalization forms NFKC and NFKD. @draft ICU 2.1 */
-    UCHAR_XID_START,
-    /** One more than the last constant for binary Unicode properties. @draft ICU 2.1 */
-    UCHAR_BINARY_LIMIT
-};
-
-/** @draft ICU 2.1 */
-typedef enum UProperty UProperty;
 
 /**
  * Data for enumerated Unicode general category types.
@@ -298,78 +134,6 @@ enum UCharCategory
 };
 
 typedef enum UCharCategory UCharCategory;
-
-/**
- * U_GC_XX_MASK constants are bit flags corresponding to Unicode
- * general category values.
- * For each category, the nth bit is set if the numeric value of the
- * corresponding UCharCategory constant is n.
- *
- * There are also some U_GC_Y_MASK constants for groups of general categories
- * like L& for all letter categories.
- *
- * @see u_charType
- * @see U_GET_GC_MASK
- * @see UCharCategory
- * @draft ICU 2.1
- */
-#define U_GC_CN_MASK    U_MASK(U_GENERAL_OTHER_TYPES)
-
-#define U_GC_LU_MASK    U_MASK(U_UPPERCASE_LETTER)
-#define U_GC_LL_MASK    U_MASK(U_LOWERCASE_LETTER)
-#define U_GC_LT_MASK    U_MASK(U_TITLECASE_LETTER)
-#define U_GC_LM_MASK    U_MASK(U_MODIFIER_LETTER)
-#define U_GC_LO_MASK    U_MASK(U_OTHER_LETTER)
-
-#define U_GC_MN_MASK    U_MASK(U_NON_SPACING_MARK)
-#define U_GC_ME_MASK    U_MASK(U_ENCLOSING_MARK)
-#define U_GC_MC_MASK    U_MASK(U_COMBINING_SPACING_MARK)
-
-#define U_GC_ND_MASK    U_MASK(U_DECIMAL_DIGIT_NUMBER)
-#define U_GC_NL_MASK    U_MASK(U_LETTER_NUMBER)
-#define U_GC_NO_MASK    U_MASK(U_OTHER_NUMBER)
-
-#define U_GC_ZS_MASK    U_MASK(U_SPACE_SEPARATOR)
-#define U_GC_ZL_MASK    U_MASK(U_LINE_SEPARATOR)
-#define U_GC_ZP_MASK    U_MASK(U_PARAGRAPH_SEPARATOR)
-
-#define U_GC_CC_MASK    U_MASK(U_CONTROL_CHAR)
-#define U_GC_CF_MASK    U_MASK(U_FORMAT_CHAR)
-#define U_GC_CO_MASK    U_MASK(U_PRIVATE_USE_CHAR)
-#define U_GC_CS_MASK    U_MASK(U_SURROGATE)
-
-#define U_GC_PD_MASK    U_MASK(U_DASH_PUNCTUATION)
-#define U_GC_PS_MASK    U_MASK(U_START_PUNCTUATION)
-#define U_GC_PE_MASK    U_MASK(U_END_PUNCTUATION)
-#define U_GC_PC_MASK    U_MASK(U_CONNECTOR_PUNCTUATION)
-#define U_GC_PO_MASK    U_MASK(U_OTHER_PUNCTUATION)
-
-#define U_GC_SM_MASK    U_MASK(U_MATH_SYMBOL)
-#define U_GC_SC_MASK    U_MASK(U_CURRENCY_SYMBOL)
-#define U_GC_SK_MASK    U_MASK(U_MODIFIER_SYMBOL)
-#define U_GC_SO_MASK    U_MASK(U_OTHER_SYMBOL)
-
-#define U_GC_PI_MASK    U_MASK(U_INITIAL_PUNCTUATION)
-#define U_GC_PF_MASK    U_MASK(U_FINAL_PUNCTUATION)
-
-
-#define U_GC_L_MASK \
-            (U_GC_LU_MASK|U_GC_LL_MASK|U_GC_LT_MASK|U_GC_LM_MASK|U_GC_LO_MASK)
-
-#define U_GC_M_MASK (U_GC_MN_MASK|U_GC_ME_MASK|U_GC_MC_MASK)
-
-#define U_GC_N_MASK (U_GC_ND_MASK|U_GC_NL_MASK|U_GC_NO_MASK)
-
-#define U_GC_Z_MASK (U_GC_ZS_MASK|U_GC_ZL_MASK|U_GC_ZP_MASK)
-
-#define U_GC_C_MASK \
-            (U_GC_CN_MASK|U_GC_CC_MASK|U_GC_CF_MASK|U_GC_CO_MASK|U_GC_CS_MASK)
-
-#define U_GC_P_MASK \
-            (U_GC_PD_MASK|U_GC_PS_MASK|U_GC_PE_MASK|U_GC_PC_MASK|U_GC_PO_MASK| \
-             U_GC_PI_MASK|U_GC_PF_MASK)
-
-#define U_GC_S_MASK (U_GC_SM_MASK|U_GC_SC_MASK|U_GC_SK_MASK|U_GC_SO_MASK)
 
 /**
  * This specifies the language directional property of a character set.
@@ -812,9 +576,7 @@ enum UBlockCode {
     U_LOW_SURROGATES=77,
 
     /** @draft ICU 2.0 */
-    UBLOCK_PRIVATE_USE = 78,
-    /** @deprecated  Use UBLOCK_PRIVATE_USE. Remove after Aug, 2002 */
-    UBLOCK_PRIVATE_USE_AREA =UBLOCK_PRIVATE_USE,
+    UBLOCK_PRIVATE_USE_AREA =78,
     /** @deprecated  Use the enum that begins with UBLOCK. Remove after Aug, 2002*/
     U_PRIVATE_USE_AREA=78,
 
@@ -882,9 +644,11 @@ enum UBlockCode {
     /** @draft ICU 2.0 */
     UBLOCK_TAGS = 96 ,
     /** @draft ICU 2.0 */
-    UBLOCK_COUNT=97,
+    UBLOCK_PRIVATE_USE = 97 ,
+    /** @draft ICU 2.0 */
+    UBLOCK_COUNT=98,
     /** @deprecated  Use the enum that begins with UBLOCK. Remove after Aug, 2002*/
-    U_SCRIPT_COUNT=UBLOCK_COUNT,
+    U_SCRIPT_COUNT=98,
 
     /** @draft ICU 2.0 */
     UBLOCK_INVALID_CODE=-1,
@@ -893,6 +657,7 @@ enum UBlockCode {
     U_CHAR_SCRIPT_COUNT =UBLOCK_COUNT,
     /** @deprecated  Use the enum that begins with UBLOCK. Remove after Aug, 2002*/
     U_NO_SCRIPT = UBLOCK_COUNT
+
 };
 
 /** @draft ICU 2.0 */
@@ -921,11 +686,10 @@ typedef enum UCellWidth UCellWidth;
 
 /**
  * Selector constants for u_charName().
- * <code>u_charName() returns the "modern" name of a
- * Unicode character; or the name that was defined in
+ * <code>u_charName() returns either the "modern" name of a
+ * Unicode character or the name that was defined in
  * Unicode version 1.0, before the Unicode standard merged
- * with ISO-10646; or an "extended" name that gives each
- * Unicode code point a unique name.
+ * with ISO-10646.
  *
  * @see u_charName
  * @stable
@@ -933,102 +697,11 @@ typedef enum UCellWidth UCellWidth;
 enum UCharNameChoice {
     U_UNICODE_CHAR_NAME,
     U_UNICODE_10_CHAR_NAME,
-    U_EXTENDED_CHAR_NAME,
     U_CHAR_NAME_CHOICE_COUNT
 };
 
 /** @stable */
 typedef enum UCharNameChoice UCharNameChoice;
-
-/**
- * Check a binary Unicode property for a code point.
- *
- * Unicode, especially in version 3.2, defines many more properties than the
- * original set in UnicodeData.txt.
- * This API is intended to reflect Unicode properties as defined
- * in the Unicode Character Database (UCD) and Unicode Technical Reports (UTR).
- * For details about the properties see http://www.unicode.org/ .
- * For names of Unicode properties see the UCD file PropertyAliases.txt.
- *
- * The properties APIs are intended to reflect Unicode properties as defined
- * in the Unicode Character Database (UCD) and Unicode Technical Reports (UTR).
- * For details about the properties see http://www.unicode.org/ .
- * For names of Unicode properties see the UCD file PropertyAliases.txt.
- *
- * Important: If ICU is built with UCD files from Unicode versions below 3.2,
- * then properties marked with "new in Unicode 3.2" are not or not fully available.
- *
- * @param c Code point to test.
- * @param which UProperty selector constant, identifies which binary property to check.
- *        Must be UCHAR_BINARY_START<=which<UCHAR_BINARY_LIMIT.
- * @return TRUE or FALSE according to the binary Unicode property value for c.
- *         Also FALSE if which is out of bounds or if the Unicode version
- *         does not have data for the property at all, or not for this code point.
- *
- * @see UProperty
- * @see u_getUnicodeVersion
- * @draft ICU 2.1
- */
-U_CAPI UBool U_EXPORT2
-u_hasBinaryProperty(UChar32 c, UProperty which);
-
-/**
- * Check if a code point has the Alphabetic Unicode property.
- * Same as u_hasBinaryProperty(c, UCHAR_ALPHABETIC).
- * This is different from u_isalpha!
- *
- * @see UCHAR_ALPHABETIC
- * @see u_isalpha
- * @see u_hasBinaryProperty
- * @draft ICU 2.1
- */
-U_CAPI UBool U_EXPORT2
-u_isUAlphabetic(UChar32 c);
-
-/**
- * Check if a code point has the Lowercase Unicode property.
- * Same as u_hasBinaryProperty(c, UCHAR_LOWERCASE).
- * This is different from u_islower!
- *
- * @see UCHAR_LOWERCASE
- * @see u_islower
- * @see u_hasBinaryProperty
- * @draft ICU 2.1
- */
-U_CAPI UBool U_EXPORT2
-u_isULowercase(UChar32 c);
-
-/**
- * Check if a code point has the Uppercase Unicode property.
- * Same as u_hasBinaryProperty(c, UCHAR_UPPERCASE).
- * This is different from u_isupper!
- *
- * @see UCHAR_UPPERCASE
- * @see u_isupper
- * @see u_hasBinaryProperty
- * @draft ICU 2.1
- */
-U_CAPI UBool U_EXPORT2
-u_isUUppercase(UChar32 c);
-
-/**
- * Check if a code point has the White_Space Unicode property.
- * Same as u_hasBinaryProperty(c, UCHAR_WHITE_SPACE).
- * This is different from both u_isspace and u_isWhitespace!
- *
- * @see UCHAR_WHITE_SPACE
- * @see u_isWhitespace
- * @see u_isspace
- * @see u_hasBinaryProperty
- * @draft ICU 2.1
- */
-U_CAPI UBool U_EXPORT2
-u_isUWhiteSpace(UChar32 c);
-
-/*
- * ### TODO Document all properties more precisely, how they are based (or not) on UCD files.
- * Especially u_isdigit, u_isspace, u_isWhitespace.
- */
 
 /**
  * Determines whether the specified UChar is a lowercase character
@@ -1263,7 +936,7 @@ u_charMirror(UChar32 c);
  * of The Unicode Standard, Version 2.0).  The results for various characters
  * are as follows:
  * <P>
- *      U_ZERO_WIDTH: Characters which are considered to take up no display-cell space:
+ *      ZERO_WIDTH: Characters which are considered to take up no display-cell space:
  *          control characters
  *          format characters
  *          line and paragraph separators
@@ -1272,7 +945,7 @@ u_charMirror(UChar32 c);
  *          combining Hangul jongseong
  *          unassigned Unicode values
  * <P>
- *      U_HALF_WIDTH: Characters which take up half a cell in standard Asian text:
+ *      HALF_WIDTH: Characters which take up half a cell in standard Asian text:
  *          all characters in the General Scripts Area except combining Hangul choseong
  *              and the characters called out specifically above as ZERO_WIDTH
  *          alphabetic and Arabic presentation forms
@@ -1281,7 +954,7 @@ u_charMirror(UChar32 c);
  *          halfwidth Hangul Jamo
  *          halfwidth forms, arrows, and shapes
  * <P>
- *      U_FULL_WIDTH:  Characters which take up a full cell in standard Asian text:
+ *      FULL_WIDTH:  Characters which take up a full cell in standard Asian text:
  *          combining Hangul choseong
  *          all characters in the CJK Phonetics and Symbols Area
  *          all characters in the CJK Ideographs Area
@@ -1292,7 +965,7 @@ u_charMirror(UChar32 c);
  *          fullwidth ASCII
  *          fullwidth punctuation and currency signs
  * <P>
- *      U_NEUTRAL_WIDTH:  Characters whose cell width is context-dependent:
+ *      NEUTRAL:  Characters whose cell width is context-dependent:
  *          all characters in the Symbols Area, except those specifically called out above
  *          all characters in the Surrogates Area
  *          all charcaters in the Private Use Area
@@ -1312,9 +985,7 @@ U_CAPI uint16_t U_EXPORT2
 u_charCellWidth(UChar32 c);
 
 /**
- * Returns a value indicating a character category.
- * The categories are taken from the Unicode Character Database (UCD) in
- * UnicodeData.txt.
+ * Returns a value indicating a character category according to UnicodeData.txt.
  *
  * @param c            the character to be tested
  * @return a value of type int, the character category.
@@ -1323,60 +994,6 @@ u_charCellWidth(UChar32 c);
  */
 U_CAPI int8_t U_EXPORT2
 u_charType(UChar32 c);
-
-/**
- * Get a single-bit bit set for the general category of a character.
- * This bit set can be compared bitwise with U_GC_SM_MASK, U_GC_L_MASK, etc.
- * Same as U_MASK(u_charType(c)).
- *
- * @see u_charType
- * @see UCharCategory
- * @see U_GC_CN_MASK
- * @draft ICU 2.1
- */
-#define U_GET_GC_MASK(c) U_MASK(u_charType(c))
-
-/**
- * Callback from u_enumCharTypes(), is called for each contiguous range
- * of code points c (where start<=c<limit)
- * with the same Unicode general category ("character type").
- *
- * The callback function can stop the enumeration by returning FALSE.
- *
- * @param context an opaque pointer, as passed into utrie_enum()
- * @param start the first code point in a contiguous range with value
- * @param limit one past the last code point in a contiguous range with value
- * @param type the general category for all code points in [start..limit[
- * @return FALSE to stop the enumeration
- *
- * @draft ICU 2.1
- * @see UCharCategory
- * @see u_enumCharTypes
- */
-typedef UBool U_CALLCONV
-UCharEnumTypeRange(const void *context, UChar32 start, UChar32 limit, UCharCategory type);
-
-/**
- * Enumerate efficiently all code points with their Unicode general categories.
- *
- * This is useful for building data structures (e.g., UnicodeSet's),
- * for enumerating all assigned code points (type!=U_UNASSIGNED), etc.
- *
- * For each contiguous range of code points with a given general category ("character type"),
- * the UCharEnumTypeRange function is called.
- * Adjacent ranges have different types.
- * The Unicode Standard guarantees that the numeric value of the type is 0..31.
- *
- * @param enumRange a pointer to a function that is called for each contiguous range
- *                  of code points with the same general category
- * @param context an opaque pointer that is passed on to the callback function
- *
- * @draft ICU 2.1
- * @see UCharCategory
- * @see UCharEnumTypeRange
- */
-U_CAPI void U_EXPORT2
-u_enumCharTypes(UCharEnumTypeRange *enumRange, const void *context);
 
 /**
  * Returns the combining class of the code point as specified in UnicodeData.txt.
@@ -1440,25 +1057,22 @@ ublock_getCode(UChar32    ch);
  * @see u_enumCharNames
  * @stable
  */
-U_CAPI int32_t U_EXPORT2
+U_CAPI UTextOffset U_EXPORT2
 u_charName(UChar32 code, UCharNameChoice nameChoice,
-           char *buffer, int32_t bufferLength,
+           char *buffer, UTextOffset bufferLength,
            UErrorCode *pErrorCode);
 
 /**
  * Find a Unicode character by its name and return its code point value.
  * The name is matched exactly and completely.
- * If the name does not correspond to a code point, <i>pErrorCode</i>
- * is set to <code>U_INVALID_CHAR_FOUND</code>.
  * A Unicode 1.0 name is matched only if it differs from the modern name.
- * Unicode names are all uppercase. Extended names are lowercase followed
- * by an uppercase hexadecimal number, and within angle brackets.
+ * Unicode names are all uppercase.
  *
  * @param nameChoice Selector for which name to match.
  * @param name The name to match.
  * @param pErrorCode Pointer to a UErrorCode variable
- * @return The Unicode value of the code point with the given name,
- *         or an undefined value if there is no such code point.
+ * @return The Unicode code point value of the character with the given name,
+ *         or 0xffff if there is no such character.
  *
  * @see UCharNameChoice
  * @see u_charName
@@ -1468,6 +1082,8 @@ U_CAPI UChar32 U_EXPORT2
 u_charFromName(UCharNameChoice nameChoice,
                const char *name,
                UErrorCode *pErrorCode);
+
+U_CDECL_BEGIN
 
 /**
  * Type of a callback function for u_enumCharNames() that gets called
@@ -1489,7 +1105,9 @@ typedef UBool UEnumCharNamesFn(void *context,
                                UChar32 code,
                                UCharNameChoice nameChoice,
                                const char *name,
-                               int32_t length);
+                               UTextOffset length);
+
+U_CDECL_END
 
 /**
  * Enumerate all assigned Unicode characters between the start and limit
@@ -1794,23 +1412,6 @@ U_CAPI UChar32 U_EXPORT2
 u_forDigit(int32_t digit, int8_t radix);
 
 /**
- * Get the "age" of the code point.
- * The "age" is the Unicode version when the code point was first
- * designated (as a non-character or for Private Use)
- * or assigned a character.
- * This can be useful to avoid emitting code points to receiving
- * processes that do not accept newer characters.
- * The data is from the UCD file DerivedAge.txt.
- *
- * @param c The code point.
- * @param versionArray The Unicode version number array, to be filled in.
- *
- * @draft ICU 2.1
- */
-U_CAPI void U_EXPORT2
-u_charAge(UChar32 c, UVersionInfo versionArray);
-
-/**
  * Gets the Unicode version information.  The version array stores the version information
  * for the Unicode standard that is currently used by ICU.  For example, release "1.3.31.2" 
  * is then represented as 0x01031F02.
@@ -1827,8 +1428,6 @@ u_getUnicodeVersion(UVersionInfo info);
 #define u_charScript ublock_getCode
 /** @deprecated  Use the enum UCharBlock instead. Remove after Aug,2002*/
 typedef UBlockCode UCharScript;
-
-U_CDECL_END
 
 #endif /*_UCHAR*/
 /*eof*/

@@ -8,18 +8,17 @@
 #ifndef QUANT_H
 #define QUANT_H
 
-#include "unicode/unifunct.h"
 #include "unicode/unimatch.h"
 
 U_NAMESPACE_BEGIN
 
-class Quantifier : public UnicodeFunctor, public UnicodeMatcher {
+class Quantifier : public UnicodeMatcher {
 
  public:
 
     enum { MAX = 0x7FFFFFFF };
 
-    Quantifier(UnicodeFunctor *adoptedMatcher,
+    Quantifier(UnicodeMatcher *adopted,
                uint32_t minCount, uint32_t maxCount);
 
     Quantifier(const Quantifier& o);
@@ -27,15 +26,9 @@ class Quantifier : public UnicodeFunctor, public UnicodeMatcher {
     virtual ~Quantifier();
 
     /**
-     * UnicodeFunctor API.  Cast 'this' to a UnicodeMatcher* pointer
-     * and return the pointer.
+     * Implement UnicodeMatcher
      */
-    virtual UnicodeMatcher* toMatcher() const;
-
-    /**
-     * Implement UnicodeFunctor
-     */
-    virtual UnicodeFunctor* clone() const;
+    virtual UnicodeMatcher* clone() const;
 
     /**
      * Implement UnicodeMatcher
@@ -56,16 +49,11 @@ class Quantifier : public UnicodeFunctor, public UnicodeMatcher {
      */
     virtual UBool matchesIndexValue(uint8_t v) const;
 
-    /**
-     * UnicodeFunctor API
-     */
-    virtual void setData(const TransliterationRuleData*);
-
  private:
 
     static void appendNumber(UnicodeString& result, int32_t n);
 
-    UnicodeFunctor* matcher; // owned
+    UnicodeMatcher* matcher; // owned
 
     uint32_t minCount;
 

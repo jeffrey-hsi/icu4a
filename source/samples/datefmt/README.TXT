@@ -1,6 +1,4 @@
 This is an exercise for the ICU Workshop (September 2000).
-** Workshop homepage is:  
-  http://oss.software.ibm.com/icu/docs/workshop_2000/agenda.html
 
   Day 2: September 12th 2000
   Pre-requsit:
@@ -23,18 +21,24 @@ This is an exercise for the ICU Workshop (September 2000).
 INSTRUCTIONS
 ------------
 
-This exercise was first developed and tested on ICU release 1.6.0, Win32,
+This exercise was developed and tested on ICU release 1.6.0, Win32,
 Microsoft Visual C++ 6.0.  It should work on other ICU releases and
 other platforms as well.
 
- MSVC:
-   Open the file "datefmt.dsw" in Microsoft Visual C++.
+To install:  Create a folder "datefmt" at:
 
- Unix:
-   - Build and install ICU with a prefix, for example '--prefix=/home/srl/ICU'
-   - Set the variable  ICU_PREFIX=/home/srl/ICU and use GNU make in 
-        this directory.
-   - You may use 'make check' to invoke this sample.
+  <icu>/source/samples/datefmt
+
+Within it, place the files:
+
+  datefmt.dsp
+  datefmt.dsw
+  main.cpp
+  util.cpp
+  util.h
+
+Open the file "datefmt.dsw" in Microsoft Visual C++.
+
 
 PROBLEMS
 --------

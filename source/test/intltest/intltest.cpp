@@ -26,9 +26,6 @@
 #include "intltest.h"
 #include "caltztst.h"
 #include "itmajor.h"
-#include "tsmutex.h"
-
-#include "umutex.h"
 
 #ifdef XP_MAC_CONSOLE
 #include <console.h>
@@ -36,7 +33,7 @@
 #endif
 
 
-static char* _testDataPath=NULL;
+static char* _testDirectory=NULL;
 
 // Static list of errors found
 static UnicodeString errorList;
@@ -355,6 +352,33 @@ IntlTest::pathnameInContext( char* fullname, int32_t maxsize, const char* relPat
     }
 }
 
+/**
+ * Functions to get and set the directory containing the Test files.
+ */
+
+const char*
+IntlTest::getTestDirectory()
+{
+    if (_testDirectory == NULL)
+    {
+      setTestDirectory("test|testdata|");
+    }
+    return _testDirectory;
+}
+
+void
+IntlTest::setTestDirectory(const char* newDir)
+{
+    char newTestDir[256];
+    IntlTest::pathnameInContext(newTestDir, sizeof(newTestDir), newDir);
+    if(_testDirectory != NULL)
+        delete _testDirectory;
+    _testDirectory = new char[strlen(newTestDir) + 1];
+    strcpy(_testDirectory, newTestDir);
+}
+
+
+
 /*  IntlTest::setICU_DATA  - if the ICU_DATA environment variable is not already
  *                       set, try to deduce the directory in which ICU was built,
  *                       and set ICU_DATA to "icu/source/data" in that location.
@@ -372,17 +396,17 @@ void IntlTest::setICU_DATA() {
         return;
     }
 
-    // U_TOPBUILDDIR is set by the makefiles on UNIXes when building cintltst and intltst
-    //              to point to the top of the build hierarchy, which may or
-    //              may not be the same as the source directory, depending on
-    //              the configure options used.  At any rate,
-    //              set the data path to the built data from this directory.
-    //              The value is complete with quotes, so it can be used 
-    //              as-is as a string constant.
+	// U_TOPBUILDDIR is set by the makefiles on UNIXes when building cintltst and intltst
+	//              to point to the top of the build hierarchy, which may or
+	//              may not be the same as the source directory, depending on
+	//              the configure options used.  At any rate,
+	//              set the data path to the built data from this directory.
+    //   			The value is complete with quotes, so it can be used 
+	//              as-is as a string constant.
 
 #if defined (U_TOPBUILDDIR)
     {
-        static char env_string[] = U_TOPBUILDDIR U_FILE_SEP_STRING "data" U_FILE_SEP_STRING "out" U_FILE_SEP_STRING;
+        static char env_string[] = U_TOPBUILDDIR "/data/";
         u_setDataDirectory(env_string);
         return;
     }
@@ -413,7 +437,7 @@ void IntlTest::setICU_DATA() {
             /* We found and truncated three names from the path.
              *  Now append "source\data" and set the environment
              */
-            strcpy(pBackSlash, U_FILE_SEP_STRING "data" U_FILE_SEP_STRING "out" U_FILE_SEP_STRING);
+            strcpy(pBackSlash, U_FILE_SEP_STRING "data" U_FILE_SEP_STRING);
             u_setDataDirectory(p);     /*  p is "ICU_DATA=wherever\icu\source\data"    */
             return;
         }
@@ -876,6 +900,11 @@ IntlTest::run_phase2( char* name, char* par ) // supports reporting memory leaks
 int
 main(int argc, char* argv[])
 {
+
+#ifdef XP_MAC_CONSOLE
+    argc = ccommand( &argv );
+#endif
+
     UBool syntax = FALSE;
     UBool all = TRUE;
     UBool verbose = FALSE;
@@ -883,28 +912,7 @@ main(int argc, char* argv[])
     UBool quick = TRUE;
     UBool name = FALSE;
     UBool leaks = FALSE;
-    UErrorCode errorCode = U_ZERO_ERROR;
-    UConverter *cnv = NULL;
 
-    /* This must be tested before using anything! */
-    MutexTest::gMutexInitialized = umtx_isInitialized(NULL);
-
-#ifdef XP_MAC_CONSOLE
-    argc = ccommand( &argv );
-#endif
-
-    /* try opening the data from dll instead of the dat file */
-    cnv = ucnv_open("iso-8859-7", &errorCode);
-    if(cnv != 0) {
-        /* ok */
-        ucnv_close(cnv);
-    } else {
-        fprintf(stderr,
-                "#### WARNING! The converter for iso-8859-7 cannot be loaded from data dll/so."
-                "Proceeding to load data from dat file.\n");
-        errorCode = U_ZERO_ERROR;
-
-    }
     // If user didn't set ICU_DATA, attempt to generate one.
     IntlTest::setICU_DATA();
 
@@ -971,8 +979,8 @@ main(int argc, char* argv[])
     major.setQuick( quick );
     major.setLeaks( leaks );
     fprintf(stdout, "-----------------------------------------------\n");
-    fprintf(stdout, " IntlTest (C++) Test Suite for                 \n");
-    fprintf(stdout, "   International Components for Unicode %s\n", U_ICU_VERSION);
+    fprintf(stdout, " IntlTest Test Suite for                       \n");
+    fprintf(stdout, "   International Classes for Unicode           \n");
     fprintf(stdout, "-----------------------------------------------\n");
     fprintf(stdout, " Options:                                       \n");
     fprintf(stdout, "   all (a)               : %s\n", (all?        "On" : "Off"));
@@ -983,8 +991,8 @@ main(int argc, char* argv[])
     fprintf(stdout, "-----------------------------------------------\n");
 
     // initial check for the default converter
-    errorCode = U_ZERO_ERROR;
-    cnv = ucnv_open(0, &errorCode);
+    UErrorCode errorCode = U_ZERO_ERROR;
+    UConverter *cnv = ucnv_open(0, &errorCode);
     if(cnv != 0) {
         // ok
         ucnv_close(cnv);
@@ -1052,8 +1060,8 @@ main(int argc, char* argv[])
     }
 
     CalendarTimeZoneTest::cleanup();
-    delete _testDataPath;
-    _testDataPath = 0;
+    delete _testDirectory;
+    _testDirectory = 0;
 
     fprintf(stdout, "\n--------------------------------------\n");
     if (major.getErrors() == 0) {
@@ -1079,72 +1087,6 @@ main(int argc, char* argv[])
     return major.getErrors();
 }
 
-const char* IntlTest::loadTestData(UErrorCode& err){
-    const char*      directory=NULL;
-    UResourceBundle* test =NULL;
-    char* tdpath=NULL;
-    const char* tdrelativepath = ".."U_FILE_SEP_STRING"test"U_FILE_SEP_STRING"testdata"U_FILE_SEP_STRING"out"U_FILE_SEP_STRING;
-    if( _testDataPath == NULL){
-        directory= u_getDataDirectory();
-    
-        tdpath = new char[(( strlen(directory) * strlen(tdrelativepath)) + 10)];//(char*) ctst_malloc(sizeof(char) *(( strlen(directory) * strlen(tdrelativepath)) + 10));
-
-
-        /* u_getDataDirectory shoul return \source\data ... set the
-         * directory to ..\source\data\..\test\testdata\out\testdata
-         *
-         * Fallback: When Memory mapped file is built
-         * ..\source\data\out\..\..\test\testdata\out\testdata
-         */
-        strcpy(tdpath, directory);
-        strcat(tdpath, tdrelativepath);
-        strcat(tdpath,"testdata");
-
-    
-        test=ures_open(tdpath, "testtypes", &err);
-    
-        /* we could not find the data in tdpath 
-         * try tdpathFallback
-         */
-        if(U_FAILURE(err))
-        {
-            strcpy(tdpath,directory);
-            strcat(tdpath,".."U_FILE_SEP_STRING);
-            strcat(tdpath, tdrelativepath);
-            strcat(tdpath,"testdata");
-            err =U_ZERO_ERROR;
-            test=ures_open(tdpath, "testtypes", &err);
-            /* we could not find the data in tdpath 
-             * try one more tdpathFallback
-             */
-            if(U_FAILURE(err)){
-                strcpy(tdpath,directory);
-                strcat(tdpath,".."U_FILE_SEP_STRING);
-                strcat(tdpath,".."U_FILE_SEP_STRING);
-                strcat(tdpath, tdrelativepath);
-                strcat(tdpath,"testdata");
-                err =U_ZERO_ERROR;
-                test=ures_open(tdpath, "testtypes", &err);
-                /* Fall back did not succeed either so return */
-                if(U_FAILURE(err)){
-                    err = U_FILE_ACCESS_ERROR;
-                    errln("construction of NULL did not succeed  :  %s \n", u_errorName(err));
-                    return "";
-                }
-                ures_close(test);
-                _testDataPath = tdpath;
-                return _testDataPath;
-            }
-            ures_close(test);
-            _testDataPath = tdpath;
-            return _testDataPath;
-        }
-        ures_close(test);
-        _testDataPath = tdpath;
-        return _testDataPath;
-    }
-    return _testDataPath;
-}
 /*
  * This is a variant of cintltst/ccolltst.c:CharsToUChars().
  * It converts a character string into a UnicodeString, with

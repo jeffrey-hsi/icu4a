@@ -35,16 +35,13 @@ CFG=Debug
 !IF "$(ICUP)"==""
 !ERROR Can't find path!
 !ENDIF
-!MESSAGE ICU path is $(ICUP)
+!MESSAGE icu path is $(ICUP)
 RESNAME=uconvmsg
 RESDIR=.  #$(ICUP)\..\icuapps\uconv\$(RESNAME)
 RESFILES=resfiles.mk
 ICUDATA=$(ICUP)\data
 
 DLL_OUTPUT=.\$(CFG)
-# set the following to 'static' or 'dll' depending
-PKGMODE=static
-
 
 ICD=$(ICUDATA)^\
 DATA_PATH=$(ICUP)\data^\
@@ -69,9 +66,8 @@ PATH = $(PATH);$(ICUP)\bin
 # Suffixes for data files
 .SUFFIXES : .ucm .cnv .dll .dat .res .txt .c
 
-# We're including a list of resource files.
-FILESEPCHAR=\\
-
+# We're including a list of ucm files. There are two lists, one is essential 'ucmfiles.mk' and
+# the other is optional 'ucmlocal.mk'
 !IF EXISTS("$(RESFILES)")
 !INCLUDE "$(RESFILES)"
 !ELSE
@@ -80,23 +76,18 @@ FILESEPCHAR=\\
 RB_FILES = $(RESSRC:.txt=.res)
 
 # This target should build all the data files
-!IF "$(PKGMODE)" == "dll"
-OUTPUT = "$(DLL_OUTPUT)\$(RESNAME).dll"
-!ELSE
-OUTPUT = "$(DLL_OUTPUT)\$(RESNAME).lib"
-!ENDIF
+ALL : GODATA  "$(DLL_OUTPUT)\$(RESNAME).dll" GOBACK #$(RESNAME).dat
+	@echo All targets are up to date
 
-ALL : GODATA  $(OUTPUT) GOBACK #$(RESNAME).dat
-	@echo All targets are up to date (mode $(PKGMODE))
-
-
-# invoke pkgdata - static
-"$(DLL_OUTPUT)\$(RESNAME).lib" :  $(RB_FILES) $(RESFILES)
-	@echo Building $(RESNAME).lib
-	@"$(ICUTOOLS)\pkgdata" -v -m static -c -p $(RESNAME) -O "$(PKGOPT)" -d "$(DLL_OUTPUT)" -s "$(RESDIR)" <<pkgdatain.txt
+#invoke pkgdata
+"$(DLL_OUTPUT)\$(RESNAME).dll" :  $(RB_FILES) $(RESFILES)
+	@echo Building $(RESNAME)
+	@"$(ICUTOOLS)\pkgdata" -v -m dll -c -p $(RESNAME) -O "$(PKGOPT)" -d "$(DLL_OUTPUT)" -s "$(RESDIR)" <<pkgdatain.txt
 $(RB_FILES:.res =.res
 )
 <<KEEP
+	@echo Copying "$(DLL_OUTPUT)\$(RESNAME).dll to $(ICUP)\bin
+	@copy "$(DLL_OUTPUT)\$(RESNAME).dll" $(ICUP)\bin
 
 # utility to send us to the right dir
 GODATA :
@@ -109,18 +100,18 @@ GOBACK :
 # This is to remove all the data files
 CLEAN :
 	@cd "$(RESDIR)"
+	-@erase "*.cnv"
 	-@erase "*.res"
-	-@erase "uconvmsg*.*"
+	-@erase "cnvalias*.*"
+	-@erase "icudata.*"
 	-@erase "*.obj"
 	-@erase "base*.*"
 	@cd "$(ICUTOOLS)"
-    -@erase "$(RB_FILES)"
-    -@"$(ICUTOOLS)\pkgdata" --clean -v -m static -c -p $(RESNAME) -O "$(PKGOPT)" -d "$(DLL_OUTPUT)" -s "$(RESDIR)" pkgdatain.txt
 
 # Inference rule for creating resource bundles
 .txt.res:
 	@echo Making Resource Bundle files
-	"$(ICUTOOLS)\genrb" -s $(@D) -d $(@D) $(?F)
+	"$(ICUTOOLS)\genrb" -s$(@D) -d$(@D) $(?F)
 
 
 $(RESSRC) : {"$(ICUTOOLS)"}genrb.exe

@@ -104,8 +104,6 @@ DecimalFormatSymbols::initialize(const Locale& locale, UErrorCode& status,
 {
     if (U_FAILURE(status)) return;
 
-    this->locale = locale;
-
     ResourceBundle resource((char *)0, locale, status);
     if (U_FAILURE(status))
     {

@@ -266,30 +266,7 @@ CollationElementIterator* RuleBasedCollator::createCollationElementIterator
 */
 const UnicodeString& RuleBasedCollator::getRules() const
 {
-    return (*urulestring);
-}
-
-void RuleBasedCollator::getRules(UColRuleOption delta, UnicodeString &buffer)
-{
-    int32_t rulesize = ucol_getRulesEx(ucollator, delta, NULL, -1);
-
-    if (rulesize > 0) {
-        UChar *rules = (UChar*) uprv_malloc( sizeof(UChar) * (rulesize) );
-
-        ucol_getRulesEx(ucollator, delta, rules, rulesize);
-        buffer.setTo(rules, rulesize);
-        uprv_free(rules);
-    }
-    else {
-        buffer.remove();
-    }
-}
-
-void RuleBasedCollator::getVersion(UVersionInfo versionInfo) const
-{
-    if (versionInfo!=NULL){
-        ucol_getVersion(ucollator, versionInfo);
-    }
+  return (*urulestring);
 }
 
 Collator::EComparisonResult RuleBasedCollator::compare(
@@ -493,20 +470,6 @@ int32_t RuleBasedCollator::hashCode() const
   int32_t length;
   const UChar *rules = ucol_getRules(ucollator, &length);
   return uhash_hashUCharsN(rules, length);
-}
-
-/**
-* return the locale of this collator
-*/
-const Locale RuleBasedCollator::getLocale(ULocDataLocaleType type, UErrorCode &status) const {
-  const char *result = ucol_getLocale(ucollator, type, &status);
-  if(result == NULL) {
-    Locale res("");
-    res.setToBogus();
-    return res;
-  } else {
-    return Locale(result);
-  }
 }
 
 /**

@@ -38,7 +38,7 @@ static void TestBreakIteratorCAPI()
 {
     UErrorCode status = U_ZERO_ERROR;
     UBreakIterator *word, *sentence, *line, *character, *b, *bogus;
-    int32_t start,pos,end,to;
+    UTextOffset start,pos,end,to;
     int32_t i;
     int32_t count = 0;
 
@@ -46,14 +46,9 @@ static void TestBreakIteratorCAPI()
     UBreakIterator * someClonedIterators [CLONETEST_ITERATOR_COUNT];
     UBreakIterator * brk;
     UChar text[51];     /* Keep this odd to test for 64-bit memory alignment */
-                        /*  NOTE:  This doesn't reliably force mis-alignment of following items. */ 
     uint8_t buffer [CLONETEST_ITERATOR_COUNT] [U_BRK_SAFECLONE_BUFFERSIZE];
     int32_t bufferSize = U_BRK_SAFECLONE_BUFFERSIZE;
 
-    /* Note:  the adjacent "" are concatenating strings, not adding a \" to the
-       string, which is probably what whoever wrote this intended.  Don't fix,
-       because it would throw off the hard coded break positions in the following
-       tests. */
     u_uastrcpy(text, "He's from Africa. ""Mr. Livingston, I presume?"" Yeah");
 
 
@@ -93,9 +88,9 @@ static void TestBreakIteratorCAPI()
         log_verbose("PASS: Successfully opened  character breakiterator\n");
     }
     /*trying to open an illegal iterator*/
-    bogus     = ubrk_open((UBreakIteratorType)5, "en_US", text, u_strlen(text), &status);
+    bogus     = ubrk_open((UBreakIteratorType)4, "en_US", text, u_strlen(text), &status);
     if(U_SUCCESS(status)){
-        log_err("FAIL: Error in ubrk_open() for BOGUS breakiterator. Expected U_MEMORY_ALLOCATION_ERROR\n");
+        log_err("FAIL: Error in ubrk_open() for BOGUS breakiterator. Expected U_MEMORY_ALLOCATION_ERROR");
     }
     if(U_FAILURE(status)){
         if(status != U_MEMORY_ALLOCATION_ERROR){
@@ -151,16 +146,7 @@ static void TestBreakIteratorCAPI()
     pos=ubrk_previous(word);
     log_verbose("%d \n", pos);
 
-    if (ubrk_isBoundary(word, 2) != FALSE) {
-        log_err("error ubrk_isBoundary(word, 2) did not return FALSE\n");
-    }
-    pos=ubrk_current(word);
-    if (pos != 4) {
-        log_err("error ubrk_current() != 4 after ubrk_isBoundary(word, 2)\n");
-    }
-    if (ubrk_isBoundary(word, 4) != TRUE) {
-        log_err("error ubrk_isBoundary(word, 4) did not return TRUE\n");
-    }
+
 
 
     
@@ -289,30 +275,6 @@ static void TestBreakIteratorCAPI()
         }
         if (brk) ubrk_close(brk);
         status = U_ZERO_ERROR;
-
-        /* Mis-aligned buffer pointer. */
-        {
-            char  stackBuf[U_BRK_SAFECLONE_BUFFERSIZE+sizeof(void *)];
-            void  *p;
-            int    offset;
-
-            brk = ubrk_safeClone(someIterators[i], &stackBuf[1], &bufferSize, &status);
-            if (U_FAILURE(status) || brk == 0) {
-                log_err("FAIL: Cloned Iterator failed with misaligned buffer pointer\n");
-            }
-            if (status == U_SAFECLONE_ALLOCATED_ERROR) {
-                log_err("FAIL: Cloned Iterator allocated when using a mis-aligned buffer.\n");
-            }
-            offset = (char *)&p-(char*)brk;
-            if (offset < 0) {
-                offset = -offset;
-            }
-            if (offset % sizeof(void *) != 0) {
-                log_err("FAIL: Cloned Iterator failed to align correctly with misaligned buffer pointer\n");
-            }
-            if (brk) ubrk_close(brk);
-        }
-
 
         /* Null Iterator - return NULL & set U_ILLEGAL_ARGUMENT_ERROR */
         if (0 != ubrk_safeClone(0, buffer[i], &bufferSize, &status) || status != U_ILLEGAL_ARGUMENT_ERROR)

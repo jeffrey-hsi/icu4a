@@ -31,7 +31,7 @@
 *   06/28/99    stephen     Removed mutex locking in u_isBigEndian().
 *   08/04/99    jeffrey R.  Added OS/2 changes
 *   11/15/99    helena      Integrated S/390 IEEE support.
-*   04/26/01    Barry N.    OS/400 support for uprv_getDefaultLocaleIDM
+*   04/26/01    Barry N.    OS/400 support for uprv_getDefaultLocaleID
 *   08/15/01    Steven H.   OS/400 support for uprv_getDefaultCodepage
 ******************************************************************************
 */
@@ -771,13 +771,6 @@ uprv_timezone()
 #endif
 }
 
-/* Note that U_TZNAME does *not* have to be tzname, but if it does,
-   some platforms need to have it declared here. */ 
-
-#if defined(IRIX) || defined(U_DARWIN) /* For SGI/MacOSX.  */
-extern char *tzname[]; /* RS6000 and others reject char **tzname.  */ 
-#endif
-
 U_CAPI char* U_EXPORT2
 uprv_tzname(int n)
 {
@@ -1053,7 +1046,7 @@ static const mac_lc_rec mac_lc_recs[] = {
 
 #if U_POSIX_LOCALE
 /* Return just the POSIX id, whatever happens to be in it */
-static const char *uprv_getPOSIXID(void)
+static const char *uprv_getPOSIXID()
 {
     static const char* posixID = NULL;
     if (posixID == 0) {
@@ -1601,7 +1594,7 @@ static const uint8_t ebcdicFromAscii[256]={
 #endif
 
 U_CAPI void U_EXPORT2
-u_charsToUChars(const char *cs, UChar *us, int32_t length) {
+u_charsToUChars(const char *cs, UChar *us, UTextOffset length) {
     while(length>0) {
 #if U_CHARSET_FAMILY==U_ASCII_FAMILY
         *us++=(UChar)(uint8_t)(*cs++);
@@ -1615,7 +1608,7 @@ u_charsToUChars(const char *cs, UChar *us, int32_t length) {
 }
 
 U_CAPI void U_EXPORT2
-u_UCharsToChars(const UChar *us, char *cs, int32_t length) {
+u_UCharsToChars(const UChar *us, char *cs, UTextOffset length) {
     while(length>0) {
 #if U_CHARSET_FAMILY==U_ASCII_FAMILY
         *cs++=(char)(*us++);
@@ -1759,11 +1752,7 @@ _uTransErrorName[U_PARSE_ERROR_LIMIT - U_PARSE_ERROR_START]={
     "U_UNCLOSED_SEGMENT",
     "U_ILLEGAL_CHAR_IN_SEGMENT",
     "U_VARIABLE_RANGE_EXHAUSTED",
-    "U_VARIABLE_RANGE_OVERLAP",
-    "U_ILLEGAL_CHARACTER",
-    "U_INTERNAL_TRANSLITERATOR_ERROR",
-    "U_INVALID_ID",
-    "U_INVALID_FUNCTION"
+    "U_VARIABLE_RANGE_OVERLAP"
 };
 
 static const char * const
@@ -1812,13 +1801,13 @@ _uFmtErrorName[U_FMT_PARSE_ERROR_LIMIT - U_FMT_PARSE_ERROR_START] = {
 
 U_CAPI const char * U_EXPORT2
 u_errorName(UErrorCode code) {
-    if(U_ZERO_ERROR <= code && code < U_STANDARD_ERROR_LIMIT) {
+    if(code>=0 && code<U_STANDARD_ERROR_LIMIT) {
         return _uErrorName[code];
-    } else if(U_ERROR_WARNING_START <= code && code < U_ERROR_WARNING_LIMIT) {
-        return _uErrorInfoName[code - U_ERROR_WARNING_START];
-    } else if(U_PARSE_ERROR_START <= code && code < U_PARSE_ERROR_LIMIT){
+    } else if(code>=U_ERROR_WARNING_START && code<U_ERROR_WARNING_LIMIT) {
+        return _uErrorInfoName[code-U_ERROR_WARNING_START];
+    } else if((uint32_t)(U_PARSE_ERROR_LIMIT - code) <= (U_PARSE_ERROR_LIMIT- U_PARSE_ERROR_START)){
         return _uTransErrorName[code - U_PARSE_ERROR_START];
-    } else if(U_FMT_PARSE_ERROR_START <= code && code < U_FMT_PARSE_ERROR_LIMIT){
+    } else if((uint32_t)(U_FMT_PARSE_ERROR_LIMIT - code) <= (U_FMT_PARSE_ERROR_LIMIT- U_FMT_PARSE_ERROR_START)){
         return _uFmtErrorName[code - U_FMT_PARSE_ERROR_START];
     } else {
         return "[BOGUS UErrorCode]";

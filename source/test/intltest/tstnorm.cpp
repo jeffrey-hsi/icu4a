@@ -39,7 +39,6 @@ void BasicNormalizerTest::runIndexedTest(int32_t index, UBool exec,
         CASE(10,TestVerisign);
         CASE(11,TestPreviousNext);
         CASE(12,TestNormalizerAPI);
-        CASE(13,TestConcatenate);
         default: name = ""; break;
     }
 }
@@ -166,6 +165,7 @@ void BasicNormalizerTest::TestDecomp()
 {
   Normalizer* norm = new Normalizer("", UNORM_NFD);
   iterateTest(norm, canonTests, ARRAY_LENGTH(canonTests), 1);
+  
   staticTest(UNORM_NFD, 0, canonTests, ARRAY_LENGTH(canonTests), 1);
   delete norm;
 }
@@ -801,106 +801,5 @@ BasicNormalizerTest::TestNormalizerAPI() {
     Normalizer::normalize(s, UNORM_NONE, 0, out, status);
     if(out!=s) {
         errln("error in Normalizer::normalize(UNORM_NONE)");
-    }
-}
-
-void BasicNormalizerTest::TestConcatenate() {
-    static const char *const
-    cases[][4]={
-        /* mode, left, right, result */
-        {
-            "C",
-            "re",
-            "\\u0301sum\\u00e9",
-            "r\\u00e9sum\\u00e9"
-        },
-        {
-            "C",
-            "a\\u1100",
-            "\\u1161bcdefghijk",
-            "a\\uac00bcdefghijk"
-        },
-        /* ### TODO: add more interesting cases */
-        {
-            "D", 
-            "\\u0340\\u0341\\u0343\\u0344\\u0374\\u037E\\u0387\\u0958" 
-            "\\u0959\\u095A\\u095B\\u095C\\u095D\\u095E\\u095F\\u09DC" 
-            "\\u09DD\\u09DF\\u0A33\\u0A36\\u0A59\\u0A5A\\u0A5B\\u0A5E" 
-            "\\u0B5C\\u0B5D\\u0F43\\u0F4D\\u0F52\\u0F57\\u0F5C\\u0F69" 
-            "\\u0F73\\u0F75\\u0F76\\u0F78\\u0F81\\u0F93\\u0F9D\\u0FA2" 
-            "\\u0FA7\\u0FAC\\u0FB9\\u1F71\\u1F73\\u1F75\\u1F77\\u1F79" 
-            "\\u1F7B\\u1F7D\\u1FBB\\u1FBE\\u1FC9\\u1FCB\\u1FD3\\u1FDB",
-            
-            "\\u1FE3\\u1FEB\\u1FEE\\u1FEF\\u1FF9\\u1FFB\\u1FFD\\u2000" 
-            "\\u2001\\u2126\\u212A\\u212B\\u2329\\u232A\\uF900\\uFA10" 
-            "\\uFA12\\uFA15\\uFA20\\uFA22\\uFA25\\uFA26\\uFA2A\\uFB1F" 
-            "\\uFB2A\\uFB2B\\uFB2C\\uFB2D\\uFB2E\\uFB2F\\uFB30\\uFB31" 
-            "\\uFB32\\uFB33\\uFB34\\uFB35\\uFB36\\uFB38\\uFB39\\uFB3A" 
-            "\\uFB3B\\uFB3C\\uFB3E\\uFB40\\uFB41\\uFB43\\uFB44\\uFB46" 
-            "\\uFB47\\uFB48\\uFB49\\uFB4A\\uFB4B\\uFB4C\\uFB4D\\uFB4E",
-           
-            "\\u0340\\u0341\\u0343\\u0344\\u0374\\u037E\\u0387\\u0958"
-            "\\u0959\\u095A\\u095B\\u095C\\u095D\\u095E\\u095F\\u09DC"
-            "\\u09DD\\u09DF\\u0A33\\u0A36\\u0A59\\u0A5A\\u0A5B\\u0A5E"
-            "\\u0B5C\\u0B5D\\u0F43\\u0F4D\\u0F52\\u0F57\\u0F5C\\u0F69"
-            "\\u0F73\\u0F75\\u0F76\\u0F78\\u0F81\\u0F93\\u0F9D\\u0FA2"
-            "\\u0FA7\\u0FAC\\u0FB9\\u1F71\\u1F73\\u1F75\\u1F77\\u1F79"
-            "\\u1F7B\\u1F7D\\u1FBB\\u1FBE\\u1FC9\\u1FCB\\u1FD3\\u0399"
-            "\\u0301\\u03C5\\u0308\\u0301\\u1FEB\\u1FEE\\u1FEF\\u1FF9"
-            "\\u1FFB\\u1FFD\\u2000\\u2001\\u2126\\u212A\\u212B\\u2329"
-            "\\u232A\\uF900\\uFA10\\uFA12\\uFA15\\uFA20\\uFA22\\uFA25"
-            "\\uFA26\\uFA2A\\uFB1F\\uFB2A\\uFB2B\\uFB2C\\uFB2D\\uFB2E"
-            "\\uFB2F\\uFB30\\uFB31\\uFB32\\uFB33\\uFB34\\uFB35\\uFB36"
-            "\\uFB38\\uFB39\\uFB3A\\uFB3B\\uFB3C\\uFB3E\\uFB40\\uFB41"
-            "\\uFB43\\uFB44\\uFB46\\uFB47\\uFB48\\uFB49\\uFB4A\\uFB4B"
-            "\\uFB4C\\uFB4D\\uFB4E"
-        }
-    };
-
-    UnicodeString left, right, expect, result, r;
-    UErrorCode errorCode;
-    UNormalizationMode mode;
-    int32_t i;
-
-    /* test concatenation */
-    for(i=0; i<(int32_t)(sizeof(cases)/sizeof(cases[0])); ++i) {
-        switch(*cases[i][0]) {
-        case 'C': mode=UNORM_NFC; break;
-        case 'D': mode=UNORM_NFD; break;
-        case 'c': mode=UNORM_NFKC; break;
-        case 'd': mode=UNORM_NFKD; break;
-        default: mode=UNORM_NONE; break;
-        }
-
-        left=UnicodeString(cases[i][1], "").unescape();
-        right=UnicodeString(cases[i][2], "").unescape();
-        expect=UnicodeString(cases[i][3], "").unescape();
-
-        //result=r=UnicodeString();
-        errorCode=U_ZERO_ERROR;
-
-        r=Normalizer::concatenate(left, right, result, mode, 0, errorCode);
-        if(U_FAILURE(errorCode) || /*result!=r ||*/ result!=expect) {
-            errln("error in Normalizer::concatenate(), cases[] fails with "+
-                UnicodeString(u_errorName(errorCode))+", result==expect: expected: "+
-                hex(expect)+" =========> got: " + hex(result));
-        }
-    }
-
-    /* test error cases */
-
-    /* left.getBuffer()==result.getBuffer() */
-    result=r=expect=UnicodeString("zz", "");
-    errorCode=U_UNEXPECTED_TOKEN;
-    r=Normalizer::concatenate(left, right, result, mode, 0, errorCode);
-    if(errorCode!=U_UNEXPECTED_TOKEN || result!=r || !result.isBogus()) {
-        errln("error in Normalizer::concatenate(), violates UErrorCode protocol\n");
-    }
-
-    left.setToBogus();
-    errorCode=U_ZERO_ERROR;
-    r=Normalizer::concatenate(left, right, result, mode, 0, errorCode);
-    if(errorCode!=U_ILLEGAL_ARGUMENT_ERROR || result!=r || !result.isBogus()) {
-        errln("error in Normalizer::concatenate(), does not detect left.isBogus()\n");
     }
 }

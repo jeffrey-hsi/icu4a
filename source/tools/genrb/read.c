@@ -17,7 +17,7 @@
 */
 
 #include "read.h"
-#include "errmsg.h"
+#include "error.h"
 #include "unicode/ustring.h"
 
 #define OPENBRACE    0x007B

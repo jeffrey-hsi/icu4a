@@ -7,14 +7,19 @@
 ## Makefile.in for ICU - icui18n.so
 ## Stephen F. Booth
 
-## Source directory information
+SO_TARGET_VERSION = @LIB_VERSION@
+SO_TARGET_VERSION_MAJOR = @LIB_VERSION_MAJOR@
+
+## Install directory information
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 
 top_builddir = ..
 
-## All the flags and other definitions are included here.
 include $(top_builddir)/icudefs.mk
+
+## Platform-specific setup
+include @platform_make_fragment@
 
 ## Build directory information
 subdir = i18n
@@ -24,8 +29,12 @@ CLEANFILES = *~ $(DEPS)
 
 ## Target information
 
+ENABLE_STATIC = @ENABLE_STATIC@
+ENABLE_SHARED = @ENABLE_SHARED@
+
 ifneq ($(ENABLE_STATIC),)
 TARGET = $(LIBICU)i18n$(ICULIBSUFFIX).a
+RANLIB = @RANLIB@
 endif
 
 ifneq ($(ENABLE_SHARED),)
@@ -39,10 +48,18 @@ DYNAMICCPPFLAGS = $(SHAREDLIBCPPFLAGS)
 DYNAMICCFLAGS = $(SHAREDLIBCFLAGS)
 DYNAMICCXXFLAGS = $(SHAREDLIBCXXFLAGS)
 
-CPPFLAGS += -I$(srcdir) -I$(top_builddir)/common -I$(top_srcdir)/common $(LIBCPPFLAGS)
-LIBS = $(LIBICUUC) $(DEFAULT_LIBS)
+DEFS = @DEFS@
+CPPFLAGS = @CPPFLAGS@ $(LIBCPPFLAGS) -I$(srcdir) -I$(top_builddir)/common -I$(top_srcdir)/common
+CFLAGS = @CFLAGS@
+CXXFLAGS = @CXXFLAGS@
+ENABLE_RPATH = @ENABLE_RPATH@
+ifeq ($(ENABLE_RPATH),YES)
+RPATHLDFLAGS = $(LD_RPATH)$(LD_RPATH_PRE)$(libdir)
+endif
+LDFLAGS = @LDFLAGS@ $(RPATHLDFLAGS)
+LIBS = $(LIBICUUC) @LIBS@
 
-OBJECTS = ucln_in.o \
+OBJECTS = ucln_in.o brkiter.o brkdict.o ubrk.o \
 fmtable.o format.o msgfmt.o umsg.o numfmt.o unum.o decimfmt.o dcfmtsym.o \
 choicfmt.o datefmt.o smpdtfmt.o dtfmtsym.o udat.o \
 ucal.o calendar.o gregocal.o timezone.o simpletz.o \
@@ -51,11 +68,11 @@ ucol.o ucol_bld.o ucol_cnt.o ucol_elm.o ucol_tok.o ucol_wgt.o tblcoll.o \
 strmatch.o usearch.o search.o stsearch.o \
 uniset.o unifltlg.o translit.o utrans.o \
 cpdtrans.o hextouni.o rbt.o rbt_data.o rbt_pars.o rbt_rule.o rbt_set.o \
-nultrans.o remtrans.o titletrn.o tolowtrn.o toupptrn.o \
+dbbi.o dbbi_tbl.o rbbi.o rbbi_tbl.o nultrans.o \
+remtrans.o titletrn.o tolowtrn.o toupptrn.o xformtrn.o \
 name2uni.o uni2name.o unitohex.o nortrans.o unifilt.o quant.o transreg.o \
-nfrs.o nfrule.o nfsubs.o rbnf.o upropset.o util.o esctrn.o unesctrn.o \
-funcrepl.o strrepl.o tridpars.o unifunct.o caniter.o usetiter.o \
-currency.o
+llong.o nfrs.o nfrule.o nfsubs.o rbnf.o upropset.o util.o esctrn.o unesctrn.o
+
 
 
 STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
