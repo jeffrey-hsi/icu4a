@@ -51,9 +51,7 @@ enum
     WRITE_XML,
     TOUCHFILE,
     STRICT,
-    NO_BINARY_COLLATION,
-    /*added by Jing*/
-    LANGUAGE
+    NO_BINARY_COLLATION
 };
 
 UOption options[]={
@@ -73,9 +71,8 @@ UOption options[]={
                       UOPTION_DEF( "write-xml", 'x', UOPT_NO_ARG),
                       UOPTION_DEF( "touchfile", 't', UOPT_NO_ARG),
                       UOPTION_DEF( "strict",    'k', UOPT_NO_ARG), /* 14 */
-                      UOPTION_DEF( "noBinaryCollation", 'C', UOPT_NO_ARG),/* 15 */
-                      /*added by Jing*/
-                      UOPTION_DEF( "language",  'l', UOPT_REQUIRES_ARG)
+                      UOPTION_DEF( "noBinaryCollation", 'C', UOPT_NO_ARG)/* 15 */
+
                   };
 
 static     UBool       write_java = FALSE;
@@ -84,8 +81,6 @@ static     UBool       touchfile = FALSE;
 static     const char* outputEnc ="";
 static     const char* gPackageName=NULL;
 static     const char* bundleName=NULL;
-/*added by Jing*/
-static     const char* language = NULL;
 
 int
 main(int argc,
@@ -97,7 +92,7 @@ main(int argc,
     const char *inputDir  = NULL;
     const char *encoding  = "";
     int         i;
-    
+
     U_MAIN_INIT_ARGS(argc, argv);
 
     argc = u_parseArgs(argc, argv, (int32_t)(sizeof(options)/sizeof(options[0])), options);
@@ -152,9 +147,7 @@ main(int argc,
                 "\t-b or --bundle-name      bundle name for writing the ListResourceBundle for ICU4J,\n"
                 "\t                         defaults to LocaleElements\n"
                 "\t-x or --write-xml        write a XML file for the resource bundle.\n"
-                "\t-k or --strict           use pedantic parsing of syntax\n"
-                /*added by Jing*/
-                "\t-l or --language         language code compliant with ISO 639.\n");
+                "\t-k or --strict                use pedantic parsing of syntax\n");
 
         return argc < 0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
@@ -226,17 +219,12 @@ main(int argc,
     } else {
       initParser(TRUE);
     }
-    
-    /*added by Jing*/
-    if(options[LANGUAGE].doesOccur) {
-        language = options[LANGUAGE].value;
-    }
 
     /* generate the binary files */
     for(i = 1; i < argc; ++i) {
         status = U_ZERO_ERROR;
         arg    = getLongPathname(argv[i]);
-        
+
         if (inputDir) {
             uprv_strcpy(theCurrentFileName, inputDir);
             uprv_strcat(theCurrentFileName, U_FILE_SEP_STRING);
@@ -301,6 +289,7 @@ processFile(const char *filename, const char *cp, const char *inputDir, const ch
             inputDirBuf[filenameSize - 1] = 0;
             inputDir = inputDirBuf;
             dirlen  = (int32_t)uprv_strlen(inputDir);
+
         }
     }else{
         dirlen  = (int32_t)uprv_strlen(inputDir);
@@ -410,7 +399,7 @@ processFile(const char *filename, const char *cp, const char *inputDir, const ch
     if(write_java== TRUE){
         bundle_write_java(data,outputDir,outputEnc, outputFileName, sizeof(outputFileName),packageName,bundleName,status);
     }else if(write_xml ==TRUE){
-        bundle_write_xml(data,outputDir,outputEnc, filename, outputFileName, sizeof(outputFileName),language, packageName,status);
+        bundle_write_xml(data,outputDir,outputEnc, outputFileName, sizeof(outputFileName),status);
     }else{
         /* Write the data to the file */
         bundle_write(data, outputDir, packageName, outputFileName, sizeof(outputFileName), status);

@@ -182,9 +182,8 @@ writeCCode(const char *filename, const char *destdir) {
 
 #ifdef OS400
     /*
-    TODO: Fix this once the compiler implements this feature. Keep in sync with udatamem.c
-
-    This is here because this platform can't currently put
+    WARNING! WARNING! WARNING!
+    This is a hack. This is here because this platform can't properly put
     const data into the read-only pages of an object or
     shared library (service program). Only strings are allowed in read-only
     pages, so we use char * strings to store the data.
