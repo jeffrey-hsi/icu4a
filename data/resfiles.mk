@@ -26,16 +26,15 @@
 GENRB_SOURCE = root.txt index.txt\
 af.txt af_ZA.txt\
 ar.txt ar_AE.txt ar_BH.txt ar_DZ.txt ar_EG.txt\
-ar_IQ.txt ar_IN.txt ar_JO.txt ar_KW.txt ar_LB.txt ar_LY.txt\
+ar_IQ.txt ar_JO.txt ar_KW.txt ar_LB.txt ar_LY.txt\
 ar_MA.txt ar_OM.txt ar_QA.txt ar_SA.txt ar_SD.txt\
 ar_SY.txt ar_TN.txt ar_YE.txt\
 be.txt be_BY.txt\
 bg.txt bg_BG.txt\
-bn.txt bn_IN.txt\
 ca.txt ca_ES.txt ca_ES_EURO.txt\
 cs.txt cs_CZ.txt\
 da.txt da_DK.txt\
-de.txt de_AT.txt de_AT_EURO.txt de_BE.txt de_CH.txt\
+de.txt de_AT.txt de_AT_EURO.txt de_CH.txt\
 de_DE.txt de_DE_EURO.txt de_LU.txt de_LU_EURO.txt\
 el.txt el_GR.txt el_GR_EURO.txt\
 en.txt en_AS.txt en_AU.txt en_BE.txt en_BE_EURO.txt en_BW.txt en_CA.txt en_GB.txt en_GB_EURO.txt\
@@ -67,7 +66,7 @@ it.txt it_CH.txt it_IT.txt it_IT_EURO.txt\
 iw.txt iw_IL.txt\
 ja.txt ja_JP.txt\
 kl.txt kl_GL.txt\
-ko.txt ko__LOTUS.txt ko_KR.txt\
+ko.txt ko_KR.txt\
 kok.txt kok_IN.txt\
 kw.txt kw_GB.txt\
 lt.txt lt_LT.txt\
@@ -75,7 +74,6 @@ lv.txt lv_LV.txt\
 mk.txt mk_MK.txt\
 mr.txt mr_IN.txt\
 mt.txt mt_MT.txt\
-ms.txt ms_MY.txt\
 nb.txt nb_NO.txt\
 nl.txt nl_BE.txt nl_BE_EURO.txt nl_NL.txt nl_NL_EURO.txt\
 nn.txt nn_NO.txt\
@@ -97,7 +95,7 @@ th.txt th_TH.txt\
 tr.txt tr_TR.txt\
 uk.txt uk_UA.txt\
 vi.txt vi_VN.txt\
-zh.txt zh__PINYIN.txt zh_CN.txt zh_HK.txt zh_SG.txt zh_TW.txt zh_TW_STROKE.txt
+zh.txt zh_CN.txt zh_HK.txt zh_SG.txt zh_TW.txt
 
 TRANSLIT_SOURCE=fullhalf.txt translit_index.txt kana.txt kbdescl1.txt\
 larabic.txt lcyril.txt ldevan.txt\

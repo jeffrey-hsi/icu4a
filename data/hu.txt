@@ -10,7 +10,6 @@ hu {
             "DE",
             "DU",
     }
-    Version{ "1.0.1" }
     CollationElements { 
 	    Version { "1.0" }
 		Override { "FALSE" }

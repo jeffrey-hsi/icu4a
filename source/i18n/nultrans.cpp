@@ -10,7 +10,6 @@
 #include "unicode/nultrans.h"
 
 const UnicodeString NullTransliterator::ID = UnicodeString("Null", "");
-const char* NullTransliterator::_ID = "Null";
 
 Transliterator* NullTransliterator::clone(void) const {
     return new NullTransliterator();

@@ -423,9 +423,6 @@ U_CAPI uint8_t *
 ucol_cloneRuleData(UCollator *coll, int32_t *length, UErrorCode *status)
 {
   uint8_t *result = NULL;
-  if(U_FAILURE(*status)) {
-    return NULL;
-  }
   if(coll->hasRealData == TRUE) {
     *length = coll->image->size;
     result = (uint8_t *)uprv_malloc(*length);
@@ -433,6 +430,7 @@ ucol_cloneRuleData(UCollator *coll, int32_t *length, UErrorCode *status)
   } else {
     *length = paddedsize(sizeof(UCATableHeader))+paddedsize(sizeof(UColOptionSet));
     result = (uint8_t *)uprv_malloc(*length);
+    UCATableHeader *head = (UCATableHeader *)result;
     uprv_memcpy(result, UCA->image, sizeof(UCATableHeader));
     uprv_memcpy(result+paddedsize(sizeof(UCATableHeader)), coll->options, sizeof(UColOptionSet));
   }
@@ -2619,6 +2617,7 @@ int32_t ucol_getSortKeySize(const UCollator *coll, collIterate *s, int32_t curre
     uint32_t order = UCOL_NO_MORE_CES;
     uint8_t primary1 = 0;
     uint8_t primary2 = 0;
+    uint32_t ce = 0;
     uint8_t secondary = 0;
     uint8_t tertiary = 0;
     int32_t caseShift = 0;
@@ -2635,16 +2634,19 @@ int32_t ucol_getSortKeySize(const UCollator *coll, collIterate *s, int32_t curre
 
     for(;;) {
           order = ucol_IGetNextCE(coll, s, &status);
+          //UCOL_GETNEXTCE(order, coll, *s, &status);
 
           if(order == UCOL_NO_MORE_CES) {
               break;
           }
-
-          if(order == 0) {
+          /* fix me... we should check if we're in continuation first */
+          if(isCEIgnorable(order)) {
             continue;
           }
 
-          notIsContinuation = !isContinuation(order);
+          /* We're saving order in ce, since we will destroy order in order to get primary, secondary, tertiary in order ;)*/
+          ce = order;
+          notIsContinuation = !isContinuation(ce);
 
 
           if(notIsContinuation) {
@@ -2654,7 +2656,7 @@ int32_t ucol_getSortKeySize(const UCollator *coll, collIterate *s, int32_t curre
           }
           secondary = (uint8_t)((order >>= 8) & 0xFF);
           primary2 = (uint8_t)((order >>= 8) & 0xFF);
-          primary1 = (uint8_t)(order >> 8);
+          primary1 = (uint8_t)(order >>= 8);
 
 
           if(shifted && ((notIsContinuation && primary1 <= variableMax1 && primary1 > 0
@@ -2675,6 +2677,8 @@ int32_t ucol_getSortKeySize(const UCollator *coll, collIterate *s, int32_t curre
             wasShifted = FALSE;
             /* Note: This code assumes that the table is well built i.e. not having 0 bytes where they are not supposed to be. */
             /* Usually, we'll have non-zero primary1 & primary2, except in cases of LatinOne and friends, when primary2 will   */
+#define UCOL_PRIM_COMPRESSION 1
+#ifdef UCOL_PRIM_COMPRESSION
             /* calculate sortkey size */
             if(primary1 != UCOL_IGNORABLE) {
               if(notIsContinuation) {
@@ -2705,6 +2709,14 @@ int32_t ucol_getSortKeySize(const UCollator *coll, collIterate *s, int32_t curre
                 }
               }
             }
+#else
+            if(primary1 != UCOL_IGNORABLE) {
+              currentSize++;
+              if(primary2 != UCOL_IGNORABLE) {
+                currentSize++;
+              }
+            }
+#endif
 
             if(secondary > compareSec) { /* I think that != 0 test should be != IGNORABLE */
               if(!isFrenchSec){
@@ -2786,10 +2798,78 @@ int32_t ucol_getSortKeySize(const UCollator *coll, collIterate *s, int32_t curre
 
     if(compareIdent) {
       currentSize += u_lengthOfIdenticalLevelRun(s->string, len);
+/*
+      UChar *ident = s->string;
+      int32_t i = 0;
+      int32_t c, prev=0x50;
+      int32_t diff;
+
+      for (;;) {
+          if (len >=0 && i>=len) {
+              break;
+          }
+          UTF_NEXT_CHAR(ident, i, len, c);
+          if (c==0) {
+              break;
+          }
+          diff = c-prev;
+          if(diff>=SLOPE_REACH_NEG_1) {
+              currentSize += (diff<=SLOPE_REACH_POS_1)?1:((diff<=SLOPE_REACH_POS_2)?2:3);
+          } else {
+              currentSize += (diff>=SLOPE_REACH_NEG_2)?2:3;
+          }
+          prev=c;
+      }
+*/
     }
     return currentSize;
 
 }
+
+/* INTERNAL! */
+/*
+ * Encode a Unicode string for the identical level of a sort key.
+ * Restrictions:
+ * - byte stream (unsigned 8-bit bytes)
+ * - lexical order of the identical-level run must be
+ *   the same as code point order for the string
+ * - avoid byte values 0, 1, 2
+ *
+ * Method: Slope Detection
+ * Remember the previous code point (initial 0).
+ * For each cp in the string, encode the difference to the previous one.
+ *
+ * With a compact encoding of differences, this yields good results for
+ * small scripts and UTF-like results otherwise.
+ *
+ * Encoding of differences:
+ * Similar to a UTF, encoding the length of the byte sequence in the lead bytes.
+ * Does not need to be friendly for decoding or random access
+ * (trail byte values may overlap with lead/single byte values).
+ * The signedness must be encoded as the most significant part.
+ *
+ * We encode differences with few bytes if their absolute values are small.
+ * For correct ordering, we must treat the entire value range -10ffff..+10ffff
+ * in ascending order, which forbids encoding the sign and the absolute value separately.
+ * Instead, we split the lead byte range in the middle and encode non-negative values
+ * going up and negative values going down.
+ *
+ * For very small absolute values, the difference is added to a middle byte value.
+ * For somewhat larger absolute values, the difference is divided by the number
+ * of byte values available, the modulo is used for one trail byte, and the remainder
+ * is added to a lead byte avoiding the single-byte range.
+ * For large absolute values, the difference is similarly encoded in three bytes.
+ *
+ * This encoding does not use byte values 0, 1, 2, but uses all other byte values
+ * for lead/single bytes so that the middle range of single bytes is as large
+ * as possible.
+ * Note that the lead byte ranges overlap some, but that the sequences as a whole
+ * are well ordered. I.e., even if the lead byte is the same for sequences of different
+ * lengths, the trail bytes establish correct order.
+ * It would be possible to encode slightly larger ranges for each length (>1) by
+ * subtracting the lower bound of the range. However, that would also slow down the
+ * calculation.
+ */
 
 inline void doCaseShift(uint8_t **cases, uint32_t &caseShift) {
   if (caseShift  == 0) {
@@ -2835,8 +2915,9 @@ ucol_calcSortKey(const    UCollator    *coll,
 
     int32_t len = (sourceLength == -1 ? u_strlen(source) : sourceLength);
 
-    uint32_t variableMax = (coll->variableMax1<<8) | coll->variableMax2;
-    uint8_t UCOL_COMMON_BOT4 = (uint8_t)(coll->variableMax1+1);
+    uint8_t variableMax1 = coll->variableMax1;
+    uint8_t variableMax2 = coll->variableMax2;
+    uint8_t UCOL_COMMON_BOT4 = (uint8_t)(variableMax1+1);
     uint8_t UCOL_BOT_COUNT4 = (uint8_t)(0xFF - UCOL_COMMON_BOT4);
 
     UColAttributeValue strength = coll->strength;
@@ -2868,8 +2949,8 @@ ucol_calcSortKey(const    UCollator    *coll,
         normSourceLen = unorm_normalize(source, sourceLength, UNORM_NFD, 0, normSource, normSourceLen, status);
         if(U_FAILURE(*status)) {
             *status=U_ZERO_ERROR;
-            normSource = (UChar *) uprv_malloc(normSourceLen*sizeof(UChar));
-            normSourceLen = unorm_normalize(source, sourceLength, UNORM_NFD, 0, normSource, normSourceLen, status);
+            normSource = (UChar *) uprv_malloc((normSourceLen+1)*sizeof(UChar));
+            normSourceLen = unorm_normalize(source, sourceLength, UNORM_NFD, 0, normSource, (normSourceLen+1), status);
         }
         IInit_collIterate(coll, normSource, normSourceLen, &s);
         s.flags &= ~UCOL_ITER_NORM;
@@ -2882,8 +2963,8 @@ ucol_calcSortKey(const    UCollator    *coll,
         normSourceLen = unorm_normalize(source, sourceLength, UNORM_NFD, 0, normSource, normSourceLen, status);
         if(U_FAILURE(*status)) {
             *status=U_ZERO_ERROR;
-            normSource = (UChar *) uprv_malloc(normSourceLen*sizeof(UChar));
-            normSourceLen = unorm_normalize(source, sourceLength, UNORM_NFD, 0, normSource, normSourceLen, status);
+            normSource = (UChar *) uprv_malloc((normSourceLen+1)*sizeof(UChar));
+            normSourceLen = unorm_normalize(source, sourceLength, UNORM_NFD, 0, normSource, (normSourceLen+1), status);
         }
         IInit_collIterate(coll, normSource, normSourceLen, &s);
         s.flags &= ~UCOL_ITER_NORM;
@@ -2905,6 +2986,7 @@ ucol_calcSortKey(const    UCollator    *coll,
     uint8_t *quadStart = quads;
 
     uint32_t order = 0;
+    uint32_t ce = 0;
 
     uint8_t primary1 = 0;
     uint8_t primary2 = 0;
@@ -2932,18 +3014,31 @@ ucol_calcSortKey(const    UCollator    *coll,
         for(i=prevBuffSize; i<minBufferSize; ++i) {
 
             order = ucol_IGetNextCE(coll, &s, status);
+            // UCOL_GETNEXTCE(order, coll, s, status);
 
             if(order == UCOL_NO_MORE_CES) {
                 finished = TRUE;
                 break;
             }
 
-            if(order == 0) {
+            /* fix me... we should check if we're in continuation first */
+            if(isCEIgnorable(order)) {
               continue;
             }
 
-            notIsContinuation = !isContinuation(order);
+            /* We're saving order in ce, since we will destroy order in order to get primary, secondary, tertiary in order ;)*/
+            ce = order;
+            notIsContinuation = !isContinuation(ce);
 
+
+            /*
+            caseBit = (UBool)(order & UCOL_CASE_BIT_MASK);
+            if(notIsContinuation) {
+              tertiary = (uint8_t)((order & tertiaryMask));
+            } else {
+              tertiary = (uint8_t)((order & UCOL_REMOVE_CONTINUATION));
+            }
+            */
             if(notIsContinuation) {
               tertiary = (uint8_t)(order & UCOL_BYTE_SIZE_MASK);
             } else {
@@ -2952,7 +3047,7 @@ ucol_calcSortKey(const    UCollator    *coll,
 
             secondary = (uint8_t)((order >>= 8) & UCOL_BYTE_SIZE_MASK);
             primary2 = (uint8_t)((order >>= 8) & UCOL_BYTE_SIZE_MASK);
-            primary1 = (uint8_t)(order >> 8);
+            primary1 = (uint8_t)(order >>= 8);
 
             if(notIsContinuation) {
               if(scriptOrder != NULL) {
@@ -2960,7 +3055,14 @@ ucol_calcSortKey(const    UCollator    *coll,
               }
             }
 
-            if(shifted && ((notIsContinuation && order < variableMax && primary1 > 0)
+
+            /* In the code below, every increase in any of buffers is followed by the increase to  */
+            /* sortKeySize - this might look tedious, but it is needed so that we can find out if  */
+            /* we're using too much space and need to reallocate the primary buffer or easily bail */
+            /* out to ucol_getSortKeySizeNew.                                                      */
+
+            if(shifted && ((notIsContinuation && primary1 <= variableMax1 && primary1 > 0
+              && (primary1 < variableMax1 || primary1 == variableMax1 && primary2 < variableMax2))
               || (!notIsContinuation && wasShifted))) {
               if(count4 > 0) {
                 while (count4 >= UCOL_BOT_COUNT4) {
@@ -2972,7 +3074,7 @@ ucol_calcSortKey(const    UCollator    *coll,
               }
               /* We are dealing with a variable and we're treating them as shifted */
               /* This is a shifted ignorable */
-              if(primary1 != 0) { /* we need to check this since we could be in continuation */
+              if(primary1 != 0) {
                 *quads++ = primary1;
               }
               if(primary2 != 0) {
@@ -2983,7 +3085,8 @@ ucol_calcSortKey(const    UCollator    *coll,
               wasShifted = FALSE;
               /* Note: This code assumes that the table is well built i.e. not having 0 bytes where they are not supposed to be. */
               /* Usually, we'll have non-zero primary1 & primary2, except in cases of LatinOne and friends, when primary2 will   */
-              /* regular and simple sortkey calc */
+#ifdef UCOL_PRIM_COMPRESSION
+/* regular and simple sortkey calc */
               if(primary1 != UCOL_IGNORABLE) {
                 if(notIsContinuation) {
                   if(leadPrimary == primary1) {
@@ -3014,6 +3117,14 @@ ucol_calcSortKey(const    UCollator    *coll,
                   }
                 }
               }
+#else
+              if(primary1 != UCOL_IGNORABLE) {
+                *primaries++ = primary1; /* scriptOrder[primary1]; */ /* This is the script ordering thingie */
+                if(primary2 != UCOL_IGNORABLE) {
+                  *primaries++ = primary2; /* second part */
+                }
+              }
+#endif
 
             if(secondary > compareSec) {
               if(!isFrenchSec) {
@@ -3044,23 +3155,27 @@ ucol_calcSortKey(const    UCollator    *coll,
                   /* Do the special handling for French secondaries */
                   /* We need to get continuation elements and do intermediate restore */
                   /* abc1c2c3de with french secondaries need to be edc1c2c3ba NOT edc3c2c1ba */
-                  if(notIsContinuation) { 
-                    if (frenchStartPtr != NULL) {
-                        /* reverse secondaries from frenchStartPtr up to frenchEndPtr */
-                      uprv_ucol_reverse_buffer(uint8_t, frenchStartPtr, frenchEndPtr);
-                      frenchStartPtr = NULL;
-                    }
-                  } else {
+                  if(!notIsContinuation) {
                     if (frenchStartPtr == NULL) {
                       frenchStartPtr = secondaries - 2;
                     }
                     frenchEndPtr = secondaries-1;
-                  } 
+                  } else if (frenchStartPtr != NULL) {
+                      /* reverse secondaries from frenchStartPtr up to frenchEndPtr */
+                    uprv_ucol_reverse_buffer(uint8_t, frenchStartPtr, frenchEndPtr);
+                    frenchStartPtr = NULL;
+                  }
                 }
               }
 
               if(doCase) {
                 doCaseShift(&cases, caseShift);
+/*
+                if (caseShift  == 0) {
+                  *cases++ = UCOL_CASE_BYTE_START;
+                  caseShift = UCOL_CASE_SHIFT_START;
+                }
+*/
                 if(notIsContinuation) {
                   caseBits = (tertiary & 0xC0);
 
@@ -3284,18 +3399,41 @@ ucol_calcSortKey(const    UCollator    *coll,
         }
 
         if(compareIdent) {
+          const UChar *ident = s.string;
           *(primaries++) = UCOL_LEVELTERMINATOR;
-          sortKeySize += u_lengthOfIdenticalLevelRun(s.string, len);
-          if(sortKeySize <= resultLength) {
-            primaries += u_writeIdenticalLevelRun(s.string, len, primaries);
-          } else {
-            if(allocatePrimary == TRUE) {
-              primStart = reallocateBuffer(&primaries, *result, prim, &resultLength, sortKeySize, status);
-              *result = primStart;
-              u_writeIdenticalLevelRun(s.string, len, primaries);
-            } else {
-              *status = U_MEMORY_ALLOCATION_ERROR;
-            }
+          primarySafeEnd -= 2; /* since we can have up to four bytes encoded */
+          /*
+           * encode the code points of a string as
+           * a sequence of byte-encoded differences (slope detection),
+           * preserving lexical order
+           */
+
+          uint8_t *p0;
+          int32_t c, prev;
+
+          /*
+           * Set prev to U+0050 so that an initial ASCII character needs only
+           * a single byte, and initial characters up to Myanmar need only
+           * two bytes.
+           */
+          prev=0x50;
+
+          int32_t i=0;
+          while(i<len) {
+              p0=primaries;
+              UTF_NEXT_CHAR(ident, i, len, c);
+              primaries = u_writeDiff(c-prev, primaries);
+              prev=c;
+              if(primaries > primarySafeEnd) {
+                if(allocatePrimary == TRUE) {
+                  primStart = reallocateBuffer(&primaries, *result, prim, &resultLength, 2*sortKeySize, status);
+                  *result = primStart;
+                  primarySafeEnd = primaries + resultLength - 4;
+                } else {
+                  *status = U_MEMORY_ALLOCATION_ERROR;
+                }
+              }
+              sortKeySize += primaries - p0;
           }
         }
 
@@ -3401,6 +3539,7 @@ ucol_calcSortKeySimpleTertiary(const    UCollator    *coll,
     uint8_t *terStart = tertiaries;
 
     uint32_t order = 0;
+    uint32_t ce = 0;
 
     uint8_t primary1 = 0;
     uint8_t primary2 = 0;
@@ -3427,7 +3566,7 @@ ucol_calcSortKeySimpleTertiary(const    UCollator    *coll,
 
             order = ucol_IGetNextCE(coll, &s, status);
 
-            if(order == 0) {
+            if(isCEIgnorable(order)) {
               continue;
             }
 
@@ -3436,7 +3575,9 @@ ucol_calcSortKeySimpleTertiary(const    UCollator    *coll,
                 break;
             }
 
-            notIsContinuation = !isContinuation(order);
+            /* We're saving order in ce, since we will destroy order in order to get primary, secondary, tertiary in order ;)*/
+            ce = order;
+            notIsContinuation = !isContinuation(ce);
 
             if(notIsContinuation) {
               tertiary = (uint8_t)((order & tertiaryMask));
@@ -3445,12 +3586,13 @@ ucol_calcSortKeySimpleTertiary(const    UCollator    *coll,
             }
             secondary = (uint8_t)((order >>= 8) & UCOL_BYTE_SIZE_MASK);
             primary2 = (uint8_t)((order >>= 8) & UCOL_BYTE_SIZE_MASK);
-            primary1 = (uint8_t)(order >> 8);
+            primary1 = (uint8_t)(order >>= 8);
 
             /* Note: This code assumes that the table is well built i.e. not having 0 bytes where they are not supposed to be. */
             /* Usually, we'll have non-zero primary1 & primary2, except in cases of LatinOne and friends, when primary2 will   */
             /* be zero with non zero primary1. primary3 is different than 0 only for long primaries - see above.               */
-            /* regular and simple sortkey calc */
+#ifdef UCOL_PRIM_COMPRESSION
+/* regular and simple sortkey calc */
             if(primary1 != UCOL_IGNORABLE) {
               if(notIsContinuation) {
                 if(leadPrimary == primary1) {
@@ -3481,8 +3623,16 @@ ucol_calcSortKeySimpleTertiary(const    UCollator    *coll,
                 }
               }
             }
+#else
+            if(primary1 != UCOL_IGNORABLE) {
+              *primaries++ = primary1; /* scriptOrder[primary1]; */ /* This is the script ordering thingie */
+              if(primary2 != UCOL_IGNORABLE) {
+                *primaries++ = primary2; /* second part */
+              }
+            }
+#endif
 
-            if(secondary > 0) { /* I think that != 0 test should be != IGNORABLE */
+              if(secondary > 0) { /* I think that != 0 test should be != IGNORABLE */
               /* This is compression code. */
               if (secondary == UCOL_COMMON2 && notIsContinuation) {
                 ++count2;
@@ -3753,7 +3903,7 @@ void ucol_updateInternalState(UCollator *coll) {
 
       /* Set the compression values */
       uint8_t tertiaryTotal = coll->tertiaryTop - UCOL_COMMON_BOT3-1;
-      coll->tertiaryTopCount = (uint8_t)(UCOL_PROPORTION3*tertiaryTotal); /* we multilply double with int, but need only int */
+      coll->tertiaryTopCount = UCOL_PROPORTION3*tertiaryTotal;
       coll->tertiaryBottomCount = tertiaryTotal - coll->tertiaryTopCount;
 
       if(coll->caseLevel == UCOL_OFF && coll->strength == UCOL_TERTIARY
@@ -4155,10 +4305,10 @@ u_strncmpCodePointOrder(const UChar *s1, const UChar *s2, int32_t     n) {
 UCollationResult    ucol_checkIdent(collIterate *sColl, collIterate *tColl, UBool normalize)
 {
     int32_t            comparison;
-    int32_t          sLen        = (sColl->flags & UCOL_ITER_HASLEN) ? sColl->endp - sColl->string : -1;
+    uint32_t          sLen        = (sColl->flags & UCOL_ITER_HASLEN) ? sColl->endp - sColl->string : -1;
     UChar            *sBuf        = sColl->string;
 
-    int32_t          tLen        = (tColl->flags & UCOL_ITER_HASLEN) ? tColl->endp - tColl->string : -1;
+    uint32_t          tLen        = (tColl->flags & UCOL_ITER_HASLEN) ? tColl->endp - tColl->string : -1;
     UChar            *tBuf        = tColl->string;
 //    uint32_t          compLen     = 0;
     uint32_t          normLength;
@@ -4834,6 +4984,84 @@ U_CAPI UCollationResult ucol_strcollinc(const UCollator *coll,
 
     init_incrementalContext(coll, source, sourceContext, &sColl);
     init_incrementalContext(coll, target, targetContext, &tColl);
+
+#if 0
+    /* This is Andy's fast preparatory scan */
+    /* It's good to have it - once the regular function is working */
+    /* Scan the strings.  Find:                                                             */
+    /*    their length, if not given by caller                                              */
+    /*    The length of any leading portion that is equal                                   */
+    /*    Whether they are exactly equal.  (in which case we just return                    */
+    const UChar    *pSrc    = source;
+    const UChar    *pTarg   = target;
+
+    const UChar    *pSrcEnd = source + sourceLength;
+    const UChar    *pTargEnd = target + targetLength;
+
+    int32_t        equalLength = 0;
+
+    // Scan while the strings are bitwise ==, or until one is exhausted.
+    for (;;) {
+        if (pSrc == pSrcEnd || pTarg == pTargEnd)
+            break;
+        if (*pSrc != *pTarg)
+            break;
+        if (*pSrc == 0 && (sourceLength == -1 || targetLength == -1))
+            break;
+        equalLength++;
+        pSrc++;
+        pTarg++;
+    }
+
+    // If we made it all the way through both strings, we are done.  They are ==
+    if ((pSrc ==pSrcEnd  || (pSrcEnd <pSrc  && *pSrc==0))  &&   /* At end of src string, however it was specified. */
+        (pTarg==pTargEnd || (pTargEnd<pTarg && *pTarg==0)))     /* and also at end of dest string                  */
+        return UCOL_EQUAL;
+
+    // If we don't know the length of the src string, continue scanning it to get the length..
+    if (sourceLength == -1) {
+        while (*pSrc != 0 ) {
+            pSrc++;
+        }
+        sourceLength = pSrc - source;
+    }
+
+    // If we don't know the length of the targ string, continue scanning it to get the length..
+    if (targetLength == -1) {
+        while (*pTarg != 0 ) {
+            pTarg++;
+        }
+        targetLength = pTarg - target;
+    }
+
+
+    if (equalLength > 2) {
+        /* There is an identical portion at the beginning of the two strings.        */
+        /*   If the identical portion ends within a contraction or a comibining      */
+        /*   character sequence, back up to the start of that sequence.              */
+        pSrc  = source + equalLength;        /* point to the first differing chars   */
+        pTarg = target + equalLength;
+        if (pSrc  != source+sourceLength && ucol_unsafeCP(*pSrc, coll) ||
+            pTarg != target+targetLength && ucol_unsafeCP(*pTarg, coll))
+        {
+            // We are stopped in the middle of a contraction.
+            // Scan backwards through the == part of the string looking for the start of the contraction.
+            //   It doesn't matter which string we scan, since they are the same in this region.
+            do
+            {
+                equalLength--;
+                pSrc--;
+            }
+            while (equalLength>0 && ucol_unsafeCP(*pSrc, coll));
+        }
+
+        source += equalLength;
+        target += equalLength;
+        sourceLength -= equalLength;
+        targetLength -= equalLength;
+    }
+
+#endif
 
     UCollationResult result = UCOL_EQUAL;
     UErrorCode status = U_ZERO_ERROR;
