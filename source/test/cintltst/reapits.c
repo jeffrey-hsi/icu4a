@@ -68,7 +68,7 @@ void addURegexTest(TestNode** root)
 }
 
 
-static void TestRegexCAPI(void) {
+void TestRegexCAPI(void) {
     UErrorCode           status = U_ZERO_ERROR;
     URegularExpression  *re;
     UChar                pat[200];

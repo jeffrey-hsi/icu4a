@@ -38,7 +38,7 @@
 #include "unicode/utypes.h"
 #include "unicode/uversion.h"
 #include "unicode/ulocdata.h"
-#include "unicode/parseerr.h" /* may not be included with some uconfig switches */
+
 #define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
 static void TestNullDefault(void);
@@ -1606,13 +1606,11 @@ TestKeyInRootRecursive(UResourceBundle *root, const char *rootName,
                  * unique.
                  */
                 int32_t i,j;
-#if !UCONFIG_NO_FORMATTING
                 if (len != UDAT_FIELD_COUNT) {
                     log_err("key \"%s\" has the wrong number of characters in locale \"%s\"\n",
                             subBundleKey,
                             locale);
                 }
-#endif
                 /* Check char validity. */
                 for (i=0; i<len; ++i) {
                     if (!((string[i] >= 65/*'A'*/ && string[i] <= 90/*'Z'*/) ||
@@ -2068,10 +2066,6 @@ findSetMatch( UScriptCode *scriptCodes, int32_t scriptsLen,
             break;
         }
         pattern[2] = 0; 
-    }
-    if (strcmp(locale, "uk") == 0 || strcmp(locale, "uk_UA") == 0) {
-        /* Special addition. Add the modifying apostrophe, which isn't in Cyrillic. */
-        uset_add(scripts[0], 0x2bc);
     }
     if(U_SUCCESS(status)){
         UBool existsInScript = FALSE;
