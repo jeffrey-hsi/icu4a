@@ -71,11 +71,8 @@ ctest_pathnameInContext( char* fullname, int32_t maxsize, const char* relPath )
         }
         mainDir=mainDirBuffer;
         sepChar = '\\';
-    #elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX)
-        char mainDirBuffer[200];
-        strcpy(mainDirBuffer, u_getDataDirectory());
-        strcat(mainDirBuffer, "/../");
-        mainDir = mainDirBuffer;
+#elif defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX)
+        mainDir = getenv("HOME");
         sepChar = '/';
     
 #elif defined(XP_MAC)
@@ -113,11 +110,7 @@ ctest_getTestDirectory()
 {
     if (_testDirectory == NULL) 
     {
-#if defined(_AIX) || defined(SOLARIS) || defined(LINUX) || defined(HPUX) || defined(POSIX)
-        ctest_setTestDirectory("source|test|testdata|");
-#else
-        ctest_setTestDirectory("icu|source|test|testdata|");
-#endif
+      ctest_setTestDirectory("icu|source|test|testdata|");
     }
     return _testDirectory;
 }

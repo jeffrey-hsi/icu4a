@@ -155,7 +155,12 @@ Transliterator& Transliterator::operator=(const Transliterator& other) {
 int32_t Transliterator::transliterate(Replaceable& text,
                                       int32_t start, int32_t limit) const {
 
-    Position offsets(start, limit);
+    Position offsets; /* Broken HPUX compiler cannot handle this */
+
+    offsets.start  = start;
+    offsets.limit  = limit;
+    offsets.cursor = start;
+
     handleTransliterate(text, offsets, FALSE);
     return offsets.limit;
 }
@@ -466,19 +471,6 @@ UnicodeString& Transliterator::getDisplayName(const UnicodeString& ID,
  */
 const UnicodeFilter* Transliterator::getFilter(void) const {
     return filter;
-}
-
-/**
- * Returns the filter used by this transliterator, or
- * <tt>NULL</tt> if this transliterator uses no filter.  The
- * caller must eventually delete the result.  After this call,
- * this transliterator's filter is set to <tt>NULL</tt>.
- */
-UnicodeFilter* Transliterator::orphanFilter(void) {
-    UnicodeFilter *result = filter;
-    // MUST go through adoptFilter in case latter is overridden
-    adoptFilter(0);
-    return result;
 }
 
 /**

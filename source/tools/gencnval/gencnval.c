@@ -93,7 +93,7 @@ compareConverters(const void *converter1, const void *converter2);
 extern int
 main(int argc, char *argv[]) {
     char line[512];
-    const char *path, *arg, *convfile = 0;
+    const char *path, *arg;
     FileStream *in;
     UNewDataMemory *out;
     char *s;
@@ -119,24 +119,16 @@ main(int argc, char *argv[]) {
                 exit(-1);
                 break;
             }
-        } else if (!convfile) {
-	    convfile = arg;
-	} else {
-	   usage(argv[0]);
- 	}
+        }
     }
 
-    if (convfile) {
-	path = convfile;
+    path=u_getDataDirectory();
+    if(path!=NULL) {
+        uprv_strcpy(line, path);
+        uprv_strcat(line, "convrtrs.txt");
+        path=line;
     } else {
-        path=u_getDataDirectory();
-        if(path!=NULL) {
-            uprv_strcpy(line, path);
-            uprv_strcat(line, "convrtrs.txt");
-            path=line;
-        } else {
-            path="convrtrs.txt";
-        }
+        path="convrtrs.txt";
     }
     in=T_FileStream_open(path, "r");
     if(in==NULL) {
@@ -207,7 +199,7 @@ main(int argc, char *argv[]) {
 static void
 usage(char *progname) {
     fprintf(stderr,
-        "usage: %s [-c[+|-]] [convrtrs.txt]\n"
+        "usage: %s [-c[+|-]]\n"
         "\tread convrtrs.txt and create " DATA_NAME "." DATA_TYPE "\n"
         "\t\t-c[+|-]  do (not) include a copyright notice\n",
         progname);
