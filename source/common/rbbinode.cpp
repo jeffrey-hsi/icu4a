@@ -15,10 +15,6 @@
 //         Code using it is expected to directly access fields much of the time.
 //
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/unistr.h"
 #include "unicode/uniset.h"
 #include "unicode/uchar.h"
@@ -33,6 +29,8 @@
 
 U_NAMESPACE_BEGIN
 
+const char RBBINode::fgClassID=0;
+
 int  RBBINode::gLastSerial = 0;
 
 
@@ -42,7 +40,7 @@ int  RBBINode::gLastSerial = 0;
 //    Constructor.   Just set the fields to reasonable default values.
 //
 //-------------------------------------------------------------------------
-RBBINode::RBBINode(NodeType t) : UMemory() {
+RBBINode::RBBINode(NodeType t) : UObject() {
     fSerialNum    = ++gLastSerial;
     fType         = t;
     fParent       = NULL;
@@ -68,7 +66,7 @@ RBBINode::RBBINode(NodeType t) : UMemory() {
 };
 
 
-RBBINode::RBBINode(const RBBINode &other) : UMemory(other) {
+RBBINode::RBBINode(const RBBINode &other) : UObject(other) {
     fSerialNum   = ++gLastSerial;
     fType        = other.fType;
     fParent      = NULL;
@@ -107,6 +105,11 @@ RBBINode::~RBBINode() {
     case setRef:
         // for these node types, multiple instances point to the same "children"
         // Storage ownership of children handled elsewhere.  Don't delete here.
+        break;
+
+    case uset:
+        delete fLeftChild;
+        // For usets, don't delete the right child; it's used to form a linked list of usets.
         break;
 
     default:
@@ -164,22 +167,14 @@ RBBINode *RBBINode::cloneTree() {
 //                      references with a copy of the variable's definition.
 //                      Aside from variables, the tree is not changed.
 //
-//                      Return the root of the tree.  If the root was not a variable
-//                      reference, it remains unchanged - the root we started with
-//                      is the root we return.  If, however, the root was a variable
-//                      reference, the root of the newly cloned replacement tree will
-//                      be returned.
-//
 //                      This function works by recursively walking the tree
 //                      without doing anything until a variable reference is
 //                      found, then calling cloneTree() at that point.  Any
 //                      nested references are handled by cloneTree(), not here.
 //
 //-------------------------------------------------------------------------
-RBBINode *RBBINode::flattenVariables() {
-    if (fType == varRef) {
-        return fLeftChild->cloneTree();
-    }
+void RBBINode::flattenVariables() {
+    U_ASSERT(fType != varRef);
 
     if (fLeftChild != NULL) {
         if (fLeftChild->fType==varRef) {
@@ -191,7 +186,7 @@ RBBINode *RBBINode::flattenVariables() {
             fLeftChild->flattenVariables();
         }
     }
-    
+
     if (fRightChild != NULL) {
         if (fRightChild->fType==varRef) {
             RBBINode *oldChild   = fRightChild;
@@ -202,7 +197,6 @@ RBBINode *RBBINode::flattenVariables() {
             fRightChild->flattenVariables();
         }
     }
-    return this;
 }
 
 
@@ -264,7 +258,7 @@ void   RBBINode::findNodes(UVector *dest, RBBINode::NodeType kind, UErrorCode &s
     if (fLeftChild != NULL) {
         fLeftChild->findNodes(dest, kind, status);
     }
-    if (fRightChild != NULL) {
+    if (fRightChild !=NULL && fType != RBBINode::uset) {
         fRightChild->findNodes(dest, kind, status);
     }
 }
@@ -275,7 +269,7 @@ void   RBBINode::findNodes(UVector *dest, RBBINode::NodeType kind, UErrorCode &s
 //    print.         Print out a single node, for debugging.
 //
 //-------------------------------------------------------------------------
-static const char * const nodeTypeNames[] = {
+static const char *nodeTypeNames[] = {
             "setRef",
             "uset",
             "varRef",
@@ -337,7 +331,9 @@ void RBBINode::printTree(UBool printHeading, UBool doVars) {
             fLeftChild->printTree(FALSE);
         }
 
-        if (fRightChild != NULL) {
+        // Note:  The right child field of uset nodes is borrowed to link them into a list
+        //        They are actually a leaf node as far as the tree is concerned.
+        if (fRightChild != NULL  && this->fType != RBBINode::uset) {
             fRightChild->printTree(FALSE);
         }
     }
@@ -347,4 +343,4 @@ void RBBINode::printTree(UBool printHeading, UBool doVars) {
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
+

@@ -120,9 +120,9 @@ static const ResourceData *getFallbackData(const UResourceBundle* resBundle, con
         if(*res != RES_BOGUS) { /* If the resource is found in parents, we need to adjust the error */
             if(i>1) {
                 if(uprv_strcmp(resB->fName, uloc_getDefault())==0 || uprv_strcmp(resB->fName, kRootLocaleName)==0) {
-                    *status = U_USING_DEFAULT_WARNING;
+                    *status = U_USING_DEFAULT_ERROR;
                 } else {
-                    *status = U_USING_FALLBACK_WARNING;
+                    *status = U_USING_FALLBACK_ERROR;
                 }
             }
             *realData = resB;
@@ -316,8 +316,8 @@ static UResourceDataEntry *init_entry(const char *localeID, const char *path, UE
 
         if (result == FALSE || U_FAILURE(*status)) { 
             /* we have no such entry in dll, so it will always use fallback */
-            *status = U_USING_FALLBACK_WARNING;
-            r->fBogus = U_USING_FALLBACK_WARNING;
+            *status = U_USING_FALLBACK_ERROR;
+            r->fBogus = U_USING_FALLBACK_ERROR;
         } else { /* if we have a regular entry */
             /* We might be able to do this a wee bit more efficiently (we could check whether the aliased data) */
             /* is already in the cache), but it's good the way it is */
@@ -332,8 +332,8 @@ static UResourceDataEntry *init_entry(const char *localeID, const char *path, UE
                 result = res_load(&(r->fData), r->fPath, aliasName, status);
                 if (result == FALSE || U_FAILURE(*status)) { 
                     /* we couldn't load aliased data - so we have no data */
-                    *status = U_USING_FALLBACK_WARNING;
-                    r->fBogus = U_USING_FALLBACK_WARNING;
+                    *status = U_USING_FALLBACK_ERROR;
+                    r->fBogus = U_USING_FALLBACK_ERROR;
                 }
                 setEntryName(r, aliasName, status);
             }
@@ -383,7 +383,7 @@ static UResourceDataEntry *findFirstExisting(const char* path, char* name, UBool
       r->fCountExisting--;
       /*entryCloseInt(r);*/
       r = NULL;
-      *status = U_USING_FALLBACK_WARNING;
+      *status = U_USING_FALLBACK_ERROR;
     } else {
       uprv_strcpy(name, r->fName); /* this is needed for supporting aliases */
     }
@@ -438,7 +438,7 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
           /* insert default locale */
           uprv_strcpy(name, uloc_getDefault());
           r = findFirstExisting(path, name, &isRoot, &hasChopped, &isDefault, &intStatus);
-          intStatus = U_USING_DEFAULT_WARNING;
+          intStatus = U_USING_DEFAULT_ERROR;
           if(r != NULL) { /* the default locale exists */
             t1 = r;
             hasRealData = TRUE;
@@ -460,7 +460,7 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
         r = findFirstExisting(path, name, &isRoot, &hasChopped, &isDefault, &intStatus);
         if(r != NULL) {
           t1 = r;
-          intStatus = U_USING_DEFAULT_WARNING;
+          intStatus = U_USING_DEFAULT_ERROR;
           hasRealData = TRUE;
         } else { /* we don't even have the root locale */
           *status = U_MISSING_RESOURCE_ERROR;
@@ -469,7 +469,7 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
           /* insert root locale */
           t2 = init_entry(kRootLocaleName, r->fPath, status);
           if(!hasRealData) {
-            r->fBogus = U_USING_DEFAULT_WARNING;
+            r->fBogus = U_USING_DEFAULT_ERROR;
           }
           hasRealData = (UBool)((t2->fBogus == U_ZERO_ERROR) | hasRealData);
           t1->fParent = t2;
@@ -544,66 +544,65 @@ static UResourceBundle *init_resb_result(const ResourceData *rdata, Resource r,
           {
             /* got almost everything, let's try to open */
             /* first, open the bundle with real data */
-            UResourceBundle *result = resB;
-            const char* temp = NULL;
             UResourceBundle *mainRes = ures_openDirect(path, locale, status); 
-            if(U_SUCCESS(*status)) {
-              if(keyPath == NULL) {
-                /* no key path. This means that we are going to 
-                 * to use the corresponding resource from
-                 * another bundle
-                 */
-                /* first, we are going to get a corresponding parent 
-                 * resource to the one we are searching.
-                 */
-                const char* aKey = parent->fResPath;
-                if(aKey) {
-                  r = res_findResource(&(mainRes->fResData), mainRes->fRes, &aKey, &temp);
-                } else {
-                  r = mainRes->fRes;
-                }
-                if(key) {
-                /* we need to make keyPath from parents fResPath and 
-                 * current key, if there is a key associated
-                 */
-                  aKey = key;
-                  r = res_findResource(&(mainRes->fResData), r, &aKey, &temp);
-                } else if(index != -1) {
-                /* if there is no key, but there is an index, try to get by the index */
-                /* here we have either a table or an array, so get the element */
-                  if(RES_GET_TYPE(r) == RES_TABLE) {
-                    r = res_getTableItemByIndex(&(mainRes->fResData), r, index, &aKey);
-                  } else { /* array */
-                    r = res_getArrayItem(&(mainRes->fResData), r, index);
-                  }
-                }
-                if(r != RES_BOGUS) {
-                  result = init_resb_result(&(mainRes->fResData), r, key, -1, mainRes->fData, parent, noAlias+1, resB, status);
-                } else {
-                  *status = U_MISSING_RESOURCE_ERROR;
-                  result = resB;
-                }
+            UResourceBundle *result = NULL;
+            const char* temp = NULL;
+
+            if(keyPath == NULL) {
+              /* no key path. This means that we are going to 
+               * to use the corresponding resource from
+               * another bundle
+               */
+              /* first, we are going to get a corresponding parent 
+               * resource to the one we are searching.
+               */
+              const char* aKey = parent->fResPath;
+              if(aKey) {
+                r = res_findResource(&(mainRes->fResData), mainRes->fRes, &aKey, &temp);
               } else {
-                /* this one is a bit trickier. 
-                 * we start finding keys, but after we resolve one alias, the path might continue.
-                 * Consider: 
-                 *     aliastest:alias { "testtypes/anotheralias/Sequence" }
-                 *     anotheralias:alias { "/ICUDATA/sh/CollationElements" }
-                 * aliastest resource should finally have the sequence, not collation elements.
-                 */
-                result = mainRes;
-                while(*keyPath && U_SUCCESS(*status)) {
-                  r = res_findResource(&(result->fResData), result->fRes, (const char**)&keyPath, &temp);
-                  if(r == RES_BOGUS) {
-                    *status = U_MISSING_RESOURCE_ERROR;
-                    result = resB;
-                    break;
-                  }
-                  resB = init_resb_result(&(result->fResData), r, key, -1, result->fData, parent, noAlias+1, resB, status);
-                  result = resB;
+                r = mainRes->fRes;
+              }
+              if(key) {
+              /* we need to make keyPath from parents fResPath and 
+               * current key, if there is a key associated
+               */
+                aKey = key;
+                r = res_findResource(&(mainRes->fResData), r, &aKey, &temp);
+              } else if(index != -1) {
+              /* if there is no key, but there is an index, try to get by the index */
+              /* here we have either a table or an array, so get the element */
+                if(RES_GET_TYPE(r) == RES_TABLE) {
+                  r = res_getTableItemByIndex(&(mainRes->fResData), r, index, &aKey);
+                } else { /* array */
+                  r = res_getArrayItem(&(mainRes->fResData), r, index);
                 }
               }
-            }
+              if(r != RES_BOGUS) {
+                result = init_resb_result(&(mainRes->fResData), r, key, -1, mainRes->fData, parent, noAlias+1, resB, status);
+              } else {
+                *status = U_MISSING_RESOURCE_ERROR;
+                result = resB;
+              }
+            } else {
+              /* this one is a bit trickier. 
+               * we start finding keys, but after we resolve one alias, the path might continue.
+               * Consider: 
+               *     aliastest:alias { "testtypes/anotheralias/Sequence" }
+               *     anotheralias:alias { "/ICUDATA/sh/CollationElements" }
+               * aliastest resource should finally have the sequence, not collation elements.
+               */
+              result = mainRes;
+              while(*keyPath) {
+                r = res_findResource(&(result->fResData), result->fRes, (const char**)&keyPath, &temp);
+                if(r == RES_BOGUS) {
+                  *status = U_MISSING_RESOURCE_ERROR;
+                  result = resB;
+                  break;
+                }
+                resB = init_resb_result(&(result->fResData), r, key, -1, result->fData, parent, noAlias+1, resB, status);
+                result = resB;
+              }
+          }
             uprv_free(chAlias);
             ures_close(mainRes);
             return result;
@@ -1471,7 +1470,6 @@ ures_open(const char* path,
     return r;
 }
 
-#ifdef ICU_URES_USE_DEPRECATES
 U_CAPI UResourceBundle*  U_EXPORT2
 ures_openW(const wchar_t* myPath,
                     const char* localeID,
@@ -1499,7 +1497,6 @@ ures_openW(const wchar_t* myPath,
 
     return r;
 }
-#endif /* ICU_URES_USE_DEPRECATES */
 
 
 U_CAPI UResourceBundle* U_EXPORT2 ures_openU(const UChar* myPath, 

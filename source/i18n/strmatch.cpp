@@ -6,10 +6,6 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "strmatch.h"
 #include "rbt_data.h"
 #include "util.h"
@@ -279,7 +275,5 @@ void StringMatcher::setData(const TransliterationRuleData* d) {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 //eof

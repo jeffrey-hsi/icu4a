@@ -89,7 +89,7 @@ char convertersToCheck[][15] = {
       "cp13488",*/
   "cpibm4971",
   "cp869",
-  /* "cp813",*/
+  "cp813",
   "cp852",
   "cp855",
   "cp866",
@@ -124,7 +124,7 @@ void TestEuroRegression()
         UErrorCode err = U_ZERO_ERROR;
         UConverter* myConv =  ucnv_open(convertersToCheck[i], &err);
         if (U_FAILURE(err)&&convertersToCheck[i][0])
-            log_data_err("%s  \tMISSING [%s]\n", convertersToCheck[i], u_errorName(err));
+            log_err("%s  \tMISSING [%s]\n", convertersToCheck[i], u_errorName(err));
         else 
         {
             if (isEuroAware(myConv))

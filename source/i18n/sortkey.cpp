@@ -27,10 +27,6 @@
 //                             than the other
 //===============================================================================
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/sortkey.h"
 #include "cmemory.h"
 #include "uhash.h"
@@ -341,5 +337,3 @@ CollationKey::hashCode() const
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */

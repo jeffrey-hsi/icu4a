@@ -17,9 +17,6 @@
 
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/uobject.h"
 #include "unicode/unistr.h"
 
@@ -324,8 +321,6 @@ inline UnicodeString& Formattable::getString(void) {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif //_FMTABLE
 //eof

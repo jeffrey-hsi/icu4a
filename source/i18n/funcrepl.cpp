@@ -7,11 +7,6 @@
 *   02/04/2002  aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "unicode/uniset.h"
 #include "funcrepl.h"
@@ -115,7 +110,5 @@ void FunctionReplacer::setData(const TransliterationRuleData* d) {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 //eof

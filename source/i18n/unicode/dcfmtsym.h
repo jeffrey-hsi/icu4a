@@ -26,9 +26,6 @@
 #define DCFMTSYM_H
  
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/uobject.h"
 #include "unicode/locid.h"
 
@@ -244,43 +241,7 @@ private:
 
     void setCurrencyForSymbols();
 
-public:
-    /**
-     * _Internal_ function - more efficient version of getSymbol,
-     * returning a const reference to one of the symbol strings.
-     * The returned reference becomes invalid when the symbol is changed
-     * or when the DecimalFormatSymbols are destroyed.
-     * ### TODO markus 2002oct11: Consider proposing getConstSymbol() to be really public.
-     *
-     * @param symbol Constant to indicate a number format symbol.
-     * @return the format symbol by the param 'symbol'
-     * @internal
-     */
-    inline const UnicodeString &getConstSymbol(ENumberFormatSymbol symbol) const;
-
-private:
-    /**
-     * Private symbol strings.
-     * They are either loaded from a resource bundle or otherwise owned.
-     * setSymbol() clones the symbol string.
-     * Readonly aliases can only come from a resource bundle, so that we can always
-     * use fastCopyFrom() with them.
-     *
-     * If DecimalFormatSymbols becomes subclassable and the status of fSymbols changes
-     * from private to protected,
-     * or when fSymbols can be set any other way that allows them to be readonly aliases
-     * to non-resource bundle strings,
-     * then regular UnicodeString copies must be used instead of fastCopyFrom().
-     *
-     * @internal
-     */
     UnicodeString fSymbols[kFormatSymbolCount];
-
-    /**
-     * Non-symbol variable for getConstSymbol(). Always empty.
-     * @internal
-     */
-    UnicodeString fNoSymbol;
 
     Locale locale;
 
@@ -306,15 +267,6 @@ DecimalFormatSymbols::getSymbol(ENumberFormatSymbol symbol) const {
     }
 }
 
-inline const UnicodeString &
-DecimalFormatSymbols::getConstSymbol(ENumberFormatSymbol symbol) const {
-    if(symbol<kFormatSymbolCount) {
-        return fSymbols[symbol];
-    } else {
-        return fNoSymbol;
-    }
-}
-
 // -------------------------------------
 
 /* TODO: This should use "const UnicodeString &value" */
@@ -334,8 +286,6 @@ DecimalFormatSymbols::getLocale() const {
 
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _DCFMTSYM
 //eof

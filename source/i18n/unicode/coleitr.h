@@ -28,9 +28,6 @@
 #define COLEITR_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/uobject.h"
 #include "unicode/tblcoll.h"
 #include "unicode/ucoleitr.h"
@@ -392,7 +389,5 @@ inline UBool CollationElementIterator::isIgnorable(int32_t order)
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

@@ -16,9 +16,6 @@
 */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/uchar.h"
 
 #include "sscanf.h"
@@ -324,7 +321,7 @@ u_vsscanf(const UChar   *buffer,
 
     /* convert from the default codepage to Unicode */
     pattern = ufmt_defaultCPToUnicode(patternSpecification,
-        strlen(patternSpecification)+1);
+        strlen(patternSpecification));
     if(pattern == 0) {
         return 0;
     }
@@ -1121,12 +1118,15 @@ u_sscanf_scanset_handler(u_localized_string    *input,
                          const UChar        *fmt,
                          int32_t            *consumed)
 {
-    u_scanf_scanset scanset;
-    int32_t         len;
-    UBool           success;
-    UChar           c;
-    UChar           *s     = (UChar*) (args[0].ptrValue);
-    UChar           *alias, *limit;
+    u_scanf_scanset    scanset;
+    int32_t        len;
+    UBool        success;
+    UChar            c;
+    const UChar         *source;
+    UConverter         *conv;
+    UErrorCode         status     = U_ZERO_ERROR;
+    char            *s     = (char*) (args[0].ptrValue);
+    char             *alias, *limit;
 
 
     /* determine the size of the stream's buffer */
@@ -1147,20 +1147,35 @@ u_sscanf_scanset_handler(u_localized_string    *input,
     /* increment consumed by one to eat the final ']' */
     ++(*consumed);
 
+    /* open the default converter */
+    conv = u_getDefaultConverter(&status);
+
     /* verify that the parse was successful and the converter opened */
-    if(! success)
+    if(! success || U_FAILURE(status))
         return -1;
 
     /* grab characters one at a time and make sure they are in the scanset */
     while( (c = input->str[input->pos++]) != U_EOF && alias < limit) {
         if(u_scanf_scanset_in(&scanset, c)) {
-            *(alias++) = c;
+            source = &c;
+            /* convert the character to the default codepage */
+            ucnv_fromUnicode(conv, &alias, limit, &source, source + 1,
+                NULL, TRUE, &status);
+
+            if(U_FAILURE(status)) {
+                /* clean up */
+                u_releaseDefaultConverter(conv);
+                return -1;
+            }
         }
+        /* if the character's not in the scanset, break out */
         else {
-            /* if the character's not in the scanset, break out */
             break;
         }
     }
+
+    /* clean up */
+    u_releaseDefaultConverter(conv);
 
     /* put the final character we read back on the stream */
     if(c != U_EOF)
@@ -1324,4 +1339,3 @@ u_vsscanf_u(const UChar    *buffer,
     return converted;
 }
 
-#endif /* #if !UCONFIG_NO_FORMATTING */

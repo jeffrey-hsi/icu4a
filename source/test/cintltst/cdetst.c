@@ -19,11 +19,7 @@
  */
 
 #include <stdlib.h>
-
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/ucol.h"
 #include "unicode/uloc.h"
 #include "cintltst.h"
@@ -108,7 +104,7 @@ static void TestTertiary( )
         return;
     }
     log_verbose("Testing German Collation with Tertiary strength\n");
-    ucol_setAttribute(myCollation, UCOL_NORMALIZATION_MODE, UCOL_ON, &status);
+    ucol_setNormalization(myCollation, UNORM_NFC);
     ucol_setStrength(myCollation, UCOL_TERTIARY);
     for (i = 0; i < 12 ; i++)
     {
@@ -135,5 +131,3 @@ static void TestPrimary()
     }
     ucol_close(myCollation);
 }
-
-#endif /* #if !UCONFIG_NO_COLLATION */

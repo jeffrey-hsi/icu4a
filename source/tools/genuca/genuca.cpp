@@ -23,42 +23,19 @@
 *   05/09/2001  weiv                    Case bits are now in the CEs, not in front
 */
 
-#include <stdio.h>
-#include "unicode/utypes.h"
-#include "unicode/udata.h"
-#include "ucol_imp.h"
 #include "genuca.h"
 #include "uoptions.h"
 #include "toolutil.h"
-#include "unewdata.h"
 #include "cstring.h"
+
 #include "cmemory.h"
+
+UCAElements le;
 
 /*
  * Global - verbosity
  */
 UBool VERBOSE = FALSE;
-
-#if UCONFIG_NO_COLLATION
-
-/* dummy UDataInfo cf. udata.h */
-static UDataInfo dummyDataInfo = {
-    sizeof(UDataInfo),
-    0,
-
-    U_IS_BIG_ENDIAN,
-    U_CHARSET_FAMILY,
-    U_SIZEOF_UCHAR,
-    0,
-
-    { 0, 0, 0, 0 },                 /* dummy dataFormat */
-    { 0, 0, 0, 0 },                 /* dummy formatVersion */
-    { 0, 0, 0, 0 }                  /* dummy dataVersion */
-};
-
-#else
-
-UCAElements le;
 
 int32_t readElement(char **from, char *to, char separator, UErrorCode *status) {
     if(U_FAILURE(*status)) {
@@ -916,8 +893,6 @@ struct {
     return 0;
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */
-
 static UOption options[]={
     UOPTION_HELP_H,              /* 0  Numbers for those who*/ 
     UOPTION_HELP_QUESTION_MARK,  /* 1   can't count. */
@@ -972,12 +947,7 @@ int main(int argc, char* argv[]) {
 
     if(options[3].doesOccur) {
       fprintf(stdout, "genuca version %hu.%hu, ICU tool to read UCA text data and create UCA data tables for collation.\n",
-#if UCONFIG_NO_COLLATION
-            0, 0
-#else
-            ucaDataInfo.formatVersion[0], ucaDataInfo.formatVersion[1]
-#endif
-            );
+            ucaDataInfo.formatVersion[0], ucaDataInfo.formatVersion[1]);
       fprintf(stdout, "Copyright (C) 2000-2001, International Business Machines\n");
       fprintf(stdout, "Corporation and others.  All Rights Reserved.\n");
         exit(0);
@@ -1018,33 +988,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 #endif 
-
-#if UCONFIG_NO_COLLATION
-
-    UNewDataMemory *pData;
-    const char *msg;
-    
-    msg = "genuca writes dummy " U_ICUDATA_NAME "_" UCA_DATA_NAME "." UCA_DATA_TYPE " because of UCONFIG_NO_COLLATION, see uconfig.h";
-    fprintf(stderr, "%s\n", msg);
-    pData = udata_create(destdir, UCA_DATA_TYPE, U_ICUDATA_NAME "_" UCA_DATA_NAME, &dummyDataInfo,
-                         NULL, &status);
-    udata_writeBlock(pData, msg, strlen(msg));
-    udata_finish(pData, &status);
-
-    msg = "genuca writes dummy " U_ICUDATA_NAME "_" INVC_DATA_NAME "." INVC_DATA_TYPE " because of UCONFIG_NO_COLLATION, see uconfig.h";
-    fprintf(stderr, "%s\n", msg);
-    pData = udata_create(destdir, INVC_DATA_TYPE, U_ICUDATA_NAME "_" INVC_DATA_NAME, &dummyDataInfo,
-                         NULL, &status);
-    udata_writeBlock(pData, msg, strlen(msg));
-    udata_finish(pData, &status);
-
-    return (int)status;
-
-#else
-
     return write_uca_table(filename, destdir, copyright, &status);
-
-#endif
 }
 
 /*

@@ -12,24 +12,18 @@
 *     Madhu Katragadda             Ported for C API
 *********************************************************************************
 *//* C API TEST For COLLATOR */
-
+#include <stdio.h>
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "ucol_imp.h"
 #include "unicode/uloc.h"
 #include "cintltst.h"
 #include "capitst.h"
 #include "unicode/ustring.h"
 #include "unicode/ures.h"
-#include "unicode/ucoleitr.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "ccolltst.h"
-#include <stdio.h>
 
-static void TestAttribute(void);
 
 void addCollAPITest(TestNode** root)
 {
@@ -48,9 +42,6 @@ void addCollAPITest(TestNode** root)
     addTest(root, &TestBounds, "tscoll/capitst/TestBounds");
     addTest(root, &TestGetLocale, "tscoll/capitst/TestGetLocale");    
     addTest(root, &TestSortKeyBufferOverrun, "tscoll/capitst/TestSortKeyBufferOverrun");
-    addTest(root, &TestAttribute, "tscoll/capitst/TestAttribute");
-    addTest(root, &TestGetTailoredSet, "tscoll/capitst/TestGetTailoredSet");
-
 }
 
 void TestGetSetAttr(void) {
@@ -187,7 +178,6 @@ void TestGetDefaultRules(){
 }
 #endif
 
-#ifdef U_USE_DEPRECATED_UCOL_API
 /*
  * Test ucol_openVersion for some locale. Called by TestProperty().
  */
@@ -217,7 +207,6 @@ TestOpenVersion(const char *locale) {
         }
     }
 }
-#endif
 
 /* Collator Properties
  ucol_open, ucol_strcoll,  getStrength/setStrength
@@ -300,13 +289,11 @@ void TestProperty()
     doAssert( (ucol_getStrength(col) != UCOL_PRIMARY), "collation object's strength is primary difference");
     doAssert( (ucol_getStrength(col) == UCOL_SECONDARY), "collation object has the wrong strength");
 
-#ifdef ICU_NORMALIZER_USE_DEPRECATES
     log_verbose("testing ucol_setDecomposition() method ...\n");
     ucol_setNormalization(col, UNORM_NONE);
     doAssert( (ucol_getNormalization(col) != UNORM_NFC), "collation object's normalization mode is Canonical decomposition followed by canonical composition");
     doAssert( (ucol_getNormalization(col) != UNORM_NFD), "collation object's normalization mode is canonical decomposition");
     doAssert( (ucol_getNormalization(col) == UNORM_NONE), "collation object has the wrong normalization mode");
-#endif
 
     
     log_verbose("Get display name for the default collation in German : \n");
@@ -381,7 +368,6 @@ void TestProperty()
     }
     log_verbose("Default collation getDisplayName ended.\n");
 
-#ifdef U_USE_DEPRECATED_UCOL_API
     /* test ucol_openVersion */
     TestOpenVersion("");
     TestOpenVersion("da");
@@ -398,7 +384,6 @@ void TestProperty()
         log_err("error: ucol_openVersion(bogus version) succeeded\n");
         ucol_close(col);
     }
-#endif
 }
 
 /* Test RuleBasedCollator and getRules*/
@@ -581,27 +566,6 @@ void TestDecomposition() {
         return;
     }
 
-    if (ucol_getAttribute(vi_VN, UCOL_NORMALIZATION_MODE, &status) != UCOL_ON ||
-        U_FAILURE(status))
-    {
-        log_err("ERROR: vi_VN collation did not have cannonical decomposition for normalization!\n");
-    }
-
-    status = U_ZERO_ERROR;
-    if (ucol_getAttribute(el_GR, UCOL_NORMALIZATION_MODE, &status) != UCOL_ON ||
-        U_FAILURE(status))
-    {
-        log_err("ERROR: el_GR collation did not have cannonical decomposition for normalization!\n");
-    }
-
-    status = U_ZERO_ERROR;
-    if (ucol_getAttribute(en_US, UCOL_NORMALIZATION_MODE, &status) != UCOL_OFF ||
-        U_FAILURE(status))
-    {
-        log_err("ERROR: en_US collation had cannonical decomposition for normalization!\n");
-    }
-
-#ifdef ICU_NORMALIZER_USE_DEPRECATES
     /* there is no reason to have canonical decomposition in en_US OR default locale */
     if(ucol_getNormalization(vi_VN) != UNORM_NFD)
       {
@@ -617,7 +581,6 @@ void TestDecomposition() {
       {
         log_err("ERROR: en_US collation had cannonical decomposition for normalization!\n");
       }
-#endif
 
     ucol_close(en_US);
     ucol_close(el_GR);
@@ -695,7 +658,7 @@ void TestSafeClone() {
     if (col) ucol_close(col);
     /* size one byte too small - should allocate & let us know */
     --bufferSize;
-    if (0 == (col = ucol_safeClone(someCollators[0], 0, &bufferSize, &err)) || err != U_SAFECLONE_ALLOCATED_WARNING)
+    if (0 == (col = ucol_safeClone(someCollators[0], 0, &bufferSize, &err)) || err != U_SAFECLONE_ALLOCATED_ERROR)
     {
         log_err("FAIL: Cloned Collator failed to deal correctly with too-small buffer size\n");
     }
@@ -705,7 +668,7 @@ void TestSafeClone() {
 
 
     /* Null buffer pointer - return Collator & set error to U_SAFECLONE_ALLOCATED_ERROR */
-    if (0 == (col = ucol_safeClone(someCollators[0], 0, &bufferSize, &err)) || err != U_SAFECLONE_ALLOCATED_WARNING)
+    if (0 == (col = ucol_safeClone(someCollators[0], 0, &bufferSize, &err)) || err != U_SAFECLONE_ALLOCATED_ERROR)
     {
         log_err("FAIL: Cloned Collator failed to deal correctly with null buffer pointer\n");
     }
@@ -958,7 +921,7 @@ void TestElemIter()
     UErrorCode status = U_ZERO_ERROR;
     log_verbose("testing UCollatorElements begins...\n");
     col = ucol_open("en_US", &status);
-    ucol_setAttribute(col, UCOL_NORMALIZATION_MODE, UCOL_OFF, &status);
+    ucol_setNormalization(col, UNORM_NONE);
     if (U_FAILURE(status)) {
         log_err("ERROR: Default collation creation failed.: %s\n", myErrorName(status));
         return;
@@ -1093,8 +1056,7 @@ void TestGetLocale() {
     const char* validLocale;
     const char* actualLocale;
   } testStruct[] = {
-    /* remove this case until I resolve the locale of aliased data */
-    /*{ "sr_YU", "sr_YU", "root" },*/
+    { "sr_YU", "sr_YU", "root" },
     { "sh_YU", "sh_YU", "sh" },
     { "en_US_CALIFORNIA", "en_US", "root" },
     { "fr_FR_NONEXISTANT", "fr_FR", "fr" }
@@ -1343,7 +1305,7 @@ void TestBounds() {
   ucol_close(coll);
 }
 
-static void doOverrunTest(UCollator *coll, const UChar *uString, int32_t strLen) {
+void doOverrunTest(UCollator *coll, const UChar *uString, int32_t strLen) {
   int32_t skLen = 0, skLen2 = 0;
   uint8_t sortKey[256];
   int32_t i, j;
@@ -1401,148 +1363,3 @@ void TestSortKeyBufferOverrun(void) {
   ucol_close(coll);
 }
 
-static void TestAttribute()
-{
-    UErrorCode error = U_ZERO_ERROR;
-    UCollator *coll = ucol_open(NULL, &error);
-
-    if (U_FAILURE(error)) {
-        log_err("Creation of default collator failed");
-        return;
-    }
-
-    ucol_setAttribute(coll, UCOL_FRENCH_COLLATION, UCOL_OFF, &error);
-    if (ucol_getAttribute(coll, UCOL_FRENCH_COLLATION, &error) != UCOL_OFF ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the french collation failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_FRENCH_COLLATION, UCOL_ON, &error);
-    if (ucol_getAttribute(coll, UCOL_FRENCH_COLLATION, &error) != UCOL_ON ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the french collation failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_ALTERNATE_HANDLING, UCOL_SHIFTED, &error);
-    if (ucol_getAttribute(coll, UCOL_ALTERNATE_HANDLING, &error) != UCOL_SHIFTED ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the alternate handling failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_ALTERNATE_HANDLING, UCOL_NON_IGNORABLE, &error);
-    if (ucol_getAttribute(coll, UCOL_ALTERNATE_HANDLING, &error) != UCOL_NON_IGNORABLE ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the alternate handling failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_CASE_FIRST, UCOL_LOWER_FIRST, &error);
-    if (ucol_getAttribute(coll, UCOL_CASE_FIRST, &error) != UCOL_LOWER_FIRST ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the case first attribute failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_CASE_FIRST, UCOL_UPPER_FIRST, &error);
-    if (ucol_getAttribute(coll, UCOL_CASE_FIRST, &error) != UCOL_UPPER_FIRST ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the case first attribute failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_CASE_LEVEL, UCOL_ON, &error);
-    if (ucol_getAttribute(coll, UCOL_CASE_LEVEL, &error) != UCOL_ON ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the case level attribute failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_CASE_LEVEL, UCOL_OFF, &error);
-    if (ucol_getAttribute(coll, UCOL_CASE_LEVEL, &error) != UCOL_OFF ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the case level attribute failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_NORMALIZATION_MODE, UCOL_ON, &error);
-    if (ucol_getAttribute(coll, UCOL_NORMALIZATION_MODE, &error) != UCOL_ON ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the normalization on/off attribute failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_NORMALIZATION_MODE, UCOL_OFF, &error);
-    if (ucol_getAttribute(coll, UCOL_NORMALIZATION_MODE, &error) != UCOL_OFF ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the normalization on/off attribute failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_STRENGTH, UCOL_PRIMARY, &error);
-    if (ucol_getAttribute(coll, UCOL_STRENGTH, &error) != UCOL_PRIMARY ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the collation strength failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_STRENGTH, UCOL_SECONDARY, &error);
-    if (ucol_getAttribute(coll, UCOL_STRENGTH, &error) != UCOL_SECONDARY ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the collation strength failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_STRENGTH, UCOL_TERTIARY, &error);
-    if (ucol_getAttribute(coll, UCOL_STRENGTH, &error) != UCOL_TERTIARY ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the collation strength failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_STRENGTH, UCOL_QUATERNARY, &error);
-    if (ucol_getAttribute(coll, UCOL_STRENGTH, &error) != UCOL_QUATERNARY ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the collation strength failed");
-    }
-
-    ucol_setAttribute(coll, UCOL_STRENGTH, UCOL_IDENTICAL, &error);
-    if (ucol_getAttribute(coll, UCOL_STRENGTH, &error) != UCOL_IDENTICAL ||
-        U_FAILURE(error)) {
-        log_err("Setting and retrieving of the collation strength failed");
-    }
-
-    ucol_close(coll);
-}
-
-void TestGetTailoredSet() {
-  struct {
-    char *rules;
-    char *tests[20];
-    int32_t testsize;
-  } setTest[] = {
-    { "&a < \\u212b", { "\\u212b", "A\\u030a", "\\u00c5" }, 3},
-    { "& S < \\u0161 <<< \\u0160", { "\\u0161", "s\\u030C", "\\u0160", "S\\u030C" }, 4}
-  };
-
-  int32_t i = 0, j = 0;
-  UErrorCode status = U_ZERO_ERROR;
-  UParseError pError;
-
-  UCollator *coll = NULL;
-  UChar buff[1024];
-  int32_t buffLen = 0;
-  USet *set = NULL;
-
-  for(i = 0; i < sizeof(setTest)/sizeof(setTest[0]); i++) {
-    buffLen = u_unescape(setTest[i].rules, buff, 1024);
-    coll = ucol_openRules(buff, buffLen, UCOL_DEFAULT, UCOL_DEFAULT, &pError, &status);
-    if(U_SUCCESS(status)) {
-      set = ucol_getTailoredSet(coll, &status);
-      if(uset_size(set) != setTest[i].testsize) {
-        log_err("Tailored set size different (%d) than expected (%d)\n", uset_size(set), setTest[i].testsize);
-      }
-      for(j = 0; j < setTest[i].testsize; j++) {
-        buffLen = u_unescape(setTest[i].tests[j], buff, 1024);
-        if(!uset_containsString(set, buff, buffLen)) {
-          log_err("Tailored set doesn't contain %s... It should\n", setTest[i].tests[j]);
-        }
-      }
-      uset_close(set);
-    } else {
-      log_err("Couldn't open collator with rules %s\n", setTest[i].rules);
-    }
-    ucol_close(coll);
-  }
-}
-
-#endif /* #if !UCONFIG_NO_COLLATION */

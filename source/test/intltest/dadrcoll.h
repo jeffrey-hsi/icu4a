@@ -13,9 +13,6 @@
 #ifndef _INTLTESTDATADRIVENCOLLATOR
 #define _INTLTESTDATADRIVENCOLLATOR
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
 
 #include "tscoll.h"
 #include "uvector.h"
@@ -52,6 +49,5 @@ private:
   UVector sequences;
 };
 
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

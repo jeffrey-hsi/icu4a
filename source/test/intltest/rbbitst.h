@@ -13,9 +13,6 @@
 #ifndef RBBITEST_H
 #define RBBITEST_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
 
 #include "intltest.h"
 #include "unicode/brkiter.h"
@@ -30,9 +27,6 @@ class BITestData;
 class RBBITest: public IntlTest {
 public:
   
-    RBBITest();
-    virtual ~RBBITest();
-
     void runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = NULL );
     /**
      * Tests default rules based character iteration
@@ -73,22 +67,6 @@ public:
      **/  
     void TestLineBreakData();
 
-    void TestSentenceInvariants();
-    void TestCharacterInvariants();
-    void TestWordInvariants();
-    void TestLineInvariants();
-    void TestEmptyString();
-    void TestGetAvailableLocales();
-    void TestGetDisplayName();
-    void TestEndBehaviour();
-    void TestBug4153072();
-    void TestJapaneseLineBreak();
-    void TestThaiLineBreak();
-    void TestMixedThaiLineBreak(); 
-    void TestMaiyamok(); 
-    void TestThaiWordBreak();
-    
-    
     /**
     * Test Hindi Danda i.e make sure we have a break point before and after danda 
     **/ 
@@ -158,11 +136,7 @@ private:
      **/
     void doMultipleSelectionTest(RuleBasedBreakIterator& iterator, BITestData &td);
 
-    void doBreakInvariantTest(BreakIterator& tb, UnicodeString& testChars);
-    void doOtherInvariantTest(BreakIterator& tb, UnicodeString& testChars);
-
 };
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
 
 #endif

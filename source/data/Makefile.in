@@ -136,7 +136,7 @@ BRK_FILES=$(BRK_FILES_SHORT:%=$(BUILDDIR)/$(ICUDT)%)
 -include $(UCMSRCDIR)/ucmfiles.mk
 -include $(UCMSRCDIR)/ucmebcdic.mk
 -include $(UCMSRCDIR)/ucmlocal.mk
-ALL_UCM_SOURCE=ibm-37.ucm ibm-1047.ucm $(UCM_SOURCE_CORE) $(UCM_SOURCE_FILES) $(UCM_SOURCE_EBCDIC) $(UCM_SOURCE_LOCAL)
+ALL_UCM_SOURCE=ibm-37.ucm ibm-1047-s390.ucm $(UCM_SOURCE_CORE) $(UCM_SOURCE_FILES) $(UCM_SOURCE_EBCDIC) $(UCM_SOURCE_LOCAL)
 UCM_FILES = $(ALL_UCM_SOURCE:%=$(SRCDATADIR)/%)
 CNV_FILES = $(ALL_UCM_SOURCE:%.ucm=$(BUILDDIR)/$(ICUDT)%.cnv)
 
@@ -264,7 +264,7 @@ icupkg.inc: $(srcdir)/icupkg.inc.in  $(top_builddir)/config.status
 
 ###########
 ########### 390 (z/OS) support
-UCMFILES390=ebcdic-xml-us.ucm ibm-37.ucm ibm-1047.ucm ibm-4909.ucm
+UCMFILES390=ebcdic-xml-us.ucm ibm-37-s390.ucm ibm-1047-s390.ucm ibm-4909.ucm
 ALLFILES390=uprops.icu unorm.icu cnvalias.icu $(UCMFILES390:.ucm=.cnv)
 
 $(BUILDDIR)/icudata390.lst:  $(SRCLISTDEPS)
@@ -299,7 +299,7 @@ TEST_UCM_FILES=$(TEST_UCM_SOURCE:%=$(TESTSRCDATADIR)/data/%)
 TEST_CNV_FILES=$(TEST_UCM_SOURCE:%.ucm=$(TESTBUILDDIR)/$(TESTDT)%.cnv)
 
 TEST_RES = casing.txt root.txt te.txt te_IN.txt testtypes.txt testaliases.txt testempty.txt DataDrivenCollationTest.txt
-TEST_RES_FILES=$(TEST_RES:%.txt=$(TESTBUILDDIR)/$(TESTDT)%.res) $(TESTBUILDDIR)/$(TESTDT)iscii.res
+TEST_RES_FILES=$(TEST_RES:%.txt=$(TESTBUILDDIR)/$(TESTDT)%.res)
 
 ALL_TEST_FILES = $(TEST_DAT_FILES) $(TEST_BRK_FILES) $(TEST_CNV_FILES) $(TEST_RES_FILES) $(TESTOUTDIR)/$(TESTDT)nam.typ
 
@@ -313,7 +313,7 @@ $(TESTBUILDDIR)/testdata.lst: $(SRCLISTDEPS)
 	done;
 
 
-build-testdata:  $(ALL_TEST_FILES) $(TESTBUILDDIR)/testdata.lst $(TESTBUILDDIR)/$(TESTDT)iscii.res
+build-testdata:  $(ALL_TEST_FILES) $(TESTBUILDDIR)/testdata.lst $(TESTBUILDDIR)/$(TESTDT)ja_data.res
 
 # test.icu
 $(TESTBUILDDIR)/$(TESTDT)test.icu: $(TOOLDIR)/gentest/gentest$(EXEEXT)
@@ -326,8 +326,8 @@ $(TESTBUILDDIR)/$(TESTDT)%.res: $(TESTSRCDATADIR)/%.txt $(TOOLDIR)/genrb/genrb$(
 	ICU_DATA=$(BUILDDIR) $(INVOKE) $(TOOLDIR)/genrb/genrb $(GENRBOPTS) -p $(TESTDATA) -q -s $(TESTSRCDATADIR) -d $(TESTBUILDDIR) $(<F)
 
 
-$(TESTBUILDDIR)/$(TESTDT)iscii.res:  $(TESTSRCDATADIR)/iscii.bin $(TOOLDIR)/genrb/genrb$(EXEEXT)
-	ICU_DATA=$(BUILDDIR) $(INVOKE) $(TOOLDIR)/genrb/genrb $(GENRBOPTS) -q -s $(TESTSRCDATADIR) -p $(TESTDATA) -eISCII,version=0 -d $(TESTBUILDDIR) $(<F) >/dev/null  || ( echo "WARNING: could not open ISCII - it may have been disabled." | tee $@ )
+$(TESTBUILDDIR)/$(TESTDT)ja_data.res:  $(TESTSRCDATADIR)/ja_data.bin $(TOOLDIR)/genrb/genrb$(EXEEXT)
+	ICU_DATA=$(BUILDDIR) $(INVOKE) $(TOOLDIR)/genrb/genrb $(GENRBOPTS) -q -s $(TESTSRCDATADIR) -p $(TESTDATA) -eISO_2022_JP -d $(TESTBUILDDIR) $(<F) >/dev/null  
 
 ################################################################### TYP
 # TYP FILES

@@ -19,11 +19,13 @@
 #include <time.h>
 #include "unicode/uchar.h"
 #include "unicode/ustring.h"
-#include "unicode/unorm.h"
 #include "cintltst.h"
 #include "cnormtst.h"
+#include "ccolltst.h"
 
 #define ARRAY_LENGTH(array) (sizeof (array) / sizeof (*array))
+
+static UCollator *myCollation;
 
 static void
 TestAPI(void);
@@ -124,18 +126,23 @@ void TestDecomp()
     int32_t x, neededLen, resLen;
     UChar *source=NULL, *result=NULL; 
     status = U_ZERO_ERROR;
+    myCollation = ucol_open("en_US", &status);
+    if(U_FAILURE(status)){
+        log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
+        return;
+    }
     resLen=0;
     log_verbose("Testing unorm_normalize with  Decomp canonical\n");
     for(x=0; x < ARRAY_LENGTH(canonTests); x++)
     {
         source=CharsToUChars(canonTests[x][0]);
-        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFD, 0, NULL, 0, &status); 
+        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFD, UCOL_IGNORE_HANGUL, NULL, 0, &status); 
         if(status==U_BUFFER_OVERFLOW_ERROR)
         {
             status=U_ZERO_ERROR;
             resLen=neededLen+1;
             result=(UChar*)malloc(sizeof(UChar*) * resLen);
-            unorm_normalize(source, u_strlen(source), UNORM_NFD, 0, result, resLen, &status); 
+            unorm_normalize(source, u_strlen(source), UNORM_NFD, UCOL_IGNORE_HANGUL, result, resLen, &status); 
         }
         if(U_FAILURE(status)){
             log_err("ERROR in unorm_normalize at %s:  %s\n", austrdup(source), myErrorName(status) );
@@ -144,6 +151,7 @@ void TestDecomp()
         free(result);
         free(source);
     }
+    ucol_close(myCollation);
 }
 
 void TestCompatDecomp() 
@@ -152,18 +160,23 @@ void TestCompatDecomp()
     int32_t x, neededLen, resLen;
     UChar *source=NULL, *result=NULL; 
     status = U_ZERO_ERROR;
+    myCollation = ucol_open("en_US", &status);
+    if(U_FAILURE(status)){
+        log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
+        return;
+    }
     resLen=0;
     log_verbose("Testing unorm_normalize with  Decomp compat\n");
     for(x=0; x < ARRAY_LENGTH(compatTests); x++)
     {
         source=CharsToUChars(compatTests[x][0]);
-        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFKD, 0, NULL, 0, &status); 
+        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFKD, UCOL_IGNORE_HANGUL, NULL, 0, &status); 
         if(status==U_BUFFER_OVERFLOW_ERROR)
         {
             status=U_ZERO_ERROR;
             resLen=neededLen+1;
             result=(UChar*)malloc(sizeof(UChar*) * resLen);
-            unorm_normalize(source, u_strlen(source), UNORM_NFKD, 0, result, resLen, &status); 
+            unorm_normalize(source, u_strlen(source), UNORM_NFKD,UCOL_IGNORE_HANGUL, result, resLen, &status); 
         }
         if(U_FAILURE(status)){
             log_err("ERROR in unorm_normalize at %s:  %s\n", austrdup(source), myErrorName(status) );
@@ -172,6 +185,7 @@ void TestCompatDecomp()
         free(result);
         free(source);
     }
+    ucol_close(myCollation);            
 }
 
 void TestCanonDecompCompose() 
@@ -180,18 +194,23 @@ void TestCanonDecompCompose()
     int32_t x, neededLen, resLen;
     UChar *source=NULL, *result=NULL; 
     status = U_ZERO_ERROR;
+    myCollation = ucol_open("en_US", &status);
+    if(U_FAILURE(status)){
+        log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
+        return;
+    }
     resLen=0;
     log_verbose("Testing unorm_normalize with Decomp can compose compat\n");
     for(x=0; x < ARRAY_LENGTH(canonTests); x++)
     {
         source=CharsToUChars(canonTests[x][0]);
-        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFC, 0, NULL, 0, &status); 
+        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFC, UCOL_IGNORE_HANGUL, NULL, 0, &status); 
         if(status==U_BUFFER_OVERFLOW_ERROR)
         {
             status=U_ZERO_ERROR;
             resLen=neededLen+1;
             result=(UChar*)malloc(sizeof(UChar*) * resLen);
-            unorm_normalize(source, u_strlen(source), UNORM_NFC, 0, result, resLen, &status); 
+            unorm_normalize(source, u_strlen(source), UNORM_NFC, UCOL_IGNORE_HANGUL, result, resLen, &status); 
         }
         if(U_FAILURE(status)){
             log_err("ERROR in unorm_normalize at %s:  %s\n", austrdup(source),myErrorName(status) );
@@ -200,6 +219,7 @@ void TestCanonDecompCompose()
         free(result);
         free(source);
     }
+    ucol_close(myCollation);            
 }
 
 void TestCompatDecompCompose() 
@@ -208,18 +228,23 @@ void TestCompatDecompCompose()
     int32_t x, neededLen, resLen;
     UChar *source=NULL, *result=NULL;
     status = U_ZERO_ERROR;
+    myCollation = ucol_open("en_US", &status);
+    if(U_FAILURE(status)){
+        log_err("ERROR: in creation of rule based collator: %s\n", myErrorName(status));
+        return;
+    }
     resLen=0;
     log_verbose("Testing unorm_normalize with compat decomp compose can\n");
     for(x=0; x < ARRAY_LENGTH(compatTests); x++)
     {
         source=CharsToUChars(compatTests[x][0]);
-        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFKC, 0, NULL, 0, &status); 
+        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFKC, UCOL_IGNORE_HANGUL, NULL, 0, &status); 
         if(status==U_BUFFER_OVERFLOW_ERROR)
         {
             status=U_ZERO_ERROR;
             resLen=neededLen+1;
             result=(UChar*)malloc(sizeof(UChar*) * resLen);
-            unorm_normalize(source, u_strlen(source), UNORM_NFKC, 0, result, resLen, &status); 
+            unorm_normalize(source, u_strlen(source), UNORM_NFKC, UCOL_IGNORE_HANGUL, result, resLen, &status); 
         }
         if(U_FAILURE(status)){
             log_err("ERROR in unorm_normalize at %s:  %s\n", austrdup(source), myErrorName(status) );
@@ -228,6 +253,7 @@ void TestCompatDecompCompose()
         free(result);
         free(source);
     }
+    ucol_close(myCollation);            
 }
 
 
@@ -683,7 +709,7 @@ void TestCheckFCD()
     while (size != 19) {
       data[size] = datachar[(rand() * 50) / RAND_MAX];
       log_verbose("0x%x", data[size]);
-      normsize += unorm_normalize(data + size, 1, UNORM_NFD, 0, 
+      normsize += unorm_normalize(data + size, 1, UNORM_NFD, UCOL_IGNORE_HANGUL, 
                                   norm + normsize, 100 - normsize, &status);       
       if (U_FAILURE(status)) {
         log_err("unorm_quickCheck(FCD) failed: exception occured at data generation\n");
@@ -693,7 +719,7 @@ void TestCheckFCD()
     }
     log_verbose("\n");
 
-    nfdsize = unorm_normalize(data, size, UNORM_NFD, 0, 
+    nfdsize = unorm_normalize(data, size, UNORM_NFD, UCOL_IGNORE_HANGUL, 
                               nfd, 100, &status);       
     if (U_FAILURE(status)) {
       log_err("unorm_quickCheck(FCD) failed: exception occured at normalized data generation\n");

@@ -4,10 +4,6 @@
  * others. All Rights Reserved.
  ********************************************************************/
  
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "msfmrgts.h"
 
 #include "unicode/format.h"
@@ -949,4 +945,3 @@ void MessageFormatRegressionTest::Test4112104()
     delete format;
 }
 
-#endif /* #if !UCONFIG_NO_FORMATTING */

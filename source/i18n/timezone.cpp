@@ -35,10 +35,6 @@
 *                           available IDs code.  Misc. cleanup.
 *********************************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/simpletz.h"
 #include "unicode/smpdtfmt.h"
 #include "unicode/calendar.h"
@@ -817,7 +813,5 @@ TimeZone::hasSameRules(const TimeZone& other) const
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 //eof

@@ -32,7 +32,7 @@ class RBBIRuleBuilder;
 //                         There is no user-visible public API here.
 //
 
-class RBBITableBuilder : public UMemory {
+class RBBITableBuilder : public UObject {
 public:
     RBBITableBuilder(RBBIRuleBuilder *rb, RBBINode **rootNode);
     ~RBBITableBuilder();
@@ -43,6 +43,20 @@ public:
     void     exportTable(void *where);  // fill in the runtime state table.
                                         //     Sufficient memory must exist at
                                         //     the specified location.
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 private:
     void     calcNullable(RBBINode *n);
@@ -75,14 +89,17 @@ private:
                                            //  Index is state number
                                            //  Contents are RBBIStateDescriptor pointers.
 
-    RBBITableBuilder(const RBBITableBuilder &other); // forbid copying of this class
-    RBBITableBuilder &operator=(const RBBITableBuilder &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 //
 //  RBBIStateDescriptor - The DFA is constructed as a set of these descriptors,
 //                        one for each state.
-class RBBIStateDescriptor : public UMemory {
+class RBBIStateDescriptor : public UObject {
 public:
     UBool            fMarked;
     int32_t          fAccepting;
@@ -100,9 +117,27 @@ public:
     RBBIStateDescriptor(int maxInputSymbol,  UErrorCode *fStatus);
     ~RBBIStateDescriptor();
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
-    RBBIStateDescriptor(const RBBIStateDescriptor &other); // forbid copying of this class
-    RBBIStateDescriptor &operator=(const RBBIStateDescriptor &other); // forbid copying of this class
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 

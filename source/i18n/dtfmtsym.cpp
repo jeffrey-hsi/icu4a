@@ -18,10 +18,6 @@
 *******************************************************************************
 */
  
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/dtfmtsym.h"
 #include "unicode/resbund.h"
 #include "unicode/smpdtfmt.h"
@@ -108,7 +104,6 @@ static const UChar gLastResortZoneStrings[5][4] =
     {0x0047, 0x004D, 0x0054, 0x0000}  /* "GMT" */
 };
 
-#ifdef ICU_DATEFORMATSYMBOLS_USE_DEPRECATES
 static UnicodeString *gPatternCharsStr = NULL;
 
 U_CFUNC UBool dateFormatSymbols_cleanup() {
@@ -117,7 +112,6 @@ U_CFUNC UBool dateFormatSymbols_cleanup() {
     }
     return TRUE;
 }
-#endif
 
 U_NAMESPACE_BEGIN
 
@@ -168,46 +162,27 @@ DateFormatSymbols::assignArray(UnicodeString*& dstArray,
                                const UnicodeString* srcArray,
                                int32_t srcCount)
 {
-    // assignArray() is only called by copyData(), which in turn implements the
-    // copy constructor and the assignment operator.
-    // All strings in a DateFormatSymbols object are created in one of the following
-    // three ways that all allow to safely use UnicodeString::fastCopyFrom():
-    // - readonly-aliases from resource bundles
-    // - readonly-aliases or allocated strings from constants
-    // - safely cloned strings (with owned buffers) from setXYZ() functions
-    //
-    // Note that this is true for as long as DateFormatSymbols can be constructed
-    // only from a locale bundle or set via the cloning API,
-    // *and* for as long as all the strings are in *private* fields, preventing
-    // a subclass from creating these strings in an "unsafe" way (with respect to fastCopyFrom()).
+    // duplicates or aliases the source array, depending on the status of
+    // the appropriate isOwned flag
     dstCount = srcCount;
     dstArray = new UnicodeString[srcCount];
-    if(dstArray != NULL) {
-        int32_t i;
-        for(i=0; i<srcCount; ++i) {
-            dstArray[i].fastCopyFrom(srcArray[i]);
-        }
-    }
+    uprv_arrayCopy(srcArray, dstArray, srcCount);
 }
 
 /**
  * Create a copy, in fZoneStrings, of the given zone strings array.  The
  * member variables fZoneStringsRowCount and fZoneStringsColCount should
- * be set already by the caller.
+ * be set already by the caller.  The fIsOwned flags are not checked or set
+ * by this method; that is the caller's responsibility.
  */
 void
 DateFormatSymbols::createZoneStrings(const UnicodeString *const * otherStrings)
 {
-    int32_t row, col;
-
     fZoneStrings = (UnicodeString **)uprv_malloc(fZoneStringsRowCount * sizeof(UnicodeString *));
-    for (row=0; row<fZoneStringsRowCount; ++row)
+    for (int32_t row=0; row<fZoneStringsRowCount; ++row)
     {
         fZoneStrings[row] = new UnicodeString[fZoneStringsColCount];
-        for (col=0; col<fZoneStringsColCount; ++col) {
-            // fastCopyFrom() - see assignArray comments
-            fZoneStrings[row][col].fastCopyFrom(otherStrings[row][col]);
-        }
+        uprv_arrayCopy(otherStrings[row], fZoneStrings[row], fZoneStringsColCount);
     }
 }
 
@@ -227,12 +202,14 @@ DateFormatSymbols::copyData(const DateFormatSymbols& other) {
     fZoneStringsColCount = other.fZoneStringsColCount;
     createZoneStrings((const UnicodeString**)other.fZoneStrings);
 
-    // fastCopyFrom() - see assignArray comments
-    fLocalPatternChars.fastCopyFrom(other.fLocalPatternChars);
+    fLocalPatternChars = other.fLocalPatternChars;
 }
 
 /**
- * Assignment operator.
+ * Assignment operator.  A bit messy because the other object may or may not
+ * own each of its arrays.  We then alias or copy those arrays as appropriate.
+ * Arrays that aren't owned are assumed to be permanently "around," which is
+ * true, since they are owned by the ResourceBundle cache.
  */
 DateFormatSymbols& DateFormatSymbols::operator=(const DateFormatSymbols& other)
 {
@@ -286,9 +263,6 @@ UBool
 DateFormatSymbols::operator==(const DateFormatSymbols& other) const
 {
     // First do cheap comparisons
-    if (this == &other) {
-        return TRUE;
-    }
     if (fErasCount == other.fErasCount &&
         fMonthsCount == other.fMonthsCount &&
         fShortMonthsCount == other.fShortMonthsCount &&
@@ -468,7 +442,6 @@ DateFormatSymbols::setZoneStrings(const UnicodeString* const *strings, int32_t r
 
 //------------------------------------------------------
 
-#ifdef ICU_DATEFORMATSYMBOLS_USE_DEPRECATES
 const UnicodeString&
 DateFormatSymbols::getPatternChars(void)
 {
@@ -479,7 +452,6 @@ DateFormatSymbols::getPatternChars(void)
     }
     return *gPatternCharsStr;
 }
-#endif
 
 //------------------------------------------------------
 
@@ -494,8 +466,8 @@ DateFormatSymbols::getPatternUChars(void)
 UnicodeString&
 DateFormatSymbols::getLocalPatternChars(UnicodeString& result) const
 {
-    // fastCopyFrom() - see assignArray comments
-    return result.fastCopyFrom(fLocalPatternChars);
+    result = fLocalPatternChars;
+    return result;
 }
 
 //------------------------------------------------------
@@ -515,8 +487,7 @@ DateFormatSymbols::initField(UnicodeString **field, int32_t& length, const Resou
         *field = new UnicodeString[length];
         if (*field) {
             for(int32_t i = 0; i<length; i++) {
-                // fastCopyFrom() - see assignArray comments
-                (*(field)+i)->fastCopyFrom(data.getStringEx(i, status));
+                *(*(field)+i) = data.getStringEx(i, status);
             }
         }
         else {
@@ -533,9 +504,7 @@ DateFormatSymbols::initField(UnicodeString **field, int32_t& length, const UChar
         *field = new UnicodeString[(size_t)numStr];
         if (*field) {
             for(int32_t i = 0; i<length; i++) {
-                // readonly aliases - all "data" strings are constant
-                // -1 as length for variable-length strings (gLastResortDayNames[0] is empty)
-                (*(field)+i)->setTo(TRUE, data+(i*((int32_t)strLen)), -1);
+                *(*(field)+i) = data+(i*((int32_t)strLen));
             }
         }
         else {
@@ -549,19 +518,6 @@ void
 DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, UBool useLastResortData)
 {
     int32_t i;
-
-    /* In case something goes wrong, initialize all of the data to NULL. */
-    fEras = NULL;
-    fMonths = NULL;
-    fShortMonths = NULL;
-    fWeekdays = NULL;
-    fShortWeekdays = NULL;
-    fAmPms = NULL;
-    fZoneStringsRowCount = 0;
-    fZoneStringsColCount = 0;
-    fZoneStrings = NULL;
-
-
     if (U_FAILURE(status)) return;
 
     /**
@@ -580,7 +536,7 @@ DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, UBoo
             // we just need to produce something that will be semi-intelligible
             // in most locales.
 
-            status = U_USING_FALLBACK_WARNING;
+            status = U_USING_FALLBACK_ERROR;
 
             initField(&fEras, fErasCount, (const UChar *)gLastResortEras, kEraNum, kEraLen, status);
             initField(&fMonths, fMonthsCount, (const UChar *)gLastResortMonthNames, kMonthNum, kMonthLen,  status);
@@ -599,6 +555,15 @@ DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, UBoo
             initField(fZoneStrings, fZoneStringsColCount, (const UChar *)gLastResortZoneStrings, kZoneNum, kZoneLen, status);
             fLocalPatternChars = gPatternChars;
         }
+        else {
+            fEras = NULL;
+            fMonths = NULL;
+            fShortMonths = NULL;
+            fWeekdays = NULL;
+            fShortWeekdays = NULL;
+            fAmPms = NULL;
+            fZoneStrings = NULL;
+        }
         return;
     }
 
@@ -609,8 +574,7 @@ DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, UBoo
     initField(&fMonths, fMonthsCount, resource.get(fgMonthNamesTag, status), status);
     initField(&fShortMonths, fShortMonthsCount, resource.get(fgMonthAbbreviationsTag, status), status);
     initField(&fAmPms, fAmPmsCount, resource.get(fgAmPmMarkersTag, status), status);
-    // fastCopyFrom() - see assignArray comments
-    fLocalPatternChars.fastCopyFrom(resource.getStringEx(fgLocalPatternCharsTag, status));
+    fLocalPatternChars = resource.getStringEx(fgLocalPatternCharsTag, status);
 
     ResourceBundle zoneArray = resource.get(fgZoneStringsTag, status);
     fZoneStringsRowCount = zoneArray.getSize();
@@ -632,8 +596,7 @@ DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, UBoo
         }
         zoneRow = zoneArray.get(i, status);
         for(int32_t j = 0; j<fZoneStringsColCount; j++) {
-            // fastCopyFrom() - see assignArray comments
-            fZoneStrings[i][j].fastCopyFrom(zoneRow.getStringEx(j, status));
+            fZoneStrings[i][j] = zoneRow.getStringEx(j, status);
         }
     }
 
@@ -646,10 +609,9 @@ DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, UBoo
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
-    // leave fWeekdays[0] empty
+    fWeekdays[0] = UnicodeString();
     for(i = 0; i<fWeekdaysCount; i++) {
-        // fastCopyFrom() - see assignArray comments
-        fWeekdays[i+1].fastCopyFrom(weekdaysData.getStringEx(i, status));
+        fWeekdays[i+1] = weekdaysData.getStringEx(i, status);
     }
 
     ResourceBundle lsweekdaysData = resource.get(fgDayAbbreviationsTag, status);
@@ -660,10 +622,9 @@ DateFormatSymbols::initializeData(const Locale& locale, UErrorCode& status, UBoo
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
-    // leave fShortWeekdays[0] empty
+    fShortWeekdays[0] = UnicodeString();
     for(i = 0; i<fShortWeekdaysCount; i++) {
-        // fastCopyFrom() - see assignArray comments
-        fShortWeekdays[i+1].fastCopyFrom(lsweekdaysData.getStringEx(i, status));
+        fShortWeekdays[i+1] = lsweekdaysData.getStringEx(i, status);
     }
 
     fWeekdaysCount = fShortWeekdaysCount = 8;
@@ -714,8 +675,14 @@ int32_t DateFormatSymbols::getZoneIndex(const UnicodeString& ID) const
  */
 int32_t DateFormatSymbols::_getZoneIndex(const UnicodeString& ID) const
 {
+    // {sfb} kludge to support case-insensitive comparison
+    UnicodeString lcaseID(ID);
+    lcaseID.toLower();
+    
     for(int32_t index = 0; index < fZoneStringsRowCount; index++) {
-        if (0 == ID.caseCompare(fZoneStrings[index][0], 0)) {
+        UnicodeString lcase(fZoneStrings[index][0]);
+        lcase.toLower();
+        if (lcaseID == lcase) {
             return index;
         }
     }
@@ -724,7 +691,5 @@ int32_t DateFormatSymbols::_getZoneIndex(const UnicodeString& ID) const
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 //eof

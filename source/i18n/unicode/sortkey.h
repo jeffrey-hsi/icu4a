@@ -22,10 +22,8 @@
 #ifndef SORTKEY_H
 #define SORTKEY_H
 
+
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/uobject.h"
 #include "unicode/unistr.h"
 #include "unicode/coll.h"
@@ -306,7 +304,5 @@ CollationKey::getByteArray(int32_t &count) const
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

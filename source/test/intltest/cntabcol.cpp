@@ -3,11 +3,6 @@
  * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved. 
  ********************************************************************/
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "cntabcol.h"
 
 U_NAMESPACE_USE
@@ -190,4 +185,4 @@ void ContractionTableTest::runIndexedTest( int32_t index, UBool exec, const char
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */
+

@@ -11,9 +11,6 @@
 #define SEARCH_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/uobject.h"
 #include "unicode/unistr.h"
 #include "unicode/chariter.h"
@@ -556,8 +553,6 @@ inline UBool SearchIterator::operator!=(const SearchIterator &that) const
    return !operator==(that); 
 }
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif
 

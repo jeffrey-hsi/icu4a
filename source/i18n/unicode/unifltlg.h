@@ -6,22 +6,10 @@
 *   11/17/99    aliu        Creation.
 **********************************************************************
 */
-
-//////////////////////////////////////////////////////////////
-//
-// NOTICE - Do not use
-//
-// This entire file has been deprecated as of ICU 2.4.
-//
-//////////////////////////////////////////////////////////////
-
 #ifndef UNIFLTLG_H
 #define UNIFLTLG_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/uobject.h"
 
 U_NAMESPACE_BEGIN
@@ -41,8 +29,6 @@ class UnicodeFilter;
  * Therefore, createNot(NULL) returns a filter that contains no
  * Unicode characters.  Likewise, createAnd(g, NULL) returns g->clone(),
  * and createAnd(NULL, NULL) returns NULL.
- *
- * @deprecated in ICU 2.4 2002-08/28.  Use UnicodeSet methods instead.
  */
 class U_I18N_API UnicodeFilterLogic /* not : public UObject because all methods are static */ {
 
@@ -100,7 +86,5 @@ private:
 inline UnicodeFilterLogic::UnicodeFilterLogic() {}
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

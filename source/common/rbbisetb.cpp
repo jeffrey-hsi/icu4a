@@ -28,10 +28,6 @@
 //                      the previous step.
 //
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/uniset.h"
 #include "utrie.h"
 #include "uvector.h"
@@ -44,6 +40,8 @@
 
 
 U_NAMESPACE_BEGIN
+
+const char RBBISetBuilder::fgClassID=0;
 
 //------------------------------------------------------------------------
 //
@@ -143,13 +141,7 @@ void RBBISetBuilder::build() {
     //
     //  Find the set of non-overlapping ranges of characters
     //
-    int  ni;
-    for (ni=0; ; ni++) {
-        usetNode = (RBBINode *)this->fRB->fUSetNodes->elementAt(ni);
-        if (usetNode==NULL) {
-            break;
-        }
-
+    for (usetNode=fRB->fSetsListHead; usetNode!=NULL; usetNode=usetNode->fRightChild) {
         UnicodeSet      *inputSet             = usetNode->fInputSet;
         int32_t          inputSetRangeCount   = inputSet->getRangeCount();
         int              inputSetRangeIndex   = 0;
@@ -421,20 +413,18 @@ void RBBISetBuilder::printRangeGroups() {
 //
 //------------------------------------------------------------------------
 void RBBISetBuilder::printSets() {
+    RBBINode             *usetNode;
     int                   i;
+    UnicodeSet            inputSet;
 
     RBBIDebugPrintf("\n\nUnicode Sets List\n------------------\n");
-    for (i=0; ; i++) {
-        RBBINode        *usetNode;
-        RBBINode        *setRef;
-        RBBINode        *varRef;
-        UnicodeString    setName;
+    i = 0;
+    for (usetNode=fRB->fSetsListHead; usetNode!=NULL; usetNode=usetNode->fRightChild) {
+        RBBINode       *setRef;
+        RBBINode       *varRef;
+        UnicodeString   setName;
 
-        usetNode = (RBBINode *)fRB->fUSetNodes->elementAt(i);
-        if (usetNode == NULL) {
-            break;
-        }
-
+        i++;
         RBBIDebugPrintf("%3d    ", i);
         setName = "anonymous";
         setRef = usetNode->fParent;
@@ -462,6 +452,8 @@ void RBBISetBuilder::printSets() {
 //  RangeDescriptor copy constructor
 //
 //-------------------------------------------------------------------------------------
+
+const char RangeDescriptor::fgClassID=0;
 
 RangeDescriptor::RangeDescriptor(const RangeDescriptor &other, UErrorCode &status) {
     int  i;
@@ -577,5 +569,3 @@ void RangeDescriptor::setDictionaryFlag() {
 
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

@@ -8,10 +8,6 @@
 #ifndef _INTLTESTDECIMALFORMATAPI
 #define _INTLTESTDECIMALFORMATAPI
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/unistr.h"
 #include "intltest.h"
 
@@ -29,7 +25,5 @@ private:
     /*Helper functions */
     void verify(const UnicodeString& message, const UnicodeString& got, double expected);
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

@@ -17,10 +17,6 @@
 ********************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/resbund.h"
 #include "unicode/datefmt.h"
 #include "unicode/smpdtfmt.h"
@@ -84,7 +80,7 @@ DateFormat::operator==(const Format& other) const
 
     return (this == fmt) ||
         ((getDynamicClassID() == other.getDynamicClassID()) &&
-         fCalendar->isEquivalentTo(*fmt->fCalendar) &&
+         (*fCalendar == (*fmt->fCalendar))&&
          (*fNumberFormat == *fmt->fNumberFormat));
 }
 
@@ -369,7 +365,5 @@ DateFormat::isLenient() const
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 //eof

@@ -119,7 +119,6 @@ public:
      */
     ResourceBundle(UErrorCode &err);
 
-#ifdef ICU_RESOURCEBUNDLE_USE_DEPRECATES
     /**
      * Constructs a ResourceBundle
      *
@@ -128,7 +127,6 @@ public:
     ResourceBundle(const wchar_t* path,
                    const Locale& locale,
                    UErrorCode& err);
-#endif /* ICU_RESOURCEBUNDLE_USE_DEPRECATES */
 
     /**
      * Standard constructor, onstructs a resource bundle for the locale-specific
@@ -442,12 +440,10 @@ public:
 private:
     UResourceBundle *resource;
     void constructForLocale(const UnicodeString& path, const Locale& locale, UErrorCode& error);
-#ifdef ICU_RESOURCEBUNDLE_USE_DEPRECATES
     /**
      *@deprecated Remove after Aug 2002
      */
     void constructForLocale(const wchar_t* path, const Locale& locale, UErrorCode& error);
-#endif /* ICU_RESOURCEBUNDLE_USE_DEPRECATES */
     Locale *locName;
 
     /**

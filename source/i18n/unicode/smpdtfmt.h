@@ -24,9 +24,6 @@
 #define SMPDTFMT_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/datefmt.h"
 
 U_NAMESPACE_BEGIN
@@ -605,37 +602,41 @@ private:
     /**
      * Called by format() to format a single field.
      *
-     * @param toAppendTo A string which gets the result appended to it.
+     * @param result    Filled in with the result.
      * @param ch        The format character we encountered in the pattern.
      * @param count     Number of characters in the current pattern symbol (e.g.,
      *                  "yyyy" in the pattern would result in a call to this function
      *                  with ch equal to 'y' and count equal to 4)
+     * @param beginOffset   Tells where the text returned by this function will go in
+     *                  the finished string.  Used when this function needs to fill
+     *                  in a FieldPosition
      * @param pos       The FieldPosition being filled in by the format() call.  If
      *                  this function is formatting the field specfied by pos, it
-     *                  will fill in pos with the beginning and ending offsets of the
+     *                  will fill in pos will the beginning and ending offsets of the
      *                  field.
      * @param status    Receives a status code, which will be U_ZERO_ERROR if the operation
      *                  succeeds.
+     * @return A reference to "result".
      */
-    void subFormat(             UnicodeString &toAppendTo,
+    UnicodeString& subFormat(   UnicodeString& result,
                                 UChar ch,
                                 int32_t count,
+                                int32_t beginOffset,
                                 FieldPosition& pos,
                                 Calendar& cal,
                                 UErrorCode& status) const; // in case of illegal argument
 
     /**
-     * Used by subFormat() to format a numeric value.
-     * Appends to toAppendTo a string representation of "value"
-     * having a number of digits between "minDigits" and
+     * Used by subFormat() to format a numeric value.  Fills in "result" with a string
+     * representation of "value" having a number of digits between "minDigits" and
      * "maxDigits".  Uses the DateFormat's NumberFormat.
-     *
-     * @param toAppendTo A string which gets the formatted number appended to it.
+     * @param result    Filled in with the formatted number.
      * @param value     Value to format.
      * @param minDigits Minimum number of digits the result should have
      * @param maxDigits Maximum number of digits the result should have
+     * @return A reference to "result".
      */
-    void zeroPaddingNumber(          UnicodeString &toAppendTo,
+    UnicodeString& zeroPaddingNumber(UnicodeString& result,
                                      int32_t value,
                                      int32_t minDigits,
                                      int32_t maxDigits) const;
@@ -855,8 +856,6 @@ SimpleDateFormat::format(UDate date, UnicodeString& result) const {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _SMPDTFMT
 //eof

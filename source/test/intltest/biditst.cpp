@@ -15,7 +15,6 @@
 #include "biditst.h"
 #include "cmemory.h"    
 
-#ifdef ICU_UBIDI_USE_DEPRECATES
 static const char levelString[]="...............................................................";
 
 static const char *dirPropNames[dirPropCount]={
@@ -911,4 +910,3 @@ void BiDiTest::runIndexedTest(int32_t index, UBool exec, const char *&name, char
         break;
     }
 }
-#endif

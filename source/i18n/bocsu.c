@@ -15,10 +15,6 @@
 */
 
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "bocsu.h"
 
 /*
@@ -171,4 +167,3 @@ u_lengthOfIdenticalLevelRun(const UChar *s, int32_t length) {
     return runLength;
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */

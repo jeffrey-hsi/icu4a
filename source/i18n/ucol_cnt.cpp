@@ -18,10 +18,6 @@
 * 
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/uchar.h"
 #include "ucol_cnt.h"
 #include "cmemory.h"
@@ -571,5 +567,3 @@ uprv_cnttab_changeContraction(CntTable *table, uint32_t element, UChar codePoint
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */

@@ -37,7 +37,7 @@ enum { U_PARSE_CONTEXT_LEN = 16 };
  * 
  * @draft ICU 2.0
  */
-typedef struct UParseError {
+typedef struct _UParseError {
 
     /**
      * An integer indicating the type of error.  If no error was

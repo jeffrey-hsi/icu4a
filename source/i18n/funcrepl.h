@@ -7,11 +7,6 @@
 *   02/04/2002  aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/unifunct.h"
 #include "unicode/unirepl.h"
 
@@ -118,7 +113,5 @@ class FunctionReplacer : public UnicodeFunctor, public UnicodeReplacer {
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 //eof

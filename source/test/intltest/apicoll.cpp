@@ -27,10 +27,6 @@
 //  02/10/98    damiba      Added test for compare(UnicodeString&, UnicodeString&, int32_t)
 //===============================================================================
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/coll.h"
 #include "unicode/tblcoll.h"
 #include "unicode/coleitr.h"
@@ -102,7 +98,7 @@ CollationAPITest::TestProperty(/* char* par */)
 
     logln("The property tests begin : ");
     logln("Test ctors : ");
-    col = Collator::createInstance(Locale::getEnglish(), success);
+    col = Collator::createInstance(Locale::ENGLISH, success);
 
     if (U_FAILURE(success))
     {
@@ -149,14 +145,11 @@ CollationAPITest::TestProperty(/* char* par */)
     doAssert((col->getStrength() != Collator::PRIMARY), "collation object's strength is primary difference");
     doAssert((col->getStrength() == Collator::SECONDARY), "collation object has the wrong strength");
 
-#ifdef ICU_NORMALIZER_USE_DEPRECATES
-/* The replacement API is tested in TestAttribute() */
     logln("testing Collator::setDecomposition() method ...");
     col->setDecomposition(Normalizer::NO_OP);
     doAssert((col->getDecomposition() != Normalizer::DECOMP), "collation object's strength is secondary difference");
     doAssert((col->getDecomposition() != Normalizer::DECOMP_COMPAT), "collation object's strength is primary difference");
     doAssert((col->getDecomposition() == Normalizer::NO_OP), "collation object has the wrong strength");
-#endif
 
     UnicodeString name;
 
@@ -180,7 +173,7 @@ CollationAPITest::TestProperty(/* char* par */)
     doAssert(rcol->getRules().length() != 0, "da_DK rules does not have length 0");
     delete rcol;
 
-    col = Collator::createInstance(Locale::getFrench(), success);
+    col = Collator::createInstance(Locale::FRENCH, success);
     if (U_FAILURE(success))
     {
         errln("Creating French collation failed.");
@@ -381,7 +374,6 @@ CollationAPITest::TestDecomposition() {
     return;
   }
 
-#ifdef ICU_NORMALIZER_USE_DEPRECATES
   /* there is no reason to have canonical decomposition in en_US OR default locale */
   if (vi_VN->getDecomposition() != Normalizer::DECOMP)
   {
@@ -397,23 +389,6 @@ CollationAPITest::TestDecomposition() {
   {
     errln("ERROR: en_US collation had cannonical decomposition for normalization!\n");
   }
-#else
-  /* there is no reason to have canonical decomposition in en_US OR default locale */
-  if (vi_VN->getAttribute(UCOL_NORMALIZATION_MODE, status) != UCOL_ON)
-  {
-    errln("ERROR: vi_VN collation did not have cannonical decomposition for normalization!\n");
-  }
-
-  if (el_GR->getAttribute(UCOL_NORMALIZATION_MODE, status) != UCOL_ON)
-  {
-    errln("ERROR: el_GR collation did not have cannonical decomposition for normalization!\n");
-  }
-
-  if (en_US->getAttribute(UCOL_NORMALIZATION_MODE, status) != UCOL_OFF)
-  {
-    errln("ERROR: en_US collation had cannonical decomposition for normalization!\n");
-  }
-#endif
 
   delete en_US;
   delete el_GR;
@@ -463,7 +438,7 @@ CollationAPITest::TestHashCode(/* char* par */)
     logln("hashCode tests begin.");
     UErrorCode success = U_ZERO_ERROR;
     Collator *col1 = 0;
-    col1 = Collator::createInstance(Locale::getEnglish(), success);
+    col1 = Collator::createInstance(Locale::ENGLISH, success);
     if (U_FAILURE(success))
     {
         errln("Default collation creation failed.");
@@ -480,7 +455,7 @@ CollationAPITest::TestHashCode(/* char* par */)
     }
 
     Collator *col3 = 0;
-    col3 = Collator::createInstance(Locale::getEnglish(), success);
+    col3 = Collator::createInstance(Locale::ENGLISH, success);
     if (U_FAILURE(success))
     {
         errln("2nd default collation creation failed.");
@@ -522,7 +497,7 @@ CollationAPITest::TestCollationKey(/* char* par */)
     logln("testing CollationKey begins...");
     Collator *col = 0;
     UErrorCode success=U_ZERO_ERROR;
-    col = Collator::createInstance(Locale::getEnglish(), success);
+    col = Collator::createInstance(Locale::ENGLISH, success);
     col->setStrength(Collator::TERTIARY);
     if (U_FAILURE(success))
     {
@@ -644,7 +619,7 @@ CollationAPITest::TestElemIter(/* char* par */)
     logln("testing sortkey begins...");
     Collator *col = 0;
     UErrorCode success = U_ZERO_ERROR;
-    col = Collator::createInstance(Locale::getEnglish(), success);
+    col = Collator::createInstance(Locale::ENGLISH, success);
     if (U_FAILURE(success))
     {
         errln("Default collation creation failed.");
@@ -801,7 +776,7 @@ CollationAPITest::TestElemIter(/* char* par */)
     //test error values
     success=U_UNSUPPORTED_ERROR;
     Collator *colerror=NULL;
-    colerror=Collator::createInstance(Locale::getEnglish(), success);
+    colerror=Collator::createInstance(Locale::ENGLISH, success);
     if (colerror != 0 || success == U_ZERO_ERROR){
         errln("Error: createInstance(UErrorCode != U_ZERO_ERROR) should just return and not create an instance\n");
     }
@@ -856,7 +831,7 @@ CollationAPITest::TestOperators(/* char* par */)
     doAssert((*col1 == *col2), "Collator objects not equal after assignment (operator=)");
 
     success = U_ZERO_ERROR;
-    Collator *col3 = Collator::createInstance(Locale::getEnglish(), success);
+    Collator *col3 = Collator::createInstance(Locale::ENGLISH, success);
     if (U_FAILURE(success)) {
         errln("Default collation creation failed.");
         return;
@@ -884,13 +859,13 @@ CollationAPITest::TestOperators(/* char* par */)
         return;
     }
     success = U_ZERO_ERROR;
-    RuleBasedCollator *col8 = new RuleBasedCollator(ruleset2, UCOL_OFF, success);
+    RuleBasedCollator *col8 = new RuleBasedCollator(ruleset2, Normalizer::NO_OP, success);
     if (U_FAILURE(success)) {
         errln("The RuleBasedCollator constructor failed when building with the 2nd rule set with Normalizer::NO_OP.");
         return;
     }
     success = U_ZERO_ERROR;
-    RuleBasedCollator *col9 = new RuleBasedCollator(ruleset2, Collator::PRIMARY, UCOL_ON, success);
+    RuleBasedCollator *col9 = new RuleBasedCollator(ruleset2, Collator::PRIMARY, Normalizer::DECOMP_COMPAT, success);
     if (U_FAILURE(success)) {
         errln("The RuleBasedCollator constructor failed when building with the 2nd rule set with tertiary strength and Normalizer::NO_OP.");
         return;
@@ -918,7 +893,7 @@ void
 CollationAPITest::TestDuplicate(/* char* par */)
 {
     UErrorCode status = U_ZERO_ERROR;
-    Collator *col1 = Collator::createInstance(Locale::getEnglish(), status);
+    Collator *col1 = Collator::createInstance(Locale::ENGLISH, status);
     if (U_FAILURE(status)) {
         logln("Default collator creation failed.");
         return;
@@ -941,7 +916,7 @@ CollationAPITest::TestCompare(/* char* par */)
     logln("The compare tests begin : ");
     Collator *col = 0;
     UErrorCode success = U_ZERO_ERROR;
-    col = Collator::createInstance(Locale::getEnglish(), success);
+    col = Collator::createInstance(Locale::ENGLISH, success);
     if (U_FAILURE(success)) {
         errln("Default collation creation failed.");
         return;
@@ -993,7 +968,7 @@ void CollationAPITest::TestSortKey()
     - very bad if you try to run the tests on machine where default 
       locale is NOT "en_US"
     */
-    Collator *col = Collator::createInstance(Locale::getEnglish(), status);
+    Collator *col = Collator::createInstance(Locale::ENGLISH, status);
     if (U_FAILURE(status)) {
         errln("ERROR: Default collation creation failed.: %s\n", u_errorName(status));
         return;
@@ -1296,8 +1271,8 @@ void CollationAPITest::TestDisplayName()
         errln("Failure getting the correct name for locale en_US");
     }
 
-    coll->getDisplayName(Locale::getSimplifiedChinese(), result);
-    Locale::getSimplifiedChinese().getDisplayName(name);
+    coll->getDisplayName(Locale::SIMPLIFIED_CHINESE, result);
+    Locale::SIMPLIFIED_CHINESE.getDisplayName(name);
     if (result.compare(name)) {
         errln("Failure getting the correct name for locale zh_SG");
     }
@@ -1558,64 +1533,64 @@ void CollationAPITest::TestBounds(void) {
     };
 
     static struct teststruct tests[] = {
-        {"\\u010CAKI MIHALJ", {0}},
-        {"\\u010CAKI MIHALJ", {0}},
-        {"\\u010CAKI PIRO\\u0160KA", {0}},
-        {"\\u010CABAI ANDRIJA", {0}},
-        {"\\u010CABAI LAJO\\u0160", {0}},
-        {"\\u010CABAI MARIJA", {0}},
-        {"\\u010CABAI STEVAN", {0}},
-        {"\\u010CABAI STEVAN", {0}},
-        {"\\u010CABARKAPA BRANKO", {0}},
-        {"\\u010CABARKAPA MILENKO", {0}},
-        {"\\u010CABARKAPA MIROSLAV", {0}},
-        {"\\u010CABARKAPA SIMO", {0}},
-        {"\\u010CABARKAPA STANKO", {0}},
-        {"\\u010CABARKAPA TAMARA", {0}},
-        {"\\u010CABARKAPA TOMA\\u0160", {0}},
-        {"\\u010CABDARI\\u0106 NIKOLA", {0}},
-        {"\\u010CABDARI\\u0106 ZORICA", {0}},
-        {"\\u010CABI NANDOR", {0}},
-        {"\\u010CABOVI\\u0106 MILAN", {0}},
-        {"\\u010CABRADI AGNEZIJA", {0}},
-        {"\\u010CABRADI IVAN", {0}},
-        {"\\u010CABRADI JELENA", {0}},
-        {"\\u010CABRADI LJUBICA", {0}},
-        {"\\u010CABRADI STEVAN", {0}},
-        {"\\u010CABRDA MARTIN", {0}},
-        {"\\u010CABRILO BOGDAN", {0}},
-        {"\\u010CABRILO BRANISLAV", {0}},
-        {"\\u010CABRILO LAZAR", {0}},
-        {"\\u010CABRILO LJUBICA", {0}},
-        {"\\u010CABRILO SPASOJA", {0}},
-        {"\\u010CADE\\u0160 ZDENKA", {0}},
-        {"\\u010CADESKI BLAGOJE", {0}},
-        {"\\u010CADOVSKI VLADIMIR", {0}},
-        {"\\u010CAGLJEVI\\u0106 TOMA", {0}},
-        {"\\u010CAGOROVI\\u0106 VLADIMIR", {0}},
-        {"\\u010CAJA VANKA", {0}},
-        {"\\u010CAJI\\u0106 BOGOLJUB", {0}},
-        {"\\u010CAJI\\u0106 BORISLAV", {0}},
-        {"\\u010CAJI\\u0106 RADOSLAV", {0}},
-        {"\\u010CAK\\u0160IRAN MILADIN", {0}},
-        {"\\u010CAKAN EUGEN", {0}},
-        {"\\u010CAKAN EVGENIJE", {0}},
-        {"\\u010CAKAN IVAN", {0}},
-        {"\\u010CAKAN JULIJAN", {0}},
-        {"\\u010CAKAN MIHAJLO", {0}},
-        {"\\u010CAKAN STEVAN", {0}},
-        {"\\u010CAKAN VLADIMIR", {0}},
-        {"\\u010CAKAN VLADIMIR", {0}},
-        {"\\u010CAKAN VLADIMIR", {0}},
-        {"\\u010CAKARA ANA", {0}},
-        {"\\u010CAKAREVI\\u0106 MOMIR", {0}},
-        {"\\u010CAKAREVI\\u0106 NEDELJKO", {0}},
-        {"\\u010CAKI \\u0160ANDOR", {0}},
-        {"\\u010CAKI AMALIJA", {0}},
-        {"\\u010CAKI ANDRA\\u0160", {0}},
-        {"\\u010CAKI LADISLAV", {0}},
-        {"\\u010CAKI LAJO\\u0160", {0}},
-        {"\\u010CAKI LASLO", {0}}
+        {"\\u010CAKI MIHALJ", 0 },
+        {"\\u010CAKI MIHALJ", 0},
+        {"\\u010CAKI PIRO\\u0160KA", 0},
+        {"\\u010CABAI ANDRIJA", 0},
+        {"\\u010CABAI LAJO\\u0160", 0},
+        {"\\u010CABAI MARIJA", 0},
+        {"\\u010CABAI STEVAN", 0},
+        {"\\u010CABAI STEVAN", 0},
+        {"\\u010CABARKAPA BRANKO", 0},
+        {"\\u010CABARKAPA MILENKO", 0},
+        {"\\u010CABARKAPA MIROSLAV", 0},
+        {"\\u010CABARKAPA SIMO", 0},
+        {"\\u010CABARKAPA STANKO", 0},
+        {"\\u010CABARKAPA TAMARA", 0},
+        {"\\u010CABARKAPA TOMA\\u0160", 0},
+        {"\\u010CABDARI\\u0106 NIKOLA", 0},
+        {"\\u010CABDARI\\u0106 ZORICA", 0},
+        {"\\u010CABI NANDOR", 0},
+        {"\\u010CABOVI\\u0106 MILAN", 0},
+        {"\\u010CABRADI AGNEZIJA", 0},
+        {"\\u010CABRADI IVAN", 0},
+        {"\\u010CABRADI JELENA", 0},
+        {"\\u010CABRADI LJUBICA", 0},
+        {"\\u010CABRADI STEVAN", 0},
+        {"\\u010CABRDA MARTIN", 0},
+        {"\\u010CABRILO BOGDAN", 0},
+        {"\\u010CABRILO BRANISLAV", 0},
+        {"\\u010CABRILO LAZAR", 0},
+        {"\\u010CABRILO LJUBICA", 0},
+        {"\\u010CABRILO SPASOJA", 0},
+        {"\\u010CADE\\u0160 ZDENKA", 0},
+        {"\\u010CADESKI BLAGOJE", 0},
+        {"\\u010CADOVSKI VLADIMIR", 0},
+        {"\\u010CAGLJEVI\\u0106 TOMA", 0},
+        {"\\u010CAGOROVI\\u0106 VLADIMIR", 0},
+        {"\\u010CAJA VANKA", 0},
+        {"\\u010CAJI\\u0106 BOGOLJUB", 0},
+        {"\\u010CAJI\\u0106 BORISLAV", 0},
+        {"\\u010CAJI\\u0106 RADOSLAV", 0},
+        {"\\u010CAK\\u0160IRAN MILADIN", 0},
+        {"\\u010CAKAN EUGEN", 0},
+        {"\\u010CAKAN EVGENIJE", 0},
+        {"\\u010CAKAN IVAN", 0},
+        {"\\u010CAKAN JULIJAN", 0},
+        {"\\u010CAKAN MIHAJLO", 0},
+        {"\\u010CAKAN STEVAN", 0},
+        {"\\u010CAKAN VLADIMIR", 0},
+        {"\\u010CAKAN VLADIMIR", 0},
+        {"\\u010CAKAN VLADIMIR", 0},
+        {"\\u010CAKARA ANA", 0},
+        {"\\u010CAKAREVI\\u0106 MOMIR", 0},
+        {"\\u010CAKAREVI\\u0106 NEDELJKO", 0},
+        {"\\u010CAKI \\u0160ANDOR", 0},
+        {"\\u010CAKI AMALIJA", 0},
+        {"\\u010CAKI ANDRA\\u0160", 0},
+        {"\\u010CAKI LADISLAV", 0},
+        {"\\u010CAKI LAJO\\u0160", 0},
+        {"\\u010CAKI LASLO", 0}
     };
 
 
@@ -1651,7 +1626,7 @@ void CollationAPITest::TestBounds(void) {
         skSize = coll->getSortKey(buffer, buffSize, sortkey, 512);
         lowerSize = ucol_getBound(sortkey, skSize, UCOL_BOUND_LOWER, 1, lower, 512, &status);
         upperSize = ucol_getBound(sortkey, skSize, UCOL_BOUND_UPPER_LONG, 1, upper, 512, &status);
-        for(j = i+1; j<(int32_t)(sizeof(test)/sizeof(test[0])); j++) {
+        for(j = i+1; j<sizeof(test)/sizeof(test[0]); j++) {
             buffSize = u_unescape(test[j], buffer, 512);
             skSize = coll->getSortKey(buffer, buffSize, sortkey, 512);
             if(strcmp((const char *)lower, (const char *)sortkey) > 0) {
@@ -1663,47 +1638,6 @@ void CollationAPITest::TestBounds(void) {
         }
     }
     delete coll;
-}
-
-
-void CollationAPITest::TestGetTailoredSet() 
-{
-  struct {
-    char *rules;
-    char *tests[20];
-    int32_t testsize;
-  } setTest[] = {
-    { "&a < \\u212b", { "\\u212b", "A\\u030a", "\\u00c5" }, 3},
-    { "& S < \\u0161 <<< \\u0160", { "\\u0161", "s\\u030C", "\\u0160", "S\\u030C" }, 4}
-  };
-
-  int32_t i = 0, j = 0;
-  UErrorCode status = U_ZERO_ERROR;
-
-  RuleBasedCollator *coll = NULL;
-  UnicodeString buff;
-  UnicodeSet *set = NULL;
-
-  for(i = 0; i < sizeof(setTest)/sizeof(setTest[0]); i++) {
-    buff = UnicodeString(setTest[i].rules, "").unescape();
-    coll = new RuleBasedCollator(buff, status);
-    if(U_SUCCESS(status)) {
-      set = coll->getTailoredSet(status);
-      if(set->size() != setTest[i].testsize) {
-        errln("Tailored set size different (%d) than expected (%d)", set->size(), setTest[i].testsize);
-      }
-      for(j = 0; j < setTest[i].testsize; j++) {
-        buff = UnicodeString(setTest[i].tests[j], "").unescape();
-        if(!set->contains(buff)) {
-          errln("Tailored set doesn't contain %s... It should", setTest[i].tests[j]);
-        }
-      }
-      delete set;
-    } else {
-      errln("Couldn't open collator with rules %s\n", setTest[i].rules);
-    }
-    delete coll;
-  }
 }
 
 void CollationAPITest::runIndexedTest( int32_t index, UBool exec, const char* &name, char* /*par */)
@@ -1729,9 +1663,7 @@ void CollationAPITest::runIndexedTest( int32_t index, UBool exec, const char* &n
         case 16: name = "TestRules"; if (exec) TestRules(); break;
         case 17: name = "TestGetLocale"; if (exec) TestGetLocale(); break;
         case 18: name = "TestBounds"; if (exec) TestBounds(); break;
-        case 19: name = "TestGetTailoredSet"; if (exec) TestGetTailoredSet(); break;
         default: name = ""; break;
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */

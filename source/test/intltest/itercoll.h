@@ -12,10 +12,6 @@
 #ifndef _ITERCOLL
 #define _ITERCOLL
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/tblcoll.h"
 #include "unicode/coleitr.h"
 #include "tscoll.h"
@@ -113,7 +109,5 @@ private:
     const UnicodeString test2;
 
 };
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

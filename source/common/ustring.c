@@ -157,118 +157,140 @@ u_strchr32(const UChar *s, UChar32 c) {
   }
 }
 
-/*
- * Match each code point in a string against each code point in the matchSet.
- * Return the index of the first string code point that
- * is (polarity==TRUE) or is not (FALSE) contained in the matchSet.
- * Return -(string length)-1 if there is no such code point.
- */
-static int32_t
-_matchFromSet(const UChar *string, const UChar *matchSet, UBool polarity) {
-    int32_t matchLen, matchBMPLen, strItr, matchItr;
-    UChar32 stringCh, matchCh;
-    UChar c, c2;
-
-    /* first part of matchSet contains only BMP code points */
-    matchBMPLen = 0;
-    while((c = matchSet[matchBMPLen]) != 0 && U16_IS_SINGLE(c)) {
-        ++matchBMPLen;
-    }
-
-    /* second part of matchSet contains BMP and supplementary code points */
-    matchLen = matchBMPLen;
-    while(matchSet[matchLen] != 0) {
-        ++matchLen;
-    }
-
-    for(strItr = 0; (c = string[strItr]) != 0;) {
-        ++strItr;
-        if(U16_IS_SINGLE(c)) {
-            if(polarity) {
-                for(matchItr = 0; matchItr < matchLen; ++matchItr) {
-                    if(c == matchSet[matchItr]) {
-                        return strItr - 1; /* one matches */
-                    }
-                }
-            } else {
-                for(matchItr = 0; matchItr < matchLen; ++matchItr) {
-                    if(c == matchSet[matchItr]) {
-                        goto endloop;
-                    }
-                }
-                return strItr - 1; /* none matches */
-            }
-        } else {
-            /*
-             * No need to check for string length before U16_IS_TRAIL
-             * because c2 could at worst be the terminating NUL.
-             */
-            if(U16_IS_SURROGATE_LEAD(c) && U16_IS_TRAIL(c2 = string[strItr])) {
-                ++strItr;
-                stringCh = U16_GET_SUPPLEMENTARY(c, c2);
-            } else {
-                stringCh = c; /* unpaired trail surrogate */
-            }
-
-            if(polarity) {
-                for(matchItr = matchBMPLen; matchItr < matchLen;) {
-                    U16_NEXT(matchSet, matchItr, matchLen, matchCh);
-                    if(stringCh == matchCh) {
-                        return strItr - U16_LENGTH(stringCh); /* one matches */
-                    }
-                }
-            } else {
-                for(matchItr = matchBMPLen; matchItr < matchLen;) {
-                    U16_NEXT(matchSet, matchItr, matchLen, matchCh);
-                    if(stringCh == matchCh) {
-                        goto endloop;
-                    }
-                }
-                return strItr - U16_LENGTH(stringCh); /* none matches */
-            }
-        }
-endloop:
-        /* wish C had continue with labels like Java... */;
-    }
-
-    /* Didn't find it. */
-    return -strItr-1;
-}
-
 /* Search for a codepoint in a string that matches one of the matchSet codepoints. */
 U_CAPI UChar * U_EXPORT2
 u_strpbrk(const UChar *string, const UChar *matchSet)
 {
-    int32_t index = _matchFromSet(string, matchSet, TRUE);
-    if(index >= 0) {
-        return (UChar *)string + index;
-    } else {
-        return NULL;
+    int32_t matchLen;
+    UBool single = TRUE;
+
+    for (matchLen = 0; matchSet[matchLen]; matchLen++)
+    {
+        if (!UTF_IS_SINGLE(matchSet[matchLen]))
+        {
+            single = FALSE;
+        }
     }
+
+    if (single)
+    {
+        const UChar *matchItr;
+        const UChar *strItr;
+
+        for (strItr = string; *strItr; strItr++)
+        {
+            for (matchItr = matchSet; *matchItr; matchItr++)
+            {
+                if (*matchItr == *strItr)
+                {
+                    return (UChar *)strItr;
+                }
+            }
+        }
+    }
+    else
+    {
+        int32_t matchItr;
+        int32_t strItr;
+        UChar32 stringCh, matchSetCh;
+        int32_t stringLen = u_strlen(string);
+
+        for (strItr = 0; strItr < stringLen; strItr++)
+        {
+            UTF_GET_CHAR_SAFE(string, 0, strItr, stringLen, stringCh, TRUE);
+            for (matchItr = 0; matchItr < matchLen; matchItr++)
+            {
+                UTF_GET_CHAR_SAFE(matchSet, 0, matchItr, matchLen, matchSetCh, TRUE);
+                if (stringCh == matchSetCh && (stringCh != UTF_ERROR_VALUE
+                    || string[strItr] == UTF_ERROR_VALUE
+                    || (matchSetCh == UTF_ERROR_VALUE && !UTF_IS_SINGLE(matchSet[matchItr]))))
+                {
+                    return (UChar *)string + strItr;
+                }
+            }
+        }
+    }
+
+    /* Didn't find it. */
+    return NULL;
 }
 
 /* Search for a codepoint in a string that matches one of the matchSet codepoints. */
 U_CAPI int32_t U_EXPORT2
 u_strcspn(const UChar *string, const UChar *matchSet)
 {
-    int32_t index = _matchFromSet(string, matchSet, TRUE);
-    if(index >= 0) {
-        return index;
-    } else {
-        return -index - 1; /* == u_strlen(string) */
+    const UChar *foundStr = u_strpbrk(string, matchSet);
+    if (foundStr == NULL)
+    {
+        return u_strlen(string);
     }
+    return foundStr - string;
 }
 
 /* Search for a codepoint in a string that does not match one of the matchSet codepoints. */
 U_CAPI int32_t U_EXPORT2
 u_strspn(const UChar *string, const UChar *matchSet)
 {
-    int32_t index = _matchFromSet(string, matchSet, FALSE);
-    if(index >= 0) {
-        return index;
-    } else {
-        return -index - 1; /* == u_strlen(string) */
+    UBool single = TRUE;
+    UBool match = TRUE;
+    int32_t matchLen;
+    int32_t retValue;
+
+    for (matchLen = 0; matchSet[matchLen]; matchLen++)
+    {
+        if (!UTF_IS_SINGLE(matchSet[matchLen]))
+        {
+            single = FALSE;
+        }
     }
+
+    if (single)
+    {
+        const UChar *matchItr;
+        const UChar *strItr;
+
+        for (strItr = string; *strItr && match; strItr++)
+        {
+            match = FALSE;
+            for (matchItr = matchSet; *matchItr; matchItr++)
+            {
+                if (*matchItr == *strItr)
+                {
+                    match = TRUE;
+                    break;
+                }
+            }
+        }
+        retValue = strItr - string - (match == FALSE);
+    }
+    else
+    {
+        int32_t matchItr;
+        int32_t strItr;
+        UChar32 stringCh, matchSetCh;
+        int32_t stringLen = u_strlen(string);
+
+        for (strItr = 0; strItr < stringLen && match; strItr++)
+        {
+            match = FALSE;
+            UTF_GET_CHAR_SAFE(string, 0, strItr, stringLen, stringCh, TRUE);
+            for (matchItr = 0; matchItr < matchLen; matchItr++)
+            {
+                UTF_GET_CHAR_SAFE(matchSet, 0, matchItr, matchLen, matchSetCh, TRUE);
+                if (stringCh == matchSetCh && (stringCh != UTF_ERROR_VALUE
+                    || string[strItr] == UTF_ERROR_VALUE
+                    || (matchSetCh == UTF_ERROR_VALUE && !UTF_IS_SINGLE(matchSet[matchItr]))))
+                {
+                    match = TRUE;
+                    break;
+                }
+            }
+        }
+        retValue = strItr - (match == FALSE);
+    }
+
+    /* Found a mismatch or didn't find it. */
+    return retValue;
 }
 
 /* ----- Text manipulation functions --- */
@@ -640,74 +662,6 @@ u_countChar32(const UChar *s, int32_t length) {
     return count;
 }
 
-U_CAPI UBool U_EXPORT2
-u_strHasMoreChar32Than(const UChar *s, int32_t length, int32_t number) {
-
-    if(number<0) {
-        return TRUE;
-    }
-    if(s==NULL || length<-1) {
-        return FALSE;
-    }
-
-    if(length==-1) {
-        /* s is NUL-terminated */
-        UChar c;
-
-        /* count code points until they exceed */
-        for(;;) {
-            if((c=*s++)==0) {
-                return FALSE;
-            }
-            if(number==0) {
-                return TRUE;
-            }
-            if(U16_IS_LEAD(c) && U16_IS_TRAIL(*s)) {
-                ++s;
-            }
-            --number;
-        }
-    } else {
-        /* length>=0 known */
-        const UChar *limit;
-        int32_t maxSupplementary;
-
-        /* s contains at least (length+1)/2 code points: <=2 UChars per cp */
-        if(((length+1)/2)>number) {
-            return TRUE;
-        }
-
-        /* check if s does not even contain enough UChars */
-        maxSupplementary=length-number;
-        if(maxSupplementary<=0) {
-            return FALSE;
-        }
-        /* there are maxSupplementary=length-number more UChars than asked-for code points */
-
-        /*
-         * count code points until they exceed and also check that there are
-         * no more than maxSupplementary supplementary code points (UChar pairs)
-         */
-        limit=s+length;
-        for(;;) {
-            if(s==limit) {
-                return FALSE;
-            }
-            if(number==0) {
-                return TRUE;
-            }
-            if(U16_IS_LEAD(*s++) && s!=limit && U16_IS_TRAIL(*s)) {
-                ++s;
-                if(--maxSupplementary<=0) {
-                    /* too many pairs - too few code points */
-                    return FALSE;
-                }
-            }
-            --number;
-        }
-    }
-}
-
 U_CAPI UChar * U_EXPORT2
 u_memcpy(UChar *dest, const UChar *src, int32_t count) {
     return (UChar *)uprv_memcpy(dest, src, count*U_SIZEOF_UCHAR);
@@ -809,7 +763,7 @@ static int32_t u_astrnlen(const char *s1, int32_t n)
 
     if (s1)
     {
-        while (n-- && *(s1++))
+        while (*(s1++) && n--)
         {
             len++;
         }
@@ -881,7 +835,7 @@ static int32_t u_ustrnlen(const UChar *ucs1, int32_t n)
 
     if (ucs1)
     {
-        while (n-- && *(ucs1++))
+        while (*(ucs1++) && n--)
         {
             len++;
         }
@@ -1205,7 +1159,7 @@ u_unescape(const char *src, UChar *dest, int32_t destCapacity) {
     if (dest != NULL && i < destCapacity) {
         dest[i] = 0;
     }
-    return i;
+    return i + 1; /* add 1 for zero term */
 
  err:
     if (dest != NULL && destCapacity > 0) {

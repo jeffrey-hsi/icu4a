@@ -13,10 +13,6 @@
 #ifndef _FICOLL
 #define _FICOLL
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "tscoll.h"
 
 class CollationFinnishTest: public IntlTestCollator {
@@ -45,7 +41,4 @@ private:
 
     Collator *myCollation;
 };
-
-#endif /* #if !UCONFIG_NO_COLLATION */
-
 #endif

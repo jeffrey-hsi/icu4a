@@ -313,11 +313,11 @@ SOURCE=.\custrtrn.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\custrtst.c
+SOURCE=.\cutiltst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cutiltst.c
+SOURCE=.\dadrcoll.c
 # End Source File
 # Begin Source File
 
@@ -523,6 +523,10 @@ SOURCE=.\cturtst.h
 # Begin Source File
 
 SOURCE=.\cucdtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\dadrcoll.h
 # End Source File
 # Begin Source File
 

@@ -12,10 +12,6 @@
 #ifndef JAMOTEST_H
 #define JAMOTEST_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "transtst.h"
 
@@ -54,7 +50,5 @@ private:
     UnicodeString nameToJamo(const UnicodeString& input);
     UnicodeString jamoToName(const UnicodeString& input);
 };
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

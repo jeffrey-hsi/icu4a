@@ -5,9 +5,6 @@
  ********************************************************************/
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "tsdtfmsy.h"
 
 #include "unicode/dtfmtsym.h"
@@ -66,13 +63,13 @@ void IntlTestDateFormatSymbols::testSymbols(/* char *par */)
 {
     UErrorCode status = U_ZERO_ERROR;
 
-    DateFormatSymbols fr(Locale::getFrench(), status);
+    DateFormatSymbols fr(Locale::FRENCH, status);
     if(U_FAILURE(status)) {
         errln("ERROR: Couldn't create French DateFormatSymbols");
     }
 
     status = U_ZERO_ERROR;
-    DateFormatSymbols en(Locale::getEnglish(), status);
+    DateFormatSymbols en(Locale::ENGLISH, status);
     if(U_FAILURE(status)) {
         errln("ERROR: Couldn't create English DateFormatSymbols");
     }
@@ -151,5 +148,3 @@ void IntlTestDateFormatSymbols::testSymbols(/* char *par */)
         errln("ERROR: Copy Constructor or Assignment failed");
     }
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

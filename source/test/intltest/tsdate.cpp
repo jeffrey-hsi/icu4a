@@ -5,9 +5,6 @@
  ********************************************************************/
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/datefmt.h"
 #include "unicode/smpdtfmt.h"
 #include "tsdate.h"
@@ -278,5 +275,3 @@ void IntlTestDateFormat::monsterTest(/*char *par*/)
         }
     }
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

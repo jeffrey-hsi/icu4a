@@ -8,13 +8,6 @@
 *   03/17/2000   Madhu        Creation.
 ************************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_HEXTOUNICODETRANSLITERATOR_USE_DEPRECATES 1
-
 #include "ittrans.h"
 #include "hxuntrts.h"
 #include "unicode/utypes.h"
@@ -68,15 +61,6 @@ class TestHexFilter : public UnicodeFilter {
        else
           return TRUE;
     }
-    // Stubs
-    virtual UnicodeString& toPattern(UnicodeString& result,
-                                     UBool escapeUnprintable) const {
-        return result;
-    }
-    virtual UBool matchesIndexValue(uint8_t v) const {
-        return FALSE;
-    }
-    virtual void addMatchSetTo(UnicodeSet& toUnionTo) const {}
 };
 void HexToUniTransliteratorTest::TestConstruction(){
     UErrorCode status=U_ZERO_ERROR;
@@ -442,4 +426,5 @@ void HexToUniTransliteratorTest::expectAux(const UnicodeString& tag,
     }
 }
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
+
+

@@ -207,7 +207,6 @@ ures_openDirect(const char* path,
                 const char* locale, 
                 UErrorCode* status);
 
-#ifdef ICU_URES_USE_DEPRECATES
 /**
 *Opens a UResourceBundle, from which users can extract strings by using
 *their corresponding keys. This version of open requires the path 
@@ -231,7 +230,6 @@ U_CAPI UResourceBundle* U_EXPORT2
 ures_openW(const wchar_t* path, 
            const char* locale, 
            UErrorCode* status);
-#endif /* ICU_URES_USE_DEPRECATES */
 
 /**
  * Same as ures_open() but takes a const UChar *path.

@@ -13,9 +13,6 @@
 #ifndef RBBIAPITEST_H
 #define RBBIAPITEST_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
 
 #include "intltest.h"
 #include "unicode/rbbi.h"
@@ -76,8 +73,6 @@ public:
      */
     void TestWordStatus();
 
-    void TestBug2190();
-
     /**
      *Internal subroutines
      **/
@@ -90,6 +85,8 @@ public:
 
 };
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
-
 #endif
+
+
+
+

@@ -11,9 +11,6 @@
 #ifndef _INTLTESTCOLLATOR
 #define _INTLTESTCOLLATOR
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
 
 #include "intltest.h"
 #include "unicode/coll.h"
@@ -50,6 +47,5 @@ protected:
 
 };
 
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

@@ -14,11 +14,8 @@
 
 /* C API AND FUNCTIONALITY TEST FOR CALENDAR (ucol.h)*/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/uloc.h"
+#include "unicode/utypes.h"
 #include "unicode/ucal.h"
 #include "unicode/udat.h"
 #include "unicode/ustring.h"
@@ -119,7 +116,7 @@ static void TestCalendar()
         log_verbose("The no: of locales for which calendars are avilable are %d\n", count);
     }
     else
-        log_data_err("FAIL: Error in countAvailable()\n");
+        log_err("FAIL: Error in countAvialable()\n");
 
     for(i=0;i<count;i++) 
        log_verbose("%s\n", ucal_getAvailable(i)); 
@@ -1174,4 +1171,4 @@ static void verify2(const char* msg, UCalendar* c, UDateFormat* dat, int32_t yea
         
 }
 
-#endif /* #if !UCONFIG_NO_FORMATTING */
+/*--------------------------------------------- */

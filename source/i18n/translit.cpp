@@ -7,16 +7,6 @@
 *   11/17/99    aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_COMPOUNDTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_NULLTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_RULEBASEDTRANSLITERATOR_USE_DEPRECATES 1
-
 #include "unicode/putil.h"
 #include "unicode/translit.h"
 #include "unicode/cpdtrans.h"
@@ -755,7 +745,6 @@ UnicodeString& Transliterator::getDisplayName(const UnicodeString& id,
         return result = resString; // [sic] assign & return
     }
 
-#if !UCONFIG_NO_FORMATTING
     // We have failed to get a name from the locale data.  This is
     // typical, since most transliterators will not have localized
     // name data.  The next step is to retrieve the MessageFormat
@@ -801,7 +790,6 @@ UnicodeString& Transliterator::getDisplayName(const UnicodeString& id,
             return result;
         }
     }
-#endif
 
     // We should not reach this point unless there is something
     // wrong with the build or the RB_DISPLAY_NAME_PATTERN has
@@ -1446,7 +1434,5 @@ U_CFUNC UBool transliterator_cleanup(void) {
     umtx_destroy(&registryMutex);
     return TRUE;
 }
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 //eof

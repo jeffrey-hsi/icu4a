@@ -7,18 +7,6 @@
 #define UBRK_H
 
 #include "unicode/utypes.h"
-
-/**
- * A text-break iterator.
- *  For usage in C programs.
- */
-#ifndef UBRK_TYPEDEF_UBREAK_ITERATOR
-#   define UBRK_TYPEDEF_UBREAK_ITERATOR
-    typedef void UBreakIterator;
-#endif
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/parseerr.h"
 
 /**
@@ -178,8 +166,17 @@
  * </pre>
  */
 
+/**
+ * A text-break iterator.
+ *  For usage in C programs.
+ */
+#ifndef UBRK_TYPEDEF_UBREAK_ITERATOR
+#   define UBRK_TYPEDEF_UBREAK_ITERATOR
+    typedef void UBreakIterator;
+#endif
+
 /** The possible types of text boundaries. */
-typedef enum UBreakIteratorType {
+enum UBreakIteratorType {
   /** Character breaks */
   UBRK_CHARACTER,
   /** Word breaks */
@@ -190,7 +187,8 @@ typedef enum UBreakIteratorType {
   UBRK_SENTENCE,
   /** Title Case breaks */
   UBRK_TITLE
-} UBreakIteratorType;
+};
+typedef enum UBreakIteratorType UBreakIteratorType;
 
 /** Value indicating all text boundaries have been returned.
  *
@@ -205,7 +203,7 @@ typedef enum UBreakIteratorType {
  *  Applications should check for tag values falling within the range, rather
  *  than for single individual values.
 */
-typedef enum UWordBreak {
+enum UWordBreak {
     /** Tag value for "words" that do not fit into any of other categories. 
      *  Includes spaces and most punctuation. */
     UBRK_WORD_NONE           = 0,
@@ -228,7 +226,8 @@ typedef enum UWordBreak {
     UBRK_WORD_IDEO           = 400,
     /** Tag value for words containing ideographic characters, upper limit */
     UBRK_WORD_IDEO_LIMIT     = 500
-} UWordBreak;
+};
+typedef enum UWordBreak UWordBreak;
 
 
 /**
@@ -456,6 +455,5 @@ ubrk_isBoundary(UBreakIterator *bi, int32_t offset);
 U_CAPI  int32_t U_EXPORT2
 ubrk_getRuleStatus(UBreakIterator *bi);
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
 
 #endif

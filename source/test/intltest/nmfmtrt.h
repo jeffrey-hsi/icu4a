@@ -7,10 +7,6 @@
 #ifndef _NUMBERFORMATROUNDTRIPTEST_
 #define _NUMBERFORMATROUNDTRIPTEST_
  
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/numfmt.h"
 #include "unicode/fmtable.h"
 #include "intltest.h"
@@ -83,8 +79,6 @@ protected:
     UBool failure(UErrorCode status, const char* msg);
 
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
  
 #endif // _NUMBERFORMATROUNDTRIPTEST_
 //eof

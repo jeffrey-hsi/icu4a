@@ -42,12 +42,9 @@ U_NAMESPACE_BEGIN
 
 class Locale;               // unicode/locid.h
 class UCharReference;
+class UnicodeConverter;     // unicode/convert.h
 class StringCharacterIterator;
 class BreakIterator;        // unicode/brkiter.h
-
-#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
-class UnicodeConverter;     // unicode/convert.h
-#endif
 
 /* The <iostream> include has been moved to unicode/ustream.h */
 
@@ -90,27 +87,25 @@ class UnicodeConverter;     // unicode/convert.h
  * @stable
  */
 #if U_SIZEOF_WCHAR_T==U_SIZEOF_UCHAR && U_CHARSET_FAMILY==U_ASCII_FAMILY
-#   define UNICODE_STRING_SIMPLE(cs) UnicodeString(TRUE, (const UChar *)L ## cs, -1)
+#   define UNICODE_STRING_SIMPLE(cs) UnicodeString((const UChar *)L ## cs)
 #elif U_SIZEOF_UCHAR==1 && U_CHARSET_FAMILY==U_ASCII_FAMILY
-#   define UNICODE_STRING_SIMPLE(cs) UnicodeString(TRUE, (const UChar *)cs, -1)
+#   define UNICODE_STRING_SIMPLE(cs) UnicodeString((const UChar *)cs)
 #else
 #   define UNICODE_STRING_SIMPLE(cs) UnicodeString(cs, "")
 #endif
 
-/**
+ /**
  * UnicodeString is a string class that stores Unicode characters directly and provides
- * similar functionality as the Java String and StringBuffer classes.
+ * similar functionality as the Java String class.
  * It is a concrete implementation of the abstract class Replaceable (for transliteration).
  *
- * <p>For an overview of Unicode strings in C and C++ see the
- * <a href="http://oss.software.ibm.com/icu/userguide/strings.html">User Guide Strings chapter</a>.</p>
- *
- * <p>In ICU, a Unicode string consists of 16-bit Unicode <em>code units</em>.
- * A Unicode character may be stored with either
+ * <p>In ICU, strings are stored and used as UTF-16.
+ * This means that a string internally consists of 16-bit Unicode <i>code units</i>.<br>
+ * UTF-16 is a variable-length encoding: A Unicode character may be stored with either
  * one code unit &mdash; which is the most common case &mdash; or with a matched pair of
  * special code units ("surrogates").
  * The data type for code units is UChar.<br>
- * For single-character handling, a Unicode character code <em>point</em> is a value
+ * For single-character handling, a Unicode character code <i>point</i> is a scalar value
  * in the range 0..0x10ffff. ICU uses the UChar32 type for code points.</p>
  *
  * <p>Indexes and offsets into and lengths of strings always count code units, not code points.
@@ -119,19 +114,43 @@ class UnicodeConverter;     // unicode/convert.h
  * If necessary, the user needs to take care of such boundaries by testing for the code unit
  * values or by using functions like
  * UnicodeString::getChar32Start() and UnicodeString::getChar32Limit()
- * (or, in C, the equivalent macros U16_SET_CP_START() and U16_SET_CP_LIMIT(), see utf.h).</p>
+ * (or, in C, the equivalent macros UTF_SET_CHAR_START() and UTF_SET_CHAR_LIMIT(), see utf.h).</p>
  *
- * <p>UnicodeString uses several storage methods.
- * String contents can be stored inside the UnicodeString object itself,
- * in an allocated and shared buffer, or in an outside buffer that is "aliased".
- * Most of this is done transparently, but careful aliasing in particular provides
- * significant performance improvements.
- * Also, the internal buffer is accessible via special functions.
- * For details see the
- * <a href="http://oss.software.ibm.com/icu/userguide/strings.html">User Guide Strings chapter</a>.</p>
+ * <p>UnicodeString uses four storage models:
+ * <ol>
+ * <li>Short strings are normally stored inside the UnicodeString object itself.
+ *     The object has fields for the "bookkeeping" and a small UChar array.
+ *     When the object is copied, then the internal characters are copied
+ *     into the destination object.</li>
+ * <li>Longer strings are normally stored in allocated memory.
+ *     The allocated UChar array is preceeded by a reference counter.
+ *     When the string object is copied, then the allocated buffer is shared by
+ *     incrementing the reference counter.</li>
+ * <li>A UnicodeString can be constructed or setTo() such that it aliases a read-only
+ *     buffer instead of copying the characters. In this case, the string object
+ *     uses this aliased buffer for as long as it is not modified, and it will never
+ *     attempt to modify or release the buffer. This has copy-on-write semantics:
+ *     When the string object is modified, then the buffer contents is first copied
+ *     into writable memory (inside the object for short strings, or allocated
+ *     buffer for longer strings). When a UnicodeString with a read-only alias
+ *     is assigned to another UnicodeString, then both string objects will
+ *     share the same read-only alias.</li>
+ * <li>A UnicodeString can be constructed or setTo() such that it aliases a writable
+ *     buffer instead of copying the characters. The difference from the above is that
+ *     the string object will write through to this aliased buffer for write
+ *     operations. Only when the capacity of the buffer is not sufficient is
+ *     a new buffer allocated and the contents copied.
+ *     An efficient way to get the string contents into the original buffer is
+ *     to use the extract(..., UChar *dst, ...) function: It will only copy the
+ *     string contents if the dst buffer is different from the buffer of the string
+ *     object itself. If a string grows and shrinks during a sequence of operations,
+ *     then it will not use the same buffer any more, but may fit into it again.
+ *     When a UnicodeString with a writable alias is assigned to another UnicodeString,
+ *     then the contents is always copied. The destination string will not alias
+ *     to the buffer that the source string aliases.</li>
+ * </ol></p>
  *
- * @see utf.h
- * @see CharacterIterator
+ * @see Unicode
  * @stable
  */
 class U_COMMON_API UnicodeString : public Replaceable
@@ -1238,7 +1257,7 @@ public:
    * @returns the code unit at offset <tt>offset</tt>
    * @stable
    */
-  inline UChar operator[] (int32_t offset) const;
+  inline UChar operator [] (int32_t offset) const;
 
   /**
    * Return the code point that contains the code unit
@@ -1263,7 +1282,6 @@ public:
    * to the first surrogate.
    * @param offset a valid offset into one code point of the text
    * @return offset of the first code unit of the same code point
-   * @see U16_SET_CP_START
    * @draft ICU 2.0
    */
   inline int32_t getChar32Start(int32_t offset) const;
@@ -1274,7 +1292,6 @@ public:
    * was meant to look like UTF_SET_CHAR_START,
    * but since most code point-related function names in C++ APIs
    * contain a "32", this caused confusion.
-   * Note that UTF_SET_CHAR_START got renamed to U16_SET_CP_START in ICU 2.4.
    *
    * Adjust a random-access offset so that
    * it points to the beginning of a Unicode character.
@@ -1304,7 +1321,6 @@ public:
    * behind the second surrogate (i.e., to the first surrogate).
    * @param offset a valid offset after any code unit of a code point of the text
    * @return offset of the first code unit after the same code point
-   * @see U16_SET_CP_LIMIT
    * @draft ICU 2.0
    */
   inline int32_t getChar32Limit(int32_t offset) const;
@@ -1315,7 +1331,6 @@ public:
    * was meant to look like UTF_SET_CHAR_LIMIT,
    * but since most code point-related function names in C++ APIs
    * contain a "32", this caused confusion.
-   * Note that UTF_SET_CHAR_LIMIT got renamed to U16_SET_CP_LIMIT in ICU 2.4.
    *
    * Adjust a random-access offset so that
    * it points behind a Unicode character.
@@ -1547,10 +1562,10 @@ public:
   /**
    * Return the length of the UnicodeString object.  
    * The length is the number of characters in the text.
-   * @return the length of the UnicodeString object
+   * @returns the length of the UnicodeString object
    * @stable
    */
-  inline int32_t length(void) const;
+  inline int32_t  length(void) const;
 
   /**
    * Count Unicode code points in the length UChar code units of the string.
@@ -1566,32 +1581,6 @@ public:
    */
   int32_t
   countChar32(int32_t start=0, int32_t length=0x7fffffff) const;
-
-  /**
-   * Check if the length UChar code units of the string
-   * contain more Unicode code points than a certain number.
-   * This is more efficient than counting all code points in this part of the string
-   * and comparing that number with a threshold.
-   * This function may not need to scan the string at all if the length
-   * falls within a certain range, and
-   * never needs to count more than 'number+1' code points.
-   * Logically equivalent to (countChar32(start, length)>number).
-   * A Unicode code point may occupy either one or two UChar code units.
-   *
-   * @param start the index of the first code unit to check (0 for the entire string)
-   * @param length the number of UChar code units to check
-   *               (use 0x7fffffff for the entire string; remember that start/length
-   *                values are pinned)
-   * @param number The number of code points in the (sub)string is compared against
-   *               the 'number' parameter.
-   * @return Boolean value for whether the string contains more Unicode code points
-   *         than 'number'. Same as (u_countChar32(s, length)>number).
-   * @see countChar32
-   * @see u_strHasMoreChar32Than
-   * @draft ICU 2.4
-   */
-  UBool
-  hasMoreChar32Than(int32_t start, int32_t length, int32_t number) const;
 
   /**
    * Determine if this string is empty.
@@ -1653,29 +1642,7 @@ public:
    * @return a reference to this
    * @stable
    */
-  UnicodeString &operator=(const UnicodeString &srcText);
-
-  /**
-   * Almost the same as the assignment operator.
-   * Replace the characters in this UnicodeString
-   * with the characters from <code>srcText</code>.
-   *
-   * This function works the same for all strings except for ones that
-   * are readonly aliases.
-   * Starting with ICU 2.4, the assignment operator and the copy constructor
-   * allocate a new buffer and copy the buffer contents even for readonly aliases.
-   * This function implements the old, more efficient but less safe behavior
-   * of making this string also a readonly alias to the same buffer.
-   * The fastCopyFrom function must be used only if it is known that the lifetime of
-   * this UnicodeString is at least as long as the lifetime of the aliased buffer
-   * including its contents, for example for strings from resource bundles
-   * or aliases to string contents.
-   *
-   * @param src The text containing the characters to replace.
-   * @return a reference to this
-   * @draft ICU 2.4
-   */
-  UnicodeString &fastCopyFrom(const UnicodeString &src);
+   UnicodeString& operator= (const UnicodeString& srcText);
 
   /**
    * Assignment operator.  Replace the characters in this UnicodeString
@@ -2404,8 +2371,6 @@ public:
    */
   UnicodeString& toLower(const Locale& locale);
 
-#if !UCONFIG_NO_BREAK_ITERATION
-
   /**
    * Titlecase this string, convenience function using the default locale.
    *
@@ -2460,8 +2425,6 @@ public:
    * @draft ICU 2.1
    */
   UnicodeString &toTitle(BreakIterator *titleIter, const Locale &locale);
-
-#endif
 
   /**
    * Case-fold the characters in this string.
@@ -2825,21 +2788,14 @@ public:
               int32_t length = INT32_MAX,
               UBool asian = TRUE) const;
 
-#ifdef U_USE_DEPRECATED_UCHAR_REFERENCE
   /**
    * Return a modifiable reference to a code unit of the string.
-   * This is unsafe because copying the UCharReference can leave it with
-   * a dangling pointer to this UnicodeString object.
-   * It also causes inefficient code because in most cases, the r-value
-   * operator[] const is intended to be used instead of creating
-   * a UCharReference object.
    *
    * @param pos The index of the code unit to refer to.
    * @return A modifiable UCharReference to that code unit.
-   * @deprecated since ICU 2.4. Use charAt(), setCharAt(), and operator[] const instead.
+   * @stable
    */
   UCharReference operator[] (int32_t pos);
-#endif
 
   /**
    * Unescape a string of characters and return a string containing
@@ -3037,9 +2993,6 @@ private:
   // release the array if owned
   void releaseArray(void);
 
-  // implements assigment operator, copy constructor, and fastCopyFrom()
-  UnicodeString &copyFrom(const UnicodeString &src, UBool fastCopy=FALSE);
-
   // Pin start and limit to acceptable values.
   inline void pinIndices(int32_t& start,
                          int32_t& length) const;
@@ -3105,7 +3058,13 @@ private:
 
   // constants
   enum {
+#if UTF_SIZE==8
+    US_STACKBUF_SIZE=14, // Size of stack buffer for small strings
+#elif UTF_SIZE==16
     US_STACKBUF_SIZE=7, // Size of stack buffer for small strings
+#else // UTF_SIZE==32
+    US_STACKBUF_SIZE=3, // Size of stack buffer for small strings
+#endif
     kInvalidUChar=0xffff, // invalid UChar index
     kGrowSize=128, // grow size for this buffer
     kInvalidHashCode=0, // invalid hash code
@@ -3126,9 +3085,7 @@ private:
     kWritableAlias=0
   };
 
-#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
   friend class UnicodeConverter;
-#endif
 
   friend class StringCharacterIterator;
   friend class StringThreadTest;
@@ -3149,6 +3106,9 @@ private:
   int32_t   fCapacity;      // sizeof fArray
   UChar     *fArray;        // the Unicode data
   uint16_t  fFlags;         // bit flags: see constants above
+#if UTF_SIZE==32
+  uint16_t  fPadding;       // padding to align the fStackBuffer for UTF-32
+#endif
   UChar     fStackBuffer [ US_STACKBUF_SIZE ]; // buffer for small strings
 
   /**
@@ -3665,10 +3625,9 @@ inline UnicodeString&
 UnicodeString::replace(int32_t start, 
                int32_t length, 
                UChar32 srcChar) {
-  UChar buffer[U16_MAX_LENGTH];
+  UChar buffer[UTF_MAX_CHAR_LENGTH];
   int32_t count = 0;
-  UBool isError = FALSE;
-  U16_APPEND(buffer, count, U16_MAX_LENGTH, srcChar, isError);
+  UTF_APPEND_CHAR_UNSAFE(buffer, count, srcChar);
   return doReplace(start, length, buffer, 0, count);
 }
 
@@ -3763,7 +3722,7 @@ UnicodeString::char32At(int32_t offset) const
 {
   if((uint32_t)offset < (uint32_t)fLength) {
     UChar32 c;
-    U16_GET(fArray, 0, offset, fLength, c);
+    UTF_GET_CHAR(fArray, 0, offset, fLength, c);
     return c;
   } else {
     return kInvalidUChar;
@@ -3773,7 +3732,7 @@ UnicodeString::char32At(int32_t offset) const
 inline int32_t
 UnicodeString::getChar32Start(int32_t offset) const {
   if((uint32_t)offset < (uint32_t)fLength) {
-    U16_SET_CP_START(fArray, 0, offset);
+    UTF_SET_CHAR_START(fArray, 0, offset);
     return offset;
   } else {
     return 0;
@@ -3783,7 +3742,7 @@ UnicodeString::getChar32Start(int32_t offset) const {
 inline int32_t
 UnicodeString::getChar32Limit(int32_t offset) const {
   if((uint32_t)offset < (uint32_t)fLength) {
-    U16_SET_CP_LIMIT(fArray, 0, offset, fLength);
+    UTF_SET_CHAR_LIMIT(fArray, 0, offset, fLength);
     return offset;
   } else {
     return fLength;
@@ -3897,10 +3856,9 @@ UnicodeString::operator+= (UChar ch)
 
 inline UnicodeString& 
 UnicodeString::operator+= (UChar32 ch) {
-  UChar buffer[U16_MAX_LENGTH];
+  UChar buffer[UTF_MAX_CHAR_LENGTH];
   int32_t length = 0;
-  UBool isError = FALSE;
-  U16_APPEND(buffer, length, U16_MAX_LENGTH, ch, isError);
+  UTF_APPEND_CHAR_UNSAFE(buffer, length, ch);
   return doReplace(fLength, 0, buffer, 0, length);
 }
 
@@ -3935,10 +3893,9 @@ UnicodeString::append(UChar srcChar)
 
 inline UnicodeString& 
 UnicodeString::append(UChar32 srcChar) {
-  UChar buffer[U16_MAX_LENGTH];
+  UChar buffer[UTF_MAX_CHAR_LENGTH];
   int32_t length = 0;
-  UBool isError = FALSE;
-  U16_APPEND(buffer, length, U16_MAX_LENGTH, srcChar, isError);
+  UTF_APPEND_CHAR_UNSAFE(buffer, length, srcChar);
   return doReplace(fLength, 0, buffer, 0, length);
 }
 
@@ -3995,15 +3952,7 @@ UnicodeString::removeBetween(int32_t start,
 inline UBool 
 UnicodeString::truncate(int32_t targetLength)
 {
-  if(fFlags & kIsBogus) {
-    // truncation of a bogus string should make an empty non-bogus string
-    // any modification of a bogus string should make it valid
-    fArray = fStackBuffer;
-    fLength = 0;
-    fCapacity = US_STACKBUF_SIZE;
-    fFlags = kShortString;
-    return FALSE;
-  } else if((uint32_t)targetLength < (uint32_t)fLength) {
+  if((uint32_t)targetLength < (uint32_t)fLength) {
     fLength = targetLength;
     return TRUE;
   } else {
@@ -4050,7 +3999,6 @@ inline const UChar*
 UnicodeString::getArrayStart() const
 { return fArray; }
 
-#ifdef U_USE_DEPRECATED_UCHAR_REFERENCE
 
 //========================================
 // class UCharReference
@@ -4059,8 +4007,7 @@ UnicodeString::getArrayStart() const
 /**
  * A proxy class to allow the UnicodeString::operator[] function to
  * work as a readable and a writable operator.
- * @deprecated since ICU 2.4. Use charAt(), setCharAt(), and operator[] const
- * instead of non-const UnicodeString::operator[].
+ * @stable
  */
 class U_COMMON_API UCharReference : public UObject {
 public:
@@ -4130,8 +4077,6 @@ UCharReference::operator= (UChar c)
 inline
 UCharReference::operator UChar()
 { return fString->charAt(fPos); }
-
-#endif
 
 U_NAMESPACE_END
 

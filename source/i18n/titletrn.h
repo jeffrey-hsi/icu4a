@@ -10,10 +10,6 @@
 #ifndef TITLETRN_H
 #define TITLETRN_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "unicode/locid.h"
 
@@ -109,7 +105,5 @@ class U_I18N_API TitlecaseTransliterator : public Transliterator {
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

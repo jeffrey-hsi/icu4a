@@ -11,10 +11,6 @@
 *                         TestSecondary
 ***********************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/coll.h"
 #include "unicode/tblcoll.h"
 #include "unicode/unistr.h"
@@ -231,4 +227,3 @@ void CollationFrenchTest::runIndexedTest( int32_t index, UBool exec, const char*
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */

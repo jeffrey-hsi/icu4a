@@ -10,17 +10,11 @@
 #define USEARCH_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/ucol.h"
 #include "unicode/ucoleitr.h"
 #include "unicode/ubrk.h"
 
 /**
- * \file
- * \brief C API: StringSearch
- *
  * C Apis for an engine that provides language-sensitive text searching based 
  * on the comparison rules defined in a <tt>UCollator</tt> data struct,
  * see <tt>ucol.h</tt>. This ensures that language eccentricity can be 
@@ -78,7 +72,7 @@
  *      contracting sequence except the first will fail. Vice versa if a 
  *      preceding pattern match is to be found, a invalid starting point 
  *      would be any character within a contracting sequence except the last.
- * </ul>
+ * <\ul>
  * <p>
  * A breakiterator can be used if only matches at logical breaks are desired.
  * Using a breakiterator will only give you results that exactly matches the
@@ -138,9 +132,6 @@
 * Data structure for searching
 */
 struct UStringSearch;
-/**
-* Data structure for searching
-*/
 typedef struct UStringSearch UStringSearch;
 
 typedef enum {
@@ -366,8 +357,6 @@ U_CAPI int32_t U_EXPORT2 usearch_getMatchedText(const UStringSearch *strsrch,
                                             int32_t        resultCapacity, 
                                             UErrorCode    *status);
 
-#if !UCONFIG_NO_BREAK_ITERATION
-
 /**
 * Set the BreakIterator that will be used to restrict the points at which 
 * matches are detected.
@@ -386,7 +375,7 @@ U_CAPI int32_t U_EXPORT2 usearch_getMatchedText(const UStringSearch *strsrch,
 U_CAPI void U_EXPORT2 usearch_setBreakIterator(UStringSearch  *strsrch, 
                                                UBreakIterator *breakiter,
                                                UErrorCode     *status);
-
+    
 /**
 * Returns the BreakIterator that is used to restrict the points at which 
 * matches are detected. This will be the same object that was passed to the 
@@ -400,8 +389,6 @@ U_CAPI void U_EXPORT2 usearch_setBreakIterator(UStringSearch  *strsrch,
 */
 U_CAPI const UBreakIterator * U_EXPORT2 usearch_getBreakIterator(
                                               const UStringSearch *strsrch);
-    
-#endif
     
 /**
 * Set the string text to be searched. Text iteration will hence begin at the 
@@ -627,6 +614,6 @@ U_CAPI int32_t U_EXPORT2 usearch_previous(UStringSearch *strsrch,
 */
 U_CAPI void U_EXPORT2 usearch_reset(UStringSearch *strsrch);
 
-#endif /* #if !UCONFIG_NO_COLLATION */
-
 #endif
+
+

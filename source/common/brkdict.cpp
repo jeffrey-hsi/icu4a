@@ -8,22 +8,19 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/resbund.h"
 #include "brkdict.h"
 #include "cmemory.h"
 
 U_NAMESPACE_BEGIN
 
+const char BreakDictionary::fgClassID=0;
+
 //=================================================================================
 // deserialization
 //=================================================================================
 
 BreakDictionary::BreakDictionary(const char* /*dictionaryFilename*/, UErrorCode& status)
-  : rowIndex(NULL), table(NULL), columnMap(NULL), rowIndexFlags(NULL), rowIndexFlagsIndex(NULL), rowIndexShifts(NULL)
 {
     if (U_FAILURE(status)) return;
     
@@ -238,4 +235,3 @@ BreakDictionary::internalAt(int32_t row, int32_t col) const
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

@@ -5,10 +5,6 @@
  *******************************************************************************
  */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "itrbnfrt.h"
 
 #include "unicode/fmtable.h"
@@ -61,7 +57,7 @@ RbnfRoundTripTest::TestEnglishSpelloutRT()
 {
   UErrorCode status = U_ZERO_ERROR;
   RuleBasedNumberFormat* formatter
-    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::getUS(), status);
+    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::US, status);
 
   if (U_FAILURE(status)) {
     errln("failed to construct formatter");
@@ -79,7 +75,7 @@ RbnfRoundTripTest::TestDurationsRT()
 {
   UErrorCode status = U_ZERO_ERROR;
   RuleBasedNumberFormat* formatter
-    = new RuleBasedNumberFormat(URBNF_DURATION, Locale::getUS(), status);
+    = new RuleBasedNumberFormat(URBNF_DURATION, Locale::US, status);
 
   if (U_FAILURE(status)) {
     errln("failed to construct formatter");
@@ -151,7 +147,7 @@ RbnfRoundTripTest::TestItalianSpelloutRT()
 {
   UErrorCode status = U_ZERO_ERROR;
   RuleBasedNumberFormat* formatter
-    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::getItalian(), status);
+    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::ITALIAN, status);
 
   if (U_FAILURE(status)) {
     errln("failed to construct formatter");
@@ -223,7 +219,7 @@ RbnfRoundTripTest::TestJapaneseSpelloutRT()
 {
   UErrorCode status = U_ZERO_ERROR;
   RuleBasedNumberFormat* formatter
-    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::getJapan(), status);
+    = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::JAPAN, status);
 
   if (U_FAILURE(status)) {
     errln("failed to construct formatter");
@@ -359,5 +355,3 @@ RbnfRoundTripTest::TestRBNFDisabled() {
 
 /* U_HAVE_RBNF */
 #endif
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

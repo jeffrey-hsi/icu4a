@@ -21,9 +21,6 @@
 #ifndef _CENCOLLTST
 #define _CENCOLLTST
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
 
 #include "cintltst.h"
 
@@ -39,6 +36,5 @@ static    void TestSecondary(void);
 static    void TestTertiary(void);
 
 
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

@@ -12,9 +12,6 @@
 #define UTRANS_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/urep.h"
 #include "unicode/parseerr.h"
 
@@ -60,7 +57,7 @@ typedef void* UTransliterator;
  * B to A when operating in the reverse direction.
  * @stable
  */
-typedef enum UTransDirection {
+typedef enum _UTransDirection {
     
     /**
      * UTRANS_FORWARD means from <source> to <target> for a
@@ -102,7 +99,7 @@ typedef enum UTransDirection {
  *
  * @stable
  */
-typedef struct UTransPosition {
+typedef struct _UTransPosition {
 
     /**
      * Beginning index, inclusive, of the context to be considered for
@@ -504,7 +501,5 @@ utrans_transIncrementalUChars(const UTransliterator* trans,
 #endif
 #endif
 /********************* End **********************************************/
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

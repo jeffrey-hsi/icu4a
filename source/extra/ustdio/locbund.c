@@ -17,11 +17,6 @@
 */
 
 #include <stdlib.h>
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "locbund.h"
 
 #include "cmemory.h"
@@ -221,5 +216,3 @@ u_locbund_getTimeFormat(ULocaleBundle *bundle)
 
   return bundle->fTimeFormat;
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

@@ -101,7 +101,7 @@ operator>>(STD_ISTREAM& stream, UnicodeString& str)
             }
             /* Was the character consumed? */
             if (us != uBuffer) {
-                U16_GET(uBuffer, 0, 0, us-uBuffer, ch32);
+                UTF_GET_CHAR_SAFE(uBuffer, 0, 0, sizeof(uBuffer)/sizeof(uBuffer[0]), ch32, FALSE);
                 if (u_isWhitespace(ch32)) {
                     if (!intialWhitespace) {
                         buffer[idx++] = ch;

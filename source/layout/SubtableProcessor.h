@@ -13,10 +13,24 @@
 
 U_NAMESPACE_BEGIN
 
-class SubtableProcessor : public UMemory {
+class SubtableProcessor : public UObject {
 public:
     virtual void process(LEGlyphID *glyphs, le_int32 *charIndices, le_int32 glyph) = 0;
     virtual ~SubtableProcessor();
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 protected:
     SubtableProcessor(const MorphSubtableHeader *morphSubtableHeader);
@@ -31,8 +45,11 @@ protected:
 
 private:
 
-    SubtableProcessor(const SubtableProcessor &other); // forbid copying of this class
-    SubtableProcessor &operator=(const SubtableProcessor &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 U_NAMESPACE_END

@@ -4,10 +4,6 @@
  * others. All Rights Reserved.
  ********************************************************************/
  
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "numrgts.h"
 
 #include <float.h> // DBL_MIN, DBL_MAX
@@ -278,7 +274,7 @@ NumberFormatRegressionTest::assignFloatValue(float returnfloat)
 {
     logln(UnicodeString(" VALUE ") + returnfloat);
     UErrorCode status = U_ZERO_ERROR;
-    NumberFormat *nfcommon =  NumberFormat::createCurrencyInstance(Locale::getUS(), status);
+    NumberFormat *nfcommon =  NumberFormat::createCurrencyInstance(Locale::US, status);
     failure(status, "NumberFormat::createCurrencyInstance");
     nfcommon->setGroupingUsed(FALSE);
 
@@ -1182,7 +1178,7 @@ void NumberFormatRegressionTest::Test4062486(void)
 void NumberFormatRegressionTest::Test4108738(void)
 {
     UErrorCode status = U_ZERO_ERROR;
-    DecimalFormatSymbols *syms = new DecimalFormatSymbols(Locale::getUS(), status);
+    DecimalFormatSymbols *syms = new DecimalFormatSymbols(Locale::US, status);
     failure(status, "new DecimalFormatSymbols");
     DecimalFormat *df = new DecimalFormat("#,##0.###", syms, status);
     failure(status, "new DecimalFormat");
@@ -1588,7 +1584,7 @@ void NumberFormatRegressionTest::Test4134300(void) {
 void NumberFormatRegressionTest::Test4140009(void) 
 {
     UErrorCode status = U_ZERO_ERROR;
-    DecimalFormatSymbols *syms = new DecimalFormatSymbols(Locale::getEnglish(), status);
+    DecimalFormatSymbols *syms = new DecimalFormatSymbols(Locale::ENGLISH, status);
     failure(status, "new DecimalFormatSymbols");
     DecimalFormat *f = new DecimalFormat(UnicodeString(""), syms, status);
     failure(status, "new DecimalFormat");
@@ -1732,7 +1728,7 @@ void NumberFormatRegressionTest::Test4147706(void)
     UErrorCode status = U_ZERO_ERROR;
     DecimalFormat *df = new DecimalFormat("#,##0.0##", status);
     failure(status, "new DecimalFormat");
-    DecimalFormatSymbols *syms = new DecimalFormatSymbols(Locale::getEnglish(), status);
+    DecimalFormatSymbols *syms = new DecimalFormatSymbols(Locale::ENGLISH, status);
     failure(status, "new DecimalFormatSymbols");
     UnicodeString f1;
     UnicodeString f2, temp;
@@ -1859,7 +1855,7 @@ static double _u_abs(double a) { return a<0?-a:a; }
  */
 void NumberFormatRegressionTest::Test4167494(void) {
     UErrorCode status = U_ZERO_ERROR;
-    NumberFormat *fmt = NumberFormat::createInstance(Locale::getUS(), status);
+    NumberFormat *fmt = NumberFormat::createInstance(Locale::US, status);
     failure(status, "NumberFormat::createInstance");
 
     double a = DBL_MAX * 0.99; // DBL_MAX itself overflows to +Inf
@@ -1892,7 +1888,7 @@ void NumberFormatRegressionTest::Test4167494(void) {
  */
 void NumberFormatRegressionTest::Test4170798(void) {
     UErrorCode status = U_ZERO_ERROR;
-    NumberFormat *nf = NumberFormat::createInstance(Locale::getUS(), status);
+    NumberFormat *nf = NumberFormat::createInstance(Locale::US, status);
     failure(status, "NumberFormat::createInstance");
     if(nf->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
         errln("DecimalFormat needed to continue");
@@ -1960,7 +1956,7 @@ void NumberFormatRegressionTest::Test4179818(void) {
         0.9999,
     };
     UErrorCode status = U_ZERO_ERROR;
-    DecimalFormatSymbols sym(Locale::getUS(), status);
+    DecimalFormatSymbols sym(Locale::US, status);
     failure(status, "Construct DecimalFormatSymbols");
     DecimalFormat fmt("#", sym, status);
     failure(status, "Construct DecimalFormat");
@@ -1991,7 +1987,7 @@ void NumberFormatRegressionTest::Test4179818(void) {
  */
 void NumberFormatRegressionTest::Test4212072(void) {
     UErrorCode status = U_ZERO_ERROR;
-    DecimalFormatSymbols sym(Locale::getUS(), status);
+    DecimalFormatSymbols sym(Locale::US, status);
 /*
     failure(status, "DecimalFormatSymbols ct");
     DecimalFormat fmt(UnicodeString("#"), sym, status);
@@ -2156,7 +2152,7 @@ void NumberFormatRegressionTest::Test4212072(void) {
  */
 void NumberFormatRegressionTest::Test4216742(void) {
     UErrorCode status = U_ZERO_ERROR;
-    DecimalFormat *fmt = (DecimalFormat*) NumberFormat::createInstance(Locale::getUS(), status);
+    DecimalFormat *fmt = (DecimalFormat*) NumberFormat::createInstance(Locale::US, status);
     failure(status, "createInstance");
     int32_t DATA[] = { INT32_MIN, INT32_MAX, -100000000, 100000000 };
     int DATA_length = (int)(sizeof(DATA) / sizeof(DATA[0]));
@@ -2195,7 +2191,7 @@ void NumberFormatRegressionTest::Test4217661(void) {
     const char*  S[] = { "0",   "1",   "0.01", "1.01" };
     int D_length = (int)(sizeof(D) / sizeof(D[0]));
     UErrorCode status = U_ZERO_ERROR;
-    NumberFormat *fmt = NumberFormat::createInstance(Locale::getUS(), status);
+    NumberFormat *fmt = NumberFormat::createInstance(Locale::US, status);
     failure(status, "createInstance");
     fmt->setMaximumFractionDigits(2);
     for (int i=0; i<D_length; i++) {
@@ -2213,7 +2209,7 @@ void NumberFormatRegressionTest::Test4217661(void) {
  */
 void NumberFormatRegressionTest::Test4161100(void) {
     UErrorCode status = U_ZERO_ERROR;
-    NumberFormat *nf = NumberFormat::createInstance(Locale::getUS(), status);
+    NumberFormat *nf = NumberFormat::createInstance(Locale::US, status);
     failure(status, "createInstance");
     nf->setMinimumFractionDigits(1);
     nf->setMaximumFractionDigits(1);
@@ -2235,7 +2231,7 @@ void NumberFormatRegressionTest::Test4161100(void) {
  */
 void NumberFormatRegressionTest::Test4243011(void) {
     UErrorCode status = U_ZERO_ERROR;
-    DecimalFormatSymbols sym(Locale::getUS(), status);
+    DecimalFormatSymbols sym(Locale::US, status);
     failure(status, "DecimalFormatSymbols ct");
     DecimalFormat fmt(UnicodeString("0."), sym, status);
     failure(status, "DecimalFormat ct");
@@ -2265,7 +2261,7 @@ void NumberFormatRegressionTest::Test4243011(void) {
  */
 void NumberFormatRegressionTest::Test4243108(void) {
     UErrorCode status = U_ZERO_ERROR;
-    DecimalFormatSymbols sym(Locale::getUS(), status);
+    DecimalFormatSymbols sym(Locale::US, status);
     failure(status, "DecimalFormatSymbols ct");
     DecimalFormat fmt(UnicodeString("#.#"), sym, status);
     failure(status, "DecimalFormat ct");
@@ -2359,4 +2355,3 @@ void NumberFormatRegressionTest::TestJ691(void) {
     delete df;
 }
 
-#endif /* #if !UCONFIG_NO_FORMATTING */

@@ -22,15 +22,11 @@
 #ifndef UCADATA_H
 #define UCADATA_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "ucol_elm.h"
 #include <stdio.h>
 #include <string.h>
 #include "unicode/utypes.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "ucol_imp.h"
 #include "uhash.h"
 #include "umemstrm.h"
@@ -43,6 +39,5 @@ uint32_t getSingleCEValue(char *primary, char *secondary, char *tertiary, UBool 
 void printOutTable(UCATableHeader *myData, UErrorCode *status);
 UCAElements *readAnElement(FILE *data, tempUCATable *t, UCAConstants *consts, UErrorCode *status);
 
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

@@ -5,11 +5,8 @@
 *******************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/ucal.h"
+
 #include "unicode/uloc.h"
 #include "unicode/calendar.h"
 #include "unicode/timezone.h"
@@ -288,7 +285,7 @@ ucal_equivalentTo(    const UCalendar*      cal1,
             const UCalendar*      cal2)
 {
 
-  return ((Calendar*)cal1)->isEquivalentTo(*((Calendar*)cal2));
+  return *((Calendar*)cal1)==(*((Calendar*)cal2));
 }
 
 U_CAPI void  U_EXPORT2
@@ -395,5 +392,3 @@ ucal_getLimit(    const    UCalendar*              cal,
   }
   return -1;
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

@@ -217,10 +217,6 @@ SOURCE=.\util.c
 
 SOURCE=.\wrtjava.c
 # End Source File
-# Begin Source File
-
-SOURCE=.\wrtxml.c
-# End Source File
 # End Group
 # Begin Group "Header Files"
 

@@ -8,14 +8,6 @@
 *   1/03/2000   Madhu        Creation.
 ************************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_NULLTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_RULEBASEDTRANSLITERATOR_USE_DEPRECATES 1
-
 #include "ittrans.h"
 #include "transapi.h"
 #include "unicode/utypes.h"
@@ -235,12 +227,6 @@ void TransliteratorAPITest::TestGetDisplayName() {
     UnicodeString message;
     UErrorCode status = U_ZERO_ERROR;
     UParseError parseError;
-
-#if UCONFIG_NO_FORMATTING
-    logln("Skipping, UCONFIG_NO_FORMATTING is set\n");
-    return;
-#else
-
     for (uint32_t i=0; i<sizeof(dispNames)/sizeof(dispNames[0]); i=i+2 ) {
         t = Transliterator::createInstance(dispNames[i+0], UTRANS_FORWARD, parseError, status);
         if(t==0){
@@ -252,7 +238,7 @@ void TransliteratorAPITest::TestGetDisplayName() {
         message="Display name for ID:" + t->getID();
       //  doTest(message, name, dispNames[i+1]); //!!! This will obviously fail for any locale other than english and its children!!!
         name=""; 
-        t->getDisplayName(t->getID(), Locale::getUS(), name);
+        t->getDisplayName(t->getID(), Locale::US, name);
         message.remove();
         message.append("Display name for on english locale ID:");
         message.append(t->getID());
@@ -262,7 +248,7 @@ void TransliteratorAPITest::TestGetDisplayName() {
 
         delete t;
     }
-#endif
+
 
 }
 
@@ -682,15 +668,6 @@ class TestFilter1 : public UnicodeFilter {
        else
           return TRUE;
     }
-    // Stubs
-    virtual UnicodeString& toPattern(UnicodeString& result,
-                                     UBool escapeUnprintable) const {
-        return result;
-    }
-    virtual UBool matchesIndexValue(uint8_t v) const {
-        return FALSE;
-    }
-    virtual void addMatchSetTo(UnicodeSet& toUnionTo) const {}
 };
 class TestFilter2 : public UnicodeFilter {
     virtual UnicodeFunctor* clone() const {
@@ -702,15 +679,6 @@ class TestFilter2 : public UnicodeFilter {
         else
            return TRUE;
     }
-    // Stubs
-    virtual UnicodeString& toPattern(UnicodeString& result,
-                                     UBool escapeUnprintable) const {
-        return result;
-    }
-    virtual UBool matchesIndexValue(uint8_t v) const {
-        return FALSE;
-    }
-    virtual void addMatchSetTo(UnicodeSet& toUnionTo) const {}
 };
 class TestFilter3 : public UnicodeFilter {
     virtual UnicodeFunctor* clone() const {
@@ -722,15 +690,6 @@ class TestFilter3 : public UnicodeFilter {
         else
            return TRUE;
     }
-    // Stubs
-    virtual UnicodeString& toPattern(UnicodeString& result,
-                                     UBool escapeUnprintable) const {
-        return result;
-    }
-    virtual UBool matchesIndexValue(uint8_t v) const {
-        return FALSE;
-    }
-    virtual void addMatchSetTo(UnicodeSet& toUnionTo) const {}
 };
 
 
@@ -862,4 +821,6 @@ void TransliteratorAPITest::doTest(const UnicodeString& message, const UnicodeSt
         errln((UnicodeString)"FAIL:" + message + " failed  Got-->" + prettify(result)+ ", Expected--> " + prettify(expected) );
 }
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
+
+
+

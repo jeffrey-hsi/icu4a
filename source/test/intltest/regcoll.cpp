@@ -4,10 +4,6 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/coll.h"
 #include "unicode/tblcoll.h"
 #include "unicode/unistr.h"
@@ -21,7 +17,7 @@ CollationRegressionTest::CollationRegressionTest()
 {
     UErrorCode status = U_ZERO_ERROR;
 
-    en_us = (RuleBasedCollator *)Collator::createInstance(Locale::getUS(), status);
+    en_us = (RuleBasedCollator *)Collator::createInstance(Locale::US, status);
 }
 
 CollationRegressionTest::~CollationRegressionTest()
@@ -141,8 +137,7 @@ void CollationRegressionTest::Test4054238(/* char* par */)
 
     // NOTE: The Java code uses en_us to create the CollationElementIterators
     // but I'm pretty sure that's wrong, so I've changed this to use c.
-    UErrorCode status = U_ZERO_ERROR;
-    c->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    c->setDecomposition(Normalizer::DECOMP);
     CollationElementIterator *i1 = c->createCollationElementIterator(test3);
     delete i1;
     delete c;
@@ -178,12 +173,11 @@ void CollationRegressionTest::Test4054734(/* char* par */)
     };
 
     
-    UErrorCode status = U_ZERO_ERROR;
     RuleBasedCollator *c = (RuleBasedCollator *) en_us->clone();
 
     c->setStrength(Collator::IDENTICAL);
 
-    c->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    c->setDecomposition(Normalizer::DECOMP);
     compareArray(*c, decomp, ARRAY_LENGTH(decomp));
 
     delete c;
@@ -195,11 +189,10 @@ void CollationRegressionTest::Test4054734(/* char* par */)
 //
 void CollationRegressionTest::Test4054736(/* char* par */)
 {
-    UErrorCode status = U_ZERO_ERROR;
     RuleBasedCollator *c = (RuleBasedCollator *) en_us->clone();
 
     c->setStrength(Collator::SECONDARY);
-    c->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    c->setDecomposition(Normalizer::DECOMP_COMPAT);
 
     static const UChar tests[][CollationRegressionTest::MAX_TOKEN_LEN] =
     {
@@ -245,7 +238,7 @@ void CollationRegressionTest::Test4058613(/* char* par */)
     
     // Since the fix to this bug was to turn off decomposition for Korean collators,
     // ensure that's what we got
-    if (c->getAttribute(UCOL_NORMALIZATION_MODE, status) != UCOL_OFF)
+    if (c->getDecomposition() != Normalizer::NO_OP)
     {
       errln("Decomposition is not set to NO_DECOMPOSITION for Korean collator");
     }
@@ -311,7 +304,7 @@ void CollationRegressionTest::Test4060154(/* char* par */)
         return;
     }
 
-    c->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    c->setDecomposition(Normalizer::DECOMP);
 
  /*
     String[] tertiary = {
@@ -415,17 +408,16 @@ void CollationRegressionTest::Test4066189(/* char* par */)
     static const UChar chars2[] = {0x61, 0x0306, 0x0300, 0};
     const UnicodeString test1(chars1);
     const UnicodeString test2(chars2);
-    UErrorCode status = U_ZERO_ERROR;
 
     // NOTE: The java code used en_us to create the
     // CollationElementIterator's. I'm pretty sure that
     // was wrong, so I've change the code to use c1 and c2
     RuleBasedCollator *c1 = (RuleBasedCollator *) en_us->clone();
-    c1->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    c1->setDecomposition(Normalizer::DECOMP_COMPAT);
     CollationElementIterator *i1 = c1->createCollationElementIterator(test1);
 
     RuleBasedCollator *c2 = (RuleBasedCollator *) en_us->clone();
-    c2->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_OFF, status);
+    c2->setDecomposition(Normalizer::NO_OP);
     CollationElementIterator *i2 = c2->createCollationElementIterator(test2);
 
     assertEqual(*i1, *i2);
@@ -567,14 +559,13 @@ void CollationRegressionTest::Test4081866(/* char* par */)
     static const UChar s1[] = {0x41, 0x0300, 0x0316, 0x0327, 0x0315, 0};
     static const UChar s2[] = {0x41, 0x0327, 0x0316, 0x0315, 0x0300, 0};
 
-    UErrorCode status = U_ZERO_ERROR;
     RuleBasedCollator *c = (RuleBasedCollator *) en_us->clone();
     c->setStrength(Collator::TERTIARY);
     
     // Now that the default collators are set to NO_DECOMPOSITION
     // (as a result of fixing bug 4114077), we must set it explicitly
     // when we're testing reordering behavior.  -- lwerner, 5/5/98
-    c->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    c->setDecomposition(Normalizer::DECOMP);
 
     if (c->compare(s1,s2) != 0)
     {
@@ -753,7 +744,6 @@ void CollationRegressionTest::Test4103436(/* char* par */)
 //
 void CollationRegressionTest::Test4114076(/* char* par */)
 {
-    UErrorCode status = U_ZERO_ERROR;
     RuleBasedCollator *c = (RuleBasedCollator *) en_us->clone();
     c->setStrength(Collator::TERTIARY);
 
@@ -767,7 +757,7 @@ void CollationRegressionTest::Test4114076(/* char* par */)
         {0xd4db, 0}, {0x3d, 0}, {0x1111, 0x1171, 0x11b6, 0}
     };
 
-    c->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    c->setDecomposition(Normalizer::DECOMP);
     compareArray(*c, test1, ARRAY_LENGTH(test1));
 
     // From UTR #15:
@@ -800,7 +790,7 @@ void CollationRegressionTest::Test4124632(/* char* par */)
     UErrorCode status = U_ZERO_ERROR;
     Collator *coll = NULL;
     
-    coll = Collator::createInstance(Locale::getJapan(), status);
+    coll = Collator::createInstance(Locale::JAPAN, status);
     
     if (coll == NULL || U_FAILURE(status))
     {
@@ -876,7 +866,6 @@ void CollationRegressionTest::Test4114077(/* char* par */)
     // Ensure that we get the same results with decomposition off
     // as we do with it on....
     
-    UErrorCode status = U_ZERO_ERROR;
     RuleBasedCollator *c = (RuleBasedCollator *) en_us->clone();
     c->setStrength(Collator::TERTIARY);
     
@@ -890,7 +879,7 @@ void CollationRegressionTest::Test4114077(/* char* par */)
         {0x41, 0x0300, 0x0316, 0},         {0x3c, 0}, {0x41, 0x0316, 0x0300, 0}        // No reordering --> unequal
     };
 
-    c->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_OFF, status);
+    c->setDecomposition(Normalizer::NO_OP);
     compareArray(*c, test1, ARRAY_LENGTH(test1));
 
     static const UChar test2[][CollationRegressionTest::MAX_TOKEN_LEN] =
@@ -898,7 +887,7 @@ void CollationRegressionTest::Test4114077(/* char* par */)
         {0x41, 0x0300, 0x0316, 0}, {0x3d, 0}, {0x41, 0x0316, 0x0300, 0}      // Reordering --> equal
     };
 
-    c->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    c->setDecomposition(Normalizer::DECOMP);
     compareArray(*c, test2, ARRAY_LENGTH(test2));
 
     delete c;
@@ -1201,4 +1190,3 @@ void CollationRegressionTest::runIndexedTest(int32_t index, UBool exec, const ch
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */

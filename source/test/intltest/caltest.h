@@ -7,10 +7,6 @@
 #ifndef __CalendarTest__
 #define __CalendarTest__
  
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/calendar.h"
 #include "unicode/smpdtfmt.h"
 #include "caltztst.h"
@@ -174,7 +170,5 @@ public: // package
     // test subroutine use by TestDOWProgression
     virtual void marchByDelta(Calendar* cal, int32_t delta);
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
  
 #endif // __CalendarTest__

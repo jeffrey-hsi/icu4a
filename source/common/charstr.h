@@ -23,18 +23,35 @@
 
 U_NAMESPACE_BEGIN
 
-class U_COMMON_API CharString : public UMemory {
-public:
+class U_COMMON_API CharString : public UObject {
+ public:
     inline CharString(const UnicodeString& str);
     inline ~CharString();
     inline operator const char*() { return ptr; }
 
-private:
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
+ private:
     char buf[128];
     char* ptr;
 
-    CharString(const CharString &other); // forbid copying of this class
-    CharString &operator=(const CharString &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 inline CharString::CharString(const UnicodeString& str) {

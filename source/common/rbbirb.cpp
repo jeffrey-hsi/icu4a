@@ -9,9 +9,6 @@
 //    RBBI engine.
 //
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
 
 #include "unicode/brkiter.h"
 #include "unicode/rbbi.h"
@@ -33,8 +30,15 @@
 #include "rbbitblb.h"
 #include "rbbidata.h"
 
+#ifdef RBBI_DEBUG
+#include <stdio.h>
+#include <stdarg.h>
+#endif
+
 
 U_NAMESPACE_BEGIN
+
+const char RBBIRuleBuilder::fgClassID=0;
 
 
 //----------------------------------------------------------------------------------------
@@ -54,17 +58,17 @@ RBBIRuleBuilder::RBBIRuleBuilder(const UnicodeString   &rules,
     fDebugEnv   = getenv("U_RBBIDEBUG");
 #endif
 
+    fScanner            = new RBBIRuleScanner(this);
+    fSetBuilder         = new RBBISetBuilder(this);
+    if(fSetBuilder == 0 || fScanner == 0) {
+        status = U_MEMORY_ALLOCATION_ERROR;
+    }
 
+    fSetsListHead       = NULL;
     fForwardTree        = NULL;
     fReverseTree        = NULL;
     fForwardTables      = NULL;
     fReverseTables      = NULL;
-    fUSetNodes          = new UVector(status);
-    fScanner            = new RBBIRuleScanner(this);
-    fSetBuilder         = new RBBISetBuilder(this);
-    if(fSetBuilder == 0 || fScanner == 0 || fUSetNodes == 0) {
-        status = U_MEMORY_ALLOCATION_ERROR;
-    }
 }
 
 
@@ -76,16 +80,17 @@ RBBIRuleBuilder::RBBIRuleBuilder(const UnicodeString   &rules,
 //----------------------------------------------------------------------------------------
 RBBIRuleBuilder::~RBBIRuleBuilder() {
 
-    int        i;
-    for (i=0; ; i++) {
-        RBBINode *n = (RBBINode *)fUSetNodes->elementAt(i);
-        if (n==NULL) {
-            break;
-        }
+    // Delete the linked lest of USet nodes and the corresponding UnicodeSets.
+    //    (Deleting a node deletes its children, so deleting the head node of
+    //     this list will take out the whole list.)
+    RBBINode *n, *nextN;
+    for (n=fSetsListHead; n!=NULL; n=nextN) {
+        nextN = n->fRightChild;
         delete n;
     }
+    fSetsListHead = NULL;
 
-    delete fUSetNodes;
+
     delete fSetBuilder;
     delete fForwardTables;
     delete fReverseTables;
@@ -243,6 +248,24 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
     return This;
 }
 
-U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
+
+//----------------------------------------------------------------------------
+//
+//   RBBIDebugPrintf    Printf equivalent, for debugging output.
+//                      Conditional compilation of the implementation lets us
+//                      get rid of the stdio dependency in environments where it
+//                      is unavailable.
+//
+//----------------------------------------------------------------------------
+void RBBIDebugPrintf(const char *fmt, ...) {
+#ifdef RBBI_DEBUG
+    va_list ap;
+    va_start(ap, fmt);
+    vprintf(fmt, ap);
+    va_end(ap);
+#endif
+}
+
+
+U_NAMESPACE_END

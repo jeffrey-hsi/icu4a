@@ -7,14 +7,6 @@
 *   11/17/99    aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_RULEBASEDTRANSLITERATOR_USE_DEPRECATES 1
-
 #include "unicode/rbt.h"
 #include "unicode/rep.h"
 #include "unicode/uniset.h"
@@ -176,4 +168,3 @@ UnicodeSet& RuleBasedTransliterator::getTargetSet(UnicodeSet& result) const {
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

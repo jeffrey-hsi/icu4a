@@ -25,12 +25,6 @@ U_NAMESPACE_BEGIN
 class LECharMapper /* not : public UObject because this is an interface/mixin class */ {
 public:
     /**
-     * Destructor.
-     * @draft ICU 2.4
-     */
-    virtual inline ~LECharMapper() {};
-
-    /**
      * This method does the adjustments.
      *
      * @param ch - the input charcter
@@ -63,7 +57,7 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual inline ~LEFontInstance() {};
+    virtual ~LEFontInstance() { };
 
     //
     // Font file access

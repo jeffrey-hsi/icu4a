@@ -13,9 +13,6 @@
 //  create and use an instance of this class as part of the process.
 //
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
 
 #include "unicode/unistr.h"
 #include "unicode/uniset.h"
@@ -37,6 +34,15 @@
 
 
 U_NAMESPACE_BEGIN
+
+const char RBBIRuleScanner::fgClassID=0;
+
+//
+//  Forward Declarations
+//
+U_CDECL_BEGIN
+static void  U_EXPORT2 U_CALLCONV RBBISetTable_deleter(void *p);
+U_CDECL_END
 
 //----------------------------------------------------------------------------------------
 //
@@ -69,17 +75,6 @@ static const UChar gRuleSet_name_start_char_pattern[] = {
     0x5b, 0x5f, 0x5c, 0x70, 0x7b, 0x4c, 0x7d, 0x5d, 0 };
 
 static const UChar kAny[] = {0x61, 0x6e, 0x79, 0x00};  // "any"
-
-
-U_CDECL_BEGIN
-static void  U_EXPORT2 U_CALLCONV RBBISetTable_deleter(void *p) {
-    RBBISetTableEl *px = (RBBISetTableEl *)p;
-    delete px->key;
-    // Note:  px->val is owned by the linked list "fSetsListHead" in scanner.
-    //        Don't delete the value nodes here.
-    uprv_free(px);
-};
-U_CDECL_END
 
 
 //----------------------------------------------------------------------------------------
@@ -612,6 +607,16 @@ void RBBIRuleScanner::fixOpStack(RBBINode::OpPrecedence p) {
 //                 If the string is "any", return a set containing all chars.
 //
 //----------------------------------------------------------------------------------------
+U_CDECL_BEGIN
+static void  U_EXPORT2 U_CALLCONV RBBISetTable_deleter(void *p) {
+    RBBISetTableEl *px = (RBBISetTableEl *)p;
+    delete px->key;
+    // Note:  px->val is owned by the linked list "fSetsListHead" in scanner.
+    //        Don't delete the value nodes here.
+    uprv_free(px);
+};
+U_CDECL_END
+
 void RBBIRuleScanner::findSetFor(const UnicodeString &s, RBBINode *node, UnicodeSet *setToAdopt) {
 
     RBBISetTableEl   *el;
@@ -652,10 +657,10 @@ void RBBIRuleScanner::findSetFor(const UnicodeString &s, RBBINode *node, Unicode
 
 
     //
-    // Add the new uset node to the list of all uset nodes.
+    // Link the new uset node into the list of all uset nodes.
     //
-    fRB->fUSetNodes->addElement(usetNode, *fRB->fStatus);
-
+    usetNode->fRightChild  = fRB->fSetsListHead;
+    fRB->fSetsListHead     = usetNode;
 
     //
     // Add the new set to the set hash table.
@@ -788,7 +793,7 @@ void RBBIRuleScanner::nextChar(RBBIRuleChar &c) {
             //    the middle (a variable name, for example.)
             for (;;) {
                 c.fChar = nextCharLL();
-                if (c.fChar == (UChar32)-1 ||  // EOF
+                if (c.fChar == -1       ||  // EOF
                     c.fChar == chCR     ||
                     c.fChar == chLF     ||
                     c.fChar == chNEL    ||
@@ -869,9 +874,8 @@ void RBBIRuleScanner::parse() {
 
         for (;;) {
             if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "scan")) { RBBIDebugPrintf(".");}
-            if (tableEl->fCharClass < 127 && fC.fEscaped == FALSE &&   tableEl->fCharClass == fC.fChar) {
+            if (tableEl->fCharClass < 127 && tableEl->fCharClass == fC.fChar) {
                 // Table row specified an individual character, not a set, and
-                //   the input character is not escaped, and
                 //   the input character matched it.
                 break;
             }
@@ -888,14 +892,12 @@ void RBBIRuleScanner::parse() {
                 // Table row specified "escaped P" and the char is either 'p' or 'P'.
                 break;
             }
-            if (tableEl->fCharClass == 252 && fC.fChar == (UChar32)-1)  {
+            if (tableEl->fCharClass == 252 && fC.fChar == -1)  {
                 // Table row specified eof and we hit eof on the input.
                 break;
             }
 
-            if (tableEl->fCharClass >= 128 && tableEl->fCharClass < 240 &&   // Table specs a char class &&
-                fC.fEscaped == FALSE &&                                      //   char is not escaped &&
-                fC.fChar != (UChar32)-1) {                                   //   char is not EOF
+            if (tableEl->fCharClass >= 128 && tableEl->fCharClass < 240 && fC.fChar != -1) {
                 UnicodeSet *uniset = fRuleSets[tableEl->fCharClass-128];
                 if (uniset->contains(fC.fChar)) {
                     // Table row specified a character class, or set of characters,
@@ -1087,4 +1089,3 @@ void RBBIRuleScanner::scanSet() {
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

@@ -4,7 +4,7 @@
 * and others.  All Rights Reserved.
 *****************************************************************
 * $Source: /xsrl/Nsvn/icu/icu/source/i18n/anytrans.h,v $ 
-* $Revision: 1.4 $
+* $Revision: 1.3 $
 *****************************************************************
 * Date        Name        Description
 * 06/06/2002  aliu        Creation.
@@ -12,10 +12,6 @@
 */
 #ifndef _ANYTRANS_H_
 #define _ANYTRANS_H_
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
 
 #include "unicode/translit.h"
 #include "unicode/uscript.h"
@@ -142,7 +138,5 @@ private:
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

@@ -5,10 +5,6 @@
 *****************************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/ubrk.h"
 
 #include "unicode/brkiter.h"
@@ -264,5 +260,3 @@ ubrk_getRuleStatus(UBreakIterator *bi)
 {
     return ((RuleBasedBreakIterator *)bi)->getRuleStatus();
 };
-
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

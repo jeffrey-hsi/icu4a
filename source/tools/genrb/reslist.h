@@ -47,10 +47,6 @@ void bundle_write(struct SRBRoot *bundle, const char *outputDir, const char *out
 void bundle_write_java(struct SRBRoot *bundle, const char *outputDir, const char* outputEnc, char *writtenFilename, 
                        int writtenFilenameLen, const char* packageName, const char* bundleName, UErrorCode *status);
 
-/* write a xml resource file */
-void bundle_write_xml(struct SRBRoot *bundle, const char *outputDir,const char* outputEnc, 
-                  char *writtenFilename, int writtenFilenameLen,UErrorCode *status); 
-
 void bundle_close(struct SRBRoot *bundle, UErrorCode *status);
 void bundle_setlocale(struct SRBRoot *bundle, UChar *locale, UErrorCode *status);
 uint16_t bundle_addtag(struct SRBRoot *bundle, const char *tag, UErrorCode *status);
@@ -109,10 +105,9 @@ void int_close(struct SResource *intres, UErrorCode *status);
 struct SResBinary {
     uint32_t fLength;
     uint8_t *fData;
-    char* fFileName; /* file name for binary or import binary tags if any */
 };
 
-struct SResource *bin_open(struct SRBRoot *bundle, const char *tag, uint32_t length, uint8_t *data, const char* fileName, UErrorCode *status);
+struct SResource *bin_open(struct SRBRoot *bundle, const char *tag, uint32_t length, uint8_t *data, UErrorCode *status);
 void bin_close(struct SResource *binres, UErrorCode *status);
 
 /* Resource place holder */

@@ -12,8 +12,7 @@
 #include "intltest.h"
 #include "cstring.h"
 #include "canittst.h"
-#include "unicode/caniter.h"
-#include "unicode/uchar.h"
+#include "caniter.h"
 
 #define ARRAY_LENGTH(array) ((int32_t)(sizeof (array) / sizeof (*array)))
 
@@ -53,14 +52,12 @@ nameTrans(NULL), hexTrans(NULL)
 
 CanonicalIteratorTest::~CanonicalIteratorTest()
 {
-#if !UCONFIG_NO_TRANSLITERATION
   if(nameTrans != NULL) {
     delete(nameTrans);
   }
   if(hexTrans != NULL) {
     delete(hexTrans);
   }
-#endif
 }
 
 void CanonicalIteratorTest::TestExhaustive() {
@@ -100,7 +97,7 @@ void CanonicalIteratorTest::TestExhaustive() {
         
         while (TRUE) {
             UnicodeString item = it.next();
-            if (item.isBogus()) break;
+            if (item == "") break;
             if (item == s) gotSource = TRUE;
             if (item == decomp) gotDecomp = TRUE;
             if (item == comp) gotComp = TRUE;
@@ -166,7 +163,7 @@ void CanonicalIteratorTest::TestBasic() {
         while (TRUE) {
             //UnicodeString *result = new UnicodeString(it.next());
             UnicodeString result(it.next());
-            if (result.isBogus()) {
+            if (result == "") {
                 break;
             }
             set->put(result, new UnicodeString(result), status); // Add result to the table
@@ -196,7 +193,6 @@ UnicodeString CanonicalIteratorTest::getReadable(const UnicodeString &s) {
   UnicodeString result = "[";
     if (s.length() == 0) return "";
     // set up for readable display
-#if !UCONFIG_NO_TRANSLITERATION
     if(verbose) {
       if (nameTrans == NULL)
           nameTrans = Transliterator::createInstance("[^\\ -\\u007F] name", UTRANS_FORWARD, status);
@@ -207,11 +203,8 @@ UnicodeString CanonicalIteratorTest::getReadable(const UnicodeString &s) {
     }
     if (hexTrans == NULL)
         hexTrans = Transliterator::createInstance("[^\\ -\\u007F] hex", UTRANS_FORWARD, status);
-#endif
     UnicodeString sHex = s;
-#if !UCONFIG_NO_TRANSLITERATION
     hexTrans->transliterate(sHex);
-#endif
     result += sHex;
     result += "]";
     return result;

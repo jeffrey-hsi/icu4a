@@ -94,12 +94,7 @@ us_arrayCopy(const UChar *src, int32_t srcStart,
 U_NAMESPACE_BEGIN
 
 const char UnicodeString::fgClassID=0;
-
-#ifdef U_USE_DEPRECATED_UCHAR_REFERENCE
-
 const char UCharReference::fgClassID=0;
-
-#endif
 
 //========================================
 // Reference Counting functions, put at top of file so that optimizing compilers
@@ -147,7 +142,7 @@ UnicodeString::UnicodeString(int32_t capacity, UChar32 c, int32_t count)
     fArray(0),
     fFlags(0)
 {
-  if(count <= 0 || (uint32_t)c > 0x10ffff) {
+  if(count <= 0) {
     // just allocate and do not do anything else
     allocate(capacity);
   } else {
@@ -203,8 +198,7 @@ UnicodeString::UnicodeString(UChar32 ch)
     fFlags(kShortString)
 {
   int32_t i = 0;
-  UBool isError = FALSE;
-  U16_APPEND(fStackBuffer, i, US_STACKBUF_SIZE, ch, isError);
+  UTF_APPEND_CHAR(fStackBuffer, i, US_STACKBUF_SIZE, ch);
   fLength = i;
 }
 
@@ -330,7 +324,7 @@ UnicodeString::UnicodeString(const UnicodeString& that)
     fArray(fStackBuffer),
     fFlags(kShortString)
 {
-  copyFrom(that);
+  *this = that;
 }
 
 UnicodeString::UnicodeString(const UnicodeString& that,
@@ -402,19 +396,9 @@ UnicodeString::~UnicodeString()
 //========================================
 // Assignment
 //========================================
-
-UnicodeString &
-UnicodeString::operator=(const UnicodeString &src) {
-  return copyFrom(src);
-}
-
-UnicodeString &
-UnicodeString::fastCopyFrom(const UnicodeString &src) {
-  return copyFrom(src, TRUE);
-}
-
-UnicodeString &
-UnicodeString::copyFrom(const UnicodeString &src, UBool fastCopy) {
+UnicodeString&
+UnicodeString::operator= (const UnicodeString& src)
+{
   // if assigning to ourselves, do nothing
   if(this == 0 || this == &src) {
     return *this;
@@ -452,22 +436,13 @@ UnicodeString::copyFrom(const UnicodeString &src, UBool fastCopy) {
     // src uses a refCounted string buffer, use that buffer with refCount
     // src is const, use a cast - we don't really change it
     ((UnicodeString &)src).addRef();
-    // copy all fields, share the reference-counted buffer
+    // fall through to readonly alias copying: copy all fields
+  case kReadonlyAlias:
+    // src is a readonly alias, do the same
     fArray = src.fArray;
     fCapacity = src.fCapacity;
     fFlags = src.fFlags;
     break;
-  case kReadonlyAlias:
-    if(fastCopy) {
-      // src is a readonly alias, do the same
-      // -> maintain the readonly alias as such
-      fArray = src.fArray;
-      fCapacity = src.fCapacity;
-      fFlags = src.fFlags;
-      break;
-    }
-    // else if(!fastCopy) fall through to case kWritableAlias
-    // -> allocate a new buffer and copy the contents
   case kWritableAlias:
     // src is a writable alias; we make a copy of that instead
     if(allocate(fLength)) {
@@ -526,15 +501,11 @@ UnicodeString::numDisplayCells( int32_t start,
   return result;
 }
 
-#ifdef U_USE_DEPRECATED_UCHAR_REFERENCE
-
 UCharReference
 UnicodeString::operator[] (int32_t pos)
 {
   return UCharReference(this, pos);
 }
-
-#endif
 
 UnicodeString UnicodeString::unescape() const {
     UnicodeString result;
@@ -744,13 +715,6 @@ UnicodeString::countChar32(int32_t start, int32_t length) const {
   pinIndices(start, length);
   // if(isBogus()) then fArray==0 and start==0 - u_countChar32() checks for NULL
   return u_countChar32(fArray+start, length);
-}
-
-UBool
-UnicodeString::hasMoreChar32Than(int32_t start, int32_t length, int32_t number) const {
-  pinIndices(start, length);
-  // if(isBogus()) then fArray==0 and start==0 - u_strHasMoreChar32Than() checks for NULL
-  return u_strHasMoreChar32Than(fArray+start, length, number);
 }
 
 int32_t
@@ -1170,8 +1134,6 @@ UnicodeString::toUpper(const Locale &locale) {
   return caseMap(0, locale, 0, TO_UPPER);
 }
 
-#if !UCONFIG_NO_BREAK_ITERATION
-
 UnicodeString &
 UnicodeString::toTitle(BreakIterator *titleIter) {
   return caseMap(titleIter, Locale::getDefault(), 0, TO_TITLE);
@@ -1181,8 +1143,6 @@ UnicodeString &
 UnicodeString::toTitle(BreakIterator *titleIter, const Locale &locale) {
   return caseMap(titleIter, locale, 0, TO_TITLE);
 }
-
-#endif
 
 UnicodeString &
 UnicodeString::foldCase(uint32_t options) {
@@ -1222,11 +1182,9 @@ UnicodeString::caseMap(BreakIterator *titleIter,
     return *this;
   }
 
-  UErrorCode errorCode;
-
-#if !UCONFIG_NO_BREAK_ITERATION
   // set up the titlecasing break iterator
   UBreakIterator *cTitleIter = 0;
+  UErrorCode errorCode;
 
   if(toWhichCase == TO_TITLE) {
     if(titleIter != 0) {
@@ -1243,7 +1201,6 @@ UnicodeString::caseMap(BreakIterator *titleIter,
       }
     }
   }
-#endif
 
   // Case-map, and if the result is too long, then reallocate and repeat.
   do {
@@ -1259,13 +1216,11 @@ UnicodeString::caseMap(BreakIterator *titleIter,
                                      oldArray, oldLength,
                                      locale.getName(),
                                      &errorCode);
-#if !UCONFIG_NO_BREAK_ITERATION
     } else if(toWhichCase==TO_TITLE) {
       fLength = u_internalStrToTitle(fArray, fCapacity,
                                      oldArray, oldLength,
                                      cTitleIter, locale.getName(),
                                      &errorCode);
-#endif
     } else {
       fLength = u_internalStrFoldCase(fArray, fCapacity,
                                       oldArray, oldLength,
@@ -1274,11 +1229,9 @@ UnicodeString::caseMap(BreakIterator *titleIter,
     }
   } while(errorCode==U_BUFFER_OVERFLOW_ERROR && cloneArrayIfNeeded(fLength, fLength, FALSE));
 
-#if !UCONFIG_NO_BREAK_ITERATION
   if(cTitleIter != 0 && titleIter == 0) {
     ubrk_close(cTitleIter);
   }
-#endif
 
   if (bufferToDelete) {
     uprv_free(bufferToDelete);

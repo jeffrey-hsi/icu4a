@@ -54,14 +54,9 @@
 * 01/29/01     synwee      Modified into a C++ wrapper calling C APIs (ucol.h)
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/tblcoll.h"
 #include "unicode/coleitr.h"
 #include "unicode/resbund.h"
-#include "unicode/uset.h"
 #include "ucol_imp.h"
 #include "uresimp.h"
 #include "uhash.h"
@@ -100,7 +95,6 @@ RuleBasedCollator::RuleBasedCollator(const UnicodeString& rules,
             status);
 }
 
-#ifdef ICU_NORMALIZER_USE_DEPRECATES
 // TODO this is a deprecated constructor, remove >2002-sep-30
 RuleBasedCollator::RuleBasedCollator(const UnicodeString& rules,
                                      Normalizer::EMode decompositionMode,
@@ -113,6 +107,17 @@ RuleBasedCollator::RuleBasedCollator(const UnicodeString& rules,
             status);
 }
 
+RuleBasedCollator::RuleBasedCollator(const UnicodeString& rules,
+                                     UColAttributeValue decompositionMode,
+                                     UErrorCode& status) :
+                                     dataIsOwned(FALSE)
+{
+  construct(rules,
+            UCOL_DEFAULT_STRENGTH,
+            decompositionMode,
+            status);
+}
+
 // TODO this is a deprecated constructor, remove >2002-sep-30
 RuleBasedCollator::RuleBasedCollator(const UnicodeString& rules,
                       ECollationStrength collationStrength,
@@ -122,43 +127,6 @@ RuleBasedCollator::RuleBasedCollator(const UnicodeString& rules,
   construct(rules,
             getUCollationStrength(collationStrength),
             (UColAttributeValue)Normalizer::getUNormalizationMode(decompositionMode, status),
-            status);
-}
-
-/**
-* Set the decomposition mode of the Collator object.
-* @param the new decomposition mode
-* @see Collator#getDecomposition
-*/
-void RuleBasedCollator::setDecomposition(Normalizer::EMode  mode)
-{
-  UErrorCode status = U_ZERO_ERROR;
-  ucol_setNormalization(ucollator, Normalizer::getUNormalizationMode(mode,
-                                                                     status));
-}
-
-/**
-* Get the decomposition mode of the Collator object.
-* @return the decomposition mode
-* @see Collator#setDecomposition
-*/
-Normalizer::EMode RuleBasedCollator::getDecomposition(void) const
-{
-  UErrorCode status = U_ZERO_ERROR;
-  return Normalizer::getNormalizerEMode(ucol_getNormalization(ucollator),
-                                                              status);
-}
-
-#endif /* ICU_NORMALIZER_USE_DEPRECATES */
-
-RuleBasedCollator::RuleBasedCollator(const UnicodeString& rules,
-                                     UColAttributeValue decompositionMode,
-                                     UErrorCode& status) :
-                                     dataIsOwned(FALSE)
-{
-  construct(rules,
-            UCOL_DEFAULT_STRENGTH,
-            decompositionMode,
             status);
 }
 
@@ -324,16 +292,6 @@ void RuleBasedCollator::getRules(UColRuleOption delta, UnicodeString &buffer)
         buffer.remove();
     }
 }
-
-UnicodeSet *
-RuleBasedCollator::getTailoredSet(UErrorCode &status) const
-{
-  if(U_FAILURE(status)) {
-    return NULL;
-  }
-  return (UnicodeSet *)ucol_getTailoredSet(this->ucollator, &status);
-}
-
 
 void RuleBasedCollator::getVersion(UVersionInfo versionInfo) const
 {
@@ -559,6 +517,30 @@ const Locale RuleBasedCollator::getLocale(ULocDataLocaleType type, UErrorCode &s
   }
 }
 
+/**
+* Set the decomposition mode of the Collator object.
+* @param the new decomposition mode
+* @see Collator#getDecomposition
+*/
+void RuleBasedCollator::setDecomposition(Normalizer::EMode  mode)
+{
+  UErrorCode status = U_ZERO_ERROR;
+  ucol_setNormalization(ucollator, Normalizer::getUNormalizationMode(mode,
+                                                                     status));
+}
+
+/**
+* Get the decomposition mode of the Collator object.
+* @return the decomposition mode
+* @see Collator#setDecomposition
+*/
+Normalizer::EMode RuleBasedCollator::getDecomposition(void) const
+{
+  UErrorCode status = U_ZERO_ERROR;
+  return Normalizer::getNormalizerEMode(ucol_getNormalization(ucollator),
+                                                              status);
+}
+
 // RuleBaseCollatorNew private constructor ----------------------------------
 
 RuleBasedCollator::RuleBasedCollator() : dataIsOwned(FALSE), ucollator(0)
@@ -610,7 +592,7 @@ RuleBasedCollator::RuleBasedCollator(const Locale& desiredLocale,
 
     setUCollator(kRootLocaleName, status);
     if (status == U_ZERO_ERROR) {
-        status = U_USING_DEFAULT_WARNING;
+        status = U_USING_DEFAULT_ERROR;
     }
   }
 
@@ -696,5 +678,3 @@ const char RuleBasedCollator::kFilenameSuffix[] = ".col";
 const char  RuleBasedCollator::fgClassID = 0;
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */

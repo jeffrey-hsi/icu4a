@@ -10,9 +10,6 @@
 #define USRCHIMP_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/ucol.h"
 #include "unicode/ucoleitr.h"
 #include "unicode/ubrk.h"
@@ -128,6 +125,6 @@ U_CFUNC
 UBool usearch_handlePreviousCanonical(UStringSearch *strsrch, 
                                       UErrorCode    *status);
 
-#endif /* #if !UCONFIG_NO_COLLATION */
-
 #endif
+
+

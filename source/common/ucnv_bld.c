@@ -45,96 +45,61 @@ extern void UCNV_DEBUG_LOG(char *what, char *who, void *p, int l);
 
 static const UConverterSharedData * const
 converterData[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES]={
-    NULL, NULL,
-
-#if UCONFIG_NO_LEGACY_CONVERSION
-    NULL,
-#else
-    &_MBCSData,
-#endif
-
-    &_Latin1Data,
+    NULL, NULL, &_MBCSData, &_Latin1Data,
     &_UTF8Data, &_UTF16BEData, &_UTF16LEData, &_UTF32BEData, &_UTF32LEData,
-    NULL,
-
-#if UCONFIG_NO_LEGACY_CONVERSION
-    NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL, NULL, NULL,
-    NULL,
-#else
-    &_ISO2022Data,
+    NULL, &_ISO2022Data, 
     &_LMBCSData1,&_LMBCSData2, &_LMBCSData3, &_LMBCSData4, &_LMBCSData5, &_LMBCSData6,
     &_LMBCSData8,&_LMBCSData11,&_LMBCSData16,&_LMBCSData17,&_LMBCSData18,&_LMBCSData19,
-    &_HZData,
-#endif
-
-    &_SCSUData,
-
-#if UCONFIG_NO_LEGACY_CONVERSION
-    NULL,
-#else
-    &_ISCIIData,
-#endif
-
-    &_ASCIIData,
+    &_HZData, &_SCSUData, &_ISCIIData, &_ASCIIData,
     &_UTF7Data, &_Bocu1Data, &_UTF16Data, &_UTF32Data, &_CESU8Data
 };
 
-/* Please keep this in binary sorted order for getAlgorithmicTypeFromName.
-   Also the name should be in lower case and all spaces, dashes and underscores
-   removed
-*/
 static struct {
   const char *name;
   const UConverterType type;
 } const cnvNameType[] = {
-  { "bocu1", UCNV_BOCU1 },
-  { "cesu8", UCNV_CESU8 },
-#if !UCONFIG_NO_LEGACY_CONVERSION
-  { "hz",UCNV_HZ },
-  { "iscii", UCNV_ISCII },
-  { "iso2022", UCNV_ISO_2022 },
-#endif
-  { "iso88591", UCNV_LATIN_1 },
-#if !UCONFIG_NO_LEGACY_CONVERSION
-  { "lmbcs1", UCNV_LMBCS_1 },
-  { "lmbcs11",UCNV_LMBCS_11 },
-  { "lmbcs16",UCNV_LMBCS_16 },
-  { "lmbcs17",UCNV_LMBCS_17 },
-  { "lmbcs18",UCNV_LMBCS_18 },
-  { "lmbcs19",UCNV_LMBCS_19 },
-  { "lmbcs2", UCNV_LMBCS_2 },
-  { "lmbcs3", UCNV_LMBCS_3 },
-  { "lmbcs4", UCNV_LMBCS_4 },
-  { "lmbcs5", UCNV_LMBCS_5 },
-  { "lmbcs6", UCNV_LMBCS_6 },
-  { "lmbcs8", UCNV_LMBCS_8 },
-#endif
-  { "scsu", UCNV_SCSU },
-  { "usascii", UCNV_US_ASCII },
-  { "utf16", UCNV_UTF16 },
-  { "utf16be", UCNV_UTF16_BigEndian },
-  { "utf16le", UCNV_UTF16_LittleEndian },
+  { "ISO-8859-1", UCNV_LATIN_1 },
+  { "UTF-8", UCNV_UTF8 },
+  { "UTF-16", UCNV_UTF16 },
+  { "UTF-16BE", UCNV_UTF16_BigEndian },
+  { "UTF-16LE", UCNV_UTF16_LittleEndian },
 #if U_IS_BIG_ENDIAN
-  { "utf16oppositeendian", UCNV_UTF16_LittleEndian },
-  { "utf16platformendian", UCNV_UTF16_BigEndian },
+  { "UTF16_PlatformEndian", UCNV_UTF16_BigEndian },
+  { "UTF16_OppositeEndian", UCNV_UTF16_LittleEndian },
 #else
-  { "utf16oppositeendian", UCNV_UTF16_BigEndian},
-  { "utf16platformendian", UCNV_UTF16_LittleEndian },
+  { "UTF16_PlatformEndian", UCNV_UTF16_LittleEndian },
+  { "UTF16_OppositeEndian", UCNV_UTF16_BigEndian},
 #endif
-  { "utf32", UCNV_UTF32 },
-  { "utf32be", UCNV_UTF32_BigEndian },
-  { "utf32le", UCNV_UTF32_LittleEndian },
+  { "UTF-32", UCNV_UTF32 },
+  { "UTF-32BE", UCNV_UTF32_BigEndian },
+  { "UTF-32LE", UCNV_UTF32_LittleEndian },
 #if U_IS_BIG_ENDIAN
-  { "utf32oppositeendian", UCNV_UTF32_LittleEndian },
-  { "utf32platformendian", UCNV_UTF32_BigEndian },
+  { "UTF32_PlatformEndian", UCNV_UTF32_BigEndian },
+  { "UTF32_OppositeEndian", UCNV_UTF32_LittleEndian },
 #else
-  { "utf32oppositeendian", UCNV_UTF32_BigEndian },
-  { "utf32platformendian", UCNV_UTF32_LittleEndian },
+  { "UTF32_PlatformEndian", UCNV_UTF32_LittleEndian },
+  { "UTF32_OppositeEndian", UCNV_UTF32_BigEndian},
 #endif
-  { "utf7", UCNV_UTF7 },
-  { "utf8", UCNV_UTF8 }
+  { "ISO_2022", UCNV_ISO_2022 },
+  { "LMBCS-1", UCNV_LMBCS_1 },
+  { "LMBCS-2", UCNV_LMBCS_2 },
+  { "LMBCS-3", UCNV_LMBCS_3 },
+  { "LMBCS-4", UCNV_LMBCS_4 },
+  { "LMBCS-5", UCNV_LMBCS_5 },
+  { "LMBCS-6", UCNV_LMBCS_6 },
+  { "LMBCS-8", UCNV_LMBCS_8 },
+  { "LMBCS-11",UCNV_LMBCS_11 },
+  { "LMBCS-16",UCNV_LMBCS_16 },
+  { "LMBCS-17",UCNV_LMBCS_17 },
+  { "LMBCS-18",UCNV_LMBCS_18 },
+  { "LMBCS-19",UCNV_LMBCS_19 },
+  { "HZ",UCNV_HZ },
+  { "SCSU", UCNV_SCSU },
+  { "ISCII", UCNV_ISCII },
+  { "US-ASCII", UCNV_US_ASCII },
+  { "UTF-7", UCNV_UTF7 },
+  { "BOCU-1", UCNV_BOCU1 },
+  { "CESU-8", UCNV_CESU8 }
 };
 
 
@@ -142,9 +107,9 @@ static struct {
  *goes to disk and opens it.
  *allocates the memory and returns a new UConverter object
  */
-static UConverterSharedData *createConverterFromFile(const char *pkg, const char *converterName, UErrorCode * err);
+static UConverterSharedData *createConverterFromFile (const char *pkg, const char *converterName, UErrorCode * err);
 
-static const UConverterSharedData *getAlgorithmicTypeFromName(const char *realName);
+static const UConverterSharedData *getAlgorithmicTypeFromName (const char *realName);
 
 /**
  * Un flatten shared data from a UDATA..
@@ -242,37 +207,12 @@ ucnv_copyPlatformString(char *platformString, UConverterPlatform pltfrm)
 static const UConverterSharedData *
 getAlgorithmicTypeFromName(const char *realName)
 {
-    uint32_t mid, start, limit;
-	uint32_t lastMid;
-    int result;
-    char strippedName[UCNV_MAX_CONVERTER_NAME_LENGTH];
-
-    /* Lower case and remove ignoreable characters. */
-    ucnv_io_stripForCompare(strippedName, realName);
-
-    /* do a binary search for the alias */
-    start = 0;
-    limit = sizeof(cnvNameType)/sizeof(cnvNameType[0]);
-    mid = limit;
-	lastMid = UINT32_MAX;
-
-    for (;;) {
-        mid = (uint32_t)((start + limit) / 2);
-		if (lastMid == mid) {	/* Have we moved? */
-			break;	/* We haven't moved, and it wasn't found. */
-		}
-		lastMid = mid;
-        result = uprv_strcmp(strippedName, cnvNameType[mid].name);
-
-        if (result < 0) {
-            limit = mid;
-        } else if (result > 0) {
-            start = mid;
-        } else {
-            return converterData[cnvNameType[mid].type];
+    int i;
+    for(i=0; i<sizeof(cnvNameType)/sizeof(cnvNameType[0]); ++i) {
+        if(ucnv_compareNames(realName, cnvNameType[i].name)==0) {
+            return converterData[cnvNameType[i].type];
         }
     }
-
     return NULL;
 }
 
@@ -288,7 +228,7 @@ ucnv_shareConverterData(UConverterSharedData * data)
 
     if (SHARED_DATA_HASHTABLE == NULL)
     {
-        SHARED_DATA_HASHTABLE = uhash_openSize(uhash_hashChars, uhash_compareChars,
+        SHARED_DATA_HASHTABLE = uhash_openSize (uhash_hashIChars, uhash_compareIChars,
                             ucnv_io_countAvailableAliases(&err),
                             &err);
         if (U_FAILURE(err)) 
@@ -404,54 +344,59 @@ parseConverterOptions(const char *inName,
     *cnvName=0;
 
     /* parse options. No more name copying should occur. */
-    while((c=*inName)!=0) {
-        if(c==UCNV_OPTION_SEP_CHAR) {
-            ++inName;
-        }
+    if (c == UCNV_OPTION_SEP_CHAR) {
+        ++inName;
+        for(;;) {
+            /* inName is behind an option separator */
+            if(uprv_strncmp(inName, "locale=", 7)==0) {
+                /* do not modify locale itself in case we have multiple locale options */
+                char *dest=locale;
 
-        /* inName is behind an option separator */
-        if(uprv_strncmp(inName, "locale=", 7)==0) {
-            /* do not modify locale itself in case we have multiple locale options */
-            char *dest=locale;
-
-            /* copy the locale option value */
-            inName+=7;
-            len=0;
-            while((c=*inName)!=0 && c!=UCNV_OPTION_SEP_CHAR) {
-                ++inName;
-
-                if(++len>=ULOC_FULLNAME_CAPACITY) {
-                    *err=U_ILLEGAL_ARGUMENT_ERROR;    /* bad name */
-                    *locale=0;
-                    return;
+                /* copy the locale option value */
+                inName+=7;
+                len=0;
+                for(;;) {
+                    c=*inName;
+                    if(c!=0) {
+                        len++;
+                        inName++;
+                        if (++len>=ULOC_FULLNAME_CAPACITY) {
+                            *err = U_ILLEGAL_ARGUMENT_ERROR;    /* bad name */
+                            *dest=0;
+                            return;
+                        }
+                        if(c!=UCNV_OPTION_SEP_CHAR) {
+                            *dest++=c;
+                        } else {
+                            *dest=0;
+                            break;
+                        }
+                    } else {
+                        *dest=0;
+                        return;
+                    }
                 }
-
-                *dest++=c;
-            }
-            *dest=0;
-        } else if(uprv_strncmp(inName, "version=", 8)==0) {
-            /* copy the version option value into bits 3..0 of *pFlags */
-            inName+=8;
-            c=*inName;
-            if(c==0) {
-                *pFlags&=~UCNV_OPTION_VERSION;
-                return;
-            } else if((uint8_t)(c-'0')<10) {
-                *pFlags=(*pFlags&~UCNV_OPTION_VERSION)|(uint32_t)(c-'0');
-                ++inName;
-            }
-        } else if(uprv_strncmp(inName, "swaplfnl", 8)==0) {
-            inName+=8;
-            *pFlags|=UCNV_OPTION_SWAP_LFNL;
-        /* add processing for new options here with another } else if(uprv_strncmp(inName, "option-name=", XX)==0) { */
-        } else {
-            /* ignore any other options until we define some */
-            do {
-                c=*inName++;
+            } else if(uprv_strncmp(inName, "version=", 8)==0) {
+                /* copy the version option value into bits 3..0 of *pFlags */
+                inName+=8;
+                c=*inName;
+                *pFlags=0;
                 if(c==0) {
                     return;
+                } else if((uint8_t)(c-'0')<10) {
+                    *pFlags=c-'0';
+                    ++inName;
                 }
-            } while(c!=UCNV_OPTION_SEP_CHAR);
+            /* add processing for new options here with another } else if(uprv_strncmp(inName, "option-name=", XX)==0) { */
+            } else {
+                /* ignore any other options until we define some */
+                do {
+                    c=*inName++;
+                    if(c==0) {
+                        return;
+                    }
+                } while(c!=UCNV_OPTION_SEP_CHAR);
+            }
         }
     }
 }
@@ -464,7 +409,7 @@ parseConverterOptions(const char *inName,
  * -Call AlgorithmicConverter initializer (Data=FALSE, Cached=TRUE)
  */
 UConverter *
-ucnv_createConverter(const char *converterName, UErrorCode * err)
+ucnv_createConverter (const char *converterName, UErrorCode * err)
 {
     char cnvName[UCNV_MAX_CONVERTER_NAME_LENGTH], locale[ULOC_FULLNAME_CAPACITY];
     const char *realName;
@@ -520,11 +465,11 @@ ucnv_createConverter(const char *converterName, UErrorCode * err)
         /*   to prevent other threads from modifying the cache during the   */
         /*   process.                                                       */
         umtx_lock(&cnvCacheMutex);
-        mySharedConverterData = ucnv_getSharedConverterData(realName);
+        mySharedConverterData = ucnv_getSharedConverterData (realName);
         if (mySharedConverterData == NULL)
         {
             /*Not cached, we need to stream it in from file */
-            mySharedConverterData = createConverterFromFile(NULL, realName, err);
+            mySharedConverterData = createConverterFromFile (NULL, realName, err);
             if (U_FAILURE (*err) || (mySharedConverterData == NULL))
             {
                 umtx_unlock(&cnvCacheMutex);
@@ -540,9 +485,9 @@ ucnv_createConverter(const char *converterName, UErrorCode * err)
         {
             /* The data for this converter was already in the cache.            */
             /* Update the reference counter on the shared data: one more client */
-            umtx_lock(NULL);
+            umtx_lock (NULL);
             mySharedConverterData->referenceCounter++;
-            umtx_unlock(NULL);
+            umtx_unlock (NULL);
         }
         umtx_unlock(&cnvCacheMutex);
     }
@@ -618,7 +563,6 @@ ucnv_createConverterFromSharedData(UConverterSharedData *mySharedConverterData, 
     /* initialize the converter */
     uprv_memset(myUConverter, 0, sizeof(UConverter));
     myUConverter->sharedData = mySharedConverterData;
-    myUConverter->options = options;
     myUConverter->mode = UCNV_SI;
     myUConverter->fromCharErrorBehaviour = (UConverterToUCallback) UCNV_TO_U_CALLBACK_SUBSTITUTE;
     myUConverter->fromUCharErrorBehaviour = (UConverterFromUCallback) UCNV_FROM_U_CALLBACK_SUBSTITUTE;
@@ -668,20 +612,13 @@ ucnv_data_unFlattenClone(UDataMemory *pData, UErrorCode *status)
     /* copy initial values from the static structure for this type */
     uprv_memcpy(data, converterData[type], sizeof(UConverterSharedData));
 
-    /*
-     * It would be much more efficient if the table were a direct member, not a pointer.
-     * However, that would add to the size of all UConverterSharedData objects
-     * even if they do not use this table (especially algorithmic ones).
-     * If this changes, then the static templates from converterData[type]
-     * need more entries.
-     */
+    /* ### it would be much more efficient if the table were a direct member, not a pointer */
     data->table = (UConverterTable *)uprv_malloc(sizeof(UConverterTable));
     if(data->table == NULL) {
         uprv_free(data);
         *status = U_MEMORY_ALLOCATION_ERROR;
         return NULL;
     }
-    uprv_memset(data->table, 0, sizeof(UConverterTable));
     
     data->staticData = source;
     

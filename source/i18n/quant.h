@@ -8,10 +8,6 @@
 #ifndef QUANT_H
 #define QUANT_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/unifunct.h"
 #include "unicode/unimatch.h"
 
@@ -128,7 +124,5 @@ class Quantifier : public UnicodeFunctor, public UnicodeMatcher {
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

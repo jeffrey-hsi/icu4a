@@ -9,9 +9,6 @@
 #define RBT_DATA_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/uobject.h"
 #include "rbt_set.h"
 
@@ -40,7 +37,7 @@ class Hashtable;
  * data structure handles this.  See the parsing code for more
  * details.
  */
-class U_I18N_API TransliterationRuleData : public UMemory {
+class U_I18N_API TransliterationRuleData : public UObject {
 
 public:
 
@@ -129,12 +126,29 @@ public:
      */
     UnicodeReplacer* lookupReplacer(UChar32 standIn) const;
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
-    TransliterationRuleData &operator=(const TransliterationRuleData &other); // forbid copying of this class
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

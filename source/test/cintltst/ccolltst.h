@@ -15,10 +15,6 @@
 #ifndef _CCOLLTST
 #define _CCOLLTST
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "cintltst.h"
 #include "unicode/ucol.h"
 
@@ -32,6 +28,9 @@ void reportCResult( const UChar source[], const UChar target[],
                          UCollationResult expectedResult );
 
 UChar* appendCompareResult(UCollationResult result, UChar* target);
+
+
+UChar* CharsToUChars(const char* chars);
 
 void addCollAPITest(TestNode**);
 void addCurrencyTest(TestNode**);
@@ -50,7 +49,5 @@ void addCollIterTest(TestNode**);
 void addAllCollTest(TestNode**);
 void addMiscCollTest(TestNode**);
 void addSearchTest(TestNode**);
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

@@ -3,11 +3,6 @@
  * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved. 
  ********************************************************************/
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/coll.h"
 #include "unicode/tblcoll.h"
 #include "unicode/unistr.h"
@@ -28,6 +23,8 @@ CollationKanaTest::CollationKanaTest()
         myCollation = NULL;
         return;
     }
+
+    myCollation->setDecomposition(Normalizer::DECOMP);
 }
 
 CollationKanaTest::~CollationKanaTest()
@@ -184,7 +181,6 @@ void CollationKanaTest::TestChooonKigoo(void)
 {
   int32_t i;
   UErrorCode status = U_ZERO_ERROR;
-  myCollation->setStrength(Collator::QUATERNARY);
   myCollation->setAttribute(UCOL_CASE_LEVEL, UCOL_ON, status);
   for (i = 0; i < 7 ; i++) {
     doTest(testChooonKigooCases[i], testChooonKigooCases[i + 1], Collator::LESS);
@@ -206,4 +202,4 @@ void CollationKanaTest::runIndexedTest( int32_t index, UBool exec, const char* &
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */
+

@@ -4,10 +4,6 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/coll.h"
 #include "unicode/tblcoll.h"
 #include "unicode/unistr.h"
@@ -411,7 +407,7 @@ void CollationIteratorTest::TestAssignment()
     }
 
     source = CharsToUnicodeString("a\\u0300\\u0325");
-    coll->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    coll->setDecomposition(Normalizer::DECOMP);
     CollationElementIterator *iter4 
                         = coll->createCollationElementIterator(source);
     CollationElementIterator iter5(*iter4);
@@ -621,4 +617,3 @@ void CollationIteratorTest::runIndexedTest(int32_t index, UBool exec, const char
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */

@@ -333,25 +333,6 @@ static uint32_t getTagNumber(const char *tagname) {
     return UINT32_MAX;
 }
 
-/* @see ucnv_compareNames */
-U_CFUNC char * U_EXPORT2
-ucnv_io_stripForCompare(char *dst, const char *name) {
-    char c1 = *name;
-    char *dstItr = dst;
-
-    while (c1) {
-        /* Ignore delimiters '-', '_', and ' ' */
-        while ((c1 = *name) == '-' || c1 == '_' || c1 == ' ') {
-            ++name;
-        }
-
-        /* lowercase for case-insensitive comparison */
-        *(dstItr++) = uprv_tolower(c1);
-        ++name;
-    }
-    return dst;
-}
-
 /**
  * Do a fuzzy compare of a two converter/alias names.  The comparison
  * is case-insensitive.  It also ignores the characters '-', '_', and
@@ -368,8 +349,6 @@ ucnv_io_stripForCompare(char *dst, const char *name) {
  * @return 0 if the names match, or a negative value if the name1
  * lexically precedes name2, or a positive value if the name1
  * lexically follows name2.
- *
- * @see ucnv_io_stripForCompare
  */
 U_CAPI int U_EXPORT2
 ucnv_compareNames(const char *name1, const char *name2) {
@@ -408,27 +387,22 @@ ucnv_compareNames(const char *name1, const char *name2) {
 static uint32_t
 findConverter(const char *alias, UErrorCode *pErrorCode) {
     uint32_t mid, start, limit;
-	uint32_t lastMid;
     int result;
 
     /* do a binary search for the alias */
     start = 0;
-    limit = gUntaggedConvArraySize;
+    limit = gUntaggedConvArraySize - 1;
     mid = limit;
-	lastMid = UINT32_MAX;
 
-    for (;;) {
-        mid = (uint32_t)((start + limit) / 2);
-		if (lastMid == mid) {	/* Have we moved? */
-			break;	/* We haven't moved, and it wasn't found. */
-		}
-		lastMid = mid;
+    /* Once mid == 0 we've already checked the 0'th element and we can stop */
+    while (start <= limit && mid != 0) {
+        mid = (uint32_t)((start + limit + 1) / 2);    /* +1 is to round properly */
         result = ucnv_compareNames(alias, GET_STRING(gAliasList[mid]));
 
         if (result < 0) {
-            limit = mid;
+            limit = mid-1;
         } else if (result > 0) {
-            start = mid;
+            start = mid+1;
         } else {
             /* Since the gencnval tool folds duplicates into one entry,
              * this alias in gAliasList is unique, but different standards
@@ -853,7 +827,7 @@ ucnv_io_getDefaultConverterName() {
                 name = "US-ASCII";
                 /* there is no 'algorithmic' converter for EBCDIC */
 #elif defined(OS390)
-                name = "ibm-1047" UCNV_SWAP_LFNL_OPTION_STRING;
+                name = "ibm-1047-s390";
 #else
                 name = "ibm-37";
 #endif

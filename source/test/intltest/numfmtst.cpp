@@ -8,10 +8,6 @@
 *   07/15/99    helena      Ported to HPUX 10/11 CC.
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "numfmtst.h"
 #include "unicode/dcfmtsym.h"
 #include "unicode/decimfmt.h"
@@ -1238,5 +1234,3 @@ void NumberFormatTest::TestCurrencyPatterns(void) {
         delete nf;
     }
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

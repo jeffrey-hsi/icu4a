@@ -17,9 +17,8 @@
 
 #include "unicode/utypes.h"
 #include "unicode/uchar.h"
-#include "intltest.h"
-#ifdef ICU_UBIDI_USE_DEPRECATES
 #include "unicode/bidi.h"
+#include "intltest.h"
 
 #define MAX_STRING_LENGTH 200
 
@@ -96,6 +95,5 @@ public:
 
     void runIndexedTest( int32_t index, UBool exec, const char* &name, char* /*par = NULL */);
 };
-#endif /* ICU_UBIDI_USE_DEPRECATES */
 
 #endif

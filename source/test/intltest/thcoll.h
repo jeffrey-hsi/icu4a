@@ -11,10 +11,6 @@
 #ifndef COLLATIONTHAITEST_H
 #define COLLATIONTHAITEST_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "tscoll.h"
 
 class CollationThaiTest : public IntlTestCollator {
@@ -57,7 +53,5 @@ private:
     UnicodeString& parseChars(UnicodeString& result,
                               const char* chars);
 };
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

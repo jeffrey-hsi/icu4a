@@ -11,10 +11,6 @@
 *   03/15/2000   Madhu        Creation.
 ************************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "ittrans.h"
 #include "unhxtrts.h"
 #include "unicode/utypes.h"
@@ -81,15 +77,6 @@ class TestUniFilter : public UnicodeFilter {
        else
           return TRUE;
     }
-    // Stubs
-    virtual UnicodeString& toPattern(UnicodeString& result,
-                                     UBool escapeUnprintable) const {
-        return result;
-    }
-    virtual UBool matchesIndexValue(uint8_t v) const {
-        return FALSE;
-    }
-    virtual void addMatchSetTo(UnicodeSet& toUnionTo) const {}
 };
 void UniToHexTransliteratorTest::TestConstruction(){
     UErrorCode status=U_ZERO_ERROR;
@@ -510,4 +497,4 @@ void UniToHexTransliteratorTest::expectAux(const UnicodeString& tag,
     }
 }
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
+

@@ -8,10 +8,6 @@
 #ifndef STRMATCH_H
 #define STRMATCH_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/unistr.h"
 #include "unicode/unifunct.h"
 #include "unicode/unimatch.h"
@@ -252,7 +248,5 @@ class StringMatcher : public UnicodeFunctor, public UnicodeMatcher, public Unico
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

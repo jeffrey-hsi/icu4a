@@ -22,9 +22,6 @@
 #ifndef GREGOCAL_H
 #define GREGOCAL_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
 
 #include "unicode/calendar.h"
 
@@ -330,13 +327,16 @@ public:
     UBool isLeapYear(int32_t year) const;
 
     /**
-     * Returns TRUE if the given Calendar object is equivalent to this
-     * one.  Calendar override.
+     * Compares the equality of two GregorianCalendar objects. Objects of different
+     * subclasses are considered unequal.  This is a strict equality test; see the
+     * documentation for Calendar::operator==().
      *
-     * @param other the Calendar to be compared with this Calendar   
-     * @draft ICU 2.4
+     * @param that  The GregorianCalendar object to be compared with.
+     * @return      True if the given GregorianCalendar is the same as this
+     *              GregorianCalendar; false otherwise.
+     * @stable
      */
-    virtual UBool isEquivalentTo(const Calendar& other) const;
+    virtual UBool operator==(const Calendar& that) const;
 
     /**
      * (Overrides Calendar) UDate Arithmetic function. Adds the specified (signed) amount
@@ -754,8 +754,6 @@ inline uint8_t GregorianCalendar::julianDayToDayOfWeek(double julian)
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _GREGOCAL
 //eof

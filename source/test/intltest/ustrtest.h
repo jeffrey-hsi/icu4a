@@ -71,9 +71,6 @@ public:
      * Test the unescape() function.
      */
     void TestUnescape(void);
-
-    void _testUnicodeStringHasMoreChar32Than(const UnicodeString &s, int32_t start, int32_t length, int32_t number);
-    void TestCountChar32(void);
 };
 
 class StringCaseTest: public IntlTest {
@@ -84,9 +81,7 @@ public:
     void runIndexedTest(int32_t index, UBool exec, const char *&name, char *par=0);
 
     void TestCaseConversion();
-#if !UCONFIG_NO_BREAK_ITERATION
     void TestTitleCasing();
-#endif
 };
 
 #endif

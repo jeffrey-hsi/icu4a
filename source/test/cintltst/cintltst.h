@@ -42,8 +42,6 @@ U_CFUNC const char* ctest_dataOutDir(void);
  */
 U_CFUNC void ctest_pathnameInContext(char* fullname, int32_t maxsize, const char* relPath ) ;
 
-U_CFUNC UChar* CharsToUChars(const char* chars);
-
 /**
  * Convert a const UChar* into a char*
  * Caller owns storage, but in practice this function

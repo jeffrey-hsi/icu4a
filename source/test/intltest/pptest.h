@@ -7,10 +7,6 @@
 #ifndef _PARSEPOSITIONIONTEST_
 #define _PARSEPOSITIONIONTEST_
  
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "intltest.h"
 
 
@@ -30,8 +26,6 @@ public:
 protected:
     UBool failure(UErrorCode status, const char* msg);
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
  
 #endif // _PARSEPOSITIONIONTEST_
 //eof

@@ -26,15 +26,6 @@
 #ifndef UCOL_IMP_H
 #define UCOL_IMP_H
 
-#include "unicode/utypes.h"
-
-#define UCA_DATA_TYPE "icu"
-#define UCA_DATA_NAME "ucadata"
-#define INVC_DATA_TYPE "icu"
-#define INVC_DATA_NAME "invuca"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/ucol.h"
 /*#include "ucmpe32.h"*/
 #include "utrie.h"
@@ -413,6 +404,11 @@ ucol_cloneRuleData(const UCollator *coll, int32_t *length, UErrorCode *status);
 #define getExpansionSuffix(coleiter) ((coleiter)->iteratordata_.CEpos - (coleiter)->iteratordata_.toReturn)
 #define setExpansionSuffix(coleiter, offset) ((coleiter)->iteratordata_.toReturn = (coleiter)->iteratordata_.CEpos - leftoverces)
 
+#define UCA_DATA_TYPE "icu"
+#define UCA_DATA_NAME "ucadata"
+#define INVC_DATA_TYPE "icu"
+#define INVC_DATA_NAME "invuca"
+
 /* This is an enum that lists magic special byte values from the fractional UCA */
 /* TODO: all the #defines that refer to special byte values from the UCA should be changed to point here */
 
@@ -500,11 +496,6 @@ enum {
 #define UCOL_CASE_BIT_MASK    0xC0
 
 #define UCOL_TERT_CASE_MASK   0xFF
-
-#define UCOL_ENDOFLATINONERANGE 0xFF
-#define UCOL_LATINONETABLELEN   (UCOL_ENDOFLATINONERANGE+50)
-#define UCOL_BAIL_OUT_CE      0xFF000000
-
 
 typedef enum {
     NOT_FOUND_TAG = 0,
@@ -706,7 +697,6 @@ SortKeyGenerator(const    UCollator    *coll,
 struct UCollator {
     UColOptionSet  *options;
     SortKeyGenerator *sortKeyGen;
-    uint32_t *latinOneCEs;
     char* requestedLocale;
     UResourceBundle *rb;
     UResourceBundle *binary;
@@ -733,7 +723,6 @@ struct UCollator {
 
     const UChar *rules;
     int32_t rulesLength;
-    int32_t latinOneTableLen;
 
     UErrorCode errorCode;             /* internal error code */
 
@@ -760,10 +749,6 @@ struct UCollator {
     UBool freeOnClose;
     UBool freeOptionsOnClose;
     UBool freeRulesOnClose;
-
-    UBool latinOneUse;
-    UBool latinOneRegenTable;
-    UBool latinOneFailed;
 
     int32_t tertiaryAddition; /* when switching case, we need to add or subtract different values */
     uint8_t caseSwitch;
@@ -797,7 +782,7 @@ void ucol_putOptionsToHeader(UCollator* result, UColOptionSet * opts, UErrorCode
 #endif
 
 U_CFUNC
-void ucol_updateInternalState(UCollator *coll, UErrorCode *status);
+void ucol_updateInternalState(UCollator *coll);
 
 U_CAPI uint32_t U_EXPORT2 ucol_getFirstCE(const UCollator *coll, UChar u, UErrorCode *status);
 U_CAPI char* U_EXPORT2 ucol_sortKeyToString(const UCollator *coll, const uint8_t *sortkey, char *buffer, uint32_t *len);
@@ -844,8 +829,6 @@ static inline UBool ucol_unsafeCP(UChar c, const UCollator *coll) {
 }
 #endif /* XP_CPLUSPLUS */
 
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif
 

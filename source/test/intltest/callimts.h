@@ -7,10 +7,6 @@
 #ifndef __CalendarLimitTest__
 #define __CalendarLimitTest__
  
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "caltztst.h"
 
 /**
@@ -35,7 +31,5 @@ public:
     // test behaviour and error reporting at boundaries of defined range
     virtual void TestCalendarLimit(void);
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
  
 #endif // __CalendarLimitTest__

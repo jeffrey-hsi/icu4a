@@ -21,7 +21,6 @@
 #include "unicode/uobject.h"
 #include "unicode/ubidi.h"
 
-#ifdef ICU_UBIDI_USE_DEPRECATES
 #ifndef XP_CPLUSPLUS
 #   error This is a C++ header file.
 #endif
@@ -409,10 +408,5 @@ BiDi::writeReverse(const UChar *src, int32_t srcLength,
 }
 
 U_NAMESPACE_END
-#else
-
-#error "The unicode/bidi.h header is deprecated. Please use the BiDi C API in unicode/ubidi.h instead."
-
-#endif /* ICU_UBIDI_USE_DEPRECATES */
 
 #endif

@@ -10,13 +10,8 @@
 #ifndef NULTRANS_H
 #define NULTRANS_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 
-#ifdef ICU_NULLTRANSLITERATOR_USE_DEPRECATES
 U_NAMESPACE_BEGIN
 
 /**
@@ -93,8 +88,5 @@ inline NullTransliterator::NullTransliterator() : Transliterator(ID, 0) {}
 inline NullTransliterator::~NullTransliterator() {}
 
 U_NAMESPACE_END
-#endif /* ICU_NULLTRANSLITERATOR_USE_DEPRECATES */
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

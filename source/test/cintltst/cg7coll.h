@@ -38,10 +38,6 @@
 #ifndef _CG7COLLTST
 #define _CG7COLLTST
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "cintltst.h"
 
 #define MAX_TOKEN_LEN 16
@@ -65,7 +61,5 @@
     /* perform test with added rules  */
     /* " & aa ; a'-' & ee ; e'-' & ii ; i'-' & oo ; o'-' & uu ; u'-' " */
     static void TestDemo4(void);
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

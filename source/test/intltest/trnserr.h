@@ -17,10 +17,6 @@
 #ifndef TRNSERR_H
 #define TRNSERR_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "intltest.h"
 
@@ -45,6 +41,8 @@ public:
 
 };
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
-
 #endif
+
+
+
+

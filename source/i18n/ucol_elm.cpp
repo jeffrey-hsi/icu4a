@@ -23,17 +23,11 @@
 *   03/07/2001  synwee     merged UCA's maxexpansion and tailoring's
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/uchar.h"
 #include "unicode/unistr.h"
-#include "unicode/ucoleitr.h"
-#include "unicode/normlzr.h"
 #include "ucol_elm.h"
 #include "unormimp.h"
-#include "unicode/caniter.h"
+#include "caniter.h"
 #include "cmemory.h"
 
 U_NAMESPACE_BEGIN
@@ -1125,7 +1119,7 @@ uprv_uca_addAnElement(tempUCATable *t, UCAElements *element, UErrorCode *status)
     UnicodeString source(element->cPoints, element->cSize);
     CanonicalIterator it(source, *status);
     source = it.next();
-    while(!source.isBogus()) {
+    while(source.length() > 0) {
       if(Normalizer::quickCheck(source, UNORM_FCD, *status) != UNORM_NO) {
         element->cSize = source.extract(element->cPoints, 128, *status);
         uprv_uca_finalizeAddition(t, element, status);
@@ -1545,5 +1539,3 @@ uprv_uca_canonicalClosure(tempUCATable *t, UErrorCode *status)
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */

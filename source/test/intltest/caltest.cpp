@@ -4,10 +4,7 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
+ 
 #include "caltest.h"
 #include "unicode/gregocal.h"
 #include "unicode/smpdtfmt.h"
@@ -329,11 +326,11 @@ CalendarTest::TestGenericAPI()
         }
     }
 
-    cal = Calendar::createInstance(TimeZone::createDefault(), Locale::getEnglish(), status);
+    cal = Calendar::createInstance(TimeZone::createDefault(), Locale::ENGLISH, status);
     if (failure(status, "Calendar::createInstance")) return;
     delete cal;
 
-    cal = Calendar::createInstance(*zone, Locale::getEnglish(), status);
+    cal = Calendar::createInstance(*zone, Locale::ENGLISH, status);
     if (failure(status, "Calendar::createInstance")) return;
     delete cal;
 
@@ -341,14 +338,14 @@ CalendarTest::TestGenericAPI()
     if (failure(status, "new GregorianCalendar")) return;
     delete gc;
 
-    gc = new GregorianCalendar(Locale::getEnglish(), status);
+    gc = new GregorianCalendar(Locale::ENGLISH, status);
     if (failure(status, "new GregorianCalendar")) return;
     delete gc;
 
-    gc = new GregorianCalendar(Locale::getEnglish(), status);
+    gc = new GregorianCalendar(Locale::ENGLISH, status);
     delete gc;
 
-    gc = new GregorianCalendar(*zone, Locale::getEnglish(), status);
+    gc = new GregorianCalendar(*zone, Locale::ENGLISH, status);
     if (failure(status, "new GregorianCalendar")) return;
     delete gc;
 
@@ -365,7 +362,7 @@ CalendarTest::TestGenericAPI()
     if (gc->getTime(status) != date(98, 10, 14, 21, 43, 55) || U_FAILURE(status))
         errln("FAIL: new GregorianCalendar(ymdhms) failed");
 
-    GregorianCalendar gc2(Locale::getEnglish(), status);
+    GregorianCalendar gc2(Locale::ENGLISH, status);
     if (failure(status, "new GregorianCalendar")) return;
     gc2 = *gc;
     if (gc2 != *gc || !(gc2 == *gc)) errln("FAIL: GregorianCalendar assignment/operator==/operator!= failed");
@@ -664,7 +661,7 @@ CalendarTest::test4064654(int32_t yr, int32_t mo, int32_t dt, int32_t hr, int32_
                                                   cal->get(Calendar::MONTH, status),
                                                   cal->get(Calendar::DATE, status),
                                                   (uint8_t)cal->get(Calendar::DAY_OF_WEEK, status),
-                                                  cal->get(Calendar::MILLISECOND, status), status);
+                                                  cal->get(Calendar::MILLISECOND, status));
     if (U_FAILURE(status)) { errln("Calendar::get failed"); return; }
     logln("offset for " + dateToString(date, str) + "= " + (offset / 1000 / 60 / 60.0) + "hr");
     int32_t utc = ((cal->get(Calendar::HOUR_OF_DAY, status) * 60 +
@@ -1682,7 +1679,5 @@ void CalendarTest::TestWOY(void) {
 }
 
 #undef CHECK
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 //eof

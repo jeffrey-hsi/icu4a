@@ -17,13 +17,9 @@
 * try to test the full functionality.  It just calls each function in the class and
 * verifies that it works on a basic level.
 **/
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/uloc.h"
 #include "unicode/ubrk.h"
+#include "unicode/utypes.h"
 #include "unicode/ustring.h"
 #include "unicode/ucnv.h"
 #include "ustr_imp.h"
@@ -327,16 +323,7 @@ static void TestBreakIteratorSafeClone(void)
 
     /* US & Thai - rule-based & dictionary based */
     someIterators[0] = ubrk_open(UBRK_WORD, "en_US", text, u_strlen(text), &status);
-    if(!someIterators[0] || U_FAILURE(status)) {
-      log_data_err("Couldn't open en_US word break iterator - %s\n", u_errorName(status));
-      return;
-    }
-
     someIterators[1] = ubrk_open(UBRK_WORD, "th_TH", text, u_strlen(text), &status);
-    if(!someIterators[1] || U_FAILURE(status)) {
-      log_data_err("Couldn't open th_TH word break iterator - %s\n", u_errorName(status));
-      return;
-    }
 
     /* test each type of iterator */
     for (i = 0; i < CLONETEST_ITERATOR_COUNT; i++)
@@ -384,7 +371,7 @@ static void TestBreakIteratorSafeClone(void)
             ubrk_close(brk);
         /* size one byte too small - should allocate & let us know */
         --bufferSize;
-        if (0 == (brk = ubrk_safeClone(someIterators[i], 0, &bufferSize, &status)) || status != U_SAFECLONE_ALLOCATED_WARNING)
+        if (0 == (brk = ubrk_safeClone(someIterators[i], 0, &bufferSize, &status)) || status != U_SAFECLONE_ALLOCATED_ERROR)
         {
             log_err("FAIL: Cloned Iterator failed to deal correctly with too-small buffer size\n");
         }
@@ -394,7 +381,7 @@ static void TestBreakIteratorSafeClone(void)
         bufferSize = U_BRK_SAFECLONE_BUFFERSIZE;
 
         /* Null buffer pointer - return Iterator & set error to U_SAFECLONE_ALLOCATED_ERROR */
-        if (0 == (brk = ubrk_safeClone(someIterators[i], 0, &bufferSize, &status)) || status != U_SAFECLONE_ALLOCATED_WARNING)
+        if (0 == (brk = ubrk_safeClone(someIterators[i], 0, &bufferSize, &status)) || status != U_SAFECLONE_ALLOCATED_ERROR)
         {
             log_err("FAIL: Cloned Iterator failed to deal correctly with null buffer pointer\n");
         }
@@ -412,7 +399,7 @@ static void TestBreakIteratorSafeClone(void)
             if (U_FAILURE(status) || brk == 0) {
                 log_err("FAIL: Cloned Iterator failed with misaligned buffer pointer\n");
             }
-            if (status == U_SAFECLONE_ALLOCATED_WARNING) {
+            if (status == U_SAFECLONE_ALLOCATED_ERROR) {
                 log_err("FAIL: Cloned Iterator allocated when using a mis-aligned buffer.\n");
             }
             offset = (int32_t)((char *)&p-(char*)brk);
@@ -561,4 +548,5 @@ static void TestBreakIteratorRuleError() {
     freeToUCharStrings(&freeHook);
 }
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
+
+

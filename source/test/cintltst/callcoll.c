@@ -28,16 +28,11 @@
  * a customized collator object.  For example, number 1 to be sorted 
  * equlivalent to word 'one'. 
  */
+#ifndef INCLUDE_CALLCOLL_C
 
 #include <string.h>
 #include <stdlib.h>
-
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
-#ifndef INCLUDE_CALLCOLL_C
-
 #include "unicode/ucol.h"
 #include "unicode/uloc.h"
 #include "cstring.h"
@@ -716,7 +711,7 @@ static void TestSurrogates(void)
     rlen = u_unescape(str, rules, len);
     
     enCollation = ucol_open("en_US", &status);
-    myCollation = ucol_openRules(rules, rlen, UCOL_OFF, 
+    myCollation = ucol_openRules(rules, rlen - 1, UCOL_OFF, 
                                  UCOL_TERTIARY,NULL, &status);
     if (U_FAILURE(status)) {
         log_err("ERROR: in creation of rule based collator :%s\n", 
@@ -856,5 +851,3 @@ TestJitterbug1098(){
 }
 
 #endif
-
-#endif /* #if !UCONFIG_NO_COLLATION */

@@ -8,9 +8,6 @@
 #define UDAT_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/ucal.h"
 #include "unicode/unum.h"
 /**
@@ -136,7 +133,7 @@
 typedef void* UDateFormat;
 
 /** The possible date/time format styles */
-typedef enum UDateFormatStyle {
+enum UDateFormatStyle {
     /** Full style */
     UDAT_FULL,
     /** Long style */
@@ -152,7 +149,8 @@ typedef enum UDateFormatStyle {
     /** for internal API use only */
     UDAT_IGNORE = -2
 
-} UDateFormatStyle;
+};
+typedef enum UDateFormatStyle UDateFormatStyle;
 
 /**
  * Open a new UDateFormat for formatting and parsing dates and times.
@@ -438,7 +436,7 @@ udat_applyPattern(            UDateFormat     *format,
                             int32_t         patternLength);
 
 /** The possible types of date format symbols */
-typedef enum UDateFormatSymbolType {
+enum UDateFormatSymbolType {
     /** The era names, for example AD */
     UDAT_ERAS,
     /** The month names, for example February */
@@ -453,7 +451,8 @@ typedef enum UDateFormatSymbolType {
     UDAT_AM_PMS,
     /** The localized characters */
     UDAT_LOCALIZED_CHARS
-} UDateFormatSymbolType;
+};
+typedef enum UDateFormatSymbolType UDateFormatSymbolType;
 
 /** Date format symbols.
  *  For usage in C programs.
@@ -542,7 +541,4 @@ udat_setSymbols(    UDateFormat             *format,
 #endif
 #endif
 /********************* End **********************************************/
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
-
 #endif

@@ -7,10 +7,6 @@
 #ifndef _DATEFORMATTEST_
 #define _DATEFORMATTEST_
  
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/datefmt.h"
 #include "unicode/smpdtfmt.h"
 #include "caltztst.h"
@@ -147,11 +143,7 @@ public: // package
     virtual void TestLocaleDateFormat(void);
 
     virtual void TestDateFormatCalendar(void);
-
-    virtual void TestSpaceParsing(void);
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
  
 #endif // _DATEFORMATTEST_
 //eof

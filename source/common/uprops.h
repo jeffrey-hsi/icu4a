@@ -20,9 +20,6 @@
 #ifndef __UPROPS_H__
 #define __UPROPS_H__
 
-#include "unicode/utypes.h"
-#include "unicode/uset.h"
-
 /* indexes[] entries */
 enum {
     UPROPS_PROPS32_INDEX,
@@ -239,36 +236,5 @@ uprv_comparePropertyNames(const char *name1, const char *name2);
  */
 U_CAPI UBool U_EXPORT2
 uprv_isRuleWhiteSpace(UChar32 c);
-
-/**
- * Get the maximum length of a (regular/1.0/extended) character name.
- * @return 0 if no character names available.
- */
-U_CAPI int32_t U_EXPORT2
-uprv_getMaxCharNameLength();
-
-/**
- * Get the maximum length of an ISO comment.
- * @return 0 if no ISO comments available.
- */
-U_CAPI int32_t U_EXPORT2
-uprv_getMaxISOCommentLength();
-
-/**
- * Fills set with characters that are used in Unicode character names.
- * Includes all characters that are used in regular/Unicode 1.0/extended names.
- * Just empties the set if no character names are available.
- * @param set USet to receive characters. Existing contents are deleted.
- */
-U_CAPI void U_EXPORT2
-uprv_getCharNameCharacters(USet* set);
-
-/**
- * Fills set with characters that are used in Unicode character names.
- * Just empties the set if no ISO comments are available.
- * @param set USet to receive characters. Existing contents are deleted.
- */
-U_CAPI void U_EXPORT2
-uprv_getISOCommentCharacters(USet* set);
 
 #endif

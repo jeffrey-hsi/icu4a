@@ -219,8 +219,6 @@ TestCaseUpper() {
     }
 }
 
-#if !UCONFIG_NO_BREAK_ITERATION
-
 U_CFUNC void
 TestCaseTitle() {
     static const UChar
@@ -324,8 +322,6 @@ TestCaseTitle() {
 
     ubrk_close(titleIterChars);
 }
-
-#endif
 
 /* test case folding and case-insensitive string compare -------------------- */
 

@@ -9,9 +9,6 @@
 */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/uniset.h"
 #include "unicode/uiter.h"
 #include "nortrans.h"
@@ -643,5 +640,3 @@ void NormalizationTransliterator::cleanup() {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

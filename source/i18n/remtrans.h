@@ -10,10 +10,6 @@
 #ifndef REMTRANS_H
 #define REMTRANS_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 
 U_NAMESPACE_BEGIN
@@ -88,7 +84,5 @@ public:
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

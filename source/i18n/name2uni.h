@@ -10,21 +10,19 @@
 #ifndef NAME2UNI_H
 #define NAME2UNI_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 
 U_NAMESPACE_BEGIN
 
 /**
  * A transliterator that performs name to character mapping.
- * It recognizes the Perl syntax \N{name}.
  * @author Alan Liu
  * @draft ICU 2.0
  */
 class U_I18N_API NameUnicodeTransliterator : public Transliterator {
+
+    UChar32 openDelimiter;
+    UChar32 closeDelimiter;
 
     /**
      * The address of this static class variable serves as this class's ID
@@ -36,6 +34,17 @@ class U_I18N_API NameUnicodeTransliterator : public Transliterator {
 
     /**
      * Constructs a transliterator.
+     * @param openDelimiter    the open delimiter character.
+     * @param closeDelimiter   the close delimiter character.
+     * @param adoptedFilter    the filter for this transliterator.
+     * @draft ICU 2.0
+     */
+    NameUnicodeTransliterator(UChar32 openDelimiter, UChar32 closeDelimiter,
+                              UnicodeFilter* adoptedFilter = 0);
+
+    /**
+     * Constructs a transliterator with the default delimiters '{' and
+     * '}'.
      * @param adoptedFilter    the filter for this transliterator.
      * @draft ICU 2.0
      */
@@ -101,7 +110,5 @@ class U_I18N_API NameUnicodeTransliterator : public Transliterator {
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

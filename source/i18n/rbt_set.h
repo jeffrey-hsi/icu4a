@@ -9,9 +9,6 @@
 #define RBT_SET_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/uobject.h"
 #include "unicode/utrans.h"
 #include "uvector.h"
@@ -29,7 +26,7 @@ class UnicodeSet;
  * A set of rules for a <code>RuleBasedTransliterator</code>.
  * @author Alan Liu
  */
-class U_I18N_API TransliterationRuleSet : public UMemory {
+class U_I18N_API TransliterationRuleSet : public UObject {
     /**
      * Vector of rules, in the order added.  This is used while the
      * rule set is getting built.  After that, freeze() reorders and
@@ -145,6 +142,20 @@ public:
                                    UBool escapeUnprintable) const;
 
     /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
+    /**
      * Return the set of all characters that may be modified
      * (getTarget=false) or emitted (getTarget=true) by this set.
      */
@@ -153,11 +164,12 @@ public:
 
 private:
 
-    TransliterationRuleSet &operator=(const TransliterationRuleSet &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
-
 #endif

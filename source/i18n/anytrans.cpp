@@ -9,9 +9,6 @@
 */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/uobject.h"
 #include "unicode/nultrans.h"
 #include "unicode/uscript.h"
@@ -60,7 +57,7 @@ U_NAMESPACE_BEGIN
  * transliterator can consider common characters both before and after
  * the scripts.
  */
-class ScriptRunIterator : public UMemory {
+class ScriptRunIterator : public UObject {
 private:
     const Replaceable& text;
     int32_t textStart;
@@ -103,10 +100,30 @@ public:
      */
     void adjustLimit(int32_t delta);
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
-    ScriptRunIterator(const ScriptRunIterator &other); // forbid copying of this class
-    ScriptRunIterator &operator=(const ScriptRunIterator &other); // forbid copying of this class
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+const char ScriptRunIterator::fgClassID=0;
 
 ScriptRunIterator::ScriptRunIterator(const Replaceable& theText,
                                      int32_t myStart, int32_t myLimit) :
@@ -367,7 +384,5 @@ void AnyTransliterator::registerIDs() {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 //eof

@@ -6,9 +6,6 @@
 
 #include "intltest.h"
 
-#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
-#include "unicode/convert.h"
-
 /**
  * Test for APIs of CPPUnicodeConverter
  **/
@@ -25,7 +22,6 @@ public:
     void TestConvert(void);
     void TestAmbiguous(void);
 };
-#endif
 
 
 

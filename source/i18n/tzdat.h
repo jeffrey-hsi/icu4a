@@ -65,8 +65,6 @@
 #define TZ_DATA_NAME "tz"
 #define TZ_DATA_TYPE "icu"
 
-#if !UCONFIG_NO_FORMATTING
-
 // Fields in UDataInfo:
 
 // TZ_SIG[] is encoded as numeric literals for compatibility with the HP compiler
@@ -201,7 +199,5 @@ struct CountryIndex {
     uint16_t  count;
     uint16_t  zoneNumber; // There are actually 'count' uint16_t's here
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

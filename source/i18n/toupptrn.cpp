@@ -8,10 +8,6 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/ustring.h"
 #include "unicode/uchar.h"
 #include "toupptrn.h"
@@ -122,4 +118,3 @@ void UppercaseTransliterator::handleTransliterate(Replaceable& text,
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

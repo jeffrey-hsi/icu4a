@@ -12,10 +12,6 @@
 #ifndef USRCHDAT_C
 #define USRCHDAT_C
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/ucol.h"
 
 struct SearchData {
@@ -459,7 +455,5 @@ static const SearchData CONTRACTIONCANONICAL[] = {
     {"ab", "z", NULL, UCOL_TERTIARY, NULL, {0, -1}, {2}},
     {NULL, NULL, NULL, UCOL_TERTIARY, NULL, {-1}, {0}}
 };
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

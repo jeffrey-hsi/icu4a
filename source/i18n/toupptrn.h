@@ -10,10 +10,6 @@
 #ifndef TOUPPTRN_H
 #define TOUPPTRN_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "unicode/locid.h"
 
@@ -99,7 +95,5 @@ class U_I18N_API UppercaseTransliterator : public Transliterator {
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

@@ -13,10 +13,6 @@
 *                         instead of calling the equivalent c++ api (coleitr.h)
 ******************************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/ucoleitr.h"
 #include "unicode/ustring.h"
 #include "unicode/sortkey.h"
@@ -245,4 +241,7 @@ ucol_setOffset(UCollationElements    *elems,
   ci->fcdPosition = NULL;
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */
+
+
+
+

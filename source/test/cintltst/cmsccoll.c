@@ -14,11 +14,7 @@
  */
 
 #include <stdio.h>
-
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/ucol.h"
 #include "unicode/ucoleitr.h"
 #include "unicode/uloc.h"
@@ -652,7 +648,7 @@ static void testCollator(UCollator *coll, UErrorCode *status) {
   if(U_SUCCESS(*status) && ruleLen > 0) {
     rulesCopy = (UChar *)malloc((ruleLen+UCOL_TOK_EXTRA_RULE_SPACE_SIZE)*sizeof(UChar));
     uprv_memcpy(rulesCopy, rules, ruleLen*sizeof(UChar));
-    src.current = src.source = rulesCopy;
+    src.source = src.current = rulesCopy;
     src.end = rulesCopy+ruleLen;
     src.extraCurrent = src.end;
     src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
@@ -1017,7 +1013,7 @@ static void testAgainstUCA(UCollator *coll, UCollator *UCA, const char *refName,
   if(U_SUCCESS(*status) && ruleLen > 0) {
     rulesCopy = (UChar *)malloc((ruleLen+UCOL_TOK_EXTRA_RULE_SPACE_SIZE)*sizeof(UChar));
     uprv_memcpy(rulesCopy, rules, ruleLen*sizeof(UChar));
-    src.current = src.source = rulesCopy;
+    src.source = src.current = rulesCopy;
     src.end = rulesCopy+ruleLen;
     src.extraCurrent = src.end;
     src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
@@ -1078,7 +1074,7 @@ static void testAgainstUCA(UCollator *coll, UCollator *UCA, const char *refName,
  * primary vs. primary, secondary vs. secondary
  * tertiary vs. tertiary
  */
-static int32_t compareCEs(uint32_t s1, uint32_t s2,
+int32_t compareCEs(uint32_t s1, uint32_t s2,
                    uint32_t t1, uint32_t t2) {
   uint32_t s = 0, t = 0;
   if(s1 == t1 && s2 == t2) {
@@ -1091,15 +1087,15 @@ static int32_t compareCEs(uint32_t s1, uint32_t s2,
   } else if(s > t) {
     return 1;
   } else {
-    s = (s1 & 0x0000FF00) | (s2 & 0x0000FF00)>>8;
-    t = (t1 & 0x0000FF00) | (t2 & 0x0000FF00)>>8;
+    s = s1 & 0x0000FF00 | (s2 & 0x0000FF00)>>8;
+    t = t1 & 0x0000FF00 | (t2 & 0x0000FF00)>>8;
     if(s < t) {
       return -1;
     } else if(s > t) {
       return 1;
     } else {
-      s = (s1 & 0x000000FF)<<8 | (s2 & 0x000000FF);
-      t = (t1 & 0x000000FF)<<8 | (t2 & 0x000000FF);
+      s = (s1 & 0x000000FF)<<8 | s2 & 0x000000FF;
+      t = (t1 & 0x000000FF)<<8 | t2 & 0x000000FF;
       if(s < t) {
         return -1;
       } else {
@@ -1152,7 +1148,7 @@ static void testCEs(UCollator *coll, UErrorCode *status) {
   if(U_SUCCESS(*status) && ruleLen > 0) {
     rulesCopy = (UChar *)malloc((ruleLen+UCOL_TOK_EXTRA_RULE_SPACE_SIZE)*sizeof(UChar));
     uprv_memcpy(rulesCopy, rules, ruleLen*sizeof(UChar));
-    src.current = src.source = rulesCopy;
+    src.source = src.current = rulesCopy;
     src.end = rulesCopy+ruleLen;
     src.extraCurrent = src.end;
     src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
@@ -1700,7 +1696,7 @@ static void TestComposeDecompose(void) {
 
     log_verbose("Testing UCA extensively\n");
     coll = ucol_open("", &status);
-    for(u=0; u<(UChar32)noCases; u++) {
+    for(u=0; u<noCases; u++) {
       if(!ucol_equal(coll, t[u]->NFC, -1, t[u]->NFD, -1)) {
         log_err("Failure: codePoint %05X fails TestComposeDecompose in the UCA\n", t[u]->u);
         doTest(coll, t[u]->NFC, t[u]->NFD, UCOL_EQUAL);
@@ -1743,7 +1739,7 @@ static void TestComposeDecompose(void) {
             coll = ucol_open(locName, &status);
             ucol_setStrength(coll, UCOL_IDENTICAL);
 
-            for(u=0; u<(UChar32)noCases; u++) {
+            for(u=0; u<noCases; u++) {
               if(!ucol_equal(coll, t[u]->NFC, -1, t[u]->NFD, -1)) {
                 log_err("Failure: codePoint %05X fails TestComposeDecompose for locale %s\n", t[u]->u, cName);
                 doTest(coll, t[u]->NFC, t[u]->NFD, UCOL_EQUAL);
@@ -1752,7 +1748,7 @@ static void TestComposeDecompose(void) {
             ucol_close(coll);
         }
     }
-    for(u = 0; u <= (UChar32)noCases; u++) {
+    for(u = 0; u <= noCases; u++) {
         free(t[u]);
     }
     free(t);
@@ -2200,7 +2196,7 @@ static void TestIncrementalNormalize(void) {
         strB = malloc((maxSLen+1) * sizeof(UChar));
 
         coll = ucol_open("en_US", &status);
-        ucol_setAttribute(coll, UCOL_NORMALIZATION_MODE, UCOL_ON, &status);
+        ucol_setNormalization(coll, UNORM_NFD);
 
         /* for (sLen = 4; sLen<maxSLen; sLen++) { */
         for (sLen = 1000; sLen<1001; sLen++) {
@@ -2551,10 +2547,7 @@ static void TestCyrillicTailoring(void) {
       "\\u0410\\u0306a",
       "\\u04d0A"
   };
-    /* Russian overrides contractions, so this test is not valid anymore */
-    /*genericLocaleStarter("ru", test, 3);*/ 
-
-    genericLocaleStarter("root", test, 3);
+    genericLocaleStarter("ru", test, 3);
     genericRulesStarter("&\\u0410 = \\u0410", test, 3);
     genericRulesStarter("&Z < \\u0410", test, 3);
     genericRulesStarter("&\\u0410 = \\u0410 < \\u04d0", test, 3);
@@ -2889,7 +2882,7 @@ static void TestVariableTopSetting(void) {
 
   if(U_SUCCESS(status) && rulesLen > 0) {
     ucol_setAttribute(coll, UCOL_ALTERNATE_HANDLING, UCOL_SHIFTED, &status);
-    src.current = src.source = rulesCopy;
+    src.source = src.current = rulesCopy;
     src.end = rulesCopy+rulesLen;
     src.extraCurrent = src.end;
     src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE; 
@@ -3292,17 +3285,14 @@ static void TestNewJapanese(void) {
     "\\u30b7\\u30e3\\u30fc\\u30ec",
   };
   */
-  static const UColAttribute att[] = { UCOL_STRENGTH };
-  static const UColAttributeValue val[] = { UCOL_QUATERNARY };
+  static const UColAttribute att[] = { UCOL_ALTERNATE_HANDLING};
+  static const UColAttributeValue valShifted[] = { UCOL_SHIFTED };
 
-  static const UColAttribute attShifted[] = { UCOL_STRENGTH, UCOL_ALTERNATE_HANDLING};
-  static const UColAttributeValue valShifted[] = { UCOL_QUATERNARY, UCOL_SHIFTED };
-
-  genericLocaleStarterWithOptions("ja", test1, sizeof(test1)/sizeof(test1[0]), att, val, 1);
-  genericLocaleStarterWithOptions("ja", test2, sizeof(test2)/sizeof(test2[0]), att, val, 1);
+  genericLocaleStarter("ja", test1, sizeof(test1)/sizeof(test1[0]));
+  genericLocaleStarter("ja", test2, sizeof(test2)/sizeof(test2[0]));
   /*genericLocaleStarter("ja", test3, sizeof(test3)/sizeof(test3[0]));*/
-  genericLocaleStarterWithOptions("ja", test1, sizeof(test1)/sizeof(test1[0]), attShifted, valShifted, 2);
-  genericLocaleStarterWithOptions("ja", test2, sizeof(test2)/sizeof(test2[0]), attShifted, valShifted, 2);
+  genericLocaleStarterWithOptions("ja", test1, sizeof(test1)/sizeof(test1[0]), att, valShifted, 1);
+  genericLocaleStarterWithOptions("ja", test2, sizeof(test2)/sizeof(test2[0]), att, valShifted, 1);
 }
 
 static void TestStrCollIdenticalPrefix(void) {
@@ -3623,27 +3613,6 @@ static void TestRuleOptions(void) {
   }
 }
 
-
-static void TestUnicodeSetRules(void) {
-
-  static struct {
-    const char *rules;
-    const char *data[50];
-    const uint32_t len;
-  } tests[] = {  
-    /* - all befores here amount to zero */
-    { "[copy [\\uAC00-\\uD7FF]]&a = a", 
-    { "a", "b"}, 2} /* you cannot go before first tertiary ignorable */
-  };
-  uint32_t i;
-
-
-  for(i = 0; i<(sizeof(tests)/sizeof(tests[0])); i++) {
-    genericRulesStarter(tests[i].rules, tests[i].data, tests[i].len);
-  }
-
-}
-
 void addMiscCollTest(TestNode** root)
 {
     addTest(root, &TestRuleOptions, "tscoll/cmsccoll/TestRuleOptions");
@@ -3688,7 +3657,4 @@ void addMiscCollTest(TestNode** root)
     addTest(root, &TestExpansion, "tscoll/cmsccoll/TestExpansion");
     /*addTest(root, &PrintMarkDavis, "tscoll/cmsccoll/PrintMarkDavis");*/ /* this test doesn't test - just prints sortkeys */
     /*addTest(root, &TestGetCaseBit, "tscoll/cmsccoll/TestGetCaseBit");*/ /*this one requires internal things to be exported */
-    addTest(root, &TestUnicodeSetRules, "tscoll/cmsccoll/TestUnicodeSetRules");
 }
-
-#endif /* #if !UCONFIG_NO_COLLATION */

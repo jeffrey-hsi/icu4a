@@ -9,9 +9,6 @@
  */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "itformat.h"
 #include "tsdate.h"
 #include "tsnmfmt.h"
@@ -121,5 +118,3 @@ void IntlTestFormat::runIndexedTest( int32_t index, UBool exec, const char* &nam
         }
     }
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

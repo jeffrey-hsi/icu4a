@@ -177,10 +177,6 @@ SOURCE=.\uoptions.c
 
 SOURCE=.\uparse.c
 # End Source File
-# Begin Source File
-
-SOURCE=.\uperf.cpp
-# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -208,14 +204,6 @@ SOURCE=.\uoptions.h
 # Begin Source File
 
 SOURCE=.\uparse.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uperf.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\utimer.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

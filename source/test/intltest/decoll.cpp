@@ -3,11 +3,6 @@
  * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "decoll.h"
 
 #ifndef _COLL
@@ -128,9 +123,8 @@ void CollationGermanTest::TestTertiary(/* char* par */)
     }
 
     int32_t i = 0;
-    UErrorCode status = U_ZERO_ERROR;
     myCollation->setStrength(Collator::TERTIARY);
-    myCollation->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    myCollation->setDecomposition(Normalizer::COMPOSE_COMPAT);
     for (i = 0; i < 12 ; i++)
     {
         doTest(testSourceCases[i], testTargetCases[i], results[i][1]);
@@ -143,9 +137,8 @@ void CollationGermanTest::TestPrimary(/* char* par */)
         return;
     }
     int32_t i;
-    UErrorCode status = U_ZERO_ERROR;
     myCollation->setStrength(Collator::PRIMARY);
-    myCollation->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    myCollation->setDecomposition(Normalizer::DECOMP);
     for (i = 0; i < 12 ; i++)
     {
         doTest(testSourceCases[i], testTargetCases[i], results[i][0]);
@@ -163,4 +156,4 @@ void CollationGermanTest::runIndexedTest( int32_t index, UBool exec, const char*
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */
+

@@ -7,10 +7,6 @@
 #ifndef _INTLTESTDATEFORMAT
 #define _INTLTESTDATEFORMAT
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/unistr.h"
 #include "unicode/datefmt.h"
 #include "intltest.h"
@@ -76,7 +72,5 @@ private:
 public:
     virtual ~IntlTestDateFormat() {}
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

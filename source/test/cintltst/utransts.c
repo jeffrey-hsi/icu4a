@@ -8,10 +8,6 @@
 *******************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/utrans.h"
 #include "cmemory.h"
 #include "cstring.h"
@@ -589,5 +585,3 @@ static void _expect(const UTransliterator* trans,
     }
     FreeXReplaceable(&xrep);
 }
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

@@ -10,9 +10,6 @@
 */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/unistr.h"
 #include "rbbitblb.h"
 #include "rbbirb.h"
@@ -22,6 +19,8 @@
 #include "uassert.h"
 
 U_NAMESPACE_BEGIN
+
+const char RBBITableBuilder::fgClassID=0;
 
 RBBITableBuilder::RBBITableBuilder(RBBIRuleBuilder *rb, RBBINode **rootNode) :
  fTree(*rootNode) {
@@ -63,7 +62,7 @@ void  RBBITableBuilder::build() {
     // Walk through the tree, replacing any references to $variables with a copy of the
     //   parse tree for the substition expression.
     //
-    fTree = fTree->flattenVariables();
+    fTree->flattenVariables();
     if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "ftree")) {
         RBBIDebugPrintf("Parse tree after flattening variable references.\n");
         fTree->printTree(TRUE);
@@ -718,6 +717,8 @@ void RBBITableBuilder::printStates() {
 //
 //-----------------------------------------------------------------------------
 
+const char RBBIStateDescriptor::fgClassID=0;
+
 RBBIStateDescriptor::RBBIStateDescriptor(int lastInputSymbol, UErrorCode *fStatus) {
     fMarked    = FALSE;
     fAccepting = 0;
@@ -748,5 +749,3 @@ RBBIStateDescriptor::~RBBIStateDescriptor() {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

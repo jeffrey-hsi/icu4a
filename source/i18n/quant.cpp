@@ -6,10 +6,6 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "quant.h"
 #include "unicode/unistr.h"
 #include "util.h"
@@ -137,7 +133,5 @@ void Quantifier::setData(const TransliterationRuleData* d) {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 //eof

@@ -39,20 +39,36 @@ class               RBBITableBuilder;
 //                       UnicodeSet parser to resolve references to $variables.
 //
 //--------------------------------------------------------------------------------
-class RBBISymbolTableEntry : public UMemory { // The symbol table hash table contains one
+class RBBISymbolTableEntry : public UObject { // The symbol table hash table contains one
 public:                                       //   of these structs for each entry.
-    RBBISymbolTableEntry();
     UnicodeString          key;
     RBBINode               *val;
     ~RBBISymbolTableEntry();
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
-    RBBISymbolTableEntry(const RBBISymbolTableEntry &other); // forbid copying of this class
-    RBBISymbolTableEntry &operator=(const RBBISymbolTableEntry &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 
-class RBBISymbolTable : public UMemory, public SymbolTable {
+class RBBISymbolTable : public SymbolTable {
 private:
     const UnicodeString      &fRules;
     UHashtable               *fHashTable;
@@ -80,9 +96,27 @@ public:
 
     virtual void      print() const;
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
-    RBBISymbolTable(const RBBISymbolTable &other); // forbid copying of this class
-    RBBISymbolTable &operator=(const RBBISymbolTable &other); // forbid copying of this class
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 
@@ -91,7 +125,7 @@ private:
 //  class RBBIRuleBuilder       The top-level class handling RBBI rule compiling.
 //
 //--------------------------------------------------------------------------------
-class RBBIRuleBuilder : public UMemory {
+class RBBIRuleBuilder : public UObject {
 public:
 
     //  Create a rule based break iterator from a set of rules.
@@ -101,6 +135,20 @@ public:
     static BreakIterator * createRuleBasedBreakIterator( const UnicodeString    &rules,
                                     UParseError      &parseError,
                                     UErrorCode       &status);
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 public:
     // The "public" functions and data members that appear below are accessed
@@ -123,7 +171,8 @@ public:
     RBBINode                      *fReverseTree;     //   then manipulated by subsequent steps.
 
     RBBISetBuilder                *fSetBuilder;      // Set and Character Category builder.
-    UVector                       *fUSetNodes;       // Vector of all uset nodes.
+    RBBINode                      *fSetsListHead;    // Head of the linked list of UnicodeSets
+                                                     //   (uset nodes.)
 
     RBBITableBuilder              *fForwardTables;   // State transition tables
     RBBITableBuilder              *fReverseTables;
@@ -131,8 +180,11 @@ public:
     RBBIDataHeader                *flattenData();    // Create the flattened (runtime format)
                                                      // data tables..
 private:
-    RBBIRuleBuilder(const RBBIRuleBuilder &other); // forbid copying of this class
-    RBBIRuleBuilder &operator=(const RBBIRuleBuilder &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 
@@ -167,12 +219,7 @@ struct RBBISetTableEl {
 //                      is unavailable.
 //
 //----------------------------------------------------------------------------
-#ifdef RBBI_DEBUG
-#include <stdio.h>
-#define RBBIDebugPrintf printf
-#else
-inline void RBBIDebugPrintf(...) {}
-#endif
+void RBBIDebugPrintf(const char *fmt, ...);
 
 U_NAMESPACE_END
 #endif

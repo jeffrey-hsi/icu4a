@@ -20,22 +20,8 @@
  * \file
  * \brief C API: Character conversion 
  *
- * <h2>Character Conversion C API</h2>
+ * <h2>Character Conversion C API </h2>
  *
- * <p>This API is used to convert codepage or character encoded data to and
- * from UTF-16. You can open a converter with {@link ucnv_open()}. With that
- * converter, you can get its properties, set options, convert your data and
- * close the converter.</p>
- *
- * <p>Since many software programs recogize different converter names for
- * different types of converters, there are other functions in this API to
- * iterate over the converter aliases. The functions {@link ucnv_getAvailableName()},
- * {@link ucnv_getAlias()} and {@link ucnv_getStandardName()} are some of the
- * more frequently used alias functions to get this information.</p>
- *
- * <p>More information about this API can be found in our 
- * <a href="http://oss.software.ibm.com/icu/userguide/conversion.html">User's
- * Guide</a>.</p>
  */
 
 #ifndef UCNV_H
@@ -197,35 +183,10 @@ U_CDECL_END
 
 /**
  * Converter option for specifying a locale.
- * For example, ucnv_open("SCSU,locale=ja", &errorCode);
- * See convrtrs.txt.
- *
  * @see ucnv_open
  * @stable
  */
 #define UCNV_LOCALE_OPTION_STRING ",locale="
-
-/**
- * Converter option for specifying a version selector (0..9) for some converters.
- * For example, ucnv_open("UTF-7,version=1", &errorCode);
- * See convrtrs.txt.
- *
- * @see ucnv_open
- * @draft ICU 2.4
- */
-#define UCNV_VERSION_OPTION_STRING ",version="
-
-/**
- * Converter option for EBCDIC SBCS or mixed-SBCS/DBCS (stateful) codepages.
- * Swaps Unicode mappings for EBCDIC LF and NL codes, as used on
- * S/390 (z/OS) Unix System Services (Open Edition).
- * For example, ucnv_open("ibm-1047,swaplfnl", &errorCode);
- * See convrtrs.txt.
- *
- * @see ucnv_open
- * @draft ICU 2.4
- */
-#define UCNV_SWAP_LFNL_OPTION_STRING ",swaplfnl"
 
 /**
  * Do a fuzzy compare of a two converter/alias names.  The comparison
@@ -336,12 +297,11 @@ ucnv_openU (const UChar * name,
  *     cnv=ucnv_open(name, &errorCode);
  * \endcode
  *
- * In order to open a converter with the IBM S/390 Unix System Services variant
- * of a Unicode/EBCDIC conversion table,
- * you can use the prefix "ibm-" together with the option string UCNV_SWAP_LFNL_OPTION_STRING:
+ * In order to open a converter with the IBM S/390 Unix System Services variant of a Unicode/EBCDIC conversion table,
+ * you can use the prefix "ibm-" together with the suffix "-s390":
  * \code
  *     char name[20];
- *     sprintf(name, "ibm-%hu" UCNV_SWAP_LFNL_OPTION_STRING, ccsid);
+ *     sprintf(name, "ibm-%hu-s390", ccsid);
  *     cnv=ucnv_open(name, &errorCode);
  * \endcode
  *
@@ -796,7 +756,7 @@ ucnv_setFromUCallBack (UConverter * converter,
  * (such as from escape sequences or callbacks)  -1 will be placed for offsets. 
  * @param flush set to <TT>TRUE</TT> if the current source buffer is the last available
  * chunk of the source, <TT>FALSE</TT> otherwise. Note that if a failing status is returned,
- * this function may have to be called multiple times with flush set to <TT>TRUE</TT> until
+ * this function may have to be called multiple times wiht flush set to <TT>TRUE</TT> until
  * the source buffer is consumed.
  * @param err the error status.  <TT>U_ILLEGAL_ARGUMENT_ERROR</TT> will be set if the
  * converter is <TT>NULL</TT>.
@@ -858,7 +818,7 @@ ucnv_fromUnicode (UConverter * converter,
  * (such as from escape sequences or callbacks)  -1 will be placed for offsets. 
  * @param flush set to <TT>TRUE</TT> if the current source buffer is the last available
  * chunk of the source, <TT>FALSE</TT> otherwise. Note that if a failing status is returned,
- * this function may have to be called multiple times with flush set to <TT>TRUE</TT> until
+ * this function may have to be called multiple times wiht flush set to <TT>TRUE</TT> until
  * the source buffer is consumed.
  * @param err the error status.  <TT>U_ILLEGAL_ARGUMENT_ERROR</TT> will be set if the
  * converter is <TT>NULL</TT>.

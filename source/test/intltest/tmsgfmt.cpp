@@ -14,11 +14,6 @@
 *   08/04/97    jfitz       Updated to intltest
 ********************************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "tmsgfmt.h"
 
 #include "unicode/format.h"
@@ -634,14 +629,14 @@ void TestMessageFormat::testSetLocale()
 
     msg.setLocale(Locale::getEnglish());
     UBool getLocale_ok = TRUE;
-    if (msg.getLocale() != Locale::getEnglish()) {
+    if (msg.getLocale() != Locale::ENGLISH) {
         errln("*** MSG getLocal err.");
         getLocale_ok = FALSE;
     }
 
     msg.setLocale(Locale::getGerman());
 
-    if (msg.getLocale() != Locale::getGerman()) {
+    if (msg.getLocale() != Locale::GERMAN) {
         errln("*** MSG getLocal err.");
         getLocale_ok = FALSE;
     }
@@ -1085,5 +1080,3 @@ void TestMessageFormat::runIndexedTest( int32_t index, UBool exec, const char* &
         default: name = ""; break; //needed to end loop
     }
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

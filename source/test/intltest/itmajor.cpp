@@ -1,5 +1,5 @@
 /********************************************************************
- * COPYRIGHT:
+ * COPYRIGHT: 
  * Copyright (c) 1998-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
@@ -19,6 +19,7 @@
 
 #include "itutil.h"
 #include "tscoll.h"
+#include "ittxtbd.h"
 #include "itformat.h"
 #include "itconv.h"
 #include "ittrans.h"
@@ -41,15 +42,23 @@
 void MajorTestLevel::runIndexedTest( int32_t index, UBool exec, const char* &name, char* par )
 {
     switch (index) {
-        case 0: name = "utility";
-                if (exec) {
+        case 0: name = "utility"; 
+                if (exec) { 
                     logln("TestSuite Utilities---"); logln();
                     IntlTestUtilities test;
                     callTest( test, par );
                 }
                 break;
 
-        case 1: name = "normalize";
+        case 1: name = "convert"; 
+                if (exec) {
+                    logln("TestSuite Convert---"); logln();
+                    IntlTestConvert test;
+                    callTest( test, par );
+                }
+                break;
+
+        case 2: name = "normalize"; 
                 if (exec) {
                     logln("TestSuite Normalize---"); logln();
                     IntlTestNormalize test;
@@ -57,78 +66,59 @@ void MajorTestLevel::runIndexedTest( int32_t index, UBool exec, const char* &nam
                 }
                 break;
 
-        case 2: name = "collate";
-#if !UCONFIG_NO_COLLATION
+        case 3: name = "collate"; 
                 if (exec) {
                     logln("TestSuite Collator---"); logln();
                     IntlTestCollator test;
                     callTest( test, par );
                 }
-#endif
                 break;
 
-        case 3: name = "unused";
-                // Used to be text bounds.
+        case 4: name = "textbounds"; 
+                if (exec) {
+                    logln("TestSuite TextBoundary---"); logln();
+                    IntlTestTextBoundary test;
+                    callTest( test, par );
+                }
                 break;
 
-        case 4: name = "format";
-#if !UCONFIG_NO_FORMATTING
+        case 5: name = "format"; 
                 if (exec) {
                     logln("TestSuite Format---"); logln();
                     IntlTestFormat test;
                     callTest( test, par );
                 }
-#endif
                 break;
 
-        case 5: name = "translit";
-#if !UCONFIG_NO_TRANSLITERATION
+        case 6: name = "translit"; 
                 if (exec) {
                     logln("TestSuite Transliterator---"); logln();
                     IntlTestTransliterator test;
                     callTest( test, par );
                 }
-#endif
                 break;
 
-        case 6: name = "rbbi";
-#if !UCONFIG_NO_BREAK_ITERATION
+        case 7: name = "rbbi"; 
                 if (exec) {
                     logln("TestSuite RuleBasedBreakIterator---"); logln();
                     IntlTestRBBI test;
                     callTest( test, par );
                 }
-#endif
                 break;
-        case 7: name = "rbnf";
-#if !UCONFIG_NO_FORMATTING
-                if (exec) {
+        case 8: name = "rbnf";
+            if (exec) {
                     logln("TestSuite RuleBasedNumberFormat----"); logln();
                     IntlTestRBNF test;
                     callTest(test, par);
-                }
-#endif
-                break;
-        case 8: name = "rbnfrt";
-#if !UCONFIG_NO_FORMATTING
-                if (exec) {
+            }
+            break;
+        case 9: name = "rbnfrt";
+            if (exec) {
                     logln("TestSuite RuleBasedNumberFormat RT----"); logln();
                     RbnfRoundTripTest test;
                     callTest(test, par);
-                }
-#endif
-                break;
-
-        case 9: name = "convert";
-/* Only the C API exists */
-#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
-                if (exec) {
-                    logln("TestSuite Convert---"); logln();
-                    IntlTestConvert test;
-                    callTest( test, par );
-                }
-#endif /* ICU_UNICODECONVERTER_USE_DEPRECATES */
-                break;
+            }
+            break;
 
         default: name = ""; break;
     }

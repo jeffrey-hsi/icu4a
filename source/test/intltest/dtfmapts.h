@@ -7,9 +7,6 @@
 #ifndef _INTLTESTDATEFORMATAPI
 #define _INTLTESTDATEFORMATAPI
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
 
 #include "intltest.h"
 
@@ -37,7 +34,5 @@ private:
      */
     void TestNameHiding(void);
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

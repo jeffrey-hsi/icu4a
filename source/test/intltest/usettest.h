@@ -27,8 +27,6 @@ class UnicodeSetTest: public IntlTest {
     
 private:
 
-    void Testj2268();
-
     /**
      * Test that toPattern() round trips with syntax characters and
      * whitespace.

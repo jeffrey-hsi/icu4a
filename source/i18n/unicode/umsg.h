@@ -19,9 +19,6 @@
 #define UMSG_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/parseerr.h"
 #include <stdarg.h>
 /**
@@ -584,7 +581,4 @@ umsg_vparse(UMessageFormat *fmt,
             int32_t        *count,
             va_list        ap,
             UErrorCode     *status);
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
-
 #endif

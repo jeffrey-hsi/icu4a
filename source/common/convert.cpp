@@ -8,7 +8,6 @@
 
 #include "unicode/utypes.h"
 
-#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
 U_NAMESPACE_BEGIN
 
 class Locale;
@@ -487,4 +486,3 @@ UBool UnicodeConverter::isAmbiguous(void) const
 }
 
 U_NAMESPACE_END
-#endif /* ICU_UNICODECONVERTER_USE_DEPRECATES */

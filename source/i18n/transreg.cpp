@@ -9,15 +9,6 @@
 */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_RULEBASEDTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_COMPOUNDTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_NULLTRANSLITERATOR_USE_DEPRECATES 1
-
-#include "unicode/utypes.h"
 #include "unicode/uobject.h"
 #include "unicode/cpdtrans.h"
 #include "unicode/nultrans.h"
@@ -63,6 +54,8 @@ U_NAMESPACE_BEGIN
 //------------------------------------------------------------------
 // Alias
 //------------------------------------------------------------------
+
+const char TransliteratorAlias::fgClassID=0;
 
 TransliteratorAlias::TransliteratorAlias(const UnicodeString& theAliasID) :
     ID(),
@@ -129,7 +122,7 @@ Transliterator* TransliteratorAlias::create(UParseError& pe,
  * canonical form, or the script is transformed from an abbreviation
  * to a full name.
  */
-class Spec : public UMemory {
+class Spec : public UObject {
  public:
     Spec(const UnicodeString& spec);
     ~Spec();
@@ -145,6 +138,20 @@ class Spec : public UMemory {
     operator const UnicodeString&() const { return get(); }
     const UnicodeString& getTop() const { return top; }
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
  private:
     void setupNext();
 
@@ -156,9 +163,14 @@ class Spec : public UMemory {
     UBool isNextLocale; // TRUE if nextSpec is a locale
     ResourceBundle* res;
 
-    Spec(const Spec &other); // forbid copying of this class
-    Spec &operator=(const Spec &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+const char Spec::fgClassID=0;
 
 Spec::Spec(const UnicodeString& theSpec) : top(theSpec) {
     UErrorCode status = U_ZERO_ERROR;
@@ -169,7 +181,8 @@ Spec::Spec(const UnicodeString& theSpec) : top(theSpec) {
     if (res == 0) {
         return;
     }
-    if (U_FAILURE(status) || status == U_USING_DEFAULT_WARNING) {
+    if (U_FAILURE(status) ||
+        status == U_USING_DEFAULT_ERROR) {
         delete res;
         res = 0;
     }
@@ -338,7 +351,7 @@ static void DEBUG_useEntry(Entry* e) {
  * for it.  We could easily add this if there is a need for it in the
  * future.
  */
-class Entry : public UMemory {
+class Entry : public UObject {
 public:
     enum Type {
         RULES_FORWARD,
@@ -370,11 +383,30 @@ public:
     void setFactory(Transliterator::Factory factory,
                     Transliterator::Token context);
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
 
-    Entry(const Entry &other); // forbid copying of this class
-    Entry &operator=(const Entry &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+const char Entry::fgClassID=0;
 
 Entry::Entry() {
     u.prototype = 0;
@@ -426,6 +458,8 @@ U_CDECL_END
 //----------------------------------------------------------------------
 // class TransliteratorRegistry: Basic public API
 //----------------------------------------------------------------------
+
+const char TransliteratorRegistry::fgClassID=0;
 
 TransliteratorRegistry::TransliteratorRegistry(UErrorCode& status) :
     registry(TRUE),
@@ -826,7 +860,8 @@ Entry* TransliteratorRegistry::findInBundle(const Spec& specToOpen,
         
         UErrorCode status = U_ZERO_ERROR;
         ResourceBundle subres(specToOpen.getBundle().get(tag, status));
-        if (U_FAILURE(status) || status == U_USING_DEFAULT_WARNING) {
+        if (U_FAILURE(status) ||
+            status == U_USING_DEFAULT_ERROR) {
             continue;
         }
         
@@ -1087,7 +1122,5 @@ Transliterator* TransliteratorRegistry::instantiateEntry(const UnicodeString& ID
     return 0; // failed
 }
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 //eof

@@ -6,9 +6,6 @@
  ********************************************************************/
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "sdtfmtts.h"
 
 #include "unicode/smpdtfmt.h"
@@ -26,7 +23,7 @@ void IntlTestSimpleDateFormatAPI::runIndexedTest( int32_t index, UBool exec, con
                 if (exec) {
                     logln("SimpleDateFormat API test---"); logln("");
                     UErrorCode status = U_ZERO_ERROR;
-                    Locale::setDefault(Locale::getEnglish(), status);
+                    Locale::setDefault(Locale::ENGLISH, status);
                     if(U_FAILURE(status)) {
                         errln("ERROR: Could not set default locale, test may not give correct results");
                     }
@@ -62,13 +59,13 @@ void IntlTestSimpleDateFormatAPI::testAPI(/*char *par*/)
     }
 
     status = U_ZERO_ERROR;
-    SimpleDateFormat pat_fr(pattern, Locale::getFrench(), status);
+    SimpleDateFormat pat_fr(pattern, Locale::FRENCH, status);
     if(U_FAILURE(status)) {
         errln("ERROR: Could not create SimpleDateFormat (pattern French)");
     }
 
     status = U_ZERO_ERROR;
-    DateFormatSymbols *symbols = new DateFormatSymbols(Locale::getFrench(), status);
+    DateFormatSymbols *symbols = new DateFormatSymbols(Locale::FRENCH, status);
     if(U_FAILURE(status)) {
         errln("ERROR: Could not create DateFormatSymbols (French)");
     }
@@ -216,5 +213,3 @@ void IntlTestSimpleDateFormatAPI::testAPI(/*char *par*/)
 
     delete test;
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

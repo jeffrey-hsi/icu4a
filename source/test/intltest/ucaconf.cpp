@@ -10,10 +10,6 @@
  * long. To do the whole test, download the test files.
  */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "ucaconf.h"
 UCAConformanceTest::UCAConformanceTest() :
 rbUCA(NULL),
@@ -258,5 +254,3 @@ void UCAConformanceTest::TestRulesShifted(/* par */) {
     testConformance(rbUCA);
   }
 }
-
-#endif /* #if !UCONFIG_NO_COLLATION */

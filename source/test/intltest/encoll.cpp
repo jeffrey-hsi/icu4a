@@ -4,9 +4,6 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
 
 #include "unicode/coll.h"
 #include "unicode/tblcoll.h"
@@ -18,7 +15,7 @@ CollationEnglishTest::CollationEnglishTest()
 : myCollation(0)
 {
     UErrorCode status = U_ZERO_ERROR;
-    myCollation = Collator::createInstance(Locale::getEnglish(), status);
+    myCollation = Collator::createInstance(Locale::ENGLISH, status);
 }
 
 CollationEnglishTest::~CollationEnglishTest()
@@ -343,4 +340,4 @@ void CollationEnglishTest::runIndexedTest( int32_t index, UBool exec, const char
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */
+

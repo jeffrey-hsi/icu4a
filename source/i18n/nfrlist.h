@@ -16,10 +16,7 @@
 #ifndef NFRLIST_H
 #define NFRLIST_H
 
-#include "unicode/rbnf.h"
-
-#if U_HAVE_RBNF
-
+#include "unicode/utypes.h"
 #include "unicode/uobject.h"
 #include "nfrule.h"
 
@@ -30,7 +27,7 @@ U_NAMESPACE_BEGIN
 // unsafe class for internal use only.  assume memory allocations succeed, indexes are valid.
 // should be a template, but we can't use them
 
-class NFRuleList : public UMemory {
+class NFRuleList : public UObject {
 protected:
     NFRule** fStuff;
     uint32_t fCount;
@@ -75,15 +72,30 @@ public:
         return result;
     }
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
-    NFRuleList(const NFRuleList &other); // forbid copying of this class
-    NFRuleList &operator=(const NFRuleList &other); // forbid copying of this class
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 U_NAMESPACE_END
-
-/* U_HAVE_RBNF */
-#endif
 
 // NFRLIST_H
 #endif

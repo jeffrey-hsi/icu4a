@@ -13,9 +13,8 @@
 
 U_NAMESPACE_BEGIN
 
-class Shaper /* not : public UObject because this is an interface/mixin class */ {
+class Shaper : public UObject {
 public:
-    virtual inline ~Shaper() {};
     virtual void init(LEUnicode ch, le_int32 outIndex, le_bool isloate) = 0;
     virtual void shape(le_int32 outIndex, le_int32 shapeOffset) = 0;
 };
@@ -63,7 +62,7 @@ private:
     static const ShapeType shapeTypes[];
 };
 
-class GlyphShaper : public UMemory, public Shaper
+class GlyphShaper : public Shaper
 {
 public:
     virtual void init(LEUnicode ch, le_int32 outIndex, le_bool isolate);
@@ -71,6 +70,20 @@ public:
 
     GlyphShaper(const LETag **outputTags);
     ~GlyphShaper();
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 private:
     const LETag **charTags;
@@ -89,11 +102,14 @@ private:
 
     static const LETag tagArray[];
 
-    GlyphShaper(const GlyphShaper &other); // forbid copying of this class
-    GlyphShaper &operator=(const GlyphShaper &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
-class CharShaper : public UMemory, public Shaper
+class CharShaper : public Shaper
 {
 public:
     virtual void init(LEUnicode ch, le_int32 outIndex, le_bool isolate);
@@ -108,9 +124,6 @@ private:
     static const LEUnicode isolateShapes[];
 
     static LEUnicode getToIsolateShape(LEUnicode ch);
-
-    CharShaper(const CharShaper &other); // forbid copying of this class
-    CharShaper &operator=(const CharShaper &other); // forbid copying of this class
 };
 
 U_NAMESPACE_END

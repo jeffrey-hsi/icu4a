@@ -44,7 +44,7 @@ typedef void* UReplaceable;
  * Replaceable.
  * @stable
  */
-typedef struct UReplaceableCallbacks {
+typedef struct _UReplaceableCallbacks {
 
     /**
      * Function pointer that returns the number of UChar code units in

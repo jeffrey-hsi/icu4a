@@ -29,6 +29,7 @@
 #include "unicode/ucnv.h"
 #include "unicode/ures.h"
 #include "unicode/uclean.h"
+#include "dadrcoll.h"
 
 #ifdef XP_MAC_CONSOLE
 #   include <console.h>
@@ -63,21 +64,10 @@ void addSetup(TestNode** root)
     addTest(root, &TestMutex,    "setup/TestMutex");
 }
 
-#if UCONFIG_NO_LEGACY_CONVERSION
-#   define TRY_CNV_1 "iso-8859-1"
-#   define TRY_CNV_2 "ibm-1208"
-#else
-#   define TRY_CNV_1 "iso-8859-7"
-#   define TRY_CNV_2 "sjis"
-#endif
-
 int main(int argc, const char* const argv[])
 {
     int nerrors = 0;
-    int warnOnMissingData = 0;
-    int i;
     TestNode *root;
-    const char *warnOrErr = "Failure"; 
 
     /* initial check for the default converter */
     UErrorCode errorCode = U_ZERO_ERROR;
@@ -87,27 +77,19 @@ int main(int argc, const char* const argv[])
     /* This must be tested before using anything! */
     gMutexInitialized = umtx_isInitialized(NULL);
 
-    /* Checkargs */
-    for(i=1;i<argc;i++) {
-      if(!strcmp(argv[i],"-w")) {
-	warnOnMissingData = 1;
-	warnOrErr = "Warning";
-      }
-    }
-
     while (REPEAT_TESTS > 0) {
 
 #ifdef CTST_LEAK_CHECK
         ctst_init();
 #endif
         /* try opening the data from dll instead of the dat file */
-        cnv = ucnv_open(TRY_CNV_1, &errorCode);
+        cnv = ucnv_open("iso-8859-7", &errorCode);
         if(cnv != 0) {
             /* ok */
             ucnv_close(cnv);
         } else {
             fprintf(stderr,
-                    "#### WARNING! The converter for " TRY_CNV_1 " cannot be loaded from data dll/so."
+                    "#### WARNING! The converter for iso-8859-7 cannot be loaded from data dll/so."
                     "Proceeding to load data from dat file.\n");
             errorCode = U_ZERO_ERROR;
 
@@ -127,29 +109,23 @@ int main(int argc, const char* const argv[])
             ucnv_close(cnv);
         } else {
             fprintf(stderr,
-                "*** %s! The default converter cannot be opened.\n"
+                "*** Failure! The default converter cannot be opened.\n"
                 "*** Check the ICU_DATA environment variable and \n"
-                "*** check that the data files are present.\n", warnOrErr);
-	    if(warnOnMissingData == 0) {
-	      fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-	      return 1;
-	    }
+                "*** check that the data files are present.\n");
+            return 1;
         }
 
         /* try more data */
-        cnv = ucnv_open(TRY_CNV_2, &errorCode);
+        cnv = ucnv_open("iso-8859-7", &errorCode);
         if(cnv != 0) {
             /* ok */
             ucnv_close(cnv);
         } else {
             fprintf(stderr,
-                    "*** %s! The converter for " TRY_CNV_2 " cannot be opened.\n"
+                    "*** Failure! The converter for iso-8859-7 cannot be opened.\n"
                     "*** Check the ICU_DATA environment variable and \n"
-                    "*** check that the data files are present.\n", warnOrErr);
-	    if(warnOnMissingData == 0) {
-	      fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-	      return 1;
-	    }
+                    "*** check that the data files are present.\n");
+            return 1;
         }
 
         rb = ures_open(NULL, "en", &errorCode);
@@ -158,13 +134,10 @@ int main(int argc, const char* const argv[])
             ures_close(rb);
         } else {
             fprintf(stderr,
-                    "*** %s! The \"en\" locale resource bundle cannot be opened.\n"
+                    "*** Failure! The \"en\" locale resource bundle cannot be opened.\n"
                     "*** Check the ICU_DATA environment variable and \n"
-                    "*** check that the data files are present.\n", warnOrErr);
-	    if(warnOnMissingData == 0) {
-	      fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-	      return 1;
-	    }
+                    "*** check that the data files are present.\n");
+            return 1;
         }
 
         fprintf(stdout, "Default locale for this run is %s\n", uloc_getDefault());
@@ -176,6 +149,8 @@ int main(int argc, const char* const argv[])
             printf("Repeating tests %d more time(s)\n", REPEAT_TESTS);
         }
         cleanUpTestTree(root);
+        /* ugly, but otherwise, we would either leak (bad) or open/close on individual tests (slow) */
+        closeDataDrivenCollatorTest();
 #ifdef CTST_LEAK_CHECK
         ctst_freeAll();
 
@@ -201,7 +176,6 @@ int main(int argc, const char* const argv[])
     return nerrors ? 1 : 0;
 }
 
-/*
 static void ctest_appendToDataDirectory(const char *toAppend)
 {
     const char *oldPath ="";
@@ -238,7 +212,7 @@ static void ctest_appendToDataDirectory(const char *toAppend)
         }
     }
 }
-*/
+
 
 void
 ctest_pathnameInContext( char* fullname, int32_t maxsize, const char* relPath )
@@ -367,14 +341,8 @@ void ctest_setICU_DATA() {
     u_setDataDirectory(ctest_dataOutDir());
 }
 
-UChar* CharsToUChars(const char* str) {
-    /* Might be faster to just use uprv_strlen() as the preflight len - liu */
-    int32_t len = u_unescape(str, 0, 0); /* preflight */
-    /* Do NOT use malloc() - we are supposed to be acting like user code! */
-    UChar *buf = (UChar*) malloc(sizeof(UChar) * (len + 1));
-    u_unescape(str, buf, len + 1);
-    return buf;
-}
+
+
 
 char *austrdup(const UChar* unichars)
 {
@@ -448,7 +416,7 @@ const char* loadTestData(UErrorCode* err){
         /* Fall back did not succeed either so return */
         if(U_FAILURE(*err)){
             *err = U_FILE_ACCESS_ERROR;
-            log_err("Could not load testtypes.res in testdata bundle with path %s - %s\n", tdpath, u_errorName(*err));
+            log_err("Could not load testtypes.res in testdata bundle with path %s - %as\n", tdpath, u_errorName(*err));
             return "";
         }
         ures_close(test);

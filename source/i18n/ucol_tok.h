@@ -21,11 +21,6 @@
 #ifndef UCOL_TOKENS_H
 #define UCOL_TOKENS_H
 
-#include "unicode/utypes.h"
-#include "unicode/uset.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "ucol_imp.h"
 #include "uhash.h"
 #include "unicode/parseerr.h"
@@ -107,7 +102,7 @@ typedef struct {
   UColParsedToken parsedToken;
   UChar *source;
   UChar *end;
-  const UChar *current;
+  UChar *current;
   UChar *sourceCurrent;
   UChar *extraCurrent;
   UChar *extraEnd;
@@ -119,8 +114,6 @@ typedef struct {
   uint32_t listCapacity;
   UColTokListHeader *lh;
   UColToken *varTop;
-  USet *copySet;
-  USet *removeSet;
 } UColTokenParser;
 
 typedef struct {
@@ -165,6 +158,12 @@ ucol_tok_getNextArgument(const UChar *start, const UChar *end,
                                UColAttribute *attrib, UColAttributeValue *value, 
                                UErrorCode *status);
 
-#endif /* #if !UCONFIG_NO_COLLATION */
+
+
 
 #endif
+
+
+
+
+

@@ -24,9 +24,6 @@
 #ifndef _CJACOLLTST
 #define _CJACOLLTST
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
 
 #include "cintltst.h"
 
@@ -57,7 +54,5 @@ static void TestKatakanaHiragana(void);
 * Test Choo-on kigoo
 */
 static void TestChooonKigoo(void);
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

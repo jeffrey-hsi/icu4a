@@ -54,10 +54,6 @@
 #ifndef TBLCOLL_H
 #define TBLCOLL_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/coll.h"
 #include "unicode/sortkey.h"
 #include "unicode/normlzr.h"
@@ -97,7 +93,6 @@ class CollationElementIterator;
  * this subject see the <a href="http://oss.software.ibm.com/icu/userguide/Collate_Customization.html">
  * Collation customization</a> section of the users guide.
  * <p>
- * Note, RuleBasedCollator is not to be subclassed.
  * @see        Collator
  * @version    2.0 11/15/2001
  */
@@ -496,17 +491,6 @@ public:
   virtual uint32_t getVariableTop(UErrorCode &status) const;
 
   /**
-   * Get an UnicodeSet that contains all the characters and sequences tailored in 
-   * this collator.
-   * @param status      error code of the operation
-   * @return a pointer to a UnicodeSet object containing all the 
-   *         code points and sequences that may sort differently than
-   *         in the UCA. The object must be disposed of by using delete
-   * @draft ICU 2.4
-   */
-  virtual UnicodeSet *getTailoredSet(UErrorCode &status) const;
-
-  /**
    * Thread safe cloning operation.
    * @return pointer to the new clone, user should remove it.
    * @stable 2.2
@@ -561,7 +545,6 @@ public:
   */
   virtual void setStrength(ECollationStrength newStrength);
 
-#ifdef ICU_NORMALIZER_USE_DEPRECATES
   // deprecated functions ---------------------------------------------------
 
   /**
@@ -610,7 +593,6 @@ public:
   * @deprecated To be removed after 2002-sep-30; use getAttribute().
   */
   virtual Normalizer::EMode getDecomposition(void) const;
-#endif /* ICU_NORMALIZER_USE_DEPRECATES */
 
 private:
 
@@ -884,7 +866,5 @@ inline UCollationStrength RuleBasedCollator::getUCollationStrength(
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

@@ -14,7 +14,7 @@
 
 U_NAMESPACE_BEGIN
 
-class ThaiMarkFilter : public UMemory, public LEGlyphFilter
+class ThaiMarkFilter : public UObject, public LEGlyphFilter
 {
 private:
     struct MarkRange
@@ -25,14 +25,31 @@ private:
 
     MarkRange *rangeList;
 
-    ThaiMarkFilter(const ThaiMarkFilter &other); // forbid copying of this class
-    ThaiMarkFilter &operator=(const ThaiMarkFilter &other); // forbid copying of this class
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 
 public:
     ThaiMarkFilter(le_uint8 glyphSet);
     ~ThaiMarkFilter();
 
     virtual le_bool filter(LEGlyphID glyph);
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 };
 
 class ThaiShaping /* not : public UObject because all methods are static */ {

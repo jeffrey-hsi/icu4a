@@ -7,11 +7,6 @@
 *   11/17/99    aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/rep.h"
 #include "unicode/unifilt.h"
 #include "unicode/uniset.h"
@@ -25,6 +20,8 @@
 static const UChar FORWARD_OP[] = {32,62,32,0}; // " > "
 
 U_NAMESPACE_BEGIN
+
+const char TransliterationRule::fgClassID=0;
 
 /**
  * Construct a new rule with the given input, output text, and other
@@ -60,7 +57,7 @@ TransliterationRule::TransliterationRule(const UnicodeString& input,
                                          UBool anchorStart, UBool anchorEnd,
                                          const TransliterationRuleData* theData,
                                          UErrorCode& status) :
-    UMemory(),
+    UObject(),
     segments(0),
     data(theData) {
 
@@ -158,7 +155,7 @@ TransliterationRule::TransliterationRule(const UnicodeString& input,
  * Copy constructor.
  */
 TransliterationRule::TransliterationRule(TransliterationRule& other) :
-    UMemory(other),
+    UObject(other),
     anteContext(NULL),
     key(NULL),
     postContext(NULL),
@@ -548,7 +545,5 @@ void TransliterationRule::addTargetSetTo(UnicodeSet& toUnionTo) const {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 //eof

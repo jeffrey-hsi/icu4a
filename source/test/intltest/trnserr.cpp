@@ -13,15 +13,6 @@
 * 
 ************************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_RULEBASEDTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_HEXTOUNICODETRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_UNICODETOHEXTRANSLITERATOR_USE_DEPRECATES 1
-
 #include "ittrans.h"
 #include "trnserr.h"
 #include "unicode/utypes.h"
@@ -76,10 +67,6 @@ void TransliteratorErrorTest::TestTransliteratorErrors() {
         errln("FAIL: construction of Latin-Greek");
         return;
     }
-    pos.contextLimit = 0;
-    pos.contextStart = 0;
-    pos.limit = 0;
-    pos.start = 0;
     len = testString.length();
     stoppedAt = t->transliterate(testString, 0, 100);
     if (stoppedAt != -1) {
@@ -271,4 +258,4 @@ void TransliteratorErrorTest::TestHexToUniErrors() {
     delete t;
 }
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
+

@@ -4,16 +4,13 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
+#include "unicode/unicode.h"
 #include "unicode/ustring.h"
 #include "unicode/uchar.h"
 #include "unicode/uniset.h"
 #include "cstring.h"
 #include "uparse.h"
 #include "ucdtest.h"
-
-#ifdef ICU_UNICODE_CLASS_USE_DEPRECATES
-#include "unicode/unicode.h"
-#endif
 
 #define LENGTHOF(array) (sizeof(array)/sizeof(array[0]))
 
@@ -29,18 +26,16 @@ void UnicodeTest::runIndexedTest( int32_t index, UBool exec, const char* &name, 
 {
     if (exec) logln("TestSuite UnicodeTest: ");
     switch (index) {
-        case 0: name = "TestAdditionalProperties"; if(exec) TestAdditionalProperties(); break;  
-#ifdef ICU_UNICODE_CLASS_USE_DEPRECATES
-        case 1: name = "TestUpperLower"; if (exec) TestUpperLower(); break;
-        case 2: name = "TestLetterNumber"; if (exec) TestLetterNumber(); break;
-        case 3: name = "TestMisc"; if (exec) TestMisc(); break;
-        case 4: name = "TestUnicodeData"; if (exec) TestUnicodeData(); break;
-        case 5: name = "TestCodeUnit"; if(exec) TestCodeUnit(); break;
-        case 6: name = "TestCodePoint"; if(exec) TestCodePoint(); break;
-        case 7: name = "TestCharLength"; if(exec) TestCharLength(); break;
-        case 8: name = "TestIdentifier"; if(exec) TestIdentifier(); break;  
-        case 9: name = "TestScript"; if(exec) TestScript(); break;  
-#endif
+        case 0: name = "TestUpperLower"; if (exec) TestUpperLower(); break;
+        case 1: name = "TestLetterNumber"; if (exec) TestLetterNumber(); break;
+        case 2: name = "TestMisc"; if (exec) TestMisc(); break;
+        case 3: name = "TestUnicodeData"; if (exec) TestUnicodeData(); break;
+        case 4: name = "TestCodeUnit"; if(exec) TestCodeUnit(); break;
+        case 5: name = "TestCodePoint"; if(exec) TestCodePoint(); break;
+        case 6: name = "TestCharLength"; if(exec) TestCharLength(); break;
+        case 7: name = "TestIdentifier"; if(exec) TestIdentifier(); break;  
+        case 8: name = "TestScript"; if(exec) TestScript(); break;  
+        case 9: name = "TestAdditionalProperties"; if(exec) TestAdditionalProperties(); break;  
         default: name = ""; break; //needed to end loop
     }
 }
@@ -49,7 +44,6 @@ void UnicodeTest::runIndexedTest( int32_t index, UBool exec, const char* &name, 
 // private data used by the tests
 //====================================================
 
-#ifdef ICU_UNICODE_CLASS_USE_DEPRECATES
 const UChar  LAST_CHAR_CODE_IN_FILE = 0xFFFD;
 const char tagStrings[] = "MnMcMeNdNlNoZsZlZpCcCfCsCoCnLuLlLtLmLoPcPdPsPePoSmScSkSoPiPf";
 const int32_t tagValues[] =
@@ -734,7 +728,6 @@ void UnicodeTest::TestScript()
         errln("ERROR: Diffe rent Thai values in EUnicodeScript and UCharScript");
     }
 }
-#endif
 
 // test DerivedCoreProperties.txt -------------------------------------------
 

@@ -17,10 +17,6 @@
 #ifndef BOCSU_H
 #define BOCSU_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 /*
  * "BOCSU"
  * Binary Ordered Compression Scheme for Unicode
@@ -74,6 +70,8 @@
  * to the middle of its Unicode script block to minimize the differences in
  * same-script text runs.
  */
+
+#include "unicode/utypes.h"
 
 /* Do not use byte values 0, 1, 2 because they are separators in sort keys. */
 #define SLOPE_MIN           3
@@ -154,6 +152,5 @@ u_lengthOfIdenticalLevelRun(const UChar *s, int32_t length);
 U_CFUNC uint8_t *
 u_writeDiff(int32_t diff, uint8_t *p);
 
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif

@@ -7,14 +7,6 @@
 *   11/17/99    aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_COMPOUNDTRANSLITERATOR_USE_DEPRECATES 1
-
 #include "unicode/cpdtrans.h"
 #include "unicode/unifilt.h"
 #include "unicode/unifltlg.h"
@@ -556,7 +548,5 @@ void CompoundTransliterator::computeMaximumContextLength(void) {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 /* eof */

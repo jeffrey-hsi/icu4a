@@ -12,10 +12,6 @@
 #ifndef _REGCOLL
 #define _REGCOLL
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/coleitr.h"
 #include "tscoll.h"
 
@@ -238,7 +234,4 @@ private:
     RuleBasedCollator *en_us;
 
 };
-
-#endif /* #if !UCONFIG_NO_COLLATION */
-
 #endif

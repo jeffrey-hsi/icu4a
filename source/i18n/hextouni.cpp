@@ -7,14 +7,6 @@
 *   11/17/99    aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_HEXTOUNICODETRANSLITERATOR_USE_DEPRECATES 1
-
 #include "unicode/hextouni.h"
 #include "unicode/rep.h"
 #include "unicode/unifilt.h"
@@ -376,4 +368,3 @@ void HexToUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPo
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

@@ -11,10 +11,6 @@
 #ifndef TRANSAPI_H
 #define TRANSAPI_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "intltest.h"
 
@@ -69,6 +65,8 @@ public:
 
 };
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
-
 #endif
+
+
+
+

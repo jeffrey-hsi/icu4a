@@ -13,7 +13,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 
     <title>ReadMe for ICU</title>
-    <style type="text/css">
+<style type="text/css">
       h1 {border-width: 2px; border-style: solid; text-align: center; width: 100%; font-size: 200%; font-weight: bold}
       h2 {margin-top: 3em; text-decoration: underline; page-break-before: always}
       h2.TOC {page-break-before: auto}
@@ -31,7 +31,7 @@
     <h1>International Components for Unicode<br>
      ICU 2.2 ReadMe</h1>
 
-    <p>Version: 2002-Oct-01<br>
+    <p>Version: 2002-Aug-15<br>
      Copyright &copy; 1997-2002 International Business Machines Corporation and
     others. All Rights Reserved.</p>
     <!-- Remember that there is a copyright at the end too -->
@@ -66,11 +66,6 @@
 
           <li><a href="#HowToBuildOS400">OS/400 (iSeries)</a></li>
         </ul>
-      </li>
-
-      <li>
-        <a href="#MakeICUSmaller">
-        How to Make ICU Smaller</a>
       </li>
 
       <li>
@@ -218,40 +213,6 @@
     "http://oss.software.ibm.com/icu/download/2.2/">ICU 2.2 download
     page</a>.</p>
 
-    <h3>UnicodeString assignments</h3>
-
-    <p>ICU 2.4 changes the behavior of the <code>UnicodeString</code> assignment operator
-    and copy constructor for where the source string is a readonly alias.
-    For such strings, the copy used to also be a readonly alias to the same buffer,
-    but that was seen as too dangerous (see <a href="http://www.jtcsv.com/cgibin/icu-bugs?findid=2296">Jitterbug 2296</a>).
-    The new <code>fastCopyFrom()</code> member function provides the old
-    assignment behavior.
-    It can be used explicitly when it is known to be safe to maintain readonly aliases
-    instead of cloning the buffer.
-    For more information about string aliasing and other <code>UnicodeString</code> storage models
-    see the <a href="http://oss.software.ibm.com/icu/userguide/strings.html">User Guide Strings chapter</a>.</p>
-
-    <h3>Unicode-handling macros (utf*.h)</h3>
-
-    <p>The macros in <code>source/common/unicode/utf*.h</code> have been
-    revamped, improved, simplified, and renamed. The old macros continue to be
-    available. They are in <code>utf_old.h</code>, together with an explanation
-    of the change. <code>utf.h</code>, <code>utf8.h</code> and <code>utf16.h</code>
-    contain the new macros instead. The new macros are intended to be more
-    consistent, more useful, and less confusing. Some macros were simply renamed
-    for consistency with a new naming scheme.</p>
-
-    <p>A related change is that <code>UChar32</code> is not a platform-dependent
-    type any more, but is now always defined to be the same as <code>int32_t</code>.
-    This allows for consistent, more portable code and C++ function overloading
-    as well as negative values as sentinels on all platforms. See the definition
-    in <code>utf.h</code>.</p>
-
-    <h3>ICU code library size</h3>
-
-    <p>ICU code libraries can be made smaller by removing functionality. See <a href="#MakeICUSmaller">How
-    to Make ICU Smaller</a>.</p>
-
     <h3>Support for Unicode 3.2</h3>
 
     <p>Unicode properties and algorithms have been upgraded to <a href=
@@ -264,7 +225,7 @@
     "http://oss.software.ibm.com/cvs/icu/~checkout~/icuhtml/design/ucd_icu.html">
     available via direct APIs, and most via UnicodeSet</a>.</p>
 
-    <h3>Additional and modified converters</h3>
+    <h3><b>Additional and modified converters</b></h3>
 
     <p>New converter implementations are added for:</p>
 
@@ -287,7 +248,7 @@
       binary order)</li>
     </ul>
 
-    <h3>Flexible data loading</h3>
+    <h3><b>Flexible data loading</b></h3>
 
     <p>ICU 2.2 has an extended search path functionality, more flexible data
     override capabilities, and removes lesser-known heuristics for determining
@@ -321,10 +282,9 @@
       environment variable or via the u_setDataDirectory() function.<br>
        ICU does not perform any other heuristics any more.</li>
     </ul>
-
-    <p><strong>Note:</strong> while some of the old binary data may be still
-    readable by ICU 2.2 (resource bundles, for example), they need to be
-    repackaged in order to be used.</p>
+    <b>Note:</b> while some of the old binary data may be still readable by ICU
+    2.2 (resource bundles, for example), they need to be repackaged in order to
+    be used. 
 
     <ul>
       <li>If you have individual binary files, you have to rename them so that
@@ -339,7 +299,7 @@
       individual files and repackage them.</li>
     </ul>
 
-    <h3>Customizable memory management</h3>
+    <h3><b>Customizable memory management</b></h3>
 
     <p>ICU 2.2 libraries do not use the global operators new and delete.
     Instead, all C++ classes are derived from a common base class UObject which
@@ -453,7 +413,7 @@
       </tr>
 
       <tr>
-        <td><i>&lt;ICU&gt;</i>/source/<b>data</b>/</td>
+        <td><i>&lt;ICU&gt;</i>/source/<b>data</b> </td>
 
         <td>
           This directory contains the source data in text format, which is
@@ -473,13 +433,13 @@
             bundles. The makefile <b>resfiles.mk</b> contains the list of
             resource bundle files.</li>
 
-            <li><b>mappings/</b> Here are the code page converter tables. These
-            .ucm files contain mappings to and from Unicode. These are compiled
-            into .cnv files. <b>convrtrs.txt</b> is the alias mapping table
-            from various converter name formats to ICU internal format and vice
-            versa. It produces cnvalias.icu. The makefiles <b>ucmfiles.mk,
-            ucmcore.mk,</b> and <b>ucmebcdic.mk</b> contain the list of
-            converters to be built.</li>
+            <li><b>mappings/</b> Here are the <b>code page converter
+            tables,</b> .ucm files containing mappings to and from Unicode.
+            These are compiled into .cnv files. <b>convrtrs.txt</b> is the
+            alias mapping table from various converter name formats to ICU
+            internal format and vice versa. It produces cnvalias.dat. The
+            makefiles <b>ucmfiles.mk, ucmcore.mk,</b> and <b>ucmebcdic.mk</b>
+            contain the list of converters to be built.</li>
 
             <li><b>translit/</b> This directory contains transliterator rules
             as resource bundles, a makefile <b>trnsfiles.mk</b> containing the
@@ -500,7 +460,7 @@
             <li><b>out/</b> This directory contains the assembled memory mapped
             files.</li>
 
-            <li><b>out/build/</b> This directory contains intermediate
+            <li><b>out/build</b> This directory contains intermediate
             (compiled) files, such as .cnv, .res, etc.</li>
           </ul>
         </td>
@@ -536,7 +496,7 @@
       </tr>
 
       <tr>
-        <td><i>&lt;ICU&gt;</i>/source/<b>tools</b>/</td>
+        <td><i>&lt;ICU&gt;</i>/source/<b>tools</b> </td>
 
         <td>Tools for generating the data files. Data files are generated by
         invoking <i>&lt;ICU&gt;</i>/source/data/build/makedata.bat on Win32 or
@@ -544,13 +504,13 @@
       </tr>
 
       <tr>
-        <td><i>&lt;ICU&gt;</i>/source/<b>samples</b>/</td>
+        <td><i>&lt;ICU&gt;</i>/source/<b>samples</b> </td>
 
         <td>Various sample programs that use ICU</td>
       </tr>
 
       <tr>
-        <td><i>&lt;ICU&gt;</i>/source/<b>extra</b>/</td>
+        <td><i>&lt;ICU&gt;</i>/source/<b>extra</b> </td>
 
         <td>Non-supported API additions. Currently, it contains the 'ustdio'
         file i/o library</td>
@@ -1028,19 +988,15 @@
     the packaging scripts or related files are not up to date with the contents
     of ICU at this time, so use them with caution).</p>
 
-    <h3><a name="HowToBuildZOS" href="#HowToBuildZOS">z/OS (OS/390)
+    <h3><a name="HowToBuildZOS" href="#HowToBuildZOS">z/OS (os/390)
     Platform</a></h3>
 
-    <p>You can install ICU on z/OS or OS/390 (the previous name of z/OS), but
-    IBM tests only the z/OS installation. These platforms commonly are called
-    "MVS". You install ICU in a z/OS UNIX system services file system such as
-    HFS or zFS. On this platform, it is important that you understand a few
-    details:</p>
+    <p>If you are building on the z/OS UNIX System Services platform, it is
+    important that you understand a few details:</p>
 
     <ul>
-      <li>APAR PQ58392 may be needed by z/OS 1.2 or 1.3 in order to get some
-      ICU number formatting functions to work properly. The APAR affects C and
-      C++ code.</li>
+      <li>APAR PQ58392 may be needed by z/OS 1.2 in order to get some ICU
+      number formatting functions to work properly.</li>
 
       <li>The gnu utilities gmake and gzip/gunzip are needed and can be
       obtained for z/OS from <a href=
@@ -1061,7 +1017,7 @@
 
       <li>
         <p>z/OS supports both native S/390 hexadecimal floating point and,
-        (with OS/390 2.6 and later) IEEE binary floating point. This is a
+        (with Version 2.6 and later) IEEE binary floating point. This is a
         compile time option. Applications built with IEEE should use ICU dlls
         that are built with IEEE (and vice versa). The environment variable
         IEEE390=1 will cause the z/OS version of ICU to be built with IEEE
@@ -1096,35 +1052,24 @@
       "#HowToBuildUnix">How To Build And Install On Unix</a> section.</li>
     </ul>
 
-    <h4>z/OS (Batch/PDS) support outside the UNIX system services
-    environment</h4>
+    <h4>z/OS Batch (PDS) support</h4>
 
-    <p>By default, ICU builds its libraries into the UNIX file system (HFS). In
-    addition, there is a z/OS specific environment variable (OS390BATCH) to
-    build some libraries into the z/OS native file system. This is useful, for
-    example, when your application is externalized via Job Control Language
-    (JCL).</p>
+    <p>By default, ICU builds its libraries into the HFS. In addition, there is
+    a z/OS specific environment variable to build some libraries into the z/OS
+    native file system. This is useful, for example, when your application is
+    externalized via Job Control Language (JCL).</p>
 
-    <p>The OS390BATCH environment variable enables non-UNIX support including
-    the batch environment. When OS390BATCH is set, the libicuuc<i>XX</i>.dll,
-    libicudt<i>XX</i>e.dll, and libicudt<i>XX</i>e_stub.dll binaries are built
-    into data sets (the native file system). Turning on OS390BATCH does not
-    turn off the normal z/OS UNIX build. This means that the The z/OS UNIX
-    (HFS) dlls will always be created.</p>
+    <p>The OS390BATCH environment variable enables batch support. When
+    OS390BATCH is set, the libicuuc<i>XX</i>.dll, libicudt<i>XX</i>e.dll, and
+    libicudt<i>XX</i>e_stub.dll binaries are built into the native file system.
+    Turning on OS390BATCH does not turn off the normal HFS build. This means
+    that the HFS dlls will always be created.</p>
 
     <p>Two additional environment variables indicate the names of the z/OS data
     sets to use. The LOADMOD environment variable identifies the name of the
     data set that contains the dynamic link libraries (DLLs) and the LOADEXP
     environment variable identifies the name of the data set that contains the
-    side decks, which are normally the files with the .x suffix in the UNIX
-    file system.</p>
-
-    <p>A data set is roughly equivalent to a UNIX or Windows file. For most
-    kinds of data sets the operating system maintains record boundaries. UNIX
-    and Windows files are byte streams. Two kinds of data sets are PDS and
-    PDSE. Each data set of these two types contains a directory. It is like a
-    UNIX directory. Each "file" is called a "member". Each member name is
-    limited to eight bytes, normally EBCDIC.</p>
+    side decks, which are normally the files with the .x suffix in the HFS.</p>
 
     <p>Here is an example of some environment variables that you can set prior
     to building ICU:</p>
@@ -1134,23 +1079,23 @@ LOADMOD=<i>USER</i>.ICU.LOAD
 LOADEXP=<i>USER</i>.ICU.EXP</samp>
 </pre>
 
-    <p>The PDS member names for the DLL file names are as follows:</p>
+    <p>The PDS member names are as follows:</p>
 <pre>
 <samp>IXMI<i>XX</i>UC --&gt; libicuuc<i>XX</i>.dll
 IXMI<i>XX</i>DA --&gt; libicudt<i>XX</i>e.dll
-IXMI<i>XX</i>D1 --&gt; libicudt<i>XX</i>e_stub.dll <i>(Only when OS390_STUBDATA=1)</i></samp>
+IXMI<i>XX</i>D1 --&gt; libicudt<i>XX</i>e_stub.dll <i>(When OS390_STUBDATA=1)</i></samp>
 </pre>
 
     <p>You should point the LOADMOD environment variable at a partitioned data
-    set extended (PDSE) and point the LOADEXP environment variable at a
-    partitioned data set (PDS). The PDSE can be allocated with the following
+    set extended (PDS/E) and point the LOADEXP environment variable at a
+    partitioned data set (PDS). The PDS/E can be allocated with the following
     attributes:</p>
 <pre>
 <samp>Data Set Name . . . : <i>USER</i>.ICU.LOAD
-Management class. . : <i>**None**</i>
-Storage class . . . : <i>BASE</i>
-Volume serial . . . : <i>TSO007</i>
-Device type . . . . : <i>3390</i>
+Management class. . : **None**
+Storage class . . . : BASE
+Volume serial . . . : TSO007
+Device type . . . . : 3390
 Data class. . . . . : LOAD
 Organization  . . . : PO
 Record format . . . : U
@@ -1164,15 +1109,15 @@ Data set name type  : LIBRARY</samp>
     <p>The PDS can be allocated with the following attributes:</p>
 <pre>
 <samp>Data Set Name . . . : <i>USER</i>.ICU.EXP
-Management class. . : <i>**None**</i>
-Storage class . . . : <i>BASE</i>
-Volume serial . . . : <i>TSO007</i>
-Device type . . . . : <i>3390</i>
-Data class. . . . . : <i>**None**</i>
+Management class. . : **None**
+Storage class . . . : BASE
+Volume serial . . . : TSO007
+Device type . . . . : 3390
+Data class. . . . . : **None**
 Organization  . . . : PO
 Record format . . . : FB
 Record length . . . : 80
-Block size  . . . . : <i>3200</i>
+Block size  . . . . : 3200
 1st extent cylinders: 3
 Secondary cylinders : 3
 Data set name type  : PDS</samp>
@@ -1238,7 +1183,8 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
             *pgm and *srvpgm objects.<br>
             <br>
           </li>
-          <!--li>Add QCXXN, to your build process library list. This results in the resolution of CRTCPPMOD used by the icc compiler</li-->
+          <!--li>Add QCXXN, to your build process library list. This results in
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      the resolution of CRTCPPMOD used by the icc compiler</li-->
 
           <li>
             In order to get the tests to run correctly, the QUTCOFFSET needs to
@@ -1281,37 +1227,6 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
         <!-- end build environment -->
       </li>
     </ul>
-
-    <h2><a name="MakeICUSmaller">How to Make ICU Smaller</a></h2>
-
-    <p>For some environments, ICU &quot;is too large&quot;. There are two ways
-    to remove parts and make it smaller: Remove some of its library code modules
-    from the build (reducing functionality), or remove some of its data
-    (possibly reducing only codepage/locale/etc. coverage without sacrifycing
-    overall functionality). For details about reducing the data size see the <a href="http://oss.software.ibm.com/icu/userguide/">User
-    Guide</a> &quot;ICU Data&quot; chapter.</p>
-
-    <p>The header file <code>source/common/unicode/uconfig.h</code> contains
-    source-code-level &quot;switches&quot; corresponding to <code>#if</code>
-    directives in the ICU source code. Setting one of the <code>UCONFIG_NO_...</code>
-    switches to 1 (by setting <code>CFLAGS/CPPFLAGS</code> or adding a <code>#define</code>
-    at the beginning of <code>uconfig.h</code>) turns off the code associated
-    with one of the ICU service modules. Setting one of the <code>UCONFIG_ONLY_...</code>
-    switches to 1 turns off all modules that are not essential for the
-    functioning of the associated &quot;only&quot; service. For the current set
-    of available switches see <code>uconfig.h</code> itself.</p>
-
-    <p>When a source code module is turned off, then the data-building makefiles
-    should be modified to not generate the data files that are used with that
-    module. Some of the data-generating genxyz tools rely on the module itself
-    to build its data; they will generate dummy data files to satisfy the
-    dependencies of the unmodified makefiles (to make these switches easily
-    testable). Other data files for which the tools do not rely on the related
-    library modules (e.g., mapping tables [<code>.cnv</code>] and transliterator
-    files [<code>.res</code>, from <code>source/data/translit/</code>]) continue
-    to be built unless the data makefiles are modified. For further details on
-    data building see the <a href="http://oss.software.ibm.com/icu/userguide/">User
-    Guide</a> &quot;ICU Data&quot; chapter.</p>
 
     <h2><a name="ImportantNotes" href="#ImportantNotes">Important Notes About
     Using ICU</a></h2>
@@ -1486,24 +1401,24 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
 #  define U_USE_DEPRECATED_FORMAT_API 1
 #endif
 
-#include &quot;unicode/udat.h&quot;
+#include "unicode/udat.h"
 
 int main(){
     UDateFormat *def, *fr, *fr_pat ;
     UErrorCode status = U_ZERO_ERROR;
     UChar temp[30];
 
-    fr = udat_open(UDAT_FULL, UDAT_DEFAULT, &quot;fr_FR&quot;, NULL,0, &amp;status);
+    fr = udat_open(UDAT_FULL, UDAT_DEFAULT, "fr_FR", NULL,0, &amp;status);
     if(U_FAILURE(status)){
-        printf(&quot;Error creating the french dateformat using full time style\n %s\n&quot;,
+        printf("Error creating the french dateformat using full time style\n %s\n",
             myErrorName(status) );
     }
     /* This is supposed to open default date format,
-       but later on it treats it like it is &quot;en_US&quot;.
+       but later on it treats it like it is "en_US".
        This is very bad when you try to run the tests
-       on a machine where the default locale is NOT &quot;en_US&quot;
+       on a machine where the default locale is NOT "en_US"
     */
-    def = udat_open(UDAT_SHORT, UDAT_SHORT, &quot;en_US&quot;, NULL, 0, &amp;status);
+    def = udat_open(UDAT_SHORT, UDAT_SHORT, "en_US", NULL, 0, &amp;status);
     if(U_FAILURE(status)){
         .... /* handle the error */
     }

@@ -9,15 +9,13 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "dbbi_tbl.h"
 #include "unicode/dbbi.h"
 #include "umutex.h"
 
 U_NAMESPACE_BEGIN
+
+const char DictionaryBasedBreakIteratorTables::fgClassID=0;
 
 //=======================================================================
 // constructor
@@ -53,7 +51,5 @@ DictionaryBasedBreakIteratorTables::~DictionaryBasedBreakIteratorTables() {
 
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
 
 /* eof */

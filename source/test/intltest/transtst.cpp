@@ -7,20 +7,7 @@
 *   11/10/99    aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_COMPOUNDTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_NULLTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_RULEBASEDTRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_HEXTOUNICODETRANSLITERATOR_USE_DEPRECATES 1
-#define ICU_UNICODETOHEXTRANSLITERATOR_USE_DEPRECATES 1
-
 #include "transtst.h"
-#include "unicode/locid.h"
 #include "unicode/cpdtrans.h"
 #include "unicode/dtfmtsym.h"
 #include "unicode/hextouni.h"
@@ -37,8 +24,6 @@
 #include "unicode/utypes.h"
 #include "unicode/ustring.h"
 #include "unicode/usetiter.h"
-#include "unicode/uscript.h"
-#include "cstring.h"
 
 /***********************************************************************
 
@@ -178,7 +163,6 @@ TransliteratorTest::runIndexedTest(int32_t index, UBool exec,
         TESTCASE(72,TestSourceTargetSet);
         TESTCASE(73,TestGurmukhiDevanagari);
         TESTCASE(74,TestRuleWhitespace);
-        TESTCASE(75,TestAllCodepoints);
         default: name = ""; break;
     }
 }
@@ -605,15 +589,6 @@ class TestFilter : public UnicodeFilter {
     virtual UBool contains(UChar32 c) const {
         return c != (UChar)0x0063 /*c*/;
     }
-    // Stubs
-    virtual UnicodeString& toPattern(UnicodeString& result,
-                                     UBool escapeUnprintable) const {
-        return result;
-    }
-    virtual UBool matchesIndexValue(uint8_t v) const {
-        return FALSE;
-    }
-    virtual void addMatchSetTo(UnicodeSet& toUnionTo) const {}
 };
 
 /**
@@ -741,7 +716,6 @@ void TransliteratorTest::TestJ277(void) {
     expect(mini, syn, "syn");
     expect(mini, sayn, "saun");
 
-#if !UCONFIG_NO_FORMATTING
     // Transliterate the Greek locale data
     Locale el("el");
     DateFormatSymbols syms(el, status);
@@ -767,7 +741,6 @@ void TransliteratorTest::TestJ277(void) {
             errln(UnicodeString("FAIL: ") + prettify(data[i] + " -> " + out));
         }
     }
-#endif
 
     delete gl;
 }
@@ -1190,28 +1163,13 @@ void TransliteratorTest::TestNameMap(void) {
         return;
     }
 
-    // Careful:  CharsToUS will convert "\\N" => "N"; use "\\\\N" for \N
     expect(*uni2name, CharsToUnicodeString("\\u00A0abc\\u4E01\\u00B5\\u0A81\\uFFFD\\u0004\\u0009\\u0081\\uFFFF"),
-           CharsToUnicodeString("\\\\N{NO-BREAK SPACE}abc\\\\N{CJK UNIFIED IDEOGRAPH-4E01}\\\\N{MICRO SIGN}\\\\N{GUJARATI SIGN CANDRABINDU}\\\\N{REPLACEMENT CHARACTER}\\\\N{END OF TRANSMISSION}\\\\N{CHARACTER TABULATION}\\\\N{<control-0081>}\\\\N{<noncharacter-FFFF>}"));
-    expect(*name2uni, "{\\N { NO-BREAK SPACE}abc\\N{  CJK UNIFIED  IDEOGRAPH-4E01  }\\N{x\\N{MICRO SIGN}\\N{GUJARATI SIGN CANDRABINDU}\\N{REPLACEMENT CHARACTER}\\N{END OF TRANSMISSION}\\N{CHARACTER TABULATION}\\N{<control-0081>}\\N{<noncharacter-FFFF>}\\N{<control-0004>}\\N{",
-           CharsToUnicodeString("{\\u00A0abc\\u4E01\\\\N{x\\u00B5\\u0A81\\uFFFD\\u0004\\u0009\\u0081\\uFFFF\\u0004\\\\N{"));
+           CharsToUnicodeString("{NO-BREAK SPACE}abc{CJK UNIFIED IDEOGRAPH-4E01}{MICRO SIGN}{GUJARATI SIGN CANDRABINDU}{REPLACEMENT CHARACTER}{END OF TRANSMISSION}{CHARACTER TABULATION}{<control-0081>}{<noncharacter-FFFF>}"));
+    expect(*name2uni, "{ NO-BREAK SPACE}abc{  CJK UNIFIED  IDEOGRAPH-4E01  }{x{MICRO SIGN}{GUJARATI SIGN CANDRABINDU}{REPLACEMENT CHARACTER}{END OF TRANSMISSION}{CHARACTER TABULATION}{<control-0081>}{<noncharacter-FFFF>}{<control-0004>}{",
+           CharsToUnicodeString("\\u00A0abc\\u4E01{x\\u00B5\\u0A81\\uFFFD\\u0004\\u0009\\u0081\\uFFFF\\u0004{"));
 
     delete uni2name;
     delete name2uni;
-
-    // round trip
-    Transliterator* t =
-        Transliterator::createInstance("Any-Name;Name-Any", UTRANS_FORWARD, parseError, status);
-    if (t==0) {
-        errln("FAIL: createInstance returned NULL");
-        delete t;
-        return;
-    }
-
-    // Careful:  CharsToUS will convert "\\N" => "N"; use "\\\\N" for \N
-    UnicodeString s = CharsToUnicodeString("{\\u00A0abc\\u4E01\\\\N{x\\u00B5\\u0A81\\uFFFD\\u0004\\u0009\\u0081\\uFFFF\\u0004\\\\N{");
-    expect(*t, s, s);
-    delete t;
 }
 
 /**
@@ -1703,7 +1661,7 @@ void TransliteratorTest::TestSupplemental() {
 
     expectT("Any-Name",
            CharsToUnicodeString("\\U00010330\\U000E0061\\u00A0"),
-           "\\N{GOTHIC LETTER AHSA}\\N{TAG LATIN SMALL LETTER A}\\N{NO-BREAK SPACE}");
+           "{GOTHIC LETTER AHSA}{TAG LATIN SMALL LETTER A}{NO-BREAK SPACE}");
 
     expectT("Any-Hex/Unicode",
            CharsToUnicodeString("\\U00010330\\U0010FF00\\U000E0061\\u00A0"),
@@ -3067,10 +3025,6 @@ void TransliteratorTest::TestAnchorMasking(){
  * Make sure display names of variants look reasonable.
  */
 void TransliteratorTest::TestDisplayName() {
-#if UCONFIG_NO_FORMATTING
-    logln("Skipping, UCONFIG_NO_FORMATTING is set\n");
-    return;
-#else
     static const char* DATA[] = {
         // ID, forward name, reverse name
         // Update the text as necessary -- the important thing is
@@ -3116,7 +3070,6 @@ void TransliteratorTest::TestDisplayName() {
         }
         delete t;
     }
-#endif
 }
 
 void TransliteratorTest::TestSpecialCases(void) {
@@ -3225,10 +3178,10 @@ void TransliteratorTest::TestSpecialCases(void) {
             Normalizer::normalize(source, UNORM_NFKC, 0, target, ec);
         } else if (0==id.caseCompare("Lower", U_FOLD_CASE_DEFAULT)) {
             target = source;
-            target.toLower(Locale::getUS());
+            target.toLower(Locale::US);
         } else if (0==id.caseCompare("Upper", U_FOLD_CASE_DEFAULT)) {
             target = source;
-            target.toUpper(Locale::getUS());
+            target.toUpper(Locale::US);
         }
         if (U_FAILURE(ec)) {
             errln((UnicodeString)"FAIL: Internal error normalizing " + source);
@@ -3571,13 +3524,12 @@ void TransliteratorTest::TestUserFunction() {
     _TUFReg("Any-gif", t, 0);
 
     t = Transliterator::createFromRules("RemoveCurly",
-                                        "[\\{\\}] > ; '\\N' > ;",
+                                        "[\\{\\}] > ;",
                                         UTRANS_FORWARD, pe, ec);
     if (t == NULL || U_FAILURE(ec)) {
         errln((UnicodeString)"FAIL: createFromRules RemoveCurly " + u_errorName(ec));
         goto FAIL;
     }
-    expect(*t, "\\N{name}", "name");
     _TUFReg("Any-RemoveCurly", t, 1);
 
     logln("Trying &hex");
@@ -3619,7 +3571,7 @@ void TransliteratorTest::TestUserFunction() {
 
     // Test that filters are allowed after &
     t = Transliterator::createFromRules("test",
-                                        "(.) > &Hex($1) ' ' &RemoveCurly(&Name($1)) ' ';",
+                                        "(.) > &Hex($1) ' ' &[\\{\\}]Remove(&Name($1)) ' ';",
                                         UTRANS_FORWARD, pe, ec);
     if (t == NULL || U_FAILURE(ec)) {
         errln((UnicodeString)"FAIL: createFromRules test " + u_errorName(ec));
@@ -3733,57 +3685,7 @@ void TransliteratorTest::TestRuleWhitespace() {
         }
     }
 }
-//======================================================================
-// this method is in TestUScript.java
-//======================================================================
-void TransliteratorTest::TestAllCodepoints(){
-    UScriptCode code= USCRIPT_INVALID_CODE;
-    char id[256]={'\0'};
-    char abbr[256]={'\0'};
-    char newId[256]={'\0'};
-    char newAbbrId[256]={'\0'};
-    char oldId[256]={'\0'};
-    char oldAbbrId[256]={'\0'};
 
-    UErrorCode status =U_ZERO_ERROR;
-    UParseError pe;
-    
-    for(uint32_t i = 0; i<=0x10ffff; i++){
-        code =  uscript_getScript(i,&status);
-        if(code == USCRIPT_INVALID_CODE){
-            errln("uscript_getScript for codepoint \\U%08X failed.\n", i);
-        }
-        uprv_strcpy(id,uscript_getName(code));
-        uprv_strcpy(abbr,uscript_getShortName(code));
-
-        uprv_strcpy(newId,"[:");
-        uprv_strcat(newId,id);
-        uprv_strcat(newId,":];NFD");
-
-        uprv_strcpy(newAbbrId,"[:");
-        uprv_strcat(newAbbrId,abbr);
-        uprv_strcat(newAbbrId,":];NFD");
-
-        if(uprv_strcmp(newId,oldId)!=0){
-            Transliterator* t = Transliterator::createInstance(newId,UTRANS_FORWARD,pe,status);
-            if(t==NULL || U_FAILURE(status)){
-                errln((UnicodeString)"FAIL: Could not create " + id);
-            }
-            delete t;
-        }
-        if(uprv_strcmp(newAbbrId,oldAbbrId)!=0){
-            Transliterator* t = Transliterator::createInstance(newAbbrId,UTRANS_FORWARD,pe,status);
-            if(t==NULL || U_FAILURE(status)){
-                errln((UnicodeString)"FAIL: Could not create " + id);
-            }
-            delete t;
-        }
-        uprv_strcpy(oldId,newId);
-        uprv_strcpy(oldAbbrId, newAbbrId);
-
-    }
-
-} 
 //======================================================================
 // Support methods
 //======================================================================
@@ -3938,5 +3840,3 @@ void TransliteratorTest::expectAux(const UnicodeString& tag,
               + ", expected " + prettify(expectedResult));
     }
 }
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

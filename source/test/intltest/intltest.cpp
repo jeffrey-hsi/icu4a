@@ -101,8 +101,6 @@ operator+(const UnicodeString& left,
     return left + buffer;
 }
 
-#if !UCONFIG_NO_FORMATTING
-
 /**
  * Originally coded this as operator+, but that makes the expression
  * + char* ambiguous. - liu
@@ -153,8 +151,6 @@ UnicodeString toString(const Formattable& f) {
     }
     return s;
 }
-
-#endif
 
 // stephen - cleaned up 05/05/99
 UnicodeString operator+(const UnicodeString& left, char num)
@@ -942,14 +938,6 @@ IntlTest::run_phase2( char* name, char* par ) // supports reporting memory leaks
 }
 
 
-#if UCONFIG_NO_LEGACY_CONVERSION
-#   define TRY_CNV_1 "iso-8859-1"
-#   define TRY_CNV_2 "ibm-1208"
-#else
-#   define TRY_CNV_1 "iso-8859-7"
-#   define TRY_CNV_2 "sjis"
-#endif
-
 int
 main(int argc, char* argv[])
 {
@@ -960,10 +948,8 @@ main(int argc, char* argv[])
     UBool quick = TRUE;
     UBool name = FALSE;
     UBool leaks = FALSE;
-    UBool warnOnMissingData = FALSE;
     UErrorCode errorCode = U_ZERO_ERROR;
     UConverter *cnv = NULL;
-    const char *warnOrErr = "Failure"; 
 
     /* This must be tested before using anything! */
     MutexTest::gMutexInitialized = umtx_isInitialized(NULL);
@@ -973,13 +959,13 @@ main(int argc, char* argv[])
 #endif
 
     /* try opening the data from dll instead of the dat file */
-    cnv = ucnv_open(TRY_CNV_1, &errorCode);
+    cnv = ucnv_open("iso-8859-7", &errorCode);
     if(cnv != 0) {
         /* ok */
         ucnv_close(cnv);
     } else {
         fprintf(stderr,
-                "#### WARNING! The converter for " TRY_CNV_1 " cannot be loaded from data dll/so."
+                "#### WARNING! The converter for iso-8859-7 cannot be loaded from data dll/so."
                 "Proceeding to load data from dat file.\n");
         errorCode = U_ZERO_ERROR;
 
@@ -1010,10 +996,7 @@ main(int argc, char* argv[])
                 leaks = TRUE;
             else if (strcmp("l", str) == 0)
                 leaks = TRUE;
-            else if (strcmp("w", str) == 0) {
-              warnOnMissingData = TRUE;
-              warnOrErr = "WARNING";
-            } else {
+            else {
                 syntax = TRUE;
             }
         }else{
@@ -1072,30 +1055,24 @@ main(int argc, char* argv[])
         ucnv_close(cnv);
     } else {
         fprintf(stdout,
-                "*** %s! The default converter [%s] cannot be opened.\n"
+                "*** Failure! The default converter [%s] cannot be opened.\n"
                 "*** Check the ICU_DATA environment variable and\n"
                 "*** check that the data files are present.\n",
-                warnOrErr, ucnv_getDefaultName());
-        if(!warnOnMissingData) {
-          fprintf(stdout, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-          return 1;
-        }
+                ucnv_getDefaultName());
+        return 1;
     }
 
     // try more data
-    cnv = ucnv_open(TRY_CNV_2, &errorCode);
+    cnv = ucnv_open("iso-8859-7", &errorCode);
     if(cnv != 0) {
         // ok
         ucnv_close(cnv);
     } else {
         fprintf(stdout,
-                "*** %s! The converter for " TRY_CNV_2 " cannot be opened.\n"
+                "*** Failure! The converter for iso-8859-7 cannot be opened.\n"
                 "*** Check the ICU_DATA environment variable and \n"
-                "*** check that the data files are present.\n", warnOrErr);
-        if(!warnOnMissingData) {
-          fprintf(stdout, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-          return 1;
-        }
+                "*** check that the data files are present.\n");
+        return 1;
     }
 
     UResourceBundle *rb = ures_open(0, "en", &errorCode);
@@ -1104,13 +1081,10 @@ main(int argc, char* argv[])
         ures_close(rb);
     } else {
         fprintf(stdout,
-                "*** %s! The \"en\" locale resource bundle cannot be opened.\n"
+                "*** Failure! The \"en\" locale resource bundle cannot be opened.\n"
                 "*** Check the ICU_DATA environment variable and \n"
-                "*** check that the data files are present.\n", warnOrErr);
-        if(!warnOnMissingData) {
-          fprintf(stdout, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-          return 1;
-        }
+                "*** check that the data files are present.\n");
+        return 1;
     }
 
     /* TODO: Add option to call u_cleanup and rerun tests. */
@@ -1142,10 +1116,7 @@ main(int argc, char* argv[])
         }
     }
 
-#if !UCONFIG_NO_FORMATTING
     CalendarTimeZoneTest::cleanup();
-#endif
-
     delete _testDataPath;
     _testDataPath = 0;
 
@@ -1189,6 +1160,7 @@ const char* IntlTest::loadTestData(UErrorCode& err){
     UResourceBundle* test =NULL;
     char* tdpath=NULL;
     const char* directory = ".";
+    char p[1024];
     const char* tdrelativepath = U_FILE_SEP_STRING"out"U_FILE_SEP_STRING;
     if( _testDataPath == NULL){
 
@@ -1204,7 +1176,6 @@ const char* IntlTest::loadTestData(UErrorCode& err){
      *             Change to    "wherever\icu\source\data"
      */
     {
-        char p[1024];
         char *pBackSlash;
         int i;
 

@@ -10,7 +10,6 @@
 *   02/19/97    aliu        Converted from java.
 *   03/20/97    helena      Finished first cut of implementation.
 *   07/22/98    stephen     Removed operator!= (defined in Format)
-*   08/19/2002  srl         Removing Javaisms
 ********************************************************************************
 */
 // *****************************************************************************
@@ -21,9 +20,6 @@
 #define MSGFMT_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/format.h"
 #include "unicode/locid.h"
 #include "unicode/parseerr.h"
@@ -121,8 +117,8 @@ class NumberFormat;
  * </pre>
  * If there is no elementFormat, then the argument must be a string,
  * which is substituted. If there is no dateTimeStyle or numberStyle,
- * then the default format is used (e.g.  NumberFormat::createInstance(),
- * DateFormat::createTimeInstance(DateFormat::kDefault, ...) or DateFormat::createDateInstance(DateFormat::kDefault, ...). For
+ * then the default format is used (e.g.  NumberFormat.getInstance(),
+ * DateFormat.getDefaultTime() or DateFormat.getDefaultDate(). For
  * a ChoiceFormat, the pattern must always be specified, since there
  * is no default.
  * <P>
@@ -675,8 +671,6 @@ MessageFormat::format(const Formattable& obj,
     return Format::format(obj, result, status);
 }
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _MSGFMT
 //eof

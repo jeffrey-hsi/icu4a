@@ -4,16 +4,14 @@
  * others. All Rights Reserved.
  ********************************************************************/
  
-#include "unicode/utypes.h"
 
-#if !UCONFIG_NO_FORMATTING
+#include <stdio.h>
 
 #include "unicode/datefmt.h"
 #include "unicode/smpdtfmt.h"
 #include "unicode/gregocal.h"
 #include "dtfmtrtts.h"
 
-#include <stdio.h>
 
 // *****************************************************************************
 // class DateFormatRoundTripTest
@@ -366,7 +364,5 @@ UDate DateFormatRoundTripTest::generateDate()
     //return new Date((long)a);
     return a;
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 //eof

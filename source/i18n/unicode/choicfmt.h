@@ -22,10 +22,8 @@
 #ifndef CHOICFMT_H
 #define CHOICFMT_H
  
+
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/unistr.h"
 #include "unicode/numfmt.h"
 #include "unicode/fieldpos.h"
@@ -630,7 +628,6 @@ public:
      */
     static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
-#ifdef ICU_NEXTDOUBLE_USE_DEPRECATES
     /**
      * Finds the least double greater than d (if positive == true),
      * or the greatest double less than d (if positive == false).
@@ -657,7 +654,6 @@ public:
      * @deprecated This will be removed after 2002-Jun-30. Use closures API instead.
      */
     static double previousDouble(double d );
-#endif /* ICU_NEXTDOUBLE_USE_DEPRECATES */
 
 private:
     // static cache management (thread-safe)
@@ -752,7 +748,6 @@ ChoiceFormat::getDynamicClassID() const
     return ChoiceFormat::getStaticClassID(); 
 }
 
-#ifdef ICU_NEXTDOUBLE_USE_DEPRECATES
 inline double ChoiceFormat::nextDouble( double d )
 {
     return ChoiceFormat::nextDouble( d, TRUE );
@@ -762,7 +757,6 @@ inline double ChoiceFormat::previousDouble( double d )
 {
     return ChoiceFormat::nextDouble( d, FALSE );
 }
-#endif /* ICU_NEXTDOUBLE_USE_DEPRECATES */
 
 inline UnicodeString&
 ChoiceFormat::format(const Formattable& obj,
@@ -785,8 +779,6 @@ ChoiceFormat::format(int32_t number,
     return NumberFormat::format(number, output);
 }
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _CHOICFMT
 //eof

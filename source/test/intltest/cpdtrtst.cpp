@@ -8,13 +8,6 @@
 *   03/09/2000   Madhu        Creation.
 ************************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_COMPOUNDTRANSLITERATOR_USE_DEPRECATES 1
-
 #include "ittrans.h"
 #include "cpdtrtst.h"
 #include "unicode/utypes.h"
@@ -423,4 +416,3 @@ void CompoundTransliteratorTest::expectAux(const UnicodeString& tag,
     }
 }
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

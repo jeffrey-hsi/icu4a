@@ -10,10 +10,6 @@
 #ifndef TRANSRT_H
 #define TRANSRT_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "intltest.h"
 
@@ -38,9 +34,7 @@ class TransliteratorRoundTripTest : public IntlTest {
     void TestDevanagariLatin(void);
     void TestInterIndic(void);
     void TestDebug(const char* name,const char fromSet[],
-                   const char* toSet,const char* exclusions);
+                                            const char* toSet,const char* exclusions,UBool quick);
 };
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

@@ -16,10 +16,6 @@
 #ifndef _CMSGFRMTST
 #define _CMSGFRMTST
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "cintltst.h"
 
 
@@ -54,7 +50,5 @@
      * Regression test for ICU4C Jitterbug 904
      */
     static void TestJ904(void);
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

@@ -7,14 +7,6 @@
 *   01/11/2000  aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
-/* These APIs are becoming private */
-#define ICU_NULLTRANSLITERATOR_USE_DEPRECATES 1
-
 #include "unicode/nultrans.h"
 
 U_NAMESPACE_BEGIN
@@ -38,4 +30,3 @@ void NullTransliterator::handleTransliterate(Replaceable& /*text*/, UTransPositi
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

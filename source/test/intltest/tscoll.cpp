@@ -16,9 +16,6 @@
 ***********************************************************************/
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/uchar.h"
 
 
@@ -601,4 +598,3 @@ int32_t *IntlTestCollator::getOrders(CollationElementIterator &iter, int32_t &or
     return orders;
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */

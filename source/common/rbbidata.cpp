@@ -6,10 +6,6 @@
 */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
-#include "unicode/utypes.h"
 #include "rbbidata.h"
 #include "rbbirb.h"
 #include "utrie.h"
@@ -22,6 +18,8 @@
 
 
 U_NAMESPACE_BEGIN
+
+const char RBBIDataWrapper::fgClassID=0;
 
 //-----------------------------------------------------------------------------
 //
@@ -224,5 +222,3 @@ void  RBBIDataWrapper::printData() {
 
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

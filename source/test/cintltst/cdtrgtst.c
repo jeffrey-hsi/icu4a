@@ -15,11 +15,8 @@
 */
 /* REGRESSION TEST FOR DATE FORMAT */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/uloc.h"
+#include "unicode/utypes.h"
 #include "unicode/udat.h"
 #include "unicode/ucal.h"
 #include "unicode/unum.h"
@@ -441,13 +438,13 @@ void Test4162071()
     /* Can't hardcode the result to assume the default locale is "en_US". */
     df = udat_open(UDAT_IGNORE,UDAT_IGNORE,"en_US",NULL,0,format, u_strlen(format),&status);
     if(U_FAILURE(status)){
-        log_data_err("ERROR: couldn't create date format: %s\n", myErrorName(status));
+        log_err("ERROR: couldn't create date format: %s\n", myErrorName(status));
         return;
     }
     pos=0;
     x = udat_parse(df, datestr, u_strlen(datestr), &pos, &status);
     if(U_FAILURE(status)){
-                log_data_err("ERROR : parse format  %s fails : %s\n", austrdup(format), myErrorName(status));
+                log_err("ERROR : parse format  %s failes : %s\n", austrdup(format), myErrorName(status));
             }
     else{
         log_verbose("Parse format \"%s \" ok.\n", austrdup(format) );
@@ -512,7 +509,5 @@ UChar* myFormatit(UDateFormat* datdef, UDate d1)
     return result1;
 
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 /*eof*/

@@ -7,11 +7,7 @@
 *   05/23/00    aliu        Creation.
 **********************************************************************
 */
-
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "unicode/rbt.h"
 #include "unicode/uniset.h"
@@ -267,8 +263,8 @@ void AbbreviatedUnicodeSetIterator::reset(UnicodeSet& newSet, UBool abb) {
     abbreviated = abb;
 }
 
-void AbbreviatedUnicodeSetIterator::loadRange(int32_t myRange) {
-    UnicodeSetIterator::loadRange(myRange);
+void AbbreviatedUnicodeSetIterator::loadRange(int32_t range) {
+    UnicodeSetIterator::loadRange(range);
     if (abbreviated && (endElement > nextElement + 50)) {
         endElement = nextElement + 50;
     }
@@ -1358,7 +1354,7 @@ static const char * const interIndicArray[] = {
 };
 
 void TransliteratorRoundTripTest::TestDebug(const char* name,const char fromSet[],
-                                            const char* toSet,const char* exclusions){
+                                            const char* toSet,const char* exclusions,UBool quick){
 
     RTTest test(name);
     Legal *legal = new LegalIndic();
@@ -1385,5 +1381,3 @@ void TransliteratorRoundTripTest::TestInterIndic() {
 }
 
 // end indic tests ----------------------------------------------------------
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

@@ -7,10 +7,6 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/brkiter.h"
 #include "unicode/schriter.h"
 #include "unicode/search.h"
@@ -388,5 +384,3 @@ void SearchIterator::setMatchNotFound()
 
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */

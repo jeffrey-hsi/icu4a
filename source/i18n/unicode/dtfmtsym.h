@@ -19,9 +19,6 @@
 #define DTFMTSYM_H
  
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/uobject.h"
 #include "unicode/locid.h"
 #include "unicode/resbund.h"
@@ -245,13 +242,11 @@ public:
      */
     void setZoneStrings(const UnicodeString* const* strings, int32_t rowCount, int32_t columnCount);
 
-#ifdef ICU_DATEFORMATSYMBOLS_USE_DEPRECATES
     /**
      * Get the non-localized date-time pattern characters.
      * @deprecated remove after Aug 2002. Use getPatternUChars instead.
      */
     static const UnicodeString& getPatternChars(void);
-#endif /* ICU_DATEFORMATSYMBOLS_USE_DEPRECATES */
 
     /**
      * Get the non-localized date-time pattern characters.
@@ -292,7 +287,7 @@ public:
 
 private:
     /**
-     * Tag names used by this class.
+     * Resource bundle file suffix and tag names used by this class.
      */
     static const char fgErasTag[];   // resource bundle tag for era names
     static const char fgMonthNamesTag[]; // resource bundle tag for month names
@@ -305,7 +300,6 @@ private:
     static const char fgLocalPatternCharsTag[];  // resource bundle tag for localized pattern characters
 
     friend class SimpleDateFormat;
-    friend class DateFormatSymbolsSingleSetter; // see udat.cpp
 
     /**
      * Era strings. For example: "AD" and "BC".
@@ -424,7 +418,8 @@ private:
     /**
      * Create a copy, in fZoneStrings, of the given zone strings array. The
      * member variables fZoneStringsRowCount and fZoneStringsColCount should be
-     * set already by the caller.
+     * set already by the caller. The fIsOwned flags are not checked or set by
+     * this method; that is the caller's responsibility.
      */
     void createZoneStrings(const UnicodeString *const * otherStrings);
 
@@ -444,7 +439,8 @@ private:
     int32_t _getZoneIndex(const UnicodeString& id) const;
 
     /**
-     * Delete all the storage owned by this object.
+     * Delete all the storage owned by this object and reset the fIsOwned flag
+     * to indicate that arrays have been deleted.
      */
     void dispose(void);
 
@@ -455,14 +451,13 @@ private:
     void copyData(const DateFormatSymbols& other);
 
     /**
-     * Delete just the zone strings.
+     * Delete just the zone strings, if they are owned by this object. This
+     * method does NOT modify fIsOwned; the caller must handle that.
      */
     void disposeZoneStrings(void);
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _DTFMTSYM
 //eof

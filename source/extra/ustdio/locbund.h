@@ -21,8 +21,6 @@
 
 #include "unicode/utypes.h"
 
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/unum.h"
 #include "unicode/udat.h"
 
@@ -120,6 +118,6 @@ u_locbund_getDateFormat(ULocaleBundle *bundle);
 UDateFormat*
 u_locbund_getTimeFormat(ULocaleBundle *bundle);
 
-#endif /* #if !UCONFIG_NO_FORMATTING */
-
 #endif
+
+

@@ -9,9 +9,6 @@
 */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/uobject.h"
 #include "unicode/parseerr.h"
 #include "unicode/parsepos.h"
@@ -106,7 +103,7 @@ U_NAMESPACE_BEGIN
  * have been defined so far.  Note that it uses variablesVector,
  * _not_ data.setVariables.
  */
-class ParseData : public UMemory, public SymbolTable {
+class ParseData : public SymbolTable {
 public:
     const TransliterationRuleData* data; // alias
 
@@ -133,10 +130,30 @@ public:
      */
     UBool isReplacer(UChar32 ch);
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
-    ParseData(const ParseData &other); // forbid copying of this class
-    ParseData &operator=(const ParseData &other); // forbid copying of this class
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+const char ParseData::fgClassID=0;
 
 ParseData::ParseData(const TransliterationRuleData* d,
                      const UVector* sets) :
@@ -224,7 +241,7 @@ UBool ParseData::isReplacer(UChar32 ch) {
  * parse half of a rule.  It is tightly coupled to the method
  * RuleBasedTransliterator.Parser.parseRule().
  */
-class RuleHalf : public UMemory {
+class RuleHalf : public UObject {
 
 public:
 
@@ -298,11 +315,33 @@ public:
         return parser.syntaxError(code, rule, start);
     }
 
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
 private:
     // Disallowed methods; no impl.
     RuleHalf(const RuleHalf&);
     RuleHalf& operator=(const RuleHalf&);
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+const char RuleHalf::fgClassID=0;
 
 RuleHalf::RuleHalf(TransliteratorParser& p) :
     ec(U_ZERO_ERROR),
@@ -774,6 +813,8 @@ UBool RuleHalf::isValidInput(TransliteratorParser& transParser) {
 //----------------------------------------------------------------------
 // PUBLIC API
 //----------------------------------------------------------------------
+
+const char TransliteratorParser::fgClassID=0;
 
 /**
  * Constructor.
@@ -1516,5 +1557,3 @@ Transliterator* TransliteratorParser::createBasicInstance(const UnicodeString& i
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

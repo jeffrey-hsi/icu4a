@@ -5,9 +5,6 @@
  ********************************************************************/
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "dcfmapts.h"
 
 #include "unicode/decimfmt.h"
@@ -25,7 +22,7 @@ void IntlTestDecimalFormatAPI::runIndexedTest( int32_t index, UBool exec, const 
                 if (exec) {
                     logln((UnicodeString)"DecimalFormat API test---"); logln((UnicodeString)"");
                     UErrorCode status = U_ZERO_ERROR;
-                    Locale::setDefault(Locale::getEnglish(), status);
+                    Locale::setDefault(Locale::ENGLISH, status);
                     if(U_FAILURE(status)) {
                         errln((UnicodeString)"ERROR: Could not set default locale, test may not give correct results");
                     }
@@ -68,7 +65,7 @@ void IntlTestDecimalFormatAPI::testAPI(/*char *par*/)
     }
 
     status = U_ZERO_ERROR;
-    DecimalFormatSymbols *symbols = new DecimalFormatSymbols(Locale::getFrench(), status);
+    DecimalFormatSymbols *symbols = new DecimalFormatSymbols(Locale::FRENCH, status);
     if(U_FAILURE(status)) {
         errln((UnicodeString)"ERROR: Could not create DecimalFormatSymbols (French)");
     }
@@ -379,5 +376,3 @@ void IntlTestDecimalFormatAPI::verify(const UnicodeString& message, const Unicod
             errln((UnicodeString)"ERROR: Round() failed:  " + message + got + (UnicodeString)"  Expected : " + expectedStr);
         }
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

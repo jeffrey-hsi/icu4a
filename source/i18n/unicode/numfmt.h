@@ -21,9 +21,6 @@
 
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/unistr.h"
 #include "unicode/format.h"
 
@@ -626,8 +623,6 @@ NumberFormat::format(const Formattable& obj,
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _NUMFMT
 //eof

@@ -75,7 +75,7 @@ u_strlen(const UChar *s);
  * A code point may occupy either one or two UChar code units.
  * Counting code points involves reading all code units.
  *
- * This functions is basically the inverse of the U16_FWD_N() macro (see utf.h).
+ * This functions is basically the inverse of the UTF_FWD_N() macro (see utf.h).
  *
  * @param s The input string.
  * @param length The number of UChar code units to be checked, or -1 to count all
@@ -85,27 +85,6 @@ u_strlen(const UChar *s);
  */
 U_CAPI int32_t U_EXPORT2
 u_countChar32(const UChar *s, int32_t length);
-
-/**
- * Check if the string contains more Unicode code points than a certain number.
- * This is more efficient than counting all code points in the entire string
- * and comparing that number with a threshold.
- * This function may not need to scan the string at all if the length is known
- * (not -1 for NUL-termination) and falls within a certain range, and
- * never needs to count more than 'number+1' code points.
- * Logically equivalent to (u_countChar32(s, length)>number).
- * A Unicode code point may occupy either one or two UChar code units.
- *
- * @param s The input string.
- * @param length The length of the string, or -1 if it is NUL-terminated.
- * @param number The number of code points in the string is compared against
- *               the 'number' parameter.
- * @return Boolean value for whether the string contains more Unicode code points
- *         than 'number'. Same as (u_countChar32(s, length)>number).
- * @draft ICU 2.4
- */
-U_CAPI UBool U_EXPORT2
-u_strHasMoreChar32Than(const UChar *s, int32_t length, int32_t number);
 
 /**
  * Concatenate two ustrings.  Appends a copy of <TT>src</TT>,
@@ -177,7 +156,7 @@ u_strstr(const UChar *s, const UChar *substring);
  * but u_strchr32() will find neither because they
  * combine to the code point U+10000.
  * Either function will find U+d800 in "a\ud800b".
- * This behavior ensures that U16_GET(u_strchr32(c))==c.
+ * This behavior ensures that UTF_GET_CHAR(u_strchr32(c))==c.
  *
  * @param s The string to search.
  * @param c The code point (0..0x10ffff) to find.
@@ -649,7 +628,7 @@ u_memchr(const UChar *src, UChar ch, int32_t count);
  * but u_memchr32() will find neither because they
  * combine to the code point U+10000.
  * Either function will find U+d800 in "a\ud800b".
- * This behavior ensures that U16_GET(u_memchr32(c))==c.
+ * This behavior ensures that UTF_GET_CHAR(u_memchr32(c))==c.
  *
  * @param src string to search in
  * @param ch character to find
@@ -861,8 +840,6 @@ u_strToLower(UChar *dest, int32_t destCapacity,
              const char *locale,
              UErrorCode *pErrorCode);
 
-#if !UCONFIG_NO_BREAK_ITERATION
-
 /**
  * Titlecase a string.
  * Casing is locale-dependent and context-sensitive.
@@ -907,8 +884,6 @@ u_strToTitle(UChar *dest, int32_t destCapacity,
              UBreakIterator *titleIter,
              const char *locale,
              UErrorCode *pErrorCode);
-
-#endif
 
 /**
  * Case-fold the characters in a string.

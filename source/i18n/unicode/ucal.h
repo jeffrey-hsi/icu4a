@@ -7,9 +7,6 @@
 #define UCAL_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 /**
  * \file
  * \brief C API: Calendar
@@ -118,7 +115,7 @@
  * <p>
  * The date or time format strings are not part of the definition of a
  * calendar, as those must be modifiable or overridable by the user at
- * runtime. Use {@link DateFormat}
+ * runtime. Use {@link UDateFormat}
  * to format dates.
  *
  * <p>
@@ -557,17 +554,17 @@ ucal_setDateTime(    UCalendar*        cal,
             UErrorCode        *status);
 
 /**
- * Returns TRUE if two UCalendars are equivalent.  Equivalent
- * UCalendars will behave identically, but they may be set to
- * different times.
- * @param cal1 The first of the UCalendars to compare.
- * @param cal2 The second of the UCalendars to compare.
- * @return TRUE if cal1 and cal2 are equivalent, FALSE otherwise.
- * @stable
- */
+* Determine if two UCalendars represent the same date.
+* Two UCalendars may represent the same date and have different fields
+* if they are in different time zones.
+* @param cal1 The first of the UCalendars to compare.
+* @param cal2 The second of the UCalendars to compare.
+* @return TRUE if cal1 and cal2 represent the same date, FALSE otherwise.
+* @stable
+*/
 U_CAPI UBool U_EXPORT2 
-ucal_equivalentTo(const UCalendar*      cal1,
-                  const UCalendar*      cal2);
+ucal_equivalentTo(    const UCalendar*      cal1,
+            const UCalendar*      cal2);
 
 /**
 * Add a specified signed amount to a particular field in a UCalendar.
@@ -742,7 +739,5 @@ ucal_getLimit(    const    UCalendar*              cal,
             UCalendarDateFields     field,
             UCalendarLimitType      type,
             UErrorCode        *status);
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

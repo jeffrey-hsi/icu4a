@@ -602,7 +602,6 @@ uprv_digitsAfterDecimal(double x)
     return numDigits;
 }
 
-#ifdef ICU_NEXTDOUBLE_USE_DEPRECATES
 U_CAPI double U_EXPORT2
 uprv_nextDouble(double d, UBool next)
 {
@@ -709,7 +708,6 @@ uprv_nextDouble(double d, UBool next)
   return d + last_eps;
 #endif
 }
-#endif /* ICU_NEXTDOUBLE_USE_DEPRECATES */
 
 static char*
 u_topNBytesOfDouble(double* d, int n)
@@ -1389,7 +1387,7 @@ uprv_getDefaultCodepage()
 
 #elif defined(OS390)
     static char codepage[16];
-    sprintf(codepage,"%s" UCNV_SWAP_LFNL_OPTION_STRING, nl_langinfo(CODESET));
+    sprintf(codepage,"%s-s390", nl_langinfo(CODESET));
     return codepage;
 
 #elif defined(XP_MAC)

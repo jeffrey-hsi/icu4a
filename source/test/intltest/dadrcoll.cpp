@@ -16,9 +16,6 @@
 ***********************************************************************/
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/uchar.h"
 
 #include "cstring.h"
@@ -266,4 +263,3 @@ DataDrivenCollatorTest::processSequence(Collator* col, const UnicodeString &sequ
   } while(hasNext);
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */

@@ -37,10 +37,6 @@
 ********************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/gregocal.h"
 
 // *****************************************************************************
@@ -290,12 +286,17 @@ GregorianCalendar::operator=(const GregorianCalendar &right)
 
 // -------------------------------------
 
-UBool GregorianCalendar::isEquivalentTo(const Calendar& other) const
+UBool
+GregorianCalendar::operator==(const Calendar& that) const
 {
-    // Calendar override.
-    return Calendar::isEquivalentTo(other) &&
-        fGregorianCutover == ((GregorianCalendar*)&other)->fGregorianCutover;
+    GregorianCalendar* other = (GregorianCalendar*)&that;
+
+    return (this == &that) ||
+        (Calendar::operator==(that) &&
+         getDynamicClassID() == that.getDynamicClassID() &&
+         fGregorianCutover == other->fGregorianCutover);
 }
+
 
 // -------------------------------------
 
@@ -2010,7 +2011,5 @@ GregorianCalendar::internalGetEra() const {
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 //eof

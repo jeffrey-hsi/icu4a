@@ -4,15 +4,13 @@
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 * $Source: /xsrl/Nsvn/icu/icu/source/i18n/unicode/ucurr.h,v $ 
-* $Revision: 1.2 $
+* $Revision: 1.1 $
 **********************************************************************
 */
 #ifndef _UCURR_H_
 #define _UCURR_H_
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
 
 /**
  * The ucurr API encapsulates information about a currency, as defined by
@@ -81,7 +79,5 @@ ucurr_getDefaultFractionDigits(const UChar* currency);
  */
 U_CAPI double U_EXPORT2
 ucurr_getRoundingIncrement(const UChar* currency);
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

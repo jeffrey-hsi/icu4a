@@ -25,8 +25,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define LENGTHOF(array) (sizeof(array)/sizeof((array)[0]))
-
 #define BUF_SIZE 128
 
 /* Print a ustring to the specified FILE* in the default codepage */
@@ -86,8 +84,6 @@ finish:
 static const char *gPath = 0;
 static UResourceBundle *gBundle = NULL;
 
-U_STRING_DECL(gNoFormatting, " (UCONFIG_NO_FORMATTING see uconfig.h)", 38);
-
 U_CAPI UResourceBundle *u_wmsg_setPath(const char *path, UErrorCode *err)
 {
   if(U_FAILURE(*err))
@@ -111,8 +107,6 @@ U_CAPI UResourceBundle *u_wmsg_setPath(const char *path, UErrorCode *err)
 
     gPath = uprv_strdup(path);
     gBundle = b;
-
-    U_STRING_INIT(gNoFormatting, " (UCONFIG_NO_FORMATTING see uconfig.h)", 38);
   }
   
   return gBundle;
@@ -124,11 +118,9 @@ U_CAPI int u_wmsg(FILE *fp, const char *tag, ... )
     const UChar *msg;
     int32_t      msgLen;
     UErrorCode  err = U_ZERO_ERROR;
-#if !UCONFIG_NO_FORMATTING
     va_list ap;
-#endif
     UChar   result[4096];
-    int32_t resultLength = LENGTHOF(result);
+    int32_t resultLength  = 4096;
 
     if(gBundle == NULL)
     {
@@ -148,17 +140,6 @@ U_CAPI int u_wmsg(FILE *fp, const char *tag, ... )
         return -1;
     }
 
-#if UCONFIG_NO_FORMATTING
-    resultLength = sizeof(gNoFormatting) / U_SIZEOF_UCHAR;
-    if((msgLen + resultLength) <= LENGTHOF(result)) {
-        memcpy(result, msg, msgLen * U_SIZEOF_UCHAR);
-        memcpy(result + msgLen, gNoFormatting, resultLength);
-        resultLength += msgLen;
-        uprint(result, resultLength, fp, &err);
-    } else {
-        uprint(msg,msgLen, fp, &err);
-    }
-#else
     va_start(ap, tag);
 
     resultLength = u_vformatMessage(uloc_getDefault(), msg, msgLen, result, resultLength, ap, &err);
@@ -179,7 +160,6 @@ U_CAPI int u_wmsg(FILE *fp, const char *tag, ... )
     }
 
     uprint(result, resultLength, fp, &err);
-#endif
 
     if(U_FAILURE(err))
     {

@@ -102,9 +102,9 @@ param[] =
     { "root",       0,   U_ZERO_ERROR,             e_Root,      { TRUE, FALSE, FALSE }, { TRUE, FALSE, FALSE } },
     { "te",         0,   U_ZERO_ERROR,             e_te,        { FALSE, TRUE, FALSE }, { TRUE, TRUE, FALSE  } },
     { "te_IN",      0,   U_ZERO_ERROR,             e_te_IN,     { FALSE, FALSE, TRUE }, { TRUE, TRUE, TRUE   } },
-    { "te_NE",      0,   U_USING_FALLBACK_WARNING, e_te,        { FALSE, TRUE, FALSE }, { TRUE, TRUE, FALSE  } },
-    { "te_IN_NE",   0,   U_USING_FALLBACK_WARNING, e_te_IN,     { FALSE, FALSE, TRUE }, { TRUE, TRUE, TRUE   } },
-    { "ne",         0,   U_USING_DEFAULT_WARNING,  e_Root,      { TRUE, FALSE, FALSE }, { TRUE, FALSE, FALSE } }
+    { "te_NE",      0,   U_USING_FALLBACK_ERROR,   e_te,        { FALSE, TRUE, FALSE }, { TRUE, TRUE, FALSE  } },
+    { "te_IN_NE",   0,   U_USING_FALLBACK_ERROR,   e_te_IN,     { FALSE, FALSE, TRUE }, { TRUE, TRUE, TRUE   } },
+    { "ne",         0,   U_USING_DEFAULT_ERROR,    e_Root,      { TRUE, FALSE, FALSE }, { TRUE, FALSE, FALSE } }
 };
 
 static int32_t bundles_count = sizeof(param) / sizeof(param[0]);
@@ -262,7 +262,6 @@ NewResourceBundleTest::TestConstruction()
         delete[] versionID1;
         delete[] versionID2;
     }
-#ifdef ICU_RESOURCEBUNDLE_USE_DEPRECATES
     {
         UErrorCode   err = U_ZERO_ERROR;
         const char* testdatapath;
@@ -296,7 +295,6 @@ NewResourceBundleTest::TestConstruction()
 
         delete[] wideDirectory;
     }
-#endif /* ICU_RESOURCEBUNDLE_USE_DEPRECATES */
 }
 void
 NewResourceBundleTest::TestIteration()
@@ -633,9 +631,9 @@ NewResourceBundleTest::testTag(const char* frag,
                 if(j == actual_bundle) /* it's in the same bundle OR it's a nonexistent=default bundle (5) */
                   expected_resource_status = U_ZERO_ERROR;
                 else if(j == 0)
-                  expected_resource_status = U_USING_DEFAULT_WARNING;
+                  expected_resource_status = U_USING_DEFAULT_ERROR;
                 else
-                  expected_resource_status = U_USING_FALLBACK_WARNING;
+                  expected_resource_status = U_USING_FALLBACK_ERROR;
                 
                 break;
             }

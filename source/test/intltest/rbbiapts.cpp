@@ -9,11 +9,9 @@
 *   01/12/2000  Madhu        updated for changed API
 ************************************************************************/
 
+
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "intltest.h"
 #include "unicode/rbbi.h"
 #include "unicode/schriter.h"
@@ -69,26 +67,11 @@ void RBBIAPITest::TestCloneEquals()
     //    source and dest iterator produce the same next() after assignment.
     //    deleting one doesn't disable the other.
     logln("Testing assignment");
-    RuleBasedBreakIterator *bix = (RuleBasedBreakIterator *)BreakIterator::createLineInstance(Locale::getEnglish(), status);
+    RuleBasedBreakIterator *bix = (RuleBasedBreakIterator *)BreakIterator::createLineInstance(Locale::ENGLISH, status);
     if(U_FAILURE(status)){
         errln((UnicodeString)"FAIL : in construction");
         return;
     }
-
-    RuleBasedBreakIterator biDefault, biDefault2;
-    if(U_FAILURE(status)){
-        errln((UnicodeString)"FAIL : in construction of default iterator");
-        return;
-    }
-    if (biDefault == *bix) {
-        errln((UnicodeString)"ERROR: iterators should not compare ==");
-        return;
-    }
-    if (biDefault != biDefault2) {
-        errln((UnicodeString)"ERROR: iterators should compare ==");
-        return;
-    }
-
 
     UnicodeString   HelloString("Hello Kitty");
     bix->setText(HelloString);
@@ -356,8 +339,6 @@ void RBBIAPITest::TestFirstNextFollowing()
 
     status=U_ZERO_ERROR;
     testString="Hello! how are you? I'am fine. Thankyou. How are you doing? This\n costs $20,00,000.";
-    //          0123456789012345678901234567890123456789012345678901234567890123 45678901234567890123456789
-    //          0         1         2         3         4         5         6          7         8
     RuleBasedBreakIterator* sentIter1=(RuleBasedBreakIterator*)RuleBasedBreakIterator::createSentenceInstance(Locale::getDefault(), status);
     if(U_FAILURE(status))
         errln("FAIL : in construction");
@@ -376,10 +357,10 @@ void RBBIAPITest::TestFirstNextFollowing()
         q=sentIter1->next(-2);
         doTest(testString, p, q, 7, "how are you? I'am fine. ");
         p=q;
-        q=sentIter1->next(4);
+        q=sentIter1->next(3);
         doTest(testString, p, q, 60, "how are you? I'am fine. Thankyou. How are you doing? ");
         p=q; 
-        q=sentIter1->next(2);
+        q=sentIter1->next();
         doTest(testString, p, q, 83, "This\n costs $20,00,000.");
         q=sentIter1->following(1);
         doTest(testString, 1, q, 7, "ello! ");
@@ -530,13 +511,12 @@ void RBBIAPITest::TestLastPreviousPreceding()
         if(p != testString.length() )
             errln((UnicodeString)"ERROR: last() returned" + p + (UnicodeString)"instead of " + testString.length());
         q=sentIter1->previous();
-        q=sentIter1->previous();
         doTest(testString, p, q, 60, "This\n costs $20,00,000.");
         p=q;
         q=sentIter1->previous();
-        doTest(testString, p, q, 41, "How are you doing? ");
-        q=sentIter1->preceding(40);
-        doTest(testString, 40, q, 31, "Thankyou.");
+        doTest(testString, p, q, 31, "Thankyou. How are you doing? ");
+        // q=sentIter1->preceding(40);
+        // doTest(testString, 40, q, 31, "Thankyou.");
         q=sentIter1->preceding(25);
         doTest(testString, 25, q, 20, "I'am "); 
         sentIter1->first();
@@ -710,31 +690,6 @@ void RBBIAPITest::TestWordStatus() {
 }
 
 
-//
-//   Bug 2190 Regression test.   Builder crash on rule consisting of only a
-//                               $variable reference
-void RBBIAPITest::TestBug2190() {
-     UnicodeString rulesString1 = "$aaa = abcd;\n"
-                                  "$bbb = $aaa;\n"
-                                  "$bbb;\n";
-     UnicodeString testString1  = "abcdabcd";
-                                // 01234567890
-     int32_t bounds1[] = {0, 4, 8};
-     UErrorCode status=U_ZERO_ERROR;
-     UParseError    parseError;
-     
-     RuleBasedBreakIterator *bi = new RuleBasedBreakIterator(rulesString1, parseError, status);
-     if(U_FAILURE(status)) {
-         errln("FAIL : in construction");
-     } else {
-         bi->setText(testString1);
-         doBoundaryTest(*bi, testString1, bounds1);
-     }
-     delete bi;
-}
-
-
-
 //---------------------------------------------
 // runIndexedTest
 //---------------------------------------------
@@ -744,18 +699,17 @@ void RBBIAPITest::runIndexedTest( int32_t index, UBool exec, const char* &name, 
     if (exec) logln((UnicodeString)"TestSuite RuleBasedBreakIterator API ");
     switch (index) {
      //   case 0: name = "TestConstruction"; if (exec) TestConstruction(); break;
-        case  0: name = "TestCloneEquals"; if (exec) TestCloneEquals(); break;
-        case  1: name = "TestgetRules"; if (exec) TestgetRules(); break;
-        case  2: name = "TestHashCode"; if (exec) TestHashCode(); break;
-        case  3: name = "TestGetSetAdoptText"; if (exec) TestGetSetAdoptText(); break;
-        case  4: name = "TestFirstNextFollowing"; if (exec) TestFirstNextFollowing(); break;
-        case  5: name = "TestLastPreviousPreceding"; if (exec) TestLastPreviousPreceding(); break;
-        case  6: name = "TestIsBoundary"; if (exec) TestIsBoundary(); break;
-        case  7: name = "TestBuilder"; if (exec) TestBuilder(); break;
-        case  8: name = "TestQuoteGrouping"; if (exec) TestQuoteGrouping(); break;
-        case  9: name = "TestWordStatus"; if (exec) TestWordStatus(); break;
-        case 10: name = "TestBug2190"; if (exec) TestBug2190(); break;
-
+        case 0: name = "TestCloneEquals"; if (exec) TestCloneEquals(); break;
+        case 1: name = "TestgetRules"; if (exec) TestgetRules(); break;
+        case 2: name = "TestHashCode"; if (exec) TestHashCode(); break;
+        case 3: name = "TestGetSetAdoptText"; if (exec) TestGetSetAdoptText(); break;
+        case 4: name = "TestFirstNextFollowing"; if (exec) TestFirstNextFollowing(); break;
+        case 5: name = "TestLastPreviousPreceding"; if (exec) TestLastPreviousPreceding(); break;
+        case 6: name = "TestIsBoundary"; if (exec) TestIsBoundary(); break;
+        case 7: name = "TestBuilder"; if (exec) TestBuilder(); break;
+        case 8: name = "TestQuoteGrouping"; if (exec) TestQuoteGrouping(); break;
+        case 9: name = "TestWordStatus"; if (exec) TestWordStatus(); break;
+                   
         default: name = ""; break; /*needed to end loop*/
     }
 }
@@ -801,4 +755,5 @@ void RBBIAPITest::doTest(UnicodeString& testString, int32_t start, int32_t gotof
         logln(prettify("****selected \"" + selected + "\""));
 }
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
+
+

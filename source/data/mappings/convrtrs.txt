@@ -153,11 +153,9 @@ BOCU-1
 # The Unicode Consortium does not encourage the use of CESU-8
 CESU-8 { IANA* }
 
-# Standard iso-8859-1, which does not have the Euro update.
-# See iso-8859-15 (latin9) for the Euro update
 ISO-8859-1 { MIME* IANA }
     LATIN_1     # Old ICU name
-    ibm-819 { IBM* }    # This is not truely ibm-819 because it's missing the fallbacks.
+    ibm-819 { IBM* }
     IBM819 { IANA }
     cp819 { IANA }
     latin1 { IANA }
@@ -231,6 +229,8 @@ LMBCS-19
 ibm-367 { IBM* }        IBM367 { IANA* }    # This is ASCII, but it has fallbacks
 
 # Central Europe
+# Standard iso-8859-1, which does not have the Euro update.
+# See iso-8859-15 (latin9) for the Euro update
 ibm-912 { IBM* }        iso-8859-2 { MIME* IANA }
                         latin2 { IANA }
                         # ISO8859_2 { JAVA* } # This is really the default for Java and many others.
@@ -289,9 +289,7 @@ ibm-1089 { IBM* }       iso-8859-6 { MIME* IANA }
                         1089
 
 # ISO Greek (w/ euro update)
-ibm-4909 { IBM* }
-# ISO Greek (w/o euro update)
-ibm-813                 iso-8859-7 { MIME* IANA }
+ibm-4909 { IBM* }       iso-8859-7 { MIME* IANA }
                         greek { IANA }
                         greek8 { IANA }
                         elot_928 { IANA }
@@ -302,6 +300,7 @@ ibm-813                 iso-8859-7 { MIME* IANA }
                         ISO_8859-7:1987 { IANA* }
                         cp813
                         813
+ibm-813                 # Same as 4909 above but without the euro update
 
 # hebrew
 # ISO_8859-8-E and ISO_8859-8-I are similar to this charset, but they are not the same
@@ -326,11 +325,6 @@ ibm-920 { IBM* }        iso-8859-9 { MIME* IANA }
                         l5 { IANA }
                         cp920
                         920
-
-# PC Baltic (w/ euro update)
-ibm-901 { IBM* }        cp921 { MIME* } 921
-# iso-8859-13, PC Baltic (w/o euro update)
-ibm-921 { IBM* }        iso-8859-13 { IANA* }
 
 # Latin 9
 ibm-923 { IBM* }        iso-8859-15 { IANA* MIME* } # IANA only has iso-8859-15 (6/24/2002)
@@ -506,8 +500,10 @@ ibm-808 { IBM* }        cp866 { MIME* } 866 csIBM866 # PC Russian (w/ euro updat
 ibm-866 { IBM* }                                    # PC Russian (w/o euro update)
 ibm-868 { IBM* }        IBM868 { IANA* } cp868 { MIME* } cp-ar csIBM868 868   # PC Urdu
 ibm-9061 { IBM* }       cp869 { MIME* } 869 cp-gr csIBM869   # PC Greek (w/ euro update)
-ibm-869 { IBM* }        IBM869 { IANA* }                     # PC Greek (w/o euro update)
+ibm-869 { IBM* }       IBM869 { IANA* }                     # PC Greek (w/o euro update)
 ibm-878 { IBM* }        KOI8-R { IANA* MIME* } cp878 koi8 cskoi8r  # Russian internet
+ibm-901 { IBM* }        cp921 { MIME* } 921 # PC Baltic (w/ euro update)
+ibm-921 { IBM* }                            # PC Baltic (w/o euro update)
 ibm-902 { IBM* }        cp922 { MIME* } 922 # PC Estonian (w/ euro update)
 ibm-922 { IBM* }                            # PC Estonian (w/o euro update)
 # ibm-941                 jis-208 jisx-208    # Pure DBCS jisx-208 # ibm-941 is not JISX 208 code page
@@ -657,31 +653,23 @@ ibm-16804 { IBM* }      cpibm16804 ebcdic-ar # EBCDIC Arabic
 # ibm-870   IBM870 { IANA* } ebcdic-cp-roece ebcdic-cp-yu csIBM870 cp870 870
 
 # EBCDIC codepages for S/390, with LF and NL codes swapped
-# Starting with ICU 2.4, the swapping is done by modifying the
-# normal tables at runtime instead of at build time.
-# Append UCNV_SWAP_LFNL_OPTION_STRING to the "ibm-CCSID" name to select this.
 
-# This avoids the duplication of all EBCDIC SBCS and mixed-SBCS/DBCS
-# mapping files.
+# without Euro
+ibm-37-s390 { UTR22* }    ibm037-s390   # EBCDIC US
+ibm-1047-s390 { UTR22* }    # EBCDIC for S/390 Open Edition
 
-# Some examples
-ibm-37,swaplfnl     ibm-37-s390     ibm037-s390
-ibm-1047,swaplfnl   ibm-1047-s390
-ibm-1140,swaplfnl   ibm-1140-s390
-ibm-1142,swaplfnl   ibm-1142-s390
-ibm-1143,swaplfnl   ibm-1143-s390
-ibm-1144,swaplfnl   ibm-1144-s390
-ibm-1145,swaplfnl   ibm-1145-s390
-ibm-1146,swaplfnl   ibm-1146-s390
-ibm-1147,swaplfnl   ibm-1147-s390
-ibm-1148,swaplfnl   ibm-1148-s390
-ibm-1149,swaplfnl   ibm-1149-s390
-ibm-1153,swaplfnl   ibm-1153-s390
-ibm-12712,swaplfnl  ibm-12712-s390
-ibm-16804,swaplfnl  ibm-16804-s390
+# with Euro 
+ibm-1140-s390 { UTR22* }    # EBCDIC US
+ebcdic-xml-us               # Yet another form of ibm-1140
+ibm-1142-s390 { UTR22* }    # EBCDIC Denmark
+ibm-1143-s390 { UTR22* }    # EBCDIC Sweden
+ibm-1144-s390 { UTR22* }    # EBCDIC Italy
+ibm-1145-s390 { UTR22* }    # EBCDIC Spain
+ibm-1146-s390 { UTR22* }    # EBCDIC UK Ireland
+ibm-1147-s390 { UTR22* }    # EBCDIC France
+ibm-1148-s390 { UTR22* }    # EBCDIC International Latin1
+ibm-1149-s390 { UTR22* }    # EBCDIC Iceland
+ibm-1153-s390 { UTR22* }    # EBCDIC latin 2
+ibm-12712-s390 { UTR22* }   # EBCDIC Hebrew
+ibm-16804-s390 { UTR22* }   # EBCDIC Arabic
 
-# This is a special version of ibm-1140 that the XML4C (Xerces) parser team
-# requested in 2000.
-# It maps both EBCDIC LF and NL controls to Unicode LF U+000A.
-
-ebcdic-xml-us

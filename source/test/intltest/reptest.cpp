@@ -11,10 +11,6 @@
 * 
 ************************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "ittrans.h"
 #include <string.h>
 #include <stdio.h>
@@ -206,5 +202,4 @@ void ReplaceableTest::Check(const UnicodeString& transliteratorName,
     delete tr;
     delete t;
 }
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
+    

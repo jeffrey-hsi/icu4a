@@ -10,9 +10,6 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
 
 #include "unicode/rbbi.h"
 #include "unicode/schriter.h"
@@ -214,19 +211,14 @@ RuleBasedBreakIterator::clone(void) const {
  */
 UBool
 RuleBasedBreakIterator::operator==(const BreakIterator& that) const {
-    UBool r = FALSE;
-    if (that.getDynamicClassID() != getDynamicClassID()) {
-        return r;
-    }
+    if (that.getDynamicClassID() != getDynamicClassID())
+        return FALSE;
 
-    const RuleBasedBreakIterator& that2 = (const RuleBasedBreakIterator&) that;
-    if (fText == that2.fText ||
-        (fText != NULL && that2.fText != NULL && *that2.fText == *fText)) {
-        if (that2.fData == fData || 
-            (fData != NULL && that2.fData != NULL && *that2.fData == *fData)) {
-            r = TRUE;
-        }
-    }
+
+    const RuleBasedBreakIterator& that2 = (const RuleBasedBreakIterator&)that;
+    UBool r = (that2.fText == fText);
+    r |= (*that2.fText == *fText);
+    r &= (*that2.fData == *fData);
     return r;
 }
 
@@ -1031,4 +1023,3 @@ UBool RuleBasedBreakIterator::isDictionaryChar(UChar32   c) {
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

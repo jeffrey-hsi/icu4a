@@ -17,10 +17,6 @@
 *******************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "loccache.h"
 #include "uhash.h"
 #include "unicode/uloc.h"
@@ -119,4 +115,3 @@ void ucln_ustdio_registerCleanup()
     ucln_registerCleanup(UCLN_USTDIO, ustdio_cleanup);
 }
 
-#endif /* #if !UCONFIG_NO_FORMATTING */

@@ -13,10 +13,6 @@
 #ifndef CPDTRTST_H
 #define CPDTRTST_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "unicode/cpdtrans.h"
 #include "intltest.h"
@@ -60,6 +56,8 @@ public:
 
 };
 
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
-
 #endif
+
+
+
+

@@ -7,11 +7,6 @@
 *   11/17/99    aliu        Creation.
 **********************************************************************
 */
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/unistr.h"
 #include "unicode/uniset.h"
 #include "rbt_set.h"
@@ -156,10 +151,12 @@ static void maskingError(const U_NAMESPACE_QUALIFIER TransliterationRule& rule1,
 
 U_NAMESPACE_BEGIN
 
+const char TransliterationRuleSet::fgClassID=0;
+
 /**
  * Construct a new empty rule set.
  */
-TransliterationRuleSet::TransliterationRuleSet(UErrorCode& status) : UMemory() {
+TransliterationRuleSet::TransliterationRuleSet(UErrorCode& status) : UObject() {
     ruleVector = new UVector(&_deleteRule, NULL, status);
     rules = NULL;
     maxContextLength = 0;
@@ -172,7 +169,7 @@ TransliterationRuleSet::TransliterationRuleSet(UErrorCode& status) : UMemory() {
  * Copy constructor.
  */
 TransliterationRuleSet::TransliterationRuleSet(const TransliterationRuleSet& other) :
-    UMemory(other),
+    UObject(other),
     ruleVector(0),
     rules(0),
     maxContextLength(other.maxContextLength) {
@@ -449,5 +446,3 @@ UnicodeSet& TransliterationRuleSet::getSourceTargetSet(UnicodeSet& result,
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */

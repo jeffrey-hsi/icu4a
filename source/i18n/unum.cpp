@@ -10,10 +10,6 @@
 *******************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/unum.h"
 
 #include "unicode/uloc.h"
@@ -726,11 +722,8 @@ unum_getSymbol(UNumberFormat *fmt,
     return 0;
   }
 
-  return
-    ((const DecimalFormat *)fmt)->
-      getDecimalFormatSymbols()->
-        getConstSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbol).
-          extract(buffer, size, *status);
+  UnicodeString s=((DecimalFormat *)fmt)->getDecimalFormatSymbols()->getSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbol);
+  return s.extract(buffer, size, *status);
 }
 
 U_CAPI void U_EXPORT2
@@ -804,4 +797,3 @@ unum_applyPattern(  UNumberFormat  *format,
     ((DecimalFormat*)format)->applyPattern(pat,*parseError, *status);
 }
 
-#endif /* #if !UCONFIG_NO_FORMATTING */

@@ -12,7 +12,7 @@
 #include "unicode/utypes.h"
 #include "usettest.h"
 #include "unicode/uniset.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "unicode/usetiter.h"
 
 
@@ -50,21 +50,8 @@ UnicodeSetTest::runIndexedTest(int32_t index, UBool exec,
         CASE(11,TestIndexOf);
         CASE(12,TestStrings);
         CASE(13,TestStringPatterns);
-        CASE(14,Testj2268);
         default: name = ""; break;
     }
-}
-
-/** 
- * UVector was improperly copying contents
- * This code will crash this is still true
- */
-void UnicodeSetTest::Testj2268() {
-  UnicodeSet t;
-  t.add(UnicodeString("abc"));
-  UnicodeSet test(t);
-  UnicodeString ustrPat;
-  test.toPattern(ustrPat, TRUE);
 }
 
 /**
@@ -195,7 +182,7 @@ UnicodeSetTest::TestCategories(void) {
     set.applyPattern("[:L:]", status);
     if (U_FAILURE(status)) { errln("FAIL"); return; }
     for (i=0; i<0x200; ++i) {
-        UBool l = u_isalpha((UChar)i);
+        UBool l = Unicode::isLetter((UChar)i);
         if (l != set.contains(i)) {
             errln((UnicodeString)"FAIL: L contains " + (unsigned short)i + " = " + 
                   set.contains(i));
@@ -206,7 +193,7 @@ UnicodeSetTest::TestCategories(void) {
     set.applyPattern("[:Lu:]", status);
     if (U_FAILURE(status)) { errln("FAIL"); return; }
     for (i=0; i<0x200; ++i) {
-        UBool lu = (u_charType((UChar)i) == U_UPPERCASE_LETTER);
+        UBool lu = (Unicode::getType((UChar)i) == Unicode::UPPERCASE_LETTER);
         if (lu != set.contains(i)) {
             errln((UnicodeString)"FAIL: Lu contains " + (unsigned short)i + " = " + 
                   set.contains(i));
@@ -217,14 +204,14 @@ UnicodeSetTest::TestCategories(void) {
 void
 UnicodeSetTest::TestCloneEqualHash(void) {
     UErrorCode status = U_ZERO_ERROR;
-    int8_t category=U_LOWERCASE_LETTER;
+    int8_t category=Unicode::LOWERCASE_LETTER;
     UnicodeSet *set1=new UnicodeSet(category, status); //  :Ll: Letter, lowercase
     UnicodeSet *set1a=new UnicodeSet("[:Ll:]", status); //  Letter, lowercase
     if (U_FAILURE(status)){
         errln((UnicodeString)"FAIL: Can't construst set with category->Ll");
         return;
     }
-    category=U_DECIMAL_DIGIT_NUMBER;
+    category=Unicode::DECIMAL_DIGIT_NUMBER;
     UnicodeSet *set2=new UnicodeSet(category, status);   //Number, Decimal digit
     UnicodeSet *set2a=new UnicodeSet("[:Nd:]", status);   //Number, Decimal digit
     if (U_FAILURE(status)){
@@ -592,13 +579,6 @@ void UnicodeSetTest::TestStringPatterns() {
         const char* exp5[] = {"\\u4E01\\u4E02", "\n\r", NULL};
         expectToPattern(*s, "[a-z{\\u4E01\\u4E02}{\\n\\r}]", exp5);
 
-        // j2189
-        s->clear();
-        s->add(UnicodeString("abc", ""));
-        s->add(UnicodeString("abc", ""));
-        const char* exp6[] = {"abc", NOT, "ab", NULL};
-        expectToPattern(*s, "[{abc}]", exp6);
-
         break;
     }
 
@@ -672,15 +652,6 @@ void UnicodeSetTest::TestPropertySet() {
         "[:math=false:]",
         "q",
         "(*+)",
-
-        // JB#1767 \N{}, \p{ASCII}
-        "[:Ascii:]",
-        "abc\\u0000\\u007F",
-        "\\u0080\\u4E00",
-        
-        "[\\N{ latin small letter  a  }[:name= latin small letter z:]]",
-        "az",
-        "qrs",
     };
 
     static const int32_t DATA_LEN = sizeof(DATA)/sizeof(DATA[0]);

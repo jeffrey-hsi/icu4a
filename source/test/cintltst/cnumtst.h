@@ -16,10 +16,6 @@
 #ifndef _CNUMFRMTST
 #define _CNUMFRMTST
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "cintltst.h"
 
 
@@ -32,7 +28,5 @@
      * The function used to test the Number format API with padding
      **/
     static void TestNumberFormatPadding(void);
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

@@ -10,13 +10,7 @@
 #ifndef HEXTOUNI_H
 #define HEXTOUNI_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
-
-#ifdef ICU_HEXTOUNICODETRANSLITERATOR_USE_DEPRECATES
 
 U_NAMESPACE_BEGIN
 
@@ -188,8 +182,5 @@ public:
 inline HexToUnicodeTransliterator::~HexToUnicodeTransliterator() {}
 
 U_NAMESPACE_END
-#endif /* ICU_HEXTOUNICODETRANSLITERATOR_USE_DEPRECATES */
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

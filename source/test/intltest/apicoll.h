@@ -12,10 +12,6 @@
 #ifndef _APICOLL
 #define _APICOLL
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/tblcoll.h"
 #include "tscoll.h"
 
@@ -144,18 +140,10 @@ public:
     */
     void TestBounds();
 
-    /**
-    * Tests getTailoredSet API
-    */
-    void TestGetTailoredSet();
-
 private:
     // If this is too small for the test data, just increase it.
     // Just don't make it too large, otherwise the executable will get too big
     enum EToken_Len { MAX_TOKEN_LEN = 16 };
 
 };
-
-#endif /* #if !UCONFIG_NO_COLLATION */
-
 #endif

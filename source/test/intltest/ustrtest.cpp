@@ -6,7 +6,7 @@
 
 #include "ustrtest.h"
 #include "unicode/unistr.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "unicode/ustring.h"
 #include "unicode/locid.h"
 #include "unicode/ucnv.h"
@@ -23,8 +23,6 @@ using namespace std;
 #endif
 
 #endif
-
-#define LENGTHOF(array) (sizeof(array)/sizeof((array)[0]))
 
 void UnicodeStringTest::runIndexedTest( int32_t index, UBool exec, const char* &name, char *par)
 {
@@ -51,7 +49,6 @@ void UnicodeStringTest::runIndexedTest( int32_t index, UBool exec, const char* &
         case 11: name = "TestMiscellaneous"; if (exec) TestMiscellaneous(); break;
         case 12: name = "TestStackAllocation"; if (exec) TestStackAllocation(); break;
         case 13: name = "TestUnescape"; if (exec) TestUnescape(); break;
-        case 14: name = "TestCountChar32"; if (exec) TestCountChar32(); break;
 
         default: name = ""; break; //needed to end loop
     }
@@ -135,6 +132,37 @@ UnicodeStringTest::TestBasicManipulation()
             s.moveIndex32(6, 1)!=6
         ) {
             errln("UnicodeString::moveIndex32() failed");
+        }
+
+        // test countChar32()
+        // note that this also calls and tests u_countChar32(length>=0)
+        if(
+            s.countChar32()!=4 ||
+            s.countChar32(1)!=4 ||
+            s.countChar32(2)!=3 ||
+            s.countChar32(2, 3)!=2 ||
+            s.countChar32(2, 0)!=0
+        ) {
+            errln("UnicodeString::countChar32() failed");
+        }
+
+        // NUL-terminate the string buffer and test u_countChar32(length=-1)
+        const UChar *buffer=s.getTerminatedBuffer();
+        if(
+            u_countChar32(buffer, -1)!=4 ||
+            u_countChar32(buffer+1, -1)!=4 ||
+            u_countChar32(buffer+2, -1)!=3 ||
+            u_countChar32(buffer+3, -1)!=3 ||
+            u_countChar32(buffer+4, -1)!=2 ||
+            u_countChar32(buffer+5, -1)!=1 ||
+            u_countChar32(buffer+6, -1)!=0
+        ) {
+            errln("u_countChar32(length=-1) failed");
+        }
+
+        // test u_countChar32() with bad input
+        if(u_countChar32(NULL, 5)!=0 || u_countChar32(buffer, -2)!=0) {
+            errln("u_countChar32(bad input) failed (returned non-zero counts)");
         }
     }
 
@@ -553,15 +581,9 @@ UnicodeStringTest::TestRemoveReplace()
               "  expected \"The SPAM in SPAM SPAM SPAM on the SPAM\",\n"
               "  got \"" + test1 + "\"");
 
-    for (int32_t i = 0; i < test1.length(); i++) {
-        if (test5[i] != 0x53 && test5[i] != 0x50 && test5[i] != 0x41 && test5[i] != 0x4d && test5[i] != 0x20) {
-#ifdef U_USE_DEPRECATED_UCHAR_REFERENCE
+    for (int32_t i = 0; i < test1.length(); i++)
+        if (test5[i] != 0x53 && test5[i] != 0x50 && test5[i] != 0x41 && test5[i] != 0x4d && test5[i] != 0x20)
             test1[i] = 0x78;
-#else
-            test1.setCharAt(i, 0x78);
-#endif
-        }
-    }
 
     if (test1 != "xxx SPAM xx SPAM SPAM SPAM xx xxx SPAM")
         errln("One of the remove methods failed:\n"
@@ -789,11 +811,6 @@ UnicodeStringTest::TestSpacePadding()
     expectedValue = "Hi!  How ya doi";
     if (returnVal == FALSE || test3 != expectedValue)
         errln("truncate() failed: expected \"" + expectedValue + "\", got \"" + test3 + "\".");
-
-    test3.setToBogus();
-    if(!test3.isBogus() || test3.truncate(0) || test3.isBogus() || !test3.isEmpty()) {
-        errln("setToBogus().truncate(0) did not make the string valid/empty");
-    }
 }
 
 void
@@ -1120,7 +1137,7 @@ UnicodeStringTest::TestStackAllocation()
 
     // test the UChar32 constructor
     UnicodeString c32Test((UChar32)0x10ff2a);
-    if( c32Test.length() != UTF_CHAR_LENGTH(0x10ff2a) ||
+    if( c32Test.length() != Unicode::charLength(0x10ff2a) ||
         c32Test.char32At(c32Test.length() - 1) != 0x10ff2a
     ) {
         errln("The UnicodeString(UChar32) constructor does not work with a 0x10ff2a filler");
@@ -1128,7 +1145,7 @@ UnicodeStringTest::TestStackAllocation()
 
     // test the (new) capacity constructor
     UnicodeString capTest(5, (UChar32)0x2a, 5);
-    if( capTest.length() != 5 * UTF_CHAR_LENGTH(0x2a) ||
+    if( capTest.length() != 5 * Unicode::charLength(0x2a) ||
         capTest.char32At(0) != 0x2a ||
         capTest.char32At(4) != 0x2a
     ) {
@@ -1136,7 +1153,7 @@ UnicodeStringTest::TestStackAllocation()
     }
 
     capTest = UnicodeString(5, (UChar32)0x10ff2a, 5);
-    if( capTest.length() != 5 * UTF_CHAR_LENGTH(0x10ff2a) ||
+    if( capTest.length() != 5 * Unicode::charLength(0x10ff2a) ||
         capTest.char32At(0) != 0x10ff2a ||
         capTest.char32At(4) != 0x10ff2a
     ) {
@@ -1172,98 +1189,5 @@ void UnicodeStringTest::TestUnescape(void) {
     // test that an empty string is returned in case of an error
     if (!UNICODE_STRING("wrong \\u sequence", 17).unescape().isEmpty()) {
         errln("FAIL: unescaping of a string with an illegal escape sequence did not return an empty string");
-    }
-}
-
-/* test code point counting functions --------------------------------------- */
-
-/* reference implementation of UnicodeString::hasMoreChar32Than() */
-static int32_t
-_refUnicodeStringHasMoreChar32Than(const UnicodeString &s, int32_t start, int32_t length, int32_t number) {
-    int32_t count=s.countChar32(start, length);
-    return count>number;
-}
-
-/* compare the real function against the reference */
-void
-UnicodeStringTest::_testUnicodeStringHasMoreChar32Than(const UnicodeString &s, int32_t start, int32_t length, int32_t number) {
-    if(s.hasMoreChar32Than(start, length, number)!=_refUnicodeStringHasMoreChar32Than(s, start, length, number)) {
-        errln("hasMoreChar32Than(%d, %d, %d)=%hd is wrong\n",
-                start, length, number, s.hasMoreChar32Than(start, length, number));
-    }
-}
-
-void
-UnicodeStringTest::TestCountChar32(void) {
-    {
-        UnicodeString s=UNICODE_STRING("\\U0002f999\\U0001d15f\\u00c4\\u1ed0", 32).unescape();
-
-        // test countChar32()
-        // note that this also calls and tests u_countChar32(length>=0)
-        if(
-            s.countChar32()!=4 ||
-            s.countChar32(1)!=4 ||
-            s.countChar32(2)!=3 ||
-            s.countChar32(2, 3)!=2 ||
-            s.countChar32(2, 0)!=0
-        ) {
-            errln("UnicodeString::countChar32() failed");
-        }
-
-        // NUL-terminate the string buffer and test u_countChar32(length=-1)
-        const UChar *buffer=s.getTerminatedBuffer();
-        if(
-            u_countChar32(buffer, -1)!=4 ||
-            u_countChar32(buffer+1, -1)!=4 ||
-            u_countChar32(buffer+2, -1)!=3 ||
-            u_countChar32(buffer+3, -1)!=3 ||
-            u_countChar32(buffer+4, -1)!=2 ||
-            u_countChar32(buffer+5, -1)!=1 ||
-            u_countChar32(buffer+6, -1)!=0
-        ) {
-            errln("u_countChar32(length=-1) failed");
-        }
-
-        // test u_countChar32() with bad input
-        if(u_countChar32(NULL, 5)!=0 || u_countChar32(buffer, -2)!=0) {
-            errln("u_countChar32(bad input) failed (returned non-zero counts)");
-        }
-    }
-
-    /* test data and variables for hasMoreChar32Than() */
-    static const UChar str[]={
-        0x61, 0x62, 0xd800, 0xdc00,
-        0xd801, 0xdc01, 0x63, 0xd802,
-        0x64, 0xdc03, 0x65, 0x66,
-        0xd804, 0xdc04, 0xd805, 0xdc05,
-        0x67
-    };
-    UnicodeString string(str, LENGTHOF(str));
-    int32_t start, length, number;
-
-    /* test hasMoreChar32Than() */
-    for(length=string.length(); length>=0; --length) {
-        for(start=0; start<=length; ++start) {
-            for(number=-1; number<=((length-start)+2); ++number) {
-                _testUnicodeStringHasMoreChar32Than(string, start, length-start, number);
-            }
-        }
-    }
-
-    /* test hasMoreChar32Than() with pinning */
-    for(start=-1; start<=string.length()+1; ++start) {
-        for(number=-1; number<=((string.length()-start)+2); ++number) {
-            _testUnicodeStringHasMoreChar32Than(string, start, 0x7fffffff, number);
-        }
-    }
-
-    /* test hasMoreChar32Than() with a bogus string */
-    string.setToBogus();
-    for(length=-1; length<=1; ++length) {
-        for(start=-1; start<=length; ++start) {
-            for(number=-1; number<=((length-start)+2); ++number) {
-                _testUnicodeStringHasMoreChar32Than(string, start, length-start, number);
-            }
-        }
     }
 }

@@ -4,10 +4,6 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #ifndef _COLL
 #include "unicode/coll.h"
 #endif
@@ -115,4 +111,4 @@ void CollationFinnishTest::runIndexedTest( int32_t index, UBool exec, const char
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */
+

@@ -25,15 +25,12 @@
 #define DECIMFMT_H
  
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
-#include "unicode/dcfmtsym.h"
 #include "unicode/numfmt.h"
 #include "unicode/locid.h"
 
 U_NAMESPACE_BEGIN
 
+class DecimalFormatSymbols;
 class DigitList;
 
 /**
@@ -206,7 +203,7 @@ public:
      * DecimalFormat when internationalization is not the main concern.
      * <P>
      * To obtain standard formats for a given locale, use the factory methods
-     * on NumberFormat such as createInstance. These factories will
+     * on NumberFormat such as getNumberInstance. These factories will
      * return the most appropriate sub-class of NumberFormat for a given
      * locale.
      * @param status    Output param set to success/failure code. If the
@@ -221,7 +218,7 @@ public:
      * DecimalFormat when internationalization is not the main concern.
      * <P>
      * To obtain standard formats for a given locale, use the factory methods
-     * on NumberFormat such as createInstance. These factories will
+     * on NumberFormat such as getNumberInstance. These factories will
      * return the most appropriate sub-class of NumberFormat for a given
      * locale.
      * @param pattern   A non-localized pattern string.
@@ -239,7 +236,7 @@ public:
      * <P>
      * To obtain standard formats for a given
      * locale, use the factory methods on NumberFormat such as
-     * createInstance or createCurrencyInstance. If you need only minor adjustments
+     * getInstance or getCurrencyInstance. If you need only minor adjustments
      * to a standard format, you can modify the format returned by
      * a NumberFormat factory method.
      *
@@ -261,7 +258,7 @@ public:
      * <P>
      * To obtain standard formats for a given
      * locale, use the factory methods on NumberFormat such as
-     * createInstance or createCurrencyInstance. If you need only minor adjustments
+     * getInstance or getCurrencyInstance. If you need only minor adjustments
      * to a standard format, you can modify the format returned by
      * a NumberFormat factory method.
      *
@@ -284,7 +281,7 @@ public:
      * <P>
      * To obtain standard formats for a given
      * locale, use the factory methods on NumberFormat such as
-     * createInstance or createCurrencyInstance. If you need only minor adjustments
+     * getInstance or getCurrencyInstance. If you need only minor adjustments
      * to a standard format, you can modify the format returned by
      * a NumberFormat factory method.
      *
@@ -1174,13 +1171,6 @@ private:
                     DigitList& digits, UBool* status) const;
 
     /**
-     * Get a decimal format symbol.
-     * Returns a const reference to the symbol string.
-     * @internal
-     */
-    inline const UnicodeString &getConstSymbol(DecimalFormatSymbols::ENumberFormatSymbol symbol) const;
-
-    /**
      * Append an affix to the given StringBuffer, using quotes if
      * there are special characters.  Single quotes themselves must be
      * escaped in either case.
@@ -1302,14 +1292,8 @@ DecimalFormat::format(int32_t number,
     return format(number, output, pos);
 }
 
-inline const UnicodeString &
-DecimalFormat::getConstSymbol(DecimalFormatSymbols::ENumberFormatSymbol symbol) const {
-    return fSymbols->getConstSymbol(symbol);
-}
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // _DECIMFMT
 //eof

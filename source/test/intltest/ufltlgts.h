@@ -11,10 +11,6 @@
 #ifndef UNIFLTLOGICTST_H
 #define UNIFLTLOGICTST_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/translit.h"
 #include "unicode/unifltlg.h"
 #include "intltest.h"
@@ -62,7 +58,5 @@ public:
                    const UnicodeString& expectedResult); 
 
 };
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

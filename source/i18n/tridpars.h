@@ -11,9 +11,6 @@
 #define TRIDPARS_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/uobject.h"
 #include "unicode/unistr.h"
 
@@ -63,7 +60,7 @@ class TransliteratorIDParser /* not : public UObject because all methods are sta
      * 'filter' is the parsed filter pattern, or null if there was no
      * filter.
      */
-    class Specs : public UMemory {
+    class Specs : public UObject {
     public:
         UnicodeString source; // not null
         UnicodeString target; // not null
@@ -74,10 +71,27 @@ class TransliteratorIDParser /* not : public UObject because all methods are sta
               const UnicodeString& v, UBool sawS,
               const UnicodeString& f);
 
+        /**
+         * ICU "poor man's RTTI", returns a UClassID for the actual class.
+         *
+         * @draft ICU 2.2
+         */
+        virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+        /**
+         * ICU "poor man's RTTI", returns a UClassID for this class.
+         *
+         * @draft ICU 2.2
+         */
+        static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
     private:
 
-        Specs(const Specs &other); // forbid copying of this class
-        Specs &operator=(const Specs &other); // forbid copying of this class
+        /**
+         * The address of this static class variable serves as this class's ID
+         * for ICU "poor man's RTTI".
+         */
+        static const char fgClassID;
     };
 
     /**
@@ -95,7 +109,7 @@ class TransliteratorIDParser /* not : public UObject because all methods are sta
      * 'filter' may be null, if there is none, or non-null and
      * non-empty.
      */
-    class SingleID : public UMemory {
+    class SingleID : public UObject {
     public:
         UnicodeString canonID;
         UnicodeString basicID;
@@ -105,10 +119,27 @@ class TransliteratorIDParser /* not : public UObject because all methods are sta
         SingleID(const UnicodeString& c, const UnicodeString& b);
         Transliterator* createInstance();
 
+        /**
+         * ICU "poor man's RTTI", returns a UClassID for the actual class.
+         *
+         * @draft ICU 2.2
+         */
+        virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+        /**
+         * ICU "poor man's RTTI", returns a UClassID for this class.
+         *
+         * @draft ICU 2.2
+         */
+        static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
     private:
 
-        SingleID(const SingleID &other); // forbid copying of this class
-        SingleID &operator=(const SingleID &other); // forbid copying of this class
+        /**
+         * The address of this static class variable serves as this class's ID
+         * for ICU "poor man's RTTI".
+         */
+        static const char fgClassID;
     };
 
     /**
@@ -362,7 +393,5 @@ class TransliteratorIDParser /* not : public UObject because all methods are sta
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

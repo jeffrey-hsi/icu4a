@@ -66,7 +66,6 @@ const char gUsageString[] =
 
 #include <unicode/utypes.h>
 #include <unicode/ucol.h>
-#include <unicode/ucoleitr.h>
 #include <unicode/uloc.h>
 #include <unicode/ustring.h>
 #include <unicode/ures.h>
@@ -1436,10 +1435,10 @@ int main(int argc, const char** argv) {
             return -1;
         }
     }
-    if (status==U_USING_DEFAULT_WARNING && opt_terse==FALSE) {
-        fprintf(stderr, "Warning, U_USING_DEFAULT_WARNING for %s\n", opt_locale);
+    if (status==U_USING_DEFAULT_ERROR && opt_terse==FALSE) {
+        fprintf(stderr, "Warning, U_USING_DEFAULT_ERROR for %s\n", opt_locale);
     }
-    if (status==U_USING_FALLBACK_WARNING && opt_terse==FALSE) {
+    if (status==U_USING_FALLBACK_ERROR && opt_terse==FALSE) {
         fprintf(stderr, "Warning, U_USING_FALLBACK_ERROR for %s\n", opt_locale);
     }
 

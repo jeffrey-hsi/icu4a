@@ -366,8 +366,6 @@ RuleBasedNumberFormat::parse(const UnicodeString& text,
     }
 }
 
-#if !UCONFIG_NO_COLLATION
-
 void
 RuleBasedNumberFormat::setLenient(UBool enabled)
 {
@@ -377,8 +375,6 @@ RuleBasedNumberFormat::setLenient(UBool enabled)
         collator = NULL;
     }
 }
-
-#endif
 
 void 
 RuleBasedNumberFormat::setDefaultRuleSet(const UnicodeString& ruleSetName, UErrorCode& status) {
@@ -604,9 +600,7 @@ RuleBasedNumberFormat::dispose()
         ruleSets = NULL;
     }
 
-#if !UCONFIG_NO_COLLATION
     delete collator;
-#endif
     collator = NULL;
 
     delete decimalFormatSymbols;
@@ -630,7 +624,6 @@ RuleBasedNumberFormat::dispose()
 Collator*
 RuleBasedNumberFormat::getCollator() const
 {
-#if !UCONFIG_NO_COLLATION
     // lazy-evaulate the collator
     if (collator == NULL && lenient) {
         // create a default collator based on the formatter's locale,
@@ -654,7 +647,7 @@ RuleBasedNumberFormat::getCollator() const
                 temp = NULL;
             }
             if (U_SUCCESS(status)) {
-                newCollator->setAttribute(UCOL_DECOMPOSITION_MODE, UCOL_ON, status);
+                newCollator->setDecomposition(Normalizer::DECOMP);
                 // cast away const
                 ((RuleBasedNumberFormat*)this)->collator = newCollator;
             } else {
@@ -663,7 +656,6 @@ RuleBasedNumberFormat::getCollator() const
         }
         delete temp;
     }
-#endif
 
     // if lenient-parse mode is off, this will be null
     // (see setLenientParseMode())

@@ -303,10 +303,8 @@ void MultithreadTest::runIndexedTest( int32_t index, UBool exec,
         break;
     case 2:
         name = "TestThreadedIntl";
-#if !UCONFIG_NO_FORMATTING
         if (exec)
             TestThreadedIntl();
-#endif
         break;
 
     default:
@@ -577,8 +575,6 @@ private:
     UnicodeString fErrorString;
 };
 
-#if !UCONFIG_NO_FORMATTING
-
 // ** FormatThreadTest - a thread that tests performing a number of numberformats.
 
 
@@ -677,7 +673,7 @@ public:
         int32_t iteration;
 
         UErrorCode status = U_ZERO_ERROR;
-        NumberFormat *formatter = NumberFormat::createInstance(Locale::getEnglish(),status);
+        NumberFormat *formatter = NumberFormat::createInstance(Locale::ENGLISH,status);
 
         if(U_FAILURE(status))
         {
@@ -685,7 +681,7 @@ public:
             return;
         }
 
-        NumberFormat *percentFormatter = NumberFormat::createPercentInstance(Locale::getFrench(),status);
+        NumberFormat *percentFormatter = NumberFormat::createPercentInstance(Locale::FRENCH,status);
 
         if(U_FAILURE(status))
         {
@@ -839,8 +835,6 @@ void MultithreadTest::TestThreadedIntl()
     }
     errln("patience exceeded. ");
 }
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif // ICU_USE_THREADS
 

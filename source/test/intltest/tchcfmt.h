@@ -9,9 +9,6 @@
  * TestChoiceFormat is a third level test class
  */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
 
 #include "intltest.h"
 
@@ -68,5 +65,3 @@ class TestChoiceFormat: public IntlTest {
      **/
     void runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = NULL );
 };
-
-#endif /* #if !UCONFIG_NO_FORMATTING */

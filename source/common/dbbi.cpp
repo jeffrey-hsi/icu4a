@@ -8,10 +8,6 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/dbbi.h"
 #include "unicode/schriter.h"
 #include "dbbi_tbl.h"
@@ -587,6 +583,5 @@ DictionaryBasedBreakIterator::divideUpDictionaryRange(int32_t startPos, int32_t 
 
 U_NAMESPACE_END
 
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */
-
 /* eof */
+

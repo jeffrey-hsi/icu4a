@@ -9,9 +9,6 @@
 #define RBT_PARS_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_TRANSLITERATION
-
 #include "unicode/uobject.h"
 #include "unicode/rbt.h"
 #include "unicode/parseerr.h"
@@ -27,7 +24,7 @@ class ParsePosition;
 class UVector;
 class StringMatcher;
 
-class TransliteratorParser : public UMemory {
+class TransliteratorParser : public UObject {
 
  public:
 
@@ -181,6 +178,20 @@ public:
      * @return the data object parsed by parse().
      */
     TransliterationRuleData* orphanData();
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for the actual class.
+     *
+     * @draft ICU 2.2
+     */
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 private:
 
@@ -340,10 +351,14 @@ private:
      * Assignment operator
      */
     TransliteratorParser& operator=(const TransliteratorParser&);
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_TRANSLITERATION */
 
 #endif

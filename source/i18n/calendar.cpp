@@ -24,10 +24,6 @@
 *******************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/resbund.h"
 #include "unicode/gregocal.h"
 #include "unicode/calendar.h"
@@ -279,19 +275,37 @@ UBool
 Calendar::operator==(const Calendar& that) const
 {
     UErrorCode status = U_ZERO_ERROR;
-    return isEquivalentTo(that) &&
+    // {sfb} is this correct? (Java equals)
+    return (getDynamicClassID() == that.getDynamicClassID() && 
         getTimeInMillis(status) == that.getTimeInMillis(status) &&
-        U_SUCCESS(status);
-}
+        fLenient == that.fLenient &&
+        fFirstDayOfWeek == that.fFirstDayOfWeek &&
+        fMinimalDaysInFirstWeek == that.fMinimalDaysInFirstWeek &&
+        *fZone == *(that.fZone));
 
-UBool 
-Calendar::isEquivalentTo(const Calendar& other) const
-{
-    return getDynamicClassID() == other.getDynamicClassID() &&
-        fLenient                == other.fLenient &&
-        fFirstDayOfWeek         == other.fFirstDayOfWeek &&
-        fMinimalDaysInFirstWeek == other.fMinimalDaysInFirstWeek &&
-        *fZone                  == *other.fZone;
+    // As it stands, this is a very narrowly defined ==, since the
+    // Calendars must not only represent the same time; they must
+    // also be in exactly the same state.  This would be looser if
+    // we forced field or fTime computation, and then did the comparison.
+/*
+    if (this == &that) return TRUE;
+    for (int32_t i=0; i<FIELD_COUNT; ++i)
+    {
+        if (fFields[i] != that.fFields[i] ||
+            fIsSet[i] != that.fIsSet[i]) return FALSE;
+    }
+    return (getDynamicClassID() == that.getDynamicClassID() &&
+            fTime == that.fTime &&
+            fIsTimeSet == that.fIsTimeSet &&
+            fAreAllFieldsSet == that.fAreAllFieldsSet &&
+            fAreFieldsSet == that.fAreFieldsSet &&
+            fLenient == that.fLenient &&
+            (!fIsSet[ZONE_OFFSET] || (fUserSetZoneOffset == that.fUserSetZoneOffset)) &&
+            (!fIsSet[DST_OFFSET] || (fUserSetDSTOffset == that.fUserSetDSTOffset)) &&
+            fFirstDayOfWeek == that.fFirstDayOfWeek &&
+            fMinimalDaysInFirstWeek == that.fMinimalDaysInFirstWeek &&
+            *fZone == *(that.fZone));
+*/
 }
 
 // -------------------------------------
@@ -320,6 +334,7 @@ Calendar::after(const Calendar& when, UErrorCode& status) const
     return (this != &when &&
             getTimeInMillis(status) > when.getTimeInMillis(status));
 }
+
 
 // -------------------------------------
 
@@ -803,7 +818,7 @@ Calendar::setWeekCountData(const Locale& desiredLocale, UErrorCode& status)
     // hard-coded data.
     if (U_FAILURE(status))
     {
-        status = U_USING_FALLBACK_WARNING;
+        status = U_USING_FALLBACK_ERROR;
         ures_close(resource);
         return;
     }
@@ -852,7 +867,5 @@ Calendar::updateTime(UErrorCode& status)
 }
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 //eof

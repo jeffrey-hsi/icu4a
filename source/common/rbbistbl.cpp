@@ -8,10 +8,6 @@
 **********************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/unistr.h"
 #include "unicode/uniset.h"
 #include "unicode/uchar.h"
@@ -23,20 +19,19 @@
 #include "rbbinode.h"
 
 
+U_NAMESPACE_BEGIN
+
+const char RBBISymbolTable::fgClassID=0;
+
 //
-//  RBBISymbolTableEntry_deleter    Used by the UHashTable to delete the contents
-//                                  when the hash table is deleted.
+//  Forward Declarations
 //
 U_CDECL_BEGIN
-static void  U_EXPORT2 U_CALLCONV RBBISymbolTableEntry_deleter(void *p) {
-    RBBISymbolTableEntry *px = (RBBISymbolTableEntry *)p;
-    delete px;
-};
+static void  U_EXPORT2 U_CALLCONV RBBISymbolTableEntry_deleter(void *p);
 U_CDECL_END
 
 
 
-U_NAMESPACE_BEGIN
 
 RBBISymbolTable::RBBISymbolTable(RBBIRuleScanner *rs, const UnicodeString &rules, UErrorCode &status)
     :fRules(rules), fRuleScanner(rs), ffffString(UChar(0xffff))
@@ -47,8 +42,8 @@ RBBISymbolTable::RBBISymbolTable(RBBIRuleScanner *rs, const UnicodeString &rules
         return;
     }
 
-    fHashTable = uhash_open(uhash_hashUnicodeString, uhash_compareUnicodeString, &status);
-    uhash_setValueDeleter(fHashTable, RBBISymbolTableEntry_deleter);
+     fHashTable = uhash_open(uhash_hashUnicodeString, uhash_compareUnicodeString, &status);
+     uhash_setValueDeleter(fHashTable, RBBISymbolTableEntry_deleter);
 };
 
 
@@ -204,7 +199,18 @@ void            RBBISymbolTable::addEntry  (const UnicodeString &key, RBBINode *
 };
 
 
-RBBISymbolTableEntry::RBBISymbolTableEntry() : UMemory(), key(), val(NULL) {}
+//
+//  RBBISymbolTableEntry_deleter    Used by the UHashTable to delete the contents
+//                                  when the hash table is deleted.
+//
+U_CDECL_BEGIN
+static void  U_EXPORT2 U_CALLCONV RBBISymbolTableEntry_deleter(void *p) {
+    RBBISymbolTableEntry *px = (RBBISymbolTableEntry *)p;
+    delete px;
+};
+U_CDECL_END
+
+const char RBBISymbolTableEntry::fgClassID=0;
 
 RBBISymbolTableEntry::~RBBISymbolTableEntry() {
     // The "val" of a symbol table entry is a variable reference node.
@@ -263,5 +269,3 @@ void RBBISymbolTable::print() const {
 
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

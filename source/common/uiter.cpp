@@ -39,9 +39,9 @@ noopHasNext(UCharIterator * /*iter*/) {
     return FALSE;
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 noopCurrent(UCharIterator * /*iter*/) {
-    return U_SENTINEL;
+    return -1;
 }
 
 static const UCharIterator noopIterator={
@@ -128,30 +128,30 @@ stringIteratorHasPrevious(UCharIterator *iter) {
     return iter->index>iter->start;
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 stringIteratorCurrent(UCharIterator *iter) {
     if(iter->index<iter->limit) {
         return ((const UChar *)(iter->context))[iter->index];
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 stringIteratorNext(UCharIterator *iter) {
     if(iter->index<iter->limit) {
         return ((const UChar *)(iter->context))[iter->index++];
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 stringIteratorPrevious(UCharIterator *iter) {
     if(iter->index>iter->start) {
         return ((const UChar *)(iter->context))[--iter->index];
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
@@ -244,33 +244,33 @@ characterIteratorHasPrevious(UCharIterator *iter) {
     return ((CharacterIterator *)(iter->context))->hasPrevious();
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 characterIteratorCurrent(UCharIterator *iter) {
-    UChar32 c;
+    int32_t c;
 
     c=((CharacterIterator *)(iter->context))->current();
     if(c!=0xffff || ((CharacterIterator *)(iter->context))->hasNext()) {
         return c;
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 characterIteratorNext(UCharIterator *iter) {
     if(((CharacterIterator *)(iter->context))->hasNext()) {
         return ((CharacterIterator *)(iter->context))->nextPostInc();
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 characterIteratorPrevious(UCharIterator *iter) {
     if(((CharacterIterator *)(iter->context))->hasPrevious()) {
         return ((CharacterIterator *)(iter->context))->previous();
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
@@ -309,30 +309,30 @@ uiter_setCharacterIterator(UCharIterator *iter, CharacterIterator *charIter) {
  * and the iteration index.
  */
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 replaceableIteratorCurrent(UCharIterator *iter) {
     if(iter->index<iter->limit) {
         return ((Replaceable *)(iter->context))->charAt(iter->index);
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 replaceableIteratorNext(UCharIterator *iter) {
     if(iter->index<iter->limit) {
         return ((Replaceable *)(iter->context))->charAt(iter->index++);
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
-static UChar32 U_CALLCONV
+static int32_t U_CALLCONV
 replaceableIteratorPrevious(UCharIterator *iter) {
     if(iter->index>iter->start) {
         return ((Replaceable *)(iter->context))->charAt(--iter->index);
     } else {
-        return U_SENTINEL;
+        return -1;
     }
 }
 
@@ -363,16 +363,16 @@ uiter_setReplaceable(UCharIterator *iter, const Replaceable *rep) {
 
 /* Helper functions --------------------------------------------------------- */
 
-U_CAPI UChar32 U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 uiter_current32(UCharIterator *iter) {
-    UChar32 c, c2;
+    int32_t c, c2;
 
     c=iter->current(iter);
     if(UTF_IS_SURROGATE(c)) {
         if(UTF_IS_SURROGATE_FIRST(c)) {
             /*
              * go to the next code unit
-             * we know that we are not at the limit because c!=U_SENTINEL
+             * we know that we are not at the limit because c!=-1
              */
             iter->move(iter, 1, UITER_CURRENT);
             if(UTF_IS_SECOND_SURROGATE(c2=iter->current(iter))) {
@@ -394,9 +394,9 @@ uiter_current32(UCharIterator *iter) {
     return c;
 }
 
-U_CAPI UChar32 U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 uiter_next32(UCharIterator *iter) {
-    UChar32 c, c2;
+    int32_t c, c2;
 
     c=iter->next(iter);
     if(UTF_IS_FIRST_SURROGATE(c)) {
@@ -410,9 +410,9 @@ uiter_next32(UCharIterator *iter) {
     return c;
 }
 
-U_CAPI UChar32 U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 uiter_previous32(UCharIterator *iter) {
-    UChar32 c, c2;
+    int32_t c, c2;
 
     c=iter->previous(iter);
     if(UTF_IS_SECOND_SURROGATE(c)) {

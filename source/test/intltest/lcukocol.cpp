@@ -3,11 +3,6 @@
  * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved. 
  ********************************************************************/
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #ifndef _COLL
 #include "unicode/coll.h"
 #endif
@@ -33,7 +28,7 @@ LotusCollationKoreanTest::LotusCollationKoreanTest()
 {
     UErrorCode status = U_ZERO_ERROR;
     myCollation = Collator::createInstance("ko_kr", status);
-    myCollation->setAttribute(UCOL_NORMALIZATION_MODE, UCOL_ON, status);
+    myCollation->setDecomposition(Normalizer::DECOMP);
 }
 
 LotusCollationKoreanTest::~LotusCollationKoreanTest()
@@ -88,4 +83,4 @@ void LotusCollationKoreanTest::runIndexedTest( int32_t index, UBool exec, const 
     }
 }
 
-#endif /* #if !UCONFIG_NO_COLLATION */
+

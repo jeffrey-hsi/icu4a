@@ -23,8 +23,6 @@
 #include "cstring.h"
 #include "cmemory.h"
 
-#define LENGTHOF(array) (sizeof(array)/sizeof((array)[0]))
-
 #define NUM_CODEPAGE 1
 #define MAX_FILE_LEN 1024*20
 #define UCS_FILE_NAME_SIZE 512
@@ -38,7 +36,6 @@ static void TestCCSID(void);
 static void TestJ932(void);
 static void TestJ1968(void);
 static void TestConvertSafeCloneCallback(void);
-static void TestEBCDICSwapLFNL(void);
 
 void addTestConvert(TestNode** root);
 
@@ -52,7 +49,6 @@ void addTestConvert(TestNode** root)
     addTest(root, &TestCCSID,   "tsconv/ccapitst/TestCCSID"); 
     addTest(root, &TestJ932,   "tsconv/ccapitst/TestJ932");
     addTest(root, &TestJ1968,   "tsconv/ccapitst/TestJ1968");
-    addTest(root, &TestEBCDICSwapLFNL,   "tsconv/ccapitst/TestEBCDICSwapLFNL");
 }
 
 static void TestConvert() 
@@ -258,7 +254,7 @@ static void TestConvert()
         err=U_ZERO_ERROR;
         converter=ucnv_openU(converterName, &err);
         if(U_FAILURE(err)){
-            log_data_err("FAILURE! ucnv_openU(ibm-943, err) failed. %s\n", myErrorName(err));
+            log_err("FAILURE! ucnv_openU(ibm-943, err) failed. %s\n", myErrorName(err));
         }
         ucnv_close(converter);
         err=U_ZERO_ERROR;
@@ -271,7 +267,7 @@ static void TestConvert()
         err=U_ILLEGAL_ARGUMENT_ERROR;
         converter=ucnv_openU(converterName, &err);
         if(!(converter == NULL)){
-            log_data_err("FAILURE! ucnv_openU(ibm-943, U_ILLEGAL_ARGUMENT_ERROR) is expected to fail\n");
+            log_err("FAILURE! ucnv_openU(ibm-943, U_ILLEGAL_ARGUMENT_ERROR) is expected to fail\n");
         }
         ucnv_close(converter);
         err=U_ZERO_ERROR;
@@ -302,7 +298,7 @@ static void TestConvert()
          err=U_ZERO_ERROR;
          cnv=ucnv_open("ibm-949,Madhu", &err);
          if(U_FAILURE(err)){
-            log_data_err("FAILURE! ucnv_open(\"ibm-949,Madhu\", err)  failed. %s\n", myErrorName(err));
+            log_err("FAILURE! ucnv_open(\"ibm-949,Madhu\", err)  failed. %s\n", myErrorName(err));
          }
          ucnv_close(cnv);
 
@@ -325,34 +321,34 @@ static void TestConvert()
             targetCapacity=ucnv_convert("ibm-1364", "ibm-1363", target, targetLimit , (const char*)source, sourceLimit, &err);
         }
         if(U_FAILURE(err)){
-            log_data_err("FAILURE! ucnv_convert(ibm-1363->ibm-1364) failed. %s\n", myErrorName(err));
+            log_err("FAILURE! ucnv_convert(ibm-1363->ibm-1364) failed. %s\n", myErrorName(err));
         }
         else {
             for(i=0; i<targetCapacity; i++){
                 if(target[i] != expectedTarget[i]){
-                    log_data_err("FAIL: ucnv_convert(ibm-1363->ibm-1364) failed.at index \n i=%d,  Expected: %lx Got: %lx\n", i, (UChar)expectedTarget[i], (uint8_t)target[i]);
+                    log_err("FAIL: ucnv_convert(ibm-1363->ibm-1364) failed.at index \n i=%d,  Expected: %lx Got: %lx\n", i, (UChar)expectedTarget[i], (uint8_t)target[i]);
                 }
             }
             /*Test error conditions*/
             i=ucnv_convert("ibm-1364", "ibm-1363", target, targetLimit , (const char*)source, 0, &err);
             if(i !=0){
-                log_data_err("FAILURE! ucnv_convert() with sourceLimit=0 is expected to return 0\n");
+                log_err("FAILURE! ucnv_convert() with sourceLimit=0 is expected to return 0\n");
             }
             ucnv_convert("ibm-1364", "ibm-1363", target, targetLimit , (const char*)source, -1, &err);
             if(!(U_FAILURE(err) && err==U_ILLEGAL_ARGUMENT_ERROR)){
-                log_data_err("FAILURE! ucnv_convert() with sourceLimit=-1 is expected to fail\n");
+                log_err("FAILURE! ucnv_convert() with sourceLimit=-1 is expected to fail\n");
             }
             sourceLimit=sizeof(source)/sizeof(source[0]);
             i=ucnv_convert("ibm-1364", "ibm-1363", target, targetLimit , (const char*)source, sourceLimit, &err);
             if(i !=0 ){
-                log_data_err("FAILURE! ucnv_convert() with err=U_ILLEGAL_ARGUMENT_ERROR is expected to return 0\n");
+                log_err("FAILURE! ucnv_convert() with err=U_ILLEGAL_ARGUMENT_ERROR is expected to return 0\n");
             }
             err=U_ZERO_ERROR;
             sourceLimit=sizeof(source)/sizeof(source[0]);
             targetLimit=0;
             i=ucnv_convert("ibm-1364", "ibm-1363", target, targetLimit , (const char*)source, sourceLimit, &err);
             if(!(U_FAILURE(err) && err==U_BUFFER_OVERFLOW_ERROR)){
-                log_data_err("FAILURE! ucnv_convert() with targetLimit=0 is expected to throw U_BUFFER_OVERFLOW_ERROR\n");
+                log_err("FAILURE! ucnv_convert() with targetLimit=0 is expected to throw U_BUFFER_OVERFLOW_ERROR\n");
             }
             err=U_ZERO_ERROR;
             free(target);
@@ -367,27 +363,27 @@ static void TestConvert()
 
     someConverters[0] = ucnv_open("ibm-1047", &err);
     if (U_FAILURE(err)) {
-        log_data_err("FAILURE! %s\n", myErrorName(err));
+        log_err("FAILURE! %s\n", myErrorName(err));
     }
 
     someConverters[1] = ucnv_open("ibm-1047", &err);
     if (U_FAILURE(err)) {
-        log_data_err("FAILURE! %s\n", myErrorName(err));
+        log_err("FAILURE! %s\n", myErrorName(err));
     }
 
     someConverters[2] = ucnv_open("ibm-1047", &err);
     if (U_FAILURE(err)) {
-        log_data_err("FAILURE! %s\n", myErrorName(err));
+        log_err("FAILURE! %s\n", myErrorName(err));
     }
 
     someConverters[3] = ucnv_open("gb18030", &err);
     if (U_FAILURE(err)) {
-        log_data_err("FAILURE! %s\n", myErrorName(err));
+        log_err("FAILURE! %s\n", myErrorName(err));
     }
 
     someConverters[4] = ucnv_open("ibm-949", &err);
     if (U_FAILURE(err)) {
-        log_data_err("FAILURE! %s\n", myErrorName(err));
+        log_err("FAILURE! %s\n", myErrorName(err));
     }
 
 
@@ -396,7 +392,7 @@ static void TestConvert()
     if ((flushCount=ucnv_flushCache())==0)
         log_verbose("Flush cache ok\n");
     else 
-        log_data_err("Flush Cache failed [line %d], expect 0 got %d \n", __LINE__, flushCount);
+        log_err("Flush Cache failed [line %d], expect 0 got %d \n", __LINE__, flushCount);
 
     /*testing ucnv_close() and ucnv_flushCache() */
     ucnv_close(someConverters[0]);
@@ -407,7 +403,7 @@ static void TestConvert()
     if ((flushCount=ucnv_flushCache())==2) 
         log_verbose("Flush cache ok\n");  /*because first, second and third are same  */
     else 
-        log_data_err("Flush Cache failed  line %d, got %d expected 2 or there is an error in ucnv_close()\n",
+        log_err("Flush Cache failed  line %d, got %d expected 2 or there is an error in ucnv_close()\n",
             __LINE__,
             flushCount);
 
@@ -415,7 +411,7 @@ static void TestConvert()
     if ( (flushCount=ucnv_flushCache())==1) 
         log_verbose("Flush cache ok\n");
     else 
-        log_data_err("Flush Cache failed line %d, expected 1 got %d \n", __LINE__, flushCount);
+        log_err("Flush Cache failed line %d, expected 1 got %d \n", __LINE__, flushCount);
 
     /*Testing ucnv_openCCSID and ucnv_open with error conditions*/
     log_verbose("\n---Testing ucnv_open with err ! = U_ZERO_ERROR...\n");
@@ -435,19 +431,19 @@ static void TestConvert()
     someConverters[2] = ucnv_open("utf8", &err);
     someConverters[3] = ucnv_openCCSID(949,UCNV_IBM,&err);
     ucnv_close(ucnv_openCCSID(1051, UCNV_IBM, &err)); /* test for j350; ucnv_close(NULL) is safe */
-    if (U_FAILURE(err)){ log_data_err("FAILURE! %s\n", myErrorName(err));}
+    if (U_FAILURE(err)){ log_err("FAILURE! %s\n", myErrorName(err));}
 
     /* Testing ucnv_getName()*/
     /*default code page */
     ucnv_getName(someConverters[0], &err);
     if(U_FAILURE(err)) {
-        log_data_err("getName[0] failed\n");
+        log_err("getName[0] failed\n");
     } else {
         log_verbose("getName(someConverters[0]) returned %s\n", ucnv_getName(someConverters[0], &err));
     }
     ucnv_getName(someConverters[1], &err);
     if(U_FAILURE(err)) {
-        log_data_err("getName[1] failed\n");
+        log_err("getName[1] failed\n");
     } else {
         log_verbose("getName(someConverters[1]) returned %s\n", ucnv_getName(someConverters[1], &err));
     }
@@ -477,12 +473,10 @@ static void TestConvert()
     {
         int32_t i = 0;  
         char* index = NULL;
-
-	err = U_ZERO_ERROR;
         strcpy(ucs_file_name, loadTestData(&err));
         
         if(U_FAILURE(err)){
-            log_err("\nCouldn't get the test data directory... Exiting...Error:%s\n", u_errorName(err));
+            log_err("Couldn't get the test data directory... Exiting...Error:%s\n", u_errorName(err));
             return;
         }
 
@@ -509,7 +503,7 @@ static void TestConvert()
         myConverter =ucnv_open( "ibm-949", &err);
         if (!myConverter || U_FAILURE(err))   
         {
-            log_data_err("Error creating the ibm-949 converter - %s \n", u_errorName(err));
+            log_err("Error creating the convertor \n");
 
             return;
         }
@@ -1048,7 +1042,7 @@ static void TestAlias() {
         uint16_t j;
 
         if (na == 0) {
-            log_data_err("FAIL: Converter \"%s\" (i=%d)"
+            log_err("FAIL: Converter \"%s\" (i=%d)"
                     " has no aliases; expect at least one\n",
                     name, i);
             continue;
@@ -1155,12 +1149,12 @@ static void TestDuplicateAlias(void) {
     status = U_ZERO_ERROR;
     alias = ucnv_getStandardName("ibm-943", "IANA", &status);
     if (alias == NULL || uprv_strcmp(alias, "Shift_JIS") != 0 || status != U_AMBIGUOUS_ALIAS_WARNING) {
-        log_data_err("FAIL: Didn't get Shift_JIS for ibm-943 {IANA}. Got %s\n", alias);
+        log_err("FAIL: Didn't get Shift_JIS for ibm-943 {IANA}. Got %s\n", alias);
     }
     status = U_ZERO_ERROR;
     alias = ucnv_getStandardName("ibm-943_P130-2000", "IANA", &status);
     if (alias != NULL || status == U_AMBIGUOUS_ALIAS_WARNING) {
-        log_data_err("FAIL: Didn't get NULL for ibm-943 {IANA}. Got %s\n", alias);
+        log_err("FAIL: Didn't get NULL for ibm-943 {IANA}. Got %s\n", alias);
     }
 }
 
@@ -1322,7 +1316,7 @@ static void TestConvertSafeCloneCallback()
     conv1 = ucnv_open("iso-8859-3", &err);
     
     if(U_FAILURE(err)) {
-        log_data_err("Err opening iso-8859-3, %s", u_errorName(err));
+        log_err("Err opening iso-8859-3, %s", u_errorName(err));
         return;
     }
 
@@ -1510,10 +1504,6 @@ static void TestConvertSafeClone()
     someConverters[7] = ucnv_open("ISO_2022,locale=jp,version=1",&err);
     someConverters[8] = ucnv_open("BOCU-1", &err);
     
-    if(U_FAILURE(err)) {
-      log_data_err("problems creating converters to clone- check the data.\n");
-      return; /* bail - leak */
-    }
     /* Check the various error & informational states: */
 
     /* Null status - just returns NULL */
@@ -1556,7 +1546,7 @@ static void TestConvertSafeClone()
         ucnv_close(cnv);
     /* size one byte too small - should allocate & let us know */
     --bufferSize;
-    if (0 == (cnv = ucnv_safeClone(someConverters[0], 0, &bufferSize, &err)) || err != U_SAFECLONE_ALLOCATED_WARNING)
+    if (0 == (cnv = ucnv_safeClone(someConverters[0], 0, &bufferSize, &err)) || err != U_SAFECLONE_ALLOCATED_ERROR)
     {
         log_err("FAIL: Cloned converter failed to deal correctly with too-small buffer size\n");
     }
@@ -1566,7 +1556,7 @@ static void TestConvertSafeClone()
     bufferSize = U_CNV_SAFECLONE_BUFFERSIZE;
 
     /* Null buffer pointer - return converter & set error to U_SAFECLONE_ALLOCATED_ERROR */
-    if (0 == (cnv = ucnv_safeClone(someConverters[0], 0, &bufferSize, &err)) || err != U_SAFECLONE_ALLOCATED_WARNING)
+    if (0 == (cnv = ucnv_safeClone(someConverters[0], 0, &bufferSize, &err)) || err != U_SAFECLONE_ALLOCATED_ERROR)
     {
         log_err("FAIL: Cloned converter failed to deal correctly with null buffer pointer\n");
     }
@@ -1638,7 +1628,7 @@ static void TestCCSID() {
         errorCode=U_ZERO_ERROR;
         cnv=ucnv_openCCSID(ccsid, UCNV_IBM, &errorCode);
         if(U_FAILURE(errorCode)) {
-	    log_data_err("error: ucnv_openCCSID(%ld) failed (%s)\n", ccsid, u_errorName(errorCode));
+            log_err("error: ucnv_openCCSID(%ld) failed (%s)\n", ccsid, u_errorName(errorCode));
             continue;
         }
 
@@ -1762,7 +1752,7 @@ static void bug2()
 
     if ( size != 10 ) {
         /* bug2: size is 5, should be 10 */
-        log_data_err("error j932 bug 2 us-ascii->iso-8859-1: got preflighting size %d instead of 10\n", size);
+        log_err("error j932 bug 2 us-ascii->iso-8859-1: got preflighting size %d instead of 10\n", size);
     }
 
     err = U_ZERO_ERROR;
@@ -1829,7 +1819,7 @@ static void bug3()
          *
          * Markus 2001-05-18: 5 is the size of our target[] here, ucnv_convert() did not reset targetSize...
          */
-        log_data_err("error j932 bug 2/3a: expected preflighting size 0x%04x, got 0x%04x\n", sizeof(char_in), size);
+        log_err("error j932 bug 2/3a: expected preflighting size 0x%04x, got 0x%04x\n", sizeof(char_in), size);
     }
 
     /*
@@ -1854,7 +1844,7 @@ static void bug3()
          * bug3:
          * bug2 would lead us to expect 0x2805, but it isn't that either, it is 0x3c05:
          */
-        log_data_err("error j932 bug 3b: expected 0x%04x, got 0x%04x\n", sizeof(char_in) * 2, size);
+        log_err("error j932 bug 3b: expected 0x%04x, got 0x%04x\n", sizeof(char_in) * 2, size);
     }
 }
 
@@ -1944,156 +1934,4 @@ static void TestJ1968(void) {
 
 }
 
-static void
-testSwap(const char *name, UBool swap) {
-    /*
-     * Test Unicode text.
-     * Contains characters that are the highest for some of the
-     * tested conversions, to make sure that the ucnvmbcs.c code that modifies the
-     * tables copies the entire tables.
-     */
-    static const UChar text[]={
-        0x61, 0xd, 0x62, 0xa, 0x4e00, 0x3000, 0xfffd, 0xa, 0x20, 0x85, 0xff5e, 0x7a
-    };
 
-    UChar uNormal[32], uSwapped[32];
-    char normal[32], swapped[32];
-    const UChar *pcu;
-    UChar *pu;
-    char *pc;
-    int32_t i, normalLength, swappedLength;
-    UChar u;
-    char c;
-
-    const char *swappedName;
-    UConverter *cnv, *swapCnv;
-    UErrorCode errorCode;
-
-    /* if the swap flag is FALSE, then the test encoding is not EBCDIC and must not swap */
-
-    /* open both the normal and the LF/NL-swapping converters */
-    strcpy(swapped, name);
-    strcat(swapped, UCNV_SWAP_LFNL_OPTION_STRING);
-
-    errorCode=U_ZERO_ERROR;
-    swapCnv=ucnv_open(swapped, &errorCode);
-    cnv=ucnv_open(name, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        log_data_err("TestEBCDICSwapLFNL error: unable to open %s or %s (%s)\n", name, swapped, u_errorName(errorCode));
-        goto cleanup;
-    }
-
-    /* the name must contain the swap option if and only if we expect the converter to swap */
-    swappedName=ucnv_getName(swapCnv, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        log_err("TestEBCDICSwapLFNL error: ucnv_getName(%s,swaplfnl) failed (%s)\n", name, u_errorName(errorCode));
-        goto cleanup;
-    }
-
-    pc=strstr(swappedName, UCNV_SWAP_LFNL_OPTION_STRING);
-    if(swap != (pc!=NULL)) {
-        log_err("TestEBCDICSwapLFNL error: ucnv_getName(%s,swaplfnl)=%s should (%d) contain 'swaplfnl'\n", name, swappedName, swap);
-        goto cleanup;
-    }
-
-    /* convert to EBCDIC */
-    pcu=text;
-    pc=normal;
-    ucnv_fromUnicode(cnv, &pc, normal+LENGTHOF(normal), &pcu, text+LENGTHOF(text), NULL, TRUE, &errorCode);
-    normalLength=(int32_t)(pc-normal);
-
-    pcu=text;
-    pc=swapped;
-    ucnv_fromUnicode(swapCnv, &pc, swapped+LENGTHOF(swapped), &pcu, text+LENGTHOF(text), NULL, TRUE, &errorCode);
-    swappedLength=(int32_t)(pc-swapped);
-
-    if(U_FAILURE(errorCode)) {
-        log_err("TestEBCDICSwapLFNL error converting to %s - (%s)\n", name, u_errorName(errorCode));
-        goto cleanup;
-    }
-
-    /* compare EBCDIC output */
-    if(normalLength!=swappedLength) {
-        log_err("TestEBCDICSwapLFNL error converting to %s - output lengths %d vs. %d\n", name, normalLength, swappedLength);
-        goto cleanup;
-    }
-    for(i=0; i<normalLength; ++i) {
-        /* swap EBCDIC LF/NL for comparison */
-        c=normal[i];
-        if(swap) {
-            if(c==0x15) {
-                c=0x25;
-            } else if(c==0x25) {
-                c=0x15;
-            }
-        }
-
-        if(c!=swapped[i]) {
-            log_err("TestEBCDICSwapLFNL error converting to %s - did not swap properly, output[%d]=0x%02x\n", name, i, (uint8_t)swapped[i]);
-            goto cleanup;
-        }
-    }
-
-    /* convert back to Unicode (may not roundtrip) */
-    pc=normal;
-    pu=uNormal;
-    ucnv_toUnicode(cnv, &pu, uNormal+LENGTHOF(uNormal), (const char **)&pc, normal+normalLength, NULL, TRUE, &errorCode);
-    normalLength=(int32_t)(pu-uNormal);
-
-    pc=normal;
-    pu=uSwapped;
-    ucnv_toUnicode(swapCnv, &pu, uSwapped+LENGTHOF(uSwapped), (const char **)&pc, normal+swappedLength, NULL, TRUE, &errorCode);
-    swappedLength=(int32_t)(pu-uSwapped);
-
-    if(U_FAILURE(errorCode)) {
-        log_err("TestEBCDICSwapLFNL error converting from %s - (%s)\n", name, u_errorName(errorCode));
-        goto cleanup;
-    }
-
-    /* compare EBCDIC output */
-    if(normalLength!=swappedLength) {
-        log_err("TestEBCDICSwapLFNL error converting from %s - output lengths %d vs. %d\n", name, normalLength, swappedLength);
-        goto cleanup;
-    }
-    for(i=0; i<normalLength; ++i) {
-        /* swap EBCDIC LF/NL for comparison */
-        u=uNormal[i];
-        if(swap) {
-            if(u==0xa) {
-                u=0x85;
-            } else if(u==0x85) {
-                u=0xa;
-            }
-        }
-
-        if(u!=uSwapped[i]) {
-            log_err("TestEBCDICSwapLFNL error converting from %s - did not swap properly, output[%d]=U+%04x\n", name, i, uSwapped[i]);
-            goto cleanup;
-        }
-    }
-
-    /* clean up */
-cleanup:
-    ucnv_close(cnv);
-    ucnv_close(swapCnv);
-}
-
-static void
-TestEBCDICSwapLFNL() {
-    static const struct {
-        const char *name;
-        UBool swap;
-    } tests[]={
-        { "ibm-37", TRUE },
-        { "ibm-1047", TRUE },
-        { "ibm-1140", TRUE },
-        { "ibm-930", TRUE },
-        { "iso-8859-3", FALSE }
-    };
-
-    int i;
-
-    for(i=0; i<LENGTHOF(tests); ++i) {
-        testSwap(tests[i].name, tests[i].swap);
-    }
-}

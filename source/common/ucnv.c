@@ -256,7 +256,7 @@ ucnv_safeClone(const UConverter* cnv, void *stackBuffer, int32_t *pBufferSize, U
         }
         
         if (U_SUCCESS(*status)) {
-            *status = U_SAFECLONE_ALLOCATED_WARNING;
+            *status = U_SAFECLONE_ALLOCATED_ERROR;
         }
         
         /* record the fact that memory was allocated */
@@ -1238,11 +1238,9 @@ U_CAPI UConverterType  U_EXPORT2
 ucnv_getType(const UConverter* converter)
 {
     int8_t type = converter->sharedData->staticData->conversionType;
-#if !UCONFIG_NO_LEGACY_CONVERSION
     if(type == UCNV_MBCS) {
         return _MBCSGetType(converter);
     }
-#endif
     return (UConverterType)type;
 }
 

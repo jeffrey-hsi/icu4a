@@ -4,14 +4,13 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
-#include "cppcnvt.h"
-
-#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
+#include <stdio.h>
 #include "unicode/locid.h"
 #include "unicode/unistr.h"
+#include "unicode/convert.h"
 #include "unicode/ucnv_err.h"
+#include "cppcnvt.h"
 #include "cstring.h"
-#include <stdio.h>
 
 #define NUM_CODEPAGE 1
 #define MAX_FILE_LEN 1024*20
@@ -37,7 +36,6 @@ void ConvertTest::runIndexedTest( int32_t index, UBool exec, const char* &name, 
     }
 }
 
-/* Test is also located in ccapitst.c */
 void ConvertTest::TestConvert() 
 {
     char                myptr[4];
@@ -679,7 +677,6 @@ UConverterToUCallback otherCharAction(UConverterToUCallback MIA)
     return (MIA==(UConverterToUCallback)UCNV_TO_U_CALLBACK_STOP)?(UConverterToUCallback)UCNV_TO_U_CALLBACK_SUBSTITUTE:(UConverterToUCallback)UCNV_TO_U_CALLBACK_STOP;
 }
 
-/* Test is also located in nucnvtst.c */
 void ConvertTest::TestAmbiguous() 
 {
     UErrorCode status = U_ZERO_ERROR;
@@ -748,4 +745,3 @@ void ConvertTest::TestAmbiguous()
     delete ascii_cnv;
 
 }
-#endif

@@ -10,10 +10,6 @@
 #ifndef STSEARCH_H
 #define STSEARCH_H
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_COLLATION
-
 #include "unicode/tblcoll.h"
 #include "unicode/coleitr.h"
 #include "unicode/search.h"
@@ -119,9 +115,6 @@ U_NAMESPACE_BEGIN
  *                                             iter.getMatchLength());
  * }
  * </code></pre>
- * <p>
- * Note, StringSearch is not to be subclassed.
- * </p>
  * @see SearchIterator
  * @see RuleBasedCollator
  * @since ICU 2.0
@@ -429,7 +422,7 @@ protected:
      * is found, the method returns <tt>USEARCH_DONE</tt>.
      * <p>
      * The <tt>StringSearch</tt> is adjusted so that its current index 
-     * (as returned by {@link #getOffset()}) is the match position if one was 
+     * (as returned by {@link #getOffset}) is the match position if one was 
      * found.
      * If a match is not found, <tt>USEARCH_DONE</tt> will be returned and
      * the <tt>StringSearch</tt> will be adjusted to the index USEARCH_DONE.
@@ -453,7 +446,7 @@ protected:
      * is found, the method returns <tt>USEARCH_DONE</tt>.
      * <p>
      * The <tt>StringSearch</tt> is adjusted so that its current index 
-     * (as returned by {@link #getOffset()}) is the match position if one was 
+     * (as returned by {@link #getOffset}) is the match position if one was 
      * found.
      * If a match is not found, <tt>USEARCH_DONE</tt> will be returned and
      * the <tt>StringSearch</tt> will be adjusted to the index USEARCH_DONE.
@@ -499,8 +492,6 @@ private :
 };
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif
 

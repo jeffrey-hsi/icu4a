@@ -31,18 +31,13 @@ class UnicodeString;
  * <p>Currently, RuleBasedTransliterator and UnicodeSet use this
  * interface to share variable definitions.
  */
-class SymbolTable /* not : public UObject because this is an interface/mixin class */ {
+class SymbolTable : public UObject {
 public:
 
     /**
      * The character preceding a symbol reference name.
      */
     enum { SYMBOL_REF = 0x0024 /*$*/ };
-
-    /**
-     * Destructor.
-     */
-    virtual inline ~SymbolTable() {};
 
     /**
      * Lookup the characters associated with this string and return it.

@@ -16,14 +16,11 @@
 /* C FUNCTIONALITY AND REGRESSION TEST FOR BREAKITERATOR */
 
 #include <stdlib.h>
-
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_BREAK_ITERATION
-
 #include "unicode/uloc.h"
 #include "unicode/ubrk.h"
 #include "unicode/uchar.h"
+#include "unicode/utypes.h"
+#include "unicode/utypes.h"
 #include "unicode/ustring.h"
 #include "cintltst.h"
 #include "cregrtst.h"
@@ -1800,5 +1797,3 @@ void addBrkIterRegrTest(TestNode** root)
 #endif
    
 }
-
-#endif /* #if !UCONFIG_NO_BREAK_ITERATION */

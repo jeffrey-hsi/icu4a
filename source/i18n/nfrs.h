@@ -16,6 +16,7 @@
 #ifndef NFRS_H
 #define NFRS_H
 
+#include "unicode/utypes.h"
 #include "unicode/uobject.h"
 #include "unicode/rbnf.h"
 
@@ -28,7 +29,7 @@
 
 U_NAMESPACE_BEGIN
 
-class NFRuleSet : public UMemory {
+class NFRuleSet : public UObject {
  public:
   NFRuleSet(UnicodeString* descriptions, int32_t index, UErrorCode& status);
   void parseRules(UnicodeString& rules, const RuleBasedNumberFormat* owner, UErrorCode& status);
@@ -52,6 +53,20 @@ class NFRuleSet : public UMemory {
 
   void appendRules(UnicodeString& result) const; // toString
 
+  /**
+   * ICU "poor man's RTTI", returns a UClassID for the actual class.
+   *
+   * @draft ICU 2.2
+   */
+  virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+  /**
+   * ICU "poor man's RTTI", returns a UClassID for this class.
+   *
+   * @draft ICU 2.2
+   */
+  static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+
  private:
   NFRule * findNormalRule(int64_t number) const;
   NFRule * findDoubleRule(double number) const;
@@ -65,8 +80,11 @@ class NFRuleSet : public UMemory {
   UBool fIsFractionRuleSet;
   UBool fIsPublic;
 
-  NFRuleSet(const NFRuleSet &other); // forbid copying of this class
-  NFRuleSet &operator=(const NFRuleSet &other); // forbid copying of this class
+  /**
+   * The address of this static class variable serves as this class's ID
+   * for ICU "poor man's RTTI".
+   */
+  static const char fgClassID;
 };
 
 // utilities from old llong.h

@@ -23,10 +23,6 @@
 ********************************************************************************
 */
 
-#include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "unicode/choicfmt.h"
 #include "unicode/numfmt.h"
 #include "unicode/locid.h"
@@ -699,16 +695,12 @@ ChoiceFormat::clone() const
 
 // -------------------------------------
 
-#ifdef ICU_NEXTDOUBLE_USE_DEPRECATES
 double 
 ChoiceFormat::nextDouble( double d, UBool positive )
 {
     return uprv_nextDouble( d, positive );
 }
-#endif /* ICU_NEXTDOUBLE_USE_DEPRECATES */
 
 U_NAMESPACE_END
-
-#endif /* #if !UCONFIG_NO_FORMATTING */
 
 //eof

@@ -13,7 +13,6 @@
 #include "itconv.h"
 #include "cppcnvt.h"
 
-#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
 void IntlTestConvert::runIndexedTest( int32_t index, UBool exec, const char* &name, char* par )
 {
     if (exec) logln("TestSuite Convert: ");
@@ -40,4 +39,3 @@ void IntlTestConvert::runIndexedTest( int32_t index, UBool exec, const char* &na
     }
 }
 
-#endif /* ICU_UNICODECONVERTER_USE_DEPRECATES */
