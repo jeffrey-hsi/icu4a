@@ -27,9 +27,6 @@
 #include "unicode/jamohang.h"
 #include "unicode/hangjamo.h"
 
-const UChar Transliterator::ID_SEP   = 0x002D; /*-*/
-const UChar Transliterator::ID_DELIM = 0x003B; /*;*/
-
 /**
  * Dictionary of known transliterators.  Keys are <code>String</code>
  * names, values are one of the following:
@@ -37,7 +34,7 @@ const UChar Transliterator::ID_DELIM = 0x003B; /*;*/
  * <ul><li><code>Transliterator</code> objects
  *
  * <li><code>RULE_BASED_PLACEHOLDER</code>, in which case the ID
- * will have its first ID_SEP removed and be appended to
+ * will have its first '-' removed and be appended to
  * RB_RULE_BASED_PREFIX to form a resource bundle name from which
  * the RB_RULE key is looked up to obtain the rule.
  *
@@ -158,7 +155,12 @@ Transliterator& Transliterator::operator=(const Transliterator& other) {
 int32_t Transliterator::transliterate(Replaceable& text,
                                       int32_t start, int32_t limit) const {
 
-    Position offsets(start, limit);
+    Position offsets; /* Broken HPUX compiler cannot handle this */
+
+    offsets.start  = start;
+    offsets.limit  = limit;
+    offsets.cursor = start;
+
     handleTransliterate(text, offsets, FALSE);
     return offsets.limit;
 }
@@ -373,7 +375,7 @@ UnicodeString& Transliterator::getDisplayName(const UnicodeString& ID,
  * arguments to this pattern are an integer followed by one or two
  * strings.  The integer is the number of strings, either 1 or 2.
  * The strings are formed by splitting the ID for this
- * transliterator at the first ID_SEP.  If there is no ID_SEP, then the
+ * transliterator at the first '-'.  If there is no '-', then the
  * entire ID forms the only string.
  * @param inLocale the Locale in which the display name should be
  * localized.
@@ -415,7 +417,7 @@ UnicodeString& Transliterator::getDisplayName(const UnicodeString& ID,
 
         // We pass either 2 or 3 Formattable objects to msg.
         Formattable args[3];
-        int32_t i = ID.indexOf(ID_SEP);
+        int32_t i = ID.indexOf((UChar)'-');
         int32_t nargs;
         if (i < 0) {
             args[0].setLong(1); // # of args to follow
@@ -472,19 +474,6 @@ const UnicodeFilter* Transliterator::getFilter(void) const {
 }
 
 /**
- * Returns the filter used by this transliterator, or
- * <tt>NULL</tt> if this transliterator uses no filter.  The
- * caller must eventually delete the result.  After this call,
- * this transliterator's filter is set to <tt>NULL</tt>.
- */
-UnicodeFilter* Transliterator::orphanFilter(void) {
-    UnicodeFilter *result = filter;
-    // MUST go through adoptFilter in case latter is overridden
-    adoptFilter(0);
-    return result;
-}
-
-/**
  * Changes the filter used by this transliterator.  If the filter
  * is set to <tt>null</tt> then no filtering will occur.
  *
@@ -535,17 +524,17 @@ Transliterator* Transliterator::createInverse(void) const {
  */
 Transliterator* Transliterator::createInstance(const UnicodeString& ID,
                                                Transliterator::Direction dir) {
-    if (ID.indexOf(ID_DELIM) >= 0) {
+    if (ID.indexOf(';') >= 0) {
         return new CompoundTransliterator(ID, dir, 0);
     }
     Transliterator* t = 0;
     if (dir == REVERSE) {
-        int32_t i = ID.indexOf(ID_SEP);
+        int32_t i = ID.indexOf((UChar)'-');
         if (i >= 0) {
             UnicodeString inverseID, right;
             ID.extractBetween(i+1, ID.length(), inverseID);
             ID.extractBetween(0, i, right);
-            inverseID.append(ID_SEP).append(right);
+            inverseID.append((UChar)'-').append(right);
             t = _createInstance(inverseID);
         }
     } else {

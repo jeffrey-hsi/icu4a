@@ -251,30 +251,6 @@ public:
          * considered for transliteration
          */
         int32_t cursor;
-
-        /**
-         * In <code>transliterate()</code>, the limit character to be
-         * considered for transliteration
-         */
-        int32_t end;
-
-        /**
-         * Constructor from start, limit.  Sets cursor to start and
-         * end to limit.
-         */
-        Position(int32_t start, int32_t limit);
-
-        /**
-         * Constructor from start, limit, cursor.  Sets
-         * end to limit.
-         */
-        Position(int32_t start, int32_t limit, int32_t cursor);
-
-        /**
-         * Constructor from start, limit, cursor, end.
-         */
-        Position(int32_t start, int32_t limit,
-                 int32_t cursor, int32_t end);
     };
 
 private:
@@ -695,18 +671,10 @@ public:
                                          UnicodeString& result);
 
     /**
-     * Returns the filter used by this transliterator, or <tt>NULL</tt>
+     * Returns the filter used by this transliterator, or <tt>null</tt>
      * if this transliterator uses no filter.
      */
     virtual const UnicodeFilter* getFilter(void) const;
-
-    /**
-     * Returns the filter used by this transliterator, or <tt>NULL</tt> if this
-     * transliterator uses no filter.  The caller must eventually delete the
-     * result.  After this call, this transliterator's filter is set to
-     * <tt>NULL</tt>.  Calls adoptFilter().
-     */
-    UnicodeFilter* orphanFilter(void);
 
     /**
      * Changes the filter used by this transliterator.  If the filter
@@ -889,28 +857,10 @@ private:
     static bool_t compareIDs(void* a, void* b);
 
     static void initializeCache(void);
-
-    /* IDs take the form <source> ID_SEP <target>, where
-     * <source> and <target> are (usually) script names.
-     * Compound IDs take the form <ID> ( ID_DELIM <ID> )+.
-     */
-    static const UChar ID_SEP;   // ((UChar)0x002D) /*-*/
-    static const UChar ID_DELIM; // ((UChar)0x003B) /*;*/
 };
 
 inline int32_t Transliterator::getMaximumContextLength(void) const {
     return maximumContextLength;
 }
-
-inline Transliterator::Position::Position(int32_t aStart, int32_t aLimit) :
-    start(aStart), limit(aLimit), cursor(aStart), end(aLimit) {}
-
-inline Transliterator::Position::Position(int32_t aStart, int32_t aLimit,
-                                          int32_t aCursor) :
-    start(aStart), limit(aLimit), cursor(aCursor), end(aLimit) {}
-
-inline Transliterator::Position::Position(int32_t aStart, int32_t aLimit,
-                                          int32_t aCursor, int32_t anEnd) :
-    start(aStart), limit(aLimit), cursor(aCursor), end(anEnd) {}
 
 #endif

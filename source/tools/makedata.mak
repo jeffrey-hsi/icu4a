@@ -110,7 +110,7 @@ COL_FILES = $(GENCOL_SOURCE:.txt=.col)
 
 
 # This target should build all the data files
-ALL : GODATA $(RB_FILES) $(CNV_FILES) $(COL_FILES) icudata.dll test.dat base_test.dat test_dat.dll base_test_dat.dll base_dat.dll icudata.dat GOBACK
+ALL : GODATA $(RB_FILES) $(CNV_FILES) $(COL_FILES) icudata.dll icudata.dat GOBACK
 	@echo All targets are up to date
 
 BRK_FILES = $(ICUDATA)\sent.brk $(ICUDATA)\char.brk $(ICUDATA)\line.brk $(ICUDATA)\word.brk $(ICUDATA)\line_th.brk $(ICUDATA)\word_th.brk
@@ -126,59 +126,6 @@ icudata.dll : $(LINK32_OBJS) $(CNV_FILES)
 	@$(LINK32) @<<
 $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
-
-LINK32_TEST_FLAGS = /out:"$(ICUDATA)/test_dat.dll" /DLL /NOENTRY 
-LINK32_BASE_TEST_FLAGS = /out:"$(ICUDATA)/base_test_dat.dll" /DLL /NOENTRY 
-LINK32_BASE_FLAGS = /out:"$(ICUDATA)/base_dat.dll" /DLL /NOENTRY 
-
-# Targets for test.dat 
-test.dat : 
-	@echo Creating data file for test
-	@set ICU_DATA=$(ICUDATA)
-	@$(ICUTOOLS)\gentest\$(CFG)\gentest 
-test_dat.c : test.dat
-	@echo Creating C source file for test data
-        @set ICU_DATA=$(ICUDATA)
-	@$(ICUTOOLS)\genccode\$(CFG)\genccode $(ICUDATA)\$?
-test_dat.obj : test_dat.c
-        @echo creating the obj file for test data
-	@cd $(ICUDATA)
-	@$(CPP) @<<
-$(CPP_FLAGS) $(ICUDATA)\$?
-<<
-
-#Targets for base_test.dat
-base_test.dat :
-	@echo Creating base data file test
-	@set ICU_DATA=$(ICUDATA)
-	@copy $(ICUDATA)\test.dat $(ICUDATA)\base_test.dat 
-
-# According to the read files, we will generate C files
-# Target for test DLL
-test_dat.dll : test_dat.obj test.dat
-	@echo Creating DLL file
-	@cd $(ICUDATA)
-	@$(LINK32) @<<
-$(LINK32_TEST_FLAGS) test_dat.obj
-<<
-
-#Target for base test data DLL
-base_test_dat.dll : test_dat.obj test.dat
-	@echo Creating DLL file
-	@cd $(ICUDATA)
-	@$(LINK32) @<<
-$(LINK32_BASE_TEST_FLAGS) test_dat.obj
-<<
-
-#Target for base data DLL
-base_dat.dll : test_dat.obj test.dat
-	@echo Creating DLL file
-	@cd $(ICUDATA)
-	@$(LINK32) @<<
-$(LINK32_BASE_FLAGS) test_dat.obj
-<<
-
-
 
 $(ICUDATA)\sent.brk : $(ICUDATA)\sentLE.brk
     copy $(ICUDATA)\sentLE.brk $(ICUDATA)\sent.brk
@@ -254,8 +201,6 @@ CLEAN :
 	-@erase "word.brk"
 	-@erase "line_th.brk"
 	-@erase "word_th.brk"
-	-@erase "test*.*"
-	-@erase "base*.*"
 	@cd $(TEST)
 	-@erase "*.res"
 	@cd $(ICUTOOLS)
@@ -332,6 +277,3 @@ unames.dat cnvalias.dat tz.dat : {$(ICUTOOLS)\genccode\$(CFG)}genccode.exe
 $(GENRB_SOURCE) $(GENCOL_SOURCE) : {$(ICUTOOLS)\genrb\$(CFG)}genrb.exe
 
 $(UCM_SOURCE) : {$(ICUTOOLS)\makeconv\$(CFG)}makeconv.exe {$(ICUTOOLS)\genccode\$(CFG)}genccode.exe
-
-test.dat : {$(ICUTOOLS)\gentest\$(CFG)}gentest.exe
-

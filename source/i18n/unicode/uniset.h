@@ -15,7 +15,7 @@
 #include "unicode/unistr.h"
 
 class ParsePosition;
-class SymbolTable;
+class TransliterationRuleData;
 class TransliterationRuleParser;
 class TransliterationRule;
 
@@ -287,16 +287,7 @@ class U_I18N_API UnicodeSet : public UnicodeFilter {
      * "}".  Example: "{var}".
      */
     static const UChar VARIABLE_REF_CLOSE;
-    
-    // More special characters...
-    static const UChar SET_OPEN;
-    static const UChar SET_CLOSE;
-    static const UChar HYPHEN;
-    static const UChar COMPLEMENT;
-    static const UChar COLON;
-    static const UChar BACKSLASH;
-    static const UChar INTERSECTION;
-    
+
     //----------------------------------------------------------------
     // Debugging and testing
     //----------------------------------------------------------------
@@ -566,7 +557,7 @@ private:
      * contains a syntax error.
      */
     UnicodeSet(const UnicodeString& pattern, ParsePosition& pos,
-               const SymbolTable& symbols,
+               const TransliterationRuleData* data,
                UErrorCode& status);
 
     /**
@@ -609,7 +600,7 @@ private:
     static UnicodeString& parse(UnicodeString& pairsBuf /*result*/,
                                 const UnicodeString& pattern,
                                 ParsePosition& pos,
-                                const SymbolTable* symbols,
+                                const TransliterationRuleData* data,
                                 UErrorCode& status);
 
     //----------------------------------------------------------------

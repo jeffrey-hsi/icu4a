@@ -70,19 +70,15 @@ u_file_write(    const UChar     *chars,
   do {
     status     = U_ZERO_ERROR;
     sourceAlias = mySource;
-    if(f->fConverter != NULL) { /* We have a valid converter */
-        ucnv_fromUnicode(f->fConverter,
-                 &myTarget, 
-                 f->fCharBuffer + bufferSize,
-                 &mySource,
-                 mySourceEnd,
-                 NULL,
-                 TRUE,
-                 &status);
-      } else { /*weiv: do the invariant conversion */
-          u_UCharsToChars(mySource, myTarget, count);
-          myTarget += count;
-      }
+    
+    ucnv_fromUnicode(f->fConverter,
+             &myTarget, 
+             f->fCharBuffer + bufferSize,
+             &mySource,
+             mySourceEnd,
+             NULL,
+             TRUE,
+             &status);
 
     /* write the converted bytes */
     fwrite(f->fCharBuffer, 
@@ -126,8 +122,7 @@ ufile_fill_uchar_buffer(UFILE *f)
   availLength = UFILE_UCHARBUFFER_SIZE - dataSize;
   
   /* Determine the # of codepage bytes needed to fill our UChar buffer */
-  /* weiv: if converter is NULL, we use invariant converter with charwidth = 1)*/
-  maxCPBytes = availLength * (f->fConverter!=NULL?ucnv_getMaxCharSize(f->fConverter):1);
+  maxCPBytes = availLength * ucnv_getMaxCharSize(f->fConverter);
   
   /* Read in the data to convert */
   bytesRead = fread(f->fCharBuffer, 
@@ -142,20 +137,15 @@ ufile_fill_uchar_buffer(UFILE *f)
   myTarget     = f->fUCBuffer + dataSize;
   bufferSize    = UFILE_UCHARBUFFER_SIZE;
 
-  if(f->fConverter != NULL) { /* We have a valid converter */
-      /* Perform the conversion */
-      ucnv_toUnicode(f->fConverter,
-             &myTarget, 
-             f->fUCBuffer + bufferSize,
-             &mySource,
-             mySourceEnd,
-		     NULL,
-             TRUE,
-             &status);
-  } else { /*weiv: do the invariant conversion */
-      u_charsToUChars(mySource, myTarget, bytesRead);
-      myTarget += bytesRead;
-  }
+  /* Perform the conversion */
+  ucnv_toUnicode(f->fConverter,
+         &myTarget, 
+         f->fUCBuffer + bufferSize,
+         &mySource,
+         mySourceEnd,
+		 NULL,
+         TRUE,
+         &status);
   
   /* update the pointers into our array */
   f->fUCPos    = f->fUCBuffer;

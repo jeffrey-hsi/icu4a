@@ -28,8 +28,6 @@
 #include <unicode/ucnv.h>
 
 
-#define U_EOF 0xFFFF
-
 /** Forward declaration of a Unicode-aware file */
 typedef struct UFILE UFILE;
 

@@ -12,7 +12,6 @@
 #include "unicode/dcfmtsym.h"
 #include "unicode/decimfmt.h"
 #include "unicode/locid.h"
-#include <float.h>
  
 // *****************************************************************************
 // class NumberFormatTest
@@ -89,18 +88,10 @@ NumberFormatTest::TestExponential(void)
     if (U_FAILURE(status)) { errln("FAIL: Bad status returned by DecimalFormatSymbols ct"); return; }
     char* pat[] = { "0.####E0", "00.000E00", "##0.######E000", "0.###E0;[0.###E0]"  };
     int32_t pat_length = sizeof(pat) / sizeof(pat[0]);
-
-// The following #if statements allow this test to be built and run on
-// platforms that do not have standard IEEE numerics.  For example,
-// S/390 doubles have an exponent range of -78 to +75.  For the
-// following #if statements to work, float.h must define
-// DBL_MAX_10_EXP to be a compile-time constant.
-
-// This section may be expanded as needed.
-
-#if DBL_MAX_10_EXP > 300
     double val[] = { 0.01234, 123456789, 1.23e300, -3.141592653e-271 };
     int32_t val_length = sizeof(val) / sizeof(val[0]);
+    int32_t lval[] = { 0, -1, 1, 123456789 };
+    int32_t lval_length = sizeof(lval) / sizeof(lval[0]);
     char* valFormat[] =
     {
         // 0.####E0
@@ -112,45 +103,6 @@ NumberFormatTest::TestExponential(void)
         // 0.###E0;[0.###E0]
         "1.234E-2", "1.235E8", "1.23E300", "[3.142E-271]"
     };
-    double valParse[] =
-    {
-        0.01234, 123460000, 1.23E300, -3.1416E-271,
-        0.01234, 123460000, 1.23E300, -3.1416E-271,
-        0.01234, 123456800, 1.23E300, -3.141593E-271,
-        0.01234, 123500000, 1.23E300, -3.142E-271,
-    };
-#elif DBL_MAX_10_EXP > 70
-    double val[] = { 0.01234, 123456789, 1.23e70, -3.141592653e-71 };
-    int32_t val_length = sizeof(val) / sizeof(val[0]);
-    char* valFormat[] =
-    {
-        // 0.####E0
-        "1.234E-2", "1.2346E8", "1.23E70", "-3.1416E-71",
-        // 00.000E00
-        "12.340E-03", "12.346E07", "12.300E69", "-31.416E-72",
-        // ##0.######E000
-        "12.34E-003", "123.4568E006", "12.3E069", "-31.41593E-072",
-        // 0.###E0;[0.###E0]
-        "1.234E-2", "1.235E8", "1.23E70", "[3.142E-71]"
-    };
-    double valParse[] =
-    {
-        0.01234, 123460000, 1.23E70, -3.1416E-71,
-        0.01234, 123460000, 1.23E70, -3.1416E-71,
-        0.01234, 123456800, 1.23E70, -3.141593E-71,
-        0.01234, 123500000, 1.23E70, -3.142E-71,
-    };
-#else
-    // Don't test double conversion
-    double* val = 0;
-    int32_t val_length = 0;
-    char** valFormat = 0;
-    double* valParse = 0;
-    logln("Warning: Skipping double conversion tests");
-#endif
-
-    int32_t lval[] = { 0, -1, 1, 123456789 };
-    int32_t lval_length = sizeof(lval) / sizeof(lval[0]);
     char* lvalFormat[] =
     {
         // 0.####E0
@@ -161,6 +113,13 @@ NumberFormatTest::TestExponential(void)
         "0E000", "-1E000", "1E000", "123.4568E006",
         // 0.###E0;[0.###E0]
         "0E0", "[1E0]", "1E0", "1.235E8"
+    };
+    double valParse[] =
+    {
+        0.01234, 123460000, 1.23E300, -3.1416E-271,
+        0.01234, 123460000, 1.23E300, -3.1416E-271,
+        0.01234, 123456800, 1.23E300, -3.141593E-271,
+        0.01234, 123500000, 1.23E300, -3.142E-271,
     };
     int32_t lvalParse[] =
     {
@@ -270,14 +229,9 @@ NumberFormatTest::TestCurrencySign(void)
 {
     UErrorCode status = U_ZERO_ERROR;
     DecimalFormatSymbols* sym = new DecimalFormatSymbols(Locale::US, status);
-    UnicodeString pat;
-    UChar currency = 0x00A4;
-    // "\xA4#,##0.00;-\xA4#,##0.00"
-    pat.append(currency).append("#,##0.00;-").
-        append(currency).append("#,##0.00");
-    DecimalFormat *fmt = new DecimalFormat(pat, *sym, status);
+    DecimalFormat *fmt = new DecimalFormat("\xA4#,##0.00;-\xA4#,##0.00", *sym, status);
     UnicodeString s; ((NumberFormat*)fmt)->format(1234.56, s);
-    pat.truncate(0);
+    UnicodeString pat;
     logln((UnicodeString)"Pattern \"" + fmt->toPattern(pat) + "\"");
     logln((UnicodeString)" Format " + 1234.56 + " -> " + escape(s));
     if (s != "$1,234.56") errln((UnicodeString)"FAIL: Expected $1,234.56");
@@ -286,13 +240,7 @@ NumberFormatTest::TestCurrencySign(void)
     logln((UnicodeString)" Format " + (-1234.56) + " -> " + escape(s));
     if (s != "-$1,234.56") errln((UnicodeString)"FAIL: Expected -$1,234.56");
     delete fmt;
-    pat.truncate(0);
-    // "\xA4\xA4 #,##0.00;\xA4\xA4 -#,##0.00"
-    pat.append(currency).append(currency).
-        append(" #,##0.00;").
-        append(currency).append(currency).
-        append(" -#,##0.00");
-    fmt = new DecimalFormat(pat, *sym, status);
+    fmt = new DecimalFormat("\xA4\xA4 #,##0.00;\xA4\xA4 -#,##0.00", *sym, status);
     s.truncate(0);
     ((NumberFormat*)fmt)->format(1234.56, s);
     logln((UnicodeString)"Pattern \"" + fmt->toPattern(pat) + "\"");
@@ -689,24 +637,22 @@ void NumberFormatTest::TestPatterns2(void) {
     DecimalFormat fmt("#", US, status);
     CHECK(status, "DecimalFormat constructor");
 
-    UChar hat = 0x005E; /*^*/
-
-    expectPad(fmt, "*^#", DecimalFormat::kPadBeforePrefix, 1, hat);
-    expectPad(fmt, "$*^#", DecimalFormat::kPadAfterPrefix, 2, hat);
-    expectPad(fmt, "#*^", DecimalFormat::kPadBeforeSuffix, 1, hat);
-    expectPad(fmt, "#$*^", DecimalFormat::kPadAfterSuffix, 2, hat);
+    expectPad(fmt, "*^#", DecimalFormat::kPadBeforePrefix, 1, '^');
+    expectPad(fmt, "$*^#", DecimalFormat::kPadAfterPrefix, 2, '^');
+    expectPad(fmt, "#*^", DecimalFormat::kPadBeforeSuffix, 1, '^');
+    expectPad(fmt, "#$*^", DecimalFormat::kPadAfterSuffix, 2, '^');
     expectPad(fmt, "$*^$#", ILLEGAL);
     expectPad(fmt, "#$*^$", ILLEGAL);
     expectPad(fmt, "'pre'#,##0*x'post'", DecimalFormat::kPadBeforeSuffix,
-              12, (UChar)0x0078 /*x*/);
+              12, 'x');
     expectPad(fmt, "''#0*x", DecimalFormat::kPadBeforeSuffix,
-              3, (UChar)0x0078 /*x*/);
+              3, 'x');
     expectPad(fmt, "'I''ll'*a###.##", DecimalFormat::kPadAfterPrefix,
-              10, (UChar)0x0061 /*a*/);
+              10, 'a');
 
     fmt.applyPattern("AA#,##0.00ZZ", status);
     CHECK(status, "applyPattern");
-    fmt.setPadCharacter(hat);
+    fmt.setPadCharacter('^');
 
     fmt.setFormatWidth(10);
 

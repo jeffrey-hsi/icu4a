@@ -881,7 +881,7 @@ compareProps(const void *l, const void *r) {
 /* generate output data ----------------------------------------------------- */
 
 extern void
-generateData(const char *dataDir) {
+generateData(void) {
     static uint16_t indexes[8]={
         STAGE_2_BITS, STAGE_3_BITS,
         0, 0,
@@ -926,7 +926,7 @@ generateData(const char *dataDir) {
     }
 
     /* write the data */
-    pData=udata_create(dataDir, DATA_TYPE, DATA_NAME, &dataInfo,
+    pData=udata_create(DATA_TYPE, DATA_NAME, &dataInfo,
                        haveCopyright ? U_COPYRIGHT_STRING : NULL, &errorCode);
     if(U_FAILURE(errorCode)) {
         fprintf(stderr, "genprops: unable to create data memory, error %d\n", errorCode);
@@ -1040,12 +1040,3 @@ addUChars(const UChar *s, uint16_t length) {
     ucharsTop=top;
     return (uint16_t)(p-uchars);
 }
-
-/*
- * Hey, Emacs, please set the following:
- *
- * Local Variables:
- * indent-tabs-mode: nil
- * End:
- *
- */
