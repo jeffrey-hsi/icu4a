@@ -519,8 +519,6 @@ static void TestConvertFallBackWithBufferSizes(int32_t outsize, int32_t insize )
     static const char* nativeCodePage[]={
         /*NLCS Mapping*/
         "ibm-367",
-        "ibm-437",
-        "ibm-850",
         "ibm-1051",
         "ibm-1089",
         "ibm-1250",
@@ -531,8 +529,8 @@ static void TestConvertFallBackWithBufferSizes(int32_t outsize, int32_t insize )
         "ibm-1256",
         "ibm-1257",
         "ibm-1258",
-        "ibm-1276",
-        "ibm-1277"
+        "ibm-1275",
+        "ibm-1276"
     };
 
     int32_t i=0;
@@ -711,7 +709,7 @@ static void TestConvertFallBackWithBufferSizes(int32_t outsize, int32_t insize )
                 0x01, 0x02, 0x03, 0x0a, 0x01, 0x02, 0x03, 0x0e, 0x01, 0x02, 0x03, 0x0d, 0x03, 0x01, 0x02, 0x03, 0x0c,};
         const UChar expectedUnicode[] = 
                 { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xdbba, 0xdfcd,
-                  0xd84d, 0xdc56, 0x000e, 0xd891, 0xdd67, 0x1a, 0xfffd}; 
+                  0xd84d, 0xdc56, 0x000e, 0xd891, 0xdd67, 0xfffd, 0xfffd}; 
         int32_t fromtest4Offs[]       = 
                 { 0, 1, 2, 3, 7, 7, 8, 8, 9, 9, 13, 17, 17, 21, 22,};
 

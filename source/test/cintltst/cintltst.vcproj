@@ -44,9 +44,9 @@
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="icuucd.lib icuind.lib icutud.lib ctestfwd.lib"
 				OutputFile=".\Debug/cintltst.exe"
-				LinkIncremental="2"
+				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\..\lib\"
+				AdditionalLibraryDirectories="..\..\..\lib"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\Debug/cintltst.pdb"
 				SubSystem="1"/>
@@ -181,6 +181,9 @@
 				RelativePath=".\ccolltst.h">
 			</File>
 			<File
+				RelativePath=".\cctest.c">
+			</File>
+			<File
 				RelativePath=".\ccurrtst.c">
 			</File>
 			<File
@@ -266,9 +269,6 @@
 				RelativePath=".\chashtst.c">
 			</File>
 			<File
-				RelativePath=".\sorttest.c">
-			</File>
-			<File
 				RelativePath=".\trietest.c">
 			</File>
 			<File
@@ -292,9 +292,6 @@
 			</File>
 			<File
 				RelativePath=".\cconvtst.c">
-			</File>
-			<File
-				RelativePath=".\cctest.c">
 			</File>
 			<File
 				RelativePath=".\eurocreg.c">
@@ -439,16 +436,10 @@
 				RelativePath=".\cutiltst.c">
 			</File>
 			<File
-				RelativePath=".\hpmufn.c">
-			</File>
-			<File
 				RelativePath=".\mstrmtst.c">
 			</File>
 			<File
 				RelativePath=".\putiltst.c">
-			</File>
-			<File
-				RelativePath=".\tracetst.c">
 			</File>
 		</Filter>
 		<Filter
@@ -466,9 +457,6 @@
 			Filter="">
 			<File
 				RelativePath=".\cucdapi.c">
-			</File>
-			<File
-				RelativePath=".\cucdapi.h">
 			</File>
 			<File
 				RelativePath=".\cucdtst.c">
@@ -512,25 +500,6 @@
 		<Filter
 			Name="regex"
 			Filter="">
-		</Filter>
-		<Filter
-			Name="sprep &amp; idna"
-			Filter="">
-			<File
-				RelativePath="idnatest.c">
-			</File>
-			<File
-				RelativePath="nfsprep.c">
-			</File>
-			<File
-				RelativePath="nfsprep.h">
-			</File>
-			<File
-				RelativePath="spreptst.c">
-			</File>
-			<File
-				RelativePath="sprpdata.c">
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

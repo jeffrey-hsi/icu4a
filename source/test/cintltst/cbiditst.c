@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2003, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*   file name:  cbiditst.cpp
@@ -437,7 +437,7 @@ doTest(UBiDi *pBiDi, int testNumber, BiDiTestData *test, int32_t lineStart, UBoo
     const uint8_t *dirProps=test->text+lineStart;
     const UBiDiLevel *levels=test->levels;
     const uint8_t *visualMap=test->visualMap;
-    int32_t i, len=ubidi_getLength(pBiDi), logicalIndex, runCount = 0;
+    int32_t i, len=ubidi_getLength(pBiDi), logicalIndex, runCount;
     UErrorCode errorCode=U_ZERO_ERROR;
     UBiDiLevel level, level2;
 

@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2001-2003, International Business Machines
+*   Copyright (c) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -27,7 +27,7 @@ static const UChar SEMI[] = {59,0}; // ";"
 static const UChar RBRACE[] = {125,0}; // "}"
 static const UChar EMPTY[] = {0}; // ""
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(EscapeTransliterator)
+const char EscapeTransliterator::fgClassID=0;
 
 /**
  * Factory methods
@@ -127,11 +127,8 @@ Transliterator* EscapeTransliterator::clone() const {
 /**
  * Implements {@link Transliterator#handleTransliterate}.
  */
-void EscapeTransliterator::handleTransliterate(Replaceable& text,
-                                               UTransPosition& pos,
-                                               UBool /*isIncremental*/) const
-{
-    /* TODO: Verify that isIncremental can be ignored */
+void EscapeTransliterator::handleTransliterate(Replaceable& text, UTransPosition& pos,
+                                               UBool isIncremental) const {
     int32_t start = pos.start;
     int32_t limit = pos.limit;
 

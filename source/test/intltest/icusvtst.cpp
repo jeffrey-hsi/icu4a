@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * Copyright (C) 2001-2003, International Business Machines Corporation and    *
+ * Copyright (C) 2001-2002, International Business Machines Corporation and    *
  * others. All Rights Reserved.                                                *
  *******************************************************************************
  *
@@ -12,8 +12,8 @@
 #if !UCONFIG_NO_SERVICE
 
 #include "icusvtst.h"
+
 #include "iculserv.h"
-#include <stdio.h>
 
 
 class MyListener : public EventListener {
@@ -467,7 +467,7 @@ class TestStringService : public ICUService {
         return LocaleKey::createWithCanonicalFallback(id, NULL, status); // no fallback locale
     }
 
-  virtual ICUServiceFactory* createSimpleFactory(UObject* obj, const UnicodeString& id, UBool visible, UErrorCode& /* status */) 
+    virtual ICUServiceFactory* createSimpleFactory(UObject* obj, const UnicodeString& id, UBool visible, UErrorCode& status) 
     {
         if (obj && obj->getDynamicClassID() == UnicodeString::getStaticClassID()) {
             return new SimpleFactory((UnicodeString*)obj, id, visible);
@@ -484,7 +484,7 @@ class TestStringService : public ICUService {
 class AnonymousStringFactory : public ICUServiceFactory
 {
     public:
-    virtual UObject* create(const ICUServiceKey& key, const ICUService* /* service */, UErrorCode& /* status */) const {
+    virtual UObject* create(const ICUServiceKey& key, const ICUService* service, UErrorCode& status) const {
         return new UnicodeString(key.getID());
     }
 
@@ -530,19 +530,12 @@ class TestMultipleKeyStringFactory : public ICUServiceFactory {
     ~TestMultipleKeyStringFactory() {
     }
 
-    UObject* create(const ICUServiceKey& key, const ICUService* /* service */, UErrorCode& status) const {
-        if (U_FAILURE(status)) {
-	    return NULL;
-        }
+    UObject* create(const ICUServiceKey& key, const ICUService* service, UErrorCode& status) const {
         UnicodeString temp;
         key.currentID(temp);
-        if (U_SUCCESS(_status)) {
-	    if (_ids.contains(&temp)) {
-                return new UnicodeString(_factoryID + temp);
-	    }
-        } else {
-	    status = _status;
-	}
+        if (U_SUCCESS(_status) && _ids.contains(&temp)) {
+            return new UnicodeString(_factoryID + temp);
+        }
         return NULL;
     }
 
@@ -667,7 +660,7 @@ ICUServiceTest::testAPI_Two()
     // iterate over the display names
     {
         UErrorCode status = U_ZERO_ERROR;
-        UVector names(userv_deleteStringPair, NULL, status);
+        UVector names(deleteStringPair, NULL, status);
         service.getDisplayNames(names, Locale::getGerman(), status);
         for (int i = 0; i < names.size(); ++i) {
             const StringPair* pair = (const StringPair*)names[i];
@@ -707,7 +700,7 @@ ICUServiceTest::testAPI_Two()
     // Rad dude's surfer gal 'replaces' Later's surfer gal
     {
         UErrorCode status = U_ZERO_ERROR;
-        UVector names(userv_deleteStringPair, NULL, status);
+        UVector names(deleteStringPair, NULL, status);
         service.getDisplayNames(names, Locale("es"), status);
         for (int i = 0; i < names.size(); ++i) {
             const StringPair* pair = (const StringPair*)names[i];
@@ -878,7 +871,7 @@ ICUServiceTest::testRBF()
     // this should be fast since the display names were cached.
     {
         UErrorCode status = U_ZERO_ERROR;
-        UVector names(userv_deleteStringPair, NULL, status);
+        UVector names(deleteStringPair, NULL, status);
         service.getDisplayNames(names, Locale::getGermany(), status);
         logln("service display names for de_DE");
         for (int i = 0; i < names.size(); ++i) {
@@ -904,7 +897,7 @@ ICUServiceTest::testRBF()
             logln(UnicodeString("\n  --- ") + idNames[i] + " ---");
             {
                 UErrorCode status = U_ZERO_ERROR;
-                UVector names(userv_deleteStringPair, NULL, status);
+                UVector names(deleteStringPair, NULL, status);
                 service.getDisplayNames(names, idNames[i], status);
                 for (int i = 0; i < names.size(); ++i) {
                     const StringPair* pair = (const StringPair*)names[i];
@@ -1215,7 +1208,7 @@ class WrapFactory : public ICUServiceFactory {
         }
     }
 
-    UnicodeString& getDisplayName(const UnicodeString& id, const Locale& /* locale */, UnicodeString& result) const {
+    UnicodeString& getDisplayName(const UnicodeString& id, const Locale& locale, UnicodeString& result) const {
         result.append("wrap '");
         result.append(id);
         result.append("'");

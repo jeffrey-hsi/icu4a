@@ -29,6 +29,7 @@ en_US_POSIX {
         "INF",
         "\uFFFD",
         ".",
-        "+",
     }
+//    LocaleString { "en_US_POSIX" }
+    LocaleID:int { 0x7F }
 }

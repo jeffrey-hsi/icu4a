@@ -75,12 +75,6 @@ class NumberFormatTest: public CalendarTimeZoneTest {
 
     void TestScientific(void);
 
-    void TestScientific2(void);
-
-    void TestScientificGrouping(void);
-
-    void TestInt64(void);
-
     void TestSurrogateSupport(void);
 
     /**
@@ -103,8 +97,6 @@ class NumberFormatTest: public CalendarTimeZoneTest {
     void TestSymbolsWithBadLocale(void);
 
     void TestAdoptDecimalFormatSymbols(void);
-
-    void TestPerMill(void);
 
  private:
 

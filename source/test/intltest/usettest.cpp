@@ -15,9 +15,6 @@
 #include "unicode/uchar.h"
 #include "unicode/usetiter.h"
 #include "unicode/ustring.h"
-#include "unicode/parsepos.h"
-#include "unicode/symtable.h"
-#include "hash.h"
 
 UnicodeString operator+(const UnicodeString& left, const UnicodeSet& set) {
     UnicodeString pat;
@@ -57,8 +54,6 @@ UnicodeSetTest::runIndexedTest(int32_t index, UBool exec,
         CASE(15,TestCloseOver);
         CASE(16,TestEscapePattern);
         CASE(17,TestInvalidCodePoint);
-        CASE(18,TestSymbolTable);
-        CASE(19,TestSurrogate);
         default: name = ""; break;
     }
 }
@@ -487,8 +482,7 @@ void UnicodeSetTest::TestAPI() {
 
     logln((UnicodeString)"a [3-10]: " + a);
     logln((UnicodeString)"b [7-15]: " + b);
-    c = a;
-    c.addAll(b);
+    c = a; c.addAll(b);
     UnicodeSet exp((UChar32)3,(UChar32)15);
     if (c == exp) {
         logln((UnicodeString)"c.set(a).add(b): " + c);
@@ -510,8 +504,7 @@ void UnicodeSetTest::TestAPI() {
     } else {
         errln((UnicodeString)"FAIL: c.complement() = " + c + ", expect " + exp);
     }
-    c = a;
-    c.complementAll(b);
+    c = a; c.complementAll(b);
     exp.set((UChar32)3,(UChar32)6);
     exp.add((UChar32)11,(UChar32) 15);
     if (c == exp) {
@@ -668,7 +661,7 @@ void UnicodeSetTest::TestStringPatterns() {
         s->applyPattern("[a-z {\\{l} {r\\}}]", ec);
         if (U_FAILURE(ec)) break;
         const char* exp3[] = {"{l", "r}", NOT, "xy", NULL};
-        expectToPattern(*s, "[a-z{r\\}}{\\{l}]", exp3);
+        expectToPattern(*s, "[a-z{\\{l}{r\\}}]", exp3);
 
         s->add("[]");
         const char* exp4[] = {"{l", "r}", "[]", NOT, "xy", NULL};
@@ -677,7 +670,7 @@ void UnicodeSetTest::TestStringPatterns() {
         s->applyPattern("[a-z {\\u4E01\\u4E02}{\\n\\r}]", ec);
         if (U_FAILURE(ec)) break;
         const char* exp5[] = {"\\u4E01\\u4E02", "\n\r", NULL};
-        expectToPattern(*s, "[a-z{\\u000A\\u000D}{\\u4E01\\u4E02}]", exp5);
+        expectToPattern(*s, "[a-z{\\u4E01\\u4E02}{\\n\\r}]", exp5);
 
         // j2189
         s->clear();
@@ -817,35 +810,7 @@ void UnicodeSetTest::TestPropertySet() {
 
         "[^b-]", // trailing '-' is literal
         "ac",
-        "-b",
-
-        "[a-b-]", // trailing '-' is literal
-        "ab-",
-        "c=",
-        
-        "[[a-q]&[p-z]-]", // trailing '-' is literal
-        "pq-",
-        "or=",
-
-        "[\\s|\\)|:|$|\\>]", // from regex tests
-        "s|):$>",
-        "abc",
-
-        "[\\uDC00cd]", // JB#2906: isolated trail at start
-        "cd\\uDC00",
-        "ab\\uD800\\U00010000",
-        
-        "[ab\\uD800]", // JB#2906: isolated trail at start
-        "ab\\uD800",
-        "cd\\uDC00\\U00010000",
-        
-        "[ab\\uD800cd]", // JB#2906: isolated lead in middle
-        "abcd\\uD800",
-        "ef\\uDC00\\U00010000",
-        
-        "[ab\\uDC00cd]", // JB#2906: isolated trail in middle
-        "abcd\\uDC00",
-        "ef\\uD800\\U00010000"
+        "-b"
     };
 
     static const int32_t DATA_LEN = sizeof(DATA)/sizeof(DATA[0]);
@@ -955,13 +920,13 @@ void UnicodeSetTest::TestCloseOver() {
     }
 
     // Test the pattern API
-    s.applyPattern("[abc]", USET_CASE_INSENSITIVE, NULL, ec);
+    s.applyPattern("[abc]", USET_CASE_INSENSITIVE, ec);
     if (U_FAILURE(ec)) {
         errln("FAIL: applyPattern failed");
     } else {
         expectContainment(s, "abcABC", "defDEF");
     }
-    UnicodeSet v("[^abc]", USET_CASE_INSENSITIVE, NULL, ec);
+    UnicodeSet v("[^abc]", USET_CASE_INSENSITIVE, ec);
     if (U_FAILURE(ec)) {
         errln("FAIL: constructor failed");
     } else {
@@ -971,12 +936,13 @@ void UnicodeSetTest::TestCloseOver() {
 
 void UnicodeSetTest::TestEscapePattern() {
     const char pattern[] =
-        "[\\uFEFF \\u200A-\\u200E \\U0001D173-\\U0001D17A \\U000F0000-\\U000FFFFD ]";
+        "[\\uFEFF \\uFFF9-\\uFFFC \\U0001D173-\\U0001D17A \\U000F0000-\\U000FFFFD ]";
     const char exp[] =
-        "[\\u200A-\\u200E\\uFEFF\\U0001D173-\\U0001D17A\\U000F0000-\\U000FFFFD]";
+        "[\\uFEFF\\uFFF9-\\uFFFC\\U0001D173-\\U0001D17A\\U000F0000-\\U000FFFFD]";
     // We test this with two passes; in the second pass we
-    // pre-unescape the pattern.  Since U+200E is rule whitespace,
-    // this fails -- which is what we expect.
+    // pre-unescape the pattern.  Since U+FEFF and several other code
+    // points are rule whitespace, this fails -- which is what we
+    // expect.
     for (int32_t pass=1; pass<=2; ++pass) {
         UErrorCode ec = U_ZERO_ERROR;
         UnicodeString pat(pattern);
@@ -1076,7 +1042,7 @@ void UnicodeSetTest::TestInvalidCodePoint() {
         b = set.containsNone(start, end);
         b = set.containsSome(start, end);
 
-        /*int32_t index = set.indexOf(start);*/
+        int32_t index = set.indexOf(start);
         
         set.clear();
         set.add(start);
@@ -1150,156 +1116,6 @@ void UnicodeSetTest::TestInvalidCodePoint() {
         } else {
             errln((UnicodeString)"FAIL: [\\u0000-\\U0010FFFF].indexOf(" + c +
                   ") = " + index);
-        }
-    }
-}
-
-// Used by TestSymbolTable
-class TokenSymbolTable : public SymbolTable {
-public:
-    Hashtable contents;
-
-    TokenSymbolTable(UErrorCode& ec) : contents(FALSE, ec) {
-        contents.setValueDeleter(uhash_deleteUnicodeString);
-    }
-
-    ~TokenSymbolTable() {}
-
-    /**
-     * (Non-SymbolTable API) Add the given variable and value to
-     * the table.  Variable should NOT contain leading '$'.
-     */
-    void add(const UnicodeString& var, const UnicodeString& value,
-             UErrorCode& ec) {
-        if (U_SUCCESS(ec)) {
-            contents.put(var, new UnicodeString(value), ec);
-        }
-    }
-
-    /**
-     * SymbolTable API
-     */
-    virtual const UnicodeString* lookup(const UnicodeString& s) const {
-        return (const UnicodeString*) contents.get(s);
-    }
-
-    /**
-     * SymbolTable API
-     */
-    virtual const UnicodeFunctor* lookupMatcher(UChar32 /*ch*/) const {
-        return NULL;
-    }
-
-    /**
-     * SymbolTable API
-     */
-    virtual UnicodeString parseReference(const UnicodeString& text,
-                                         ParsePosition& pos, int32_t limit) const {
-        int32_t start = pos.getIndex();
-        int32_t i = start;
-        UnicodeString result;
-        while (i < limit) {
-            UChar c = text.charAt(i);
-            if ((i==start && !u_isIDStart(c)) || !u_isIDPart(c)) {
-                break;
-            }
-            ++i;
-        }
-        if (i == start) { // No valid name chars
-            return result; // Indicate failure with empty string
-        }
-        pos.setIndex(i);
-        text.extractBetween(start, i, result);
-        return result;
-    }
-};
-
-void UnicodeSetTest::TestSymbolTable() {
-    // Multiple test cases can be set up here.  Each test case
-    // is terminated by null:
-    // var, value, var, value,..., input pat., exp. output pat., null
-    const char* DATA[] = {
-        "us", "a-z", "[0-1$us]", "[0-1a-z]", NULL,
-        "us", "[a-z]", "[0-1$us]", "[0-1[a-z]]", NULL,
-        "us", "\\[a\\-z\\]", "[0-1$us]", "[-01\\[\\]az]", NULL,
-        NULL
-    };
-
-    for (int32_t i=0; DATA[i]!=NULL; ++i) {
-        UErrorCode ec = U_ZERO_ERROR;
-        TokenSymbolTable sym(ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: couldn't construct TokenSymbolTable");
-            continue;
-        }
-
-        // Set up variables
-        while (DATA[i+2] != NULL) {
-            sym.add(DATA[i], DATA[i+1], ec);
-            if (U_FAILURE(ec)) {
-                errln("FAIL: couldn't add to TokenSymbolTable");
-                continue;
-            }
-            i += 2;
-        }
-
-        // Input pattern and expected output pattern
-        UnicodeString inpat = DATA[i], exppat = DATA[i+1];
-        i += 2;
-
-        ParsePosition pos(0);
-        UnicodeSet us(inpat, pos, USET_IGNORE_SPACE, &sym, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: couldn't construct UnicodeSet");
-            continue;
-        }
-
-        // results
-        if (pos.getIndex() != inpat.length()) {
-            errln((UnicodeString)"Failed to read to end of string \""
-                  + inpat + "\": read to "
-                  + pos.getIndex() + ", length is "
-                  + inpat.length());
-        }
-
-        UnicodeSet us2(exppat, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: couldn't construct expected UnicodeSet");
-            continue;
-        }
-        
-        UnicodeString a, b;
-        if (us != us2) {
-            errln((UnicodeString)"Failed, got " + us.toPattern(a, TRUE) +
-                  ", expected " + us2.toPattern(b, TRUE));
-        } else {
-            logln((UnicodeString)"Ok, got " + us.toPattern(a, TRUE));
-        }
-    }
-}
-
-void UnicodeSetTest::TestSurrogate() {
-    const char* DATA[] = {
-        // These should all behave identically
-        "[abc\\uD800\\uDC00]",
-        // "[abc\uD800\uDC00]", // Can't do this on C -- only Java
-        "[abc\\U00010000]",
-        0
-    };
-    for (int i=0; DATA[i] != 0; ++i) {
-        UErrorCode ec = U_ZERO_ERROR;
-        logln((UnicodeString)"Test pattern " + i + " :" + DATA[i]);
-        UnicodeSet set(DATA[i], ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: UnicodeSet constructor");
-            continue;
-        }
-        expectContainment(set,
-                          CharsToUnicodeString("abc\\U00010000"),
-                          CharsToUnicodeString("\\uD800;\\uDC00")); // split apart surrogate-pair
-        if (set.size() != 4) {
-            errln((UnicodeString)"FAIL: " + DATA[i] + ".size() == " + 
-                  set.size() + ", expected 4");
         }
     }
 }

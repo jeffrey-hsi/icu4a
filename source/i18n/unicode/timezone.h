@@ -32,7 +32,6 @@
 
 #include "unicode/uobject.h"
 #include "unicode/unistr.h"
-#include "unicode/ures.h"
 
 U_NAMESPACE_BEGIN
 
@@ -178,7 +177,6 @@ public:
      */
     static StringEnumeration* createEnumeration(const char* country);
 
-#ifdef U_USE_TIMEZONE_OBSOLETE_2_8
     /**
      * Returns a list of time zone IDs, one for each time zone with a given GMT offset.
      * The return value is a list because there may be several times zones with the same
@@ -242,7 +240,6 @@ public:
      * @obsolete ICU 2.8.  Use createEnumeration(void) instead since this API will be removed in that release.
      */
     static const UnicodeString** createAvailableIDs(int32_t& numIDs);
-#endif
 
     /**
      * Returns the number of IDs in the equivalency group that
@@ -346,18 +343,14 @@ public:
      * that is returned (in other words, what is the adjusted GMT offset in this time zone
      * at this particular date and time?).  For the time zones produced by createTimeZone(),
      * the reference data is specified according to the Gregorian calendar, and the date
-     * and time fields are local standard time.
-     *
-     * <p>Note: Don't call this method. Instead, call the getOffset(UDate...) overload,
-     * which returns both the raw and the DST offset for a given time. This method
-     * is retained only for backward compatibility.
+     * and time fields are in GMT, NOT local time.
      *
      * @param era        The reference date's era
      * @param year       The reference date's year
      * @param month      The reference date's month (0-based; 0 is January)
      * @param day        The reference date's day-in-month (1-based)
      * @param dayOfWeek  The reference date's day-of-week (1-based; 1 is Sunday)
-     * @param millis     The reference date's milliseconds in day, local standard time
+     * @param millis     The reference date's milliseconds in day, UTT (NOT local time).
      * @param status     Output param to filled in with a success or an error.
      * @return           The offset in milliseconds to add to GMT to get local time.
      * @stable ICU 2.0
@@ -368,11 +361,6 @@ public:
     /**
      * Gets the time zone offset, for current date, modified in case of
      * daylight savings. This is the offset to add *to* UTC to get local time.
-     *
-     * <p>Note: Don't call this method. Instead, call the getOffset(UDate...) overload,
-     * which returns both the raw and the DST offset for a given time. This method
-     * is retained only for backward compatibility.
-     *
      * @param era the era of the given date.
      * @param year the year in the given date.
      * @param month the month in the given date.
@@ -388,32 +376,6 @@ public:
     virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
                            uint8_t dayOfWeek, int32_t milliseconds,
                            int32_t monthLength, UErrorCode& status) const = 0;
-
-    /**
-     * Returns the time zone raw and GMT offset for the given moment
-     * in time.  Upon return, local-millis = GMT-millis + rawOffset +
-     * dstOffset.  All computations are performed in the proleptic
-     * Gregorian calendar.  The default implementation in the TimeZone
-     * class delegates to the 8-argument getOffset().
-     *
-     * @param date moment in time for which to return offsets, in
-     * units of milliseconds from January 1, 1970 0:00 GMT, either GMT
-     * time or local wall time, depending on `local'.
-     * @param local if true, `date' is local wall time; otherwise it
-     * is in GMT time.
-     * @param rawOffset output parameter to receive the raw offset, that
-     * is, the offset not including DST adjustments
-     * @param dstOffset output parameter to receive the DST offset,
-     * that is, the offset to be added to `rawOffset' to obtain the
-     * total offset between local and GMT time. If DST is not in
-     * effect, this value is zero; otherwise it is a positive value,
-     * typically one hour.
-     * @param ec input-output error code
-     *
-     * @draft ICU 2.8
-     */
-    virtual void getOffset(UDate date, UBool local, int32_t& rawOffset,
-                           int32_t& dstOffset, UErrorCode& ec) const;
 
     /**
      * Sets the TimeZone's raw GMT offset (i.e., the number of milliseconds to add
@@ -575,6 +537,19 @@ public:
     virtual TimeZone* clone(void) const = 0;
 
     /**
+     * Return the class ID for this class.  This is useful only for
+     * comparing to a return value from getDynamicClassID().  For example:
+     * <pre>
+     * .   Base* polymorphic_pointer = createPolymorphicObject();
+     * .   if (polymorphic_pointer->getDynamicClassID() ==
+     * .       Derived::getStaticClassID()) ...
+     * </pre>
+     * @return The class ID for all objects of this class.
+     * @stable ICU 2.0
+     */
+    static inline UClassID getStaticClassID(void);
+
+    /**
      * Returns a unique class ID POLYMORPHICALLY. Pure virtual method. This method is to
      * implement a simple version of RTTI, since not all C++ compilers support genuine
      * RTTI. Polymorphic operator==() and clone() methods call this method.
@@ -620,18 +595,9 @@ protected:
      */
     TimeZone& operator=(const TimeZone& right);
 
-    /**
-     * Utility function. For internally loading rule data.
-     * @param top Top resource bundle for tz data
-     * @param ruleid ID of rule to load
-     * @param oldbundle Old bundle to reuse or NULL
-     * @param status Status parameter
-     * @return either a new bundle or *oldbundle
-     * @internal
-     */
-    static UResourceBundle* loadRule(const UResourceBundle* top, const UnicodeString& ruleid, UResourceBundle* oldbundle, UErrorCode&status);
-
 private:
+    static const char fgClassID;
+
     static TimeZone*        createCustomTimeZone(const UnicodeString&); // Creates a time zone based on the string.
 
     /**
@@ -654,6 +620,10 @@ private:
     UnicodeString           fID;    // this time zone's ID
 };
 
+
+inline UClassID
+TimeZone::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
 
 // -------------------------------------
 

@@ -96,9 +96,6 @@ static void MessageFormatTest( void )
     int32_t resultLengthOut,resultlength,i, patternlength;
     UErrorCode status = U_ZERO_ERROR;
     UDate d1=1000000000.0;
-
-    ctest_setTimeZone(NULL, &status);
-
     str=(UChar*)malloc(sizeof(UChar) * 7);
     u_uastrncpy(str, "MyDisk", 7);
     resultlength=1;
@@ -209,10 +206,10 @@ static void MessageFormatTest( void )
                         austrdup(result), austrdup(testResultStrings[i]) );
                 }
 
-#if !defined(U_HPUX)
+#if !defined(HPUX)
                 /* HP/UX and possibly other platforms don't properly check for this case.
                    We pass in a UDate, but the function expects a UDate *.  When va_arg is used,
-                   most compilers will return NULL, but HP-UX won't do that and will return 2
+                   most compilers will return NULL, but HP/UX won't do that and will return 2
                    in this case.  This is a platform dependent test.
                 */
                 umsg_parse(formatter,result,resultLength,&count,&ec,one,two,d2);
@@ -235,8 +232,6 @@ static void MessageFormatTest( void )
         umsg_close(formatter);
     }
     FreeStrings();
-
-    ctest_resetTimeZone();
 }
 
 
@@ -249,9 +244,6 @@ static void TestSampleMessageFormat()
     int32_t resultLengthOut, resultlength;
     UDate d = 837039928046.0;
     UErrorCode status = U_ZERO_ERROR;
-
-    ctest_setTimeZone(NULL, &status);
-
     str=(UChar*)malloc(sizeof(UChar) * 15);
     u_uastrcpy(str, "abc");    
     
@@ -336,8 +328,6 @@ static void TestSampleMessageFormat()
     
     free(result);
     free(str);
-
-    ctest_resetTimeZone();
 }
 
 /* Test umsg_format() and umsg_parse() , format and parse sequence and round trip */
@@ -357,9 +347,6 @@ static void TestNewFormatAndParseAPI(void)
     UParseError parseError;
     UMessageFormat* fmt = NULL;
     int32_t count=0;
-
-    ctest_setTimeZone(NULL, &status);
-
     log_verbose("Testing format and parse with parse error\n");
 
     str=(UChar*)malloc(sizeof(UChar) * 25);
@@ -441,8 +428,7 @@ static void TestNewFormatAndParseAPI(void)
     free(result);
     free(str);
     free(tzID);
-
-    ctest_resetTimeZone();
+    
 }
 
 /* Test u_formatMessageWithError() and u_parseMessageWithError() , format and parse sequence and round trip */
@@ -461,8 +447,6 @@ static void TestSampleFormatAndParseWithError(void)
     double value = 0.0;
     UChar ret[30];
     UParseError parseError;
-
-    ctest_setTimeZone(NULL, &status);
 
     log_verbose("Testing format and parse with parse error\n");
 
@@ -537,7 +521,6 @@ static void TestSampleFormatAndParseWithError(void)
     free(str);
     free(tzID);
     
-    ctest_resetTimeZone();
 }
 
 /* Test u_formatMessage() and u_parseMessage() , format and parse sequence and round trip */
@@ -554,9 +537,6 @@ static void TestSampleFormatAndParse()
     UErrorCode status = U_ZERO_ERROR;
     double value = 0.0;
     UChar ret[30];
-
-    ctest_setTimeZone(NULL, &status);
-
     log_verbose("Testing format and parse\n");
 
     str=(UChar*)malloc(sizeof(UChar) * 25);
@@ -630,7 +610,6 @@ static void TestSampleFormatAndParse()
     free(str);
     free(tzID);
     
-    ctest_resetTimeZone();
 }
 
 /* test message format with a choice option */
@@ -786,9 +765,6 @@ static void TestMessageFormatWithValist( void )
     int32_t resultLengthOut,resultlength,i, patternlength;
     UErrorCode status = U_ZERO_ERROR;
     UDate d1=1000000000.0;
-
-    ctest_setTimeZone(NULL, &status);
-
     str=(UChar*)malloc(sizeof(UChar) * 7);
     u_uastrcpy(str, "MyDisk");
     resultlength=1;
@@ -822,8 +798,6 @@ static void TestMessageFormatWithValist( void )
     free(result);
     free(str);
     FreeStrings();
-
-    ctest_resetTimeZone();
 }
 
 static void CallParseMessage(const char* locale, UChar* pattern, int32_t patternLength, 
@@ -890,8 +864,6 @@ static void TestJ904(void) {
     const char* PAT = "Number {1,number,#0.000}, String {0}, Date {2,date,12:mm:ss.SSS}";
     const char* EXP = "Number 0,143, String foo, Date 12:34:56.789";
 
-    ctest_setTimeZone(NULL, &status);
-
     u_uastrcpy(string, "foo");
     /* Slight hack here -- instead of date pattern HH:mm:ss.SSS, use
      * 12:mm:ss.SSS.  Why?  So this test generates the same output --
@@ -915,8 +887,6 @@ static void TestJ904(void) {
     } else {
         log_err("FAIL: got \"%s\", expected \"%s\"\n", cresult, EXP);
     }
-
-    ctest_resetTimeZone();
 }
 
 static void OpenMessageFormatTest(void)

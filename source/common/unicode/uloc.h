@@ -22,7 +22,6 @@
 #define ULOC_H
 
 #include "unicode/utypes.h"
-#include "unicode/uenum.h"
 
 /**    
  * \file
@@ -248,12 +247,6 @@
  */
 #define ULOC_LANG_CAPACITY 12
 /**
- * Useful constant for the maximum size of the script part of a locale ID
- * (including the terminating NULL).
- * @draft ICU 2.8
- */
-#define ULOC_SCRIPT_CAPACITY 6
-/**
  * Useful constant for the maximum size of the country part of a locale ID
  * (including the terminating NULL).
  * @stable ICU 2.0
@@ -264,17 +257,8 @@
  * (including the terminating NULL).
  * @stable ICU 2.0
  */
-#define ULOC_FULLNAME_CAPACITY 56
-/**
- * Useful constant for the maximum size of keywords in a locale
- * @draft ICU 2.8
- */
-#define ULOC_KEYWORDS_CAPACITY 50
-/**
- * Useful constant for the maximum size of keywords in a locale
- * @draft ICU 2.8
- */
-#define ULOC_KEYWORD_AND_VALUES_CAPACITY 100
+#define ULOC_FULLNAME_CAPACITY 50
+
 
 /**
  * Constants for *_getLocale()
@@ -291,29 +275,21 @@
  * @stable ICU 2.1
  */
 typedef enum {
-  /** This is locale the data actually comes from 
-   * @stable ICU 2.1
-   */
+  /** This is locale the data actually comes from */
   ULOC_ACTUAL_LOCALE    = 0,
-  /** This is the most specific locale supported by ICU 
-   * @stable ICU 2.1
-   */
+  /** This is the most specific locale supported by ICU */
   ULOC_VALID_LOCALE    = 1,
-  /** This is the requested locale
-   *  @deprecated ICU 2.8 
-   */
+  /** This is the requested locale */
   ULOC_REQUESTED_LOCALE = 2,
   ULOC_DATA_LOCALE_TYPE_LIMIT
 } ULocDataLocaleType ;
 
 
 /**
- * Gets ICU's default locale.  
- * The returned string is a snapshot in time, and will remain valid
- *   and unchanged even when uloc_setDefault() is called.
- *   The returned storage is owned by ICU, and must not be altered or deleted
- *   by the caller.
- *  
+ * Gets ICU's default locale.  This pointer and/or the contents of the pointer may
+ * become invalid if the uloc_setDefault() is called, so copy the contents of the
+ * pointer before calling uloc_setDefault().
+ *
  * @return the ICU default locale
  * @system
  * @stable ICU 2.0
@@ -322,15 +298,7 @@ U_CAPI const char* U_EXPORT2
 uloc_getDefault(void);
 
 /**
- * Sets ICU's default locale.  
- *    By default (without calling this function), ICU's default locale will be based
- *    on information obtained from the underlying system environment.
- *    <p>
- *    Changes to ICU's default locale do not propagate back to the
- *    system environment.
- *    <p>
- *    Changes to ICU's default locale to not affect any ICU services that
- *    may already be open based on the previous default locale value.
+ * Sets ICU's default locale.  Call this once during setup or program initialization.  
  *
  * @param localeID the new ICU default locale. A value of NULL will try to get
  *                 the system's default locale.
@@ -345,12 +313,12 @@ uloc_setDefault(const char* localeID,
 /**
  * Gets the language code for the specified locale.
  *
- * @param localeID the locale to get the ISO language code with
- * @param language the language code for localeID
+ * @param localeID the locale to get the ISO langauge code with
+ * @param language the langauge code for localeID
  * @param languageCapacity the size of the language buffer to store the  
  * language code with
- * @param err error information if retrieving the language code failed
- * @return the actual buffer size needed for the language code.  If it's greater 
+ * @param err error information if retrieving the  language code failed
+ * @return the actual buffer size needed for the  langauge code.  If it's greater 
  * than languageCapacity, the returned language code will be truncated.  
  * @stable ICU 2.0
  */
@@ -358,24 +326,6 @@ U_CAPI int32_t U_EXPORT2
 uloc_getLanguage(const char*    localeID,
          char* language,
          int32_t languageCapacity,
-         UErrorCode* err);
-
-/**
- * Gets the script code for the specified locale.
- *
- * @param localeID the locale to get the ISO language code with
- * @param script the language code for localeID
- * @param scriptCapacity the size of the language buffer to store the  
- * language code with
- * @param err error information if retrieving the language code failed
- * @return the actual buffer size needed for the language code.  If it's greater 
- * than scriptCapacity, the returned language code will be truncated.  
- * @draft ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2
-uloc_getScript(const char*    localeID,
-         char* script,
-         int32_t scriptCapacity,
          UErrorCode* err);
 
 /**
@@ -413,30 +363,6 @@ uloc_getVariant(const char*    localeID,
         char* variant,
         int32_t variantCapacity,
         UErrorCode* err);
-
-
-/**
- * Gets the full name for the specified locale.
- * Note: This has the effect of 'canonicalizing' the ICU locale ID to
- * a certain extent. Upper and lower case are set as needed.
- * It does NOT map aliased names in any way.
- * See the top of this header file.
- * This API supports preflighting.
- *
- * @param localeID the locale to get the full name with
- * @param name fill in buffer for the name without keywords.
- * @param nameCapacity capacity of the fill in buffer.
- * @param err error information if retrieving the full name failed
- * @return the actual buffer size needed for the full name.  If it's greater 
- * than nameCapacity, the returned full name will be truncated.  
- * @stable ICU 2.0
- */
-U_CAPI int32_t U_EXPORT2
-uloc_getName(const char*    localeID,
-         char* name,
-         int32_t nameCapacity,
-         UErrorCode* err);
-
 /**
  * Gets the full name for the specified locale.
  * Note: This has the effect of 'canonicalizing' the string to
@@ -455,7 +381,7 @@ uloc_getName(const char*    localeID,
  * @stable ICU 2.0
  */
 U_CAPI int32_t U_EXPORT2
-uloc_canonicalize(const char*    localeID,
+uloc_getName(const char*    localeID,
          char* name,
          int32_t nameCapacity,
          UErrorCode* err);
@@ -463,8 +389,8 @@ uloc_canonicalize(const char*    localeID,
 /**
  * Gets the ISO language code for the specified locale.
  *
- * @param localeID the locale to get the ISO language code with
- * @return language the ISO language code for localeID
+ * @param localeID the locale to get the ISO langauge code with
+ * @return language the ISO langauge code for localeID
  * @stable ICU 2.0
  */
 U_CAPI const char* U_EXPORT2
@@ -483,7 +409,6 @@ uloc_getISO3Country(const char* localeID);
 
 /**
  * Gets the Win32 LCID value for the specified locale.
- * If the ICU locale is not recognized by Windows, 0 will be returned.
  *
  * @param localeID the locale to get the Win32 LCID value with
  * @return country the Win32 LCID for localeID
@@ -495,57 +420,34 @@ uloc_getLCID(const char* localeID);
 /**
  * Gets the language name suitable for display for the specified locale.
  *
- * @param locale the locale to get the ISO language code with
- * @param displayLocale Specifies the locale to be used to display the name.  In other words,
+ * @param locale the locale to get the ISO langauge code with
+ * @param inLocale Specifies the locale to be used to display the name.  In other words,
  *                 if the locale's language code is "en", passing Locale::getFrench() for
  *                 inLocale would result in "Anglais", while passing Locale::getGerman()
  *                 for inLocale would result in "Englisch".
- * @param language the displayable language code for localeID
+ * @param language the displayable langauge code for localeID
  * @param languageCapacity the size of the language buffer to store the  
  * displayable language code with
  * @param status error information if retrieving the displayable language code failed
- * @return the actual buffer size needed for the displayable language code.  If it's greater 
+ * @return the actual buffer size needed for the displayable langauge code.  If it's greater 
  * than languageCapacity, the returned language code will be truncated.  
  * @stable ICU 2.0
  */
 U_CAPI int32_t U_EXPORT2
 uloc_getDisplayLanguage(const char* locale,
-            const char* displayLocale,
+            const char* inLocale,
             UChar* language,
             int32_t languageCapacity,
             UErrorCode* status);
 
 /**
- * Gets the script name suitable for display for the specified locale.
- *
- * @param locale the locale to get the displayable script code with. NULL may be used to specify the default.
- * @param displayLocale Specifies the locale to be used to display the name.  In other words,
- *                 if the locale's language code is "en", passing Locale::getFrench() for
- *                 inLocale would result in "", while passing Locale::getGerman()
- *                 for inLocale would result in "". NULL may be used to specify the default.
- * @param script the displayable country code for localeID
- * @param scriptCapacity the size of the script buffer to store the  
- * displayable script code with
- * @param status error information if retrieving the displayable script code failed
- * @return the actual buffer size needed for the displayable script code.  If it's greater 
- * than scriptCapacity, the returned displayable script code will be truncated.  
- * @draft ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2
-uloc_getDisplayScript(const char* locale,
-            const char* displayLocale,
-            UChar* script,
-            int32_t scriptCapacity,
-            UErrorCode* status);
-
-/**
  * Gets the country name suitable for display for the specified locale.
  *
- * @param locale the locale to get the displayable country code with. NULL may be used to specify the default.
- * @param displayLocale Specifies the locale to be used to display the name.  In other words,
+ * @param locale the locale to get the displayable country code with
+ * @param inLocale Specifies the locale to be used to display the name.  In other words,
  *                 if the locale's language code is "en", passing Locale::getFrench() for
  *                 inLocale would result in "Anglais", while passing Locale::getGerman()
- *                 for inLocale would result in "Englisch". NULL may be used to specify the default.
+ *                 for inLocale would result in "Englisch".
  * @param country the displayable country code for localeID
  * @param countryCapacity the size of the country buffer to store the  
  * displayable country code with
@@ -556,20 +458,20 @@ uloc_getDisplayScript(const char* locale,
  */
 U_CAPI int32_t U_EXPORT2
 uloc_getDisplayCountry(const char* locale,
-                       const char* displayLocale,
-                       UChar* country,
-                       int32_t countryCapacity,
-                       UErrorCode* status);
+            const char* inLocale,
+            UChar* country,
+            int32_t countryCapacity,
+            UErrorCode* status);    /* NULL may be used to specify the default */
 
 
 /**
- * Gets the variant name suitable for display for the specified locale.
+ * Gets the variant code suitable for display for the specified locale.
  *
- * @param locale the locale to get the displayable variant code with. NULL may be used to specify the default.
- * @param displayLocale Specifies the locale to be used to display the name.  In other words,
+ * @param locale the locale to get the displayable variant code with
+ * @param inLocale Specifies the locale to be used to display the name.  In other words,
  *                 if the locale's language code is "en", passing Locale::getFrench() for
  *                 inLocale would result in "Anglais", while passing Locale::getGerman()
- *                 for inLocale would result in "Englisch". NULL may be used to specify the default.
+ *                 for inLocale would result in "Englisch".
  * @param variant the displayable variant code for localeID
  * @param variantCapacity the size of the variant buffer to store the 
  * displayable variant code with
@@ -580,92 +482,19 @@ uloc_getDisplayCountry(const char* locale,
  */
 U_CAPI int32_t U_EXPORT2
 uloc_getDisplayVariant(const char* locale,
-                       const char* displayLocale,
-                       UChar* variant,
-                       int32_t variantCapacity,
-                       UErrorCode* status);
+            const char* inLocale,
+               UChar* variant,
+             int32_t variantCapacity,
+            UErrorCode* status);    /* NULL may be used to specify the default */
 
-/**
- * Gets the keyword name suitable for display for the specified locale.
- * E.g: for the locale string de_DE@collation=PHONEBOOK, this API gets the display 
- * string for the keyword collation. 
- * Usage:
- * <code>
- *    UErrorCode status = U_ZERO_ERROR;
- *    const char* keyword =NULL;
- *    int32_t keywordLen = 0;
- *    int32_t keywordCount = 0;
- *    UChar displayKeyword[256];
- *    int32_t displayKeywordLen = 0;
- *    UEnumeration* keywordEnum = uloc_getKeywords("de_DE@collation=PHONEBOOK;calendar=TRADITIONAL", &status);
- *    for(keywordCount = uenum_count(keywordEnum, &status); keywordCount > 0 ; keywordCount--){
- *          if(U_FAILURE(status)){
- *              ...something went wrong so handle the error...
- *              break;
- *          }
- *          // the uenum_next returns NUL terminated string
- *          keyword = uenum_next(keywordEnum, &keywordLen, &status);
- *          displayKeywordLen = uloc_getDisplayKeyword(keyword, "en_US", displayKeyword, 256);
- *          ... do something interesting .....
- *    }
- *    uenum_close(keywordEnum);
- * </code>
- * @param keyword           The keyword whose display string needs to be returned.
- * @param displayLocale     Specifies the locale to be used to display the name.  In other words,
- *                          if the locale's language code is "en", passing Locale::getFrench() for
- *                          inLocale would result in "Anglais", while passing Locale::getGerman()
- *                          for inLocale would result in "Englisch". NULL may be used to specify the default.
- * @param dest              the buffer to which the displayable keyword should be written.
- * @param destCapacity      The size of the buffer (number of UChars). If it is 0, then
- *                          dest may be NULL and the function will only return the length of the 
- *                          result without writing any of the result string (pre-flighting).
- * @param status            error information if retrieving the displayable string failed. 
- *                          Should not be NULL and should not indicate failure on entry.
- * @return the actual buffer size needed for the displayable variant code.  
- * @see #uloc_getKeywords
- * @draft ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2
-uloc_getDisplayKeyword(const char* keyword,
-                       const char* displayLocale,
-                       UChar* dest,
-                       int32_t destCapacity,
-                       UErrorCode* status);
-/**
- * Gets the value of the keyword suitable for display for the specified locale.
- * E.g: for the locale string de_DE@collation=PHONEBOOK, this API gets the display 
- * string for PHONEBOOK, in the display locale, when "collation" is specified as the keyword.
- *
- * @param locale            The locale to get the displayable variant code with. NULL may be used to specify the default.
- * @param keyword           The keyword for whose value should be used.
- * @param displayLocale     Specifies the locale to be used to display the name.  In other words,
- *                          if the locale's language code is "en", passing Locale::getFrench() for
- *                          inLocale would result in "Anglais", while passing Locale::getGerman()
- *                          for inLocale would result in "Englisch". NULL may be used to specify the default.
- * @param dest              the buffer to which the displayable keyword should be written.
- * @param destCapacity      The size of the buffer (number of UChars). If it is 0, then
- *                          dest may be NULL and the function will only return the length of the 
- *                          result without writing any of the result string (pre-flighting).
- * @param status            error information if retrieving the displayable string failed. 
- *                          Should not be NULL and must not indicate failure on entry.
- * @return the actual buffer size needed for the displayable variant code.  
- * @draft ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2
-uloc_getDisplayKeywordValue(   const char* locale,
-                               const char* keyword,
-                               const char* displayLocale,
-                               UChar* dest,
-                               int32_t destCapacity,
-                               UErrorCode* status);
 /**
  * Gets the full name suitable for display for the specified locale.
  *
- * @param localeID the locale to get the displayable name with. NULL may be used to specify the default.
+ * @param localeID the locale to get the displayable name with
  * @param inLocaleID Specifies the locale to be used to display the name.  In other words,
  *                   if the locale's language code is "en", passing Locale::getFrench() for
  *                   inLocale would result in "Anglais", while passing Locale::getGerman()
- *                   for inLocale would result in "Englisch". NULL may be used to specify the default.
+ *                   for inLocale would result in "Englisch".
  * @param result the displayable name for localeID
  * @param maxResultSize the size of the name buffer to store the 
  * displayable full name with
@@ -676,7 +505,7 @@ uloc_getDisplayKeywordValue(   const char* locale,
  */
 U_CAPI int32_t U_EXPORT2
 uloc_getDisplayName(const char* localeID,
-            const char* inLocaleID,
+            const char* inLocaleID, /* NULL may be used to specify the default */
             UChar* result,
             int32_t maxResultSize,
             UErrorCode* err);
@@ -745,79 +574,6 @@ uloc_getParent(const char*    localeID,
                  char* parent,
                  int32_t parentCapacity,
                  UErrorCode* err);
-
-
-/**
- * Character separating keywords from the locale string
- * different for EBCDIC - TODO
- * @draft ICU 2.8
- */
-#define ULOC_KEYWORD_SEPARATOR '@'
-/**
- * Character for assigning value to a keyword
- * @draft ICU 2.8
- */
-#define ULOC_KEYWORD_ASSIGN '='
-/**
- * Character separating keywords
- * @draft ICU 2.8
- */
-#define ULOC_KEYWORD_ITEM_SEPARATOR ';'
-
-/**
- * Gets the full name for the specified locale.
- * Note: This has the effect of 'canonicalizing' the string to
- * a certain extent. Upper and lower case are set as needed,
- * and if the components were in 'POSIX' format they are changed to
- * ICU format.  It does NOT map aliased names in any way.
- * See the top of this header file.
- * This API strips off the keyword part, so "de_DE@collation=phonebook" 
- * will become "de_DE". 
- * This API supports preflighting.
- *
- * @param localeID the locale to get the full name with
- * @param name fill in buffer for the name without keywords.
- * @param nameCapacity capacity of the fill in buffer.
- * @param err error information if retrieving the full name failed
- * @return the actual buffer size needed for the full name.  If it's greater 
- * than nameCapacity, the returned full name will be truncated.  
- * @draft ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2
-uloc_getBaseName(const char*    localeID,
-         char* name,
-         int32_t nameCapacity,
-         UErrorCode* err);
-
-/**
- * Gets an enumeration of keywords for the specified locale. Enumeration
- * must get disposed of by the client using uenum_close function.
- *
- * @param localeID the locale to get the variant code with
- * @param status error information if retrieving the keywords failed
- * @return enumeration of keywords or NULL if there are no keywords.
- * @draft ICU 2.8
- */
-U_CAPI UEnumeration* U_EXPORT2
-uloc_openKeywords(const char* localeID,
-                        UErrorCode* status);
-
-/**
- * Get the value for a keyword. Locale name does not need to be normalized.
- * 
- * @param localeID locale name containing the keyword ("de_DE@currency=EURO;collation=PHONEBOOK")
- * @param keywordName name of the keyword for which we want the value. Case insensitive.
- * @param buffer receiving buffer
- * @param bufferCapacity capacity of receiving buffer
- * @param status containing error code - buffer not big enough.
- * @return the length of keyword value
- * @draft ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2
-uloc_getKeywordValue(const char* localeID,
-                     const char* keywordName,
-                     char* buffer, int32_t bufferCapacity,
-                     UErrorCode* status);
 
 /*eof*/
 

@@ -10,7 +10,7 @@ be {
 
     // We use UCA collation table optimized for Cyrillic
     // as defined in the Russian locale
-    collations:alias { "ru" }
+    CollationElements:alias { "ru" }
 
     Countries { 
         BY { "\u0411\u0435\u043B\u0430\u0440\u0443\u0441\u044C" }
@@ -55,6 +55,8 @@ be {
     Languages { 
         be { "\u0411\u0435\u043B\u0430\u0440\u0443\u0441\u043A\u0456" }
     }
+    LocaleID:int { 0x23 }
+//    LocaleString { "be" }
     MonthAbbreviations { 
         "\u0441\u0442\u0443",
         "\u043b\u044e\u0442",
@@ -96,10 +98,18 @@ be {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
+//    ShortLanguage { "bel" }
     localPatternChars { "GanjkHmsSEDFwWxhKzAe" }
-
+    zoneStrings { 
+        {
+            "Africa/Casablanca",
+            "GMT",
+            "GMT",
+            "GMT",
+            "GMT",
+        }
+    }
     LocaleScript{
         "Cyrl",     // Abbreviation 
     }

@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1998-2003, International Business Machines
+*   Copyright (C) 1998-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -22,11 +22,58 @@
 #include "unicode/ustdio.h"
 #include "ufile.h"
 #include "unicode/uloc.h"
+#include "loccache.h"
 #include "unicode/ures.h"
 #include "unicode/ucnv.h"
 #include "cstring.h"
 #include "cmemory.h"
 
+
+static UBool hasICUData(const char *cp) {
+    UErrorCode status = U_ZERO_ERROR;
+    UConverter *cnv = NULL;
+#if 0
+    UResourceBundle *r = NULL;
+
+    r = ures_open(NULL, NULL, &status);
+    if(U_FAILURE(status)) {
+        return FALSE;
+    } else {
+        ures_close(r);
+    }
+#endif
+    cnv = ucnv_open(cp, &status);
+    if(cnv == NULL) {
+        return FALSE;
+    } else {
+        ucnv_close(cnv);
+    }
+
+    return TRUE;
+}
+
+
+
+U_CAPI UFILE* U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
+u_fopen(const char    *filename,
+        const char    *perm,
+        const char    *locale,
+        const char    *codepage)
+{
+    UFILE     *result;
+    FILE     *systemFile = fopen(filename, perm);
+    if(systemFile == 0) {
+        return 0;
+    }
+
+    result = u_finit(systemFile, locale, codepage);
+
+    if (result) {
+        result->fOwnFile = TRUE;
+    }
+
+    return result;
+}
 
 U_CAPI UFILE* U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
 u_finit(FILE        *f,
@@ -50,18 +97,24 @@ u_finit(FILE        *f,
     result->fUCPos     = result->fUCBuffer;
     result->fUCLimit     = result->fUCBuffer;
 
+    if(hasICUData(codepage)) {
 #if !UCONFIG_NO_FORMATTING
         /* if locale is 0, use the default */
         if(locale == 0) {
             locale = uloc_getDefault();
         }
 
-        if(u_locbund_init(&result->fBundle, locale) == 0) {
+        result->fBundle = u_loccache_get(locale);
+        if(result->fBundle == 0) {
             /* DO NOT FCLOSE HERE! */
             uprv_free(result);
             return 0;
         }
 #endif
+    } else {
+        /* bootstrap mode */
+        return result;
+    }
 
     /* if the codepage is NULL, use the default for the locale */
     if(codepage == NULL) {
@@ -71,42 +124,22 @@ u_finit(FILE        *f,
 
         /* if the codepage is still NULL, the default codepage will be used */
         result->fConverter = ucnv_open(codepage, &status);
+        if(U_FAILURE(status) || result->fConverter == NULL) {
+            /* DO NOT fclose here!!!!!! */
+            uprv_free(result);
+            return 0;
+        }
     } else if (*codepage != '\0') {
         result->fConverter = ucnv_open(codepage, &status);
+        if(U_FAILURE(status) || result->fConverter == NULL) {
+            /* DO NOT fclose here!!!!!! */
+            uprv_free(result);
+            return 0;
+        }
     }
-
-    if(U_FAILURE(status)) {
-#if !UCONFIG_NO_FORMATTING
-        u_locbund_close(&result->fBundle);
-#endif
-        /* DO NOT fclose here!!!!!! */
-        uprv_free(result);
-        result = NULL;
-    }
-
     return result;
 }
 
-U_CAPI UFILE* U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fopen(const char    *filename,
-        const char    *perm,
-        const char    *locale,
-        const char    *codepage)
-{
-    UFILE     *result;
-    FILE     *systemFile = fopen(filename, perm);
-    if(systemFile == 0) {
-        return 0;
-    }
-
-    result = u_finit(systemFile, locale, codepage);
-
-    if (result) {
-        result->fOwnFile = TRUE;
-    }
-
-    return result;
-}
 
 U_CAPI void U_EXPORT2
 u_fflush(UFILE *file)
@@ -114,16 +147,6 @@ u_fflush(UFILE *file)
   ufile_flush_translit(file);
   fflush(file->fFile);
   /* TODO: flush input */
-}
-
-U_CAPI void
-u_frewind(UFILE *file)
-{
-    u_fflush(file);
-    rewind(file->fFile);
-    ucnv_reset(file->fConverter);
-    file->fUCPos   = file->fUCBuffer;
-    file->fUCLimit = file->fUCBuffer;
 }
 
 U_CAPI void U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
@@ -136,7 +159,8 @@ u_fclose(UFILE *file)
         fclose(file->fFile);
 
 #if !UCONFIG_NO_FORMATTING
-    u_locbund_close(&file->fBundle);
+    if(file->fOwnBundle)
+        u_locbund_delete(file->fBundle);
 #endif
 
     ucnv_close(file->fConverter);
@@ -154,16 +178,20 @@ u_fgetfile(    UFILE         *f)
 U_CAPI const char*  U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
 u_fgetlocale(    UFILE        *file)
 {
-    return file->fBundle.fLocale;
+    return file->fBundle->fLocale;
 }
 
 U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
 u_fsetlocale(const char        *locale,
              UFILE        *file)
 {
-    u_locbund_close(&file->fBundle);
+    if(file->fOwnBundle)
+        u_locbund_delete(file->fBundle);
 
-    return u_locbund_init(&file->fBundle, locale) == 0 ? -1 : 0;
+    file->fBundle     = u_loccache_get(locale);
+    file->fOwnBundle     = FALSE;
+
+    return file->fBundle == 0 ? -1 : 0;
 }
 
 #endif
@@ -187,26 +215,21 @@ u_fsetcodepage(    const char    *codepage,
                UFILE        *file)
 {
     UErrorCode status = U_ZERO_ERROR;
-    int32_t retVal = -1;
 
-    /* We use the normal default codepage for this system, and not the one for the locale. */
-#if 0 /* !UCONFIG_NO_FORMATTING */
+#if !UCONFIG_NO_FORMATTING
     /* if the codepage is 0, use the default for the locale */
     if(codepage == 0) {
-        codepage = uprv_defaultCodePageForLocale(file->fBundle.fLocale);
+        codepage = uprv_defaultCodePageForLocale(file->fBundle->fLocale);
 
         /* if the codepage is still 0, fall back on the default codepage */
     }
 #endif
 
-    if ((file->fUCPos == file->fUCBuffer) && (file->fUCLimit == file->fUCBuffer)) {
-        ucnv_close(file->fConverter);
-        file->fConverter = ucnv_open(codepage, &status);
-        if(U_SUCCESS(status)) {
-            retVal = 0;
-        }
-    }
-    return retVal;
+    ucnv_close(file->fConverter);
+    file->fConverter = ucnv_open(codepage, &status);
+    if(U_FAILURE(status))
+        return -1;
+    return 0;
 }
 
 
@@ -215,4 +238,3 @@ u_fgetConverter(UFILE *file)
 {
     return file->fConverter;
 }
-

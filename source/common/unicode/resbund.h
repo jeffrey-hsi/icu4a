@@ -169,24 +169,8 @@ public:
     ~ResourceBundle();
 
     /**
-     * Clone this object.
-     * Clones can be used concurrently in multiple threads.
-     * If an error occurs, then NULL is returned.
-     * The caller must delete the clone.
-     *
-     * @return a clone of this object
-     *
-     * @see getDynamicClassID
-     * @draft ICU 2.8
-     */
-    ResourceBundle *clone() const;
-
-    /**
      * Returns the size of a resource. Size for scalar types is always 1, and for vector/table types is
      * the number of child resources.
-     * @warning Integer array is treated as a scalar type. There are no 
-     *          APIs to access individual members of an integer array. It
-     *          is always returned as a whole.
      *
      * @return number of resources in a given resource.
      * @stable ICU 2.0
@@ -403,7 +387,7 @@ public:
      * @return  A version number string as specified in the resource bundle or its parent.
      *          The caller does not own this string.
      * @see getVersion
-     * @deprecated ICU 2.8 Use getVersion instead.
+     * @stable ICU 2.0
      */
     const char*   
       getVersionNumber(void) const;
@@ -422,37 +406,24 @@ public:
      * Return the Locale associated with this ResourceBundle. 
      *
      * @return a Locale object
-     * @deprecated ICU 2.8 Use getLocale(ULocDataLocaleType type, UErrorCode &status) overload instead.
+     * @stable ICU 2.0
      */
     const Locale&
       getLocale(void) const;
 
     /**
-     * Return the Locale associated with this ResourceBundle. 
-     * @param type You can choose between requested, valid and actual
-     *             locale. For description see the definition of
-     *             ULocDataLocaleType in uloc.h
-     * @param status just for catching illegal arguments
-     *
-     * @return a Locale object
-     * @draft ICU 2.8
-     */
-    const Locale 
-      getLocale(ULocDataLocaleType type, UErrorCode &status) const;
-
-    /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID();
 
 private:
     ResourceBundle(); // default constructor not implemented
@@ -461,7 +432,20 @@ private:
     void constructForLocale(const UnicodeString& path, const Locale& locale, UErrorCode& error);
     Locale *locName;
 
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+inline UClassID 
+ResourceBundle::getStaticClassID() 
+{ return (UClassID)&fgClassID; }
+
+inline UClassID 
+ResourceBundle::getDynamicClassID() const 
+{ return ResourceBundle::getStaticClassID(); }
 
 U_NAMESPACE_END
 #endif

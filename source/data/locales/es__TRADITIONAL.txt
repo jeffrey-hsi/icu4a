@@ -7,7 +7,12 @@
 
 es__TRADITIONAL {
     Version { "2.0" }
-    collations {
-      default { "traditional" }
+    CollationElements { 
+        Version { "1.0" }
+        Sequence { "& N < n\u0303<<< N\u0303"
+            "&C < ch <<< Ch <<< CH"
+            "&l < ll <<< Ll <<< LL"
+        }
     }
+    LocaleID:int { 0x040a }
 }

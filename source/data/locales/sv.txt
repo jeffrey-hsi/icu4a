@@ -1,33 +1,19 @@
 // ***************************************************************************
 // *
-// *   Copyright (C) 1997-2004, International Business Machines
+// *   Copyright (C) 1997-2003, International Business Machines
 // *   Corporation and others.  All Rights Reserved.
 // *
 // ***************************************************************************
 
 sv {
     Version{ "2.0" }
-    AmPmMarkers { 
-        "fm",
-        "em",
-    }
-    collations {
-        standard { 
-            Version { "2.0" }
-            Sequence {
-                "&D<<\u0111<<<\u0110<<\u00F0<<<\u00D0"
-                "&t<<<\u00FE/h"
-                "&T<<<\u00DE/H"
-                "&v<<<w"
-                "&V<<<W"
-                "&Y<<u\u0308<<<U\u0308<<u\u030B<<<U\u030B"
-                "&[before 1]\u0292<\u00E5<<<\u00C5<\u00E4<<<\u00C4<<\u00E6<<<\u00C6<<e\u0328<<<E\u0328"
-                "<\u00F6<<<\u00D6<<\u00F8<<<\u00D8<<\u0151<<<\u0150<<\u0153<<<\u0152<<\u00F4<<<\u00D4"
-            }
-        }
+    CollationElements {
+        Version { "1.0" }
+        Sequence { "& Z < \u00E6 <<< \u00C6 < a\u030A <<< A\u030A <<< aa <<<aA <<< A"
+        "a <<< AA< a\u0308 <<< A\u0308 < o\u0308 <<< O\u0308 << u\u030B <<< U\u030B<o\u030B <<< O"
+        "\u030B << \u00F8 <<< \u00D8 & V <<< w <<< W & Y<<< u\u0308 <<< U\u0308" }
     }
     Countries { 
-        Fallback{ "en"}
         // AD {"Andorra"}
         AE {"F\u00F6renade Arabemiraten"}
         AF {"Afganistan"}
@@ -42,9 +28,8 @@ sv {
         AS {"Amerikanska Samoa"}
         AT {"\u00D6sterrike"}
         AU {"Australien"}
-        //AW {"Aruba"}
         AZ {"Azerbajdzjan"}
-        BA {"Bosnien och Hercegovina"}
+        BA {"Bosnien Herzegovina"}
         // BB {"Barbados"}
         // BD {"Bangladesh"}
         BE {"Belgien"}
@@ -59,13 +44,11 @@ sv {
         BR {"Brasilien"}
         // BS {"Bahamas"}
         // BT {"Bhutan"}
-        BV { "Bouvet\u00F6n" }
         // BW {"Botswana"}
         BY {"Vitryssland"}
         // BZ {"Belize"}
         CA {"Kanada"}
-        CC {"Kokos\u00F6arna (Keeling\u00F6arna)"}
-        CD {"Demokratiska republiken Kongo"}
+        CD {"Kongo"}
         CF {"Centralafrikanska republiken"}
         CG {"Kongo"}
         CH {"Schweiz"}
@@ -77,8 +60,7 @@ sv {
         // CO {"Colombia"}
         // CR {"Costa Rica"}
         CU {"Kuba"}
-        //CV {"Cap Verde"} // Old value
-        CV {"Kap Verde"}
+        CV {"Cap Verde"}
         CX {"Jul\u00F6n"}
         CY {"Cypern"}
         CZ {"Tjeckien"}
@@ -114,13 +96,11 @@ sv {
         GP {"Guadelope"}
         GQ {"Ekvatorialguinea"}
         GR {"Grekland"}
-        GS { "Sydgeorgien och S\u00F6dra Sandwich\u00F6arna" }
         // GT {"Guatemala"}
         // GU {"Guam"}
         // GW {"Guinea-Bissau"}
         // GY {"Guyana"}
-        HK { "Hongkong (Kina)" }
-        HM { "Heard- och McDonald\u00F6arna" }
+        HK {"Hong Kong"}
         // HN {"Honduras"}
         HR {"Kroatien"}
         // HT {"Haiti"}
@@ -129,7 +109,6 @@ sv {
         IE {"Irland"}
         // IL {"Israel"}
         IN {"Indien"}
-        IO {"Brittiska Indiska ocean\u00F6arna"}
         IQ {"Irak"}
         // IR {"Iran"}
         IS {"Island"}
@@ -143,10 +122,10 @@ sv {
         // KI {"Kiribati"}
         KM {"Komorerna"}
         KN {"S:t Christopher och Nevis"}
-        KP {"Nordkorea"}    // alternate name { "Demokratiska folkrepubliken Korea" }
-        KR {"Sydkorea"}    // alternate name { "Republiken Korea" }
+        KP {"Nordkorea"}
+        KR {"Sydkorea"}
         // KW {"Kuwait"}
-        KY {"Kajman\u00F6arna"}
+        KY {"Cayman\u00F6arna"}
         KZ {"Kazachstan"}
         // LA {"Laos"}
         LB {"Libanon"}
@@ -179,9 +158,9 @@ sv {
         // MW {"Malawi"}
         MX {"Mexiko"}
         // MY {"Malaysia"}
-        MZ {"Mo\u00E7ambique"}
+        // MZ {"Mozambique"}
         // NA {"Namibia"}
-        NC {"Nya Kaledonien"}
+        NC {"Nya Caledonien"}
         // NE {"Niger"}
         NF {"Norfolk\u00F6n"}
         // NG {"Nigeria"}
@@ -190,7 +169,7 @@ sv {
         NO {"Norge"}
         // NP {"Nepal"}
         // NR {"Nauru"}
-        NU { "Niue\u00F6n" }
+        // NU {"Niue"}
         NZ {"Nya Zeeland"}
         // OM {"Oman"}
         // PA {"Panama"}
@@ -203,9 +182,8 @@ sv {
         PM {"S:t Pierre och Miquelon"}
         // PN {"Pitcairn"}
         // PR {"Puerto Rico"}
-        PS {"Palestinska territoriet"}
+        // PS {"Palestina"}
         // PT {"Portugal"}
-        // PW { "Palau" }
         // PY {"Paraguay"}
         // QA {"Qatar"}
         // RE {"R\u00E9union"}
@@ -233,11 +211,10 @@ sv {
         // SZ {"Swaziland"}
         TC {"Turks- och Caicos\u00F6arna"}
         TD {"Tchad"}
-        TF { "Franska Sydterritorierna" }
         // TG {"Togo"}
         // TH {"Thailand"}
         TJ {"Tadzjikistan"}
-        TK { "Tokelau\u00F6arna" }
+        // TK {"Tokelau"}
         TL {"\u00D6sttimor"}
         // TM {"Turkmenistan"}
         TN {"Tunisien"}
@@ -249,19 +226,18 @@ sv {
         // TZ {"Tanzania"}
         UA {"Ukraina"}
         // UG {"Uganda"}
-        UM { "Sm\u00E5, avl\u00E4gset bel\u00E4gna \u00F6ar som tillh\u00F6r F\u00F6renta staterna" }
-        US { "Amerikas F\u00F6renta Stater" }
+        US {"USA"}
         // UY {"Uruguay"}
         // UZ {"Uzbekistan"}
         VA {"Vatikanstaten"}
         VC {"S:t Vincent och Grenadinerna"}
         // VE {"Venezuela"}
+        WF {"Wallis och Futuna"}
         VG {"Brittiska Jungfru\u00F6arna"}
         VI {"Amerikanska Jungfru\u00F6arna"}
         // VN {"Vietnam"}
-        // VU {"Vanuatu"}
-        WF { "Wallis och Futuna\u00F6arna" }
         // WS {"Samoa"}
+        // VU {"Vanuatu"}
         YE {"Jemen"}
         // YT {"Mayotte"}
         YU {"Jugoslavien"}
@@ -270,21 +246,18 @@ sv {
         // ZW {"Zimbabwe"}
         // \u00C5L        {"\u00C5land"}
     }
-    Currencies {
-        SEK { "kr", "SEK" }
-    }
     DateTimeElements:intvector { 
         2,
         4,
     }
     DateTimePatterns { 
-        "'kl. 'HH.mm.ss z",
-        "HH.mm.ss z",
-        "HH.mm.ss",
-        "HH.mm",
+        "'kl 'H:mm z",
+        "HH:mm:ss z",
+        "HH:mm:ss",
+        "HH:mm",
         "'den 'd MMMM yyyy",
-        "'den 'd MMM yyyy",
-        "yyyy-MM-dd",
+        "'den 'd MMMM yyyy",
+        "yyyy-MMM-dd",
         "yyyy-MM-dd",
         "{1} {0}",
     }
@@ -305,10 +278,6 @@ sv {
         "torsdag",
         "fredag",
         "l\u00F6rdag",
-    }
-    Eras { 
-        "f.Kr.",
-        "e.Kr.",
     }
 
     Languages {
@@ -408,7 +377,7 @@ sv {
         fi   {"finska"}
         fj   {"fidjianska"}
         fo   {"f\u00E4r\u00F6iska"}
-        // fon  {"fon"}
+        fon  {"fon"}
         fr   {"franska"}
         fur  {"friuilian"}
         fy   {"frisiska"}
@@ -445,7 +414,7 @@ sv {
         id   {"indonesiska"}
         ig   {"ibo"}
         ii   {"yi"}
-        //ijo  {"ijo"}
+        ijo  {"ijo"}
         ik   {"inupiaq"}
         ilo  {"iloko"}
         is   {"isl\u00E4ndska"}
@@ -466,7 +435,7 @@ sv {
         ki   {"kikuyu"}
         kj   {"kuanyama"}
         kk   {"kazakiska"}
-        kl   {"gr\u00F6nl\u00E4ndska"}
+        kl   {"gr\u00F6nl\u00E4ndska; kalaallisut"}
         km   {"kambodjanska; khmer"}
         kmb  {"kinbundu"}
         kn   {"kanaresiska; kannada"}
@@ -500,7 +469,7 @@ sv {
         lua  {"luba-lulua"}
         lui  {"luise\u00F1o"}
         lun  {"lunda"}
-        //luo  {"luo"}
+        luo  {"luo"}
         lus  {"lushai"}
         lv   {"lettiska"}
         mad  {"madurese"}
@@ -540,7 +509,7 @@ sv {
         ng   {"ndonga"}
         nia  {"nias"}
         niu  {"niuean"}
-        nl   {"nederl\u00E4ndska"}
+        nl   {"nederl\u00E4ndska; holl\u00E4ndska"}
         nn   {"ny\u00ADnorsk"}
         no   {"norska"}
         nr   {"syd\u00ADndebele"}
@@ -553,7 +522,7 @@ sv {
         nzi  {"nzima"}
         oc   {"provensalska"}
         oj   {"odjibwa; chippewa"}
-        om   {"oromo"}
+        om   {"oromo; galla"}
         or   {"oriya"}
         os   {"ossetiska"}
         osa  {"osage"}
@@ -590,7 +559,6 @@ sv {
         se   {"nord\u00ADsamiska"}
         sel  {"selkup"}
         sg   {"sango"}
-        sh   {"serbokroatiska"}
         shn  {"shan"}
         si   {"singalesiska"}
         sid  {"sidamo"}
@@ -624,7 +592,7 @@ sv {
         ter  {"tereno"}
         tet  {"tetum"}
         tg   {"tadzjikiska"}
-        th   {"thail\u00e4ndska"}
+        th   {"thail\u00E4nska"}
         ti   {"tigrinja"}
         tig  {"tigr\u00E9"}
         tiv  {"tivi"}
@@ -652,7 +620,7 @@ sv {
         umb  {"umbundu"}
         ur   {"urdu"}
         uz   {"uzbekiska"}
-        //vai  {"vai"}
+        vai  {"vai"}
         ve   {"venda"}
         vi   {"vietnamesiska"}
         vot  {"votiska"}
@@ -662,8 +630,8 @@ sv {
         was  {"washo"}
         wo   {"wolof"}
         xh   {"xhosa"}
-        //yao  {"yao"}
-        //yap  {"yap"}
+        yao  {"yao"}
+        yap  {"yap"}
         yi   {"jiddisch"}
         yo   {"yoruba"}
         za   {"zhuang"}
@@ -674,6 +642,8 @@ sv {
         zu   {"zulu"}
         zun  {"zu\u00F1i"}
     }
+
+    LocaleID:int { 0x1d }
     MonthAbbreviations { 
         "jan",
         "feb",
@@ -715,13 +685,26 @@ sv {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
-    LocaleScript{ 
-        "Latn",  // ISO 15924 Name 
+    Eras { 
+        "f.Kr.",
+        "e.Kr.",
     }
-    ExemplarCharacters { "[a-z\u00e4\u00f6\u00e5\u00e1\u00e9\u00eb\u00fc]" }
-
+    zoneStrings { 
+        {
+            "Europe/Stockholm",
+            "Central European Time",
+            "MET",
+            "Central European Time (DST)",
+            "MET",
+            "Stockholm",
+        }
+    }
+//    LocaleScript{ 
+//        "Latn",  // ISO 15924 Name 
+//    }
+    ExemplarCharacters { "[a-z \u00e4 \u00f6 \u00e5 \u00e1 \u00e9 \u00eb \u00fc]" }
+    
     //------------------------------------------------------------
     // Rule Based Number Format Support
     //------------------------------------------------------------
@@ -807,30 +790,9 @@ sv {
             "1,000,000,000,000,000,000,000,000,000,000,000,000,000: =#,##0="
 */
     }
-    Keys{
-         collation { "Sortera" }
-         calendar  { "Kalendar" }
-         currency  { "Valuta"}
-    }
-    Types{
-        collation{
-            traditional { "Traditionell Sortera" }
-        }
-    }
-    Variants{
-        REVISED { "Reviderad" }
-    }
-/*
-    zoneStrings { 
-        {
-            "Europe/Stockholm",
-            "Central European Time",
-            "MET",
-            "Central European Time (DST)",
-            "MET",
-            "Stockholm",
-        }
-    }
-*/
-}
 
+    // Currency display names
+    Currencies {
+        SEK { "kr", "SEK" }
+    }
+}

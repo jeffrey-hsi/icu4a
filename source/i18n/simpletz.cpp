@@ -27,16 +27,17 @@
 
 #include "unicode/simpletz.h"
 #include "unicode/gregocal.h"
+#include "tzdat.h"
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(SimpleTimeZone)
+const char SimpleTimeZone::fgClassID = 0; // Value is irrelevant
 
 // WARNING: assumes that no rule is measured from the end of February,
 // since we don't handle leap years. Could handle assuming always
 // Gregorian, since we know they didn't have daylight time when
 // Gregorian calendar started.
-const int8_t SimpleTimeZone::STATICMONTHLENGTH[] = {31,29,31,30,31,30,31,31,30,31,30,31};
+const int8_t SimpleTimeZone::staticMonthLength[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
 // *****************************************************************************
 // class SimpleTimeZone
@@ -118,6 +119,40 @@ SimpleTimeZone::SimpleTimeZone(int32_t rawOffsetGMT, const UnicodeString& ID,
               savingsEndMonth, savingsEndDay, savingsEndDayOfWeek,
               savingsEndTime, savingsEndTimeMode,
               savingsDST, status);
+}
+
+/**
+ * Construct from memory-mapped data.  For private use by TimeZone.
+ */
+SimpleTimeZone::SimpleTimeZone(const StandardZone& stdZone,
+                               const UnicodeString& ID)
+:   TimeZone(ID)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    construct(stdZone.gmtOffset,
+              0, 0, 0, 0, WALL_TIME,
+              0, 0, 0, 0, WALL_TIME,
+              0, status);
+}
+
+/**
+ * Construct from memory-mapped data.  For private use by TimeZone.
+ */
+SimpleTimeZone::SimpleTimeZone(const DSTZone& dstZone,
+                               const UnicodeString& ID)
+:   TimeZone(ID)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    construct(dstZone.gmtOffset,
+              dstZone.onsetRule.month, dstZone.onsetRule.dowim,
+              dstZone.onsetRule.dow,
+              dstZone.onsetRule.time * (int32_t)60000,
+              (TimeMode)dstZone.onsetRule.mode,
+              dstZone.ceaseRule.month, dstZone.ceaseRule.dowim,
+              dstZone.ceaseRule.dow,
+              dstZone.ceaseRule.time * (int32_t)60000,
+              (TimeMode)dstZone.ceaseRule.mode,
+              dstZone.dstSavings * (int32_t)60000, status);
 }
 
 /**
@@ -368,7 +403,7 @@ int32_t
 SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
                           uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const
 {
-    // Check the month before indexing into STATICMONTHLENGTH. This
+    // Check the month before indexing into staticMonthLength. This
     // duplicates the test that occurs in the 7-argument getOffset(),
     // however, this is unavoidable. We don't mind because this method, in
     // fact, should not be called; internal code should always call the
@@ -380,14 +415,14 @@ SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
         return 0;
     }
 
-    return getOffset(era, year, month, day, dayOfWeek, millis, STATICMONTHLENGTH[month], status);
+    return getOffset(era, year, month, day, dayOfWeek, millis, staticMonthLength[month], status);
 }
 
 int32_t 
 SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
                           uint8_t dayOfWeek, int32_t millis, 
                           int32_t monthLength, UErrorCode& status) const {
-    // Check the month before indexing into STATICMONTHLENGTH. This
+    // Check the month before indexing into staticMonthLength. This
     // duplicates a test that occurs in the 9-argument getOffset(),
     // however, this is unavoidable. We don't mind because this method, in
     // fact, should not be called; internal code should always call the
@@ -401,7 +436,7 @@ SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
     }
 
     // TODO FIX We don't handle leap years yet!
-    int32_t prevMonthLength = (month >= 1) ? STATICMONTHLENGTH[month - 1] : 31;
+    int32_t prevMonthLength = (month >= 1) ? staticMonthLength[month - 1] : 31;
 
     return getOffset(era, year, month, day, dayOfWeek, millis,
                      monthLength, prevMonthLength, status);
@@ -425,9 +460,7 @@ SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
         || millis < 0
         || millis >= U_MILLIS_PER_DAY
         || monthLength < 28
-        || monthLength > 31
-        || prevMonthLength < 28
-        || prevMonthLength > 31) {
+        || monthLength > 31) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
         return -1;
     }
@@ -546,7 +579,7 @@ SimpleTimeZone::compareToRule(int8_t month, int8_t monthLen, int8_t prevMonthLen
         
         // if ruleDay is negative (we assume it's not zero here), we have to do
         // the same calculation figuring backward from the last day of the month.
-        // (STATICMONTHLENGTH gives us that last day.  We don't take leap years
+        // (staticMonthLength gives us that last day.  We don't take leap years
         // into account, so this may not work right for February.)
         else
         {
@@ -822,7 +855,7 @@ SimpleTimeZone::decodeStartRule(UErrorCode& status)
                 status = U_ILLEGAL_ARGUMENT_ERROR;
                 return;
             }
-        } else if (startDay > STATICMONTHLENGTH[startMonth]) {
+        } else if (startDay > staticMonthLength[startMonth]) {
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return;
         }
@@ -877,7 +910,7 @@ SimpleTimeZone::decodeEndRule(UErrorCode& status)
                 status = U_ILLEGAL_ARGUMENT_ERROR;
                 return;
             }
-        } else if (endDay > STATICMONTHLENGTH[endMonth]) {
+        } else if (endDay > staticMonthLength[endMonth]) {
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return;
         }

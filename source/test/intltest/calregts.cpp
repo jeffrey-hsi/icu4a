@@ -15,7 +15,6 @@
 #include "unicode/smpdtfmt.h"
 #include "unicode/strenum.h"
 #include "cmemory.h"
-#include "caltest.h"
 
 #include <float.h>
 
@@ -213,6 +212,7 @@ CalendarRegressionTest::test4031502()
     // This bug actually occurs on Windows NT as well, and doesn't
     // require the host zone to be set; it can be set in Java.
     UErrorCode status = U_ZERO_ERROR;
+    int32_t count = 0;
     StringEnumeration* ids = TimeZone::createEnumeration();
     UBool bad = FALSE;
     for (int32_t i=0; i<ids->count(status); ++i) {
@@ -525,7 +525,7 @@ void CalendarRegressionTest::dowTest(UBool lenient)
     if (min != UCAL_SUNDAY || max != UCAL_SATURDAY)
         errln("FAIL: Min/max bad");
     if (dow < min || dow > max) 
-        errln("FAIL: Day of week %d out of range [%d,%d]\n", dow, min, max);
+        errln(UnicodeString("FAIL: Day of week ") + dow + " out of range");
     if (dow != UCAL_SUNDAY) 
         errln("FAIL: Day of week should be SUNDAY Got " + dow);
 
@@ -589,33 +589,6 @@ void CalendarRegressionTest::test4073929()
       delete foo1;
       return;
     }
-    logln("foo1@%.0f - %d-%d-%d %d:%d:%d.%ds\n", foo1->getTime(status),
-          foo1->get(UCAL_YEAR, status),
-          foo1->get(UCAL_MONTH, status),
-          foo1->get(UCAL_DATE, status),
-          foo1->get(UCAL_HOUR, status),
-          foo1->get(UCAL_MINUTE, status),
-          foo1->get(UCAL_SECOND, status),
-          foo1->get(UCAL_MILLISECOND,status));
-    foo1->add(UCAL_DATE, + 1, status);
-    logln("foo1@%.0f - %d-%d-%d %d:%d:%d.%ds after +\n", foo1->getTime(status),
-          foo1->get(UCAL_YEAR, status),
-          foo1->get(UCAL_MONTH, status),
-          foo1->get(UCAL_DATE, status),
-          foo1->get(UCAL_HOUR, status),
-          foo1->get(UCAL_MINUTE, status),
-          foo1->get(UCAL_SECOND, status),
-          foo1->get(UCAL_MILLISECOND ,status));
-    foo1->add(UCAL_DATE, - 1, status);
-    logln("foo1@%.0f - %d-%d-%d %d:%d:%d.%ds after -\n", foo1->getTime(status),
-          foo1->get(UCAL_YEAR, status),
-          foo1->get(UCAL_MONTH, status),
-          foo1->get(UCAL_DATE, status),
-          foo1->get(UCAL_HOUR, status),
-          foo1->get(UCAL_MINUTE, status),
-          foo1->get(UCAL_SECOND, status),
-          foo1->get(UCAL_MILLISECOND, status));
-
     foo1->add(UCAL_DATE, + 1, status);
     int32_t testyear = foo1->get(UCAL_YEAR, status);
     int32_t testmonth = foo1->get(UCAL_MONTH, status);
@@ -974,6 +947,7 @@ void CalendarRegressionTest::test4103271()
             testCal->add(UCAL_DATE, 1,status);
         }
     }
+
     // Test field disambiguation with a few special hard-coded cases.
     // This shouldn't fail if the above cases aren't failing.
     int32_t DISAM_int [] = {
@@ -1034,10 +1008,7 @@ void CalendarRegressionTest::test4103271()
                          "-DOW" + dow + " expect:" + sdf.format(exp, str) +
                          " got:" + sdf.format(got, str2));
         if (got != exp) {
-            log("  FAIL (%s:%d, i=%d)", __FILE__, __LINE__, i);
-            logln(CalendarTest::calToStr(*testCal));
-            testCal->setTime(exp, status);
-            logln(CalendarTest::calToStr(*testCal) + UnicodeString( " <<< expected "));
+            log("  FAIL");
             fail = TRUE;
         }
         logln("");
@@ -1058,6 +1029,7 @@ void CalendarRegressionTest::test4103271()
         }
         logln("");
     }
+
     // Now try adding and rolling
     UDate ADDROLL_date [] = {
         makeDate(1998, UCAL_DECEMBER, 25), makeDate(1999, UCAL_JANUARY, 1),
@@ -1096,14 +1068,9 @@ void CalendarRegressionTest::test4103271()
         UDate got = testCal->getTime(status);
         str.remove();
         str2.remove();
-        UnicodeString opTypeStr;
-        if (ADDROLL_bool[i/2]) {
-            opTypeStr = UnicodeString("add(WOY,", "");
-        } else {
-            opTypeStr = UnicodeString("roll(WOY,", "");
-        }
-        log(opTypeStr + amount + ") " + sdf.format(before, str) + " => " +
-                    sdf.format(got, str2));
+        log((ADDROLL_bool[i/2]? UnicodeString("add(WOY,"):UnicodeString("roll(WOY,")) +
+                         amount + ") " + sdf.format(before, str) + " => " +
+                         sdf.format(got, str2));
         if (after != got) {
             str.remove();
             logln(UnicodeString("  exp:") + sdf.format(after, str) + "  FAIL");
@@ -1119,8 +1086,9 @@ void CalendarRegressionTest::test4103271()
         got = testCal->getTime(status);
         str.remove();
         str2.remove();
-        log(opTypeStr + (-amount) + ") " + sdf.format(after, str) + " => " +
-                sdf.format(got, str2));
+        log((ADDROLL_bool[i/2]?UnicodeString("add(WOY,"):UnicodeString("roll(WOY,")) +
+                         (-amount) + ") " + sdf.format(after, str) + " => " +
+                         sdf.format(got, str2));
         if (before != got) {
             str.remove();
             logln(UnicodeString("  exp:") + sdf.format(before, str) + "  FAIL");
@@ -1128,6 +1096,7 @@ void CalendarRegressionTest::test4103271()
         }
         else logln(" ok");
     }
+
     if (fail) 
         errln("Fail: Week of year misbehaving");
 } 
@@ -1310,7 +1279,7 @@ void CalendarRegressionTest::test4118384()
     }
 
     delete cal;
-    cal = Calendar::createInstance(Locale("th_TH@calendar=buddhist"),status);
+    cal = Calendar::createInstance(Locale("th_TH_TRADITIONAL"),status);
     // test deprecated functions
     if (cal->getLeastMaximum(Calendar::HOUR) != 11 ||
         cal->getMaximum(Calendar::HOUR) != 11) {
@@ -1324,7 +1293,7 @@ void CalendarRegressionTest::test4118384()
 
     delete cal;
     // test deprecated functions
-    cal = Calendar::createInstance(Locale("ja_JP@calendar=japanese"),status);
+    cal = Calendar::createInstance(Locale("ja_JP_TRADITIONAL"),status);
     if (cal->getLeastMaximum(Calendar::HOUR) != 11 ||
         cal->getMaximum(Calendar::HOUR) != 11) {
         errln("Fail: Japanese:[deprecated functions] maximum of HOUR field should be 11\n");
@@ -1757,19 +1726,19 @@ CalendarRegressionTest::Test4166109()
     }
     calendar->set(1998, UCAL_MARCH, 1);
     calendar->setMinimalDaysInFirstWeek(1);
-    logln(UnicodeString("Date:  ") + calendar->getTime(status)); // 888817448000
-    
+    logln(UnicodeString("Date:  ") + calendar->getTime(status));
+
     int32_t firstInMonth = calendar->get(UCAL_DATE, status);
     if(U_FAILURE(status))
         errln("get(D_O_M) failed");
 
     for(int32_t firstInWeek = UCAL_SUNDAY; firstInWeek <= UCAL_SATURDAY; firstInWeek++) {
         calendar->setFirstDayOfWeek((UCalendarDaysOfWeek)firstInWeek);
-        int32_t returned = calendar->getActualMaximum(field, status);
+        int32_t returned = calendar->getActualMaximum(field);
         int32_t expected = (31 + ((firstInMonth - firstInWeek + 7)% 7) + 6) / 7;
 
         logln(UnicodeString("First day of week = ") + firstInWeek +
-              "  getActualMaximum(WEEK_OF_MONTH, status) = " + returned +
+              "  getActualMaximum(WEEK_OF_MONTH) = " + returned +
               "  expected = " + expected +
               ((returned == expected) ? "  ok" : "  FAIL"));
 
@@ -1833,7 +1802,7 @@ CalendarRegressionTest::Test4167060()
             if(U_FAILURE(status))
                 errln("getTime() failed");
 
-            int32_t maxYear = calendar->getActualMaximum(field, status);
+            int32_t maxYear = calendar->getActualMaximum(field);
             UnicodeString temp;
             logln(UnicodeString("maxYear: ") + maxYear + " for " + format->format(calendar->getTime(status), temp));
             temp.remove();
@@ -1955,10 +1924,8 @@ void CalendarRegressionTest::TestJ81() {
     fmt.setCalendar(cal);
     // Get the Gregorian cutover
     UDate cutover = cal.getGregorianChange();
-    UDate days = ONE_DAY;
-    days = cutover/days;
     logln(UnicodeString("Cutover: {") +
-          fmt.format(cutover, temp) + "}(epoch days-" + (int)days + ", jd" + (2440588 + days) +")");
+          fmt.format(cutover, temp) + "}(" + cutover/ONE_DAY + ")");
 
     // Check woy and doy handling.  Reference data:
     /* w40 d274 Mon 1 Oct 1582
@@ -1999,31 +1966,22 @@ void CalendarRegressionTest::TestJ81() {
         31, 43, 294, UCAL_SUNDAY
     };
     int32_t DOY_DATA_length = (int32_t)(sizeof(DOY_DATA) / sizeof(DOY_DATA[0]));
-
     for (i=0; i<DOY_DATA_length; i+=4) {
         // Test time->fields
         cal.set(1582, UCAL_OCTOBER, DOY_DATA[i]);
         int32_t woy = cal.get(UCAL_WEEK_OF_YEAR, status);
         int32_t doy = cal.get(UCAL_DAY_OF_YEAR, status);
-        int32_t dow = cal.get(UCAL_DAY_OF_WEEK, status);
         if (U_FAILURE(status)) {
             errln("Error: get() failed");
             break;
         }
-        if (woy != DOY_DATA[i+1] || doy != DOY_DATA[i+2] || dow != DOY_DATA[i+3]) {
+        if (woy != DOY_DATA[i+1] || doy != DOY_DATA[i+2]) {
             errln((UnicodeString)"Fail: expect woy=" + DOY_DATA[i+1] +
-                  ", doy=" + DOY_DATA[i+2] + ", dow=" + DOY_DATA[i+3] + " on " +
-                  fmt.format(cal.getTime(status), temp.remove()) +
-                  " set(1582,OCTOBER, " + DOY_DATA[i] + ")");
-            logln(CalendarTest::calToStr(cal));
+                  ", doy=" + DOY_DATA[i+2] + " on " +
+                  fmt.format(cal.getTime(status), temp.remove()));
             status = U_ZERO_ERROR;
-        }  else {
-          logln((UnicodeString)"PASS: expect woy=" + DOY_DATA[i+1] +
-                ", doy=" + DOY_DATA[i+2] + ", dow=" + DOY_DATA[i+3] + " on " +
-                fmt.format(cal.getTime(status), temp.remove()));
-          logln(CalendarTest::calToStr(cal));
-          status = U_ZERO_ERROR;
         }
+
         // Test fields->time for WOY
         cal.clear();
         cal.set(UCAL_YEAR, 1582);
@@ -2039,7 +1997,6 @@ void CalendarRegressionTest::TestJ81() {
                   " dow=" + DOY_DATA[i+3] + " => " +
                   fmt.format(cal.getTime(status), temp.remove()) +
                   ", expected 1582 Oct " + DOY_DATA[i]);
-            logln(CalendarTest::calToStr(cal));
             status = U_ZERO_ERROR;
         }
 
@@ -2510,7 +2467,7 @@ CalendarRegressionTest::makeDate(int32_t y, int32_t m, int32_t d,
 void CalendarRegressionTest::TestDeprecates(void)
 {
     UErrorCode status = U_ZERO_ERROR;
-    Calendar *c1 = Calendar::createInstance("ja_JP@calendar=japanese",status);
+    Calendar *c1 = Calendar::createInstance("ja_JP_TRADITIONAL",status);
     Calendar *c2 = Calendar::createInstance("ja_JP_TRADITIONAL",status);
 
     if(!c1 || !c2 || U_FAILURE(status)) {
@@ -2547,7 +2504,7 @@ void CalendarRegressionTest::TestDeprecates(void)
     status = U_ZERO_ERROR;
 
     c1 = Calendar::createInstance("th_TH_TRADITIONAL",status);
-    c2 = Calendar::createInstance("th_TH@calendar=buddhist",status);
+    c2 = Calendar::createInstance("th_TH_TRADITIONAL",status);
 
     if(!c1 || !c2 || U_FAILURE(status)) {
         errln("Couldn't create calendars for add of HOUR");

@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1998-2003, International Business Machines
+*   Copyright (C) 1998-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -34,10 +34,17 @@
  The following is a small list as to what is currently wrong/suggestions for
  ustdio.
 
+ * %D and %T printf uses the current timezone, but the scanf version uses GMT.
  * %p should be deprecated. Pointers are 2-16 bytes big and scanf should
     really read them.
  * The format specification should use int32_t and ICU type variants instead of
     the compiler dependent int.
+ * We should consider using Microsoft's wprintf and wscanf format
+    specification.
+ * %C and %S are aliases of %lc and %ls, which are used for wchar_t.
+    We should consider using this for UChar and replace %K and %U,
+    or we should make them use wchar_t.
+ * + in printf format specification is incomplete.
  * Make sure that #, blank and precision in the printf format specification
     works.
  * Make sure that * in the scanf format specification works.
@@ -47,6 +54,9 @@
     wastes a lot of time and space.
  * Make sure that surrogates are supported. It doesn't look like %[], %s or %U
     properly handle surrogates in both scanf()'s.
+ * The ustream header should also include operator<< and
+    operator>> for UDate (not double). This may not work on some compilers
+    that use these operators on a double.
  * Testing should be done for reading and writing multi-byte encodings,
     and make sure that a character that is contained across buffer boundries
     works even for incomplete characters.
@@ -75,23 +85,22 @@
     0 is returned if the operation was successful and EOF otherwise.
  * u_fsettransliterator does not support U_READ side of transliteration.
  * The format specifier should limit the size of a format or honor it in
-    order to prevent buffer overruns.  (e.g. %256.256d).
+    order to prevent buffer overruns.  (e.g. %1000.1000d).
+ * u_fgets is different from stdio. The UChar and UFile arguments are swapped.
  * u_fread and u_fwrite don't exist. They're needed for reading and writing
     data structures without any conversion.
  * u_file_read and u_file_write are used for writing strings. u_fgets and
     u_fputs or u_fread and u_fwrite should be used to do this.
- * u_fgetcx may not be needed anymore. Maybe u_fgetc should return a UChar32.
- * u_fgetc() should use UChar32 instead of UChar. Maybe u_fgetcx is good enough
-    for now.
+ * u_fgetcx isn't really needed anymore because the transliterator is a
+    part of the file API. It allows multiple kinds of escape sequences
+    to be unescaped.
  * We should consider using a UnicodeSet for scanset.
  * scanset has a buffer overflow and underflow bug for both string and file
     APIs.
- * The width parameter for all scanf formats, including scanset, needs
+ * The width '*' parameter for all scanf formats, including scanset, needs
     better testing. This prevents buffer overflows.
- * The skip '*' parameter for all scanf formats, including scanset, needs
-    better testing. This prevents writing to bad memory.
- * Figure out what is suppose to happen when a codepage is changed midstream.
-    Maybe a flush or a rewind are good enough.
+ * u_fgetc() and u_fungetc() should use UChar32 instead of UChar, or at
+    least 32-bit versions should be available.
  * More testing is needed.
 */
 
@@ -179,14 +188,6 @@ U_CAPI void U_EXPORT2
 u_fflush(UFILE *file);
 
 /**
- * Rewind the file pointer to the beginning of the file.
- * @param file The UFILE to rewind.
- * @draft
- */
-U_CAPI void
-u_frewind(UFILE *file);
-
-/**
  * Get the FILE* associated with a UFILE.
  * @param f The UFILE
  * @return A FILE*, owned by the UFILE.  The FILE <EM>must not</EM> be closed.
@@ -217,8 +218,8 @@ u_fgetlocale(UFILE *file);
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_fsetlocale(const char *locale,
-             UFILE      *file);
+u_fsetlocale(const char        *locale,
+         UFILE        *file);
 
 #endif
 
@@ -237,21 +238,18 @@ u_fgetcodepage(UFILE *file);
 /**
  * Set the codepage in which data will be written to and read from the UFILE.
  * All Unicode data written to the UFILE will be converted to this codepage
- * before it is written to the underlying FILE*. It it generally a bad idea to
- * mix codepages within a file. This should only be called right
- * after opening the <TT>UFile</TT>, or after calling <TT>u_frewind</TT>.
+ * before it is written to the underlying FILE*.
  * @param codepage The codepage in which data will be written to 
  * and read from the file. For example <TT>"latin-1"</TT> or <TT>"ibm-943</TT>.
  * A value of NULL means the default codepage for the UFILE's current 
  * locale will be used.
  * @param file The UFILE to set.
- * @return 0 if successful, otherwise a negative number.
- * @see u_frewind
+ * @return NULL if successful, otherwise a negative number.
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_fsetcodepage(const char   *codepage,
-               UFILE        *file);
+u_fsetcodepage(const char    *codepage,
+           UFILE        *file);
 
 
 /**
@@ -273,9 +271,9 @@ U_CAPI UConverter* U_EXPORT2 u_fgetConverter(UFILE *f);
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_fprintf(UFILE         *f,
-          const char    *patternSpecification,
-          ... );
+u_fprintf(    UFILE        *f,
+        const char    *patternSpecification,
+        ... );
 
 /**
  * Write formatted data to a UFILE.
@@ -290,9 +288,9 @@ u_fprintf(UFILE         *f,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_vfprintf(UFILE        *f,
-           const char   *patternSpecification,
-           va_list      ap);
+u_vfprintf(    UFILE        *f,
+        const char    *patternSpecification,
+        va_list        ap);
 
 /**
  * Write formatted data to a UFILE.
@@ -303,9 +301,9 @@ u_vfprintf(UFILE        *f,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_fprintf_u(UFILE       *f,
-            const UChar *patternSpecification,
-            ... );
+u_fprintf_u(    UFILE        *f,
+        const UChar    *patternSpecification,
+        ... );
 
 /**
  * Write formatted data to a UFILE.
@@ -320,9 +318,9 @@ u_fprintf_u(UFILE       *f,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_vfprintf_u(UFILE      *f,
-            const UChar *patternSpecification,
-            va_list     ap);
+u_vfprintf_u(    UFILE        *f,
+        const UChar    *patternSpecification,
+        va_list        ap);
 
 /**
  * Write a Unicode to a UFILE.  The null (U+0000) terminated UChar*
@@ -334,8 +332,8 @@ u_vfprintf_u(UFILE      *f,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_fputs(const UChar *s,
-        UFILE       *f);
+u_fputs(const UChar    *s,
+    UFILE        *f);
 
 /**
  * Write a UChar to a UFILE.
@@ -345,24 +343,23 @@ u_fputs(const UChar *s,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_fputc(UChar   uc,
-        UFILE  *f);
+u_fputc(UChar        uc,
+    UFILE        *f);
 
 /**
  * Write Unicode to a UFILE.
  * The ustring passed in will be converted to the UFILE's underlying
  * codepage before it is written.
- * @param ustring A pointer to the Unicode data to write.
+ * @param chars A pointer to the Unicode data to write.
  * @param count The number of Unicode characters to write
  * @param f The UFILE to which to write.
  * @return The number of Unicode characters written.
- * @see u_fputs
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_file_write(const UChar    *ustring, 
-             int32_t        count, 
-             UFILE          *f);
+u_file_write(const UChar     *chars, 
+         int32_t        count, 
+         UFILE         *f);
 
 
 /* Input functions */
@@ -377,9 +374,9 @@ u_file_write(const UChar    *ustring,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_fscanf(UFILE      *f,
-         const char *patternSpecification,
-         ... );
+u_fscanf(    UFILE        *f,
+        const char     *patternSpecification,
+        ... );
 
 /**
  * Read formatted data from a UFILE.
@@ -395,9 +392,9 @@ u_fscanf(UFILE      *f,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_vfscanf(UFILE         *f,
-          const char    *patternSpecification,
-          va_list        ap);
+u_vfscanf(    UFILE        *f,
+        const char     *patternSpecification,
+        va_list        ap);
 
 /**
  * Read formatted data from a UFILE.
@@ -409,9 +406,9 @@ u_vfscanf(UFILE         *f,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_fscanf_u(UFILE        *f,
-           const UChar  *patternSpecification,
-           ... );
+u_fscanf_u(    UFILE        *f,
+        const UChar     *patternSpecification,
+        ... );
 
 /**
  * Read formatted data from a UFILE.
@@ -427,9 +424,9 @@ u_fscanf_u(UFILE        *f,
  * @draft
  */
 U_CAPI int32_t U_EXPORT2
-u_vfscanf_u(UFILE       *f,
-            const UChar *patternSpecification,
-            va_list      ap);
+u_vfscanf_u(    UFILE        *f,
+        const UChar     *patternSpecification,
+        va_list        ap);
 
 /**
  * Read one line of text into a UChar* string from a UFILE. The newline
@@ -444,9 +441,9 @@ u_vfscanf_u(UFILE       *f,
  * @draft
  */
 U_CAPI UChar* U_EXPORT2
-u_fgets(UChar  *s,
-        int32_t n,
-        UFILE  *f);
+u_fgets(UFILE        *f,
+    int32_t        n,
+    UChar        *s);
 
 /**
  * Read a UChar from a UFILE.
@@ -455,20 +452,24 @@ u_fgets(UChar  *s,
  * @draft
  */
 U_CAPI UChar U_EXPORT2
-u_fgetc(UFILE   *f);
+u_fgetc(UFILE        *f);
 
 /**
- * Read a UChar32 from a UFILE.
- *
+ * Read a UChar from a UFILE and process escape sequences.  If the
+ * next character is not a backslash, this is the same as calling
+ * u_fgetc().  If it is, then additional characters comprising the
+ * escape sequence will be read from the UFILE, parsed, and the
+ * resultant UChar returned.  Ill-formed escape sequences return
+ * U+FFFFFFFF.
  * @param f The UFILE from which to read.
- * @return The UChar32 value read, or U_EOF if no character was
- * available, or U+FFFFFFFF if an ill-formed character was
+ * @return The UChar value read, or U+FFFF if no character was
+ * available, or U+FFFFFFFF if an ill-formed escape sequence was
  * encountered.
  * @see u_unescape()
  * @draft
  */
 U_CAPI UChar32 U_EXPORT2
-u_fgetcx(UFILE  *f);
+u_fgetcx(UFILE        *f);
 
 /**
  * Unget a UChar from a UFILE.
@@ -476,17 +477,17 @@ u_fgetcx(UFILE  *f);
  * to <TT>u_fgetc</TT>, the results are undefined.
  * @param c The UChar to put back on the stream.
  * @param f The UFILE to receive <TT>c</TT>.
- * @return The UChar32 value put back if successful, U_EOF otherwise.
+ * @return The UChar value put back if successful, U+FFFF otherwise.
  * @draft
  */
-U_CAPI UChar32 U_EXPORT2
-u_fungetc(UChar32   c,
+U_CAPI UChar U_EXPORT2
+u_fungetc(UChar        c,
       UFILE        *f);
 
 /**
  * Read Unicode from a UFILE.
  * Bytes will be converted from the UFILE's underlying codepage, with
- * subsequent conversion to Unicode. The data will not be NULL terminated.
+ * subsequent conversion to Unicode.
  * @param chars A pointer to receive the Unicode data.
  * @param count The number of Unicode characters to read.
  * @param f The UFILE from which to read.
@@ -793,5 +794,6 @@ u_vsscanf_u(const UChar *buffer,
 
 
 #endif
+
 
 

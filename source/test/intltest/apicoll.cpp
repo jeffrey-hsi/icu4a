@@ -51,7 +51,6 @@ CollationAPITest::doAssert(UBool condition, const char *message)
     }
 }
 
-#ifdef U_USE_COLLATION_OBSOLETE_2_6
 /*
  * Test Collator::createInstance(... version...) for some locale. Called by TestProperty().
  */
@@ -81,7 +80,6 @@ TestOpenVersion(IntlTest &test, const Locale &locale) {
         }
     }
 }
-#endif
 
 // Collator Class Properties
 // ctor, dtor, createInstance, compare, getStrength/setStrength
@@ -100,7 +98,7 @@ CollationAPITest::TestProperty(/* char* par */)
       ICU 2.4 currVersionArray = {0x21, 0x40, 0x04, 0x04};
       ICU 2.6 currVersionArray = {0x21, 0x40, 0x03, 0x03};
     */
-    UVersionInfo currVersionArray = {0x29, 0x80, 0x01, 0x04};
+    UVersionInfo currVersionArray = {0x29, 0x80, 0x04, 0x04};
     UVersionInfo versionArray;
     int i = 0;
 
@@ -235,7 +233,6 @@ CollationAPITest::TestProperty(/* char* par */)
     delete aFrCol;
     delete junk;
 
-#ifdef U_USE_COLLATION_OBSOLETE_2_6
     /* test Collator::createInstance(...version...) */
     TestOpenVersion(*this, "");
     TestOpenVersion(*this, "da");
@@ -252,7 +249,6 @@ CollationAPITest::TestProperty(/* char* par */)
         errln("error: ucol_openVersion(bogus version) succeeded");
         delete col;
     }
-#endif
 }
 
 void 
@@ -355,7 +351,7 @@ CollationAPITest::TestRules()
     }
 
     coll->getRules(UCOL_TAILORING_ONLY, rules);
-    if (rules.length() != 0x0f) {
+    if (rules.length() != 0) {
         errln("English tailored rules failed");
     }
 
@@ -1216,7 +1212,8 @@ void CollationAPITest::TestMaxExpansion()
         if (order == 0)
             order = iter->previous(status);
 
-        while (U_SUCCESS(status) && iter->previous(status) != UCOL_NULLORDER) {
+        while (U_SUCCESS(status) &&
+            ((uint32_t)iter->previous(status) != UCOL_NULLORDER)) {
             count ++;
         }
 
@@ -1508,7 +1505,7 @@ void CollationAPITest::TestGetLocale() {
 
   /* completely non-existant locale for collator should get a default collator */
   {
-    Collator *defaultColl = Collator::createInstance((const Locale)NULL, status);
+    Collator *defaultColl = Collator::createInstance(NULL, status);
     coll = Collator::createInstance("blahaha", status);
     if(U_FAILURE(status)) {
       log("Failed to open collator with %s\n", u_errorName(status));

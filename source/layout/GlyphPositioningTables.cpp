@@ -1,7 +1,7 @@
 /*
  * @(#)GlyphPositioningTables.cpp	1.7 00/03/15
  *
- * (C) Copyright IBM Corp. 1998-2003 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998, 1999, 2000, 2001 - All Rights Reserved
  *
  */
 
@@ -23,9 +23,8 @@ void GlyphPositioningTableHeader::process(LEGlyphID *glyphs, GlyphPositionAdjust
                                           const LEFontInstance *fontInstance, const LETag *featureOrder) const
 {
     GlyphPositioningLookupProcessor processor(this, scriptTag, languageTag, featureOrder);
-	le_int32 *charIndices = NULL;
 
-    processor.process(glyphs, glyphPositionAdjustments, glyphTags, charIndices, glyphCount, rightToLeft,
+    processor.process(glyphs, glyphPositionAdjustments, glyphTags, glyphCount, rightToLeft,
         glyphDefinitionTableHeader, fontInstance);
 }
 

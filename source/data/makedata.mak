@@ -4,13 +4,13 @@
 #**********************************************************************
 # nmake file for creating data files on win32
 # invoke with
-# nmake /f makedata.mak icumake=$(ProjectDir)
+# nmake /f makedata.mak [Debug|Release]
 #
 #	12/10/1999	weiv	Created
 
 ##############################################################################
 # Keep the following in sync with the version - see common/unicode/uversion.h
-U_ICUDATA_NAME=icudt28
+U_ICUDATA_NAME=icudt26
 ##############################################################################
 U_ICUDATA_ENDIAN_SUFFIX=l
 UNICODE_VERSION=4
@@ -81,10 +81,9 @@ ICUUNIDATA=$(ICUP)\source\data\unidata
 
 
 #  ICUMISC
-#       The directory that contains miscfiles.mk along with files that are miscelleneous data
+#       The directory that contains files that are miscelleneous data
 #
 ICUMISC=$(ICUP)\source\data\misc
-ICUMISC2=misc
 
 #
 #  ICUDATA
@@ -128,6 +127,17 @@ ICUTOOLS=$(ICUP)\source\tools
 
 
 PATH = $(PATH);$(ICUP)\bin
+
+
+# We have to prepare params for pkgdata - to help it find the tools
+!IF "$(CFG)" == "Debug" || "$(CFG)" == "debug"
+!MESSAGE makedata.mak: doing a Debug build.
+PKGOPT=D:$(ICUP)
+!ELSE
+!MESSAGE makedata.mak: doing a Release build.
+PKGOPT=R:$(ICUP)
+!ENDIF
+
 
 # Suffixes for data files
 .SUFFIXES : .ucm .cnv .dll .dat .res .txt .c
@@ -178,7 +188,7 @@ CNV_FILES=$(UCM_SOURCE:.ucm=.cnv)
 !INCLUDE "$(ICUSRCDATA)\$(ICULOC)\reslocal.mk"
 GENRB_SOURCE=$(GENRB_SOURCE) $(GENRB_SOURCE_LOCAL)
 !ELSE
-!MESSAGE Information: cannot find "reslocal.mk". Not building user-additional resource bundle files.
+!MESSAGE Information: cannot find "reslocal.mk". Not building user-additional resource bundle files. 
 !ENDIF
 !ELSE
 !MESSAGE Warning: cannot find "resfiles.mk"
@@ -201,28 +211,13 @@ TRANLIT_SOURCE=$(TRANSLIT_SOURCE) $(TRANSLIT_SOURCE_LOCAL)
 
 TRANSLIT_FILES = $(TRANSLIT_SOURCE:.txt=.res)
 
-# Read list of miscellaneous resource bundle files
-!IF EXISTS("$(ICUSRCDATA)\$(ICUMISC2)\miscfiles.mk")
-!INCLUDE "$(ICUSRCDATA)\$(ICUMISC2)\miscfiles.mk"
-!IF EXISTS("$(ICUSRCDATA)\$(ICUMISC2)\misclocal.mk")
-!INCLUDE "$(ICUSRCDATA)\$(ICUMISC2)\misclocal.mk"
-MISC_SOURCE=$(MISC_SOURCE) $(MISC_SOURCE_LOCAL)
-!ELSE
-!MESSAGE Information: cannot find "misclocal.mk". Not building user-additional miscellaenous files.
-!ENDIF
-!ELSE
-!MESSAGE Warning: cannot find "miscfiles.mk"
-!ENDIF
-
-MISC_FILES = $(MISC_SOURCE:.txt=.res)
-
 INDEX_RES_FILES = res_index.res
 
-ALL_RES = $(INDEX_RES_FILES) $(RB_FILES) $(TRANSLIT_FILES) $(MISC_FILES)
+ALL_RES = $(INDEX_RES_FILES) $(RB_FILES) $(TRANSLIT_FILES)
 
 #############################################################################
 #
-# ALL
+# ALL  
 #     This target builds all the data files.  The world starts here.
 #			Note: we really want the common data dll to go to $(DLL_OUTPUT), not $(ICUBLD).  But specifying
 #				that here seems to cause confusion with the building of the stub library of the same name.
@@ -233,12 +228,12 @@ ALL : GODATA "$(DLL_OUTPUT)\$(U_ICUDATA_NAME).dll" "$(TESTDATAOUT)\testdata.dat"
 	@echo All targets are up to date
 
 #
-# testdata - nmake will invoke pkgdata, which will create testdata.dat
+# testdata - nmake will invoke pkgdata, which will create testdata.dat 
 #
-"$(TESTDATAOUT)\testdata.dat": $(ICUDT)ucadata.icu $(TRANSLIT_FILES) $(MISC_FILES) $(RB_FILES) {"$(ICUTOOLS)\genrb\$(CFG)"}genrb.exe
+"$(TESTDATAOUT)\testdata.dat": $(ICUDT)ucadata.icu $(TRANSLIT_FILES) $(RB_FILES)  {"$(ICUTOOLS)\genrb\$(CFG)"}genrb.exe
 	@cd "$(TESTDATA)"
 	@echo building testdata...
-	nmake /nologo /f "$(TESTDATA)\testdata.mk" TESTDATA=. ICUTOOLS="$(ICUTOOLS)" ICUP="$(ICUP)" CFG=$(CFG) TESTDATAOUT="$(TESTDATAOUT)" ICUDATA="$(ICUDATA)" TESTDATABLD="$(TESTDATABLD)"
+	nmake /nologo /f "$(TESTDATA)\testdata.mk" TESTDATA=. ICUTOOLS="$(ICUTOOLS)" PKGOPT="$(PKGOPT)" CFG=$(CFG) TESTDATAOUT="$(TESTDATAOUT)" ICUDATA="$(ICUDATA)" TESTDATABLD="$(TESTDATABLD)"
 
 #
 #  Break iterator data files.
@@ -250,17 +245,18 @@ BRK_FILES = $(ICUDT)sent.brk $(ICUDT)char.brk $(ICUDT)line.brk $(ICUDT)word.brk 
 #  move the .dll and .lib files to their final destination afterwards.
 #  The $(U_ICUDATA_NAME).lib and $(U_ICUDATA_NAME).exp should already be in the right place due to stubdata.
 #
-"$(DLL_OUTPUT)\$(U_ICUDATA_NAME).dll" : "$(ICUP)\bin\pkgdata.exe" $(CNV_FILES) $(BRK_FILES) "$(ICUBLD)\$(ICUDT)uprops.icu" "$(ICUBLD)\$(ICUDT)unames.icu" "$(ICUBLD)\$(ICUDT)pnames.icu" "$(ICUBLD)\$(ICUDT)unorm.icu" "$(ICUBLD)\$(ICUDT)cnvalias.icu" "$(ICUBLD)\$(ICUDT)ucadata.icu" "$(ICUBLD)\$(ICUDT)invuca.icu" "$(ICUBLD)\$(ICUDT)uidna.spp" $(ALL_RES) "$(ICUBLD)\$(ICUDT)icudata.res" "$(ICUP)\source\stubdata\stubdatabuilt.txt"
+"$(DLL_OUTPUT)\$(U_ICUDATA_NAME).dll" : "$(ICUTOOLS)\pkgdata\$(CFG)\pkgdata.exe" $(CNV_FILES) $(BRK_FILES) "$(ICUBLD)\$(ICUDT)uprops.icu" "$(ICUBLD)\$(ICUDT)unames.icu" "$(ICUBLD)\$(ICUDT)pnames.icu" "$(ICUBLD)\$(ICUDT)unorm.icu" "$(ICUBLD)\$(ICUDT)cnvalias.icu" "$(ICUBLD)\$(ICUDT)tz.icu" "$(ICUBLD)\$(ICUDT)ucadata.icu" "$(ICUBLD)\$(ICUDT)invuca.icu" "$(ICUBLD)\$(ICUDT)uidna.icu" $(ALL_RES) "$(ICUBLD)\$(ICUDT)icudata.res" "$(ICUP)\source\stubdata\stubdatabuilt.txt"
 	@echo Building icu data
 	@cd "$(ICUBLD)"
- 	@"$(ICUP)\bin\pkgdata" -f -e $(U_ICUDATA_NAME) -v -m dll -c -p $(ICUPKG) -d "$(ICUBLD)" -s . <<pkgdatain.txt
+ 	@"$(ICUTOOLS)\pkgdata\$(CFG)\pkgdata" -f -e $(U_ICUDATA_NAME) -v -m dll -c -p $(ICUPKG) -O "$(PKGOPT)" -d "$(ICUBLD)" -s . <<pkgdatain.txt
 $(ICUDT)unorm.icu
 $(ICUDT)uprops.icu
 $(ICUDT)pnames.icu
 $(ICUDT)unames.icu
 $(ICUDT)ucadata.icu
 $(ICUDT)invuca.icu
-$(ICUDT)uidna.spp
+$(ICUDT)uidna.icu
+$(ICUDT)tz.icu
 $(ICUDT)cnvalias.icu
 $(CNV_FILES:.cnv =.cnv
 )
@@ -274,7 +270,7 @@ $(BRK_FILES:.brk =.brk
 	copy "$(ICUPKG).dat" "$(ICUOUT)\$(U_ICUDATA_NAME)$(U_ICUDATA_ENDIAN_SUFFIX).dat"
 	-@erase "$(ICUPKG).dat"
 
-
+ 
 
 # RBBI .brk file generation.
 #      TODO:  set up an inference rule, so these don't need to be written out one by one...
@@ -283,25 +279,25 @@ $(BRK_FILES:.brk =.brk
 BRKDEPS = "$(ICUBLD)\$(ICUDT)uprops.icu" "$(ICUBLD)\$(ICUDT)unames.icu" "$(ICUBLD)\$(ICUDT)pnames.icu" "$(ICUBLD)\$(ICUDT)unorm.icu"
 
 $(ICUDT)char.brk : "$(ICUBRK)\char.txt" $(BRKDEPS)
-	genbrk -c -r "$(ICUBRK)\char.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
+	genbrk -r "$(ICUBRK)\char.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
 
 $(ICUDT)word.brk : "$(ICUBRK)\word.txt" $(BRKDEPS)
-	genbrk -c -r "$(ICUBRK)\word.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
+	genbrk -r "$(ICUBRK)\word.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
 
 $(ICUDT)line.brk : "$(ICUBRK)\line.txt" $(BRKDEPS)
-	genbrk -c -r "$(ICUBRK)\line.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
+	genbrk -r "$(ICUBRK)\line.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
 
 $(ICUDT)sent.brk : "$(ICUBRK)\sent.txt" $(BRKDEPS)
-	genbrk -c -r "$(ICUBRK)\sent.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
+	genbrk -r "$(ICUBRK)\sent.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
 
 $(ICUDT)title.brk : "$(ICUBRK)\title.txt" $(BRKDEPS)
-	genbrk -c -r "$(ICUBRK)\title.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
+	genbrk -r "$(ICUBRK)\title.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
 
 $(ICUDT)word_th.brk : "$(ICUBRK)\word_th.txt" $(BRKDEPS)
-	genbrk -c -r "$(ICUBRK)\word_th.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
+	genbrk -r "$(ICUBRK)\word_th.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
 
 $(ICUDT)line_th.brk : "$(ICUBRK)\line_th.txt" $(BRKDEPS)
-	genbrk -c -r "$(ICUBRK)\line_th.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
+	genbrk -r "$(ICUBRK)\line_th.txt" -o $@ -d"$(ICUBLD)" -i "$(ICUBLD)\\"
 
 
 # utility target to send us to the right dir
@@ -318,26 +314,23 @@ CLEAN : GODATA
 	@cd "$(ICUBLD)"
 	-@erase "*.brk"
 	-@erase "*.cnv"
+	-@erase "*.dat"
 	-@erase "*.exp"
+	-@erase "*.obj"
 	-@erase "*.icu"
 	-@erase "*.lib"
 	-@erase "*.mak"
-	-@erase "*.obj"
 	-@erase "*.res"
-	-@erase "*.spp"
 	-@erase "*.txt"
 	@cd "$(ICUOUT)"
 	-@erase "*.dat"
 	@cd "$(TESTDATABLD)"
-	-@erase "*.cnv"
-	-@erase "*.icu"
-	-@erase "*.mak"
 	-@erase "*.res"
-	-@erase "*.spp"
-	-@erase "*.txt"
+	-@erase "*.dat"
+	-@erase "*.mak"
 	@cd "$(TESTDATAOUT)"
 	-@erase "*.dat"
-	-@erase "*.typ"
+	-@erase "*.cnv"
 	@cd "$(ICUBLD)"
 
 
@@ -346,19 +339,10 @@ CLEAN : GODATA
 	@echo Generating converters
 	@"$(ICUTOOLS)\makeconv\$(CFG)\makeconv" -t -p"$(ICUPKG)" -d"$(ICUBLD)" $<
 
-# Batch inference rule for creating transliterator resource files
+# Batch infrence rule for creating transliterator resource files
 {$(ICUSRCDATA_RELATIVE_PATH)\$(ICUTRNS)}.txt.res::
 	@echo Making Transliterator Resource Bundle files
 	@"$(ICUTOOLS)\genrb\$(CFG)\genrb" -k -t -p"$(ICUPKG)" -d"$(ICUBLD)" $<
-
-# Batch inference rule for creating miscellaneous resource files
-# TODO: -q option is specified to squelch the 120+ warnings about
-#       empty intvectors and binary elements.  Unfortunately, this may
-#       squelch other legitimate warnings.  When there is a better
-#       way, remove the -q.
-{$(ICUSRCDATA_RELATIVE_PATH)\$(ICUMISC2)}.txt.res::
-	@echo Making Miscellaneous Resource Bundle files
-	@"$(ICUTOOLS)\genrb\$(CFG)\genrb" -k -t -q -p"$(ICUPKG)" -d"$(ICUBLD)" $<
 
 $(INDEX_RES_FILES):
 	@echo Generating <<res_index.txt
@@ -413,18 +397,25 @@ res_index {
 	@set ICU_DATA=$(ICUBLD)
 	@"$(ICUTOOLS)\gencnval\$(CFG)\gencnval" "$(ICUSRCDATA)\$(ICUUCM)\convrtrs.txt"
 
+# Targets for tz
+"$(ICUBLD)\$(ICUDT)tz.icu" : {"$(ICUMISC)"}timezone.txt {"$(ICUTOOLS)\gentz\$(CFG)"}gentz.exe
+	@echo Creating data file for Timezones
+	@set ICU_DATA=$(ICUBLD)
+	@"$(ICUTOOLS)\gentz\$(CFG)\gentz" "$(ICUMISC)\timezone.txt"
+
 # Targets for ucadata.icu & invuca.icu
 "$(ICUBLD)\$(ICUDT)invuca.icu" "$(ICUBLD)\$(ICUDT)ucadata.icu": "$(ICUUNIDATA)\FractionalUCA.txt" "$(ICUTOOLS)\genuca\$(CFG)\genuca.exe" $(ICUDT)uprops.icu $(ICUDT)unorm.icu
 	@echo Creating UCA data files
 	@set ICU_DATA=$(ICUBLD)
 	@"$(ICUTOOLS)\genuca\$(CFG)\genuca" -s "$(ICUUNIDATA)"
 
-# Targets for uidna.spp
-"$(ICUBLD)\$(ICUDT)uidna.spp" : "$(ICUUNIDATA)\*.txt" "$(ICUMISC)\NamePrepProfile.txt"
-	gensprep -s "$(ICUMISC)" -d "$(ICUBLD)\\" -b uidna -n "$(ICUUNIDATA)" -k -u 3.2.0 NamePrepProfile.txt
+# Targets for uidna.icu
+"$(ICUBLD)\$(ICUDT)uidna.icu" : "$(ICUUNIDATA)\*.txt" "$(ICUMISC)\*.txt"
+	genidna -s "$(ICUDATA)" -d "$(ICUBLD)\\"
 
 # Dependencies on the tools for the batch inference rules
 
 $(UCM_SOURCE) : {"$(ICUTOOLS)\makeconv\$(CFG)"}makeconv.exe
 
-$(TRANSLIT_SOURCE) $(MISC_SOURCE) $(GENRB_SOURCE) "$(ICUBLD)\$(ICUDT)root.res" : {"$(ICUTOOLS)\genrb\$(CFG)"}genrb.exe "$(ICUBLD)\$(ICUDT)ucadata.icu" "$(ICUBLD)\$(ICUDT)uprops.icu" "$(ICUBLD)\$(ICUDT)unorm.icu"
+$(TRANSLIT_SOURCE) $(GENRB_SOURCE) "$(ICUBLD)\$(ICUDT)root.res" : {"$(ICUTOOLS)\genrb\$(CFG)"}genrb.exe "$(ICUBLD)\$(ICUDT)ucadata.icu" "$(ICUBLD)\$(ICUDT)uprops.icu" "$(ICUBLD)\$(ICUDT)unorm.icu"
+

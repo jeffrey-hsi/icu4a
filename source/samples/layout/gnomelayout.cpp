@@ -225,48 +225,57 @@ gint eventExpose(GtkWidget *widget, GdkEvent *event, Context *context)
 
 GtkWidget *newSample(const gchar *fileName)
 {
+  gchar     *title   = NULL;
+  GtkWidget *app     = NULL;
+  GtkWidget *area    = NULL;
   Context   *context = new Context();
 
   context->width  = 600;
   context->height = 400;
   context->paragraph = Paragraph::paragraphFactory(fileName, font, guiSupport);
 
-  gchar *title = prettyTitle(fileName);
-  GtkWidget *app = gnome_app_new("gnomeLayout", title);
+  if (context->paragraph != NULL) {
+    GtkStyle *style;
+    gchar *title = prettyTitle(fileName);
 
-  gtk_object_set_data(GTK_OBJECT(app), "context", context);
+    app = gnome_app_new("gnomeLayout", title);
 
-  gtk_window_set_default_size(GTK_WINDOW(app), 600 - 24, 400);
+    gtk_object_set_data(GTK_OBJECT(app), "context", context);
 
-  gnome_app_create_menus_with_data(GNOME_APP(app), mainMenu, app);
+    gtk_window_set_default_size(GTK_WINDOW(app), 600 - 24, 400);
 
-  gtk_signal_connect(GTK_OBJECT(app), "delete_event",
-		     GTK_SIGNAL_FUNC(eventDelete), NULL);
+    gnome_app_create_menus_with_data(GNOME_APP(app), mainMenu, app);
 
-  GtkWidget *area = gtk_drawing_area_new();
-  gtk_object_set_data(GTK_OBJECT(app), "area", area);
+    gtk_signal_connect(GTK_OBJECT(app), "delete_event",
+		       GTK_SIGNAL_FUNC(eventDelete), NULL);
 
-  GtkStyle *style = gtk_style_copy(gtk_widget_get_style(area));
+    area = gtk_drawing_area_new();
+    gtk_object_set_data(GTK_OBJECT(app), "area", area);
 
-  for (int i = 0; i < 5; i += 1) {
-    style->fg[i] = style->white;
-  }
+#if 1
+    style = gtk_style_copy(gtk_widget_get_style(area));
+
+    for (int i = 0; i < 5; i += 1) {
+      style->fg[i] = style->white;
+    }
     
-  gtk_widget_set_style(area, style);
+    gtk_widget_set_style(area, style);
+#endif
 
-  gnome_app_set_contents(GNOME_APP(app), area);
+    gnome_app_set_contents(GNOME_APP(app), area);
 
-  gtk_signal_connect(GTK_OBJECT(area),
-		     "expose_event",
-		     GTK_SIGNAL_FUNC(eventExpose),
-		     context);
+    gtk_signal_connect(GTK_OBJECT(area),
+                       "expose_event",
+                       GTK_SIGNAL_FUNC(eventExpose),
+                       context);
 
-  gtk_signal_connect(GTK_OBJECT(area),
-		     "configure_event",
-		     GTK_SIGNAL_FUNC(eventConfigure),
-		     context);
+    gtk_signal_connect(GTK_OBJECT(area),
+                       "configure_event",
+                       GTK_SIGNAL_FUNC(eventConfigure),
+                       context);
 
-  appList = g_slist_prepend(appList, app);
+    appList = g_slist_prepend(appList, app);
+  }
 
   g_free(title);
 
@@ -312,12 +321,10 @@ int main (int argc, char *argv[])
 
     if (argc <= 1) {
       app = newSample("Sample.txt");
-
       gtk_widget_show_all(app);
     } else {
       for (int i = 1; i < argc; i += 1) {
 	app = newSample(argv[i]);
-
 	gtk_widget_show_all(app);
       }
     }

@@ -17,7 +17,6 @@
 
 #include "unicode/urep.h"
 #include "unicode/parseerr.h"
-#include "unicode/uenum.h"
 
 /********************************************************************
  * General Notes
@@ -38,18 +37,6 @@
  * services are available to C code through this header.  In order to
  * access more complex transliteration services, refer to the C++
  * headers and documentation.
- *
- * There are two sets of functions for working with transliterator IDs:
- *
- * An old, deprecated set uses char * IDs, which works for true and pure
- * identifiers that these APIs were designed for,
- * for example "Cyrillic-Latin".
- * It does not work when the ID contains filters ("[:Script=Cyrl:]")
- * or even a complete set of rules because then the ID string contains more
- * than just "invariant" characters (see utypes.h).
- *
- * A new set of functions replaces the old ones and uses UChar * IDs,
- * paralleling the UnicodeString IDs in the C++ API. (New in ICU 2.8.)
  */
 
 /********************************************************************
@@ -168,30 +155,29 @@ typedef struct UTransPosition {
  * Any non-NULL result from this function should later be closed with
  * utrans_close().
  *
- * @param id a valid transliterator ID
- * @param idLength the length of the ID string, or -1 if NUL-terminated
+ * @param id a valid ID, as returned by utrans_getAvailableID()
  * @param dir the desired direction
- * @param rules the transliterator rules.  See the C++ header rbt.h for
- *              rules syntax. If NULL then a system transliterator matching
- *              the ID is returned.
+ * @param rules the transliterator rules.  See the C++ header rbt.h
+ * for rules syntax. If NULL then a system transliterator matching 
+ * the ID is returned.
  * @param rulesLength the length of the rules, or -1 if the rules
- *                    are NUL-terminated.
- * @param parseError a pointer to a UParseError struct to receive the details
- *                   of any parsing errors. This parameter may be NULL if no
- *                   parsing error details are desired.
- * @param pErrorCode a pointer to the UErrorCode
+ * are zero-terminated.
+ * @param dir the desired direction
+ * @param parseError a pointer to a UParseError struct to receive the
+ * details of any parsing errors. This parameter may be NULL if no
+ * parsing error details are desired.
+ * @param status a pointer to the UErrorCode
  * @return a transliterator pointer that may be passed to other
- *         utrans_xxx() functions, or NULL if the open call fails.
- * @draft ICU 2.8
+ * utrans_xxx() functions, or NULL if the open call fails.
+ * @stable ICU 2.0
  */
-U_CAPI UTransliterator* U_EXPORT2
-utrans_openU(const UChar *id,
-             int32_t idLength,
-             UTransDirection dir,
-             const UChar *rules,
-             int32_t rulesLength,
-             UParseError *parseError,
-             UErrorCode *pErrorCode);
+U_CAPI UTransliterator* U_EXPORT2 
+utrans_open(const char* id,
+            UTransDirection dir,
+            const UChar* rules,         /* may be Null */
+            int32_t rulesLength,        /* -1 if null-terminated */ 
+            UParseError* parseError,    /* may be Null */
+            UErrorCode* status);
 
 /**
  * Open an inverse of an existing transliterator.  For this to work,
@@ -237,20 +223,22 @@ utrans_close(UTransliterator* trans);
 
 /**
  * Return the programmatic identifier for this transliterator.
- * If this identifier is passed to utrans_openU(), it will open
+ * If this identifier is passed to utrans_open(), it will open
  * a transliterator equivalent to this one, if the ID has been
  * registered.
- *
  * @param trans the transliterator to return the ID of.
- * @param resultLength pointer to an output variable receiving the length
- *        of the ID string; can be NULL
- * @return the NUL-terminated ID string
- *
- * @draft ICU 2.8
+ * @param buf the buffer in which to receive the ID.  This may be
+ * NULL, in which case no characters are copied.
+ * @param bufCapacity the capacity of the buffer.  Ignored if buf is
+ * NULL.
+ * @return the actual length of the ID, not including
+ * zero-termination.  This may be greater than bufCapacity.
+ * @stable ICU 2.0
  */
-U_CAPI const UChar * U_EXPORT2
-utrans_getUnicodeID(const UTransliterator *trans,
-                    int32_t *resultLength);
+U_CAPI int32_t U_EXPORT2 
+utrans_getID(const UTransliterator* trans,
+             char* buf,
+             int32_t bufCapacity);
 
 /**
  * Register an open transliterator with the system.  When
@@ -273,14 +261,13 @@ utrans_register(UTransliterator* adoptedTrans,
 /**
  * Unregister a transliterator from the system.  After this call the
  * system will no longer recognize the given ID when passed to
- * utrans_open(). If the ID is invalid then nothing is done.
+ * utrans_open().  If the id is invalid then nothing is done.
  *
- * @param id an ID to unregister
- * @param idLength the length of id, or -1 if id is zero-terminated
- * @draft ICU 2.8
+ * @param id a zero-terminated ID
+ * @stable ICU 2.0
  */
-U_CAPI void U_EXPORT2
-utrans_unregisterID(const UChar* id, int32_t idLength);
+U_CAPI void U_EXPORT2 
+utrans_unregister(const char* id);
 
 /**
  * Set the filter used by a transliterator.  A filter can be used to
@@ -308,8 +295,6 @@ utrans_setFilter(UTransliterator* trans,
 
 /**
  * Return the number of system transliterators.
- * It is recommended to use utrans_openIDs() instead.
- *
  * @return the number of system transliterators.
  * @stable ICU 2.0
  */
@@ -317,16 +302,26 @@ U_CAPI int32_t U_EXPORT2
 utrans_countAvailableIDs(void);
 
 /**
- * Return a UEnumeration for the available transliterators.
+ * Return the ID of the index-th system transliterator.  The result
+ * is placed in the given buffer.  If the given buffer is too small,
+ * the initial substring is copied to buf.  The result in buf is
+ * always zero-terminated.
  *
- * @param pErrorCode Pointer to the UErrorCode in/out parameter.
- * @return UEnumeration for the available transliterators.
- *         Close with uenum_close().
- *
- * @draft ICU 2.8
+ * @param index the number of the transliterator to return.  Must
+ * satisfy 0 <= index < utrans_countAvailableIDs().  If index is out
+ * of range then it is treated as if it were 0.
+ * @param buf the buffer in which to receive the ID.  This may be
+ * NULL, in which case no characters are copied.
+ * @param bufCapacity the capacity of the buffer.  Ignored if buf is
+ * NULL.
+ * @return the actual length of the index-th ID, not including
+ * zero-termination.  This may be greater than bufCapacity.
+ * @stable ICU 2.0
  */
-U_CAPI UEnumeration * U_EXPORT2
-utrans_openIDs(UErrorCode *pErrorCode);
+U_CAPI int32_t U_EXPORT2 
+utrans_getAvailableID(int32_t index,
+                      char* buf,
+                      int32_t bufCapacity);
 
 /********************************************************************
  * Transliteration API
@@ -487,95 +482,32 @@ utrans_transIncrementalUChars(const UTransliterator* trans,
                               UTransPosition* pos,
                               UErrorCode* status);
 
-/* deprecated API ----------------------------------------------------------- */
 
-/* see utrans.h documentation for why these functions are deprecated */
-
+/********************* Obsolete API ************************************/
 /**
- * Deprecated, use utrans_openU() instead.
- * Open a custom transliterator, given a custom rules string 
- * OR 
- * a system transliterator, given its ID.  
- * Any non-NULL result from this function should later be closed with
- * utrans_close().
- *
- * @param id a valid ID, as returned by utrans_getAvailableID()
- * @param dir the desired direction
- * @param rules the transliterator rules.  See the C++ header rbt.h
- * for rules syntax. If NULL then a system transliterator matching 
- * the ID is returned.
- * @param rulesLength the length of the rules, or -1 if the rules
- * are zero-terminated.
- * @param parseError a pointer to a UParseError struct to receive the
- * details of any parsing errors. This parameter may be NULL if no
- * parsing error details are desired.
- * @param status a pointer to the UErrorCode
- * @return a transliterator pointer that may be passed to other
- * utrans_xxx() functions, or NULL if the open call fails.
- * @deprecated ICU 2.8 Use utrans_openU() instead, see utrans.h
+ * TODO: Remove after Aug 2002
  */
-U_CAPI UTransliterator* U_EXPORT2 
-utrans_open(const char* id,
-            UTransDirection dir,
-            const UChar* rules,         /* may be Null */
-            int32_t rulesLength,        /* -1 if null-terminated */ 
-            UParseError* parseError,    /* may be Null */
-            UErrorCode* status);
 
-/**
- * Deprecated, use utrans_getUnicodeID() instead.
- * Return the programmatic identifier for this transliterator.
- * If this identifier is passed to utrans_open(), it will open
- * a transliterator equivalent to this one, if the ID has been
- * registered.
- * @param trans the transliterator to return the ID of.
- * @param buf the buffer in which to receive the ID.  This may be
- * NULL, in which case no characters are copied.
- * @param bufCapacity the capacity of the buffer.  Ignored if buf is
- * NULL.
- * @return the actual length of the ID, not including
- * zero-termination.  This may be greater than bufCapacity.
- * @deprecated ICU 2.8 Use utrans_getUnicodeID() instead, see utrans.h
- */
-U_CAPI int32_t U_EXPORT2 
-utrans_getID(const UTransliterator* trans,
-             char* buf,
-             int32_t bufCapacity);
+#ifdef U_USE_DEPRECATED_FORMAT_API
 
-/**
- * Deprecated, use utrans_unregisterID() instead.
- * Unregister a transliterator from the system.  After this call the
- * system will no longer recognize the given ID when passed to
- * utrans_open().  If the id is invalid then nothing is done.
- *
- * @param id a zero-terminated ID
- * @deprecated ICU 2.8 Use utrans_unregisterID() instead, see utrans.h
- */
-U_CAPI void U_EXPORT2 
-utrans_unregister(const char* id);
+#if ((U_ICU_VERSION_MAJOR_NUM != 2) || (U_ICU_VERSION_MINOR_NUM != 2))
+#   error "ICU version has changed. Please redefine the macros under U_USE_DEPRECATED_FORMAT_API pre-processor definition"
+#else 
+    U_CAPI UTransliterator* U_EXPORT2 
+    utrans_openRules(const char* id,
+                     const UChar* rules,
+                     int32_t rulesLength, /* -1 if null-terminated */
+                     UTransDirection dir,
+                     UParseError* parseErr, /* may be NULL */
+                     UErrorCode* status){
+        return utrans_open(id,dir,rules,rulesLength,parseErr,status);
+    }
 
-/**
- * Deprecated, use utrans_openIDs() instead.
- * Return the ID of the index-th system transliterator.  The result
- * is placed in the given buffer.  If the given buffer is too small,
- * the initial substring is copied to buf.  The result in buf is
- * always zero-terminated.
- *
- * @param index the number of the transliterator to return.  Must
- * satisfy 0 <= index < utrans_countAvailableIDs().  If index is out
- * of range then it is treated as if it were 0.
- * @param buf the buffer in which to receive the ID.  This may be
- * NULL, in which case no characters are copied.
- * @param bufCapacity the capacity of the buffer.  Ignored if buf is
- * NULL.
- * @return the actual length of the index-th ID, not including
- * zero-termination.  This may be greater than bufCapacity.
- * @deprecated ICU 2.8 Use utrans_openIDs() instead, see utrans.h
- */
-U_CAPI int32_t U_EXPORT2 
-utrans_getAvailableID(int32_t index,
-                      char* buf,
-                      int32_t bufCapacity);
+#   define utrans_open_2_2(id,dir,status) utrans_open(id,dir,NULL,0,NULL,status)
+
+#endif
+#endif
+/********************* End **********************************************/
 
 #endif /* #if !UCONFIG_NO_TRANSLITERATION */
 

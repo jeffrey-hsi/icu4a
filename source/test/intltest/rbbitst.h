@@ -70,10 +70,8 @@ public:
     UChar *ReadAndConvertFile(const char *fileName, int &ulen, UErrorCode &status);
     void executeTest(TestParams *);
 
-    void TestWordBreaks();
-    void TestWordBoundary();
-    void TestLineBreaks();
-    void TestSentBreaks();
+    
+ 
     
     
 /***********************/
@@ -119,7 +117,7 @@ private:
     void doBreakInvariantTest(BreakIterator& tb, UnicodeString& testChars);
     void doOtherInvariantTest(BreakIterator& tb, UnicodeString& testChars);
 
-    void RunMonkey(BreakIterator *bi, RBBIMonkeyKind &mk, const char *name, uint32_t  seed, int32_t loopCount);
+    void RunMonkey(BreakIterator *bi, RBBIMonkeyKind &mk, uint32_t  seed, int32_t loopCount);
 
 };
 

@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1999-2003, International Business Machines
+*   Copyright (C) 1999-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************/
@@ -26,33 +26,6 @@
 #include "ucmndata.h"
 #include "udatamem.h"
 
-U_CFUNC uint16_t
-udata_getHeaderSize(const DataHeader *udh) {
-    if(udh==NULL) {
-        return 0;
-    } else if(udh->info.isBigEndian==U_IS_BIG_ENDIAN) {
-        /* same endianness */
-        return udh->dataHeader.headerSize;
-    } else {
-        /* opposite endianness */
-        uint16_t x=udh->dataHeader.headerSize;
-        return (uint16_t)((x<<8)|(x>>8));
-    }
-}
-
-U_CFUNC uint16_t
-udata_getInfoSize(const UDataInfo *info) {
-    if(info==NULL) {
-        return 0;
-    } else if(info->isBigEndian==U_IS_BIG_ENDIAN) {
-        /* same endianness */
-        return info->size;
-    } else {
-        /* opposite endianness */
-        uint16_t x=info->size;
-        return (uint16_t)((x<<8)|(x>>8));
-    }
-}
 
 /*----------------------------------------------------------------------------------*
  *                                                                                  *
@@ -75,7 +48,18 @@ typedef struct  {
 }  PointerTOC;
 
 
-/* definition of OffsetTOC struct types moved to ucmndata.h */
+
+typedef struct {
+    int32_t           nameOffset;
+    int32_t           dataOffset;
+}  OffsetTOCEntry;
+
+
+typedef struct {
+    uint32_t          count;
+    OffsetTOCEntry    entry[2];    /* Acutal size of array is from count. */
+}  OffsetTOC;
+
 
 /*----------------------------------------------------------------------------------*
  *                                                                                  *
@@ -84,7 +68,7 @@ typedef struct  {
  *----------------------------------------------------------------------------------*/
 static uint32_t offsetTOCEntryCount(const UDataMemory *pData) {
     int32_t          retVal=0;
-    const UDataOffsetTOC *toc = (UDataOffsetTOC *)pData->toc;
+    const OffsetTOC *toc = (OffsetTOC *)pData->toc;
     if (toc != NULL) {
         retVal = toc->count;
     } 
@@ -95,9 +79,8 @@ static uint32_t offsetTOCEntryCount(const UDataMemory *pData) {
 static const DataHeader *
 offsetTOCLookupFn(const UDataMemory *pData,
                   const char *tocEntryName,
-                  int32_t *pLength,
                   UErrorCode *pErrorCode) {
-    const UDataOffsetTOC  *toc = (UDataOffsetTOC *)pData->toc;
+    const OffsetTOC  *toc = (OffsetTOC *)pData->toc;
     if(toc!=NULL) {
         const char *base=(const char *)pData->toc;
         uint32_t start, limit, number;
@@ -123,11 +106,6 @@ offsetTOCLookupFn(const UDataMemory *pData,
 /*      fprintf(stderr, "Found: %p\n",(base+toc[2*start+1])) */
             fprintf(stderr, "Found it\n");
 #endif
-            if((start+1)<toc->count) {
-                *pLength=(int32_t)(toc->entry[start+1].dataOffset-toc->entry[start].dataOffset);
-            } else {
-                *pLength=-1;
-            }
             return (const DataHeader *)&base[toc->entry[start].dataOffset];
         } else {
 #ifdef UDATA_DEBUG
@@ -157,7 +135,6 @@ static uint32_t pointerTOCEntryCount(const UDataMemory *pData) {
 
 static const DataHeader *pointerTOCLookupFn(const UDataMemory *pData,
                    const char *name,
-                   int32_t *pLength,
                    UErrorCode *pErrorCode) {
     if(pData->toc!=NULL) {
         const PointerTOC *toc = (PointerTOC *)pData->toc;
@@ -182,7 +159,6 @@ static const DataHeader *pointerTOCLookupFn(const UDataMemory *pData,
 
         if(uprv_strcmp(name, toc->entry[start].entryName)==0) {
             /* found it */
-            *pLength=-1;
             return UDataMemory_normalizeDataPointer(toc->entry[start].pHeader);
         } else {
             return NULL;
@@ -226,7 +202,7 @@ void udata_checkCommonData(UDataMemory *udm, UErrorCode *err) {
         ) {
         /* dataFormat="CmnD" */
         udm->vFuncs = &CmnDFuncs;
-        udm->toc=(const char *)udm->pHeader+udata_getHeaderSize(udm->pHeader);
+        udm->toc=(const char *)udm->pHeader+udm->pHeader->dataHeader.headerSize;
     }
     else if(udm->pHeader->info.dataFormat[0]==0x54 &&
         udm->pHeader->info.dataFormat[1]==0x6f &&
@@ -236,7 +212,7 @@ void udata_checkCommonData(UDataMemory *udm, UErrorCode *err) {
         ) {
         /* dataFormat="ToCP" */
         udm->vFuncs = &ToCPFuncs;
-        udm->toc=(const char *)udm->pHeader+udata_getHeaderSize(udm->pHeader);
+        udm->toc=(const char *)udm->pHeader+udm->pHeader->dataHeader.headerSize;
     }
     else {
         /* dataFormat not recognized */
@@ -252,22 +228,3 @@ void udata_checkCommonData(UDataMemory *udm, UErrorCode *err) {
     }
 }
 
-/*
- * TODO: Add a udata_swapPackageHeader() function that swaps an ICU .dat package
- * header but not its sub-items.
- * This function will be needed for automatic runtime swapping.
- * Sub-items should not be swapped to limit the swapping to the parts of the
- * package that are actually used.
- *
- * Since lengths of items are implicit in the order and offsets of their
- * ToC entries, and since offsets are relative to the start of the ToC,
- * a swapped version may need to generate a different data structure
- * with pointers to the original data items and with their lengths
- * (-1 for the last one if it is not known), and maybe even pointers to the
- * swapped versions of the items.
- * These pointers to swapped versions would establish a cache;
- * instead, each open data item could simply own the storage for its swapped
- * data. This fits better with the current design.
- *
- * markus 2003sep18 Jitterbug 2235
- */

@@ -9,22 +9,11 @@
 
 te {
     Version{ "2.0" }
-    AmPmMarkers {
-        "\u0c2a\u0c42\u0c30\u0c4d\u0c35\u0c3e\u0c39\u0c4d\u0c28",
-        "\u0c05\u0c2a\u0c30\u0c3e\u0c39\u0c4d\u0c28",
-    }
-    collations {
-        standard {
-            Version { "1.0" }
-            Sequence { "[normalization on]" }
-        }
-    }
     Countries {
-        IN { "\u0c2d\u0c3e\u0c30\u0c24 \u0c26\u0c47\u0c33\u0c66" }
+        IN { "\u0c2d\u0c3e\u0c30\u0c24 \u0c26\u0c46\u0c33\u0c66" }
     }
-    // Currency display names
-    Currencies {
-        INR { "\u0C30\u0C42.", "INR" }
+    Languages {
+        te { "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41" }
     }
     DayAbbreviations {
         "\u0c06\u0c26\u0c3f",
@@ -43,13 +32,6 @@ te {
         "\u0c17\u0c41\u0c30\u0c41\u0c35\u0c3e\u0c30\u0c02",
         "\u0c36\u0c41\u0c15\u0c4d\u0c30\u0c35\u0c3e\u0c30\u0c02",
         "\u0c36\u0c28\u0c3f\u0c35\u0c3e\u0c30\u0c02",
-    }
-    ExemplarCharacters{"[[:Telu:]\u200c\u200d]"}
-    LocaleScript{ 
-        "Telu",  // ISO 15924 Name 
-    }
-    Languages {
-        te { "\u0c24\u0c46\u0c32\u0c41\u0c17\u0c41" }
     }
     MonthAbbreviations {
         "\u0c1c\u0c28\u0c35\u0c30\u0c3f",
@@ -79,23 +61,36 @@ te {
         "\u0c28\u0c35\u0c02\u0c2c\u0c30\u0c4d",
         "\u0c21\u0c3f\u0c38\u0c46\u0c02\u0c2c\u0c30\u0c4d",
     }
-    NumberElements {
-        ".",
-        ",",
-        ";",
-        "%",
-        "\u0C66",
-        "#",
-        "-",
-        "E",
-        "\u2030",
-        "\u221E",
-        "\uFFFD",
-        ".",
-        "+",
+
+//    NumberElements {
+//        ".",
+//        ",",
+//        ";",
+//        "%",
+//        "0",
+//        "#",
+//        "-",
+//        "E",
+//        "\u2030",
+//        "\u221e",
+//        "\ufffd",
+//    }
+    LocaleID:int { 0x4a }
+    CollationElements {
+        Version { "1.0" }
+        Sequence { "[normalization on]" }
     }
+    LocaleScript{ 
+        "Telu",  // ISO 15924 Name 
+    }
+    ExemplarCharacters{"[[:Telu:]\u200c\u200d]"}
     // /**************** Info Below is needed ****************/
     // Eras{}
     // localPatternChars{}
     //
+
+    // Currency display names
+    Currencies {
+        INR { "\u0C30\u0C42.", "INR" }
+    }
 }

@@ -27,9 +27,9 @@
 #include "intltest.h"
 #include "caltztst.h"
 #include "itmajor.h"
+#include "tsmutex.h"
 
 #include "umutex.h"
-#include "uassert.h"
 
 #ifdef XP_MAC_CONSOLE
 #include <console.h>
@@ -50,6 +50,16 @@ static UnicodeString errorList;
 UnicodeString
 UCharToUnicodeString(UChar c)
 { return UnicodeString(c); }
+
+// [LIU] Just to get things working
+UnicodeString
+operator+(const UnicodeString& left,
+      const UnicodeString& right)
+{
+    UnicodeString str(left);
+    str += right;
+    return str;
+}
 
 // [rtg] Just to get things working
 UnicodeString
@@ -76,22 +86,6 @@ operator+(const UnicodeString& left,
     assert(danger == 'p');
 
     return left + buffer;
-}
-
-UnicodeString
-Int64ToUnicodeString(int64_t num)
-{
-    char buffer[64];    // nos changed from 10 to 64
-    char danger = 'p';  // guard against overrunning the buffer (rtg)
-
-#ifdef WIN32
-    sprintf(buffer, "%I64d", num);
-#else
-    sprintf(buffer, "%lld", num);
-#endif
-    assert(danger == 'p');
-
-    return buffer;
 }
 
 // [LIU] Just to get things working
@@ -137,11 +131,6 @@ UnicodeString toString(const Formattable& f) {
     case Formattable::kLong:
         s = UnicodeString("[Long:") + f.getLong() + "]";
         break;
-
-    case Formattable::kInt64:
-        s = UnicodeString("[Int64:") + Int64ToUnicodeString(f.getInt64()) + "]";
-        break;
-
     case Formattable::kString:
         f.getString(s);
         s.insert(0, "[String:");
@@ -393,7 +382,7 @@ void IntlTest::setICU_DATA() {
     //              may not be the same as the source directory, depending on
     //              the configure options used.  At any rate,
     //              set the data path to the built data from this directory.
-    //              The value is complete with quotes, so it can be used
+    //              The value is complete with quotes, so it can be used 
     //              as-is as a string constant.
 
 #if defined (U_TOPBUILDDIR)
@@ -510,6 +499,47 @@ void it_errln( UnicodeString message )
         IntlTest::gTest->errln( message );
 }
 
+IntlTest& operator<<(IntlTest& test, const UnicodeString&   string)
+{
+/* NULL shouldn't happen */
+//    if (&test == NULL)
+//        return *((IntlTest*) NULL);
+    test.log( string );
+    return test;
+}
+
+IntlTest& operator<<(IntlTest& test, const char*    string)
+{
+/* NULL shouldn't happen */
+//    if (&test == NULL)
+//        return *((IntlTest*) NULL);
+    test.log( string );
+    return test;
+}
+
+IntlTest& operator<<(IntlTest& test, const int32_t num)
+{
+/* NULL shouldn't happen */
+//    if (&test == NULL)
+//        return *((IntlTest*) NULL);
+    char convert[20];
+    sprintf(convert, "%li", (long)num);
+    test.log(convert);
+    return test;
+}
+
+IntlTest& endl( IntlTest& test )
+{
+    test.logln();
+    return test;
+}
+
+IntlTest& operator<<(IntlTest& test,  IntlTest& ( * _f)(IntlTest&))
+{
+    (*_f)(test);
+    return test;
+}
+
 
 IntlTest::IntlTest()
 {
@@ -597,7 +627,7 @@ UBool IntlTest::runTest( char* name, char* par )
     }
 
     if (!name || (name[0] == 0) || (strcmp(name, "*") == 0)) {
-        rval = runTestLoop( NULL, par );
+        rval = runTestLoop( NULL, NULL );
 
     }else if (strcmp( name, "LIST" ) == 0) {
         this->usage();
@@ -640,7 +670,7 @@ UBool IntlTest::runTestLoop( char* testname, char* par )
     IntlTest* saveTest = gTest;
     gTest = this;
     do {
-        this->runIndexedTest( index, FALSE, name, par );
+        this->runIndexedTest( index, FALSE, name );
         if (!name || (name[0] == 0))
             break;
         if (!testname) {
@@ -761,7 +791,7 @@ void IntlTest::errln( const UnicodeString &message )
 /* convenience functions that include sprintf formatting */
 void IntlTest::log(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -775,7 +805,7 @@ void IntlTest::log(const char *fmt, ...)
 
 void IntlTest::logln(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -790,7 +820,7 @@ void IntlTest::logln(const char *fmt, ...)
 /* convenience functions that include sprintf formatting */
 void IntlTest::info(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -802,7 +832,7 @@ void IntlTest::info(const char *fmt, ...)
 
 void IntlTest::infoln(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -814,7 +844,7 @@ void IntlTest::infoln(const char *fmt, ...)
 
 void IntlTest::err(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -825,7 +855,7 @@ void IntlTest::err(const char *fmt, ...)
 
 void IntlTest::errln(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -864,7 +894,7 @@ void IntlTest::LL_message( UnicodeString message, UBool newline )
     // stream out the indentation string first if necessary
     length = indent.extract(1, indent.length(), buffer, sizeof(buffer));
     if (length > 0) {
-        fwrite(buffer, sizeof(*buffer), length, (FILE *)testoutfp);
+        fwrite(buffer, sizeof(*buffer), length, testoutfp);
     }
 
     // replace each LineFeed by the indentation string
@@ -873,17 +903,17 @@ void IntlTest::LL_message( UnicodeString message, UBool newline )
     // stream out the message
     length = message.extract(0, message.length(), buffer, sizeof(buffer));
     if (length > 0) {
-        fwrite(buffer, sizeof(*buffer), length, (FILE *)testoutfp);
+        fwrite(buffer, sizeof(*buffer), length, testoutfp);
     }
 
     if (newline) {
         char newLine = '\n';
-        fwrite(&newLine, sizeof(newLine), 1, (FILE *)testoutfp);
+        fwrite(&newLine, sizeof(newLine), 1, testoutfp);
     }
 
     // A newline usually flushes the buffer, but
     // flush the message just in case of a core dump.
-    fflush((FILE *)testoutfp);
+    fflush(testoutfp);
 }
 
 /**
@@ -939,48 +969,77 @@ main(int argc, char* argv[])
     UBool warnOnMissingData = FALSE;
     UErrorCode errorCode = U_ZERO_ERROR;
     UConverter *cnv = NULL;
-    const char *warnOrErr = "Failure";
+    const char *warnOrErr = "Failure"; 
+    const char* zone = "America/Los_Angeles";
+    int argzone = -1;
+
+    /* This must be tested before using anything! */
+    MutexTest::gMutexInitialized = umtx_isInitialized(NULL);
 
 #ifdef XP_MAC_CONSOLE
     argc = ccommand( &argv );
 #endif
 
-    /* Initialize ICU */
-	IntlTest::setICU_DATA();   // Must set data directory before u_init() is called.
-    u_init(&errorCode);
-    if (U_FAILURE(errorCode)) {
+    /* try opening the data from dll instead of the dat file */
+    cnv = ucnv_open(TRY_CNV_1, &errorCode);
+    if(cnv != 0) {
+        /* ok */
+        ucnv_close(cnv);
+    } else {
         fprintf(stderr,
-                "#### %s: u_init() failed, error is \"%s\".\n"
-				"#### Most commonly indicates that the ICU data is not accesible.\n"
-                "#### Check setting of ICU_DATA, or check that ICU data library is available\n"
-				"#### ICU_DATA is currently set to \"%s\"\n", argv[0], u_errorName(errorCode), u_getDataDirectory());
-		u_cleanup();
-	    return 1;
-    }
+                "#### WARNING! The converter for " TRY_CNV_1 " cannot be loaded from data dll/so."
+                "Proceeding to load data from dat file.\n");
+        errorCode = U_ZERO_ERROR;
 
+    }
+    // If user didn't set ICU_DATA, attempt to generate one.
+    IntlTest::setICU_DATA();
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             const char* str = argv[i] + 1;
-            if (strcmp("verbose", str) == 0 ||
-                strcmp("v", str) == 0)
+            if (strcmp("verbose", str) == 0)
                 verbose = TRUE;
-            else if (strcmp("noerrormsg", str) == 0 ||
-                     strcmp("n", str) == 0)
+            else if (strcmp("v", str) == 0)
+                verbose = TRUE;
+            else if (strcmp("noerrormsg", str) == 0)
                 no_err_msg = TRUE;
-            else if (strcmp("exhaustive", str) == 0 ||
-                     strcmp("e", str) == 0)
+            else if (strcmp("n", str) == 0)
+                no_err_msg = TRUE;
+            else if (strcmp("exhaustive", str) == 0)
                 quick = FALSE;
-            else if (strcmp("all", str) == 0 ||
-                     strcmp("a", str) == 0)
+            else if (strcmp("e", str) == 0)
+                quick = FALSE;
+            else if (strcmp("all", str) == 0)
                 all = TRUE;
-            else if (strcmp("leaks", str) == 0 ||
-                     strcmp("l", str) == 0)
+            else if (strcmp("a", str) == 0)
+                all = TRUE;
+            else if (strcmp("leaks", str) == 0)
+                leaks = TRUE;
+            else if (strcmp("l", str) == 0)
                 leaks = TRUE;
             else if (strcmp("w", str) == 0) {
               warnOnMissingData = TRUE;
               warnOrErr = "WARNING";
             }
+#if !UCONFIG_NO_FORMATTING
+            else if (strcmp("tz", str) == 0) {
+                zone = 0;
+                if ((i+1) < argc) {
+                    switch (argv[i+1][0]) {
+                    case 0:
+                        argzone = ++i; /* consume empty string in {-tz ""} */
+                        break;
+                    case '-':
+                        break; /* don't process next arg if it is -x */
+                    default:
+                        argzone = ++i;
+                        zone = argv[argzone]; /* next arg is zone */
+                        break;
+                    }
+                }
+            }
+#endif
             else {
                 syntax = TRUE;
             }
@@ -1001,6 +1060,15 @@ main(int argc, char* argv[])
                 "### IntlTest [-option1 -option2 ...] [testname1 testname2 ...] \n"
                 "### where options are: verbose (v), all (a), noerrormsg (n), \n"
                 "### exhaustive (e), leaks (l)"
+#if !UCONFIG_NO_FORMATTING
+                                              ", and default time zone (tz)"
+#endif
+                                                                           ". \n"
+#if !UCONFIG_NO_FORMATTING
+                "### -tz takes an optional zone argument.  If absent, \n"
+                "### or if the empty string, then the default time zone \n"
+                "### is not set (host time zone is used). \n"
+#endif
                 "### (Specify either -all (shortcut -a) or a test name). \n"
                 "### -all will run all of the tests.\n"
                 "### \n"
@@ -1032,6 +1100,9 @@ main(int argc, char* argv[])
     fprintf(stdout, "   No error messages (n) : %s\n", (no_err_msg? "On" : "Off"));
     fprintf(stdout, "   Exhaustive (e)        : %s\n", (!quick?     "On" : "Off"));
     fprintf(stdout, "   Leaks (l)             : %s\n", (leaks?      "On" : "Off"));
+#if !UCONFIG_NO_FORMATTING
+    fprintf(stdout, "   Time zone (tz)        : %s\n", (zone?       zone : "UNSET"));
+#endif
     fprintf(stdout, "-----------------------------------------------\n");
 
     // Check that u_init() works
@@ -1097,6 +1168,33 @@ main(int argc, char* argv[])
         }
     }
 
+#if !UCONFIG_NO_FORMATTING
+    /* Set the default time zone */
+    if (zone != 0) {
+        UErrorCode ec = U_ZERO_ERROR;
+        UnicodeString id(zone, ""), s;
+        TimeZone *z = TimeZone::createTimeZone(id);
+        if (z == 0) {
+            fprintf(stdout,
+                    "*** Error: TimeZone::createTimeZone(\"%s\") returned 0.\n",
+                    zone);
+        } else if (z->getID(s) != id) {
+            fprintf(stdout,
+                    "*** Error: \"%s\" is not a valid time zone.\n",
+                    zone);
+            delete z;
+            z = 0;
+        }
+        if (z == 0) {
+            fprintf(stdout,
+                    "*** Exiting.  Use the '-tz' option with no argument to\n"
+                    "*** bypass the setting of the default time zone.\n");
+            return 1;
+        }
+        TimeZone::adoptDefault(z);
+    }
+#endif
+
     /* TODO: Add option to call u_cleanup and rerun tests. */
     if (all) {
         major.runTest();
@@ -1105,6 +1203,9 @@ main(int argc, char* argv[])
         }
     }else{
         for (int i = 1; i < argc; ++i) {
+            if (i == argzone) {
+                continue;
+            }
             if (argv[i][0] != '-') {
                 char* name = argv[i];
                 fprintf(stdout, "\n=== Handling test: %s: ===\n", name);
@@ -1151,6 +1252,18 @@ main(int argc, char* argv[])
 
     fprintf(stdout, "--------------------------------------\n");
 
+    if (!MutexTest::gMutexInitialized) {
+        fprintf(stderr,
+            "#### WARNING!\n"
+            "  The global mutex was not initialized during C++ static initialization.\n"
+            "  You must use an ICU API in a single thread, like ucnv_open() or\n"
+            "  uloc_countAvailable(), before using ICU in multiple threads.\n"
+            "  Most ICU API functions will initialize the global mutex for you.\n"
+            "  If you are using ICU in a single threaded application, please ignore this\n"
+            "  warning.\n"
+            "#### WARNING!\n"
+            );
+    }
     if (execCount <= 0) {
         fprintf(stdout, "***** Not all called tests actually exist! *****\n");
     }
@@ -1275,105 +1388,6 @@ UnicodeString CharsToUnicodeString(const char* chars)
     return str.unescape();
 }
 
-UnicodeString ctou(const char* chars) {
-    return CharsToUnicodeString(chars);
-}
-
-#define RAND_M  (714025)
-#define RAND_IA (1366)
-#define RAND_IC (150889)
-
-static int32_t RAND_SEED;
-
-/**
- * Returns a uniform random value x, with 0.0 <= x < 1.0.  Use
- * with care: Does not return all possible values; returns one of
- * 714,025 values, uniformly spaced.  However, the period is
- * effectively infinite.  See: Numerical Recipes, section 7.1.
- *
- * @param seedp pointer to seed. Set *seedp to any negative value
- * to restart the sequence.
- */
-float IntlTest::random(int32_t* seedp) {
-    static int32_t iy, ir[98];
-    static UBool first=TRUE;
-    int32_t j;
-    if (*seedp < 0 || first) {
-        first = FALSE;
-        if ((*seedp=(RAND_IC-(*seedp)) % RAND_M) < 0) *seedp = -(*seedp);
-        for (j=1;j<=97;++j) {
-            *seedp=(RAND_IA*(*seedp)+RAND_IC) % RAND_M;
-            ir[j]=(*seedp);
-        }
-        *seedp=(RAND_IA*(*seedp)+RAND_IC) % RAND_M;
-        iy=(*seedp);
-    }
-    j=(int32_t)(1 + 97.0*iy/RAND_M);
-    U_ASSERT(j>=1 && j<=97);
-    iy=ir[j];
-    *seedp=(RAND_IA*(*seedp)+RAND_IC) % RAND_M;
-    ir[j]=(*seedp);
-    return (float) iy/RAND_M;
-}
-
-/**
- * Convenience method using a global seed.
- */
-float IntlTest::random() {
-    return random(&RAND_SEED);
-}
-
-#define VERBOSE_ASSERTIONS
-
-UBool IntlTest::assertTrue(const char* message, UBool condition) {
-    if (!condition) {
-        errln("FAIL: assertTrue() failed: %s", message);
-    }
-#ifdef VERBOSE_ASSERTIONS
-    else {
-        logln("Ok: %s", message);
-    }
-#endif
-    return condition;
-}
-
-UBool IntlTest::assertFalse(const char* message, UBool condition) {
-    if (condition) {
-        errln("FAIL: assertFalse() failed: %s", message);
-    }
-#ifdef VERBOSE_ASSERTIONS
-    else {
-        logln("Ok: %s", message);
-    }
-#endif
-    return !condition;
-}
-
-UBool IntlTest::assertSuccess(const char* message, UErrorCode ec) {
-    if (U_FAILURE(ec)) {
-        errln("FAIL: %s (%s)", message, u_errorName(ec));
-        return FALSE;
-    }
-    return TRUE;
-}
-
-UBool IntlTest::assertEquals(const char* message,
-                             const UnicodeString& expected,
-                             const UnicodeString& actual) {
-    if (expected != actual) {
-        errln((UnicodeString)"FAIL: " + message + "; got " +
-              prettify(actual) +
-              "; expected " + prettify(expected));
-        return FALSE;
-    }
-#ifdef VERBOSE_ASSERTIONS
-    else {
-        logln((UnicodeString)"Ok: " + message + "; got " + prettify(actual));
-    }
-#endif
-    return TRUE;
-}
-
 /*
  * Hey, Emacs, please set the following:
  *
@@ -1382,3 +1396,4 @@ UBool IntlTest::assertEquals(const char* message,
  * End:
  *
  */
+

@@ -17,7 +17,9 @@
 
 #include "unicode/unistr.h"
 
+U_NAMESPACE_USE
 
+// for unistrm.h
 /**
  * Write the contents of a UnicodeString to an ostream. This functions writes
  * the characters in a UnicodeString to an ostream. The UChars in the
@@ -26,24 +28,17 @@
  */
 #if U_IOSTREAM_SOURCE >= 199711
 #include <iostream>
+U_USTDIO_API std::ostream &operator<<(std::ostream& stream, const UnicodeString& s);
 
-U_NAMESPACE_BEGIN
-U_IO_API std::ostream &operator<<(std::ostream& stream, const UnicodeString& s);
-
-U_IO_API std::istream &operator>>(std::istream& stream, UnicodeString& s);
-U_NAMESPACE_END
-
+U_USTDIO_API std::istream &operator>>(std::istream& stream, UnicodeString& s);
 #elif U_IOSTREAM_SOURCE >= 198506
 #include <iostream.h>
+U_USTDIO_API ostream &operator<<(ostream& stream, const UnicodeString& s);
 
-U_NAMESPACE_BEGIN
-U_IO_API ostream &operator<<(ostream& stream, const UnicodeString& s);
-
-U_IO_API istream &operator>>(istream& stream, UnicodeString& s);
-U_NAMESPACE_END
-
+U_USTDIO_API istream &operator>>(istream& stream, UnicodeString& s);
 #endif
 
+/* TODO: We should add the operator<< and the operator>> for UDate. */
 /* No operator for UChar because it can conflict with wchar_t  */
 
 #endif

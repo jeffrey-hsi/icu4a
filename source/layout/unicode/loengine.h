@@ -46,7 +46,7 @@ U_NAMESPACE_BEGIN
  * @see LayoutEngine.h
  * @see LEFontInstance.h
  *
- * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+ * @draft ICU 2.2
  */
 class U_LAYOUT_API ICULayoutEngine : public UObject {
 private:
@@ -85,7 +85,7 @@ public:
      *
      * @see createInstance
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     virtual ~ICULayoutEngine();
 
@@ -97,7 +97,7 @@ public:
      * @param startOffset - the starting offset of the characters to process
      * @param endOffset - the ending offset of the characters to process
      * @param max - the number of characters in the input context
-     * @param rightToLeft - TRUE if the characers are in a right to left directional run
+     * @param rightToLeft - true if the characers are in a right to left directional run
      * @param x - the initial X position
      * @param y - the initial Y position
      * @param success - output parameter set to an error code if the operation fails
@@ -107,7 +107,7 @@ public:
      * Note; the glyph, character index and position array can be accessed
      * using the getter method below.
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     int32_t layoutChars(const UChar chars[],
                         int32_t startOffset,
@@ -125,7 +125,7 @@ public:
      * @param str - the input character context
      * @param startOffset - the starting offset of the characters to process
      * @param endOffset - the ending offset of the characters to process
-     * @param rightToLeft - TRUE if the characers are in a right to left directional run
+     * @param rightToLeft - true if the characers are in a right to left directional run
      * @param x - the initial X position
      * @param y - the initial Y position
      * @param success - output parameter set to an error code if the operation fails
@@ -135,7 +135,7 @@ public:
      * Note; the glyph, character index and position array can be accessed
      * using the getter method below.
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     int32_t layoutString(const UnicodeString &str,
                          int32_t startOffset,
@@ -151,7 +151,7 @@ public:
      *
      * @return the number of glyphs in the glyph array
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     int32_t countGlyphs() const;
 
@@ -163,7 +163,7 @@ public:
      * @param glyphs - the destiniation glyph array
      * @param success - output parameter set to an error code if the operation fails
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     void getGlyphs(uint32_t glyphs[], UErrorCode &success);
 
@@ -175,7 +175,7 @@ public:
      * @param charIndices - the destiniation character index array
      * @param success - output parameter set to an error code if the operation fails
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     void getCharIndices(int32_t charIndices[], UErrorCode &success);
 
@@ -188,7 +188,7 @@ public:
      * @param indexBase - an offset which will be added to each index
      * @param success - output parameter set to an error code if the operation fails
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     void getCharIndices(int32_t charIndices[], int32_t indexBase, UErrorCode &success);
 
@@ -201,7 +201,7 @@ public:
      * @param glyphs - the destiniation position array
      * @param success - output parameter set to an error code if the operation fails
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     void getGlyphPositions(float positions[], UErrorCode &success);
 
@@ -217,7 +217,7 @@ public:
      * @param y - the glyph's Y position
      * @param success - output parameter set to an error code if the operation fails
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     void getGlyphPosition(int32_t glyphIndex, float &x, float &y, UErrorCode &success);
 
@@ -236,7 +236,7 @@ public:
      *
      * @see LEFontInstance
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     static ICULayoutEngine *createInstance(const LEFontInstance *fontInstance,
                                            UScriptCode scriptCode, Locale &locale,
@@ -245,14 +245,14 @@ public:
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
-     * @obsolete ICU 3.0. Use LayoutEngine.h instead since this API will be removed in that release.
+     * @draft ICU 2.2
      */
     static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 

@@ -311,27 +311,32 @@ public:
     void setLocalPatternChars(const UnicodeString& newLocalPatternChars);
 
     /**
-     * Returns the locale for this object. Two flavors are available:
-     * valid and actual locale.
-     * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
-     */
-    Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
-
-    /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID();
 
 private:
+    /**
+     * Tag names used by this class.
+     */
+    static const char fgErasTag[];   // resource bundle tag for era names
+    static const char fgMonthNamesTag[]; // resource bundle tag for month names
+    static const char fgMonthAbbreviationsTag[]; // resource bundle tag for month abbreviations
+    static const char fgDayNamesTag[];   // resource bundle tag for day names
+    static const char fgDayAbbreviationsTag[];   // resource bundle tag for day abbreviations
+    static const char fgAmPmMarkersTag[];    // resource bundle tag for AM/PM strings
+
+    static const char fgZoneStringsTag[];    // resource bundle tag for time zone names
+    static const char fgLocalPatternCharsTag[];  // resource bundle tag for localized pattern characters
 
     friend class SimpleDateFormat;
     friend class DateFormatSymbolsSingleSetter; // see udat.cpp
@@ -384,13 +389,13 @@ private:
      */
     UnicodeString   fLocalPatternChars;
 
-private:
-    /** valid/actual locale information 
-     *  these are always ICU locales, so the length should not be a problem
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
      */
-    char validLocale[ULOC_FULLNAME_CAPACITY];
-    char actualLocale[ULOC_FULLNAME_CAPACITY];
+    static const char fgClassID;
 
+private:
 
     /* Sizes for the last resort string arrays */
     typedef enum LastResortSize {
@@ -412,7 +417,7 @@ private:
 
     DateFormatSymbols(); // default constructor not implemented
 
-    void initField(UnicodeString **field, int32_t& length, const ResourceBundle &data, UErrorCode &status);
+    void initField(UnicodeString **field, int32_t& length, const ResourceBundle data, UErrorCode &status);
     void initField(UnicodeString **field, int32_t& length, const UChar *data, LastResortSize numStr, LastResortSize strLen, UErrorCode &status);
 
     /**
@@ -504,6 +509,14 @@ private:
      */
     void disposeZoneStrings(void);
 };
+
+inline UClassID
+DateFormatSymbols::getStaticClassID()
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+DateFormatSymbols::getDynamicClassID() const
+{ return DateFormatSymbols::getStaticClassID(); }
 
 U_NAMESPACE_END
 

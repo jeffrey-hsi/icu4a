@@ -270,11 +270,7 @@ public:
      * boundaries have been returned.
      * @stable ICU 2.0
      */
-#ifdef U_CYGWIN
-    static U_COMMON_API const int32_t DONE;
-#else
     static const int32_t DONE;
-#endif
 
     /**
      * Return the index of the first character in the text being scanned.
@@ -531,7 +527,7 @@ public:
 
     /**
      * Register a new break iterator of the indicated kind, to use in the given locale.
-     * The break iterator will be adopted.  Clones of the iterator will be returned
+     * The break iterator will be adoped.  Clones of the iterator will be returned
      * if a request for a break iterator of the given kind matches or falls back to
      * this locale.
      * @param toAdopt the BreakIterator instance to be adopted
@@ -562,21 +558,6 @@ public:
      */
     static StringEnumeration* getAvailableLocales(void);
 
-    /**
-     * Returns the locale for this break iterator. Two flavors are available: valid and 
-     * actual locale. 
-     * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
-     */
-    Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
-
-    /** Get the locale for this break iterator object. You can choose between valid and actual locale.
-     *  @param type type of the locale we're looking for (valid or actual) 
-     *  @param status error code for the operation
-     *  @return the locale
-     *  @internal
-     */
-    const char *getLocaleID(ULocDataLocaleType type, UErrorCode& status) const;
-
  private:
     static BreakIterator* makeCharacterInstance(const Locale& loc, UErrorCode& status);
     static BreakIterator* makeWordInstance(const Locale& loc, UErrorCode& status);
@@ -597,13 +578,7 @@ protected:
     UBool fBufferClone;
     /** @internal */
     BreakIterator (const BreakIterator &other) : UObject(other), fBufferClone(FALSE) {}
-
 private:
-
-    /** @internal */
-    char actualLocale[ULOC_FULLNAME_CAPACITY];
-    char validLocale[ULOC_FULLNAME_CAPACITY];
-
     /**
      * The assignment operator has no real implementation.
      * It's provided to make the compiler happy. Do not call.

@@ -7,7 +7,6 @@
 #define UBRK_H
 
 #include "unicode/utypes.h"
-#include "unicode/uloc.h"
 
 /**
  * A text-break iterator.
@@ -197,9 +196,8 @@ typedef enum UBreakIteratorType {
    * Title Case breaks 
    * The iterator created using this type locates title boundaries as described for 
    * Unicode 3.2 only. For Unicode 4.0 and above title boundary iteration,
-   * please use Word Boundary iterator.
+   * please use Word Boundary iterator.  @draft ICU 2.2
    *
-   * @deprecated ICU 2.8 Use the word break iterator for titlecasing for Unicode 4 and later.
    */
   UBRK_TITLE
 } UBreakIteratorType;
@@ -216,7 +214,7 @@ typedef enum UBreakIteratorType {
  *  word, to allow for further subdivisions of a category in future releases.
  *  Applications should check for tag values falling within the range, rather
  *  than for single individual values.
- *  @stable ICU 2.2
+ *  @draft ICU 2.2
 */
 typedef enum UWordBreak {
     /** Tag value for "words" that do not fit into any of other categories. 
@@ -242,54 +240,6 @@ typedef enum UWordBreak {
     /** Tag value for words containing ideographic characters, upper limit */
     UBRK_WORD_IDEO_LIMIT     = 500
 } UWordBreak;
-
-/**
- *  Enum constants for the line break tags returned by getRuleStatus().
- *  A range of values is defined for each category of
- *  word, to allow for further subdivisions of a category in future releases.
- *  Applications should check for tag values falling within the range, rather
- *  than for single individual values.
- *  @draft ICU 2.8
-*/
-typedef enum ULineBreakTag {
-    /** Tag value for soft line breaks, positions at which a line break
-      *  is acceptable but not required                */
-    UBRK_LINE_SOFT            = 0,
-    /** Upper bound for soft line breaks.              */
-    UBRK_LINE_SOFT_LIMIT      = 100,
-    /** Tag value for a hard, or mandatory line break  */
-    UBRK_LINE_HARD            = 100,
-    /** Upper bound for hard line breaks.              */
-    UBRK_LINE_HARD_LIMIT      = 200
-} ULineBreakTag;
-
-
-
-/**
- *  Enum constants for the sentence break tags returned by getRuleStatus().
- *  A range of values is defined for each category of
- *  sentence, to allow for further subdivisions of a category in future releases.
- *  Applications should check for tag values falling within the range, rather
- *  than for single individual values.
- *  @draft ICU 2.8
-*/
-typedef enum USentenceBreakTag {
-    /** Tag value for for sentences  ending with a sentence terminator
-      * ('.', '?', '!', etc.) character, possibly followed by a
-      * hard separator (CR, LF, PS, etc.)
-      */
-    UBRK_SENTENCE_TERM       = 0,
-    /** Upper bound for tags for sentences ended by sentence terminators.    */
-    UBRK_SENTENCE_TERM_LIMIT = 100,
-    /** Tag value for for sentences that do not contain an ending
-      * sentence terminator ('.', '?', '!', etc.) character, but 
-      * are ended only by a hard separator (CR, LF, PS, etc.) or end of input.
-      */
-    UBRK_SENTENCE_SEP        = 100,
-    /** Upper bound for tags for sentences ended by a separator.              */
-    UBRK_SENTENCE_SEP_LIMIT  = 200
-    /** Tag value for a hard, or mandatory line break  */
-} USentenceBreakTag;
 
 
 /**
@@ -326,7 +276,7 @@ ubrk_open(UBreakIteratorType type,
  * @param status A UErrorCode to receive any errors.
  * @return A UBreakIterator for the specified rules.
  * @see ubrk_open
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 U_CAPI UBreakIterator* U_EXPORT2
 ubrk_openRules(const UChar     *rules,
@@ -516,23 +466,10 @@ ubrk_isBoundary(UBreakIterator *bi, int32_t offset);
  * status, a default value of 0 is returned.
  * <p>
  * For word break iterators, the possible values are defined in enum UWordBreak.
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 U_CAPI  int32_t U_EXPORT2
 ubrk_getRuleStatus(UBreakIterator *bi);
-
-/**
- * Return the locale of the break iterator. You can choose between the valid and
- * the actual locale.
- * @param bi break iterator
- * @param type locale type (valid or actual)
- * @param status error code
- * @return locale string
- * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
- */
-U_CAPI const char* U_EXPORT2
-ubrk_getLocaleByType(const UBreakIterator *bi, ULocDataLocaleType type, UErrorCode* status);
-
 
 #endif /* #if !UCONFIG_NO_BREAK_ITERATION */
 

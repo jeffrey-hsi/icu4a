@@ -20,7 +20,7 @@
 #if !UCONFIG_NO_COLLATION
 
 #include "unicode/uchar.h"
-#include "unicode/ustring.h"
+
 
 #include "dadrcoll.h"
 
@@ -48,7 +48,6 @@
 #include "lcukocol.h"
 #include "ucaconf.h"
 #include "svccoll.h"
-#include "cmemory.h"
 
 void IntlTestCollator::runIndexedTest( int32_t index, UBool exec, const char* &name, char* par )
 {
@@ -97,9 +96,9 @@ void IntlTestCollator::runIndexedTest( int32_t index, UBool exec, const char* &n
         break;
 
     case 3:
-        name = "CollationDanishTest"; 
+        name = "CollationDanishTest";
 
-        if (0) // exec // removed by weiv - we have changed Danish collation
+        if (exec)
         {
             logln("CollationDanishtest---");
             logln("");
@@ -125,7 +124,7 @@ void IntlTestCollator::runIndexedTest( int32_t index, UBool exec, const char* &n
     case 5:
         name = "CollationFinnishTest"; 
 
-        if (0) // exec // removed by weiv - we have changed Finnish collation
+        if (exec)
         {
             logln("CollationFinnishtest---");
             
@@ -637,14 +636,14 @@ void IntlTestCollator::backAndForth(CollationElementIterator &iter)
 
     while ((o = iter.previous(status)) != CollationElementIterator::NULLORDER)
     {
-        if (index == 0) {
+        if(index == 0) {
           if(o == 0) {
             continue;
           } else { // this is an error, orders exhausted but there are non-ignorable CEs from
             // going backwards
             errln("Backward iteration returned a non ignorable after orders are exhausted");
             break;
-        }
+          }
         }
         if (o != orders[--index])
         {
@@ -657,8 +656,8 @@ void IntlTestCollator::backAndForth(CollationElementIterator &iter)
                 }
                 if (o != orders[index])
                 {
-            errln("Mismatch at index %d: 0x%X vs 0x%X", index,
-                  orders[index], o);
+                    errln("Mismatch at index %d: 0x%X vs 0x%X", index,
+                        orders[index], o);
                     break;
                 }
             }

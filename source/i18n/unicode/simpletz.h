@@ -29,7 +29,12 @@
 
 #include "unicode/timezone.h"
 
+struct StandardZone;
+struct DSTZone;
+
 U_NAMESPACE_BEGIN
+
+class TimeZone;
 
 /**
  * <code>SimpleTimeZone</code> is a concrete subclass of <code>TimeZone</code>
@@ -594,14 +599,6 @@ public:
                               UErrorCode& status) const;
 
     /**
-     * Redeclared TimeZone method.  This implementation simply calls
-     * the base class method, which otherwise would be hidden.
-     * @draft ICU 2.8
-     */
-    virtual void getOffset(UDate date, UBool local, int32_t& rawOffset,
-                           int32_t& dstOffset, UErrorCode& ec) const;
-
-    /**
      * Returns the TimeZone's raw GMT offset (i.e., the number of milliseconds to add
      * to GMT to get local time, before taking daylight savings time into account).
      *
@@ -718,7 +715,15 @@ private:
         DOW_LE_DOM_MODE
     };
 
+    friend class TimeZone; // for access to these 2 constructors:
+
     SimpleTimeZone(); // default constructor not implemented
+
+    /**
+     * Construct from memory-mapped data.
+     */
+    SimpleTimeZone(const StandardZone& stdZone, const UnicodeString& id);
+    SimpleTimeZone(const DSTZone& dstZone, const UnicodeString& id);
 
     /**
      * Internal construction method.
@@ -780,6 +785,8 @@ private:
     void decodeStartRule(UErrorCode& status);
     void decodeEndRule(UErrorCode& status);
 
+    static const char     fgClassID;
+
     int8_t startMonth, startDay, startDayOfWeek;   // the month, day, DOW, and time DST starts
     int32_t startTime;
     TimeMode startTimeMode, endTimeMode; // Mode for startTime, endTime; see TimeMode
@@ -788,7 +795,7 @@ private:
     int32_t startYear;  // the year these DST rules took effect
     int32_t rawOffset;  // the TimeZone's raw GMT offset
     UBool useDaylight; // flag indicating whether this TimeZone uses DST
-    static const int8_t STATICMONTHLENGTH[12]; // lengths of the months
+    static const int8_t staticMonthLength[12]; // lengths of the months
     EMode startMode, endMode;   // flags indicating what kind of rules the DST rules are
 
     /**
@@ -797,6 +804,14 @@ private:
      */
     int32_t dstSavings;
 };
+
+inline UClassID
+SimpleTimeZone::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+SimpleTimeZone::getDynamicClassID(void) const
+{ return SimpleTimeZone::getStaticClassID(); }
 
 inline void SimpleTimeZone::setStartRule(int32_t month, int32_t dayOfWeekInMonth,
                                          int32_t dayOfWeek,
@@ -830,12 +845,6 @@ inline void SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfMonth,
 inline void SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
                                        int32_t time, UBool after, UErrorCode& status) {
     setEndRule(month, dayOfMonth, dayOfWeek, time, WALL_TIME, after, status);
-}
-
-inline void
-SimpleTimeZone::getOffset(UDate date, UBool local, int32_t& rawOffsetRef,
-                          int32_t& dstOffsetRef, UErrorCode& ec) const {
-    TimeZone::getOffset(date, local, rawOffsetRef, dstOffsetRef, ec);
 }
 
 U_NAMESPACE_END

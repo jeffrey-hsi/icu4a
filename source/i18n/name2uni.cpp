@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2001-2003, International Business Machines
+*   Copyright (C) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -22,9 +22,9 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(NameUnicodeTransliterator)
+const char NameUnicodeTransliterator::fgClassID=0;
 
-const char CURR_ID[] = "Name-Any";
+const char NameUnicodeTransliterator::_ID[] = "Name-Any";
 
 static const UChar OPEN[] = {92,78,126,123,126,0}; // "\N~{~"
 static const UChar OPEN_DELIM  = 92;  // '\\' first char of OPEN
@@ -36,7 +36,7 @@ static const UChar SPACE       = 32;  // ' '
  * '}'.
  */
 NameUnicodeTransliterator::NameUnicodeTransliterator(UnicodeFilter* adoptedFilter) :
-    Transliterator(UnicodeString(CURR_ID, ""), adoptedFilter) {
+    Transliterator(_ID, adoptedFilter) {
 }
 
 /**

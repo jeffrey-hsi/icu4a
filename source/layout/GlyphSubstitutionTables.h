@@ -17,18 +17,25 @@
 #include "LEGlyphFilter.h"
 #include "OpenTypeTables.h"
 #include "Lookups.h"
-#include "GlyphLookupTables.h"
 #include "GlyphDefinitionTables.h"
 #include "GlyphPositionAdjustments.h"
 
 U_NAMESPACE_BEGIN
 
-struct GlyphSubstitutionTableHeader : public GlyphLookupTableHeader
+struct GlyphSubstitutionTableHeader
 {
-    le_int32    process(LEGlyphID *&glyphs, const LETag **&glyphTags, le_int32 *&charIndices, le_int32 glyphCount,
+    fixed32 version;
+    Offset  scriptListOffset;
+    Offset  featureListOffset;
+    Offset  lookupListOffset;
+
+    void    process(LEGlyphID *glyphs, const LETag **glyphTags, le_int32 glyphCount,
                  le_bool rightToLeft, LETag scriptTag, LETag languageTag,
                  const GlyphDefinitionTableHeader *glyphDefinitionTableHeader,
                  const LEGlyphFilter *filter = NULL, const LETag *featureOrder = NULL) const;
+
+    le_bool coversScript(LETag scriptTag) const;
+    le_bool coversScriptAndLanguage(LETag scriptTag, LETag languageTag) const;
 };
 
 enum GlyphSubstitutionSubtableTypes

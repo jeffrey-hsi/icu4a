@@ -5,9 +5,7 @@
  ********************************************************************/
 
 #include "uobjtest.h"
-#include "cmemory.h" // UAlignedMemory
 #include <string.h>
-#include <stdio.h>
 
 /**
  * 
@@ -33,7 +31,7 @@
 #define TESTCLASSID_TRANSLIT(c, t) { delete testClass(Transliterator::createInstance(UnicodeString(t), UTRANS_FORWARD,parseError,status), #c, "Transliterator: " #t, c ::getStaticClassID()); if(U_FAILURE(status)) { errln(UnicodeString(#c " - Transliterator: " #t " - got err status ") + UnicodeString(u_errorName(status))); status = U_ZERO_ERROR; } }
 #define TESTCLASSID_CTOR(c, x) { delete testClass(new c x, #c, "new " #c #x, c ::getStaticClassID()); if(U_FAILURE(status)) { errln(UnicodeString(#c " - new " #x " - got err status ") + UnicodeString(u_errorName(status))); status = U_ZERO_ERROR; } }
 #define TESTCLASSID_DEFAULT(c) delete testClass(new c, #c, "new " #c , c::getStaticClassID())
-//#define TESTCLASSID_ABSTRACT(c) testClass(NULL, #c, NULL, c::getStaticClassID())
+#define TESTCLASSID_ABSTRACT(c) testClass(NULL, #c, NULL, c::getStaticClassID())
 
 #define MAX_CLASS_ID 200
 
@@ -152,7 +150,6 @@ UObject *UObjectTest::testClass(UObject *obj,
 #include "unesctrn.h"
 #include "uni2name.h"
 #include "uvector.h"
-#include "islamcal.h"
 
 // External Things
 #include "unicode/brkiter.h"
@@ -229,7 +226,7 @@ void UObjectTest::testIDs()
 #if !UCONFIG_NO_FORMATTING
     /* TESTCLASSID_FACTORY(NFSubstitution,  NFSubstitution::makeSubstitution(8, */
     /* TESTCLASSID_DEFAULT(DigitList);  UMemory but not UObject*/
-    //TESTCLASSID_ABSTRACT(NumberFormat);
+    TESTCLASSID_ABSTRACT(NumberFormat);
     TESTCLASSID_CTOR(DateFormatSymbols, (status));
     TESTCLASSID_CTOR(DecimalFormatSymbols, (status));
 #if UOBJTEST_TEST_INTERNALS
@@ -238,7 +235,6 @@ void UObjectTest::testIDs()
     TESTCLASSID_DEFAULT(FieldPosition);
     TESTCLASSID_DEFAULT(Formattable);
     TESTCLASSID_CTOR(GregorianCalendar, (status));
-    TESTCLASSID_CTOR(IslamicCalendar, (Locale::getUS(), status));
 #endif
 
 #if !UCONFIG_NO_BREAK_ITERATION
@@ -299,13 +295,13 @@ void UObjectTest::testIDs()
     //TESTCLASSID_DEFAULT(TempSearch);
     //TESTCLASSID_DEFAULT(TestMultipleKeyStringFactory);
     //TESTCLASSID_DEFAULT(TestReplaceable);
-//#if !UCONFIG_NO_FORMATTING
-    //TESTCLASSID_ABSTRACT(TimeZone);
-//#endif
+#if !UCONFIG_NO_FORMATTING
+    TESTCLASSID_ABSTRACT(TimeZone);
+#endif
 
 #if !UCONFIG_NO_TRANSLITERATION
     TESTCLASSID_FACTORY(TitlecaseTransliterator,  Transliterator::createInstance(UnicodeString("Any-Title"), UTRANS_FORWARD, parseError, status));
-    //TESTCLASSID_ABSTRACT(Transliterator);
+    TESTCLASSID_ABSTRACT(Transliterator);
 
 #if UOBJTEST_TEST_INTERNALS
     TESTCLASSID_CTOR(StringMatcher, (UnicodeString("x"), 0,0,0,TransliterationRuleData(status)));
@@ -315,8 +311,8 @@ void UObjectTest::testIDs()
     
     TESTCLASSID_DEFAULT(UnicodeString);
     TESTCLASSID_CTOR(UnicodeSet, (0, 1));
-    //TESTCLASSID_ABSTRACT(UnicodeFilter);
-    //TESTCLASSID_ABSTRACT(UnicodeFunctor);
+    TESTCLASSID_ABSTRACT(UnicodeFilter);
+    TESTCLASSID_ABSTRACT(UnicodeFunctor);
     TESTCLASSID_CTOR(UnicodeSetIterator,(UnicodeSet(0,1)));
     TESTCLASSID_CTOR(UStack, (status));
     TESTCLASSID_CTOR(UVector, (status));
@@ -344,59 +340,6 @@ void UObjectTest::testIDs()
 #endif
 }
 
-void UObjectTest::testUMemory() {
-    // additional tests for code coverage
-#if U_OVERRIDE_CXX_ALLOCATION && U_HAVE_PLACEMENT_NEW
-    UAlignedMemory stackMemory[sizeof(UnicodeString)/sizeof(UAlignedMemory)+1];
-    UnicodeString *p;
-    enum { len=20 };
-
-    p=new(stackMemory) UnicodeString(len, (UChar32)0x20ac, len);
-    if((void *)p!=(void *)stackMemory) {
-        errln("placement new did not place the object at the expected address");
-    }
-    if(p->length()!=len || p->charAt(0)!=0x20ac || p->charAt(len-1)!=0x20ac) {
-        errln("constructor used with placement new did not work right");
-    }
-
-    /*
-     * It is not possible to simply say
-     *     delete(p, stackMemory);
-     * which results in a call to the normal, non-placement delete operator.
-     *
-     * Via a search on google.com for "c++ placement delete" I found
-     * http://cpptips.hyperformix.com/cpptips/placement_del3
-     * which says:
-     *
-     * TITLE: using placement delete
-     *
-     * (Newsgroups: comp.std.c++, 27 Aug 97)
-     *
-     * ISJ: isj@image.dk
-     *
-     * > I do not completely understand how placement works on operator delete.
-     * > ...
-     * There is no delete-expression which will invoke a placement
-     * form of operator delete. You can still call the function
-     * explicitly. Example:
-     * ...
-     *     // destroy object and delete space manually
-     *     p->~T();
-     *     operator delete(p, 12);
-     *
-     * ... so that's what I am doing here.
-     * markus 20031216
-     */
-    // destroy object and delete space manually
-    p->~UnicodeString(); 
-    UnicodeString::operator delete(p, stackMemory); 
-#endif
-
-    // try to call the compiler-generated UMemory::operator=(class UMemory const &)
-    UMemory m, n;
-    m=n;
-}
-
 /* --------------- */
 
 #define CASE(id,test) case id: name = #test; if (exec) { logln(#test "---"); logln((UnicodeString)""); test(); } break;
@@ -407,7 +350,6 @@ void UObjectTest::runIndexedTest( int32_t index, UBool exec, const char* &name, 
     switch (index) {
 
     CASE(0, testIDs);
-    CASE(1, testUMemory);
 
     default: name = ""; break; //needed to end loop
     }

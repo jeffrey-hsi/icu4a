@@ -228,7 +228,7 @@ typedef enum {
       * non-ignorables on quaternary level
       * This is a sneaky way to produce JIS
       * sort order */     
-     UCOL_HIRAGANA_QUATERNARY_MODE,
+     UCOL_HIRAGANA_QUATERNARY_MODE, 
      /** when turned on, this attribute 
       * generates a collation key
       * for the numeric value of substrings
@@ -786,28 +786,11 @@ ucol_getRulesEx(const UCollator *coll, UColRuleOption delta, UChar *buffer, int3
  * @return real locale name from which the collation data comes. 
  *         If the collator was instantiated from rules, returns
  *         NULL.
- * @deprecated ICU 2.8 Use ucol_getLocaleByType instead
+ * @stable ICU 2.1
  */
 U_CAPI const char * U_EXPORT2
 ucol_getLocale(const UCollator *coll, ULocDataLocaleType type, UErrorCode *status);
 
-
-/**
- * gets the locale name of the collator. If the collator
- * is instantiated from the rules, then this function returns
- * NULL.
- * @param coll The UCollator for which the locale is needed
- * @param type You can choose between requested, valid and actual
- *             locale. For description see the definition of
- *             ULocDataLocaleType in uloc.h
- * @param status error code of the operation
- * @return real locale name from which the collation data comes. 
- *         If the collator was instantiated from rules, returns
- *         NULL.
- * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
- */
-U_CAPI const char * U_EXPORT2
-ucol_getLocaleByType(const UCollator *coll, ULocDataLocaleType type, UErrorCode *status);
 
 /**
  * Get an Unicode set that contains all the characters and sequences tailored in 
@@ -825,4 +808,3 @@ ucol_getTailoredSet(const UCollator *coll, UErrorCode *status);
 #endif /* #if !UCONFIG_NO_COLLATION */
 
 #endif
-

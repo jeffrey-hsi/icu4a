@@ -13,8 +13,6 @@
 #include "unicode/locid.h"
 #include "unicode/resbund.h"
 #include "unicode/ustring.h"
-#include "unicode/choicfmt.h"
-#include "ustr_imp.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "uassert.h"
@@ -59,13 +57,6 @@ static const char VAR_EURO[] = "EURO";
 // Variant delimiter
 static const char VAR_DELIM[] = "_";
 
-// Variant for legacy euro mapping in CurrencyMap
-static const char VAR_DELIM_EURO[] = "_EURO";
-
-#define VARIANT_IS_EMPTY    0
-#define VARIANT_IS_EURO     0x1
-#define VARIANT_IS_PREEURO  0x2
-
 // Tag for localized display names (symbols) of currencies
 static const char CURRENCIES[] = "Currencies";
 
@@ -96,21 +87,15 @@ myUCharsToChars(char* resultOfLen4, const UChar* currency) {
  * units of 10^(-fraction_digits).
  */
 static const int32_t*
-_findMetaData(const UChar* currency, UErrorCode& ec) {
-
-    if (currency == 0 || *currency == 0) {
-        if (U_SUCCESS(ec)) {
-            ec = U_ILLEGAL_ARGUMENT_ERROR;
-        }
-        return LAST_RESORT_DATA;
-    }
+_findMetaData(const UChar* currency) {
 
     // Get CurrencyMeta resource out of root locale file.  [This may
     // move out of the root locale file later; if it does, update this
     // code.]
+    UErrorCode ec = U_ZERO_ERROR;
     ResourceBundle currencyMeta =
         ResourceBundle((char*)0, Locale(""), ec).get(CURRENCY_META, ec);
-
+    
     if (U_FAILURE(ec)) {
         // Config/build error; return hard-coded defaults
         return LAST_RESORT_DATA;
@@ -118,9 +103,8 @@ _findMetaData(const UChar* currency, UErrorCode& ec) {
 
     // Look up our currency, or if that's not available, then DEFAULT
     char buf[ISO_COUNTRY_CODE_LENGTH+1];
-    UErrorCode ec2 = U_ZERO_ERROR; // local error code: soft failure
-    ResourceBundle rb = currencyMeta.get(myUCharsToChars(buf, currency), ec2);
-    if (U_FAILURE(ec2)) {
+    ResourceBundle rb = currencyMeta.get(myUCharsToChars(buf, currency), ec);
+    if (U_FAILURE(ec)) {
         rb = currencyMeta.get(DEFAULT_META, ec);
         if (U_FAILURE(ec)) {
             // Config/build error; return hard-coded defaults
@@ -130,11 +114,8 @@ _findMetaData(const UChar* currency, UErrorCode& ec) {
 
     int32_t len;
     const int32_t *data = rb.getIntVector(len, ec);
-    if (U_FAILURE(ec) || len != 2) {
+    if (U_FAILURE(ec) || len < 2) {
         // Config/build error; return hard-coded defaults
-        if (U_SUCCESS(ec)) {
-            ec = U_INVALID_FORMAT_ERROR;
-        }
         return LAST_RESORT_DATA;
     }
 
@@ -160,7 +141,7 @@ struct CReg : public UMemory {
     CReg *next;
     UChar iso[ISO_COUNTRY_CODE_LENGTH+1];
     char  id[ULOC_FULLNAME_CAPACITY];
-
+    
     CReg(const UChar* _iso, const char* _id)
         : next(0)
     {
@@ -173,7 +154,7 @@ struct CReg : public UMemory {
         uprv_memcpy(iso, _iso, ISO_COUNTRY_CODE_LENGTH * sizeof(const UChar));
         iso[ISO_COUNTRY_CODE_LENGTH] = 0;
     }
-
+    
     static UCurrRegistryKey reg(const UChar* _iso, const char* _id, UErrorCode* status)
     {
         if (status && U_SUCCESS(*status) && _iso && _id) {
@@ -182,7 +163,6 @@ struct CReg : public UMemory {
                 umtx_init(&gCRegLock);
                 Mutex mutex(&gCRegLock);
                 if (!gCRegHead) {
-                    /* register for the first time */
                     ucln_i18n_registerCleanup();
                 }
                 n->next = gCRegHead;
@@ -193,7 +173,7 @@ struct CReg : public UMemory {
         }
         return 0;
     }
-
+    
     static UBool unreg(UCurrRegistryKey key) {
         umtx_init(&gCRegLock);
         Mutex mutex(&gCRegLock);
@@ -202,26 +182,24 @@ struct CReg : public UMemory {
             delete (CReg*)key;
             return TRUE;
         }
-
+        
         CReg* p = gCRegHead;
         while (p) {
             if (p->next == key) {
                 p->next = ((CReg*)key)->next;
-                delete (CReg*)key;
+                delete (CReg*)key;	
                 return TRUE;
             }
             p = p->next;
         }
-
+        
         return FALSE;
     }
-
+    
     static const UChar* get(const char* id) {
         umtx_init(&gCRegLock);
         Mutex mutex(&gCRegLock);
         CReg* p = gCRegHead;
-
-        ucln_i18n_registerCleanup(); /* register cleanup of the mutex */
         while (p) {
             if (uprv_strcmp(id, p->id) == 0) {
                 return p->iso;
@@ -244,36 +222,27 @@ struct CReg : public UMemory {
 
 // -------------------------------------
 
-/**
- * @see VARIANT_IS_EURO
- * @see VARIANT_IS_PREEURO
- */
-static uint32_t
-idForLocale(const char* locale, char* countryAndVariant, int capacity, UErrorCode* ec)
+static void
+idForLocale(const char* locale, char* buffer, int capacity, UErrorCode* ec)
 {
-    uint32_t variantType = 0;
     // !!! this is internal only, assumes buffer is not null and capacity is sufficient
     // Extract the country name and variant name.  We only
     // recognize two variant names, EURO and PREEURO.
     char variant[ULOC_FULLNAME_CAPACITY];
-    uloc_getCountry(locale, countryAndVariant, capacity, ec);
+    uloc_getCountry(locale, buffer, capacity, ec);
     uloc_getVariant(locale, variant, sizeof(variant), ec);
-    if (variant[0] != 0) {
-        variantType = (0 == uprv_strcmp(variant, VAR_EURO))
-                   | ((0 == uprv_strcmp(variant, VAR_PRE_EURO)) << 1);
-        if (variantType)
-        {
-            uprv_strcat(countryAndVariant, VAR_DELIM);
-            uprv_strcat(countryAndVariant, variant);
-        }
+    if (0 == uprv_strcmp(variant, VAR_PRE_EURO) ||
+        0 == uprv_strcmp(variant, VAR_EURO))
+    {
+        uprv_strcat(buffer, VAR_DELIM);
+        uprv_strcat(buffer, variant);
     }
-    return variantType;
 }
 
 // -------------------------------------
 
 U_CAPI UCurrRegistryKey U_EXPORT2
-ucurr_register(const UChar* isoCode, const char* locale, UErrorCode *status)
+ucurr_register(const UChar* isoCode, const char* locale, UErrorCode *status) 
 {
     if (status && U_SUCCESS(*status)) {
         char id[ULOC_FULLNAME_CAPACITY];
@@ -286,7 +255,7 @@ ucurr_register(const UChar* isoCode, const char* locale, UErrorCode *status)
 // -------------------------------------
 
 U_CAPI UBool U_EXPORT2
-ucurr_unregister(UCurrRegistryKey key, UErrorCode* status)
+ucurr_unregister(UCurrRegistryKey key, UErrorCode* status) 
 {
     if (status && U_SUCCESS(*status)) {
         return CReg::unreg(key);
@@ -296,75 +265,33 @@ ucurr_unregister(UCurrRegistryKey key, UErrorCode* status)
 
 // -------------------------------------
 
-U_CAPI int32_t U_EXPORT2
-ucurr_forLocale(const char* locale,
-                UChar* buff,
-                int32_t buffCapacity,
-                UErrorCode* ec)
-{
-    int32_t resLen = 0;
-    const UChar* s = NULL;
+U_CAPI const UChar* U_EXPORT2
+ucurr_forLocale(const char* locale, UErrorCode* ec) {
     if (ec != NULL && U_SUCCESS(*ec)) {
-        if ((buff && buffCapacity) || !buffCapacity) {
-            UErrorCode localStatus = U_ZERO_ERROR;
-            char id[ULOC_FULLNAME_CAPACITY];
-            if ((resLen = uloc_getKeywordValue(locale, "currency", id, ULOC_FULLNAME_CAPACITY, &localStatus))) {
-                // there is a currency keyword. Try to see if it's valid
-                if(buffCapacity > resLen) {
-                    u_charsToUChars(id, buff, resLen);
-                }
-            } else {
-                // get country or country_variant in `id'
-                uint32_t variantType = idForLocale(locale, id, sizeof(id), ec);
-
-                if (U_FAILURE(*ec)) {
-                    return 0;
-                }
-
-                const UChar* result = CReg::get(id);
-                if (result) {
-                    if(buffCapacity > u_strlen(result)) {
-                        u_strcpy(buff, result);
-                    }
-                    return u_strlen(result);
-                }
-
-                // Look up the CurrencyMap element in the root bundle.
-                UResourceBundle *rb = ures_open(NULL, "", &localStatus);
-                UResourceBundle *cm = ures_getByKey(rb, CURRENCY_MAP, rb, &localStatus);
-                s = ures_getStringByKey(cm, id, &resLen, &localStatus);
-
-                if ((s == NULL || U_FAILURE(localStatus)) && variantType != VARIANT_IS_EMPTY
-                    && (id[0] != 0))
-                {
-                    // We don't know about it.  Check to see if we support the variant.
-                    if (variantType & VARIANT_IS_EURO) {
-                        s = ures_getStringByKey(cm, VAR_DELIM_EURO, &resLen, ec);
-                    }
-                    else {
-                        uloc_getParent(locale, id, sizeof(id), ec);
-                        *ec = U_USING_FALLBACK_WARNING;
-                        ures_close(cm);
-                        return ucurr_forLocale(id, buff, buffCapacity, ec);
-                    }
-                }
-                else if (*ec == U_ZERO_ERROR || localStatus != U_ZERO_ERROR) {
-                    // There is nothing to fallback to. Report the failure/warning if possible.
-                    *ec = localStatus;
-                }
-                if (U_SUCCESS(*ec)) {
-                    if(buffCapacity > resLen) {
-                        u_strcpy(buff, s);
-                    }
-                }
-                ures_close(cm);
-            }
-            return u_terminateUChars(buff, buffCapacity, resLen, ec);
-        } else {
-            *ec = U_ILLEGAL_ARGUMENT_ERROR;
+        char id[ULOC_FULLNAME_CAPACITY];
+        idForLocale(locale, id, sizeof(id), ec);
+        if (U_FAILURE(*ec)) {
+            return NULL;
+        }
+        
+        const UChar* result = CReg::get(id);
+        if (result) {
+            return result;
+        }
+        
+        // Look up the CurrencyMap element in the root bundle.
+        UResourceBundle* rb = ures_open(NULL, "", ec);
+        UResourceBundle* cm = ures_getByKey(rb, CURRENCY_MAP, NULL, ec);
+        int32_t len;
+        const UChar* s = ures_getStringByKey(cm, id, &len, ec);
+        ures_close(cm);
+        ures_close(rb);
+        
+        if (U_SUCCESS(*ec)) {
+            return s;
         }
     }
-    return resLen;
+    return NULL;
 }
 
 // end registration
@@ -404,7 +331,7 @@ ucurr_getName(const UChar* currency,
     // Look up the Currencies resource for the given locale.  The
     // Currencies locale data looks like this:
     //|en {
-    //|  Currencies {
+    //|  Currencies { 
     //|    USD { "US$", "US Dollar" }
     //|    CHF { "Sw F", "Swiss Franc" }
     //|    INR { "=0#Rs|1#Re|1<Rs", "=0#Rupees|1#Rupee|1<Rupees" }
@@ -421,7 +348,7 @@ ucurr_getName(const UChar* currency,
         *ec = U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
     }
-
+    
     // In the future, resource bundles may implement multi-level
     // fallback.  That is, if a currency is not found in the en_US
     // Currencies data, then the en Currencies data will be searched.
@@ -487,61 +414,37 @@ ucurr_getName(const UChar* currency,
     return currency;
 }
 
-/**
- * Internal method.  Given a currency ISO code and a locale, return
- * the "static" currency name.  This is usually the same as the
- * UCURR_SYMBOL_NAME, but if the latter is a choice format, then the
- * format is applied to the number 2.0 (to yield the more common
- * plural) to return a static name.
- *
- * This is used for backward compatibility with old currency logic in
- * DecimalFormat and DecimalFormatSymbols.
- */
-U_CAPI void
-uprv_getStaticCurrencyName(const UChar* iso, const char* loc,
-                           UnicodeString& result, UErrorCode& ec)
-{
-    UBool isChoiceFormat;
-    int32_t len;
-    const UChar* currname = ucurr_getName(iso, loc, UCURR_SYMBOL_NAME,
-                                          &isChoiceFormat, &len, &ec);
-    if (U_SUCCESS(ec)) {
-        // If this is a ChoiceFormat currency, then format an
-        // arbitrary value; pick something != 1; more common.
-        result.truncate(0);
-        if (isChoiceFormat) {
-            ChoiceFormat f(currname, ec);
-            if (U_SUCCESS(ec)) {
-                f.format(2.0, result);
-            } else {
-                result = iso;
-            }
-        } else {
-            result = currname;
-        }
-    }
-}
+//!// This API is now redundant.  It predates ucurr_getName, which
+//!// replaces and extends it.
+//!U_CAPI const UChar* U_EXPORT2
+//!ucurr_getSymbol(const UChar* currency,
+//!                const char* locale,
+//!    int32_t* len, // fillin
+//!                UErrorCode* ec) {
+//!    UBool isChoiceFormat;
+//!    const UChar* s = ucurr_getName(currency, locale, UCURR_SYMBOL_NAME,
+//!                                   &isChoiceFormat, len, ec);
+//!    if (isChoiceFormat) {
+//!        // Don't let ChoiceFormat patterns out through this API
+//!        *len = u_strlen(currency); // Should == 3, but maybe not...?
+//!        return currency;
+//!    }
+//!    return s;
+//!}
 
 U_CAPI int32_t U_EXPORT2
-ucurr_getDefaultFractionDigits(const UChar* currency, UErrorCode* ec) {
-    return (_findMetaData(currency, *ec))[0];
+ucurr_getDefaultFractionDigits(const UChar* currency) {
+    return (_findMetaData(currency))[0];
 }
 
 U_CAPI double U_EXPORT2
-ucurr_getRoundingIncrement(const UChar* currency, UErrorCode* ec) {
-    const int32_t *data = _findMetaData(currency, *ec);
+ucurr_getRoundingIncrement(const UChar* currency) {
+    const int32_t *data = _findMetaData(currency);
 
-    // If the meta data is invalid, return 0.0.
-    if (data[0] < 0 || data[0] > MAX_POW10) {
-        if (U_SUCCESS(*ec)) {
-            *ec = U_INVALID_FORMAT_ERROR;
-        }
-        return 0.0;
-    }
-
-    // If there is no rounding, return 0.0 to indicate no rounding.  A
-    // rounding value (data[1]) of 0 or 1 indicates no rounding.
-    if (data[1] < 2) {
+    // If there is no rounding, or if the meta data is invalid,
+    // return 0.0 to indicate no rounding.  A rounding value
+    // (data[1]) of 0 or 1 indicates no rounding.
+    if (data[1] < 2 || data[0] < 0 || data[0] > MAX_POW10) {
         return 0.0;
     }
 

@@ -24,8 +24,11 @@ U_NAMESPACE_END
 
 #else
 
+#include "unicode/uobject.h"
 #include "unicode/unistr.h"
+#include "unicode/chariter.h"
 #include "unicode/locid.h"
+#include "unicode/ubrk.h"
 
 #include "hash.h"
 #include "uvector.h"
@@ -39,6 +42,7 @@ class ICUServiceKey;
 class ICUServiceFactory;
 class SimpleFactory;
 class ServiceListener;
+class ICUServiceEnumeration;
 class ICUService;
 
 class DNCache;
@@ -179,16 +183,20 @@ class U_COMMON_API ICUServiceKey : public UObject {
   */
   static UnicodeString& parseSuffix(UnicodeString& result);
 
-public:
+ public:
   /**
    * UObject RTTI boilerplate.
    */
-  static UClassID getStaticClassID();
+  static inline UClassID getStaticClassID() { 
+    return (UClassID)&fgClassID;
+  }
 
   /**
    * UObject RTTI boilerplate.
    */
-  virtual UClassID getDynamicClassID() const;
+  virtual UClassID getDynamicClassID() const {
+    return getStaticClassID();
+  }
 
 #ifdef SERVICE_DEBUG
  public:
@@ -196,6 +204,8 @@ public:
   virtual UnicodeString& debugClass(UnicodeString& result) const;
 #endif
 
+ private:
+    static const char fgClassID;
 };
 
  /*******************************************************************
@@ -337,12 +347,16 @@ class U_COMMON_API SimpleFactory : public ICUServiceFactory {
  /**
   * UObject RTTI boilerplate.
   */
-  static UClassID getStaticClassID();
+  static inline UClassID getStaticClassID() { 
+	  return (UClassID)&fgClassID;
+  }
 
  /**
   * UObject RTTI boilerplate.
   */
-  virtual UClassID getDynamicClassID() const;
+  virtual UClassID getDynamicClassID() const {
+	  return getStaticClassID();
+  }
 
 #ifdef SERVICE_DEBUG
  public:
@@ -350,6 +364,8 @@ class U_COMMON_API SimpleFactory : public ICUServiceFactory {
   virtual UnicodeString& debugClass(UnicodeString& toAppendTo) const;
 #endif
 
+ private:
+  static const char fgClassID;
 };
 
 /*
@@ -378,13 +394,19 @@ public:
     /**
      * UObject RTTI boilerplate.
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() {
+        return (UClassID)&fgClassID;
+    }
     
     /**
      * UObject RTTI boilerplate.
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual UClassID getDynamicClassID() const {
+        return getStaticClassID();
+    }
     
+private:
+    static const char fgClassID;
 };
 
 /*
@@ -433,7 +455,7 @@ private:
  * Deleter for StringPairs
  */
 U_CAPI void U_EXPORT2
-userv_deleteStringPair(void *obj);
+deleteStringPair(void *obj);
 
 /**
  * Opaque type returned by registerInstance and registerFactory.

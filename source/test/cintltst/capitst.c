@@ -32,8 +32,6 @@ static void TestAttribute(void);
         int TestBufferSize();	/* defined in "colutil.c" */
 
 
-    
-
 /* next two function is modified from "i18n/ucol.cpp" to avoid include "ucol_imp.h" */
 static void uprv_appendByteToHexString(char *dst, uint8_t val) {
   uint32_t len = (uint32_t)strlen(dst);
@@ -277,7 +275,7 @@ void TestProperty()
       ICU 2.4 currVersionArray = {0x21, 0x40, 0x04, 0x04};
       ICU 2.6 currVersionArray = {0x21, 0x40, 0x03, 0x03};
     */
-    UVersionInfo currVersionArray = {0x29, 0x80, 0x01, 0x04};
+    UVersionInfo currVersionArray = {0x29, 0x80, 0x04, 0x04};
     UVersionInfo currUCAVersionArray = {4, 0, 0, 0};
     UVersionInfo versionArray = {0, 0, 0, 0};
     UVersionInfo versionUCAArray = {0, 0, 0, 0};
@@ -379,7 +377,7 @@ void TestProperty()
         buffer[0] = '\0';
         log_verbose("ucol_getRulesEx() testing ...\n");
         tempLength = ucol_getRulesEx(col,UCOL_TAILORING_ONLY,buffer,bufLen );
-        doAssert( tempLength == 0x0f, "getRulesEx() result incorrect" );
+        doAssert( tempLength == 0, "getRulesEx() result incorrect" );
         log_verbose("getRules tests end.\n");
         
         log_verbose("ucol_getRulesEx() testing ...\n");
@@ -441,7 +439,6 @@ void TestRuleBasedColl()
     u_uastrcpy(ruleset1, "&9 < a, A < b, B < c, C; ch, cH, Ch, CH < d, D, e, E");
     u_uastrcpy(ruleset2, "&9 < a, A < b, B < c, C < d, D, e, E");
     
-
     col1 = ucol_openRules(ruleset1, u_strlen(ruleset1), UCOL_DEFAULT, UCOL_DEFAULT_STRENGTH, NULL,&status);
     if (U_FAILURE(status)) {
         log_err("RuleBased Collator creation failed.: %s\n", myErrorName(status));
@@ -1124,7 +1121,7 @@ void TestGetLocale() {
   } testStruct[] = {
     { "sr_YU", "sr_YU", "ru" },
     { "sh_YU", "sh_YU", "sh" },
-    { "en_US_CALIFORNIA", "en_US", "en" },
+    { "en_US_CALIFORNIA", "en_US", "root" },
     { "fr_FR_NONEXISTANT", "fr_FR", "fr" }
   };
 

@@ -9,7 +9,6 @@
 #include "unicode/uscript.h"
 #include "unicode/uchar.h"
 #include "cintltst.h"
-#include "cucdapi.h"
 
 void TestUScriptCodeAPI(){
     int i =0;

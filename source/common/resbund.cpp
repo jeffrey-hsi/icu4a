@@ -167,7 +167,7 @@ U_NAMESPACE_BEGIN
  */
 //-----------------------------------------------------------------------------
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ResourceBundle)
+const char ResourceBundle::fgClassID=0;
 
 ResourceBundle::ResourceBundle( const UnicodeString&    path,
                                 const Locale&           locale,
@@ -248,11 +248,6 @@ ResourceBundle::~ResourceBundle()
     if(locName != NULL) {
       delete(locName);
     }
-}
-
-ResourceBundle *
-ResourceBundle::clone() const {
-    return new ResourceBundle(*this);
 }
 
 void 
@@ -395,11 +390,6 @@ const Locale &ResourceBundle::getLocale(void) const
     me->locName = new Locale(localeName);
   }
   return *locName;
-}
-
-const Locale ResourceBundle::getLocale(ULocDataLocaleType type, UErrorCode &status) const
-{
-  return ures_getLocaleByType(resource, type, &status);
 }
 
 //eof

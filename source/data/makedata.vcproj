@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding = "Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
@@ -20,9 +20,9 @@
 			ATLMinimizesCRunTimeLibraryUsage="FALSE">
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="NMAKE /f makedata.mak ICUMAKE=&quot;$(ProjectDir)\&quot; CFG=release"
-				ReBuildCommandLine="NMAKE /f makedata.mak ICUMAKE=&quot;$(ProjectDir)\&quot; CFG=release clean all"
-				CleanCommandLine="NMAKE /f makedata.mak ICUMAKE=&quot;$(ProjectDir)\&quot; CFG=release clean"/>
+				BuildCommandLine="NMAKE /f makedata.mak icumake=$(ProjectDir)  cfg=release"
+				ReBuildCommandLine="NMAKE /f makedata.mak icumake=$(ProjectDir)  cfg=release clean all"
+				Output="makedata.exe"/>
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
@@ -33,24 +33,17 @@
 			ATLMinimizesCRunTimeLibraryUsage="FALSE">
 			<Tool
 				Name="VCNMakeTool"
-				BuildCommandLine="NMAKE /f makedata.mak ICUMAKE=&quot;$(ProjectDir)\&quot; CFG=debug"
-				ReBuildCommandLine="NMAKE /f makedata.mak ICUMAKE=&quot;$(ProjectDir)\&quot; CFG=debug clean all"
-				CleanCommandLine="NMAKE /f makedata.mak ICUMAKE=&quot;$(ProjectDir)\&quot; CFG=debug clean"/>
+				BuildCommandLine="NMAKE /f makedata.mak icumake=$(ProjectDir) cfg=debug"
+				ReBuildCommandLine="NMAKE /f makedata.mak icumake=$(ProjectDir) cfg=debug clean all"
+				Output="makedata.exe"/>
 		</Configuration>
 	</Configurations>
 	<Files>
 		<Filter
 			Name="Resource Files"
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe">
-		</Filter>
-		<Filter
-			Name="Make Files"
-			Filter="mak;mk">
 			<File
 				RelativePath=".\makedata.mak">
-			</File>
-			<File
-				RelativePath=".\misc\miscfiles.mk">
 			</File>
 			<File
 				RelativePath=".\locales\resfiles.mk">
@@ -70,6 +63,14 @@
 			<File
 				RelativePath=".\mappings\ucmfiles.mk">
 			</File>
+		</Filter>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
 		</Filter>
 	</Files>
 	<Globals>

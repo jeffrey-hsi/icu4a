@@ -27,24 +27,14 @@
 #define MARGIN 10
 #define LINE_GROW 32
 
-Paragraph::Paragraph(const LEUnicode chars[], int32_t charCount, const FontRuns *fontRuns, LEErrorCode &status)
+Paragraph::Paragraph(const LEUnicode chars[], int32_t charCount, const FontRuns *fontRuns)
   : fParagraphLayout(NULL), fLineCount(0), fLinesMax(0), fLinesGrow(LINE_GROW), fLines(NULL), fChars(NULL),
     fLineHeight(-1), fAscent(-1), fWidth(-1), fHeight(-1)
 {
-	if (LE_FAILURE(status)) {
-		return;
-	}
-
-	LocaleRuns *locales = NULL;
-
     fChars = LE_NEW_ARRAY(LEUnicode, charCount);
     LE_ARRAY_COPY(fChars, chars, charCount);
 
-    fParagraphLayout = new ParagraphLayout(fChars, charCount, fontRuns, NULL, NULL, locales, UBIDI_DEFAULT_LTR, FALSE, status);
-
-	if (LE_FAILURE(status)) {
-		return;
-	}
+    fParagraphLayout = new ParagraphLayout(fChars, charCount, fontRuns, NULL, NULL, NULL, UBIDI_LTR, false);
 
     le_int32 ascent  = fParagraphLayout->getAscent();
     le_int32 descent = fParagraphLayout->getDescent();
@@ -112,13 +102,6 @@ void Paragraph::draw(RenderingSurface *surface, le_int32 firstLine, le_int32 las
         le_int32 runCount = line->countRuns();
         le_int32 run;
 
-		if (fParagraphLayout->getParagraphLevel() == UBIDI_RTL) {
-			le_int32 lastX = line->getWidth();
-
-			x = (fWidth - lastX - MARGIN);
-		}
-
-
         for (run = 0; run < runCount; run += 1) {
             const ParagraphLayout::VisualRun *visualRun = line->getVisualRun(run);
             le_int32 glyphCount = visualRun->getGlyphCount();
@@ -135,7 +118,8 @@ void Paragraph::draw(RenderingSurface *surface, le_int32 firstLine, le_int32 las
 
 Paragraph *Paragraph::paragraphFactory(const char *fileName, const LEFontInstance *font, GUISupport *guiSupport)
 {
-    LEErrorCode status  = LE_NO_ERROR;
+    LEErrorCode fontStatus  = LE_NO_ERROR;
+    UErrorCode scriptStatus = U_ZERO_ERROR;
     le_int32 charCount;
     const UChar *text = UnicodeReader::readFile(fileName, guiSupport, charCount);
     Paragraph *result = NULL;
@@ -148,12 +132,7 @@ Paragraph *Paragraph::paragraphFactory(const char *fileName, const LEFontInstanc
 
     fontRuns.add(font, charCount);
 
-    result = new Paragraph(text, charCount, &fontRuns, status);
-
-	if (LE_FAILURE(status)) {
-		delete result;
-		result = NULL;
-	}
+    result = new Paragraph(text, charCount, &fontRuns);
 
     LE_DELETE_ARRAY(text);
 

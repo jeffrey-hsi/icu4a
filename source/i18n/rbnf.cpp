@@ -45,9 +45,7 @@ static const UChar gSemiPercent[] =
 #define kHalfMaxDouble (double)(1 << kSomeNumberOfBitsDiv2)
 #define kMaxDouble (kHalfMaxDouble * kHalfMaxDouble)
 
-U_NAMESPACE_BEGIN
-
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(RuleBasedNumberFormat)
+const char RuleBasedNumberFormat::fgClassID = 0;
 
 RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description, const Locale& alocale, UParseError& perror, UErrorCode& status)
   : ruleSets(NULL)
@@ -88,10 +86,8 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(URBNFRuleSetTag tag, const Locale& 
     UResourceBundle* nfrb = ures_open(NULL, locale.getName(), &status);
     //    UResourceBundle* yuck = ures_getByKey(nfrb, fmt_tag, NULL, &status);
     //    const UChar* description = ures_getString(yuck, &len, &status);
+    const UChar* description = ures_getStringByKey(nfrb, fmt_tag, &len, &status);
     if (U_SUCCESS(status)) {
-        setLocaleIDs(ures_getLocaleByType(nfrb, ULOC_VALID_LOCALE, &status),
-                     ures_getLocaleByType(nfrb, ULOC_ACTUAL_LOCALE, &status));
-        const UChar* description = ures_getStringByKey(nfrb, fmt_tag, &len, &status);
         UnicodeString desc(description, len);
         UParseError perror;
         init (desc, perror, status);
@@ -245,7 +241,7 @@ RuleBasedNumberFormat::findRuleSet(const UnicodeString& name, UErrorCode& status
 UnicodeString&
 RuleBasedNumberFormat::format(int32_t number,
                               UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */) const
+                              FieldPosition& pos) const
 {
     if (defaultRuleSet) defaultRuleSet->format((int64_t)number, toAppendTo, toAppendTo.length());
     return toAppendTo;
@@ -255,7 +251,7 @@ RuleBasedNumberFormat::format(int32_t number,
 UnicodeString&
 RuleBasedNumberFormat::format(int64_t number,
                               UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */) const
+                              FieldPosition& pos) const
 {
     if (defaultRuleSet) defaultRuleSet->format(number, toAppendTo, toAppendTo.length());
     return toAppendTo;
@@ -265,7 +261,7 @@ RuleBasedNumberFormat::format(int64_t number,
 UnicodeString&
 RuleBasedNumberFormat::format(double number,
                               UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */) const
+                              FieldPosition& pos) const
 {
     if (defaultRuleSet) defaultRuleSet->format(number, toAppendTo, toAppendTo.length());
     return toAppendTo;
@@ -276,7 +272,7 @@ UnicodeString&
 RuleBasedNumberFormat::format(int32_t number,
                               const UnicodeString& ruleSetName,
                               UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */,
+                              FieldPosition& pos,
                               UErrorCode& status) const
 {
     // return format((int64_t)number, ruleSetName, toAppendTo, pos, status);
@@ -299,7 +295,7 @@ UnicodeString&
 RuleBasedNumberFormat::format(int64_t number,
                               const UnicodeString& ruleSetName,
                               UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */,
+                              FieldPosition& pos,
                               UErrorCode& status) const
 {
     if (U_SUCCESS(status)) {
@@ -331,7 +327,7 @@ UnicodeString&
 RuleBasedNumberFormat::format(double number,
                               const UnicodeString& ruleSetName,
                               UnicodeString& toAppendTo,
-                              FieldPosition& /* pos */,
+                              FieldPosition& pos,
                               UErrorCode& status) const
 {
     if (U_SUCCESS(status)) {
@@ -446,7 +442,7 @@ RuleBasedNumberFormat::initDefaultRuleSet()
 
 
 void
-RuleBasedNumberFormat::init(const UnicodeString& rules, UParseError& /* pErr */, UErrorCode& status)
+RuleBasedNumberFormat::init(const UnicodeString& rules, UParseError& pErr, UErrorCode& status)
 {
     // TODO: implement UParseError
     // Note: this can leave ruleSets == NULL, so remaining code should check
@@ -733,8 +729,6 @@ RuleBasedNumberFormat::getDecimalFormatSymbols() const
     }
     return decimalFormatSymbols;
 }
-
-U_NAMESPACE_END
 
 /* U_HAVE_RBNF */
 #endif

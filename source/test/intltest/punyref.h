@@ -34,6 +34,7 @@ Disclaimer and license
 /************************************************************/
 /* Public interface (would normally go in its own .h file): */
 
+#include <limits.h>
 #include "unicode/utypes.h"
 
 #if !UCONFIG_NO_IDNA

@@ -34,7 +34,7 @@ U_NAMESPACE_BEGIN
  *         applications that statically link the C Runtime library, meaning that
  *         the app and ICU will be using different heaps.
  *
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */                              
 #ifndef U_OVERRIDE_CXX_ALLOCATION
 #define U_OVERRIDE_CXX_ALLOCATION 1
@@ -151,23 +151,23 @@ public:
  * This is because some compilers do not support covariant (same-as-this)
  * return types; cast to the appropriate subclass if necessary.
  *
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 class U_COMMON_API UObject : public UMemory {
 public:
     /**
      * Destructor.
      *
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
-    virtual ~UObject();
+    virtual inline ~UObject() {}
 
     /**
      * ICU4C "poor man's RTTI", returns a UClassID for the actual ICU class.
      *
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const = 0;
+    virtual inline UClassID getDynamicClassID() const = 0;
 
 protected:
     // the following functions are protected to prevent instantiation and
@@ -181,7 +181,7 @@ protected:
     // commented out because UObject is abstract (see getDynamicClassID)
     // inline UObject(const UObject &other) {}
 
-#if U_ICU_VERSION_MAJOR_NUM>2
+#if U_ICU_VERSION_MAJOR_NUM>2 || (U_ICU_VERSION_MAJOR_NUM==2 && U_ICU_VERSION_MINOR_NUM>6)
     // TODO post ICU 2.4  (This comment inserted in 2.2)
     // some or all of the following "boilerplate" functions may be made public
     // in a future ICU4C release when all subclasses implement them
@@ -213,23 +213,6 @@ protected:
     UObject &UObject::operator=(const UObject &);
      */
 };
-
-/**
- * This is a simple macro to add ICU RTTI to an ICU object implementation.
- * This does not go into the header. This should only be used in *.cpp files.
- *
- * @param myClass The name of the class that needs RTTI defined.
- * @internal
- */
-#define UOBJECT_DEFINE_RTTI_IMPLEMENTATION(myClass) \
-    UClassID myClass::getStaticClassID() { \
-        static const char classID = 0; \
-        return (UClassID)&classID; \
-    } \
-    UClassID myClass::getDynamicClassID() const \
-    { return myClass::getStaticClassID(); }
-
-
 
 U_NAMESPACE_END
 

@@ -787,39 +787,31 @@ public:
    */
   virtual void setDefaultRuleSet(const UnicodeString& ruleSetName, UErrorCode& status);
 
-public:
-    /**
-     * ICU "poor man's RTTI", returns a UClassID for this class.
-     *
-     * @stable ICU 2.8
-     */
-    static UClassID getStaticClassID(void);
+private:
+  RuleBasedNumberFormat(); // default constructor not implemented
 
-    /**
-     * ICU "poor man's RTTI", returns a UClassID for the actual class.
-     *
-     * @stable ICU 2.8
-     */
-    virtual UClassID getDynamicClassID(void) const;
+  void init(const UnicodeString& rules, UParseError& perror, UErrorCode& status);
+  void dispose();
+  void stripWhitespace(UnicodeString& src);
+  void initDefaultRuleSet();
+  void format(double number, NFRuleSet& ruleSet);
+  NFRuleSet* findRuleSet(const UnicodeString& name, UErrorCode& status) const;
+
+  /* friend access */
+  friend class NFSubstitution;
+  friend class NFRule;
+  friend class FractionalPartSubstitution;
+
+  inline NFRuleSet * getDefaultRuleSet() const;
+  Collator * getCollator() const;
+  DecimalFormatSymbols * getDecimalFormatSymbols() const;
 
 private:
-    RuleBasedNumberFormat(); // default constructor not implemented
+    static const char fgClassID;
 
-    void init(const UnicodeString& rules, UParseError& perror, UErrorCode& status);
-    void dispose();
-    void stripWhitespace(UnicodeString& src);
-    void initDefaultRuleSet();
-    void format(double number, NFRuleSet& ruleSet);
-    NFRuleSet* findRuleSet(const UnicodeString& name, UErrorCode& status) const;
-
-    /* friend access */
-    friend class NFSubstitution;
-    friend class NFRule;
-    friend class FractionalPartSubstitution;
-
-    inline NFRuleSet * getDefaultRuleSet() const;
-    Collator * getCollator() const;
-    DecimalFormatSymbols * getDecimalFormatSymbols() const;
+public:
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
 
 private:
     NFRuleSet **ruleSets;

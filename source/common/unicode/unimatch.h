@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2001-2003, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) 2001, International Business Machines Corporation and others. All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
 *   07/18/01    aliu        Creation.
@@ -66,7 +66,7 @@ public:
      * Destructor.
      * @draft ICU 2.4
      */
-    virtual ~UnicodeMatcher();
+    virtual inline ~UnicodeMatcher() {};
 
     /**
      * Return a UMatchDegree value indicating the degree of match for

@@ -28,7 +28,6 @@
 #include "uprops.h"
 #include "usc_impl.h"
 #include "unormimp.h"
-#include "cucdapi.h"
 
 #define LENGTHOF(array) (sizeof(array)/sizeof((array)[0]))
 
@@ -46,7 +45,7 @@ static void TestCodePoint(void);
 static void TestCharLength(void);
 static void TestCharNames(void);
 static void TestMirroring(void);
-/*       void TestUScriptCodeAPI(void);*/    /* defined in cucdapi.h */
+       void TestUScriptCodeAPI(void);    /* defined in cucdapi.c */
 static void TestUScriptRunAPI(void);
 static void TestAdditionalProperties(void);
 static void TestNumericProperties(void);
@@ -1337,23 +1336,6 @@ static void TestCodePoint(){
         }
     }
 
-    if(
-        !U_IS_BMP(0) || !U_IS_BMP(0x61) || !U_IS_BMP(0x20ac) ||
-        !U_IS_BMP(0xd9da) || !U_IS_BMP(0xdfed) || !U_IS_BMP(0xffff) ||
-        U_IS_BMP(U_SENTINEL) || U_IS_BMP(0x10000) || U_IS_BMP(0x50005) ||
-        U_IS_BMP(0x10ffff) || U_IS_BMP(0x110000) || U_IS_BMP(0x7fffffff)
-    ) {
-        log_err("error with U_IS_BMP()\n");
-    }
-
-    if(
-        U_IS_SUPPLEMENTARY(0) || U_IS_SUPPLEMENTARY(0x61) || U_IS_SUPPLEMENTARY(0x20ac) ||
-        U_IS_SUPPLEMENTARY(0xd9da) || U_IS_SUPPLEMENTARY(0xdfed) || U_IS_SUPPLEMENTARY(0xffff) ||
-        U_IS_SUPPLEMENTARY(U_SENTINEL) || !U_IS_SUPPLEMENTARY(0x10000) || !U_IS_SUPPLEMENTARY(0x50005) ||
-        !U_IS_SUPPLEMENTARY(0x10ffff) || U_IS_SUPPLEMENTARY(0x110000) || U_IS_SUPPLEMENTARY(0x7fffffff)
-    ) {
-        log_err("error with U_IS_SUPPLEMENTARY()\n");
-    }
 }
 
 static void TestCharLength()
@@ -1624,9 +1606,8 @@ TestCharNames() {
         uprv_getCharNameCharacters(set);
 
         /* build set the dumb (but sure-fire) way */
-        for (i=0; i<256; ++i) {
+        for (i=0; i<256; ++i)
             map[i] = FALSE;
-        }
 
         maxLength=0;
         for (cp=0; cp<0x110000; ++cp) {
@@ -1648,15 +1629,6 @@ TestCharNames() {
                     map[(uint8_t) buf[i]] = TRUE;
                 }
             }
-
-            /* test for leading/trailing whitespace */
-            if(buf[0]==' ' || buf[0]=='\t' || buf[len-1]==' ' || buf[len-1]=='\t') {
-                log_err("u_charName(U+%04x) returns a name with leading or trailing whitespace\n", cp);
-            }
-        }
-
-        if(map[(uint8_t)'\t']) {
-            log_err("u_charName() returned a name with a TAB for some code point\n", cp);
         }
 
         length=uprv_getMaxCharNameLength();
@@ -1698,10 +1670,17 @@ TestCharNames() {
         }
 
         if (!ok) {
+            char c1[256], c2[256];
+            u_UCharsToChars(pat, c1, l1);
+            u_UCharsToChars(dumbPat, c2, l2);
+            c1[l1] = c2[l2] = 0;
             log_err("FAIL: uprv_getCharNameCharacters() returned %s, expected %s (too many lowercase a-z are ok)\n",
-                    aescstrdup(pat, l1), aescstrdup(dumbPat, l2));
-        } else if(VERBOSITY) {
-            log_verbose("Ok: uprv_getCharNameCharacters() returned %s\n", aescstrdup(pat, l1));
+                    c1, c2);
+        } else {
+            char c1[256];
+            u_UCharsToChars(pat, c1, l1);
+            c1[l1] = 0;
+            log_verbose("Ok: uprv_getCharNameCharacters() returned %s\n", c1);
         }
 
         uset_close(set);
@@ -2699,23 +2678,19 @@ TestConsistency() {
     set1=uset_open(1, 0);
     set2=uset_open(1, 0);
 
-    if (unorm_getCanonStartSet(0x49, &sset)) {
-        _setAddSerialized(set1, &sset);
+    unorm_getCanonStartSet(0x49, &sset);
+    _setAddSerialized(set1, &sset);
 
-        /* enumerate all characters that are plausible to be latin letters */
-        for(start=0xa0; start<0x2000; ++start) {
-            if(unorm_getDecomposition(start, FALSE, buffer16, LENGTHOF(buffer16))>1 && buffer16[0]==0x49) {
-                uset_add(set2, start);
-            }
+    /* enumerate all characters that are plausible to be latin letters */
+    for(start=0xa0; start<0x2000; ++start) {
+        if(unorm_getDecomposition(start, FALSE, buffer16, LENGTHOF(buffer16))>1 && buffer16[0]==0x49) {
+            uset_add(set2, start);
         }
-
-        compareUSets(set1, set2,
-                     "[canon start set of 0049]", "[all c with canon decomp with 0049]",
-                     TRUE);
-    } else {
-      log_err("error calling unorm_getCanonStartSet()\n");
     }
 
+    compareUSets(set1, set2,
+                 "[canon start set of 0049]", "[all c with canon decomp with 0049]",
+                 TRUE);
     uset_close(set1);
     uset_close(set2);
 

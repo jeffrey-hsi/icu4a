@@ -24,7 +24,7 @@
 				ImproveFloatingPointConsistency="TRUE"
 				OptimizeForProcessor="2"
 				AdditionalIncludeDirectories="..\..\include,..\common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;U_LAYOUT_IMPLEMENTATION"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LAYOUT_EXPORTS;U_LAYOUT_IMPLEMENTATION"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DisableLanguageExtensions="TRUE"
@@ -43,12 +43,11 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="..\..\lib\icuucd.lib"
-				OutputFile="..\..\bin\icule28d.dll"
+				OutputFile="..\..\bin\icule26d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\..\..\lib/icule28d.pdb"
-				BaseAddress="0x4ac00000"
+				ProgramDatabaseFile=".\..\..\lib/icule26d.pdb"
 				ImportLibrary="..\..\lib\iculed.lib"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -86,7 +85,7 @@
 				InlineFunctionExpansion="2"
 				ImproveFloatingPointConsistency="TRUE"
 				AdditionalIncludeDirectories="..\..\include,..\common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;U_LAYOUT_IMPLEMENTATION"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LAYOUT_EXPORTS;U_LAYOUT_IMPLEMENTATION"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
@@ -104,11 +103,10 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="..\..\lib\icuuc.lib"
-				OutputFile="..\..\bin\icule28.dll"
+				OutputFile="..\..\bin\icule26.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\..\..\lib/icule28.pdb"
-				BaseAddress="0x4ac00000"
+				ProgramDatabaseFile=".\..\..\lib/icule26.pdb"
 				ImportLibrary="..\..\lib\icule.lib"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -188,9 +186,6 @@
 			</File>
 			<File
 				RelativePath=".\GlyphIterator.cpp">
-			</File>
-			<File
-				RelativePath="GlyphLookupTables.cpp">
 			</File>
 			<File
 				RelativePath=".\GlyphPositioningTables.cpp">
@@ -395,9 +390,6 @@
 				RelativePath=".\GlyphIterator.h">
 			</File>
 			<File
-				RelativePath="GlyphLookupTables.h">
-			</File>
-			<File
 				RelativePath=".\GlyphPositionAdjustments.h">
 			</File>
 			<File
@@ -439,17 +431,17 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LEFontInstance.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LEFontInstance.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -458,17 +450,17 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LEGlyphFilter.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LEGlyphFilter.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -477,17 +469,17 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LELanguages.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LELanguages.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -496,17 +488,17 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LEScripts.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LEScripts.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -515,17 +507,17 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LESwaps.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LESwaps.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -534,17 +526,17 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LETypes.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LETypes.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -553,17 +545,17 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LayoutEngine.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\layout
+						CommandLine="copy  $(InputPath)  ..\..\include\layout
 "
-						Outputs="..\..\include\layout\$(InputFileName)"/>
+						Outputs="..\..\include\layout\LayoutEngine.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -683,17 +675,17 @@
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode
+						CommandLine="copy  $(InputPath)  ..\..\include\unicode
 "
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						Outputs="..\..\include\unicode\loengine.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode
+						CommandLine="copy  $(InputPath)  ..\..\include\unicode
 "
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						Outputs="..\..\include\unicode\loengine.h"/>
 				</FileConfiguration>
 			</File>
 		</Filter>

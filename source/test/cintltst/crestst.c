@@ -20,7 +20,7 @@
 #include "unicode/ustring.h"
 #include "cstring.h"
 #include "filestrm.h"
-#include <stdlib.h>
+#include "cmemory.h"
 
 #define RESTEST_HEAP_CHECK 0
 
@@ -28,11 +28,8 @@
 #include "crestst.h"
 #include "unicode/ctest.h"
 
-#define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
-
 static void TestOpenDirect(void);
 static void TestFallback(void);
-static void TestTable32(void);
 static void TestFileStream(void);
 /*****************************************************************************/
 
@@ -93,13 +90,10 @@ void addResourceBundleTest(TestNode** root)
 {
     addTest(root, &TestConstruction1, "tsutil/crestst/TestConstruction1");
     addTest(root, &TestOpenDirect, "tsutil/crestst/TestOpenDirect");
-    addTest(root, &TestResourceBundles, "tsutil/crestst/TestResourceBundles");
-    addTest(root, &TestTable32, "tsutil/crestst/TestTable32");
+    addTest(root, &TestResourceBundles, "tsutil/crestst/TestResourceBundle");
     addTest(root, &TestFallback, "tsutil/crestst/TestFallback");
     addTest(root, &TestAliasConflict, "tsutil/crestst/TestAliasConflict");
     addTest(root, &TestFileStream, "tsutil/crestst/TestFileStream");
-    addTest(root, &TestGetSize, "tsutil/crestst/TestGetSize");
-    addTest(root, &TestGetLocaleByType, "tsutil/crestst/TestGetLocaleByType");
 }
 
 
@@ -409,7 +403,6 @@ static void TestFallback()
 {
     UErrorCode status = U_ZERO_ERROR;
     UResourceBundle *fr_FR = NULL;
-    UResourceBundle *subResource = NULL;
     const UChar *junk; /* ignored */
     int32_t resultLen;
 
@@ -433,13 +426,13 @@ static void TestFallback()
     status = U_ZERO_ERROR;
 
     /* OK first one. This should be a Default value. */
-    subResource = ures_getByKey(fr_FR, "CurrencyMap", NULL, &status);
+    junk = ures_getStringByKey(fr_FR, "%%PREEURO", &resultLen, &status);
     if(status != U_USING_DEFAULT_WARNING)
     {
-        log_data_err("Expected U_USING_DEFAULT_ERROR when trying to get LocaleScript from fr_FR, got %s\n",
+        log_data_err("Expected U_USING_DEFAULT_ERROR when trying to get %%PREEURO from fr_FR, got %s\n",
             u_errorName(status));
     }
-    ures_close(subResource);
+
     status = U_ZERO_ERROR;
 
     /* and this is a Fallback, to fr */
@@ -519,165 +512,12 @@ TestOpenDirect(void) {
     ures_close(translit_index);
 }
 
-static int32_t
-parseTable32Key(const char *key) {
-    int32_t number;
-    char c;
-
-    number=0;
-    while((c=*key++)!=0) {
-        number<<=1;
-        if(c=='1') {
-            number|=1;
-        }
-    }
-    return number;
-}
-
-static void
-TestTable32(void) {
-    static const struct {
-        const char *key;
-        int32_t number;
-    } testcases[]={
-        { "ooooooooooooooooo", 0 },
-        { "oooooooooooooooo1", 1 },
-        { "ooooooooooooooo1o", 2 },
-        { "oo11ooo1ooo11111o", 25150 },
-        { "oo11ooo1ooo111111", 25151 },
-        { "o1111111111111111", 65535 },
-        { "1oooooooooooooooo", 65536 },
-        { "1ooooooo11o11ooo1", 65969 },
-        { "1ooooooo11o11oo1o", 65970 },
-        { "1ooooooo111oo1111", 65999 }
-    };
-
-    /* ### TODO UResourceBundle staticItem={ 0 }; - need to know the size */
-    UResourceBundle *res, *item;
-    const UChar *s;
-    const char *key;
-    UErrorCode errorCode;
-    int32_t i, j, number, parsedNumber, length, count;
-
-    errorCode=U_ZERO_ERROR;
-    res=ures_open(loadTestData(&errorCode), "testtable32", &errorCode);
-    if(U_FAILURE(errorCode)) {
-        log_data_err("unable to open testdata/testtable32.res - %s\n", u_errorName(errorCode));
-        return;
-    }
-    if(ures_getType(res)!=URES_TABLE) {
-        log_data_err("testdata/testtable32.res has type %d instead of URES_TABLE\n", ures_getType(res));
-    }
-
-    count=ures_getSize(res);
-    if(count!=66000) {
-        log_err("testdata/testtable32.res should have 66000 entries but has %d\n", count);
-    }
-
-    /* get the items by index */
-    item=NULL;
-    for(i=0; i<count; ++i) {
-        item=ures_getByIndex(res, i, item, &errorCode);
-        if(U_FAILURE(errorCode)) {
-            log_err("unable to get item %d of %d in testdata/testtable32.res - %s\n",
-                    i, count, u_errorName(errorCode));
-            break;
-        }
-
-        key=ures_getKey(item);
-        parsedNumber=parseTable32Key(key);
-
-        switch(ures_getType(item)) {
-        case URES_STRING:
-            s=ures_getString(item, &length, &errorCode);
-            if(U_FAILURE(errorCode) || s==NULL) {
-                log_err("unable to access the string \"%s\" at %d in testdata/testtable32.res - %s\n",
-                        key, i, u_errorName(errorCode));
-                number=-1;
-            } else {
-                j=0;
-                U16_NEXT(s, j, length, number);
-            }
-            break;
-        case URES_INT:
-            number=ures_getInt(item, &errorCode);
-            if(U_FAILURE(errorCode)) {
-                log_err("unable to access the integer \"%s\" at %d in testdata/testtable32.res - %s\n",
-                        key, i, u_errorName(errorCode));
-                number=-1;
-            }
-            break;
-        default:
-            log_err("unexpected resource type %d for \"%s\" at %d in testdata/testtable32.res - %s\n",
-                    ures_getType(item), key, i, u_errorName(errorCode));
-            number=-1;
-            break;
-        }
-
-        if(number>=0 && number!=parsedNumber) {
-            log_err("\"%s\" at %d in testdata/testtable32.res has a string/int value of %d, expected %d\n",
-                    key, i, number, parsedNumber);
-        }
-    }
-
-    /* search for some items by key */
-    for(i=0; i<LENGTHOF(testcases); ++i) {
-        item=ures_getByKey(res, testcases[i].key, item, &errorCode);
-        if(U_FAILURE(errorCode)) {
-            log_err("unable to find the key \"%s\" in testdata/testtable32.res - %s\n",
-                    testcases[i].key, u_errorName(errorCode));
-            continue;
-        }
-
-        switch(ures_getType(item)) {
-        case URES_STRING:
-            s=ures_getString(item, &length, &errorCode);
-            if(U_FAILURE(errorCode) || s==NULL) {
-                log_err("unable to access the string \"%s\" in testdata/testtable32.res - %s\n",
-                        testcases[i].key, u_errorName(errorCode));
-                number=-1;
-            } else {
-                j=0;
-                U16_NEXT(s, j, length, number);
-            }
-            break;
-        case URES_INT:
-            number=ures_getInt(item, &errorCode);
-            if(U_FAILURE(errorCode)) {
-                log_err("unable to access the integer \"%s\" in testdata/testtable32.res - %s\n",
-                        testcases[i].key, u_errorName(errorCode));
-                number=-1;
-            }
-            break;
-        default:
-            log_err("unexpected resource type %d for \"%s\" in testdata/testtable32.res - %s\n",
-                    ures_getType(item), testcases[i].key, u_errorName(errorCode));
-            number=-1;
-            break;
-        }
-
-        if(number>=0 && number!=testcases[i].number) {
-            log_err("\"%s\" in testdata/testtable32.res has a string/int value of %d, expected %d\n",
-                    testcases[i].key, number, testcases[i].number);
-        }
-
-        key=ures_getKey(item);
-        if(0!=uprv_strcmp(key, testcases[i].key)) {
-            log_err("\"%s\" in testdata/testtable32.res claims to have the key \"%s\"\n",
-                    testcases[i].key, key);
-        }
-    }
-
-    ures_close(item);
-    ures_close(res);
-}
-
 static void TestFileStream(void){
     int32_t c = 0;
     int32_t c1=0;
     UErrorCode status = U_ZERO_ERROR;
     const char* testdatapath = loadTestData(&status);
-    char* fileName = (char*) malloc(uprv_strlen(testdatapath) +10);
+    char* fileName = (char*) uprv_malloc(uprv_strlen(testdatapath) +10);
     FileStream* stream = NULL;
     /* these should not be closed */
     FileStream* pStdin  = T_FileStream_stdin();
@@ -686,7 +526,7 @@ static void TestFileStream(void){
 
     const char* testline = "This is a test line";
     int32_t bufLen =uprv_strlen(testline)+10;
-    char* buf = (char*) malloc(bufLen);
+    char* buf = (char*) uprv_malloc(bufLen);
     int32_t retLen = 0;
 
     if(pStdin==NULL){
@@ -789,134 +629,7 @@ static void TestFileStream(void){
     }
 
 
-    free(fileName);
-    free(buf);
+    uprv_free(fileName);
+    uprv_free(buf);
 
 }
-
-static void TestGetSize(void) {
-    const struct {
-        const char* key;
-        int32_t size;
-    } test[] = {
-        { "zerotest", 1},
-        { "one", 1},
-        { "importtest", 1},
-        { "integerarray", 1},
-        { "emptyarray", 0},
-        { "emptytable", 0},
-        { "emptystring", 1}, /* empty string is still a string */
-        { "emptyint", 1}, 
-        { "emptybin", 1},
-        { "testinclude", 1},
-        { "collations", 1}, /* not 2 - there is hidden %%CollationBin */
-    };
-    
-    UErrorCode status = U_ZERO_ERROR;
-    
-    UResourceBundle *rb = NULL;
-    UResourceBundle *res = NULL;
-    UResourceBundle *helper = NULL;
-    const char* testdatapath = loadTestData(&status);
-    int32_t i = 0, j = 0;
-    int32_t size = 0;
-    
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s\n", u_errorName(status));
-        return;
-    }
-    
-    rb = ures_open(testdatapath, "testtypes", &status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not testtypes resource bundle %s\n", u_errorName(status));
-        return;
-    }
-    
-    for(i = 0; i < sizeof(test)/sizeof(test[0]); i++) {
-        res = ures_getByKey(rb, test[i].key, res, &status);
-        if(U_FAILURE(status))
-        {
-            log_err("Couldn't find the key %s. Error: %s\n", test[i].key, u_errorName(status));
-            ures_close(rb);
-            return;
-        }
-        size = ures_getSize(res);
-        if(size != test[i].size) {
-            log_err("Expected size %i, got size %i for key %s\n", test[i].size, size, test[i].key);
-            for(j = 0; j < size; j++) {
-                helper = ures_getByIndex(res, j, helper, &status);
-                log_err("%s\n", ures_getKey(helper));
-            }
-        }
-    }
-    ures_close(helper); 
-    ures_close(res);
-    ures_close(rb);
-}
-
-static void TestGetLocaleByType(void) {
-    static const struct {
-        const char *requestedLocale;
-        const char *resourceKey;
-        const char *validLocale;
-        const char *actualLocale;
-    } test[] = {
-        { "te_IN_BLAH", "string_only_in_te_IN", "te_IN", "te_IN" },
-        { "te_IN_BLAH", "string_only_in_te", "te_IN", "te" },
-        { "te_IN_BLAH", "string_only_in_Root", "te_IN", "root" },
-        { "te_IN_BLAH_01234567890_01234567890_01234567890_01234567890_01234567890_01234567890", "array_2d_only_in_Root", "te_IN", "root" },
-        { "te_IN_BLAH@currency=euro", "array_2d_only_in_te_IN", "te_IN", "te_IN" },
-        { "te_IN_BLAH@collation=phonebook;calendar=thai", "array_2d_only_in_te", "te_IN", "te" }
-    };
-    
-    UErrorCode status = U_ZERO_ERROR;
-    
-    UResourceBundle *rb = NULL;
-    UResourceBundle *res = NULL;
-    const char* testdatapath = loadTestData(&status);
-    int32_t i = 0;
-    const char *locale = NULL;
-    
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s\n", u_errorName(status));
-        return;
-    }
-    
-    for(i = 0; i < sizeof(test)/sizeof(test[0]); i++) {
-        rb = ures_open(testdatapath, test[i].requestedLocale, &status);
-        if(U_FAILURE(status))
-        {
-            log_err("Could not open resource bundle %s (error %s)\n", test[i].requestedLocale, u_errorName(status));
-            status = U_ZERO_ERROR;
-            continue;
-        }
-        
-        res = ures_getByKey(rb, test[i].resourceKey, res, &status);
-        if(U_FAILURE(status))
-        {
-            log_err("Couldn't find the key %s. Error: %s\n", test[i].resourceKey, u_errorName(status));
-            ures_close(rb);
-            status = U_ZERO_ERROR;
-            continue;
-        }
-        
-        locale = ures_getLocaleByType(res, ULOC_REQUESTED_LOCALE, &status);
-        if(locale) {
-            log_err("Requested locale should return NULL\n");
-        }
-        locale = ures_getLocaleByType(res, ULOC_VALID_LOCALE, &status);
-        if(!locale || strcmp(locale, test[i].validLocale) != 0) {
-            log_err("Expected valid locale to be %s. Got %s\n", test[i].requestedLocale, locale);
-        }
-        locale = ures_getLocaleByType(res, ULOC_ACTUAL_LOCALE, &status);
-        if(!locale || strcmp(locale, test[i].actualLocale) != 0) {
-            log_err("Expected actual locale to be %s. Got %s\n", test[i].requestedLocale, locale);
-        }
-        ures_close(rb);
-    }
-    ures_close(res);
-}
-

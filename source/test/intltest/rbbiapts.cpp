@@ -20,7 +20,6 @@
 #include "rbbiapts.h"
 #include "rbbidata.h"
 #include "cstring.h"
-#include "unicode/ustring.h"
 
 /**
  * API Test the RuleBasedBreakIterator class
@@ -554,17 +553,16 @@ void RBBIAPITest::TestQuoteGrouping() {
 }
 
 //
-//  TestRuleStatus
+//  TestWordStatus
 //      Test word break rule status constants.
 //
-void RBBIAPITest::TestRuleStatus() {
-     UChar str[30]; 
-     u_unescape("plain word 123.45 \\u9160\\u9161 \\u30a1\\u30a2 \\u3041\\u3094",
-              // 012345678901234567  8      9    0  1      2    3  4      5    6
-              //                    Ideographic    Katakana       Hiragana
-                str, 30);
-     UnicodeString testString1(str);
-     int32_t bounds1[] = {0, 5, 6, 10, 11, 17, 18, 19, 20, 21, 23, 24, 25, 26};
+void RBBIAPITest::TestWordStatus() {
+
+     
+     UnicodeString testString1 =   //                  Ideographic    Katakana       Hiragana
+             CharsToUnicodeString("plain word 123.45 \\u9160\\u9161 \\u30a1\\u30a2 \\u3041\\u3094");
+                                // 012345678901234567  8      9    0  1      2    3  4      5    6
+     int32_t bounds1[] =     {     0,   5,6, 10,11, 17,18,  19,   20,21,         23,24,    25,  26};
      int32_t tag_lo[]  = {UBRK_WORD_NONE,     UBRK_WORD_LETTER, UBRK_WORD_NONE,    UBRK_WORD_LETTER,
                           UBRK_WORD_NONE,     UBRK_WORD_NUMBER, UBRK_WORD_NONE,
                           UBRK_WORD_IDEO,     UBRK_WORD_IDEO,   UBRK_WORD_NONE,
@@ -601,51 +599,6 @@ void RBBIAPITest::TestRuleStatus() {
          }
      }
      delete bi;
-
-     // Now test line break status.  This test mostly is to confirm that the status constants
-     //                              are correctly declared in the header.
-     testString1 =   "test line. \n";
-     // break type    s    s     h
-
-     bi = (RuleBasedBreakIterator *)
-         BreakIterator::createLineInstance(Locale::getEnglish(), status);
-     if(U_FAILURE(status)) {
-         errln("failed to create word break iterator.");
-     } else {
-         int32_t i = 0;
-         int32_t pos, tag;
-         UBool   success;
-
-         bi->setText(testString1);
-         pos = bi->current();
-         tag = bi->getRuleStatus();
-         for (i=0; i<3; i++) {
-             switch (i) {
-             case 0:
-                 success = pos==0  && tag==UBRK_LINE_SOFT; break;
-             case 1:
-                 success = pos==5  && tag==UBRK_LINE_SOFT; break;
-             case 2:
-                 success = pos==12 && tag==UBRK_LINE_HARD; break;
-             default:
-                 success = FALSE; break;
-             }
-             if (success == FALSE) {
-                 errln("Fail: incorrect word break status or position.  i=%d, pos=%d, tag=%d",
-                     i, pos, tag);
-                 break;
-             }
-             pos = bi->next();
-             tag = bi->getRuleStatus();
-         }
-         if (UBRK_LINE_SOFT >= UBRK_LINE_SOFT_LIMIT ||
-             UBRK_LINE_HARD >= UBRK_LINE_HARD_LIMIT ||
-             UBRK_LINE_HARD > UBRK_LINE_SOFT && UBRK_LINE_HARD < UBRK_LINE_SOFT_LIMIT ) {
-             errln("UBRK_LINE_* constants from header are inconsistent.");
-         }
-     }
-     delete bi;
-
 }
 
 
@@ -848,17 +801,17 @@ void RBBIAPITest::runIndexedTest( int32_t index, UBool exec, const char* &name, 
         case  2: name = "TestHashCode"; if (exec) TestHashCode(); break;
         case  3: name = "TestGetSetAdoptText"; if (exec) TestGetSetAdoptText(); break;
         case  4: name = "TestIteration"; if (exec) TestIteration(); break;
-        case  5: name = "extra"; break;   // Extra
-        case  6: name = "extra"; break;   // Extra
+        case  5: name = "extra"; break;   /* Extra */
+        case  6: name = "extra"; break;   /* Extra */
         case  7: name = "TestBuilder"; if (exec) TestBuilder(); break;
         case  8: name = "TestQuoteGrouping"; if (exec) TestQuoteGrouping(); break;
-        case  9: name = "TestRuleStatus"; if (exec) TestRuleStatus(); break;
+        case  9: name = "TestWordStatus"; if (exec) TestWordStatus(); break;
         case 10: name = "TestBug2190"; if (exec) TestBug2190(); break;
         case 11: name = "TestRegistration"; if (exec) TestRegistration(); break;
         case 12: name = "TestBoilerPlate"; if (exec) TestBoilerPlate(); break;
         case 13: name = "TestRoundtripRules"; if (exec) TestRoundtripRules(); break;
 
-        default: name = ""; break; // needed to end loop
+        default: name = ""; break; /*needed to end loop*/
     }
 }
 

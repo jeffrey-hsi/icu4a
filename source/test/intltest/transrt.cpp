@@ -564,7 +564,7 @@ void RTTest::test2(UBool quickRt, int32_t density) {
     TransliteratorPointer sourceToTarget(
         Transliterator::createInstance(transliteratorID, UTRANS_FORWARD, parseError,
                                        status));
-    if ((const Transliterator *)sourceToTarget == NULL) {
+    if (sourceToTarget == NULL) {
         parent->errln("FAIL: createInstance(" + transliteratorID +
                    ") returned NULL. Error: " + u_errorName(status)
                    + "\n\tpreContext : " + prettify(parseError.preContext) 
@@ -573,7 +573,7 @@ void RTTest::test2(UBool quickRt, int32_t density) {
                 return;
     }
     TransliteratorPointer targetToSource(sourceToTarget->createInverse(status));
-    if ((const Transliterator *)targetToSource == NULL) {
+    if (targetToSource == NULL) {
         parent->errln("FAIL: " + transliteratorID +
                    ".createInverse() returned NULL. Error:" + u_errorName(status)          
                    + "\n\tpreContext : " + prettify(parseError.preContext) 
@@ -1173,32 +1173,26 @@ static const char latinForIndic[] = "[['.0-9A-Za-z~\\u00C0-\\u00C5\\u00C7-\\u00C
 void TransliteratorRoundTripTest::TestDevanagariLatin() {
     {
         UErrorCode status = U_ZERO_ERROR;
-        UParseError parseError;
-        TransliteratorPointer t1(Transliterator::createInstance("[\\u0964-\\u0965\\u0981-\\u0983\\u0985-\\u098C\\u098F-\\u0990\\u0993-\\u09A8\\u09AA-\\u09B0\\u09B2\\u09B6-\\u09B9\\u09BC\\u09BE-\\u09C4\\u09C7-\\u09C8\\u09CB-\\u09CD\\u09D7\\u09DC-\\u09DD\\u09DF-\\u09E3\\u09E6-\\u09FA];NFD;Bengali-InterIndic;InterIndic-Gujarati;NFC;",UTRANS_FORWARD, parseError, status));
-        if((const Transliterator *)t1 != NULL){
+        TransliteratorPointer t1(Transliterator::createInstance("[\\u0000-\\u00FE \\u0982\\u0983 [:Bengali:][:nonspacing mark:]];NFD;Bengali-InterIndic;InterIndic-Gujarati;NFC;( [ \\u0000-\\u00FE [:Gujarati:][[:nonspacing mark:]])",UTRANS_FORWARD, status));
+        if(t1){
             TransliteratorPointer t2(t1->createInverse(status));
             if(U_FAILURE(status)){
                 errln("FAIL: could not create the Inverse:-( \n");
             }
-        }else {
-            errln("FAIL: could not create the transliterator. Error: %s\n", u_errorName(status));
         }
-
     }
     RTTest test("Latin-Devanagari");
     Legal *legal = new LegalIndic();
 
-    if (isICUVersionAtLeast(ICU_30)) {
-        // We temporarily filter against Unicode 3.2, but we only do this
-        // before version 3.0.    
-        test.test(UnicodeString(latinForIndic, ""), 
+#if (U_ICU_VERSION_MAJOR_NUM==2 && U_ICU_VERSION_MINOR_NUM==6)
+    test.test(UnicodeString(latinForIndic, ""), 
               UnicodeString("[[:Devanagari:]&[:Age=3.2:]]", ""), NULL, this, quick, 
               legal, 50);
-        return;
-    } else {
-        logln("Warning: TestDevanagariLatin needs to be updated to remove Unicode 3.2 filter");
-    }
-
+#else
+    test.test(UnicodeString(latinForIndic, ""), 
+              UnicodeString("[:Devanagari:]", ""), NULL, this, quick, 
+              legal, 50);
+#endif
     delete legal;
 }
 
@@ -1465,26 +1459,22 @@ void TransliteratorRoundTripTest::TestInterIndic() {
     for(int i = 0; i < num;i++){
         RTTest test(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 0]);
         Legal *legal = new LegalIndic();
-
-        if (isICUVersionAtLeast(ICU_30)) {
-            // We temporarily filter against Unicode 3.2, but we only do this
-            // before version 3.0.    
-            UnicodeString temp1 = "[";
-            temp1.append(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 1]);
-            temp1.append("& [:Age=3.2:]]");
-            UnicodeString temp2 = "[";
-            temp2.append(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 2]);
-            temp2.append("& [:Age=3.2:]]");
-
-            test.test(temp1, 
-                      temp2, 
-                      interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 3], // roundtrip exclusions 
-                      this, quick, legal, 50);
-            return;
-        } else {
-            logln("Warning: TestDevanagariLatin needs to be updated to remove Unicode 3.2 filter");
-        }
-        delete legal;
+#if (U_ICU_VERSION_MAJOR_NUM==2 && U_ICU_VERSION_MINOR_NUM==6)
+        UnicodeString temp1 = "[";
+        temp1.append(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 1]);
+        temp1.append("& [:Age=3.2:]]");
+        UnicodeString temp2 = "[";
+        temp2.append(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 2]);
+        temp2.append("& [:Age=3.2:]]");
+#else
+        UnicodeString temp1 = interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 1];
+        UnicodeString temp2 = interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 2];
+#endif
+        test.test(temp1, 
+                  temp2, 
+                  interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 3], // roundtrip exclusions 
+                  this, quick, legal, 50);
+       delete legal;
     }
     
 }

@@ -15,7 +15,6 @@ top_builddir = ..
 
 ## All the flags and other definitions are included here.
 include $(top_builddir)/icudefs.mk
--include Makefile.local
 
 ## Build directory information
 subdir = i18n
@@ -28,16 +27,12 @@ CLEANFILES = *~ $(DEPS)
 TARGET_STUBNAME=i18n
 
 ifneq ($(ENABLE_STATIC),)
-TARGET = $(LIBSICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(A)
+TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).a
 endif
 
 ifneq ($(ENABLE_SHARED),)
 SO_TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(SO)
 ALL_SO_TARGETS = $(SO_TARGET) $(MIDDLE_SO_TARGET) $(FINAL_SO_TARGET)
-
-ifeq ($(ENABLE_SO_VERSION_DATA),1)
-SO_VERSION_DATA = i18n.res
-endif
 
 ifeq ($(OS390BATCH),1)
 BATCH_TARGET = $(BATCH_I18N_TARGET)
@@ -58,20 +53,20 @@ LIBS = $(LIBICUUC) $(DEFAULT_LIBS)
 
 OBJECTS = ucln_in.o \
 fmtable.o format.o msgfmt.o umsg.o numfmt.o unum.o decimfmt.o dcfmtsym.o \
-ucurr.o digitlst.o \
 choicfmt.o datefmt.o smpdtfmt.o dtfmtsym.o udat.o \
-nfrs.o nfrule.o nfsubs.o rbnf.o \
-ucal.o calendar.o gregocal.o timezone.o simpletz.o olsontz.o \
-astro.o buddhcal.o islamcal.o japancal.o gregoimp.o hebrwcal.o chnsecal.o \
+ucal.o calendar.o gregocal.o timezone.o simpletz.o \
+buddhcal.o japancal.o \
 sortkey.o bocsu.o coleitr.o coll.o ucoleitr.o \
 ucol.o ucol_bld.o ucol_cnt.o ucol_elm.o ucol_tok.o ucol_wgt.o tblcoll.o \
 strmatch.o usearch.o search.o stsearch.o \
-unifltlg.o translit.o utrans.o esctrn.o unesctrn.o \
-funcrepl.o strrepl.o tridpars.o \
+unifltlg.o translit.o utrans.o \
 cpdtrans.o hextouni.o rbt.o rbt_data.o rbt_pars.o rbt_rule.o rbt_set.o \
 nultrans.o remtrans.o titletrn.o tolowtrn.o toupptrn.o anytrans.o \
 name2uni.o uni2name.o unitohex.o nortrans.o quant.o transreg.o \
-regexcmp.o rematch.o repattrn.o regexst.o ulocdata.o
+nfrs.o nfrule.o nfsubs.o rbnf.o esctrn.o unesctrn.o \
+funcrepl.o strrepl.o tridpars.o \
+ucurr.o \
+regexcmp.o rematch.o repattrn.o regexst.o
 
 
 STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
@@ -134,7 +129,7 @@ dist-local:
 
 clean-local:
 	test -z "$(CLEANFILES)" || $(RMV) $(CLEANFILES)
-	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS) $(SO_VERSION_DATA)
+	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS)
 
 distclean-local: clean-local
 	$(RMV) Makefile
@@ -151,7 +146,7 @@ $(TARGET): $(TARGET)($(STATIC_OBJECTS))
 endif
 
 ifneq ($(ENABLE_SHARED),)
-$(FINAL_SO_TARGET): $(OBJECTS) $(SO_VERSION_DATA)
+$(FINAL_SO_TARGET): $(OBJECTS)
 	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(LIBS)
 
 ifeq ($(OS390BATCH),1)

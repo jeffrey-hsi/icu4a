@@ -15,6 +15,7 @@
 #
 RESFILES= root.res es.res 
 
+
 #
 #  ICUDIR   the location of ICU, used to locate the tools for
 #           compiling and packaging resources.
@@ -36,11 +37,12 @@ ICUDIR=..\..\..\..
 .txt.res:
 	$(ICUDIR)\bin\genrb -t --package-name fortune_resources -d . $*.txt
 
+
 #
 #  all - nmake starts here by default
 #
 all: fortune_resources.dll
 
 fortune_resources.dll: $(RESFILES)
-	$(ICUDIR)\bin\pkgdata --name fortune_resources -v --mode dll -d . res-file-list.txt
+	$(ICUDIR)\bin\pkgdata --name fortune_resources -v -O R:$(ICUDIR) --mode dll -d . res-file-list.txt
 

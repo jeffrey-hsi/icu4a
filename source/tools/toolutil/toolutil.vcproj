@@ -39,11 +39,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				OutputFile="..\..\..\bin\icutu28.dll"
+				OutputFile="..\..\..\bin\icutu26.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\..\lib"
-				ProgramDatabaseFile=".\..\..\..\lib/icutu28.pdb"
+				ProgramDatabaseFile=".\..\..\..\lib/icutu26.pdb"
 				ImportLibrary="..\..\..\lib/icutu.lib"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -96,12 +96,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				OutputFile="..\..\..\bin\icutu28d.dll"
+				OutputFile="..\..\..\bin\icutu26d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\..\lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\..\..\..\lib/icutu28d.pdb"
+				ProgramDatabaseFile=".\..\..\..\lib/icutu26d.pdb"
 				ImportLibrary="..\..\..\lib/icutud.lib"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -137,13 +137,7 @@
 				RelativePath=".\ucbuf.c">
 			</File>
 			<File
-				RelativePath=".\ucm.c">
-			</File>
-			<File
 				RelativePath=".\ucmpwrit.c">
-			</File>
-			<File
-				RelativePath=".\ucmstate.c">
 			</File>
 			<File
 				RelativePath=".\unewdata.c">
@@ -166,9 +160,6 @@
 			</File>
 			<File
 				RelativePath=".\ucbuf.h">
-			</File>
-			<File
-				RelativePath=".\ucm.h">
 			</File>
 			<File
 				RelativePath=".\ucmpwrit.h">

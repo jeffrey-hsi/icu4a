@@ -61,12 +61,6 @@ void NumberFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &n
         CASE(20,TestSymbolsWithBadLocale);
         CASE(21,TestAdoptDecimalFormatSymbols);
 
-		CASE(22,TestScientific2);
-		CASE(23,TestScientificGrouping);
-		CASE(24,TestInt64);
-
-        CASE(25,TestPerMill);
-
         default: name = ""; break;
     }
 }
@@ -102,6 +96,9 @@ NumberFormatTest::TestAPI(void)
 
     delete test;  
   }
+
+
+
 }
 
 // Test various patterns
@@ -149,7 +146,7 @@ NumberFormatTest::TestDigitList(void)
   list1.append('1');
   list1.fDecimalAt = 1;
   DigitList list2;
-  list2.set((int32_t)1);
+  list2.set(1);
   if (list1 != list2) {
     errln("digitlist append, operator!= or set failed ");
   }
@@ -316,10 +313,8 @@ NumberFormatTest::TestExponential(void)
             ParsePosition pos(0);
             Formattable af;
             fmt.parse(s, af, pos);
-            if (af.getType() == Formattable::kLong ||
-                af.getType() == Formattable::kInt64) {
-                UErrorCode status = U_ZERO_ERROR;
-                int32_t a = af.getLong(&status);
+            if (af.getType() == Formattable::kLong) {
+                int32_t a = af.getLong();
                 if (pos.getIndex() == s.length())
                 {
                     logln((UnicodeString)"  -parse-> " + a);
@@ -337,138 +332,6 @@ NumberFormatTest::TestExponential(void)
         ival += val_length;
         ilval += lval_length;
     }
-}
-
-void
-NumberFormatTest::TestScientific2() {
-	// jb 2552
-    UErrorCode status = U_ZERO_ERROR;
-    DecimalFormat* fmt = (DecimalFormat*)NumberFormat::createCurrencyInstance("en_US", status);
-	if (U_SUCCESS(status)) {
-		double num = 12.34;
-		expect(*fmt, num, "$12.34");
-		fmt->setScientificNotation(TRUE);
-		expect(*fmt, num, "$1.23E1");
-		fmt->setScientificNotation(FALSE);
-		expect(*fmt, num, "$12.34");
-	}
-	delete fmt;
-}
-
-void 
-NumberFormatTest::TestScientificGrouping() {
-	// jb 2552
-    UErrorCode status = U_ZERO_ERROR;
-	DecimalFormat fmt("##0.00E0",status);
-	if (U_SUCCESS(status)) {
-		expect(fmt, .01234, "12.3E-3");
-		expect(fmt, .1234, "123E-3");
-		expect(fmt, 1.234, "1.23E0");
-		expect(fmt, 12.34, "12.3E0");
-		expect(fmt, 123.4, "123E0");
-		expect(fmt, 1234., "1.23E3");
-	}
-}
-
-static void setFromString(DigitList& dl, const char* str) {
-	char c;
-	UBool decimalSet = FALSE;
-	dl.clear();
-	while ((c = *str++)) {
-		if (c == '-') {
-			dl.fIsPositive = FALSE;
-		} else if (c == '+') {
-			dl.fIsPositive = TRUE;
-		} else if (c == '.') {
-			dl.fDecimalAt = dl.fCount;
-			decimalSet = TRUE;
-		} else {
-			dl.append(c);
-		}
-	}
-	if (!decimalSet) {
-		dl.fDecimalAt = dl.fCount;
-	}
-}
-
-void
-NumberFormatTest::TestInt64() {
-    UErrorCode status = U_ZERO_ERROR;
-	DecimalFormat fmt("#.#E0",status);
-	fmt.setMaximumFractionDigits(20);
-	if (U_SUCCESS(status)) {
-		expect(fmt, (Formattable)(int64_t)0, "0E0");
-		expect(fmt, (Formattable)(int64_t)-1, "-1E0");
-		expect(fmt, (Formattable)(int64_t)1, "1E0");
-		expect(fmt, (Formattable)(int64_t)2147483647, "2.147483647E9");
-		expect(fmt, (Formattable)((int64_t)-2147483647-1), "-2.147483648E9");
-		expect(fmt, (Formattable)(int64_t)U_INT64_MAX, "9.223372036854775807E18");
-		expect(fmt, (Formattable)(int64_t)U_INT64_MIN, "-9.223372036854775808E18");
-	}
-
-	// also test digitlist
-	int64_t int64max = U_INT64_MAX;
-	int64_t int64min = U_INT64_MIN;
-	const char* int64maxstr = "9223372036854775807";
-	const char* int64minstr = "-9223372036854775808";
-	UnicodeString fail("fail: ");
-
-	// test max int64 value
-	DigitList dl;
-	setFromString(dl, int64maxstr);
-	{
-		if (!dl.fitsIntoInt64(FALSE)) {
-			errln(fail + int64maxstr + " didn't fit");
-		}
-		int64_t int64Value = dl.getInt64();
-		if (int64Value != int64max) {
-			errln(fail + int64maxstr);
-		}
-		dl.set(int64Value);
-		int64Value = dl.getInt64();
-		if (int64Value != int64max) {
-			errln(fail + int64maxstr);
-		}
-	}
-	// test negative of max int64 value (1 shy of min int64 value)
-	dl.fIsPositive = FALSE;
-	{
-		if (!dl.fitsIntoInt64(FALSE)) {
-			errln(fail + "-" + int64maxstr + " didn't fit");
-		}
-		int64_t int64Value = dl.getInt64();
-		if (int64Value != -int64max) {
-			errln(fail + "-" + int64maxstr);
-		}
-		dl.set(int64Value);
-		int64Value = dl.getInt64();
-		if (int64Value != -int64max) {
-			errln(fail + "-" + int64maxstr);
-		}
-	}
-	// test min int64 value
-	setFromString(dl, int64minstr);
-	{
-		if (!dl.fitsIntoInt64(FALSE)) {
-			errln(fail + "-" + int64minstr + " didn't fit");
-		}
-		int64_t int64Value = dl.getInt64();
-		if (int64Value != int64min) {
-			errln(fail + int64minstr);
-		}
-		dl.set(int64Value);
-		int64Value = dl.getInt64();
-		if (int64Value != int64min) {
-			errln(fail + int64minstr);
-		}
-	}
-	// test negative of min int 64 value (1 more than max int64 value)
-	dl.fIsPositive = TRUE; // won't fit
-	{
-		if (dl.fitsIntoInt64(FALSE)) {
-			errln(fail + "-(" + int64minstr + ") didn't fit");
-		}
-	}
 }
 
 // -------------------------------------
@@ -1300,67 +1163,56 @@ void NumberFormatTest::TestCurrencyPatterns(void) {
 }
 
 void NumberFormatTest::TestRegCurrency(void) {
-    UErrorCode status = U_ZERO_ERROR;
-    UChar USD[4];
-    ucurr_forLocale("en_US", USD, 4, &status);
-    UChar YEN[4];
-    ucurr_forLocale("ja_JP", YEN, 4, &status);
-    UChar TMP[4];
-    static const UChar QQQ[] = {0x51, 0x51, 0x51, 0};
-    if(U_FAILURE(status)) {
-        errln("Unable to get currency for locale, error %s", u_errorName(status));
-        return;
-    }
-    
-    UCurrRegistryKey enkey = ucurr_register(YEN, "en_US", &status);
-    UCurrRegistryKey enUSEUROkey = ucurr_register(QQQ, "en_US_EURO", &status);
-    
-    ucurr_forLocale("en_US", TMP, 4, &status);
-    if (u_strcmp(YEN, TMP) != 0) {
-        errln("FAIL: didn't return YEN registered for en_US");
-    }
+  UErrorCode status = U_ZERO_ERROR;
+  const UChar* USD = ucurr_forLocale("en_US", &status);
+  const UChar* YEN = ucurr_forLocale("ja_JP", &status);
+  if(U_FAILURE(status)) {
+    errln("Unable to get currency for locale, error %s", u_errorName(status));
+    return;
+  }
 
-    ucurr_forLocale("en_US_EURO", TMP, 4, &status);
-    if (u_strcmp(QQQ, TMP) != 0) {
-        errln("FAIL: didn't return QQQ for en_US_EURO");
-    }
-    
-    int32_t fallbackLen = ucurr_forLocale("en_XX_BAR", TMP, 4, &status);
-    if (fallbackLen) {
-        errln("FAIL: tried to fallback en_XX_BAR");
-    }
-    status = U_ZERO_ERROR; // reset
-    
-    if (!ucurr_unregister(enkey, &status)) {
-        errln("FAIL: couldn't unregister enkey");
-    }
+  UCurrRegistryKey enkey = ucurr_register(YEN, "en_US", &status);
+  UCurrRegistryKey enUSEUROkey = ucurr_register(EUR, "en_US_EURO", &status);
 
-    ucurr_forLocale("en_US", TMP, 4, &status);        
-    if (u_strcmp(USD, TMP) != 0) {
-        errln("FAIL: didn't return USD for en_US after unregister of en_US");
-    }
-    status = U_ZERO_ERROR; // reset
-    
-    ucurr_forLocale("en_US_EURO", TMP, 4, &status);
-    if (u_strcmp(QQQ, TMP) != 0) {
-        errln("FAIL: didn't return QQQ for en_US_EURO after unregister of en_US");
-    }
-    
-    ucurr_forLocale("en_US_BLAH", TMP, 4, &status);
-    if (u_strcmp(USD, TMP) != 0) {
-        errln("FAIL: could not find USD for en_US_BLAH after unregister of en");
-    }
-    status = U_ZERO_ERROR; // reset
-    
-    if (!ucurr_unregister(enUSEUROkey, &status)) {
-        errln("FAIL: couldn't unregister enUSEUROkey");
-    }
-    
-    ucurr_forLocale("en_US_EURO", TMP, 4, &status);
-    if (u_strcmp(EUR, TMP) != 0) {
-        errln("FAIL: didn't return EUR for en_US_EURO after unregister of en_US_EURO");
-    }
-    status = U_ZERO_ERROR; // reset
+  if (u_strcmp(YEN, ucurr_forLocale("en_US", &status)) != 0) {
+    errln("FAIL: didn't return YEN registered for en_US");
+  }
+
+  if (u_strcmp(EUR, ucurr_forLocale("en_US_EURO", &status)) != 0) {
+    errln("FAIL: didn't return EUR for en_US_EURO");
+  }
+
+  if (ucurr_forLocale("en_XX_BAR", &status) != NULL) {
+    errln("FAIL: tried to fallback en_XX_BAR");
+  }
+  status = U_ZERO_ERROR; // reset
+  
+  if (!ucurr_unregister(enkey, &status)) {
+    errln("FAIL: couldn't unregister enkey");
+  }
+
+  if (u_strcmp(USD, ucurr_forLocale("en_US", &status)) != 0) {
+    errln("FAIL: didn't return USD for en_US after unregister of en_US");
+  }
+  status = U_ZERO_ERROR; // reset
+
+  if (u_strcmp(EUR, ucurr_forLocale("en_US_EURO", &status)) != 0) {
+    errln("FAIL: didn't return EUR for en_US_EURO after unregister of en_US");
+  }
+
+  if (u_strcmp(USD, ucurr_forLocale("en_US_BLAH", &status)) != 0) {
+    errln("FAIL: could not find USD for en_US_BLAH after unregister of en");
+  }
+  status = U_ZERO_ERROR; // reset
+
+  if (!ucurr_unregister(enUSEUROkey, &status)) {
+    errln("FAIL: couldn't unregister enUSEUROkey");
+  }
+
+  if (ucurr_forLocale("en_US_EURO", &status) != NULL) {
+    errln("FAIL: didn't return NULL for en_US_EURO after unregister of en_US_EURO");
+  }
+  status = U_ZERO_ERROR; // reset
 }
 
 void NumberFormatTest::TestSymbolsWithBadLocale(void) {
@@ -1381,14 +1233,10 @@ void NumberFormatTest::TestSymbolsWithBadLocale(void) {
     if (strcmp(mySymbols.getLocale().getName(), locBad.getName()) != 0) {
         errln("DecimalFormatSymbols does not have the right locale.");
     }
-    int symbolEnum = (int)DecimalFormatSymbols::kDecimalSeparatorSymbol;
-    for (; symbolEnum < (int)DecimalFormatSymbols::kFormatSymbolCount; symbolEnum++) {
-        logln(UnicodeString("DecimalFormatSymbols[") + symbolEnum + UnicodeString("] = ")
-            + prettify(mySymbols.getSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbolEnum)));
-
-        if (mySymbols.getSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbolEnum).length() == 0
-            && symbolEnum != (int)DecimalFormatSymbols::kGroupingSeparatorSymbol)
-        {
+    DecimalFormatSymbols::ENumberFormatSymbol symbolEnum;
+    int *symbolEnumPtr = (int*)(&symbolEnum);
+    for (symbolEnum = DecimalFormatSymbols::kDecimalSeparatorSymbol; symbolEnum < DecimalFormatSymbols::kFormatSymbolCount; (*symbolEnumPtr)++) {
+        if (mySymbols.getSymbol(symbolEnum).length() == 0 && symbolEnum != DecimalFormatSymbols::kGroupingSeparatorSymbol) {
             errln("DecimalFormatSymbols has an empty string at index %d.", symbolEnum);
         }
     }
@@ -1472,50 +1320,22 @@ void NumberFormatTest::TestAdoptDecimalFormatSymbols(void) {
     }
 }
 
-void NumberFormatTest::TestPerMill() {
-    UErrorCode ec = U_ZERO_ERROR;
-    UnicodeString str;
-    DecimalFormat fmt(ctou("###.###\\u2030"), ec);
-    if (!assertSuccess("DecimalFormat ct", ec)) return;
-    assertEquals("0.4857 x ###.###\\u2030",
-                 ctou("485.7\\u2030"), fmt.format(0.4857, str));
-    
-    DecimalFormatSymbols sym(Locale::getUS(), ec);
-    sym.setSymbol(DecimalFormatSymbols::kPerMillSymbol, ctou("m"));
-    DecimalFormat fmt2("", sym, ec);
-    fmt2.applyLocalizedPattern("###.###m", ec);
-    if (!assertSuccess("setup", ec)) return;
-    str.truncate(0);
-    assertEquals("0.4857 x ###.###m",
-                 "485.7m", fmt2.format(0.4857, str));
-}
-
 //----------------------------------------------------------------------
 // Support methods
 //----------------------------------------------------------------------
 
 UBool NumberFormatTest::equalValue(const Formattable& a, const Formattable& b) {
-    if (a.getType() == b.getType()) {
-        return a == b;
-    }
-
     if (a.getType() == Formattable::kLong) {
-        if (b.getType() == Formattable::kInt64) {
+        if (b.getType() == Formattable::kLong) {
             return a.getLong() == b.getLong();
         } else if (b.getType() == Formattable::kDouble) {
-            return (double) a.getLong() == b.getDouble(); // TODO check use of double instead of long 
+            return (double) a.getLong() == b.getDouble();
         }
     } else if (a.getType() == Formattable::kDouble) {
         if (b.getType() == Formattable::kLong) {
             return a.getDouble() == (double) b.getLong();
-        } else if (b.getType() == Formattable::kInt64) {
-            return a.getDouble() == (double)b.getInt64();
-        }
-    } else if (a.getType() == Formattable::kInt64) {
-        if (b.getType() == Formattable::kLong) {
-                return a.getInt64() == (int64_t)b.getLong();
         } else if (b.getType() == Formattable::kDouble) {
-            return a.getInt64() == (int64_t)b.getDouble();
+            return a.getDouble() == b.getDouble();
         }
     }
     return FALSE;
@@ -1613,13 +1433,14 @@ void NumberFormatTest::expectCurrency(NumberFormat& nf, const Locale& locale,
     UErrorCode ec = U_ZERO_ERROR;
     DecimalFormat& fmt = * (DecimalFormat*) &nf;
     const UChar DEFAULT_CURR[] = {45/*-*/,0};
-    UChar curr[4];
-    u_strcpy(curr, DEFAULT_CURR);
+    const UChar* curr = DEFAULT_CURR;
     if (*locale.getLanguage() != 0) {
-        ucurr_forLocale(locale.getName(), curr, 4, &ec);
-        assertSuccess("ucurr_forLocale", ec);
-        fmt.setCurrency(curr, ec);
-        assertSuccess("DecimalFormat::setCurrency", ec);
+        curr = ucurr_forLocale(locale.getName(), &ec);
+        if (U_FAILURE(ec)) {
+            errln("FAIL: UCurrency::forLocale");
+            return;
+        }
+        fmt.setCurrency(curr);
     }
     UnicodeString s;
     fmt.format(value, s);
@@ -1682,11 +1503,9 @@ void NumberFormatTest::expectPad(DecimalFormat& fmt, const UnicodeString& pat,
         apadStr = pad;
     }
     if (apos == pos && awidth == width && apadStr == pad) {
-        UnicodeString infoStr;
-        if (pos == ILLEGAL) {
-            infoStr = UnicodeString(" width=", "") + awidth + UnicodeString(" pad=", "") + apadStr;
-        }
-        logln(UnicodeString("Ok   \"") + pat + "\" pos=" + apos + infoStr);
+        logln(UnicodeString("Ok   \"") + pat + "\" pos=" + apos +
+              ((pos == ILLEGAL) ? UnicodeString() :
+               (UnicodeString(" width=") + awidth + " pad=" + apadStr)));
     } else {
         errln(UnicodeString("FAIL \"") + pat + "\" pos=" + apos +
               " width=" + awidth + " pad=" + apadStr +

@@ -27,19 +27,15 @@ const char OpenTypeLayoutEngine::fgClassID=0;
 OpenTypeLayoutEngine::OpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode,
                         const GlyphSubstitutionTableHeader *gsubTable)
     : LayoutEngine(fontInstance, scriptCode, languageCode), fFeatureTags(NULL), fFeatureOrder(NULL),
-      fGSUBTable(gsubTable), fGDEFTable(NULL), fGPOSTable(NULL), fSubstitutionFilter(NULL)
+      fGSUBTable(gsubTable), fSubstitutionFilter(NULL)
 {
     static le_uint32 gdefTableTag = LE_GDEF_TABLE_TAG;
     static le_uint32 gposTableTag = LE_GPOS_TABLE_TAG;
-    const GlyphPositioningTableHeader *gposTable = (const GlyphPositioningTableHeader *) getFontTable(gposTableTag);
-
-    setScriptAndLanguageTags();
 
     fGDEFTable = (const GlyphDefinitionTableHeader *) getFontTable(gdefTableTag);
-    
-    if (gposTable != NULL && gposTable->coversScriptAndLanguage(fScriptTag, fLangSysTag)) {
-        fGPOSTable = gposTable;
-    }
+    fGPOSTable = (const GlyphPositioningTableHeader *) getFontTable(gposTableTag);
+
+    setScriptAndLanguageTags();
 }
 
 void OpenTypeLayoutEngine::reset()
@@ -96,25 +92,10 @@ void OpenTypeLayoutEngine::setScriptAndLanguageTags()
     fLangSysTag = getLangSysTag(fLanguageCode);
 }
 
-le_int32 OpenTypeLayoutEngine::characterProcessing(const LEUnicode /*chars*/[], le_int32 offset, le_int32 count, le_int32 max, le_bool /*rightToLeft*/,
-				LEUnicode *&/*outChars*/, le_int32 *&/*charIndices*/, const LETag **&/*featureTags*/, LEErrorCode &success)
-{
-    if (LE_FAILURE(success)) {
-        return 0;
-    }
-
-    if (offset < 0 || count < 0 || max < 0 || offset >= max || offset + count > max) {
-        success = LE_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
-
-    return count;
-}
-
 // Input: characters, tags
 // Output: glyphs, char indices
-le_int32 OpenTypeLayoutEngine::glyphProcessing(const LEUnicode chars[], le_int32 offset, le_int32 count, le_int32 max, le_bool rightToLeft,
-											   const LETag **&featureTags, LEGlyphID *&glyphs, le_int32 *&charIndices, LEErrorCode &success)
+le_int32 OpenTypeLayoutEngine::glyphProcessing(const LEUnicode chars[], le_int32 offset, le_int32 count, le_int32 max, le_bool rightToLeft, const LETag **featureTags,
+                LEGlyphID *&glyphs, le_int32 *&charIndices, LEErrorCode &success)
 {
     if (LE_FAILURE(success)) {
         return 0;
@@ -132,23 +113,10 @@ le_int32 OpenTypeLayoutEngine::glyphProcessing(const LEUnicode chars[], le_int32
     }
 
     if (fGSUBTable != NULL) {
-        count = fGSUBTable->process(glyphs, featureTags, charIndices, count, rightToLeft, fScriptTag, fLangSysTag, fGDEFTable, fSubstitutionFilter, fFeatureOrder);
+        fGSUBTable->process(glyphs, featureTags, count, rightToLeft, fScriptTag, fLangSysTag, fGDEFTable, fSubstitutionFilter, fFeatureOrder);
     }
 
     return count;
-}
-
-le_int32 OpenTypeLayoutEngine::glyphPostProcessing(LEGlyphID tempGlyphs[], le_int32 tempCharIndices[], le_int32 tempGlyphCount,
-                LEGlyphID *&glyphs, le_int32 *&charIndices, LEErrorCode &success)
-{
-    if (LE_FAILURE(success)) {
-        return 0;
-    }
-
-    glyphs = tempGlyphs;
-    charIndices = tempCharIndices;
-
-    return tempGlyphCount;
 }
 
 le_int32 OpenTypeLayoutEngine::computeGlyphs(const LEUnicode chars[], le_int32 offset, le_int32 count, le_int32 max, le_bool rightToLeft, LEGlyphID *&glyphs, le_int32 *&charIndices, LEErrorCode &success)
@@ -208,7 +176,7 @@ void OpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], le_int3
     }
 
     if (glyphCount > 0 && fGPOSTable != NULL) {
-        GlyphPositionAdjustment *adjustments = new GlyphPositionAdjustment[glyphCount];
+        GlyphPositionAdjustment *adjustments = LE_NEW_ARRAY(GlyphPositionAdjustment, glyphCount);
         le_int32 i;
 
         if (adjustments == NULL) {
@@ -259,7 +227,7 @@ void OpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], le_int3
         positions[glyphCount*2]   += xAdjust;
         positions[glyphCount*2+1] -= yAdjust;
 
-        delete[] adjustments;
+        LE_DELETE_ARRAY(adjustments);
     }
 
     LE_DELETE_ARRAY(fFeatureTags);

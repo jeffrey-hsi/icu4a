@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2003, International Business Machines
+*   Copyright (C) 1999-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -20,13 +20,11 @@
 #include <stdlib.h>
 #include "unicode/utypes.h"
 #include "unicode/putil.h"
-#include "unicode/uclean.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "uoptions.h"
-#include "gentest.h"
 
 #define DATA_PKG  "testdata"
 #define DATA_NAME "test"
@@ -47,19 +45,16 @@ static const UDataInfo dataInfo={
     {1, 0, 0, 0}                  /* dataVersion */
 };
 
-static void createData(const char*, UErrorCode *);
+static void createData(const char*);
 
 static UOption options[]={
-  /*0*/ UOPTION_HELP_H,
-  /*1*/ UOPTION_HELP_QUESTION_MARK,
-  /*2*/ UOPTION_DESTDIR,
-  /*3*/ UOPTION_DEF("genres", 'r', UOPT_NO_ARG)
+    UOPTION_HELP_H,
+    UOPTION_HELP_QUESTION_MARK,
+    UOPTION_DESTDIR
 };
 
 extern int
 main(int argc, char* argv[]) {
-    UErrorCode errorCode = U_ZERO_ERROR;
-
     /* preset then read command line options */
     options[2].value=u_getDataDirectory();
     argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
@@ -73,28 +68,24 @@ main(int argc, char* argv[]) {
     if(argc<0 || options[0].doesOccur || options[1].doesOccur) {
         fprintf(stderr,
             "usage: %s [-options]\n"
-            "\tcreate the test file " DATA_PKG "_" DATA_NAME "." DATA_TYPE " unless the -r option is given.\n"
+            "\tcreate the test file " DATA_PKG "_" DATA_NAME "." DATA_TYPE "\n"
             "\toptions:\n"
             "\t\t-h or -? or --help  this usage text\n"
-            "\t\t-d or --destdir     destination directory, followed by the path\n"
-            "\t\t-r or --genres      generate resource file testtable32.txt instead of UData test \n",
+            "\t\t-d or --destdir     destination directory, followed by the path\n",
             argv[0]);
         return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
-    if ( options[3].doesOccur ) {
-        return genres32( argv[0], options[2].value );
-    } else { 
-        /* printf("Generating the test memory mapped file\n"); */
-        createData(options[2].value, &errorCode);
-    }
-    return U_FAILURE(errorCode);
+    /* printf("Generating the test memory mapped file\n"); */
+    createData(options[2].value);
+    return 0;
 }
 
 /* Create data file ----------------------------------------------------- */
 static void
-createData(const char* outputDirectory, UErrorCode *errorCode) {
+createData(const char* outputDirectory) {
     UNewDataMemory *pData;
+    UErrorCode errorCode=U_ZERO_ERROR;
     char stringValue[]={'Y', 'E', 'A', 'R', '\0'};
     uint16_t intValue=2000;
 
@@ -102,10 +93,10 @@ createData(const char* outputDirectory, UErrorCode *errorCode) {
     uint32_t size;
 
     pData=udata_create(outputDirectory, DATA_TYPE, DATA_PKG "_" DATA_NAME, &dataInfo,
-                       U_COPYRIGHT_STRING, errorCode);
-    if(U_FAILURE(*errorCode)) {
-        fprintf(stderr, "gentest: unable to create data memory, error %d\n", *errorCode);
-        exit(*errorCode);
+                       U_COPYRIGHT_STRING, &errorCode);
+    if(U_FAILURE(errorCode)) {
+        fprintf(stderr, "gentest: unable to create data memory, error %d\n", errorCode);
+        exit(errorCode);
     }
 
     /* write the data to the file */
@@ -114,10 +105,10 @@ createData(const char* outputDirectory, UErrorCode *errorCode) {
     udata_writeString(pData, stringValue, sizeof(stringValue));
 
     /* finish up */
-    dataLength=udata_finish(pData, errorCode);
-    if(U_FAILURE(*errorCode)) {
-        fprintf(stderr, "gentest: error %d writing the output file\n", *errorCode);
-        exit(*errorCode);
+    dataLength=udata_finish(pData, &errorCode);
+    if(U_FAILURE(errorCode)) {
+        fprintf(stderr, "gentest: error %d writing the output file\n", errorCode);
+        exit(errorCode);
     }
     size=sizeof(stringValue) + sizeof(intValue);
 

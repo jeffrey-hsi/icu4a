@@ -414,9 +414,6 @@ ucnv_openCCSID(int32_t codepage,
  * stored in the converter cache or the alias table. The only way to open further converters
  * is call this function multiple times, or use the ucnv_safeClone() function to clone a 
  * 'master' converter.</p>
- *
- * <p>A future version of ICU may add alias table lookups and/or caching
- * to this function.</p>
  * 
  * <p>Example Use:
  *      <code>cnv = ucnv_openPackage("myapp", "myconverter", &err);</code>
@@ -430,7 +427,7 @@ ucnv_openCCSID(int32_t codepage,
  * @see ucnv_open
  * @see ucnv_safeClone
  * @see ucnv_close
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 U_CAPI UConverter* U_EXPORT2 
 ucnv_openPackage(const char *packageName, const char *converterName, UErrorCode *err);
@@ -457,13 +454,8 @@ ucnv_safeClone(const UConverter *cnv,
                int32_t          *pBufferSize, 
                UErrorCode       *status);
 
-/**
- * \def U_CNV_SAFECLONE_BUFFERSIZE
- * Definition of a buffer size that is designed to be large enough for
- * converters to be cloned with ucnv_safeClone().
- * @stable ICU 2.0
- */
-#define U_CNV_SAFECLONE_BUFFERSIZE  1024
+/** @stable ICU 2.0 */
+#define U_CNV_SAFECLONE_BUFFERSIZE  3072
 
 /**
  * Deletes the unicode converter and releases resources associated
@@ -588,50 +580,10 @@ U_CAPI void U_EXPORT2
 ucnv_resetFromUnicode(UConverter *converter);
 
 /**
- * Returns the maximum number of bytes that are output per UChar in conversion
- * from Unicode using this converter.
- * The returned number can be used with UCNV_GET_MAX_BYTES_FOR_STRING
- * to calculate the size of a target buffer for conversion from Unicode.
- *
- * Note: Before ICU 2.8, this function did not return reliable numbers for
- * some stateful converters (EBCDIC_STATEFUL, ISO-2022) and LMBCS.
- *
- * This number may not be the same as the maximum number of bytes per
- * "conversion unit". In other words, it may not be the intuitively expected
- * number of bytes per character that would be published for a charset,
- * and may not fulfill any other purpose than the allocation of an output
- * buffer of guaranteed sufficient size for a given input length and converter.
- *
- * Examples for special cases that are taken into account:
- * - Supplementary code points may convert to more bytes than BMP code points.
- *   This function returns bytes per UChar (UTF-16 code unit), not per
- *   Unicode code point, for efficient buffer allocation.
- * - State-shifting output (SI/SO, escapes, etc.) from stateful converters.
- * - When m input UChars are converted to n output bytes, then the maximum m/n
- *   is taken into account.
- *
- * The number returned here does not take into account
- * (see UCNV_GET_MAX_BYTES_FOR_STRING):
- * - callbacks which output more than one charset character sequence per call,
- *   like escape callbacks
- * - initial and final non-character bytes that are output by some converters
- *   (automatic BOMs, initial escape sequence, final SI, etc.)
- *
- * Examples for returned values:
- * - SBCS charsets: 1
- * - Shift-JIS: 2
- * - UTF-16: 2 (2 per BMP, 4 per surrogate _pair_, BOM not counted)
- * - UTF-8: 3 (3 per BMP, 4 per surrogate _pair_)
- * - EBCDIC_STATEFUL (EBCDIC mixed SBCS/DBCS): 3 (SO + DBCS)
- * - ISO-2022: 3 (always outputs UTF-8)
- * - ISO-2022-JP: 6 (4-byte escape sequences + DBCS)
- * - ISO-2022-CN: 8 (4-byte designator sequences + 2-byte SS2/SS3 + DBCS)
- *
- * @param converter The Unicode converter.
- * @return The maximum number of bytes per UChar that are output by ucnv_fromUnicode(),
- *         to be used together with UCNV_GET_MAX_BYTES_FOR_STRING for buffer allocation.
- *
- * @see UCNV_GET_MAX_BYTES_FOR_STRING
+ * Returns the maximum length of bytes used by a character. This varies 
+ * between 1 and 4
+ * @param converter the Unicode converter
+ * @return the maximum number of bytes allowed by this particular converter
  * @see ucnv_getMinCharSize
  * @stable ICU 2.0
  */
@@ -639,30 +591,8 @@ U_CAPI int8_t U_EXPORT2
 ucnv_getMaxCharSize(const UConverter *converter);
 
 /**
- * Calculates the size of a buffer for conversion from Unicode to a charset.
- * The calculated size is guaranteed to be sufficient for this conversion.
- *
- * It takes into account initial and final non-character bytes that are output
- * by some converters.
- * It does not take into account callbacks which output more than one charset
- * character sequence per call, like escape callbacks.
- * The default (substitution) callback only outputs one charset character sequence.
- *
- * @param length Number of UChars to be converted.
- * @param maxCharSize Return value from ucnv_getMaxCharSize() for the converter
- *                    that will be used.
- * @return Size of a buffer that will be large enough to hold the output bytes of
- *         converting length UChars with the converter that returned the maxCharSize.
- *
- * @see ucnv_getMaxCharSize
- * @draft ICU 2.8
- */
-#define UCNV_GET_MAX_BYTES_FOR_STRING(length, maxCharSize) \
-     (((int32_t)(length)+10)*(int32_t)(maxCharSize))
-
-/**
  * Returns the minimum byte length for characters in this codepage. 
- * This is usually either 1 or 2.
+ * This is either 1 or 2 for all supported codepages.
  * @param converter the Unicode converter
  * @return the minimum number of bytes allowed by this particular converter
  * @see ucnv_getMaxCharSize
@@ -926,12 +856,6 @@ ucnv_setFromUCallBack (UConverter * converter,
  *  consumed. At that point, the caller should reset the source and
  *  sourceLimit pointers to point to the next chunk.
  * 
- * At the end of the stream (flush==TRUE), the input is completely consumed
- * when *source==sourceLimit and no error code is set.
- * The converter object is then automatically reset by this function.
- * (This means that a converter need not be reset explicitly between data
- * streams if it finishes the previous stream without errors.)
- * 
  * This is a <I>stateful</I> conversion. Additionally, even when all source data has
  * been consumed, some data may be in the converters' internal state.
  * Call this function repeatedly, updating the target pointers with
@@ -994,12 +918,6 @@ ucnv_fromUnicode (UConverter * converter,
  * returned, it means that all of the source buffer has been
  *  consumed. At that point, the caller should reset the source and
  *  sourceLimit pointers to point to the next chunk.
- *
- * At the end of the stream (flush==TRUE), the input is completely consumed
- * when *source==sourceLimit and no error code is set
- * The converter object is then automatically reset by this function.
- * (This means that a converter need not be reset explicitly between data
- * streams if it finishes the previous stream without errors.)
  * 
  * This is a <I>stateful</I> conversion. Additionally, even when all source data has
  * been consumed, some data may be in the converters' internal state.
@@ -1052,7 +970,7 @@ ucnv_toUnicode(UConverter *converter,
  * It is only useful for whole strings, not for streaming conversion.
  *
  * The maximum output buffer capacity required (barring output from callbacks) will be
- * UCNV_GET_MAX_BYTES_FOR_STRING(srcLength, ucnv_getMaxCharSize(cnv)).
+ * srcLength*ucnv_getMaxCharSize(cnv).
  *
  * @param cnv the converter object to be used (ucnv_resetFromUnicode() will be called)
  * @param src the input Unicode string
@@ -1068,7 +986,6 @@ ucnv_toUnicode(UConverter *converter,
  *         and a buffer of the indicated length would need to be passed in
  * @see ucnv_fromUnicode
  * @see ucnv_convert
- * @see UCNV_GET_MAX_BYTES_FOR_STRING
  * @stable ICU 2.0
  */
 U_CAPI int32_t U_EXPORT2
@@ -1110,39 +1027,11 @@ ucnv_toUChars(UConverter *cnv,
               UErrorCode *pErrorCode);
 
 /**
- * Convert a codepage buffer into Unicode one character at a time.
- * The input is completely consumed when the U_INDEX_OUTOFBOUNDS_ERROR is set.
- *
- * Advantage compared to ucnv_toUnicode() or ucnv_toUChars():
- * - Faster for small amounts of data, for most converters, e.g.,
- *   US-ASCII, ISO-8859-1, UTF-8/16/32, and most "normal" charsets.
- *   (For complex converters, e.g., SCSU, UTF-7 and ISO 2022 variants,
- *    it uses ucnv_toUnicode() internally.)
- * - Convenient.
- *
- * Limitations compared to ucnv_toUnicode():
- * - Always assumes flush=TRUE.
- *   This makes ucnv_getNextUChar() unsuitable for "streaming" conversion,
- *   that is, for where the input is supplied in multiple buffers,
- *   because ucnv_getNextUChar() will assume the end of the input at the end
- *   of the first buffer.
- * - Does not provide offset output.
- *
- * It is possible to "mix" ucnv_getNextUChar() and ucnv_toUnicode() because
- * ucnv_getNextUChar() uses the current state of the converter
- * (unlike ucnv_toUChars() which always resets first).
- * However, if ucnv_getNextUChar() is called after ucnv_toUnicode()
- * stopped in the middle of a character sequence (with flush=FALSE),
- * then ucnv_getNextUChar() will always use the slower ucnv_toUnicode()
- * internally until the next character boundary.
- * (This is new in ICU 2.6. In earlier releases, ucnv_getNextUChar() had to
- * start at a character boundary.)
- *
- * Instead of using ucnv_getNextUChar(), it is recommended
- * to convert using ucnv_toUnicode() or ucnv_toUChars()
- * and then iterate over the text using U16_NEXT() or a UCharIterator (uiter.h)
- * or a C++ CharacterIterator or similar.
- * This allows streaming conversion and offset output, for example.
+ * Will convert a codepage buffer into unicode one character at a time.
+ * <p>This function was written to be efficient when transcoding small
+ * amounts of data at a time.
+ * In that case it will be more efficient than \Ref{ucnv_toUnicode}.
+ * When converting large buffers use \Ref{ucnv_toUnicode}.</p>
  *
  * <p>Handling of surrogate pairs and supplementary-plane code points:<br>
  * There are two different kinds of codepages that provide mappings for surrogate characters:
@@ -1603,7 +1492,7 @@ ucnv_getAliases(const char *alias, const char **aliases, UErrorCode *pErrorCode)
  * @see ucnv_getStandardName
  * @see uenum_close
  * @see uenum_next
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 U_CAPI UEnumeration * U_EXPORT2
 ucnv_openStandardNames(const char *convName,

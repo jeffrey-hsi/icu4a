@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2000-2003, International Business Machines
+*   Copyright (C) 2000-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -19,116 +19,9 @@
 
 #include "unicode/utypes.h"
 #include "unicode/ucnv.h"
-#include "ucnv_cnv.h"
-
-/**
- * ICU conversion (.cnv) data file structure, following the usual UDataInfo
- * header.
- *
- * Format version: 6.2
- *
- * struct UConverterStaticData -- struct containing the converter name, IBM CCSID,
- *                                min/max bytes per character, etc.
- *                                see ucnv_bld.h
- *
- * --------------------
- *
- * The static data is followed by conversionType-specific data structures.
- * At the moment, there are only variations of MBCS converters. They all have
- * the same toUnicode structures, while the fromUnicode structures for SBCS
- * differ from those for other MBCS-style converters.
- *
- * _MBCSHeader.version 4.2 adds an optional conversion extension data structure.
- * If it is present, then an ICU version reading header versions 4.0 or 4.1
- * will be able to use the base table and ignore the extension.
- *
- * The unicodeMask in the static data is part of the base table data structure.
- * Especially, the UCNV_HAS_SUPPLEMENTARY flag determines the length of the
- * fromUnicode stage 1 array.
- * The static data unicodeMask refers only to the base table's properties if
- * a base table is included.
- * In an extension-only file, the static data unicodeMask is 0.
- * The extension data indexes have a separate field with the unicodeMask flags.
- *
- * MBCS-style data structure following the static data.
- * Offsets are counted in bytes from the beginning of the MBCS header structure.
- * Details about usage in comments in ucnvmbcs.c.
- *
- * struct _MBCSHeader (see the definition in this header file below)
- * contains 32-bit fields as follows:
- * 8 values:
- *  0   uint8_t[4]  MBCS version in UVersionInfo format (currently 4.2.0.0)
- *  1   uint32_t    countStates
- *  2   uint32_t    countToUFallbacks
- *  3   uint32_t    offsetToUCodeUnits
- *  4   uint32_t    offsetFromUTable
- *  5   uint32_t    offsetFromUBytes
- *  6   uint32_t    flags, bits:
- *                      31.. 8 offsetExtension -- _MBCSHeader.version 4.2 (ICU 2.8) and higher
- *                                                0 for older versions and if
- *                                                there is not extension structure
- *                       7.. 0 outputType
- *  7   uint32_t    fromUBytesLength -- _MBCSHeader.version 4.1 (ICU 2.4) and higher
- *                  counts bytes in fromUBytes[]
- *
- * if(outputType==MBCS_OUTPUT_EXT_ONLY) {
- *     -- base table name for extension-only table
- *     char baseTableName[variable]; -- with NUL plus padding for 4-alignment
- *
- *     -- all _MBCSHeader fields except for version and flags are 0
- * } else {
- *     -- normal base table with optional extension
- *
- *     int32_t stateTable[countStates][256];
- *    
- *     struct _MBCSToUFallback { (fallbacks are sorted by offset)
- *         uint32_t offset;
- *         UChar32 codePoint;
- *     } toUFallbacks[countToUFallbacks];
- *    
- *     uint16_t unicodeCodeUnits[(offsetFromUTable-offsetToUCodeUnits)/2];
- *                  (padded to an even number of units)
- *    
- *     -- stage 1 tables
- *     if(staticData.unicodeMask&UCNV_HAS_SUPPLEMENTARY) {
- *         -- stage 1 table for all of Unicode
- *         uint16_t fromUTable[0x440]; (32-bit-aligned)
- *     } else {
- *         -- BMP-only tables have a smaller stage 1 table
- *         uint16_t fromUTable[0x40]; (32-bit-aligned)
- *     }
- *    
- *     -- stage 2 tables
- *        length determined by top of stage 1 and bottom of stage 3 tables
- *     if(outputType==MBCS_OUTPUT_1) {
- *         -- SBCS: pure indexes
- *         uint16_t stage 2 indexes[?];
- *     } else {
- *         -- DBCS, MBCS, EBCDIC_STATEFUL, ...: roundtrip flags and indexes
- *         uint32_t stage 2 flags and indexes[?];
- *     }
- *    
- *     -- stage 3 tables with byte results
- *     if(outputType==MBCS_OUTPUT_1) {
- *         -- SBCS: each 16-bit result contains flags and the result byte, see ucnvmbcs.c
- *         uint16_t fromUBytes[fromUBytesLength/2];
- *     } else {
- *         -- DBCS, MBCS, EBCDIC_STATEFUL, ... 2/3/4 bytes result, see ucnvmbcs.c
- *         uint8_t fromUBytes[fromUBytesLength]; or
- *         uint16_t fromUBytes[fromUBytesLength/2]; or
- *         uint32_t fromUBytes[fromUBytesLength/4];
- *     }
- * }
- *
- * -- extension table, details see ucnv_ext.h
- * int32_t indexes[>=32]; ...
- */
+#include "ucnv_bld.h"
 
 /* MBCS converter data and state -------------------------------------------- */
-
-enum {
-    MBCS_MAX_STATE_COUNT=128
-};
 
 /**
  * MBCS action codes for conversions to Unicode.
@@ -205,13 +98,7 @@ enum {
     MBCS_OUTPUT_4_EUC,      /* 9 */
 
     MBCS_OUTPUT_2_SISO=12,  /* c */
-    MBCS_OUTPUT_2_HZ,       /* d */
-
-    MBCS_OUTPUT_EXT_ONLY,   /* e */
-
-    MBCS_OUTPUT_COUNT,
-
-    MBCS_OUTPUT_DBCS_ONLY=0xdb  /* runtime-only type for DBCS-only handling of SISO tables */
+    MBCS_OUTPUT_2_HZ        /* d */
 };
 
 /**
@@ -229,7 +116,7 @@ typedef struct {
  */
 typedef struct UConverterMBCSTable {
     /* toUnicode */
-    uint8_t countStates, dbcsOnlyState, stateTableOwned;
+    uint8_t countStates;
     uint32_t countToUFallbacks;
 
     const int32_t (*stateTable)/*[countStates]*/[256];
@@ -246,14 +133,35 @@ typedef struct UConverterMBCSTable {
 
     /* converter name for swaplfnl */
     char *swapLFNLName;
-
-    /* extension data */
-    struct UConverterSharedData *baseSharedData;
-    const int32_t *extIndexes;
 } UConverterMBCSTable;
 
 /**
- * MBCS data header. See data format description above.
+ * MBCS data structure as part of a .cnv file:
+ *
+ * uint32_t [8]; -- 8 values:
+ *  0   MBCS version in UVersionInfo format (1.0.0.0)
+ *  1   countStates
+ *  2   countToUFallbacks
+ *  3   offsetToUCodeUnits (offsets are counted from the beginning of this header structure)
+ *  4   offsetFromUTable
+ *  5   offsetFromUBytes
+ *  6   flags, bits:
+ *          31.. 8 reserved
+ *           7.. 0 outputType
+ *  7   fromUBytesLength -- header.version 4.1 (ICU 2.4) and higher
+ *
+ * stateTable[countStates][256];
+ *
+ * struct { (fallbacks are sorted by offset)
+ *     uint32_t offset;
+ *     UChar32 codePoint;
+ * } toUFallbacks[countToUFallbacks];
+ *
+ * uint16_t unicodeCodeUnits[?]; (even number of units or padded)
+ *
+ * uint16_t fromUTable[0x440+?]; (32-bit-aligned)
+ *
+ * uint8_t fromUBytes[?];
  */
 typedef struct {
     UVersionInfo version;
@@ -266,13 +174,11 @@ typedef struct {
              fromUBytesLength;
 } _MBCSHeader;
 
-/*
+/**
  * This is a simple version of _MBCSGetNextUChar() that is used
  * by other converter implementations.
- * It only returns an "assigned" result if it consumes the entire input.
  * It does not use state from the converter, nor error codes.
  * It does not handle the EBCDIC swaplfnl option (set in UConverter).
- * It handles conversion extensions but not GB 18030.
  *
  * Return value:
  * U+fffe   unassigned
@@ -281,13 +187,12 @@ typedef struct {
  */
 U_CFUNC UChar32
 _MBCSSimpleGetNextUChar(UConverterSharedData *sharedData,
-                        const char *source, int32_t length,
+                        const char **pSource, const char *sourceLimit,
                         UBool useFallback);
 
 /**
  * This version of _MBCSSimpleGetNextUChar() is optimized for single-byte, single-state codepages.
  * It does not handle the EBCDIC swaplfnl option (set in UConverter).
- * It does not handle conversion extensions (_extToU()).
  */
 U_CFUNC UChar32
 _MBCSSingleSimpleGetNextUChar(UConverterSharedData *sharedData,
@@ -300,7 +205,7 @@ _MBCSSingleSimpleGetNextUChar(UConverterSharedData *sharedData,
  * returns fallback values.
  */
 #define _MBCS_SINGLE_SIMPLE_GET_NEXT_BMP(sharedData, b) \
-    (UChar)MBCS_ENTRY_FINAL_VALUE_16((sharedData)->mbcs.stateTable[0][(uint8_t)(b)])
+    (UChar)MBCS_ENTRY_FINAL_VALUE_16((sharedData)->table->mbcs.stateTable[0][(uint8_t)(b)])
 
 /**
  * This is an internal function that allows other converter implementations
@@ -311,14 +216,13 @@ _MBCSIsLeadByte(UConverterSharedData *sharedData, char byte);
 
 /** This is a macro version of _MBCSIsLeadByte(). */
 #define _MBCS_IS_LEAD_BYTE(sharedData, byte) \
-    (UBool)MBCS_ENTRY_IS_TRANSITION((sharedData)->mbcs.stateTable[0][(uint8_t)(byte)])
+    (UBool)MBCS_ENTRY_IS_TRANSITION((sharedData)->table->mbcs.stateTable[0][(uint8_t)(byte)])
 
-/*
+/**
  * This is another simple conversion function for internal use by other
  * conversion implementations.
  * It does not use the converter state nor call callbacks.
  * It does not handle the EBCDIC swaplfnl option (set in UConverter).
- * It handles conversion extensions but not GB 18030.
  *
  * It converts one single Unicode code point into codepage bytes, encoded
  * as one 32-bit value. The function returns the number of bytes in *pValue:
@@ -360,33 +264,5 @@ U_CFUNC void
 _MBCSToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
                           UErrorCode *pErrorCode);
 
-/*
- * Internal function returning a UnicodeSet for toUnicode() conversion.
- * Currently only used for ISO-2022-CN, and only handles roundtrip mappings.
- * In the future, if we add support for reverse-fallback sets, this function
- * needs to be updated, and called for each initial state.
- * Does not currently handle extensions.
- * Does not empty the set first.
- */
-U_CFUNC void
-_MBCSGetUnicodeSetForBytes(const UConverterSharedData *sharedData,
-                           USet *set,
-                           UConverterUnicodeSet which,
-                           uint8_t state, int32_t lowByte, int32_t highByte,
-                           UErrorCode *pErrorCode);
-
-/*
- * Internal function returning a UnicodeSet for toUnicode() conversion.
- * Currently only used for ISO-2022-CN, and only handles roundtrip mappings.
- * In the future, if we add support for fallback sets, this function
- * needs to be updated.
- * Handles extensions.
- * Does not empty the set first.
- */
-U_CFUNC void
-_MBCSGetUnicodeSetForUnicode(const UConverterSharedData *sharedData,
-                             USet *set,
-                             UConverterUnicodeSet which,
-                             UErrorCode *pErrorCode);
 
 #endif

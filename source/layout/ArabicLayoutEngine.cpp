@@ -35,8 +35,6 @@ private:
 
 public:
     CharSubstitutionFilter(const LEFontInstance *fontInstance);
-    ~CharSubstitutionFilter();
-
     le_bool accept(LEGlyphID glyph) const;
 };
 
@@ -45,12 +43,6 @@ CharSubstitutionFilter::CharSubstitutionFilter(const LEFontInstance *fontInstanc
 {
     // nothing to do
 }
-
-CharSubstitutionFilter::~CharSubstitutionFilter()
-{
-    // nothing to do
-}
-
 
 le_bool CharSubstitutionFilter::accept(LEGlyphID glyph) const
 {
@@ -135,7 +127,7 @@ void ArabicOpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], l
     } else if (fGDEFTable != NULL) {
         GDEFMarkFilter filter(fGDEFTable);
 
-        adjustMarkGlyphs(glyphs, glyphCount, FALSE, &filter, positions, success);
+        adjustMarkGlyphs(glyphs, glyphCount, false, &filter, positions, success);
     } else {
         GlyphDefinitionTableHeader *gdefTable = (GlyphDefinitionTableHeader *) ArabicShaping::glyphDefinitionTable;
         GDEFMarkFilter filter(gdefTable);
@@ -214,7 +206,7 @@ le_int32 UnicodeArabicOpenTypeLayoutEngine::glyphPostProcessing(LEGlyphID tempGl
 
     charIndices = tempCharIndices;
 
-    ArabicOpenTypeLayoutEngine::mapCharsToGlyphs(tempChars, 0, tempGlyphCount, FALSE, TRUE, glyphs, charIndices, success);
+    ArabicOpenTypeLayoutEngine::mapCharsToGlyphs(tempChars, 0, tempGlyphCount, false, true, glyphs, charIndices, success);
 
     LE_DELETE_ARRAY(tempChars);
 

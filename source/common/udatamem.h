@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1999-2003, International Business Machines
+*   Copyright (C) 1999-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************/
@@ -39,7 +39,6 @@ struct UDataMemory {
                                    /* Only non-null if a close operation should unmap */
                                    /*  the associated data, and additional info       */
                                    /*   beyond the mapAddr is needed to do that.      */
-    int32_t           length;      /* Length of the data in bytes; -1 if unknown.     */
 };
 
 UDataMemory     *UDataMemory_createNewInstance(UErrorCode *pErr);
@@ -50,12 +49,5 @@ void             UDataMemory_setData (UDataMemory *This, const void *dataAddr);
 
 
 const DataHeader *UDataMemory_normalizeDataPointer(const void *p);
-
-U_CAPI int32_t U_EXPORT2
-udata_getLength(UDataMemory *pData);
-
-U_CAPI const void * U_EXPORT2
-udata_getRawMemory(UDataMemory *pData);
-
 #endif
 

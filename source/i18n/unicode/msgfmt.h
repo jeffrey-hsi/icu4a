@@ -593,9 +593,10 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static UClassID getStaticClassID(void);
+    static inline UClassID getStaticClassID(void);
     
 private:
+    static const char fgClassID;
 
     Locale              fLocale;
     UnicodeString       fPattern;
@@ -604,7 +605,7 @@ private:
 
     MessageFormat(); // default constructor not implemented
 
-    /*
+    /**
      * A structure representing one subformat of this MessageFormat.
      * Each subformat has a Format object, an offset into the plain
      * pattern text fPattern, and an argument number.  The argument
@@ -767,6 +768,15 @@ private:
     friend class MessageFormatAdapter; // getFormatTypeList() access
 };
 
+inline UClassID
+MessageFormat::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+MessageFormat::getDynamicClassID() const
+{ return MessageFormat::getStaticClassID(); }
+
+
 inline UnicodeString&
 MessageFormat::format(const Formattable& obj,
                       UnicodeString& appendTo,
@@ -779,4 +789,3 @@ U_NAMESPACE_END
 
 #endif // _MSGFMT
 //eof
-

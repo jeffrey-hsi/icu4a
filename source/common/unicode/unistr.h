@@ -21,6 +21,8 @@
 #ifndef UNISTR_H
 #define UNISTR_H
 
+#include "unicode/utypes.h"
+#include "unicode/uobject.h"
 #include "unicode/rep.h"
 
 struct UConverter;          // unicode/ucnv.h
@@ -31,7 +33,7 @@ class  StringThreadTest;
 /**
  * Option bit for u_strCaseCompare, u_strcasecmp, unorm_compare, etc:
  * Compare strings in code point order instead of code unit order.
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 #define U_COMPARE_CODE_POINT_ORDER  0x8000
 #endif
@@ -45,6 +47,7 @@ u_strlen(const UChar *s);
 U_NAMESPACE_BEGIN
 
 class Locale;               // unicode/locid.h
+class UCharReference;
 class StringCharacterIterator;
 class BreakIterator;        // unicode/brkiter.h
 
@@ -1467,10 +1470,8 @@ public:
 
   /**
    * Return the length of the UnicodeString object.  
-   * The length is the number of UChar code units are in the UnicodeString.
-   * If you want the number of code points, please use countChar32().
+   * The length is the number of characters in the text.
    * @return the length of the UnicodeString object
-   * @see countChar32
    * @stable ICU 2.0
    */
   inline int32_t length(void) const;
@@ -1485,7 +1486,6 @@ public:
    * @param start the index of the first code unit to check
    * @param length the number of UChar code units to check
    * @return the number of code points in the specified code units
-   * @see length
    * @stable ICU 2.0
    */
   int32_t
@@ -1622,7 +1622,7 @@ public:
    * @param srcStart the offset into <TT>srcText</TT> where new characters
    * will be obtained
    * @return a reference to this
-   * @stable ICU 2.2
+   * @draft ICU2.2
    */
   inline UnicodeString& setTo(const UnicodeString& srcText, 
                int32_t srcStart);
@@ -2366,7 +2366,6 @@ public:
    *                  that are to be titlecased.
    *                  If none is provided (0), then a standard titlecase
    *                  break iterator is opened.
-   *                  Otherwise the provided iterator is set to the string's text.
    * @return A reference to this.
    * @stable ICU 2.1
    */
@@ -2394,7 +2393,6 @@ public:
    *                  that are to be titlecased.
    *                  If none is provided (0), then a standard titlecase
    *                  break iterator is opened.
-   *                  Otherwise the provided iterator is set to the string's text.
    * @param locale    The locale to consider.
    * @return A reference to this.
    * @stable ICU 2.1
@@ -2550,7 +2548,7 @@ public:
    *
    * @see getBuffer(int32_t minCapacity)
    * @see getBuffer()
-   * @stable ICU 2.2
+   * @draft ICU 2.2
    */
   inline const UChar *getTerminatedBuffer();
 
@@ -2719,7 +2717,7 @@ public:
    * 'Substring' constructor from tail of source string.
    * @param src The UnicodeString object to copy.
    * @param srcStart The offset into <tt>src</tt> at which to start copying.
-   * @stable ICU 2.2
+   * @draft ICU2.2
    */
   UnicodeString(const UnicodeString& src, int32_t srcStart);
 
@@ -2728,7 +2726,7 @@ public:
    * @param src The UnicodeString object to copy.
    * @param srcStart The offset into <tt>src</tt> at which to start copying.
    * @param srcLength The number of characters from <tt>src</tt> to copy.
-   * @stable ICU 2.2
+   * @draft ICU2.2
    */
   UnicodeString(const UnicodeString& src, int32_t srcStart, int32_t srcLength);
 
@@ -2816,18 +2814,18 @@ public:
   UChar32 unescapeAt(int32_t &offset) const;
 
   /**
-   * ICU "poor man's RTTI", returns a UClassID for this class.
-   *
-   * @stable ICU 2.2
-   */
-  static UClassID getStaticClassID();
-
-  /**
    * ICU "poor man's RTTI", returns a UClassID for the actual class.
    *
-   * @stable ICU 2.2
+   * @draft ICU 2.2
    */
-  virtual UClassID getDynamicClassID() const;
+  virtual inline UClassID getDynamicClassID() const;
+
+  /**
+   * ICU "poor man's RTTI", returns a UClassID for this class.
+   *
+   * @draft ICU 2.2
+   */
+  static inline UClassID getStaticClassID();
 
   //========================================
   // Implementation methods
@@ -3069,22 +3067,14 @@ private:
   uint16_t  fFlags;         // bit flags: see constants above
   UChar     fStackBuffer [ US_STACKBUF_SIZE ]; // buffer for small strings
 
+  /**
+   * The address of this static class variable serves as this class's ID
+   * for ICU "poor man's RTTI".
+   */
+  static const char fgClassID;
 };
 
-/**
- * Create a new UnicodeString with the concatenation of two others.
- *
- * @param s1 The first string to be copied to the new one.
- * @param s2 The second string to be copied to the new one, after s1.
- * @return UnicodeString(s1).append(s2)
- * @draft ICU 2.8
- */
-U_COMMON_API UnicodeString
-operator+ (const UnicodeString &s1, const UnicodeString &s2);
-
 U_NAMESPACE_END
-
-// inline implementations -------------------------------------------------- ***
 
 //========================================
 // Array copying
@@ -3155,6 +3145,14 @@ UnicodeString::getArrayStart() const
 //========================================
 // Read-only implementation methods
 //========================================
+inline UClassID
+UnicodeString::getStaticClassID()
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+UnicodeString::getDynamicClassID() const
+{ return UnicodeString::getStaticClassID(); }
+
 inline int32_t  
 UnicodeString::length() const
 { return fLength; }
@@ -4017,6 +4015,7 @@ inline UnicodeString&
 UnicodeString::reverse(int32_t start,
                int32_t _length)
 { return doReverse(start, _length); }
+
 
 U_NAMESPACE_END
 

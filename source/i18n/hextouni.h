@@ -32,6 +32,15 @@ U_NAMESPACE_BEGIN
  */
 class U_I18N_API HexToUnicodeTransliterator : public Transliterator {
 
+    /**
+     * ID for this transliterator.
+     */
+    static const char _ID[];
+
+    /**
+     * The pattern used by the default constructor
+     */
+    static const UChar DEFAULT_PATTERN[];
 
     // Character constants defined here to avoid ASCII dependency
     enum {
@@ -56,6 +65,12 @@ class U_I18N_API HexToUnicodeTransliterator : public Transliterator {
      * The number of different affix sets in affixes.
      */
     int32_t affixCount;
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 
 public:
 
@@ -156,15 +171,25 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID();
 };
+
+inline HexToUnicodeTransliterator::~HexToUnicodeTransliterator() {}
+
+inline UClassID
+HexToUnicodeTransliterator::getStaticClassID()
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+HexToUnicodeTransliterator::getDynamicClassID() const
+{ return HexToUnicodeTransliterator::getStaticClassID(); }
 
 U_NAMESPACE_END
 

@@ -19,8 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "unicode/utypes.h"
-
-#ifndef WIN32
 #include "cmemory.h"
 #include "cstring.h"
 #include "filestrm.h"
@@ -162,7 +160,7 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
     
     T_FileStream_writeLine(makefile,"build-objs: $(SOURCES) $(OBJECTS)\n\n$(OBJECTS): $(SOURCES)\n\n");
     
-#ifdef U_HPUX
+#ifdef HPUX
     T_FileStream_writeLine(makefile, "$(TARGETDIR)/$(FINAL_SO_TARGET): $(OBJECTS) $(HPUX_JUNK_OBJ) $(LISTFILES) $(DLL_DEPS)\n"
                                      "\t$(SHLIB.cc) -o $@ $(OBJECTS) $(HPUX_JUNK_OBJ) $(DLL_LDFLAGS)\n"
                                      "\t-ls -l $@\n\n");
@@ -236,7 +234,7 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
     T_FileStream_writeLine(makefile, "$(NAME).map:\n\techo \"{global: $(TOCSYM); local: *; };\" > $@\n\n");
 #endif
     
-#ifdef U_AIX
+#ifdef AIX
     T_FileStream_writeLine(makefile, "$(NAME).map:\n\techo \"$(TOCSYM)\" > $@\n\n");
 #endif
     
@@ -245,5 +243,5 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
     
 }
 
-#endif  /* #ifndef WIN32 */
+
 

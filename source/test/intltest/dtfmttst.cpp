@@ -16,7 +16,7 @@
 #include "unicode/simpletz.h"
 #include "unicode/strenum.h"
 #include "cmemory.h"
-#include "caltest.h"  // for fieldName
+
 // *****************************************************************************
 // class DateFormatTest
 // *****************************************************************************
@@ -46,7 +46,6 @@ void DateFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &nam
         TESTCASE(18,TestSpaceParsing);
         TESTCASE(19,TestExactCountFormat);
         TESTCASE(20,TestWhiteSpaceParsing);
-        TESTCASE(21,TestInvalidPattern);
         default: name = ""; break;
     }
 }
@@ -217,6 +216,13 @@ DateFormatTest::escape(UnicodeString& s)
     return (s = buf);
 }
  
+const char* DateFormatTest::fieldNames[] = {
+        "ERA", "YEAR", "MONTH", "WEEK_OF_YEAR", "WEEK_OF_MONTH", "DAY_OF_MONTH", 
+        "DAY_OF_YEAR", "DAY_OF_WEEK", "DAY_OF_WEEK_IN_MONTH", "AM_PM", "HOUR", 
+        "HOUR_OF_DAY", "MINUTE", "SECOND", "MILLISECOND", "ZONE_OFFSET", //"DST_OFFSET", 
+        "YEAR_WOY", "DOW_LOCAL"
+};
+ 
 // -------------------------------------
 
 // Map Calendar field number to to DateFormat field number
@@ -240,9 +246,6 @@ DateFormatTest::fgCalendarToDateFormatField[] = {
     DateFormat::kTimezoneField, 
     DateFormat::kYearWOYField,
     DateFormat::kDOWLocalField,
-    DateFormat::kExtendedYearField,
-    DateFormat::kJulianDayField,
-    DateFormat::kMillisecondsInDayField,
     (DateFormat::EField) -1
 };
 
@@ -266,24 +269,20 @@ DateFormatTest::TestFieldPosition(void)
     /* field values, in Calendar order */
 
     const char* expected[] = {
-    /* 0: US */
         "", "1997", "August", "", "", "13", "", "Wednesday", "", "PM", "2", "", 
         "34", "12", "", "PDT", "", 
-        /* Following two added by weiv for two new fields */ "", "", "","","",
-    /* 1: France */
+        /* Following two added by weiv for two new fields */ "", "", 
         "", "1997", "#",/* # is a marker for "ao\xfbt" == "aou^t" */  "", "", "13", "", "mercredi", 
         "", "", "", "14", "34", "", "", "GMT-07:00", "", 
-        /* Following two added by weiv for two new fields */ "", "", "","","",
-    /* 2: (short fields) */
+        /* Following two added by weiv for two new fields */ "", "", 
         "AD", "97", "8", "33", "3", "13", "225", "Wed", "2", "PM", "2", 
         "14", "34", "12", "5", "PDT", 
-        /* Following two added by weiv for two new fields */ "97", "4", "", "","","",
-    /* 3: (long fields) */
+        /* Following two added by weiv for two new fields */ "97", "4", "",
         "AD", "1997", "August", "0033", 
         "0003", "0013", "0225", "Wednesday", "0002", "PM", "0002", "0014", 
         "0034", "0012", "513", "Pacific Daylight Time", 
-        /* Following two added by weiv for two new fields */ "1997", "0004", "","","", "",
-        NULL
+        /* Following two added by weiv for two new fields */ "1997", "0004",
+        ""
 
     };
 
@@ -304,12 +303,6 @@ DateFormatTest::TestFieldPosition(void)
             UnicodeString field;
             getFieldText(df, i, someDate, field);
             UnicodeString expStr;
-
-            if(expected[exp] == NULL) {
-              errln("FAIL: ran out of 'expected' strings (pattern %d, field %d - item %d) .. perhaps number of calendar fields has changed?\n", j, i, exp);
-              return; /* leak? This is a Fatal err */
-            }
-
             if(expected[exp][0]!='#') {
                 expStr=UnicodeString(expected[exp]);
             } else {
@@ -317,8 +310,8 @@ DateFormatTest::TestFieldPosition(void)
                 expStr.append((UChar)0x61).append((UChar)0x6f).append((UChar32)0xfb).append((UChar)0x74);
             }
             
-            if (!(field == expStr)) errln(UnicodeString("FAIL: pattern #") + j + ", field #" + i + " " + 
-                                          CalendarTest::fieldName((UCalendarDateFields)i) + " = \"" + escape(field) + "\", expected \"" + escape(expStr) + "\"");
+            if (!(field == expStr)) errln(UnicodeString("FAIL: field #") + i + " " +
+                fieldNames[i] + " = \"" + escape(field) + "\", expected \"" + escape(expStr) + "\"");
             ++exp;
         }
     }
@@ -1088,18 +1081,6 @@ void DateFormatTest::TestWhiteSpaceParsing() {
     const int32_t DATA_len = sizeof(DATA)/sizeof(DATA[0]);
     
     expectParse(DATA, DATA_len, Locale("en"));
-}
-
-
-void DateFormatTest::TestInvalidPattern() {
-    UErrorCode ec = U_ZERO_ERROR;
-    SimpleDateFormat f(UnicodeString("Yesterday"), ec);
-    UnicodeString out;
-    FieldPosition pos;
-    f.format((UDate)0, out, pos);
-    logln(out);
-    // The bug is that the call to format() will crash.  By not
-    // crashing, the test passes.
 }
 
 /**

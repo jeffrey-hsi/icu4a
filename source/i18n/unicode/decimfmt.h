@@ -375,21 +375,6 @@ public:
                                   UnicodeString& appendTo,
                                   FieldPosition& pos) const;
     /**
-     * Format an int64 number using base-10 representation.
-     *
-     * @param number    The value to be formatted.
-     * @param appendTo  Output parameter to receive result.
-     *                  Result is appended to existing contents.
-     * @param pos       On input: an alignment field, if desired.
-     *                  On output: the offsets of the alignment field.
-     * @return          Reference to 'appendTo' parameter.
-     * @draft ICU 2.8
-     */
-    virtual UnicodeString& format(int64_t number,
-                                  UnicodeString& appendTo,
-                                  FieldPosition& pos) const;
-
-	/**
      * Format a Formattable using base-10 representation.
      *
      * @param obj       The value to be formatted.
@@ -448,19 +433,6 @@ public:
     UnicodeString& format(int32_t number,
                           UnicodeString& appendTo) const;
 
-    /**
-     * Redeclared NumberFormat method.
-     * Format an int64 number. These methods call the NumberFormat
-     * pure virtual format() methods with the default FieldPosition.
-     *
-     * @param number    The value to be formatted.
-     * @param appendTo  Output parameter to receive result.
-     *                  Result is appended to existing contents.
-     * @return          Reference to 'appendTo' parameter.
-     * @draft ICU 2.8
-     */
-    UnicodeString& format(int64_t number,
-                          UnicodeString& appendTo) const;
    /**
     * Parse the given string using this object's choices. The method
     * does string comparisons to try to find an optimal match.
@@ -669,7 +641,6 @@ public:
 
     /**
      * Get the width to which the output of <code>format()</code> is padded.
-     * The width is counted in 16-bit code units.
      * @return the format width, or zero if no padding is in effect
      * @see #setFormatWidth
      * @see #getPadCharacter
@@ -682,7 +653,6 @@ public:
 
     /**
      * Set the width to which the output of <code>format()</code> is padded.
-     * The width is counted in 16-bit code units.
      * This method also controls whether padding is enabled.
      * @param width the width to which to pad the result of
      * <code>format()</code>, or zero to disable padding.  A negative
@@ -697,10 +667,11 @@ public:
     virtual void setFormatWidth(int32_t width);
 
     /**
-     * Get the pad character used to pad to the format width.  The
-     * default is ' '.  Note: The result string will have a length of
-     * one 32-bit code point.
-     * @return a string containing the pad character
+     * Get the grapheme string (a character, possibly with modifier letters)
+     * used to pad to the format width.  The default is " ".
+     * Note: The current implementation only stores the first code unit of the
+     * pad string.
+     * @return the pad grapheme string
      * @see #setFormatWidth
      * @see #getFormatWidth
      * @see #setPadCharacter
@@ -711,12 +682,12 @@ public:
     virtual UnicodeString getPadCharacterString();
 
     /**
-     * Set the character used to pad to the format width.  This has no
-     * effect unless padding is enabled.  Note: The current
-     * implementation only reads the first 32-bit code point of the
-     * given string.
-     * @param padChar a string containing the pad charcter. If the
-     * string has length 0, then the pad characer is set to ' '.
+     * Set the grapheme string (a character, possibly with modifier letters)
+     * used to pad to the format width.  This has no effect
+     * unless padding is enabled.
+     * Note: The current implementation only stores the first code unit of the
+     * pad string.
+     * @param padChar the pad grapheme
      * @see #setFormatWidth
      * @see #getFormatWidth
      * @see #getPadCharacter
@@ -781,11 +752,7 @@ public:
     virtual UBool isScientificNotation(void);
 
     /**
-     * Set whether or not scientific notation is used. When scientific notation
-     * is used, the effective maximum number of integer digits is <= 8.  If the
-     * maximum number of integer digits is set to more than 8, the effective
-     * maximum will be 1.  This allows this call to generate a 'default' scientific
-     * number format without additional changes.
+     * Set whether or not scientific notation is used.
      * @param useScientific TRUE if this object formats and parses scientific
      * notation
      * @see #isScientificNotation
@@ -1096,12 +1063,10 @@ public:
      * the currency is used if and when this object becomes a
      * currency format through the application of a new pattern.
      * @param theCurrency a 3-letter ISO code indicating new currency
-     * to use.  It need not be null-terminated.  May be the empty
-     * string or NULL to indicate no currency.
-     * @param ec input-output error code
-     * @draft ICU 3.0
+     * to use.  It need not be null-terminated.
+     * @draft ICU 2.2
      */
-    virtual void setCurrency(const UChar* theCurrency, UErrorCode& ec);
+    virtual void setCurrency(const UChar* theCurrency);
 
     /**
      * The resource tags we use to retrieve decimal format data from
@@ -1123,7 +1088,7 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static UClassID getStaticClassID(void);
+    static inline UClassID getStaticClassID(void);
 
     /**
      * Returns a unique class ID POLYMORPHICALLY.  Pure virtual override.
@@ -1139,9 +1104,9 @@ public:
     virtual UClassID getDynamicClassID(void) const;
 
 private:
-    DecimalFormat(); // default constructor not implemented
+    static const char fgClassID;
 
-	int32_t precision(UBool isIntegral) const;
+    DecimalFormat(); // default constructor not implemented
 
     /**
      * Do real work of constructing a new DecimalFormat.
@@ -1322,6 +1287,29 @@ private:
     int32_t                 fFormatWidth;
     EPadPosition            fPadPosition;
 
+    // Constants for characters used in programmatic (unlocalized) patterns.
+    static const UChar    kPatternZeroDigit;
+    static const UChar    kPatternGroupingSeparator;
+    static const UChar    kPatternDecimalSeparator;
+    static const UChar    kPatternPerMill;
+    static const UChar    kPatternPercent;
+    static const UChar    kPatternDigit;
+    static const UChar    kPatternSeparator;
+    static const UChar    kPatternExponent;
+    static const UChar    kPatternPlus;
+    static const UChar    kPatternMinus;
+    static const UChar    kPatternPadEscape;
+
+    /**
+     * The CURRENCY_SIGN is the standard Unicode symbol for currency.  It
+     * is used in patterns and substitued with either the currency symbol,
+     * or if it is doubled, with the international currency symbol.  If the
+     * CURRENCY_SIGN is seen in a pattern, then the decimal separator is
+     * replaced with the monetary decimal separator.
+     */
+    static const UChar    kCurrencySign;
+    static const UChar    kQuote;
+
 protected:
   /** number of integer digits 
    * @draft ICU 2.4
@@ -1331,18 +1319,15 @@ protected:
    * @draft ICU 2.4
    */  
     static const int32_t  kDoubleFractionDigits;
-
-    /**
-     * When someone turns on scientific mode, we assume that more than this
-     * number of digits is due to flipping from some other mode that didn't
-     * restrict the maximum, and so we force 1 integer digit.  We don't bother
-     * to track and see if someone is using exponential notation with more than
-     * this number, it wouldn't make sense anyway, and this is just to make sure
-     * that someone turning on scientific mode with default settings doesn't
-     * end up with lots of zeroes.
-     */
-	static const int32_t  kMaxScientificIntegerDigits;
 };
+
+inline UClassID
+DecimalFormat::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+DecimalFormat::getDynamicClassID(void) const
+{ return DecimalFormat::getStaticClassID(); }
 
 inline UnicodeString&
 DecimalFormat::format(const Formattable& obj,
@@ -1364,7 +1349,7 @@ inline UnicodeString&
 DecimalFormat::format(int32_t number,
                       UnicodeString& appendTo) const {
     FieldPosition pos(0);
-    return format((int64_t)number, appendTo, pos);
+    return format(number, appendTo, pos);
 }
 
 inline const UnicodeString &

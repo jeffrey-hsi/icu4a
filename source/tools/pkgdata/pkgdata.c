@@ -16,28 +16,20 @@
 *   (DLL, common data, etc.)
 */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "unicode/utypes.h"
 #include "unicode/putil.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "filestrm.h"
 #include "toolutil.h"
-#include "unicode/uclean.h"
 #include "unewdata.h"
 #include "uoptions.h"
 
 #if U_HAVE_POPEN
-/*
-  We define __USE_POSIX2 so that we can get popen and pclose when
-  --enable-strict is used
-*/
-# ifndef __USE_POSIX2
-#  define __USE_POSIX2 1
-# endif
 # include <unistd.h>
 #endif
-#include <stdio.h>
-#include <stdlib.h>
 
 U_CDECL_BEGIN
 #include "pkgtypes.h"
@@ -91,14 +83,13 @@ static UOption options[]={
     /*15*/    UOPTION_DEF( "entrypoint", 'e', UOPT_REQUIRES_ARG),
     /*16*/    UOPTION_DEF( "revision", 'r', UOPT_REQUIRES_ARG),
     /*17*/    UOPTION_DEF( 0, 'M', UOPT_REQUIRES_ARG),
-    /*18*/    UOPTION_DEF( "force-prefix", 'f', UOPT_NO_ARG),
-    /*19*/    UOPTION_DEF( "numerictmp", 'N', UOPT_NO_ARG)
+    /*18*/    UOPTION_DEF( "force-prefix", 'f', UOPT_NO_ARG)
 };
 
 const char options_help[][160]={
     "Set the data name",
 #ifdef WIN32
-    "The directory where the ICU is located (e.g. <ICUROOT> which contains the bin directory)",
+    "R:icupath for release version or D:icupath for debug version, where icupath is the directory where ICU is located",
 #else
     "Specify options for the builder. (Autdetected if icu-config is available)",
 #endif
@@ -118,8 +109,7 @@ const char options_help[][160]={
     "Specify a custom entrypoint name (default: short name)",
     "Specify a version when packaging in DLL or static mode",
     "Pass the next argument to make(1)",
-    "Add package to all file names if not present",
-    "Use short numeric temporary file names such as t1234.c"
+    "Add package to all file names if not present"
 };
 
 const char  *progname = "PKGDATA";
@@ -162,28 +152,21 @@ main(int argc, char* argv[]) {
         }
 
         if(!options[1].doesOccur) {
-            /* Try to fill in from icu-config or equivalent */
-            fillInMakefileFromICUConfig(&options[1]);
+          /* Try to fill in from icu-config or equivalent */
+          fillInMakefileFromICUConfig(&options[1]);
         }
-#ifdef WIN32
-        else {
-            fprintf(stderr, "Warning: You are using the deprecated -O option\n"
-                            "\tYou can fix this warning by installing pkgdata, gencmn and genccode\n"
-                            "\tinto the same directory and not specifying the -O option to pkgdata.\n");
-        }
-#endif
         
         if(!options[1].doesOccur) {
-            fprintf(stderr, " required parameter is missing: -O is required \n");
-            fprintf(stderr, "Run '%s --help' for help.\n", progname);
-            return 1;
+          fprintf(stderr, " required parameter is missing: -O is required \n");
+          fprintf(stderr, "Run '%s --help' for help.\n", progname);
+          return 1;
         }
-        
+
         if(!options[0].doesOccur) /* -O we already have - don't report it. */
         {
-            fprintf(stderr, " required parameter -p is missing \n");
-            fprintf(stderr, "Run '%s --help' for help.\n", progname);
-            return 1;
+          fprintf(stderr, " required parameter -p is missing \n");
+          fprintf(stderr, "Run '%s --help' for help.\n", progname);
+          return 1;
         }
 
         if(argc == 1) {
@@ -251,8 +234,8 @@ main(int argc, char* argv[]) {
     }
 
     o.shortName = options[0].value;
-    {
-        int32_t len = (int32_t)uprv_strlen(o.shortName);
+    /**/ {
+        int len = uprv_strlen(o.shortName);
         char *csname, *cp;
         const char *sp;
 
@@ -268,36 +251,32 @@ main(int argc, char* argv[]) {
         o.cShortName = csname;
     }
 
-    o.verbose   = options[5].doesOccur;
 #ifdef WIN32 /* format is R:pathtoICU or D:pathtoICU */
     {
         char *pathstuff = (char *)options[1].value;
         if(options[1].value[uprv_strlen(options[1].value)-1] == '\\') {
             pathstuff[uprv_strlen(options[1].value)-1] = '\0';
         }
-        if(*pathstuff == PKGDATA_DERIVED_PATH || *pathstuff == 'R' || *pathstuff == 'D') {
+        if(*pathstuff == 'R' || *pathstuff == 'D') {
             o.options = pathstuff;
             pathstuff++;
             if(*pathstuff == ':') {
                 *pathstuff = '\0';
                 pathstuff++;
-            }
-            else {
-                fprintf(stderr, "Error: invalid windows build mode, should be R (release) or D (debug).\n");
+            } else {
+                fprintf(stderr, "Error: invalid windows build mode, should be R (release) or D (debug).\n", o.mode, progname);
                 return 1;
             }
         } else {
-            fprintf(stderr, "Error: invalid windows build mode, should be R (release) or D (debug).\n");
+            fprintf(stderr, "Error: invalid windows build mode, should be R (release) or D (debug).\n", o.mode, progname);
             return 1;
         }
         o.icuroot = pathstuff;
-        if (o.verbose) {
-            fprintf(stdout, "# ICUROOT is %s\n", o.icuroot);
-        }
     }
 #else /* on UNIX, we'll just include the file... */
     o.options   = options[1].value;
 #endif
+    o.verbose   = options[5].doesOccur;
     if(options[6].doesOccur) {
         o.comment = U_COPYRIGHT_STRING;
     } else if (options[7].doesOccur) {
@@ -313,12 +292,6 @@ main(int argc, char* argv[]) {
     o.clean     = options[9].doesOccur;
     o.nooutput  = options[10].doesOccur;
     o.rebuild   = options[11].doesOccur;
-
-    o.numeric   = options[19].doesOccur;
-    if(o.numeric) { 
-      o.rebuild = TRUE; /* force rebuild if numeric */
-    }
-
 
     if( options[12].doesOccur ) {
         o.tmpDir    = options[12].value;
@@ -479,7 +452,7 @@ static void loadLists(UPKGOptions *o, UErrorCode *status)
     
     strcpy(pkgPrefix, o->shortName);
     strcat(pkgPrefix, "_");
-    pkgPrefixLen=(int32_t)uprv_strlen(pkgPrefix);
+    pkgPrefixLen=uprv_strlen(pkgPrefix);
     for(l = o->fileListFiles; l; l = l->next) {
         if(o->verbose) {
             fprintf(stdout, "# Reading %s..\n", l->str);
@@ -605,103 +578,61 @@ static void loadLists(UPKGOptions *o, UErrorCode *status)
 }
 
 /* Try calling icu-config directly to get information */
-static void fillInMakefileFromICUConfig(UOption *option)
+void fillInMakefileFromICUConfig(UOption *option)
 {
 #if U_HAVE_POPEN
-    FILE *p;
-    size_t n;
-    static char buf[512] = "";
-    static const char cmd[] = "icu-config --incfile";
-    
-    if(options[5].doesOccur)
-    {
-        /* informational */
-        fprintf(stderr, "%s: No -O option found, trying '%s'.\n", progname, cmd);
-    }
-    
-    p = popen(cmd, "r");
-    
-    if(p == NULL)
-    {
-        fprintf(stderr, "%s: icu-config: No icu-config found. (fix PATH or use -O option)\n", progname);
-        return;
-    }
-    
-    n = fread(buf, 1, 511, p);
-    
-    pclose(p);
-    
-    if(n<=0)
-    {
-        fprintf(stderr,"%s: icu-config: Could not read from icu-config. (fix PATH or use -O option)\n", progname);
-        return;
-    }
-    
-    if(buf[strlen(buf)-1]=='\n')
-    {
-        buf[strlen(buf)-1]=0;
-    }
-    
-    if(buf[0] == 0)
-    {
-        fprintf(stderr, "%s: icu-config: invalid response from icu-config (fix PATH or use -O option)\n", progname);
-        return;
-    }
-    
-    if(options[5].doesOccur)
-    {
-        /* informational */
-        fprintf(stderr, "%s: icu-config: using '-O %s'\n", progname, buf);
-    }
-    option->value = buf;
-    option->doesOccur = TRUE;
+  FILE *p;
+  size_t n;
+  static char buf[512] = "";
+  static const char cmd[] = "icu-config --incfile";
+
+  if(options[5].doesOccur)
+  {
+    /* informational */
+    fprintf(stderr, "%s: No -O option found, trying '%s'.\n", progname, cmd);
+  }
+
+  p = popen(cmd, "r");
+
+  if(p == NULL)
+  {
+    fprintf(stderr, "%s: icu-config: No icu-config found. (fix PATH or use -O option)\n", progname);
+    return;
+  }
+  
+  n = fread(buf, 1, 511, p);
+
+  pclose(p);
+
+  if(n<=0)
+  {
+    fprintf(stderr,"%s: icu-config: Could not read from icu-config. (fix PATH or use -O option)\n", progname);
+    return;
+  }
+
+  if(buf[strlen(buf)-1]=='\n')
+  {
+    buf[strlen(buf)-1]=0;
+  }
+  
+  if(buf[0] == 0)
+  {
+    fprintf(stderr, "%s: icu-config: invalid response from icu-config (fix PATH or use -O option)\n", progname);
+    return;
+  }
+
+  if(options[5].doesOccur)
+  {
+    /* informational */
+    fprintf(stderr, "%s: icu-config: using '-O %s'\n", progname, buf);
+  }
+  option->value = buf;
+  option->doesOccur = TRUE;
 #else  /* ! U_HAVE_POPEN */
 
-#ifdef WIN32
-    char pathbuffer[_MAX_PATH] = {0};
-    char *fullEXEpath = NULL;
-    char *pathstuff = NULL;
-
-    if (strchr(progname, U_FILE_SEP_CHAR) != NULL || strchr(progname, U_FILE_ALT_SEP_CHAR) != NULL) {
-        /* pkgdata was executed with relative path */
-        fullEXEpath = _fullpath(pathbuffer, progname, sizeof(pathbuffer));
-        pathstuff = (char *)options[1].value;
-
-        if (fullEXEpath) {
-            pathstuff = strrchr(fullEXEpath, U_FILE_SEP_CHAR);
-            if (pathstuff) {
-                pathstuff[1] = 0;
-                uprv_memmove(fullEXEpath + 2, fullEXEpath, uprv_strlen(fullEXEpath)+1);
-                fullEXEpath[0] = PKGDATA_DERIVED_PATH;
-                fullEXEpath[1] = ':';
-                option->value = uprv_strdup(fullEXEpath);
-                option->doesOccur = TRUE;
-            }
-        }
-    }
-    else {
-        /* pkgdata was executed from the path */
-        /* Search for file in PATH environment variable: */
-        _searchenv("pkgdata.exe", "PATH", pathbuffer );
-        if( *pathbuffer != '\0' ) {
-            fullEXEpath = pathbuffer;
-            pathstuff = strrchr(pathbuffer, U_FILE_SEP_CHAR);
-            if (pathstuff) {
-                pathstuff[1] = 0;
-                uprv_memmove(fullEXEpath + 2, fullEXEpath, uprv_strlen(fullEXEpath)+1);
-                fullEXEpath[0] = PKGDATA_DERIVED_PATH;
-                fullEXEpath[1] = ':';
-                option->value = uprv_strdup(fullEXEpath);
-                option->doesOccur = TRUE;
-            }
-        }
-    }
-    /* else can't determine the path */
-#endif
-
-    /* no popen available */
-    /* Put other OS specific ways to search for the Makefile.inc type 
-       information or else fail.. */
+  /* no popen available */
+  /* Put other OS specific ways to search for the Makefile.inc type 
+     information or else fail.. */
 
 #endif
 }

@@ -40,14 +40,14 @@ typedef struct USet USet;
 #endif
 
 /**
- * Bitmask values to be passed to uset_openPatternOptions() or
- * uset_applyPattern() taking an option parameter.
- * @draft ICU 2.4
+ * Bitmask values to be passed to the UnicodeSet constructor or
+ * applyPattern() taking an option parameter.
+ * @draft
  */
 enum {
     /**
      * Ignore white space within patterns unless quoted or escaped.
-     * @draft ICU 2.4
+     * @draft
      */
     USET_IGNORE_SPACE = 1,  
 
@@ -55,7 +55,7 @@ enum {
      * Enable case insensitive matching.  E.g., "[ab]" with this flag
      * will match 'a', 'A', 'b', and 'B'.  "[^ab]" with this flag will
      * match all except 'a', 'A', 'b', and 'B'.
-     * @draft ICU 2.4
+     * @draft
      */
     USET_CASE_INSENSITIVE = 2,  
 
@@ -155,32 +155,6 @@ U_CAPI void U_EXPORT2
 uset_close(USet* set);
 
 /**
- * Modifies the set to represent the set specified by the given
- * pattern. See the UnicodeSet class description for the syntax of 
- * the pattern language. See also the User Guide chapter about UnicodeSet.
- * <em>Empties the set passed before applying the pattern.</em>
- * @param set               The set to which the pattern is to be applied. 
- * @param pattern           A pointer to UChar string specifying what characters are in the set.
- *                          The character at pattern[0] must be a '['.
- * @param patternLength     The length of the UChar string. -1 if NUL terminated.
- * @param options           A bitmask for options to apply to the pattern.
- *                          Valid options are USET_IGNORE_SPACE and USET_CASE_INSENSITIVE.
- * @param status            Returns an error if the pattern cannot be parsed.
- * @return                  Upon successful parse, the value is either
- *                          the index of the character after the closing ']' 
- *                          of the parsed pattern.
- *                          If the status code indicates failure, then the return value 
- *                          is the index of the error in the source.
- *                                  
- * @draft ICU 2.8
- */
-U_CAPI int32_t U_EXPORT2 
-uset_applyPattern(USet *set,
-                  const UChar *pattern, int32_t patternLength,
-                  uint32_t options,
-                  UErrorCode *status);
-
-/**
  * Returns a string representation of this set.  If the result of
  * calling this function is passed to a uset_openPattern(), it
  * will produce another set that is equal to this one.
@@ -231,7 +205,7 @@ uset_addAll(USet* set, const USet *additionalSet);
  * @param set the object to which to add the character
  * @param start the first character of the range to add, inclusive
  * @param end the last character of the range to add, inclusive
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 U_CAPI void U_EXPORT2
 uset_addRange(USet* set, UChar32 start, UChar32 end);
@@ -263,7 +237,7 @@ uset_remove(USet* set, UChar32 c);
  * @param set the object to which to add the character
  * @param start the first character of the range to remove, inclusive
  * @param end the last character of the range to remove, inclusive
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 U_CAPI void U_EXPORT2
 uset_removeRange(USet* set, UChar32 start, UChar32 end);
@@ -325,7 +299,7 @@ uset_contains(const USet* set, UChar32 c);
  * @param start the first character of the range to test, inclusive
  * @param end the last character of the range to test, inclusive
  * @return TRUE if set contains the range
- * @stable ICU 2.2
+ * @draft ICU 2.2
  */
 U_CAPI UBool U_EXPORT2
 uset_containsRange(const USet* set, UChar32 start, UChar32 end);

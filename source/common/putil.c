@@ -40,6 +40,10 @@
 #    include<sys/types.h>
 #endif
 
+#ifdef __QNXNTO__
+#include <sys/neutrino.h>
+#endif
+
 #ifndef PTX
 
 /* Define _XOPEN_SOURCE for Solaris and friends. */
@@ -61,14 +65,11 @@
 /* include ICU headers */
 #include "unicode/utypes.h"
 #include "unicode/putil.h"
-#include "unicode/ustring.h"
-#include "uassert.h"
 #include "umutex.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "locmap.h"
 #include "ucln_cmn.h"
-#include "udataswp.h"
 
 /* Include standard headers. */
 #include <stdio.h>
@@ -107,7 +108,7 @@
 #   include <TextUtils.h>
 #elif defined(OS390)
 #include "unicode/ucnv.h"   /* Needed for UCNV_SWAP_LFNL_OPTION_STRING */
-#elif defined(U_AIX)
+#elif defined(AIX)
 /*
 #   include <sys/ldr.h>
 */
@@ -116,15 +117,10 @@
 #   include <dlfcn.h>
 #   include <link.h>
 */
-#elif defined(U_HPUX)
+#elif defined(HPUX)
 /*
 #   include <dl.h>
 */
-#elif defined(U_DARWIN)
-#include <sys/file.h>
-#include <sys/param.h>
-#elif defined(U_QNX)
-#include <sys/neutrino.h>
 #endif
 
 /* Define the extension for data files, again... */
@@ -149,8 +145,8 @@ static const char copyright[] = U_COPYRIGHT_STRING;
 
 #if USE_64BIT_DOUBLE_OPTIMIZATION
 /* gcc 3.2 has an optimization bug */
-static const int64_t gNan64 = 0x7FF8000000000000LL;
-static const int64_t gInf64 = 0x7FF0000000000000LL;
+static const int64_t gNan64 = 0x7FF8000000000000L;
+static const int64_t gInf64 = 0x7FF0000000000000L;
 static const double * const fgNan = (const double *)(&gNan64);
 static const double * const fgInf = (const double *)(&gInf64);
 #else
@@ -232,14 +228,14 @@ uprv_getUTCtime()
     time_t t, t1, t2;
     struct tm tmrec;
 
-    uprv_memset( &tmrec, 0, sizeof(tmrec) );
+    memset( &tmrec, 0, sizeof(tmrec) );
     tmrec.tm_year = 70;
     tmrec.tm_mon = 0;
     tmrec.tm_mday = 1;
     t1 = mktime(&tmrec);    /* seconds of 1/1/1970*/
 
     time(&t);
-    uprv_memcpy( &tmrec, gmtime(&t), sizeof(tmrec) );
+    memcpy( &tmrec, gmtime(&t), sizeof(tmrec) );
     t2 = mktime(&tmrec);    /* seconds of current GMT*/
     return t2 - t1;         /* GMT (or UTC) in seconds since 1970*/
 #else
@@ -266,7 +262,7 @@ uprv_isNaN(double number)
 #if USE_64BIT_DOUBLE_OPTIMIZATION
     /* gcc 3.2 has an optimization bug */
     /* Infinity is 0x7FF0000000000000U. Anything greater than that is a NaN */
-    return (UBool)(((*((int64_t *)&number)) & U_INT64_MAX) > gInf64);
+    return (UBool)(((*((int64_t *)&number)) & INT64_MAX) > gInf64);
 
 #else
     /* This should work in theory, but it doesn't, so we resort to the more*/
@@ -316,7 +312,7 @@ uprv_isInfinite(double number)
 #if IEEE_754
 #if USE_64BIT_DOUBLE_OPTIMIZATION
     /* gcc 3.2 has an optimization bug */
-    return (UBool)(((*((int64_t *)&number)) & U_INT64_MAX) == gInf64);
+    return (UBool)(((*((int64_t *)&number)) & INT64_MAX) == gInf64);
 #else
 
     /* We know the top bit is the sign bit, so we mask that off in a copy of */
@@ -979,12 +975,12 @@ static const char* detectWindowsTimeZone() {
     /* Obtain TIME_ZONE_INFORMATION from the API, and then convert it
        to TZI.  We could also interrogate the registry directly; we do
        this below if needed. */
-    uprv_memset(&apiTZI, 0, sizeof(apiTZI));
+    memset(&apiTZI, 0, sizeof(apiTZI));
     GetTimeZoneInformation(&apiTZI);
     tziKey.Bias = apiTZI.Bias;
-    uprv_memcpy((char *)&tziKey.StandardDate, (char*)&apiTZI.StandardDate,
+    memcpy((char *)&tziKey.StandardDate, (char*)&apiTZI.StandardDate,
            sizeof(apiTZI.StandardDate));
-    uprv_memcpy((char *)&tziKey.DaylightDate, (char*)&apiTZI.DaylightDate,
+    memcpy((char *)&tziKey.DaylightDate, (char*)&apiTZI.DaylightDate,
            sizeof(apiTZI.DaylightDate));
 
     /* For each zone that can be identified by Offset+Rules, see if we
@@ -1016,7 +1012,7 @@ static const char* detectWindowsTimeZone() {
                these unreliable fields. */
             tziKey.StandardBias = tziReg.StandardBias;
             tziKey.DaylightBias = tziReg.DaylightBias;
-            if (uprv_memcmp((char *)&tziKey, (char*)&tziReg,
+            if (memcmp((char *)&tziKey, (char*)&tziReg,
                        sizeof(tziKey)) == 0) {
                 if (firstMatch < 0) {
                     firstMatch = j;
@@ -1070,7 +1066,7 @@ static const char* detectWindowsTimeZone() {
                 RegCloseKey(hkey);
                 if (result == ERROR_SUCCESS &&
                     stdRegNameSize == stdNameSize &&
-                    uprv_memcmp(stdName, stdRegName, stdNameSize) == 0) {
+                    memcmp(stdName, stdRegName, stdNameSize) == 0) {
                     firstMatch = j; /* record the match */
                     break;
                 }
@@ -1102,18 +1098,18 @@ static LONG openTZRegKey(HKEY *hkey, const char* winid, int winType) {
     char* name;
     int i;
 
-    uprv_strcpy(subKeyName, TZ_REGKEY[(winType == WIN_9X_ME_TYPE) ? 0 : 1]);
+    strcpy(subKeyName, TZ_REGKEY[(winType == WIN_9X_ME_TYPE) ? 0 : 1]);
     name = &subKeyName[strlen(subKeyName)];
-    uprv_strcat(subKeyName, winid);
+    strcat(subKeyName, winid);
     if (winType != WIN_9X_ME_TYPE) {
         /* Don't modify "Mexico Standard Time 2", which does not occur
            on WIN_9X_ME_TYPE.  Also, if the type is WIN_NT_TYPE, then
            in practice this means the GMT key is not followed by
            " Standard Time", so don't append in that case. */
-        int isMexico2 = (winid[uprv_strlen(winid)- 1] == '2');
+        int isMexico2 = (winid[strlen(winid)- 1] == '2');
         if (!isMexico2 &&
-            !(winType == WIN_NT_TYPE && uprv_strcmp(winid, "GMT") == 0)) {
-            uprv_strcat(subKeyName, STANDARD_TIME_REGKEY);
+            !(winType == WIN_NT_TYPE && strcmp(winid, "GMT") == 0)) {
+            strcat(subKeyName, STANDARD_TIME_REGKEY);
         }
     }
     result = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
@@ -1126,11 +1122,11 @@ static LONG openTZRegKey(HKEY *hkey, const char* winid, int winType) {
         /* If the primary lookup fails, try to remap the Windows zone
            ID, according to the remapping table. */
         for (i=0; ZONE_REMAP[i].winid; ++i) {
-            if (uprv_strcmp(winid, ZONE_REMAP[i].winid) == 0) {
-                uprv_strcpy(name, ZONE_REMAP[i].altwinid + 1);
+            if (strcmp(winid, ZONE_REMAP[i].winid) == 0) {
+                strcpy(name, ZONE_REMAP[i].altwinid + 1);
                 if (*(ZONE_REMAP[i].altwinid) == '+' &&
                     winType != WIN_9X_ME_TYPE) {
-                    uprv_strcat(subKeyName, STANDARD_TIME_REGKEY);                
+                    strcat(subKeyName, STANDARD_TIME_REGKEY);                
                 }
                 result = RegOpenKeyEx(HKEY_LOCAL_MACHINE,
                                       subKeyName,
@@ -1172,10 +1168,10 @@ uprv_timezone()
     int32_t tdiff = 0;
 
     time(&t);
-    uprv_memcpy( &tmrec, localtime(&t), sizeof(tmrec) );
+    memcpy( &tmrec, localtime(&t), sizeof(tmrec) );
     dst_checked = (tmrec.tm_isdst != 0); /* daylight savings time is checked*/
     t1 = mktime(&tmrec);                 /* local time in seconds*/
-    uprv_memcpy( &tmrec, gmtime(&t), sizeof(tmrec) );
+    memcpy( &tmrec, gmtime(&t), sizeof(tmrec) );
     t2 = mktime(&tmrec);                 /* GMT (or UTC) in seconds*/
     tdiff = t2 - t1;
     /* imitate NT behaviour, which returns same timezone offset to GMT for
@@ -1186,22 +1182,14 @@ uprv_timezone()
 #endif
 }
 
-/* Note that U_TZNAME does *not* have to be tzname, but if it is,
+/* Note that U_TZNAME does *not* have to be tzname, but if it does,
    some platforms need to have it declared here. */ 
 
-#if defined(U_IRIX) || defined(U_DARWIN) /* For SGI or Mac OS X.  */
+#if defined(IRIX) || defined(U_DARWIN) /* For SGI/MacOSX.  */
 extern char *tzname[]; /* RS6000 and others reject char **tzname.  */
 #elif defined(U_CYGWIN)
 extern U_IMPORT char *_tzname[2]; 
 #endif
-
-#if defined(U_DARWIN)	/* For Mac OS X */
-#define TZZONELINK	"/etc/localtime"
-#define TZZONEINFO	"/usr/share/zoneinfo/"
-static char *gTimeZoneBuffer = NULL; /* Heap allocated */
-#endif
-
-#include <stdio.h>
 
 U_CAPI char* U_EXPORT2
 uprv_tzname(int n)
@@ -1210,41 +1198,6 @@ uprv_tzname(int n)
     char* id = (char*) detectWindowsTimeZone();
     if (id != NULL) {
         return id;
-    }
-#endif
-
-#if defined(U_DARWIN)
-    int ret;
-
-    char *tzenv;
-
-    tzenv = getenv("TZFILE");
-    if (tzenv != NULL) {
-    	return tzenv;
-    }
-
-#if 0
-    /* TZ is often set to "PST8PDT" or similar, so we cannot use it. Alan */
-    tzenv = getenv("TZ");
-    if (tzenv != NULL) {
-    	return tzenv;
-    }
-#endif
-    
-    /* Caller must handle threading issues */
-    if (gTimeZoneBuffer == NULL) {
-    	gTimeZoneBuffer = (char *) uprv_malloc(MAXPATHLEN + 2);
-
-        ret = readlink(TZZONELINK, gTimeZoneBuffer, MAXPATHLEN + 2);
-        if (0 < ret) {
-            gTimeZoneBuffer[ret] = '\0';
-            if (uprv_strncmp(gTimeZoneBuffer, TZZONEINFO, sizeof(TZZONEINFO) - 1) == 0) {
-                return (gTimeZoneBuffer += sizeof(TZZONEINFO) - 1);
-            }
-        }
-
-        uprv_free(gTimeZoneBuffer);
-        gTimeZoneBuffer = NULL;
     }
 #endif
 
@@ -1285,12 +1238,12 @@ UBool putil_cleanup(void)
 U_CAPI void U_EXPORT2
 u_setDataDirectory(const char *directory) {
     char *newDataDir;
-    int32_t length;
+    int length;
 
     if(directory==NULL) {
         directory = "";
     }
-    length=(int32_t)uprv_strlen(directory);
+    length=uprv_strlen(directory);
     newDataDir = (char *)uprv_malloc(length + 2);
     uprv_strcpy(newDataDir, directory);
 
@@ -1695,7 +1648,7 @@ The leftmost codepage (.xxx) wins.
     int32_t lang = MAC_LC_INIT_NUMBER;
     /* = GetScriptManagerVariable(smScriptLang);*/
     int32_t date_region = MAC_LC_INIT_NUMBER;
-    const char* posixID = 0;
+    char* posixID = 0;
     int32_t count = sizeof(mac_lc_recs) / sizeof(mac_lc_rec);
     int32_t i;
     Intl1Hndl ih;
@@ -1895,7 +1848,7 @@ uprv_getDefaultCodepage()
     {
         uprv_memset(codesetName, 0, sizeof(codesetName));
     }
-    localeName = setlocale(LC_CTYPE, NULL);
+    localeName = setlocale(LC_CTYPE, "");
     if (localeName != NULL && (name = (uprv_strchr(localeName, (int)'.'))) != NULL)
     {
         /* strip the locale name and look at the suffix only */
@@ -1945,57 +1898,97 @@ uprv_getDefaultCodepage()
 #endif
 }
 
-/* invariant-character handling --------------------------------------------- */
-
+#if U_CHARSET_FAMILY==U_EBCDIC_FAMILY
+#ifdef OS390
 /*
- * These maps for ASCII to/from EBCDIC map invariant characters (see utypes.h)
- * appropriately for most EBCDIC codepages.
- *
- * They currently also map most other ASCII graphic characters,
- * appropriately for codepages 37 and 1047.
- * Exceptions: The characters for []^ have different codes in 37 & 1047.
- * Both versions are mapped to ASCII.
- *
- *    ASCII 37 1047
- * [     5B BA   AD
- * ]     5D BB   BD
- * ^     5E B0   5F
- *
- * There are no mappings for variant characters from Unicode to EBCDIC.
- *
- * Currently, C0 control codes are also included in these maps.
- * Exceptions: S/390 Open Edition swaps LF and NEL codes compared with other
- * EBCDIC platforms; both codes (15 and 25) are mapped to ASCII LF (0A),
- * but there is no mapping for ASCII LF back to EBCDIC.
- *
- *    ASCII EBCDIC S/390-OE
- * LF    0A     25       15
- * NEL   85     15       25
- *
- * The maps below explicitly exclude the variant
+ * These maps for ASCII to/from EBCDIC are from
+ * "UTF-EBCDIC - EBCDIC-Friendly Unicode (or UCS) Transformation Format"
+ * at http://www.unicode.org/unicode/reports/tr16/
+ * (which should reflect codepage 1047)
+ * but modified to explicitly exclude the variant
  * control and graphical characters that are in ASCII-based
  * codepages at 0x80 and above.
- * "No mapping" is expressed by mapping to a 00 byte.
+ * Also, unlike in Version 6.0 of the UTR on UTF-EBCDIC,
+ * the Line Feed mapping varies according to the environment.
+ *
+ * These tables do not establish a converter or a codepage.
+ */
+
+    /* on S/390 Open Edition, ASCII 0xa (LF) maps to 0x15 and ISO-8 0x85 maps to 0x25 */
+#   define E_LF 0x15
+#   define A_15 0x0a
+#   define A_25 0x00
+
+#   if 0
+        /* the CDRA variation of 1047 is not currently used - see tables in #else below */
+        /* in standard EBCDIC (CDRA), ASCII 0xa (LF) maps to 0x25 and ISO-8 0x85 maps to 0x15 */
+#       define E_LF 0x25
+#       define A_15 0x00
+#       define A_25 0x0a
+#   endif
+
+static const uint8_t asciiFromEbcdic[256]={
+    0x00, 0x01, 0x02, 0x03, 0x00, 0x09, 0x00, 0x7F, 0x00, 0x00, 0x00, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+    0x10, 0x11, 0x12, 0x13, 0x00, A_15, 0x08, 0x00, 0x18, 0x19, 0x00, 0x00, 0x1C, 0x1D, 0x1E, 0x1F,
+    0x00, 0x00, 0x00, 0x00, 0x00, A_25, 0x17, 0x1B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x06, 0x07,
+    0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x14, 0x15, 0x00, 0x1A,
+    0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2E, 0x3C, 0x28, 0x2B, 0x7C,
+    0x26, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x24, 0x2A, 0x29, 0x3B, 0x5E,
+    0x2D, 0x2F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2C, 0x25, 0x5F, 0x3E, 0x3F,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x3A, 0x23, 0x40, 0x27, 0x3D, 0x22,
+    0x00, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x6F, 0x70, 0x71, 0x72, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x7E, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x00, 0x00, 0x00, 0x5B, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5D, 0x00, 0x00,
+    0x7B, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x7D, 0x4A, 0x4B, 0x4C, 0x4D, 0x4E, 0x4F, 0x50, 0x51, 0x52, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x5C, 0x00, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5A, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+static const uint8_t ebcdicFromAscii[256]={
+    0x00, 0x01, 0x02, 0x03, 0x37, 0x2D, 0x2E, 0x2F, 0x16, 0x05, E_LF, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+    0x10, 0x11, 0x12, 0x13, 0x3C, 0x3D, 0x32, 0x26, 0x18, 0x19, 0x3F, 0x27, 0x1C, 0x1D, 0x1E, 0x1F,
+    0x40, 0x5A, 0x7F, 0x7B, 0x5B, 0x6C, 0x50, 0x7D, 0x4D, 0x5D, 0x5C, 0x4E, 0x6B, 0x60, 0x4B, 0x61,
+    0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0x7A, 0x5E, 0x4C, 0x7E, 0x6E, 0x6F,
+    0x7C, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xD1, 0xD2, 0xD3, 0xD4, 0xD5, 0xD6,
+    0xD7, 0xD8, 0xD9, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xAD, 0xE0, 0xBD, 0x5F, 0x6D,
+    0x79, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96,
+    0x97, 0x98, 0x99, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xC0, 0x4F, 0xD0, 0xA1, 0x07,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+};
+
+#else
+/*
+ * These maps for ASCII to/from EBCDIC were generated
+ * using the ICU converter for codepage 37 on 2000-may-22.
+ * They explicitly exclude the variant
+ * control and graphical characters that are in ASCII-based
+ * codepages at 0x80 and above.
  *
  * These tables do not establish a converter or a codepage.
  */
 
 static const uint8_t asciiFromEbcdic[256]={
     0x00, 0x01, 0x02, 0x03, 0x00, 0x09, 0x00, 0x7f, 0x00, 0x00, 0x00, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-    0x10, 0x11, 0x12, 0x13, 0x00, 0x0a, 0x08, 0x00, 0x18, 0x19, 0x00, 0x00, 0x1c, 0x1d, 0x1e, 0x1f,
+    0x10, 0x11, 0x12, 0x13, 0x00, 0x00, 0x08, 0x00, 0x18, 0x19, 0x00, 0x00, 0x1c, 0x1d, 0x1e, 0x1f,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x17, 0x1b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x06, 0x07,
     0x00, 0x00, 0x16, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x14, 0x15, 0x00, 0x1a,
-
     0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2e, 0x3c, 0x28, 0x2b, 0x7c,
-    0x26, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x24, 0x2a, 0x29, 0x3b, 0x5e,
+    0x26, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x24, 0x2a, 0x29, 0x3b, 0x00,
     0x2d, 0x2f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2c, 0x25, 0x5f, 0x3e, 0x3f,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x60, 0x3a, 0x23, 0x40, 0x27, 0x3d, 0x22,
-
     0x00, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00, 0x7e, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x00, 0x00, 0x00, 0x5b, 0x00, 0x00,
-    0x5e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5b, 0x5d, 0x00, 0x5d, 0x00, 0x00,
-
+    0x00, 0x7e, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x5e, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x5b, 0x5d, 0x00, 0x00, 0x00, 0x00,
     0x7b, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x7d, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 0x50, 0x51, 0x52, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x5c, 0x00, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -2003,449 +1996,57 @@ static const uint8_t asciiFromEbcdic[256]={
 };
 
 static const uint8_t ebcdicFromAscii[256]={
-    0x00, 0x01, 0x02, 0x03, 0x37, 0x2d, 0x2e, 0x2f, 0x16, 0x05, 0x00, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+    0x00, 0x01, 0x02, 0x03, 0x37, 0x2d, 0x2e, 0x2f, 0x16, 0x05, 0x25, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
     0x10, 0x11, 0x12, 0x13, 0x3c, 0x3d, 0x32, 0x26, 0x18, 0x19, 0x3f, 0x27, 0x1c, 0x1d, 0x1e, 0x1f,
-    0x40, 0x00, 0x7f, 0x00, 0x00, 0x6c, 0x50, 0x7d, 0x4d, 0x5d, 0x5c, 0x4e, 0x6b, 0x60, 0x4b, 0x61,
+    0x40, 0x5a, 0x7f, 0x7b, 0x5b, 0x6c, 0x50, 0x7d, 0x4d, 0x5d, 0x5c, 0x4e, 0x6b, 0x60, 0x4b, 0x61,
     0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0x7a, 0x5e, 0x4c, 0x7e, 0x6e, 0x6f,
-
-    0x00, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6,
-    0xd7, 0xd8, 0xd9, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0x00, 0x00, 0x00, 0x00, 0x6d,
-    0x00, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96,
-    0x97, 0x98, 0x99, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0x00, 0x00, 0x00, 0x00, 0x07,
-
+    0x7c, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6,
+    0xd7, 0xd8, 0xd9, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xba, 0xe0, 0xbb, 0xb0, 0x6d,
+    0x79, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96,
+    0x97, 0x98, 0x99, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xc0, 0x4f, 0xd0, 0xa1, 0x07,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-/*
- * Bit sets indicating which characters of the ASCII repertoire
- * (by ASCII/Unicode code) are "invariant".
- * See utypes.h for more details.
- *
- * As invariant are considered the characters of the ASCII repertoire except
- * for the following:
- * 21  '!' <exclamation mark>
- * 23  '#' <number sign>
- * 24  '$' <dollar sign>
- *
- * 40  '@' <commercial at>
- *
- * 5b  '[' <left bracket>
- * 5c  '\' <backslash>
- * 5d  ']' <right bracket>
- * 5e  '^' <circumflex>
- *
- * 60  '`' <grave accent>
- *
- * 7b  '{' <left brace>
- * 7c  '|' <vertical line>
- * 7d  '}' <right brace>
- * 7e  '~' <tilde>
- */
-static const uint32_t invariantChars[4]={
-    0xfffffbff, /* 00..1f but not 0a */
-    0xffffffe5, /* 20..3f but not 21 23 24 */
-    0x87fffffe, /* 40..5f but not 40 5b..5e */
-    0x87fffffe  /* 60..7f but not 60 7b..7e */
-};
+#endif
 
-/*
- * test unsigned types (or values known to be non-negative) for invariant characters,
- * tests ASCII-family character values
- */
-#define UCHAR_IS_INVARIANT(c) (((c)<=0x7f) && (invariantChars[(c)>>5]&((uint32_t)1<<((c)&0x1f)))!=0)
-
-/* test signed types for invariant characters, adds test for positive values */
-#define SCHAR_IS_INVARIANT(c) ((0<=(c)) && UCHAR_IS_INVARIANT(c))
+#endif
 
 U_CAPI void U_EXPORT2
 u_charsToUChars(const char *cs, UChar *us, int32_t length) {
-    UChar u;
-    uint8_t c;
-    UBool onlyInvariantChars;
-
-    /*
-     * Allow the entire ASCII repertoire to be mapped _to_ Unicode.
-     * For EBCDIC systems, this works for characters with codes from
-     * codepages 37 and 1047 or compatible.
-     */
-    onlyInvariantChars=TRUE;
     while(length>0) {
-        c=(uint8_t)(*cs++);
 #if U_CHARSET_FAMILY==U_ASCII_FAMILY
-        u=(UChar)c;
+        *us++=(UChar)(uint8_t)(*cs++);
 #elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
-        u=(UChar)asciiFromEbcdic[c];
+        *us++=(UChar)asciiFromEbcdic[(uint8_t)(*cs++)];
 #else
 #   error U_CHARSET_FAMILY is not valid
 #endif
-        if(u==0 && c!=0) {
-            onlyInvariantChars=FALSE;
-        }
-        *us++=u;
         --length;
     }
-    U_ASSERT(onlyInvariantChars); /* only invariant chars? */
 }
 
 U_CAPI void U_EXPORT2
 u_UCharsToChars(const UChar *us, char *cs, int32_t length) {
-    UChar u;
-    UBool onlyInvariantChars;
-
-    onlyInvariantChars=TRUE;
     while(length>0) {
-        u=*us++;
-        if(!UCHAR_IS_INVARIANT(u)) {
-            onlyInvariantChars=FALSE;
-            u=0;
-        }
 #if U_CHARSET_FAMILY==U_ASCII_FAMILY
-        *cs++=(char)u;
+        *cs++=(char)(*us++);
 #elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
-        *cs++=(char)ebcdicFromAscii[u];
+        *cs++=(char)ebcdicFromAscii[(uint8_t)(*us++)];
 #else
 #   error U_CHARSET_FAMILY is not valid
 #endif
         --length;
     }
-    U_ASSERT(onlyInvariantChars); /* only invariant chars? */
 }
 
-U_CAPI UBool U_EXPORT2
-uprv_isInvariantString(const char *s, int32_t length) {
-    uint8_t c;
-
-    for(;;) {
-        if(length<0) {
-            /* NUL-terminated */
-            c=(uint8_t)*s++;
-            if(c==0) {
-                break;
-            }
-        } else {
-            /* count length */
-            if(length==0) {
-                break;
-            }
-            --length;
-            c=(uint8_t)*s++;
-            if(c==0) {
-                continue; /* NUL is invariant */
-            }
-        }
-        /* c!=0 now, one branch below checks c==0 for variant characters */
-
-        /*
-         * no assertions here because these functions are legitimately called
-         * for strings with variant characters
-         */
-#if U_CHARSET_FAMILY==U_ASCII_FAMILY
-        if(!UCHAR_IS_INVARIANT(c)) {
-            return FALSE; /* found a variant char */
-        }
-#elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
-        c=asciiFromEbcdic[c];
-        if(c==0 || !UCHAR_IS_INVARIANT(c)) {
-            return FALSE; /* found a variant char */
-        }
-#else
-#   error U_CHARSET_FAMILY is not valid
-#endif
-    }
-    return TRUE;
-}
-
-U_CAPI UBool U_EXPORT2
-uprv_isInvariantUString(const UChar *s, int32_t length) {
-    UChar c;
-
-    for(;;) {
-        if(length<0) {
-            /* NUL-terminated */
-            c=*s++;
-            if(c==0) {
-                break;
-            }
-        } else {
-            /* count length */
-            if(length==0) {
-                break;
-            }
-            --length;
-            c=*s++;
-        }
-
-        /*
-         * no assertions here because these functions are legitimately called
-         * for strings with variant characters
-         */
-        if(!UCHAR_IS_INVARIANT(c)) {
-            return FALSE; /* found a variant char */
-        }
-    }
-    return TRUE;
-}
-
-/* UDataSwapFn implementations used in udataswp.c ------- */
-
-/* convert ASCII to EBCDIC and verify that all characters are invariant */
-U_CFUNC int32_t
-uprv_ebcdicFromAscii(const UDataSwapper *ds,
-                     const void *inData, int32_t length, void *outData,
-                     UErrorCode *pErrorCode) {
-    const uint8_t *s;
-    uint8_t *t;
-    uint8_t c;
-
-    int32_t count;
-
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-    if(ds==NULL || inData==NULL || length<0 || (length>0 && outData==NULL)) {
-        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
-
-    /* setup and swapping */
-    s=(const uint8_t *)inData;
-    t=(uint8_t *)outData;
-    count=length;
-    while(count>0) {
-        c=*s++;
-        if(!UCHAR_IS_INVARIANT(c)) {
-            udata_printError(ds, "uprv_ebcdicFromAscii() string[%d] contains a variant character in position %d\n",
-                             length, length-count);
-            *pErrorCode=U_INVALID_CHAR_FOUND;
-            return 0;
-        }
-        *t++=ebcdicFromAscii[c];
-        --count;
-    }
-
-    return length;
-}
-
-/* this function only checks and copies ASCII strings without conversion */
-U_CFUNC int32_t
-uprv_copyAscii(const UDataSwapper *ds,
-               const void *inData, int32_t length, void *outData,
-               UErrorCode *pErrorCode) {
-    const uint8_t *s;
-    uint8_t c;
-
-    int32_t count;
-
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-    if(ds==NULL || inData==NULL || length<0 || (length>0 && outData==NULL)) {
-        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
-
-    /* setup and checking */
-    s=(const uint8_t *)inData;
-    count=length;
-    while(count>0) {
-        c=*s++;
-        if(!UCHAR_IS_INVARIANT(c)) {
-            udata_printError(ds, "uprv_copyFromAscii() string[%d] contains a variant character in position %d\n",
-                             length, length-count);
-            *pErrorCode=U_INVALID_CHAR_FOUND;
-            return 0;
-        }
-        --count;
-    }
-
-    if(length>0 && inData!=outData) {
-        uprv_memcpy(outData, inData, length);
-    }
-
-    return length;
-}
-
-/* convert EBCDIC to ASCII and verify that all characters are invariant */
-U_CFUNC int32_t
-uprv_asciiFromEbcdic(const UDataSwapper *ds,
-                     const void *inData, int32_t length, void *outData,
-                     UErrorCode *pErrorCode) {
-    const uint8_t *s;
-    uint8_t *t;
-    uint8_t c;
-
-    int32_t count;
-
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-    if(ds==NULL || inData==NULL || length<0 ||  (length>0 && outData==NULL)) {
-        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
-
-    /* setup and swapping */
-    s=(const uint8_t *)inData;
-    t=(uint8_t *)outData;
-    count=length;
-    while(count>0) {
-        c=*s++;
-        if(c!=0 && ((c=asciiFromEbcdic[c])==0 || !UCHAR_IS_INVARIANT(c))) {
-            udata_printError(ds, "uprv_asciiFromEbcdic() string[%d] contains a variant character in position %d\n",
-                             length, length-count);
-            *pErrorCode=U_INVALID_CHAR_FOUND;
-            return 0;
-        }
-        *t++=c;
-        --count;
-    }
-
-    return length;
-}
-
-/* this function only checks and copies EBCDIC strings without conversion */
-U_CFUNC int32_t
-uprv_copyEbcdic(const UDataSwapper *ds,
-                const void *inData, int32_t length, void *outData,
-                UErrorCode *pErrorCode) {
-    const uint8_t *s;
-    uint8_t c;
-
-    int32_t count;
-
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-    if(ds==NULL || inData==NULL || length<0 || (length>0 && outData==NULL)) {
-        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
-
-    /* setup and checking */
-    s=(const uint8_t *)inData;
-    count=length;
-    while(count>0) {
-        c=*s++;
-        if(c!=0 && ((c=asciiFromEbcdic[c])==0 || !UCHAR_IS_INVARIANT(c))) {
-            udata_printError(ds, "uprv_copyEbcdic() string[%] contains a variant character in position %d\n",
-                             length, length-count);
-            *pErrorCode=U_INVALID_CHAR_FOUND;
-            return 0;
-        }
-        --count;
-    }
-
-    if(length>0 && inData!=outData) {
-        uprv_memcpy(outData, inData, length);
-    }
-
-    return length;
-}
-
-/* compare invariant strings; variant characters compare less than others and unlike each other */
-U_CFUNC int32_t
-uprv_compareInvAscii(const UDataSwapper *ds,
-                     const char *outString, int32_t outLength,
-                     const UChar *localString, int32_t localLength) {
-    int32_t minLength;
-    UChar32 c1, c2;
-    uint8_t c;
-
-    if(outString==NULL || outLength<-1 || localString==NULL || localLength<-1) {
-        return 0;
-    }
-
-    if(outLength<0) {
-        outLength=(int32_t)uprv_strlen(outString);
-    }
-    if(localLength<0) {
-        localLength=u_strlen(localString);
-    }
-
-    minLength= outLength<localLength ? outLength : localLength;
-
-    while(minLength>0) {
-        c=(uint8_t)*outString++;
-        if(UCHAR_IS_INVARIANT(c)) {
-            c1=c;
-        } else {
-            c1=-1;
-        }
-
-        c2=*localString++;
-        if(!UCHAR_IS_INVARIANT(c2)) {
-            c1=-2;
-        }
-
-        if((c1-=c2)!=0) {
-            return c1;
-        }
-
-        --minLength;
-    }
-
-    /* strings start with same prefix, compare lengths */
-    return outLength-localLength;
-}
-
-U_CFUNC int32_t
-uprv_compareInvEbcdic(const UDataSwapper *ds,
-                      const char *outString, int32_t outLength,
-                      const UChar *localString, int32_t localLength) {
-    int32_t minLength;
-    UChar32 c1, c2;
-    uint8_t c;
-
-    if(outString==NULL || outLength<-1 || localString==NULL || localLength<-1) {
-        return 0;
-    }
-
-    if(outLength<0) {
-        outLength=(int32_t)uprv_strlen(outString);
-    }
-    if(localLength<0) {
-        localLength=u_strlen(localString);
-    }
-
-    minLength= outLength<localLength ? outLength : localLength;
-
-    while(minLength>0) {
-        c=(uint8_t)*outString++;
-        if(c==0) {
-            c1=0;
-        } else if((c1=asciiFromEbcdic[c])!=0 && UCHAR_IS_INVARIANT(c1)) {
-            /* c1 is set */
-        } else {
-            c1=-1;
-        }
-
-        c2=*localString++;
-        if(!UCHAR_IS_INVARIANT(c2)) {
-            c1=-2;
-        }
-
-        if((c1-=c2)!=0) {
-            return c1;
-        }
-
-        --minLength;
-    }
-
-    /* strings start with same prefix, compare lengths */
-    return outLength-localLength;
-}
-
-/* end of platform-specific implementation -------------- */
-
-/* version handling --------------------------------------------------------- */
+/* end of platform-specific implementation */
 
 U_CAPI void U_EXPORT2
 u_versionFromString(UVersionInfo versionArray, const char *versionString) {
@@ -2615,8 +2216,7 @@ _uErrorName[U_STANDARD_ERROR_LIMIT]={
     "U_STATE_TOO_OLD_ERROR",
     "U_TOO_MANY_ALIASES_ERROR",
     "U_ENUM_OUT_OF_SYNC_ERROR",
-    "U_INVARIANT_CONVERSION_ERROR",
-    "U_INVALID_STATE_ERROR"
+    "U_INVARIANT_CONVERSION_ERROR"
 };
 static const char * const
 _uFmtErrorName[U_FMT_PARSE_ERROR_LIMIT - U_FMT_PARSE_ERROR_START] = {
@@ -2648,8 +2248,7 @@ _uBrkErrorName[U_BRK_ERROR_LIMIT - U_BRK_ERROR_START] = {
     "U_BRK_NEW_LINE_IN_QUOTED_STRING",
     "U_BRK_UNDEFINED_VARIABLE",
     "U_BRK_INIT_ERROR",
-    "U_BRK_RULE_EMPTY_SET",
-    "U_BRK_UNRECOGNIZED_OPTION"
+    "U_BRK_RULE_EMPTY_SET"
 };
 
 static const char * const
@@ -2674,8 +2273,8 @@ _uRegexErrorName[U_REGEX_ERROR_LIMIT - U_REGEX_ERROR_START] = {
 static const char * const
 _uIDNAErrorName[U_IDNA_ERROR_LIMIT - U_IDNA_ERROR_START] = {
       "U_IDNA_ERROR_START",
-      "U_IDNA_PROHIBITED_ERROR",
-      "U_IDNA_UNASSIGNED_ERROR",
+      "U_IDNA_PROHIBITED_CODEPOINT_FOUND_ERROR",
+      "U_IDNA_UNASSIGNED_CODEPOINT_FOUND_ERROR",
       "U_IDNA_CHECK_BIDI_ERROR",
       "U_IDNA_STD3_ASCII_RULES_ERROR",
       "U_IDNA_ACE_PREFIX_ERROR",

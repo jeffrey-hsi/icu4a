@@ -7,6 +7,10 @@
 
 en_PH {
     Version{"2.0"}
+//    AmPmMarkers { 
+//        "AM",
+//        "PM",
+//    }
 
     DateTimePatterns { 
         "h:mm:ss a z",
@@ -18,9 +22,6 @@ en_PH {
         "MM d, yy",
         "M/d/yy",
         "{1} {0}",
-    }
-    Currencies{
-        PHP { "PHP",  "Peso"     } 
     }
 //    NumberElements {
 //        ".",
@@ -41,5 +42,6 @@ en_PH {
         "#,##0%",
         "#E0",
     }
+    LocaleID:int { 0x3409 }
 
 }

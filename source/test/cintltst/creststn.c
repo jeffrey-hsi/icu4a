@@ -233,7 +233,7 @@ static void TestErrorCodes(void) {
   /* we look up the resource which is aliased, but it lives in fallback */
   if(U_SUCCESS(status) && r != NULL) {
     status = U_USING_DEFAULT_WARNING; 
-    r2 = ures_getByKey(r, "collations", NULL, &status);
+    r2 = ures_getByKey(r, "CollationElements", NULL, &status);
     checkStatus(U_USING_FALLBACK_WARNING, status);
   } 
   ures_close(r);
@@ -246,7 +246,7 @@ static void TestErrorCodes(void) {
   /* we look up the resource which is aliased and at our level */
   if(U_SUCCESS(status) && r != NULL) {
     status = U_USING_DEFAULT_WARNING; 
-    r2 = ures_getByKey(r, "collations", r2, &status);
+    r2 = ures_getByKey(r, "CollationElements", r2, &status);
     checkStatus(U_USING_DEFAULT_WARNING, status);
   }
   ures_close(r);
@@ -520,43 +520,29 @@ static void TestNewTypes() {
     /* this tests if unescaping works are expected */
     len=0;
     {
-        char pattern[2048] = "";
-        int32_t patternLen;
-        UChar* expectedEscaped;
-        const UChar* got;
-        int32_t expectedLen;
-
-        /* This strcpy fixes compiler warnings about long strings */
-        strcpy(pattern, "[ \\\\u0020 \\\\u00A0 \\\\u1680 \\\\u2000 \\\\u2001 \\\\u2002 \\\\u2003 \\\\u2004 \\\\u2005 \\\\u2006 \\\\u2007 "
+        static const char pattern[] = "[ \\\\u0020 \\\\u00A0 \\\\u1680 \\\\u2000 \\\\u2001 \\\\u2002 \\\\u2003 \\\\u2004 \\\\u2005 \\\\u2006 \\\\u2007 "
             "\\\\u2008 \\\\u2009 \\\\u200A \\u200B \\\\u202F \\u205F \\\\u3000 \\u0000-\\u001F \\u007F \\u0080-\\u009F "
             "\\\\u06DD \\\\u070F \\\\u180E \\\\u200C \\\\u200D \\\\u2028 \\\\u2029 \\\\u2060 \\\\u2061 \\\\u2062 \\\\u2063 "
             "\\\\u206A-\\\\u206F \\\\uFEFF \\\\uFFF9-\\uFFFC \\U0001D173-\\U0001D17A \\U000F0000-\\U000FFFFD "
             "\\U00100000-\\U0010FFFD \\uFDD0-\\uFDEF \\uFFFE-\\uFFFF \\U0001FFFE-\\U0001FFFF \\U0002FFFE-\\U0002FFFF "
-            );
-        strcat(pattern, 
             "\\U0003FFFE-\\U0003FFFF \\U0004FFFE-\\U0004FFFF \\U0005FFFE-\\U0005FFFF \\U0006FFFE-\\U0006FFFF "
             "\\U0007FFFE-\\U0007FFFF \\U0008FFFE-\\U0008FFFF \\U0009FFFE-\\U0009FFFF \\U000AFFFE-\\U000AFFFF "
             "\\U000BFFFE-\\U000BFFFF \\U000CFFFE-\\U000CFFFF \\U000DFFFE-\\U000DFFFF \\U000EFFFE-\\U000EFFFF "
             "\\U000FFFFE-\\U000FFFFF \\U0010FFFE-\\U0010FFFF \\uD800-\\uDFFF \\\\uFFF9 \\\\uFFFA \\\\uFFFB "
             "\\uFFFC \\uFFFD \\u2FF0-\\u2FFB \\u0340 \\u0341 \\\\u200E \\\\u200F \\\\u202A \\\\u202B \\\\u202C "
-            );
-        strcat(pattern, 
             "\\\\u202D \\\\u202E \\\\u206A \\\\u206B \\\\u206C \\\\u206D \\\\u206E \\\\u206F \\U000E0001 \\U000E0020-\\U000E007F "
-            "]"
-            );
+            "]";
 
-        patternLen = uprv_strlen(pattern);
-        expectedEscaped = (UChar*)malloc(U_SIZEOF_UCHAR * patternLen);
-        got = ures_getStringByKey(theBundle,"test_unescaping",&len,&status);
-        expectedLen = u_unescape(pattern,expectedEscaped,patternLen);
-        if(got==NULL || u_strncmp(expectedEscaped,got,expectedLen)!=0 || expectedLen != len){
+        int32_t patternLen = uprv_strlen(pattern);
+        UChar* expectedEscaped = (UChar*)malloc(U_SIZEOF_UCHAR * patternLen);
+        const UChar* got = ures_getStringByKey(theBundle,"test_unescaping",&len,&status);
+        int32_t expectedLen = u_unescape(pattern,expectedEscaped,patternLen);
+        if(u_strncmp(expectedEscaped,got,expectedLen)!=0 || expectedLen != len){
             log_err("genrb failed to unescape string\n");
         }
-        if(got != NULL){
-            for(i=0;i<expectedLen;i++){
-                if(expectedEscaped[i] != got[i]){
-                    log_verbose("Expected: 0x%04X Got: 0x%04X \n",expectedEscaped[i], got[i]);
-                }
+        for(i=0;i<expectedLen;i++){
+            if(expectedEscaped[i] != got[i]){
+                log_verbose("Expected: 0x%04X Got: 0x%04X \n",expectedEscaped[i], got[i]);
             }
         }
         free(expectedEscaped);
@@ -579,11 +565,10 @@ static void TestNewTypes() {
         int32_t strLength = 0;
         const UChar my[] = {0x0026,0x0027,0x0075,0x0027,0x0020,0x003d,0x0020,0x0027,0xff55,0x0027,0x0000}; /* &'\u0075' = '\uFF55' */
         status = U_ZERO_ERROR;
-        resB = ures_getByKey(theBundle, "collations", resB, &status);
-        resB = ures_getByKey(resB, "standard", resB, &status);
+        resB = ures_getByKey(theBundle,"CollationElements", resB,&status);
         str  = ures_getStringByKey(resB,"Sequence",&strLength,&status);
         if(!str || U_FAILURE(status)) {
-            log_data_err("Could not load collations from theBundle: %s\n", u_errorName(status));
+            log_data_err("Could not load CollationElements from theBundle: %s\n", u_errorName(status));
         } else if(u_strcmp(my,str) != 0){
             log_err("Did not get the expected string for escaped \\u0075\n");
         }
@@ -844,9 +829,7 @@ static void TestEmptyBundle(){
 static void TestBinaryCollationData(){
     UErrorCode status=U_ZERO_ERROR;
     const char*      locale="te";
-#if !UCONFIG_NO_COLLATION 
     const char* testdatapath;
-#endif
     UResourceBundle *teRes = NULL;
     UResourceBundle *coll=NULL;
     UResourceBundle *binColl = NULL;
@@ -871,8 +854,7 @@ static void TestBinaryCollationData(){
         return;
     }
     status=U_ZERO_ERROR;
-    coll = ures_getByKey(teRes, "collations", coll, &status);
-    coll = ures_getByKey(coll, "standard", coll, &status);
+    coll = ures_getByKey(teRes, "CollationElements", coll, &status);
     if(U_SUCCESS(status)){
         CONFIRM_ErrorCode(status, U_ZERO_ERROR);
         CONFIRM_INT_EQ(ures_getType(coll), URES_TABLE);
@@ -891,7 +873,7 @@ static void TestBinaryCollationData(){
         }
     }
     else{
-        log_err("ERROR: ures_getByKey(locale(te), collations) failed\n");
+        log_err("ERROR: ures_getByKey(locale(te), CollationElements) failed\n");
         return;
     }
     ures_close(binColl);
@@ -959,7 +941,7 @@ static void TestAPI() {
     }
     key=ures_getKey(teFillin);
     /*if(strcmp(key, "%%CollationBin") != 0){*/
-    if(strcmp(key, "array_2d_in_Root_te") != 0){
+    if(strcmp(key, "CollationElements") != 0){
         log_err("ERROR: ures_getNextResource() failed\n");
     }
 #endif
@@ -1158,8 +1140,7 @@ static void TestErrorConditions(){
     } 
     /*Test ures_getBinary(0 status != U_ILLEGAL_ARGUMENT_ERROR*/
     status=U_ZERO_ERROR;
-    coll = ures_getByKey(teRes, "collations", coll, &status);
-    coll = ures_getByKey(teRes, "standard", coll, &status);
+    coll = ures_getByKey(teRes, "CollationElements", coll, &status);
     binColl=ures_getByKey(coll, "%%CollationBin", binColl, &status);
 
     status=U_ILLEGAL_ARGUMENT_ERROR;
@@ -1266,45 +1247,45 @@ static void TestGetVersion(){
     int locCount = uloc_countAvailable();
     const char *locName = "root";
     log_verbose("The ures_getVersion tests begin : \n");
-
+  
     for(j = -1; j < locCount; j++) {
-        if(j >= 0) {
-            locName = uloc_getAvailable(j);
-        }
-        log_verbose("Testing version number for locale %s\n", locName);
-        resB = ures_open(NULL,locName, &status);
-        if (U_FAILURE(status)) {
-            log_err("Resource bundle creation for locale %s failed.: %s\n", locName, myErrorName(status));
-            ures_close(resB);
-            return;
-        }
-        ures_getVersion(resB, versionArray);
-        for (i=0; i<4; ++i) {
-            if (versionArray[i] < minVersionArray[i] ||
-                versionArray[i] > maxVersionArray[i])
-            {
-                log_err("Testing ures_getVersion(%-5s) - unexpected result: %d.%d.%d.%d\n", 
-                    locName, versionArray[0], versionArray[1], versionArray[2], versionArray[3]);
-                break;
-            }
-        }
-        ures_close(resB);
+      if(j >= 0) {
+        locName = uloc_getAvailable(j);
+      }
+      log_verbose("Testing version number for locale %s\n", locName);
+      resB = ures_open(NULL,locName, &status);
+      if (U_FAILURE(status)) {
+          log_err("Resource bundle creation for locale %s failed.: %s\n", locName, myErrorName(status));
+          ures_close(resB);
+          return;
+      }
+      ures_getVersion(resB, versionArray);
+      for (i=0; i<4; ++i) {
+          if (versionArray[i] < minVersionArray[i] ||
+              versionArray[i] > maxVersionArray[i])
+          {
+              log_err("Testing ures_getVersion() - unexpected result: %d.%d.%d.%d\n", 
+                  versionArray[0], versionArray[1], versionArray[2], versionArray[3]);
+              break;
+          }
+      }
+      ures_close(resB);
     }
 }
 
 static void TestResourceBundles()
 {
 
-    testTag("only_in_Root", TRUE, FALSE, FALSE);
-    testTag("in_Root_te", TRUE, TRUE, FALSE);
-    testTag("in_Root_te_te_IN", TRUE, TRUE, TRUE);
-    testTag("in_Root_te_IN", TRUE, FALSE, TRUE);
-    testTag("only_in_te", FALSE, TRUE, FALSE);
-    testTag("only_in_te_IN", FALSE, FALSE, TRUE);
-    testTag("in_te_te_IN", FALSE, TRUE, TRUE);
-    testTag("nonexistent", FALSE, FALSE, FALSE);
+  testTag("only_in_Root", TRUE, FALSE, FALSE);
+  testTag("in_Root_te", TRUE, TRUE, FALSE);
+  testTag("in_Root_te_te_IN", TRUE, TRUE, TRUE);
+  testTag("in_Root_te_IN", TRUE, FALSE, TRUE);
+  testTag("only_in_te", FALSE, TRUE, FALSE);
+  testTag("only_in_te_IN", FALSE, FALSE, TRUE);
+  testTag("in_te_te_IN", FALSE, TRUE, TRUE);
+  testTag("nonexistent", FALSE, FALSE, FALSE);
 
-    log_verbose("Passed:=  %d   Failed=   %d \n", pass, fail);
+  log_verbose("Passed:=  %d   Failed=   %d \n", pass, fail);
 
 }
 
@@ -1834,7 +1815,6 @@ static void TestFallback()
 {
     UErrorCode status = U_ZERO_ERROR;
     UResourceBundle *fr_FR = NULL;
-    UResourceBundle *subResource = NULL;
     const UChar *junk; /* ignored */
     int32_t resultLen;
 
@@ -1858,15 +1838,14 @@ static void TestFallback()
     status = U_ZERO_ERROR;
 
     /* OK first one. This should be a Default value. */
-    subResource = ures_getByKey(fr_FR, "CurrencyMap", NULL, &status);
+    junk = ures_getStringByKey(fr_FR, "%%PREEURO", &resultLen, &status);
     if(status != U_USING_DEFAULT_WARNING)
     {
-        log_data_err("Expected U_USING_DEFAULT_ERROR when trying to get LocaleScript from fr_FR, got %s\n", 
+        log_data_err("Expected U_USING_DEFAULT_ERROR when trying to get %%PREEURO from fr_FR, got %s\n", 
             u_errorName(status));
     }
 
     status = U_ZERO_ERROR;
-    ures_close(subResource);
 
     /* and this is a Fallback, to fr */
     junk = ures_getStringByKey(fr_FR, "DayNames", &resultLen, &status);
@@ -1884,16 +1863,14 @@ static void TestFallback()
     {
         UErrorCode err =U_ZERO_ERROR;
         UResourceBundle* myResB = ures_open(NULL,"no_NO_NY",&err);
-        UResourceBundle* resLocID = ures_getByKey(myResB, "Version", NULL, &err);
+        UResourceBundle* resLocID = ures_getByKey(myResB, "LocaleID", NULL, &err);
         UResourceBundle* tResB;
-        static const UChar versionStr[] = { 0x0033, 0x002E, 0x0030, 0};
-
         if(err != U_ZERO_ERROR){
-            log_data_err("Expected U_ZERO_ERROR when trying to test no_NO_NY aliased to nn_NO for Version err=%s\n",u_errorName(err));
+            log_data_err("Expected U_ZERO_ERROR when trying to test no_NO_NY aliased to nn_NO for LocaleID err=%s\n",u_errorName(err));
             return;
         }
-        if(u_strcmp(ures_getString(resLocID, &resultLen, &err), versionStr) != 0){
-            log_data_err("ures_getString(resLocID, &resultLen, &err) returned an unexpected version value\n");
+        if(ures_getInt(resLocID, &err) != 0x814){
+            log_data_err("Expected LocaleID=814, but got 0x%X\n", ures_getInt(resLocID, &err));
         }
         tResB = ures_getByKey(myResB, "DayNames", NULL, &err);
         if(err != U_USING_FALLBACK_WARNING){
@@ -1915,267 +1892,251 @@ static void printUChars(UChar* uchars){
 }
 
 static void TestResourceLevelAliasing(void) {
-    UErrorCode status = U_ZERO_ERROR;
-    UResourceBundle *aliasB = NULL, *tb = NULL;
-    UResourceBundle *en = NULL, *uk = NULL, *testtypes = NULL;  
-    const char* testdatapath = NULL;
-    const UChar *string = NULL, *sequence = NULL;
-    const uint8_t *binary = NULL, *binSequence = NULL;
-    int32_t strLen = 0, seqLen = 0, binLen = 0, binSeqLen = 0;
+  UErrorCode status = U_ZERO_ERROR;
+  UResourceBundle *aliasB = NULL, *tb = NULL;
+  UResourceBundle *en = NULL, *uk = NULL, *testtypes = NULL;  
+  const char* testdatapath = NULL;
+  const UChar *string = NULL, *sequence = NULL;
+  const uint8_t *binary = NULL, *binSequence = NULL;
+  int32_t strLen = 0, seqLen = 0, binLen = 0, binSeqLen = 0;
+  testdatapath=loadTestData(&status);
+  if(U_FAILURE(status))
+  {
+      log_err("Could not load testdata.dat %s \n",myErrorName(status));
+      return;
+  }
 
-#if !UCONFIG_NO_COLLATION 
-    char buffer[100];
-    char *s;
-#endif
+  aliasB = ures_open(testdatapath, "testaliases", &status);
 
-    testdatapath=loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
+  /* this should fail - circular alias */
+  tb = ures_getByKey(aliasB, "aaa", tb, &status);
+  if(status != U_TOO_MANY_ALIASES_ERROR) {
+    log_err("Failed to detect circular alias\n");
+  } else {
+    status = U_ZERO_ERROR;
+  }
+  tb = ures_getByKey(aliasB, "aab", tb, &status);
+  if(status != U_TOO_MANY_ALIASES_ERROR) {
+    log_err("Failed to detect circular alias\n");
+  } else {
+    status = U_ZERO_ERROR;
+  }
+  if(U_FAILURE(status) ) {
+    log_data_err("err loading tb resource\n");
+  }  else {
+    /* testing aliasing to a non existing resource */
+    tb = ures_getByKey(aliasB, "nonexisting", tb, &status);
+    if(status != U_MISSING_RESOURCE_ERROR) {
+      log_err("Managed to find an alias to non-existing resource\n");
+    } else {
+      status = U_ZERO_ERROR;
     }
     
-    aliasB = ures_open(testdatapath, "testaliases", &status);
+
+    /* testing referencing/composed alias */
+    uk = ures_findResource("uk/CollationElements/Sequence", uk, &status);
+    if((uk == NULL) || U_FAILURE(status)) {
+      log_err("Couldn't findResource('uk/collationelements/sequence') err %s\n", u_errorName(status));
+      return;
+    } 
+
+    sequence = ures_getString(uk, &seqLen, &status);
     
-    /* this should fail - circular alias */
-    tb = ures_getByKey(aliasB, "aaa", tb, &status);
-    if(status != U_TOO_MANY_ALIASES_ERROR) {
-        log_err("Failed to detect circular alias\n");
-    } else {
-        status = U_ZERO_ERROR;
+    tb = ures_getByKey(aliasB, "referencingalias", tb, &status);
+    string = ures_getString(tb, &strLen, &status);
+    
+    if(seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
+      log_err("Referencing alias didn't get the right string\n");
     }
-    tb = ures_getByKey(aliasB, "aab", tb, &status);
-    if(status != U_TOO_MANY_ALIASES_ERROR) {
-        log_err("Failed to detect circular alias\n");
-    } else {
-        status = U_ZERO_ERROR;
+
+    string = ures_getStringByKey(aliasB, "referencingalias", &strLen, &status);
+    if(seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
+      log_err("Referencing alias didn't get the right string\n");
     }
-    if(U_FAILURE(status) ) {
-        log_data_err("err loading tb resource\n");
-    }  else {
-        /* testing aliasing to a non existing resource */
-        tb = ures_getByKey(aliasB, "nonexisting", tb, &status);
-        if(status != U_MISSING_RESOURCE_ERROR) {
-            log_err("Managed to find an alias to non-existing resource\n");
-        } else {
-            status = U_ZERO_ERROR;
-        }
-        
-        
-        /* testing referencing/composed alias */
-        uk = ures_findResource("uk/collations/standard/Sequence", uk, &status);
-        if((uk == NULL) || U_FAILURE(status)) {
-            log_err("Couldn't findResource('uk/collations/standard/sequence') err %s\n", u_errorName(status));
-            return;
-        } 
-        
-        sequence = ures_getString(uk, &seqLen, &status);
-        
-        tb = ures_getByKey(aliasB, "referencingalias", tb, &status);
-        string = ures_getString(tb, &strLen, &status);
-        
-        if(seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
-            log_err("Referencing alias didn't get the right string\n");
-        }
-        
-        string = ures_getStringByKey(aliasB, "referencingalias", &strLen, &status);
-        if(seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
-            log_err("Referencing alias didn't get the right string\n");
-        }
-        
-        tb = ures_getByKey(aliasB, "collations", tb, &status);
-        tb = ures_getByKey(tb, "standard", tb, &status);
-        tb = ures_getByKey(tb, "Sequence", tb, &status);
-        string = ures_getString(tb, &strLen, &status);
-        
-        if(seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
-            log_err("Referencing alias didn't get the right string\n");
-        }
+
+    tb = ures_getByKey(aliasB, "CollationElements", tb, &status);
+    tb = ures_getByKey(tb, "Sequence", tb, &status);
+    string = ures_getString(tb, &strLen, &status);
+    
+    if(seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
+      log_err("Referencing alias didn't get the right string\n");
+    }
 
 #if !UCONFIG_NO_COLLATION
 
-        /*
-         * TODO for Vladimir: Make this test independent of UCONFIG_NO_xyz-switchable
-         * modules like collation, so that it can be tested even when collation
-         * data is not included in resource bundles.
-         */
+    /*
+     * TODO for Vladimir: Make this test independent of UCONFIG_NO_xyz-switchable
+     * modules like collation, so that it can be tested even when collation
+     * data is not included in resource bundles.
+     */
 
-        /* check whether the binary collation data is properly referenced by an alias */
-        uk = ures_findResource("uk/collations/standard/%%CollationBin", uk, &status);
-        binSequence = ures_getBinary(uk, &binSeqLen, &status);
+    /* check whether the binary collation data is properly referenced by an alias */
+    uk = ures_findResource("uk/CollationElements/%%CollationBin", uk, &status);
+    binSequence = ures_getBinary(uk, &binSeqLen, &status);
 
-        tb = ures_getByKey(aliasB, "collations", tb, &status);
-        tb = ures_getByKey(tb, "standard", tb, &status);
-        tb = ures_getByKey(tb, "%%CollationBin", tb, &status);
-        binary = ures_getBinary(tb, &binLen, &status);
+    tb = ures_getByKey(aliasB, "CollationElements", tb, &status);
+    tb = ures_getByKey(tb, "%%CollationBin", tb, &status);
+    binary = ures_getBinary(tb, &binLen, &status);
 
-        if(binSeqLen != binLen || uprv_memcmp(binSequence, binary, binSeqLen) != 0) {
-          log_err("Referencing alias didn't get the right string\n");
-        }
+    if(binSeqLen != binLen || uprv_memcmp(binSequence, binary, binSeqLen) != 0) {
+      log_err("Referencing alias didn't get the right string\n");
+    }
 
-        /* simple alias */
-        testtypes = ures_open(testdatapath, "testtypes", &status);
-        strcpy(buffer, "menu/file/open");
-        s = buffer;
-        uk = ures_findSubResource(testtypes, s, uk, &status);
-        sequence = ures_getString(uk, &seqLen, &status);
+    /* simple alias */
+    testtypes = ures_open(testdatapath, "testtypes", &status);
+    uk = ures_findSubResource(testtypes, "menu/file/open", uk, &status);
+    sequence = ures_getString(uk, &seqLen, &status);
 
-        tb = ures_getByKey(aliasB, "simplealias", tb, &status);
-        string = ures_getString(tb, &strLen, &status);
+    tb = ures_getByKey(aliasB, "simplealias", tb, &status);
+    string = ures_getString(tb, &strLen, &status);
 
-        if(U_FAILURE(status) || seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
-          log_err("Referencing alias didn't get the right string\n");
-        }
+    if(U_FAILURE(status) || seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
+      log_err("Referencing alias didn't get the right string\n");
+    }
 
-        /* test indexed aliasing */
+    /* test indexed aliasing */
 
-        tb = ures_getByKey(aliasB, "zoneTests", tb, &status);
-        tb = ures_getByKey(tb, "zoneAlias2", tb, &status);
-        string = ures_getString(tb, &strLen, &status);
+    tb = ures_getByKey(aliasB, "zoneTests", tb, &status);
+    tb = ures_getByKey(tb, "zoneAlias2", tb, &status);
+    string = ures_getString(tb, &strLen, &status);
 
-        en = ures_findResource("en/zoneStrings/3/0", en, &status);
-        sequence = ures_getString(en, &seqLen, &status);
+    en = ures_findResource("en/zoneStrings/3/0", en, &status);
+    sequence = ures_getString(en, &seqLen, &status);
 
-        if(U_FAILURE(status) || seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
-          log_err("Referencing alias didn't get the right string\n");
-        }
+    if(U_FAILURE(status) || seqLen != strLen || u_strncmp(sequence, string, seqLen) != 0) {
+      log_err("Referencing alias didn't get the right string\n");
+    }
 
 #endif
+  }
+  /* test getting aliased string by index */
+  {
+    const char* keys[] = {
+        "KeyAlias0PST",
+        "KeyAlias1PacificStandardTime",
+        "KeyAlias2PDT",
+        "KeyAlias3LosAngeles"
+    };
+
+    const char* strings[] = {
+      "PST",
+      "Pacific Standard Time",
+      "PDT",
+      "Los Angeles",
+    };
+    UChar buffer[256];
+    const UChar* result;
+    int32_t bufferLen = 0, resultLen = 0;
+    int32_t i = 0;
+    const char *key = NULL;
+    tb = ures_getByKey(aliasB, "testGetStringByKeyAliasing", tb, &status);
+    if(U_FAILURE(status)) {
+      log_err("Couldn't get testGetStringByKeyAliasing resource\n");
     }
-    /* test getting aliased string by index */
-    {
-        const char* keys[] = {
-            "KeyAlias0PST",
-                "KeyAlias1PacificStandardTime",
-                "KeyAlias2PDT",
-                "KeyAlias3LosAngeles"
-        };
-        
-        const char* strings[] = {
-            "PST",
-                "Pacific Standard Time",
-                "PDT",
-                "Los Angeles",
-        };
-        UChar uBuffer[256];
-        const UChar* result;
-        int32_t uBufferLen = 0, resultLen = 0;
-        int32_t i = 0;
-        const char *key = NULL;
-        tb = ures_getByKey(aliasB, "testGetStringByKeyAliasing", tb, &status);
-        if(U_FAILURE(status)) {
-            log_err("Couldn't get testGetStringByKeyAliasing resource\n");
-        }
-        for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
-            result = ures_getStringByKey(tb, keys[i], &resultLen, &status);
-            uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
-                log_err("Didn't get correct string while accesing alias table by key\n");
-            }
-        }
-        for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
-            result = ures_getStringByIndex(tb, i, &resultLen, &status);
-            uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
-                log_err("Didn't get correct string while accesing alias table by index\n");
-            }
-        }
-        for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
-            result = ures_getNextString(tb, &resultLen, &key, &status);
-            uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
-                log_err("Didn't get correct string while iterating over alias table\n");
-            }
-        }
-        tb = ures_getByKey(aliasB, "testGetStringByIndexAliasing", tb, &status);
-        if(U_FAILURE(status)) {
-            log_err("Couldn't get testGetStringByIndexAliasing resource\n");
-        }
-        for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
-            result = ures_getStringByIndex(tb, i, &resultLen, &status);
-            uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
-                log_err("Didn't get correct string while accesing alias by index in an array\n");
-            }
-        }
-        for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
-            result = ures_getNextString(tb, &resultLen, &key, &status);
-            uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
-                log_err("Didn't get correct string while iterating over aliases in an array\n");
-            }
-        }
+    for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
+      result = ures_getStringByKey(tb, keys[i], &resultLen, &status);
+      bufferLen = u_unescape(strings[i], buffer, 256);
+      if(resultLen != bufferLen || u_strncmp(result, buffer, resultLen) != 0) {
+        log_err("Didn't get correct string while accesing alias table by key\n");
+      }
     }
-    
-    ures_close(aliasB);
-    ures_close(tb);
-    ures_close(en);
-    ures_close(uk);
-    ures_close(testtypes);
+    for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
+      result = ures_getStringByIndex(tb, i, &resultLen, &status);
+      bufferLen = u_unescape(strings[i], buffer, 256);
+      if(resultLen != bufferLen || u_strncmp(result, buffer, resultLen) != 0) {
+        log_err("Didn't get correct string while accesing alias table by index\n");
+      }
+    }
+    for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
+      result = ures_getNextString(tb, &resultLen, &key, &status);
+      bufferLen = u_unescape(strings[i], buffer, 256);
+      if(resultLen != bufferLen || u_strncmp(result, buffer, resultLen) != 0) {
+        log_err("Didn't get correct string while iterating over alias table\n");
+      }
+    }
+    tb = ures_getByKey(aliasB, "testGetStringByIndexAliasing", tb, &status);
+    if(U_FAILURE(status)) {
+      log_err("Couldn't get testGetStringByIndexAliasing resource\n");
+    }
+    for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
+      result = ures_getStringByIndex(tb, i, &resultLen, &status);
+      bufferLen = u_unescape(strings[i], buffer, 256);
+      if(resultLen != bufferLen || u_strncmp(result, buffer, resultLen) != 0) {
+        log_err("Didn't get correct string while accesing alias by index in an array\n");
+      }
+    }
+    for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
+      result = ures_getNextString(tb, &resultLen, &key, &status);
+      bufferLen = u_unescape(strings[i], buffer, 256);
+      if(resultLen != bufferLen || u_strncmp(result, buffer, resultLen) != 0) {
+        log_err("Didn't get correct string while iterating over aliases in an array\n");
+      }
+    }
+  }
+
+  ures_close(aliasB);
+  ures_close(tb);
+  ures_close(en);
+  ures_close(uk);
+  ures_close(testtypes);
 }
 
 static void TestDirectAccess(void) {
-    UErrorCode status = U_ZERO_ERROR;
-    UResourceBundle *t = NULL, *t2 = NULL;
-    const char* key = NULL;
-    
-    char buffer[100];
-    char *s;
-    
-    t = ures_findResource("en/zoneStrings/3/2", t, &status);
-    if(U_FAILURE(status)) {
-        log_err("Couldn't access indexed resource, error %s\n", u_errorName(status));
-        status = U_ZERO_ERROR;
-    } else {
-        key = ures_getKey(t);
-        if(key != NULL) {
-            log_err("Got a strange key, expected NULL, got %s\n", key);
-        }
-    }
-    t = ures_findResource("en/zoneStrings/3", t, &status);
-    if(U_FAILURE(status)) {
-        log_err("Couldn't access indexed resource, error %s\n", u_errorName(status));
-        status = U_ZERO_ERROR;
-    } else {
-        key = ures_getKey(t);
-        if(key != NULL) {
-            log_err("Got a strange key, expected NULL, got %s\n", key);
-        }
-    }
-    
-    t = ures_findResource("sh/collations/standard/Sequence", t, &status);
-    if(U_FAILURE(status)) {
-        log_err("Couldn't access keyed resource, error %s\n", u_errorName(status));
-        status = U_ZERO_ERROR;
-    } else {
-        key = ures_getKey(t);
-        if(strcmp(key, "Sequence")!=0) {
-            log_err("Got a strange key, expected 'Sequence', got %s\n", key);
-        }
-    }
-    
-    t2 = ures_open(NULL, "sh", &status);
-    if(U_FAILURE(status)) {
-        log_err("Couldn't open 'sh' resource bundle, error %s\n", u_errorName(status));
-        log_data_err("No 'sh', no test - you have bigger problems than testing direct access. You probably have no data! Aborting this test\n");
-    }
-    
-    if(U_SUCCESS(status)) {
-        strcpy(buffer, "collations/standard/Sequence");
-        s = buffer;
-        t = ures_findSubResource(t2, s, t, &status);
-        if(U_FAILURE(status)) {
-            log_err("Couldn't access keyed resource, error %s\n", u_errorName(status));
-            status = U_ZERO_ERROR;
-        } else {
-            key = ures_getKey(t);
-            if(strcmp(key, "Sequence")!=0) {
-                log_err("Got a strange key, expected 'Sequence', got %s\n", key);
-            }
-        }
-    }
-    
-    ures_close(t);
-    ures_close(t2);
-}
+  UErrorCode status = U_ZERO_ERROR;
+  UResourceBundle *t = NULL, *t2 = NULL;
+  const char* key = NULL;
 
+  t = ures_findResource("en/zoneStrings/3/2", t, &status);
+  if(U_FAILURE(status)) {
+    log_err("Couldn't access indexed resource, error %s\n", u_errorName(status));
+    status = U_ZERO_ERROR;
+  } else {
+    key = ures_getKey(t);
+    if(key != NULL) {
+      log_err("Got a strange key, expected NULL, got %s\n", key);
+    }
+  }
+  t = ures_findResource("en/zoneStrings/3", t, &status);
+  if(U_FAILURE(status)) {
+    log_err("Couldn't access indexed resource, error %s\n", u_errorName(status));
+    status = U_ZERO_ERROR;
+  } else {
+    key = ures_getKey(t);
+    if(key != NULL) {
+      log_err("Got a strange key, expected NULL, got %s\n", key);
+    }
+  }
+
+  t = ures_findResource("sh/CollationElements/Sequence", t, &status);
+  if(U_FAILURE(status)) {
+    log_err("Couldn't access keyed resource, error %s\n", u_errorName(status));
+    status = U_ZERO_ERROR;
+  } else {
+    key = ures_getKey(t);
+    if(strcmp(key, "Sequence")!=0) {
+      log_err("Got a strange key, expected 'Sequence', got %s\n", key);
+    }
+  }
+
+  t2 = ures_open(NULL, "sh", &status);
+  if(U_FAILURE(status)) {
+    log_err("Couldn't open 'sh' resource bundle, error %s\n", u_errorName(status));
+    log_data_err("No 'sh', no test - you have bigger problems than testing direct access. You probably have no data! Aborting this test\n");
+  }
+
+  if(U_SUCCESS(status)) {
+    t = ures_findSubResource(t2, "CollationElements/Sequence", t, &status);
+    if(U_FAILURE(status)) {
+      log_err("Couldn't access keyed resource, error %s\n", u_errorName(status));
+      status = U_ZERO_ERROR;
+    } else {
+      key = ures_getKey(t);
+      if(strcmp(key, "Sequence")!=0) {
+        log_err("Got a strange key, expected 'Sequence', got %s\n", key);
+      }
+    }
+  }
+
+  ures_close(t);
+  ures_close(t2);
+}

@@ -126,66 +126,66 @@ le_int32 StyleRuns::getRuns(le_int32 runLimits[], le_int32 styleIndices[])
 }
 
 /*
- * NOTE: This table only has "TRUE" values for
+ * NOTE: This table only has "true" values for
  * those scripts which the LayoutEngine can currently
  * process, rather for all scripts which require
  * complex processing for correct rendering.
  */
 static const le_bool complexTable[] = {
-    FALSE , /* Zyyy */
-    FALSE,  /* Qaai */
-    TRUE,   /* Arab */
-    FALSE,  /* Armn */
-    TRUE,   /* Beng */
-    FALSE,  /* Bopo */
-    FALSE,  /* Cher */
-    FALSE,  /* Qaac */
-    FALSE,  /* Cyrl */
-    FALSE,  /* Dsrt */
-    TRUE,   /* Deva */
-    FALSE,  /* Ethi */
-    FALSE,  /* Geor */
-    FALSE,  /* Goth */
-    FALSE,  /* Grek */
-    TRUE,   /* Gujr */
-    TRUE,   /* Guru */
-    FALSE,  /* Hani */
-    FALSE,  /* Hang */
-    TRUE,   /* Hebr */
-    FALSE,  /* Hira */
-    TRUE,   /* Knda */
-    FALSE,  /* Kana */
-    FALSE,  /* Khmr */
-    FALSE,  /* Laoo */
-    FALSE,  /* Latn */
-    TRUE,   /* Mlym */
-    FALSE,  /* Mong */
-    FALSE,  /* Mymr */
-    FALSE,  /* Ogam */
-    FALSE,  /* Ital */
-    TRUE,   /* Orya */
-    FALSE,  /* Runr */
-    FALSE,  /* Sinh */
-    FALSE,  /* Syrc */
-    TRUE,   /* Taml */
-    TRUE,   /* Telu */
-    FALSE,  /* Thaa */
-    TRUE,   /* Thai */
-    FALSE,  /* Tibt */
-    FALSE,  /* Cans */
-    FALSE,  /* Yiii */
-    FALSE,  /* Tglg */
-    FALSE,  /* Hano */
-    FALSE,  /* Buhd */
-    FALSE,  /* Tagb */
-    FALSE,  /* Brai */
-    FALSE,  /* Cprt */
-    FALSE,  /* Limb */
-    FALSE,  /* Linb */
-    FALSE,  /* Osma */
-    FALSE,  /* Shaw */
-    FALSE,  /* Tale */
-    FALSE   /* Ugar */
+    false , /* Zyyy */
+    false,  /* Qaai */
+    true,   /* Arab */
+    false,  /* Armn */
+    true,   /* Beng */
+    false,  /* Bopo */
+    false,  /* Cher */
+    false,  /* Qaac */
+    false,  /* Cyrl */
+    false,  /* Dsrt */
+    true,   /* Deva */
+    false,  /* Ethi */
+    false,  /* Geor */
+    false,  /* Goth */
+    false,  /* Grek */
+    true,   /* Gujr */
+    true,   /* Guru */
+    false,  /* Hani */
+    false,  /* Hang */
+    true,   /* Hebr */
+    false,  /* Hira */
+    true,   /* Knda */
+    false,  /* Kana */
+    false,  /* Khmr */
+    false,  /* Laoo */
+    false,  /* Latn */
+    true,   /* Mlym */
+    false,  /* Mong */
+    false,  /* Mymr */
+    false,  /* Ogam */
+    false,  /* Ital */
+    true,   /* Orya */
+    false,  /* Runr */
+    false,  /* Sinh */
+    false,  /* Syrc */
+    true,   /* Taml */
+    true,   /* Telu */
+    false,  /* Thaa */
+    true,   /* Thai */
+    false,  /* Tibt */
+    false,  /* Cans */
+    false,  /* Yiii */
+    false,  /* Tglg */
+    false,  /* Hano */
+    false,  /* Buhd */
+    false,  /* Tagb */
+    false,  /* Brai */
+    false,  /* Cprt */
+    false,  /* Limb */
+    false,  /* Linb */
+    false,  /* Osma */
+    false,  /* Shaw */
+    false,  /* Tale */
+    false   /* Ugar */
 };
 
 
@@ -216,25 +216,18 @@ ParagraphLayout::ParagraphLayout(const LEUnicode chars[], le_int32 count,
                                  const ValueRuns  *levelRuns,
                                  const ValueRuns  *scriptRuns,
                                  const LocaleRuns *localeRuns,
-                                 UBiDiLevel paragraphLevel, le_bool vertical,
-								 LEErrorCode &status)
+                                 UBiDiLevel paragraphLevel, le_bool vertical)
                                  : fChars(chars), fCharCount(count),
                                    fFontRuns(NULL), fLevelRuns(levelRuns), fScriptRuns(scriptRuns), fLocaleRuns(localeRuns),
-                                   fVertical(vertical), fClientLevels(TRUE), fClientScripts(TRUE), fClientLocales(TRUE), fEmbeddingLevels(NULL),
+                                   fVertical(vertical), fClientLevels(true), fClientScripts(true), fClientLocales(true), fEmbeddingLevels(NULL),
                                    fAscent(0), fDescent(0), fLeading(0),
-                                   fGlyphToCharMap(NULL), fCharToMinGlyphMap(NULL), fCharToMaxGlyphMap(NULL), fGlyphWidths(NULL), fGlyphCount(0),
+                                   fGlyphToCharMap(NULL), fCharToGlyphMap(NULL), fGlyphWidths(NULL), fGlyphCount(0),
                                    fParaBidi(NULL), fLineBidi(NULL),
                                    fStyleRunLimits(NULL), fStyleIndices(NULL), fStyleRunCount(0),
                                    fBreakIterator(NULL), fLineStart(-1), fLineEnd(0),
                                  /*fVisualRuns(NULL), fStyleRunInfo(NULL), fVisualRunCount(-1),
                                    fFirstVisualRun(-1), fLastVisualRun(-1),*/ fVisualRunLastX(0), fVisualRunLastY(0)
 {
-
-	if (LE_FAILURE(status)) {
-		fCharCount = -1;
-		return;
-	}
-
     // FIXME: should check the limit arrays for consistency...
 
     computeLevels(paragraphLevel);
@@ -247,13 +240,7 @@ ParagraphLayout::ParagraphLayout(const LEUnicode chars[], le_int32 count,
         computeLocales();
     }
 
-    computeSubFonts(fontRuns, status);
-
-	if (LE_FAILURE(status)) {
-		//other stuff?
-		fCharCount = -1;
-		return;
-	}
+    computeSubFonts(fontRuns);
 
     // now intersect the font, direction and script runs...
     const RunArray *styleRunArrays[] = {fFontRuns, fLevelRuns, fScriptRuns, fLocaleRuns};
@@ -300,19 +287,17 @@ ParagraphLayout::ParagraphLayout(const LEUnicode chars[], le_int32 count,
     //
     // For each layout get the positions and convert them into glyph widths, in
     // logical order. Get the glyph-to-char mapping, offset by starting index in the
-    // character array. Swap the glyph width and glyph-to-char arrays into logical order.
-	// Finally, fill in the char-to-glyph mappings.
-    fGlyphWidths       = LE_NEW_ARRAY(float, fGlyphCount);
-    fGlyphToCharMap    = LE_NEW_ARRAY(le_int32, fGlyphCount + 1);
-    fCharToMinGlyphMap = LE_NEW_ARRAY(le_int32, fCharCount + 1);
-	fCharToMaxGlyphMap = LE_NEW_ARRAY(le_int32, fCharCount + 1);
-
-	le_int32 glyph;
+    // width array, and swap it into logical order. Then fill in the char-to-glyph map
+    // from this. (charToGlyph[glyphToChar[i]] = i)
+    fGlyphWidths    = LE_NEW_ARRAY(float, fGlyphCount);
+    fGlyphToCharMap = LE_NEW_ARRAY(le_int32, fGlyphCount + 1);
+    fCharToGlyphMap = LE_NEW_ARRAY(le_int32, fCharCount + 1);
 
     for (runStart = 0, run = 0; run < fStyleRunCount; run += 1) {
         LayoutEngine *engine = fStyleRunInfo[run].engine;
         le_int32 glyphCount  = fStyleRunInfo[run].glyphCount;
         le_int32 glyphBase   = fStyleRunInfo[run].glyphBase;
+        le_int32 glyph;
 
         fStyleRunInfo[run].glyphs = LE_NEW_ARRAY(LEGlyphID, glyphCount);
         fStyleRunInfo[run].positions = LE_NEW_ARRAY(float, glyphCount * 2 + 2);
@@ -323,11 +308,23 @@ ParagraphLayout::ParagraphLayout(const LEUnicode chars[], le_int32 count,
 
         for (glyph = 0; glyph < glyphCount; glyph += 1) {
             fGlyphWidths[glyphBase + glyph] = fStyleRunInfo[run].positions[glyph * 2 + 2] - fStyleRunInfo[run].positions[glyph * 2];
+            fCharToGlyphMap[fGlyphToCharMap[glyphBase + glyph]] = glyphBase + glyph;
         }
 
         if ((fStyleRunInfo[run].level & 1) != 0) {
             LXUtilities::reverse(&fGlyphWidths[glyphBase], glyphCount);
             LXUtilities::reverse(&fGlyphToCharMap[glyphBase], glyphCount);
+
+            // LXUtilities::reverse(&fCharToGlyphMap[runStart], fStyleRunLimits[run] - runStart);
+            // convert from visual to logical glyph indices
+            for (glyph = glyphBase; glyph < glyphBase + glyphCount; glyph += 1) {
+                le_int32 ch = fGlyphToCharMap[glyph];
+                le_int32 lastGlyph = glyphBase + glyphCount - 1;
+
+                // both lastGlyph and fCharToGlyphMap[ch] are biased by
+                // glyphBase, so subtracting them will remove the bias.
+                fCharToGlyphMap[ch] = lastGlyph - fCharToGlyphMap[ch] + glyphBase;
+            }
         }
 
         runStart = fStyleRunLimits[run];
@@ -336,23 +333,8 @@ ParagraphLayout::ParagraphLayout(const LEUnicode chars[], le_int32 count,
         fStyleRunInfo[run].engine = NULL;
     }
 
+    fCharToGlyphMap[fCharCount]  = fGlyphCount;
     fGlyphToCharMap[fGlyphCount] = fCharCount;
-
-	for (glyph = fGlyphCount - 1; glyph >= 0; glyph -= 1) {
-		le_int32 ch = fGlyphToCharMap[glyph];
-
-		fCharToMinGlyphMap[ch] = glyph;
-	}
-
-    fCharToMinGlyphMap[fCharCount] = fGlyphCount;
-
-	for (glyph = 0; glyph < fGlyphCount; glyph += 1) {
-		le_int32 ch = fGlyphToCharMap[glyph];
-
-		fCharToMaxGlyphMap[ch] = glyph;
-	}
-
-	fCharToMaxGlyphMap[fCharCount] = fGlyphCount;
 }
 
 ParagraphLayout::~ParagraphLayout()
@@ -363,21 +345,21 @@ ParagraphLayout::~ParagraphLayout()
         delete (ValueRuns *) fLevelRuns;
         fLevelRuns = NULL;
 
-        fClientLevels = TRUE;
+        fClientLevels = true;
     }
 
     if (! fClientScripts) {
         delete (ValueRuns *) fScriptRuns;
         fScriptRuns = NULL;
 
-        fClientScripts = TRUE;
+        fClientScripts = true;
     }
 
     if (! fClientLocales) {
         delete (LocaleRuns *) fLocaleRuns;
         fLocaleRuns = NULL;
 
-        fClientLocales = TRUE;
+        fClientLocales = true;
     }
 
     if (fEmbeddingLevels != NULL) {
@@ -390,15 +372,10 @@ ParagraphLayout::~ParagraphLayout()
         fGlyphToCharMap = NULL;
     }
 
-    if (fCharToMinGlyphMap != NULL) {
-        LE_DELETE_ARRAY(fCharToMinGlyphMap);
-        fCharToMinGlyphMap = NULL;
+    if (fCharToGlyphMap != NULL) {
+        LE_DELETE_ARRAY(fCharToGlyphMap);
+        fCharToGlyphMap = NULL;
     }
-
-	if (fCharToMaxGlyphMap != NULL) {
-		LE_DELETE_ARRAY(fCharToMaxGlyphMap);
-		fCharToMaxGlyphMap = NULL;
-	}
 
     if (fGlyphWidths != NULL) {
         LE_DELETE_ARRAY(fGlyphWidths);
@@ -452,16 +429,16 @@ le_bool ParagraphLayout::isComplex(const LEUnicode chars[], le_int32 count)
 
     while (uscript_nextRun(sr, NULL, NULL, &scriptCode)) {
         if (isComplex(scriptCode)) {
-            return TRUE;
+            return true;
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 le_int32 ParagraphLayout::getAscent() const
 {
-    if (fAscent <= 0 && fCharCount > 0) {
+    if (fAscent <= 0) {
         ((ParagraphLayout *) this)->computeMetrics();
     }
 
@@ -470,7 +447,7 @@ le_int32 ParagraphLayout::getAscent() const
 
 le_int32 ParagraphLayout::getDescent() const
 {
-    if (fAscent <= 0 && fCharCount > 0) {
+    if (fAscent <= 0) {
         ((ParagraphLayout *) this)->computeMetrics();
     }
 
@@ -479,7 +456,7 @@ le_int32 ParagraphLayout::getDescent() const
 
 le_int32 ParagraphLayout::getLeading() const
 {
-    if (fAscent <= 0 && fCharCount > 0) {
+    if (fAscent <= 0) {
         ((ParagraphLayout *) this)->computeMetrics();
     }
 
@@ -495,7 +472,7 @@ ParagraphLayout::Line *ParagraphLayout::nextLine(float width)
     fLineStart = fLineEnd;
 
     if (width > 0) {
-        le_int32 glyph    = fCharToMinGlyphMap[fLineStart];
+        le_int32 glyph    = fCharToGlyphMap[fLineStart];
         float widthSoFar  = 0;
 
         while (glyph < fGlyphCount && widthSoFar + fGlyphWidths[glyph] <= width) {
@@ -515,12 +492,11 @@ ParagraphLayout::Line *ParagraphLayout::nextLine(float width)
 
         fLineEnd = previousBreak(fGlyphToCharMap[glyph]);
 
-        // If this break is at or before the last one,
-		// find a glyph, starting at the one which didn't
-		// fit, that produces a break after the last one.
-		while (fLineEnd <= fLineStart) {
-			fLineEnd = fGlyphToCharMap[glyph++];
-		}
+        // If there's no real break, break at the
+        // glyph that didn't fit.
+        if (fLineEnd <= fLineStart) {
+            fLineEnd = fGlyphToCharMap[glyph];
+        }
     } else {
         fLineEnd = fCharCount;
     }
@@ -567,7 +543,7 @@ void ParagraphLayout::computeLevels(UBiDiLevel paragraphLevel)
         }
 
         fLevelRuns    = levelRuns;
-        fClientLevels = FALSE;
+        fClientLevels = false;
     }
 }
 
@@ -586,7 +562,7 @@ void ParagraphLayout::computeScripts()
     uscript_closeRun(sr);
 
     fScriptRuns    = scriptRuns;
-    fClientScripts = FALSE;
+    fClientScripts = false;
 }
 
 void ParagraphLayout::computeLocales()
@@ -597,15 +573,11 @@ void ParagraphLayout::computeLocales()
     localeRuns->add(defaultLocale, fCharCount);
 
     fLocaleRuns    = localeRuns;
-    fClientLocales = FALSE;
+    fClientLocales = false;
 }
 
-void ParagraphLayout::computeSubFonts(const FontRuns *fontRuns, LEErrorCode &status)
+void ParagraphLayout::computeSubFonts(const FontRuns *fontRuns)
 {
-	if (LE_FAILURE(status)) {
-		return;
-	}
-
     const RunArray *styleRunArrays[] = {fontRuns, fScriptRuns};
     le_int32 styleCount = sizeof styleRunArrays / sizeof styleRunArrays[0];
     StyleRuns styleRuns(styleRunArrays, styleCount);
@@ -623,14 +595,10 @@ void ParagraphLayout::computeSubFonts(const FontRuns *fontRuns, LEErrorCode &sta
     for (run = 0; run < styleRunCount; run += 1) {
         const LEFontInstance *runFont = fontRuns->getFont(si[0]);
         le_int32 script = fScriptRuns->getValue(si[1]);
+        LEErrorCode success = LE_NO_ERROR;
 
         while (offset < styleRunLimits[run]) {
-            const LEFontInstance *subFont = runFont->getSubFont(fChars, &offset, styleRunLimits[run], script, status);
-
-			if (LE_FAILURE(status)) {
-				delete subFontRuns;
-				goto cleanUp;
-			}
+            const LEFontInstance *subFont = runFont->getSubFont(fChars, &offset, styleRunLimits[run], script, success);
 
             subFontRuns->add(subFont, offset);
         }
@@ -640,7 +608,6 @@ void ParagraphLayout::computeSubFonts(const FontRuns *fontRuns, LEErrorCode &sta
 
     fFontRuns = subFontRuns;
 
-cleanUp:
     LE_DELETE_ARRAY(styleIndices);
     LE_DELETE_ARRAY(styleRunLimits);
 }
@@ -756,7 +723,7 @@ le_int32 ParagraphLayout::getLanguageCode(const Locale *locale)
 le_bool ParagraphLayout::isComplex(UScriptCode script)
 {
     if (script < 0 || script >= USCRIPT_CODE_LIMIT) {
-        return FALSE;
+        return false;
     }
 
     return complexTable[script];
@@ -843,15 +810,14 @@ void ParagraphLayout::appendRun(ParagraphLayout::Line *line, le_int32 run, le_in
     le_int32 ch;
 
     for (ch = firstChar; ch <= lastChar; ch += 1) {
-        le_int32 minGlyph = fCharToMinGlyphMap[ch];
-		le_int32 maxGlyph = fCharToMaxGlyphMap[ch];
+        le_int32 glyph = fCharToGlyphMap[ch];
 
-        if (minGlyph < leftGlyph) {
-            leftGlyph = minGlyph;
+        if (glyph < leftGlyph) {
+            leftGlyph = glyph;
         }
 
-        if (maxGlyph > rightGlyph) {
-            rightGlyph = maxGlyph;
+        if (glyph > rightGlyph) {
+            rightGlyph = glyph;
         }
     }
 
@@ -872,8 +838,12 @@ void ParagraphLayout::appendRun(ParagraphLayout::Line *line, le_int32 run, le_in
     // from the middle of a layout. If we've got a right-to-left run, we
     // want the left-most glyph to start at the final x position of the
     // previous run, even though this glyph may be in the middle of the
-    // run.
-	fVisualRunLastX -= fStyleRunInfo[run].positions[leftGlyph * 2];
+    // layout.
+    if (run == fFirstVisualRun) {
+        fVisualRunLastX = - fStyleRunInfo[run].positions[leftGlyph * 2];
+    } else if ((fStyleRunInfo[run].level & 1) != 0) {
+        fVisualRunLastX -= fStyleRunInfo[run].positions[leftGlyph * 2];
+    }
  
     // Make rightGlyph be the glyph just to the right of
     // the run's glyphs
@@ -973,15 +943,6 @@ le_int32 ParagraphLayout::Line::getLeading() const
     return fLeading;
 }
 
-le_int32 ParagraphLayout::Line::getWidth() const
-{
-	const VisualRun *lastRun = getVisualRun(fRunCount - 1);
-	le_int32 glyphCount = lastRun->getGlyphCount();
-	const float *positions = lastRun->getPositions();
-	
-	return (le_int32) positions[glyphCount * 2];
-}
-
 const ParagraphLayout::VisualRun *ParagraphLayout::Line::getVisualRun(le_int32 runIndex) const
 {
     if (runIndex < 0 || runIndex >= fRunCount) {
@@ -1038,13 +999,6 @@ void ParagraphLayout::Line::computeMetrics()
 }
 
 const char ParagraphLayout::VisualRun::fgClassID = 0;
-
-ParagraphLayout::VisualRun::~VisualRun()
-{
-    LE_DELETE_ARRAY(fGlyphToCharMap);
-    LE_DELETE_ARRAY(fPositions);
-    LE_DELETE_ARRAY(fGlyphs);
-}
 
 U_NAMESPACE_END
 

@@ -45,21 +45,8 @@
 U_CAPI char U_EXPORT2
 uprv_toupper(char c);
 
-
 U_CAPI char U_EXPORT2
-uprv_asciitolower(char c);
-
-U_CAPI char U_EXPORT2
-uprv_ebcdictolower(char c);
-
-#if U_CHARSET_FAMILY==U_ASCII_FAMILY
-#   define uprv_tolower uprv_asciitolower
-#elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
-#   define uprv_tolower uprv_ebcdictolower
-#else
-#   error U_CHARSET_FAMILY is not valid
-#endif
-
+uprv_tolower(char c);
 
 #define uprv_strtoul(str, end, base) U_STANDARD_CPP_NAMESPACE strtoul(str, end, base)
 #define uprv_strtol(str, end, base) U_STANDARD_CPP_NAMESPACE strtol(str, end, base)
@@ -89,9 +76,6 @@ T_CString_toUpperCase(char* str);
 
 U_CAPI int32_t U_EXPORT2
 T_CString_integerToString(char *buffer, int32_t n, int32_t radix);
-
-U_CAPI int32_t U_EXPORT2
-T_CString_int64ToString(char *buffer, int64_t n, uint32_t radix);
 
 U_CAPI int32_t U_EXPORT2
 T_CString_stringToInteger(const char *integerString, int32_t radix);

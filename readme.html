@@ -3,7 +3,7 @@
 <html lang="en-US">
   <head>
     <meta name="COPYRIGHT" content=
-    "Copyright (c) 1997-2004 IBM Corporation and others. All Rights Reserved.">
+    "Copyright (c) 1997-2003 IBM Corporation and others. All Rights Reserved.">
     <meta name="KEYWORDS" content=
     "ICU; International Components for Unicode; what's new; readme; read me; introduction; downloads; downloading; building; installation;">
     <meta name="DESCRIPTION" content=
@@ -27,10 +27,10 @@
 
   <body>
     <h1>International Components for Unicode<br>
-     <abbr title="International Components for Unicode">ICU</abbr> 2.8
+     <abbr title="International Components for Unicode">ICU</abbr> 2.6.2
     ReadMe</h1>
 
-    <p>Version: 2004-Jan-08<br>
+    <p>Version: 2004-Feb-18<br>
      Copyright &copy; 1997-2004 International Business Machines Corporation and
     others. All Rights Reserved.</p>
     <!-- Remember that there is a copyright at the end too -->
@@ -59,7 +59,7 @@
 
           <li><a href="#HowToBuildWindowsXP64">Windows XP on IA64</a></li>
 
-          <li><a href="#HowToBuildUNIX">UNIX</a></li>
+          <li><a href="#HowToBuildUnix">Unix</a></li>
 
           <li><a href="#HowToBuildZOS">z/OS (os/390)</a></li>
 
@@ -83,7 +83,7 @@
 
           <li><a href="#ImportantNotesWindows">Windows Platform</a></li>
 
-          <li><a href="#ImportantNotesUNIX">UNIX Type Platforms</a></li>
+          <li><a href="#ImportantNotesUnix">Unix Type Platforms</a></li>
         </ul>
       </li>
 
@@ -155,8 +155,7 @@
      The ICU homepage also links to related information about writing
     internationalized software.</p>
 
-    <table border="1" cellpadding="3" width="100%" summary=
-    "These are some useful links regarding ICU and internationalization in general.">
+    <table border="1" cellpadding="3" width="100%">
       <caption>
         Here are some useful links regarding ICU and internationalization in
         general.
@@ -224,85 +223,147 @@
 
     <h2><a name="News" href="#News">What is new in this release?</a></h2>
 
-    <p>The following list concentrates on <em>changes that affect existing
-    applications migrating from previous ICU releases</em>. For more news about
-    this release, see the <a href=
-    "http://oss.software.ibm.com/icu/download/2.8/index.html">ICU 2.8 download
-    page</a>.</p>
+    <p>This is an another maintenance release - mostly concentrated on collation bug fixes.
+      The most important feature the fix for implicit CE generation. Also notable is the
+      backport of collate digits as numbers (CODAN) feature from ICU 2.8. For more details,
+      please see the <a href="http://oss.software.ibm.com/icu/download/2.6.2/index.html">ICU
+	2.6.2 download page</a>. <br>
+    </p>
+    <p>For details on the changes in the previous maintenance release,
+      please see the <a href="http://oss.software.ibm.com/icu/download/2.6.1/index.html">ICU
+	2.6.1 download page</a>. <br>
+    </p>
+    <p>The following list concentrates on <em>changes in ICU 2.6 that
+	affect existing applications migrating from previous ICU releases</em>.
+      For more news about this release, see the <a
+	href="http://oss.software.ibm.com/icu/download/2.6/index.html">ICU 2.6
+	download page</a>.</p>
 
-    <h3><a name="News_Locale">Locale Identifier Changes</a></h3>
-
-    <p>The ICU locale identifier format has recently changed. In order to
-    improve support for RFC 3066 identifiers and to support keyword
-    identifiers, some minor breaking changes have been introduced. When your
-    application is working with POSIX locale identifiers or .NET locale
-    identifiers, you should use <code><a href=
-    "http://oss.software.ibm.com/icu/apiref/uloc_8h.html">uloc_canonicalize</a>()</code>
-    to convert it to an ICU locale identifier. It was an undocumented feature
-    that you could pass a POSIX locale to ICU, and ICU would convert it for you
-    automatically. For example, if you used @EURO or @PREEURO to identify
-    certain currencies, you should now be using the "@currency=" keyword for
-    the locale identifiers. If you use the <code>uloc_canonicalize()</code>
-    function, it will convert the @PREEURO variants to the proper ICU locale
-    identifier. For example, it will convert "fr-fr@PREEURO" to
-    "fr_FR@currency=FRF". More information about keywords can be found in the
-    <a href="http://oss.software.ibm.com/icu/userguide/locale.html">Locale
-    Section</a> of the User's Guide and <a href=
-    "http://www.openi18n.org/specs/ldml/1.0/ldml-spec.htm">on the OpenI18N
-    site</a>.</p>
-
-    <p>Some ISO 15924 script codes are used in some RFC 3066 language tags.
-    This is especially helpful when you need to differentiate cases where a
-    language can be written with more than one script. Since ICU now supports
-    ISO 15924 script codes in the locale identifier, you can now specify
-    locales like "zh_Hant" to specify Traditional Chinese. Previously, people
-    had to use "zh_TW" to specify Traditional Chinese, which isn't quite
-    correct because the locale identifier is specifying the language of a
-    region and not the type of language. The current locale identifiers, like
-    en_US, still work, and do not require any changes in your code. Future
-    versions of ICU will move the data into the proper locale resources, and
-    the locale infrastructure will be improved.</p>
-
-    <h3><a name="News_Library_Names">Static Library Names and AIX
-    linking</a></h3>
-
-    <p>Previously static and shared library names had the same naming scheme,
-    except the file extension was different between the filenames. For example,
-    the shared common library was called libicuuc.so, and the static common
-    library was called libicuuc.a on many Unix type machines. It has come to
-    our attention, that Windows import library names and static library names
-    can have the same name, and when the -brtl linker option is removed the
-    static and shared libraries have the same filename extension, which is
-    ".a". The -brtl linker option on AIX has been removed at several people's
-    request.</p>
-
-    <p>In order to differentiate between the two library names on all
-    platforms, static libraries now use an "s" as a prefix to differentiate
-    between the shared and static libraries. For example, "libicuuc.a" is now
-    "lib<strong>s</strong>icuuc.a". This means that if you used "-licuuc" to
-    link the common library into your application, you now need to use
-    "-lsicuuc".</p>
-
-    <h3><a name="News_ICUIO">ICUIO Library Changes</a></h3>
-
-    <p>The ICUIO library is still unsupported (this was previously called the
-    ustdio library), and some breaking fixes have been made to the library. %S
-    should be used for UTF-16 strings, and %C should be used for UChar for the
-    format strings. The %K and %U format specifiers are deprecated and will be
-    removed in a future version of ICU. Also u_fgets now uses the same argument
-    ordering as stdio fgets, which will make it easier for people to migrate
-    their existing stdio implementations to use ICUIO. Fortunately, u_fgets now
-    follows the Unicode algorithm for detecting hard line breaks, and some
-    performance enhancements to this library have been implemented so that most
-    of the formatting and parsing functions will run faster.</p>
-
-    <h3><a name="News_Library_Init">Library Initialization</a></h3>
+    <h3>Library Initialization</h3>
 
     <p>ICU4C 2.6 introduces a library initialization function. It is required
-    to call it before using any ICU services in a multi-threaded environment.
-    For details please see the <a href=
+    to call&nbsp; it before using any ICU services in a multi-threaded
+    environment. For details please see the <a href=
     "http://oss.software.ibm.com/icu/apiref/index.html">documentation</a> of
     <code>u_init()</code> in the <code>unicode/uclean.h</code> header file.</p>
+
+    <h3>Support for Unicode 4.0</h3>
+
+    <p>Unicode properties and algorithms have been upgraded to <a href=
+    "http://www.unicode.org/versions/Unicode4.0.0/">Unicode 4.0</a>, which
+    includes the addition of 1226 new encoded characters. The UCA (<a href=
+    "http://www.unicode.org/reports/tr10/">Unicode Collation Algorithm</a>)
+    table is still at version 3.1.1, with Unicode 4-based canonical closure,
+    because UCA 4 is not available yet. All Unicode properties (except for
+    those in Unihan.txt) are now <a href=
+    "http://oss.software.ibm.com/icu/userguide/properties.html">available via
+    direct APIs, and most via UnicodeSet</a>.</p>
+
+    <p>Note that a Unicode update includes changes in algorithms. For example,
+    the default iterator for finding titlecasing positions has changed from the
+    titlecasing iterator to the word break iterator according to the Unicode
+    Standard.</p>
+
+    <p><a href="http://www.unicode.org/reports/tr15/#Corrigenda">Unicode 4
+    fixes 5 normalization bugs</a>, which changes the decomposition and
+    canonical equivalence of 5 characters. ICU 2.6 normalization uses Unicode 4
+    data, therefore it contains these bug fixes.</p>
+
+    <h3>Currency formatting</h3>
+
+    <p>Formatting of currency values has been improved in ICU 2.6 by allowing
+    the specification of any currency with any language-specific formatter. The
+    currency itself can be chosen independently of the display language, but an
+    appropriately localized string will be displayed for the currency symbol.
+    The display symbol data is not fully fleshed out. See the API references
+    for ucurr.h and NumberFormat. <code>icu/source/samples/numfmt/</code> is
+    updated to illustrate this feature.</p>
+
+    <h3>XML resource bundles</h3>
+
+    <p>The ICU team had developed a custom XML format that matched the
+    capabilities of the binary data structure of ICU .res files. This format
+    was not known to be used and not optimal for translation/localization. ICU
+    2.6 supports the standard XLIFF format for product localization by
+    providing tools to convert between .xlf and ICU .txt files. See the User
+    Guide <a href=
+    "http://oss.software.ibm.com/icu/userguide/localizing.html">Localizing with
+    ICU</a> chapter for details. The previous, ICU-specific XML format has been
+    withdrawn.</p>
+
+    <h3>ICU code library size</h3>
+
+    <p>ICU code libraries can be made smaller by removing functionality. See
+    the <a href=
+    "http://oss.software.ibm.com/icu/userguide/packaging.html">Packaging
+    ICU</a> section of the User's Guide.</p>
+
+    <h3>Flexible data loading</h3>
+
+    <p>ICU 2.2 has an extended search path functionality, more flexible data
+    override capabilities, and removes lesser-known heuristics for determining
+    the data path.</p>
+
+    <ul>
+      <li>Performance: ICU will only load data from packages, not from single
+      files, when the search path is empty. This eliminates all file system
+      accesses after the packages (ICU data + application data) are loaded.<br>
+       If this is important, then an application should set the search path to
+      the empty path during initialization.</li>
+
+      <li>Customizability: If the search path is not empty, then ICU searches
+      for single files before looking in packages, allowing to override/update
+      packaged data.</li>
+
+      <li>User data: The new function ucnv_openPackage allows an application to
+      load an ICU character mapping table from its own data. This enables
+      applications to support more codepages than the ICU installation that it
+      uses.</li>
+
+      <li>Separation between ICU data and user data: Single data files must now
+      always have a package name as prefix, which results in different file
+      names between ICU and all application packages even for the same locale
+      IDs etc.</li>
+
+      <li>Multi-path: The search path can now contain multiple folders and can
+      list packages directly instead of just a single folder.</li>
+
+      <li>Predictability: The search path can be set via the ICU_DATA
+      environment variable or via the <code>u_setDataDirectory()</code>
+      function.<br>
+       ICU does not perform any other heuristics any more.</li>
+    </ul>
+
+    <p><strong>Note:</strong> while some of the old binary data may be still
+    readable by ICU 2.2 (resource bundles, for example), they need to be
+    repackaged in order to be used.</p>
+
+    <ul>
+      <li>If you have individual binary files, you have to rename them so that
+      you prepend a <code>'packagename_'</code>. Then use
+      <code>packagename</code> for opening.</li>
+
+      <li>If you have a memory-mapped package file, you will need to unpack it
+      (use decmn tool), rename individual files as above (prepending the
+      package name), and repack the files.</li>
+
+      <li>If you have a shared library file, you'll need to somehow get
+      individual files and repackage them.</li>
+    </ul>
+
+    <h3>Experimental locales moved to new repository</h3>
+
+    <p>Experimental locales are ones for which we have incomplete data. Data
+    for such locales used to be included in the default ICU download, but have
+    been moved to a new <a href=
+    "http://oss.software.ibm.com/cvs/icu/locale/icu/experimental/">locale data
+    repository</a>, stored as another <a href=
+    "http://oss.software.ibm.com/icu/develop/cvs.html">ICU CVS module</a>. This
+    data can be added back into a customized ICU build, see the <a href=
+    "http://oss.software.ibm.com/icu/userguide/icudata.html">User Guide Data
+    chapter</a>. It can also still be viewed with the <a href=
+    "http://oss.software.ibm.com/icu/demo/index.html">LocaleExplorer
+    demo</a>.</p>
     <hr>
 
     <h2><a name="Download" href="#Download">How To Download the Source
@@ -339,15 +400,14 @@
     Organization</a></h2>
 
     <p>In the descriptions below, <strong><i>&lt;ICU&gt;</i></strong> is the
-    full path name of the ICU directory (the top level directory from the
+    full path name of the icu directory (the top level directory from the
     distribution archives) in your file system. You can also view the <a href=
-    "http://oss.software.ibm.com/icu/userguide/design.html">ICU Architectural
-    Design</a> section of the User's Guide to see which libraries you need for
-    your software product. You need at least the data (<code>[lib]icudt</code>)
-    and the common (<code>[lib]icuuc</code>) libraries in order to use ICU.</p>
+    "http://oss.software.ibm.com/icu/userguide/design.html">User's Guide</a> to
+    see which libraries you need for your software product. You need at least
+    the data (<code>[lib]icudt</code>) and the common (<code>[lib]icuuc</code>)
+    libraries in order to use ICU.</p>
 
-    <table border="1" cellpadding="0" width="100%" summary=
-    "The following files describe the code drop.">
+    <table border="1" cellpadding="0" width="100%">
       <caption>
         The following files describe the code drop.
       </caption>
@@ -374,8 +434,7 @@
     <p><br>
     </p>
 
-    <table border="1" cellpadding="0" width="100%" summary=
-    "The following directories contain source code and data files.">
+    <table border="1" cellpadding="0" width="100%">
       <caption>
         The following directories contain source code and data files.
       </caption>
@@ -407,11 +466,11 @@
         <td><i>&lt;ICU&gt;</i>/source/<b>data</b>/</td>
 
         <td>
-          <p>This directory contains the source data in text format, which is
+          This directory contains the source data in text format, which is
           compiled into binary form during the ICU build process. It contains
           several subdirectories, in which the data files are grouped by
           function. Note that the build process must be run again after any
-          changes are made to this directory.</p>
+          changes are made to this directory. 
 
           <ul>
             <li><b>brkitr/</b> Data files for character, word, sentence, title
@@ -445,8 +504,8 @@
 
             <li><b>misc/</b> The misc directory contains other data files which
             did not fit into the above categories. Currently it only contains
-            time zone information, and a name preperation file for <a href=
-            "http://www.ietf.org/rfc/rfc3490.txt">IDNA</a>.</li>
+            <b>timezone.txt,</b> a generated file, which is compiled into
+            tz.dat. The <b>tz.dat</b> file contains time zone information.</li>
 
             <li><b>out/</b> This directory contains the assembled memory mapped
             files.</li>
@@ -454,13 +513,6 @@
             <li><b>out/build/</b> This directory contains intermediate
             (compiled) files, such as .cnv, .res, etc.</li>
           </ul>
-
-          <p>If you are creating a special ICU build, you can set the ICU_DATA
-          environment variable to the out/ or the out/build/ directories, but
-          this is generally discouraged because most people set it incorrectly.
-          You can view the <a href=
-          "http://oss.software.ibm.com/icu/userguide/icudata.html">ICU Data
-          Management</a> section of the ICU User's Guide for details.</p>
         </td>
       </tr>
 
@@ -483,8 +535,14 @@
 
         <td>Source text files for data, which are read by the tests. It
         contains the subdirectories <b>out/build/</b> which is used for
-        intermediate files, and <b>out/</b> which contains
-        <b>testdata.dat.</b></td>
+        intermediate files, and <b>out/</b> which contains the files
+        <b>test1.cnv</b> through <b>test4.cnv,</b> and <b>testdata.dat.</b>
+        Note that the tests call
+        u_setDataDirectory("&lt;ICU&gt;/source/test/testdata/lib"), so that ICU
+        will load these files as if they were part of the ICU data package, for
+        testing purposes. This was formerly accomplished by setting the
+        ICU_DATA environment variable to point at these files. ICU_DATA should
+        not be set under normal circumstances.</td>
       </tr>
 
       <tr>
@@ -492,7 +550,7 @@
 
         <td>Tools for generating the data files. Data files are generated by
         invoking <i>&lt;ICU&gt;</i>/source/data/build/makedata.bat on Win32 or
-        <i>&lt;ICU&gt;</i>/source/make on UNIX.</td>
+        <i>&lt;ICU&gt;</i>/source/make on Unix.</td>
       </tr>
 
       <tr>
@@ -537,24 +595,17 @@
       </tr>
 
       <tr>
-        <td><i>&lt;ICU&gt;</i>/<b>include</b>/</td>
-
-        <td>Contains the headers needed for developing software that uses ICU
-        on Windows.</td>
-      </tr>
-
-      <tr>
-        <td><i>&lt;ICU&gt;</i>/<b>lib</b>/</td>
-
-        <td>Contains the import libraries for linking ICU into your Windows
-        application.</td>
-      </tr>
-
-      <tr>
         <td><i>&lt;ICU&gt;</i>/<b>bin</b>/</td>
 
         <td>Contains the libraries and executables for using ICU on
         Windows.</td>
+      </tr>
+
+      <tr>
+        <td><i>&lt;ICU&gt;</i>/<b>include</b>/</td>
+
+        <td>Contains the headers needed for developing software that uses ICU
+        on Windows.</td>
       </tr>
     </table>
     <!-- end of ICU structure ==================================== -->
@@ -565,8 +616,7 @@
     <h3><a name="HowToBuildSupported" href="#HowToBuildSupported">Supported
     Platforms</a></h3>
 
-    <table border="1" cellpadding="3" summary=
-    "ICU can be built on many platforms.">
+    <table border="1" cellpadding="3">
       <caption>
         Here is a status of functionality of ICU on several different
         platforms.
@@ -623,7 +673,7 @@
       <tr>
         <td>HP-UX 11.01</td>
 
-        <td>aCC A.03.13<br>
+        <td>aCC A.12.10<br>
          cc A.11.01.00</td>
 
         <td>Reference platform</td>
@@ -664,9 +714,9 @@
       </tr>
 
       <tr>
-        <td>FreeBSD 4.8</td>
+        <td>FreeBSD 4.4</td>
 
-        <td>gcc 2.95.4</td>
+        <td>gcc 2.95.3</td>
 
         <td>Regularly tested</td>
       </tr>
@@ -713,6 +763,22 @@
       </tr>
 
       <tr>
+        <td>CygWin</td>
+
+        <td>gcc 2.95.3</td>
+
+        <td>Rarely tested</td>
+      </tr>
+
+      <tr>
+        <td>HP-UX 11.01</td>
+
+        <td>CC A.03.10</td>
+
+        <td>Rarely tested</td>
+      </tr>
+
+      <tr>
         <td>QNX</td>
 
         <td>gcc</td>
@@ -729,30 +795,6 @@
       </tr>
 
       <tr>
-        <td>BeOS</td>
-
-        <td>gcc</td>
-
-        <td>Rarely tested</td>
-      </tr>
-
-      <tr>
-        <td>CygWin</td>
-
-        <td>gcc 2.95.3</td>
-
-        <td>Rarely tested</td>
-      </tr>
-
-      <tr>
-        <td>CygWin</td>
-
-        <td>Microsoft Visual C++ 6.0</td>
-
-        <td>Rarely tested</td>
-      </tr>
-
-      <tr>
         <td>SGI/IRIX</td>
 
         <td>&nbsp;</td>
@@ -764,22 +806,6 @@
         <td>Tru64 (OSF)</td>
 
         <td>Compaq's cxx compiler</td>
-
-        <td>Rarely tested</td>
-      </tr>
-
-      <tr>
-        <td>HP-UX 11.01</td>
-
-        <td>CC A.03.10</td>
-
-        <td>Rarely tested</td>
-      </tr>
-
-      <tr>
-        <td>MP-RAS</td>
-
-        <td>NCR MP-RAS C/C++ Compiler</td>
 
         <td>Rarely tested</td>
       </tr>
@@ -832,6 +858,10 @@
       included in the <strong>PATH</strong> environment variable. The tests
       will not work without the location of the ICU DLL files in the path.</li>
 
+      <li>Set the <strong>TZ</strong> environment variable to
+      <strong>PST8PDT</strong>. The tests will not work in any other time
+      zone.</li>
+
       <li>Open the "<i>&lt;ICU&gt;</i>\source\allinone\allinone.dsw" workspace
       file in Microsoft Visual C++ 6.0. (This workspace includes all the
       International Components for Unicode libraries, necessary ICU building
@@ -843,12 +873,11 @@
       the "all" workspace.</li>
 
       <li>Set the active configuration to "Win32 Debug" or "Win32 Release" (See
-      <a href="#HowToBuildWindowsConfig">Windows configuration note</a>
-      below).</li>
+      <a href="#HowToBuildWindowsConfig">note</a> below).</li>
 
       <li>Choose the "Build" menu and select "Rebuild All". If you want to
       build the Debug and Release at the same time, see the <a href=
-      "#HowToBuildWindowsBatch">batch configuration note</a> below.</li>
+      "#HowToBuildWindowsBatch">note</a> below.</li>
 
       <li>Run the C++ test suite, "intltest". To do this: set the active
       project to "intltest", and press F5 to run it.</li>
@@ -863,6 +892,9 @@
       installed correctly. You can press Ctrl+F5 on the test project to run the
       test and see what error messages were displayed (if any tests
       failed).</li>
+
+      <li>Reset the <strong>TZ</strong> environment variable to its original
+      value, unless you plan on testing ICU any further.</li>
 
       <li>You are now able to develop applications with ICU by using the
       libraries and tools in <i>&lt;ICU&gt;</i>\bin\. The headers are in
@@ -938,11 +970,6 @@
       <li>Open the "Set Windows XP 64-bit Build Environment (Retail)" command
       window from the Microsoft Platform SDK.</li>
 
-      <li>If your computer is not set up to do command line builds, then run
-      "set PATH=C:\Program Files (x86)\Microsoft Visual
-      Studio\Common\MSDev98\Bin;%PATH%" or include the path where MSDEV.EXE is
-      located.</li>
-
       <li>Use cd to get into the <i>&lt;ICU&gt;</i> directory.</li>
 
       <li>Run this command: 'msdev /USEENV
@@ -957,14 +984,14 @@
 
       <li>Run the C test suite, "cintltst". There should be no errors.</li>
 
-      <li>Follow the last step in the <a href="#HowToBuildWindows">in the
+      <li>Follow the last two steps in the <a href="#HowToBuildWindows">in the
       previous section</a>.</li>
     </ol>
 
-    <h3><a name="HowToBuildUNIX" href="#HowToBuildUNIX">How To Build And
-    Install On UNIX</a></h3>
+    <h3><a name="HowToBuildUnix" href="#HowToBuildUnix">How To Build And
+    Install On Unix</a></h3>
 
-    <p>Building International Components for Unicode on UNIX requires:</p>
+    <p>Building International Components for Unicode on Unix requires:</p>
 
     <ul>
       <li>A C++ compiler installed on the target machine (for example: gcc, CC,
@@ -993,8 +1020,8 @@
       these files may have the wrong permissions.</li>
 
       <li>Run the <tt><a href="source/runConfigureICU">runConfigureICU</a></tt>
-      script for your platform. (See <a href="#HowToConfigureICU">configuration
-      note</a> below).</li>
+      script for your platform. (See <a href="#HowToConfigureICU">note</a>
+      below).</li>
 
       <li>Type <tt>"gmake"</tt> (or "make" if GNU make is the default make on
       your platform) to compile the libraries and all the data files. The
@@ -1003,12 +1030,12 @@
 
       <li>Optionally, type <tt>"gmake check"</tt> to run the test suite, which
       checks for ICU's functionality integrity (See <a href=
-      "#HowToTestWithoutGmake">testing note</a> below).</li>
+      "#HowToTestWithoutGmake">note</a> below).</li>
 
       <li>Type <tt>"gmake install"</tt> to install ICU. If you used the
       --prefix= option on configure or runConfigureICU, ICU will be installed
-      to the directory you specified. (See <a href=
-      "#HowToInstallICU">installation note</a> below).</li>
+      to the directory you specified. (See <a href="#HowToInstallICU">note</a>
+      below).</li>
     </ol>
 
     <p><a name="HowToConfigureICU"><strong>Configuring ICU NOTE:</strong></a>
@@ -1016,25 +1043,27 @@
     list of supported platforms. You may also want to type <tt>"./configure
     --help"</tt> to print the available configure options that you may want to
     give runConfigureICU. If you are not using the runConfigureICU script, or
-    your platform is not supported by the script, you may need to set your CC,
-    CXX, CFLAGS and CXXFLAGS environment variables, and type
+    your platform is not supported by the script, you may need to set your
+    CC, CXX, CFLAGS and CXXFLAGS environment variables, and type
     <tt>"./configure"</tt>. Some of the more frequently used options to
     configure are --disable-64bit-libs to create 32-bit libraries, and --srcdir
     to do out of source builds (build the libraries in the current location).
-    HP-UX user's, please see this <a href="#ImportantNotesHPUX">note regarding
-    multithreaded build issues</a> with newer compilers.</p>
+    HP-UX user's, please see this <a href="#ImportantNotesHPUX">note</a>
+    regarding multithreaded build issues with newer compilers.</p>
 
     <p><a name="HowToTestWithoutGmake"><strong>Running The Tests From The
     Command Line NOTE:</strong></a> You may have to set certain variables if
     you with to run test programs individually, that is apart from "gmake
-    check". The environment variable <strong>ICU_DATA</strong> can be set to
-    the full pathname of the data directory to indicate where the locale data
-    files and conversion mapping tables are when you are not using the shared
-    library (e.g. by using the .dat archive or the individual data files). The
-    trailing "/" is required after the directory name (e.g.
-    "$Root/source/data/out/" will work, but the value "$Root/source/data/out"
-    is not acceptable). You do not need to set <strong>ICU_DATA</strong> if the
-    complete shared data library is in your library path.</p>
+    check". The <strong>TZ</strong> environment variable needs to be set to
+    <strong>PST8PDT</strong>. Also, the environment variable
+    <strong>ICU_DATA</strong> can be set to the full pathname of the data
+    directory to indicate where the locale data files and conversion mapping
+    tables are when you are not using the shared library (e.g. by using the
+    .dat archive or the individual data files). The trailing "/" is required
+    after the directory name (e.g. "$Root/source/data/out/" will work, but the
+    value "$Root/source/data/out" is not acceptable). You do not need to set
+    <strong>ICU_DATA</strong> if the complete shared data library is in your
+    library path.</p>
 
     <p><a name="HowToInstallICU"><strong>Installing ICU NOTE:</strong></a> Some
     platforms use package management tools to control the installation and
@@ -1062,7 +1091,7 @@
       <li>The gnu utilities gmake and gzip/gunzip are needed and can be
       obtained for z/OS from <a href=
       "http://www.ibm.com/servers/eserver/zseries/zos/unix/bpxa1ty1.html#opensrc">
-      z/OS UNIX - Tools and Toys</a>. Documentation on these tools can be found
+      z/OS Unix - Tools and Toys</a>. Documentation on these tools can be found
       at the <a href=
       "http://publib-b.boulder.ibm.com/Redbooks.nsf/RedbookAbstracts/sg245944.html">
       Open Source Software for z/OS UNIX</a> Red Book.</li>
@@ -1077,22 +1106,21 @@
       and convert all the necessary files for you automatically.</li>
 
       <li>
-        <p>z/OS supports both native S/390 hexadecimal floating point and (with
-        OS/390 2.6 and later) IEEE 754 binary floating point. This is a compile
-        time option. Applications built with IEEE should use ICU DLLs that are
-        built with IEEE (and vice versa). The environment variable IEEE390=0
-        will cause the z/OS version of ICU to be built without IEEE floating
-        point support and use the native hexadecimal floating point. By default
-        ICU is built with IEEE 754 support.</p>
-
-        <p><em>Important:</em> Currently (ICU 1.4.2), native floating point
+        <p>z/OS supports both native S/390 hexadecimal floating point and,
+        (with OS/390 2.6 and later) IEEE binary floating point. This is a
+        compile time option. Applications built with IEEE should use ICU DLLs
+        that are built with IEEE (and vice versa). The environment variable
+        IEEE390=1 will cause the z/OS version of ICU to be built with IEEE
+        floating point. The default is native hexadecimal floating point.<br>
+         <em>Important:</em> Currently (ICU 1.4.2), native floating point
         support is sufficient for codepage conversion, resource bundle and
-        UnicodeString operations, but the Format APIs require IEEE binary
-        floating point.</p>
+        UnicodeString operations, but the Format APIs, especially ChoiceFormat,
+        require IEEE binary floating point.</p>
 
         <p>Examples for configuring ICU:<br>
-         Debug build: <code>./runConfigureICU --enable-debug zOS</code><br>
-         Release build: <code>./runConfigureICU zOS</code></p>
+         Debug build: <code>IEEE390=1 ./runConfigureICU --enable-debug
+        zOS</code><br>
+         Release build: <code>IEEE390=1 ./runConfigureICU zOS</code></p>
       </li>
 
       <li>
@@ -1105,21 +1133,21 @@
         prior to invoking the make process to produce binaries that are enabled
         for XPLINK.</p>
 
-        <p>Note: XPLINK, which is enabled for z/OS 1.2 and later, requires the
-        PTF PQ69418 to build XPLINK-enabled binaries.</p>
+        <p>Note: XPLINK, enabled for z/OS 1.2 and later, requires the PTF for
+        PQ69418 to build XPLINK-enabled binaries.</p>
       </li>
 
       <li>Since the default make on z/OS is not gmake, the pkgdata tool
       requires that the "make" command is aliased to your installed version of
       gmake. You may also need to set $MAKE equal to the fully qualified path
-      of GNU make. GNU make is available with the "z/OS UNIX - Tools and Toys"
-      that was mentioned above. The required version is the same UNIX build
+      of GNU make. GNU make is available with the "z/OS Unix - Tools and Toys"
+      that was mentioned above. The required version is the same Unix build
       instructions.</li>
 
       <li>The makedep executable that is used with the z/OS ICU build process
       is not shipped with ICU. It is available at the <a href=
       "http://www.ibm.com/servers/eserver/zseries/zos/unix/bpxa1ty1.html#opensrc">
-      z/OS UNIX - Tools and Toys</a> site. The PATH environment variable should
+      z/OS Unix - Tools and Toys</a> site. The PATH environment variable should
       be updated to contain the location of this executable prior to build.
       Alternatively, makedep may be moved into an existing PATH directory.</li>
 
@@ -1127,20 +1155,27 @@
         <p>When you build ICU on a system such as z/OS 1.2, the binaries that
         result can run on that level of the operating system and later, such as
         z/OS 1.3 and z/OS 1.4. It's possible that you may have a z/OS 1.4
-        system, but you may need to deliver binaries on z/OS 1.2 and above.
-        z/OS gives you this ability by targeting the complier and linker to run
-        at the older level, thereby producing the desired binaries.</p>
+        system and, for example, need to deliver binaries on z/OS 1.2 and
+        above. z/OS gives you this ability by targeting the complier and
+        linker to run at the older level, thereby producing the desired
+        binaries.</p>
 
         <p>To set the compiler and LE environment to OS/390 2.10, specify the
-        following, "<code>./runConfigureICU OS390V2R10</code>"</p>
+        following:</p>
+<pre>
+<samp>./runConfigureICU OS390V2R10</samp>
+</pre>
 
         <p>To set the compiler and LE environment to z/OS 1.2 specify the
-        following, "<code>./runConfigureICU zOSV1R2</code>"</p>
+        following:</p>
+<pre>
+<samp>./runConfigureICU zOSV1R2</samp>
+</pre>
       </li>
 
       <li>The rest of the instructions for building and testing ICU on z/OS
-      with UNIX System Services are the same as the <a href=
-      "#HowToBuildUNIX">How To Build And Install On UNIX</a> section.</li>
+      with Unix System Services are the same as the <a href=
+      "#HowToBuildUnix">How To Build And Install On Unix</a> section.</li>
     </ul>
 
     <h4>z/OS (Batch/PDS) support outside the UNIX system services
@@ -1156,8 +1191,8 @@
     the batch environment. When OS390BATCH is set, the libicuuc<i>XX</i>.dll,
     libicudt<i>XX</i>e.dll, and libicudt<i>XX</i>e_stub.dll binaries are built
     into data sets (the native file system). Turning on OS390BATCH does not
-    turn off the normal z/OS UNIX build. This means that the z/OS UNIX (HFS)
-    DLLs will always be created.</p>
+    turn off the normal z/OS UNIX build. This means that the z/OS UNIX
+    (HFS) DLLs will always be created.</p>
 
     <p>Two additional environment variables indicate the names of the z/OS data
     sets to use. The LOADMOD environment variable identifies the name of the
@@ -1183,8 +1218,7 @@ LOADEXP=<i>USER</i>.ICU.EXP</samp>
 
     <p>The PDS member names for the DLL file names are as follows:</p>
 <pre>
-<samp>IXMI<i>XX</i>IN --&gt; libicui18n<i>XX</i>.dll
-IXMI<i>XX</i>UC --&gt; libicuuc<i>XX</i>.dll
+<samp>IXMI<i>XX</i>UC --&gt; libicuuc<i>XX</i>.dll
 IXMI<i>XX</i>DA --&gt; libicudt<i>XX</i>e.dll
 IXMI<i>XX</i>D1 --&gt; libicudt<i>XX</i>e_stub.dll <i>(Only when OS390_STUBDATA=1)</i></samp>
 </pre>
@@ -1245,8 +1279,8 @@ Data set name type  : PDS</samp>
     </ul>
 
     <p>The following describes how to setup and build ICU. For background
-    information, you should look at the <a href="#HowToBuildUNIX">UNIX build
-    instructions</a>.</p>
+    information, you should look at the <a href="#HowToBuildUnix">Unix</a>
+    build instructions.</p>
 
     <ol>
       <li>
@@ -1274,6 +1308,23 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
         <br>
       </li>
       <!--li>Add QCXXN, to your build process library list. This results in the resolution of CRTCPPMOD used by the icc compiler</li-->
+
+      <li>
+        In order to get the tests to run correctly, the QUTCOFFSET needs to be
+        set to the Pacific Time Zone offset.<br>
+        <br>
+         To check your QUTCOFFSET: 
+<pre>
+<samp>DSPSYSVAL SYSVAL(QUTCOFFSET)</samp>
+</pre>
+        <br>
+         To change your QUTCOFFSET:<br>
+<pre>
+<samp>CHGSYSVAL SYSVAL(QUTCOFFSET) VALUE('-0800')</samp>
+</pre>
+        You should change -0800 to -0700 for daylight savings.<br>
+        <br>
+      </li>
 
       <li>Run <tt>'CHGJOB CCSID(37)'</tt></li>
 
@@ -1317,7 +1368,7 @@ mv Makefile.hide Makefile
 system CRTLIB "LIB(<i>datalibraryname</i>)"
 gmake OUTPUTDIR=<i>datalibraryname</i>
 system CRTSRVPGM "SRVPGM(<i>libraryname</i>/LIBICUDATA)" "MODULE(<i>datalibraryname</i>/*ALL)"
-                 "EXPORT(*ALL)" "TEXT('ICU 2.8 DATA')" "OPTION(*DUPPROC *DUPVAR)"
+                 "EXPORT(*ALL)" "TEXT('ICU 2.6 DATA')" "OPTION(*DUPPROC *DUPVAR)"
 ln -fs /qsys.lib/<i>libraryname</i>.lib/libicudata.srvpgm out/libicudata.so
 cd ..
 del common/libicuuc.so
@@ -1351,12 +1402,12 @@ del common/libicuuc.so
     products. Usually only the libraries need to be considered for
     packaging.</p>
 
-    <p>On UNIX, you should have used "<tt>gmake install</tt>" to make it easier
+    <p>On Unix, you should have used "<tt>gmake install</tt>" to make it easier
     to develop and package ICU. The bin, lib and include directories are needed
     to develop applications that use ICU. These directories will be created
-    relative to the "<tt>--prefix=</tt><i>dir</i>" configure option (See the <a
-    href="#HowToBuildUNIX">UNIX build instructions</a>). When ICU is built on
-    Windows, a similar directory structure is built.</p>
+    relative to the "<tt>--prefix=</tt><i>dir</i>" configure option (See <a
+    href="#HowToBuildUnix">above</a>). When ICU is built on Windows, a similar
+    directory structure is built.</p>
 
     <p>When changes have been made to the standard ICU distribution, it is
     recommended that at least one of the following guidelines be followed for
@@ -1379,8 +1430,7 @@ del common/libicuuc.so
     The <a href="#SourceCode">ICU Source Code Organization</a> section of this
     readme.html gives a more complete description of the libraries.</p>
 
-    <table border="1" cellpadding="3" summary=
-    "ICU has several libraries for you to use.">
+    <table border="1" cellpadding="3">
       <caption>
         Here is an example of libraries that are frequently packaged.
       </caption>
@@ -1450,7 +1500,7 @@ del common/libicuuc.so
       </tr>
 
       <tr>
-        <td>ICU I/O (Unicode stdio) Library</td>
+        <td>Unicode stdio Library</td>
 
         <td>icuio<i>XY</i>.dll</td>
 
@@ -1475,24 +1525,49 @@ del common/libicuuc.so
     <h3><a name="ImportantNotesCPlusPlus" href="#ImportantNotesCPlusPlus">Using
     ICU in a Multithreaded Environment</a></h3>
 
+    <p>If you are using ICU in a multithreaded application, there may be a
+    chance that the ICU global mutex is not initialized properly. Normally the
+    ICU global mutex is initialized during C++ static initialization, but there
+    are some compilers and linkers that do not properly perform C++ static
+    initialization in a library. Here are some of the cases when the global
+    mutex is not initialized:</p>
+
+    <ul>
+      <li>Static ICU libraries are used.</li>
+
+      <li>ICU is used on Mac OS X</li>
+
+      <li>ICU is used on HP-UX and the program's <code>main()</code> function
+      is not declared in a C++ file.</li>
+    </ul>
+
     <p>Upon the first usage of most ICU APIs, the global mutex will get
-    initialized properly, but you can use the <code>u_init()</code> function
-    from uclean.h to ensure that it is initialized properly. Without calling
-    this function from a single thread, the data caches inside ICU may get
-    initialized more than once from multiple threads, which may cause memory
-    leaks and other problems. There is no harm in calling <code>u_init()</code>
-    in a single threaded application.</p>
+    initialized, but you can use the <code>u_init()</code> function from
+    uclean.h to ensure that it is initialized. Without one of these function
+    calls from a single thread, the data caches inside ICU may get initialized
+    more than once, which may cause memory leaks and other problems. This
+    problem normally does not happen when C++ static initialization works
+    properly.</p>
+
+    <p>ICU does not use C++ static initialization for anything else, and
+    disabling threads in ICU will disable all C++ static initialization in ICU.
+    If you do not have a multithreaded application, you do not need to worry
+    about the global mutex.</p>
 
     <h4><a name="ImportantNotesHPUX" href="#ImportantNotesHPUX">Using ICU in a
     Multithreaded Environment on HP-UX</a></h4>
 
-    <p>If you are building ICU with a newer aCC compiler and you are planning
-    on using any RogueWave libraries, you will need to set a special flag
-    before building ICU. The <a href=
+    <p>If you are building ICU with a newer aCC compiler, or you are planning
+    on using any RogueWave libraries, you will need to set special flags before
+    building ICU. These flags are needed in order to make ICU thread safe and
+    to allow iostream to work properly. More information on these flags can be
+    found <a href=
+    "http://docs.hp.com/hpux/onlinedocs/dev/aCC/a_03_30/options.htm#option-mt">here</a>
+    and <a href=
     "http://docs.hp.com/hpux/onlinedocs/dev/aCC/a_03_30/options.htm#optioncap-AA">
-    -AA</a> flag is needed in order to make ICU thread safe with RogueWave.</p>
+    here</a>.</p>
 <pre>
-<samp>CXXFLAGS="-AA" ./runConfigureICU HP-UX11ACC</samp>
+<samp>CFLAGS="-mt" CXXFLAGS="-mt -AA" LDFLAGS="-mt" ./runConfigureICU HP-UX11ACC</samp>
 </pre>
 
     <h3><a name="CharStrings" href="#CharStrings">char * strings in
@@ -1501,13 +1576,13 @@ del common/libicuuc.so
     <p>The C/C++ languages do not provide a portable way to specify Unicode
     code point or string literals other than with arrays of numeric constants.
     For convenience, ICU4C tends to use char * strings in places where only
-    "invariant characters" (a portable subset of the 7-bit ASCII repertoire)
-    are used. This allows locale IDs, charset names, resource bundle item keys
-    and similar items to be easily specified as string literals in the source
-    code. The same types of strings are also stored as "invariant character"
-    char * strings in the ICU data files.</p>
+    "invariant characters" are used &mdash; a portable subset of the 7-bit
+    ASCII repertoire &mdash; so that locale IDs, charset names, resource bundle
+    item keys and similar can be easily specified as string literals in the
+    source code. The same types of strings are also stored as "invariant
+    character" char * strings in the ICU data files.</p>
 
-    <p>ICU has hard coded mapping tables in <code>source/common/putil.c</code>
+    <p>ICU has hardcoded mapping tables in <code>source/common/putil.c</code>
     to convert invariant characters to and from Unicode without using a full
     ICU converter. These tables must match the encoding of string literals in
     the ICU code as well as in the ICU data files.</p>
@@ -1518,15 +1593,14 @@ del common/libicuuc.so
     platforms where this is not the case.</em></p>
 
     <p>Some usage of char * strings in ICU assumes the system charset instead
-    of invariant characters. Such strings are only handled with the default
-    converter (See the following section). The system charset is usually a
-    superset of the invariant characters.</p>
+    of invariant characters; such strings are only handled with the default
+    converter. See the following section. (The system charset is usually a
+    superset of the invariant characters.)</p>
 
-    <p>The following are the ASCII and EBCDIC byte values for all of the
+    <p>The following are the ASCII and EBCDIC code values for all of the
     invariant characters (see also unicode/utypes.h):</p>
 
-    <table border="1" summary=
-    "There are a few invariant characters that can be used for char * strings">
+    <table border="1">
       <tr>
         <th>Character(s)</th>
 
@@ -1770,7 +1844,7 @@ del common/libicuuc.so
       will use the ANSI codepage. Note that the OEM codepage is used by default
       for console window output.</li>
 
-      <li>On some UNIX-type systems, non-standard names are used for encodings,
+      <li>On some Unix-type systems, non-standard names are used for encodings,
       or non-standard encodings are used altogether. Although ICU supports over
       200 encodings in its standard build and many more aliases for them, it
       will not be able to recognize such non-standard names.</li>
@@ -1842,10 +1916,10 @@ del common/libicuuc.so
     DLLs, or search for the phrase "DLL hell" on <a href=
     "http://msdn.microsoft.com/">msdn.microsoft.com</a>.</p>
 
-    <h3><a name="ImportantNotesUNIX" href="#ImportantNotesUNIX">UNIX Type
+    <h3><a name="ImportantNotesUnix" href="#ImportantNotesUnix">Unix Type
     Platform</a></h3>
 
-    <p>If you are building on a UNIX platform, and if you are installing ICU in
+    <p>If you are building on a Unix platform, and if you are installing ICU in
     a non-standard location, you may need to add the location of your ICU
     libraries to your <strong>LD_LIBRARY_PATH</strong> or
     <strong>LIBPATH</strong> environment variable (or the equivalent runtime
@@ -1872,35 +1946,13 @@ del common/libicuuc.so
 
     <p>If you are using ICU's Makefiles to build ICU on a new platform, there
     are a few places where you will need to add or modify some files. If you
-    need more help, you can always ask the <a href=
-    "http://oss.software.ibm.com/icu/archives/">icu4c-support mailing list</a>.
-    Once you have finished porting ICU to a new platform, it is recommended
-    that you contribute your changes back to ICU via the icu4c-support mailing
-    list. This will make it easier for everyone to benefit from your work.</p>
-
-    <h4>Data For a New Platform</h4>
-
-    <p>It may not be necessary for your use of ICU to make a full ICU build
-    work. Most of the makefiles and build targets are for tools that are used
-    for building ICU's data &mdash; and an application's data if the
-    application uses ICU resource bundles and similar for its data.</p>
-
-    <p>Data files can be built on a different platform if both platforms share
-    the same endianness and the same charset family, and if memory-mappable,
-    binary data files are used instead of DLLs/shared libraries. For details
-    see the User Guide <a href=
-    "http://oss.software.ibm.com/icu/userguide/icudata.html">ICU Data</a>
-    chapter.</p>
-
-    <p>ICU 2.8 eliminates the first condition: It adds the icuswap tool which
-    can be run on any platform to turn binary ICU data files from any one of
-    the three formats into any one of the other. This allows to use ICU data
-    built anywhere to be used for any target platform.</p>
-
-    <h4>Adapting Makefiles For a New Platform</h4>
+    need more help, you can always ask the icu4c-support mailing list. Once you
+    have finished porting ICU to a new platform, it is recommended that you
+    contribute your changes back to ICU via the icu4c-support mailing list.
+    This will make it easier for everyone to benefit from your work.</p>
 
     <p>Try to follow the build steps from the <a href=
-    "#HowToBuildUNIX">UNIX</a> build instructions. If the configure script
+    "#HowToBuildUnix">Unix</a> build instructions. If the configure script
     fails, then you will need to modify some files. Here are the usual steps
     for porting to a new platform:<br>
     </p>
@@ -2039,7 +2091,7 @@ del common/libicuuc.so
 
       <li>gennorm</li>
 
-      <li>gensprep</li>
+      <li>genidna</li>
 
       <li>genbrk</li>
 
@@ -2047,13 +2099,15 @@ del common/libicuuc.so
 
       <li>genrb</li>
 
+      <li>gentz</li>
+
       <li>genccode</li>
 
       <li>gencmn</li>
 
       <li>pkgdata</li>
 
-      <li>makedata (a project on Windows, or source/data/Makefile on UNIX)</li>
+      <li>makedata (a project on Windows, or source/data/Makefile on Unix)</li>
 
       <li>layout (optional)</li>
 
@@ -2062,11 +2116,11 @@ del common/libicuuc.so
       <li>ctestfw, intltest and cintltst, if you want to run the test
       suite.</li>
 
-      <li>uconv, icuswap and ustdio can also be optionally built.</li>
+      <li>uconv and ustdio can also be optionally built.</li>
     </ol>
     <hr>
 
-    <p>Copyright &copy; 1997-2004 International Business Machines Corporation
+    <p>Copyright &copy; 1997-2003 International Business Machines Corporation
     and others. All Rights Reserved.<br>
      IBM Globalization Center of Competency - San Jos&eacute;<br>
      5600 Cottle Road<br>

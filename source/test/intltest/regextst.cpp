@@ -10,18 +10,17 @@
 //      ICU Regular Expressions test, part of intltest.
 //
 
-#include "intltest.h"
+#include "unicode/utypes.h"
 #if !UCONFIG_NO_REGULAR_EXPRESSIONS
 
-#include "unicode/regex.h"
 #include "unicode/uchar.h"
 #include "unicode/ucnv.h"
+#include "intltest.h"
 #include "regextst.h"
 #include "uvector.h"
+#include "stdlib.h"
 #include "charstr.h"
 #include "util.h"
-#include <stdlib.h>
-#include <stdio.h>
 
 
 //---------------------------------------------------------------------------
@@ -128,7 +127,7 @@ UBool RegexTest::doRegexLMTest(const char *pat, const char *text, UBool looking,
             line, u_errorName(status));
         return FALSE;
     }
-    if (line==376) { RegexPatternDump(REPattern);}
+    if (line==376) { REPattern->dump();}
 
     UnicodeString inputString(inputText);
     UnicodeString unEscapedInput = inputString.unescape();
@@ -164,7 +163,7 @@ UBool RegexTest::doRegexLMTest(const char *pat, const char *text, UBool looking,
     }
 
     if (retVal == FALSE) {
-        RegexPatternDump(REPattern);
+        REPattern->dump();
     }
 
     delete REPattern;
@@ -244,19 +243,12 @@ void RegexTest::regex_find(const UnicodeString &pattern,
 
     callerPattern = RegexPattern::compile(pattern, bflags, pe, status);
     if (status != U_ZERO_ERROR) {
-        #if UCONFIG_NO_BREAK_ITERATION==1
-        // 'v' test flag means that the test pattern should not compile if ICU was configured
-        //     to not include break iteration.  RBBI is needed for Unicode word boundaries.
-        if (flags.indexOf((UChar)0x76) >= 0 /*'v'*/ && status == U_UNSUPPORTED_ERROR) {
-            goto cleanupAndReturn;
-        }
-        #endif
         errln("Line %d: error %s compiling pattern.", line, u_errorName(status));
         goto cleanupAndReturn;
     }
 
     if (flags.indexOf((UChar)'d') >= 0) {
-        RegexPatternDump(callerPattern);
+        callerPattern->dump();
     }
 
     //
@@ -345,9 +337,9 @@ void RegexTest::regex_find(const UnicodeString &pattern,
         
 cleanupAndReturn:
     if (failed) {
-        errln("\"%s\"  %s  \"%s\"", (const char *)CharString(pattern, 0),
-                                    (const char *)CharString(flags, 0),
-                                    (const char *)CharString(inputString, 0));
+        errln("\"%s\"  %s  \"%s\"", (const char *)CharString(pattern),
+                                    (const char *)CharString(flags),
+                                    (const char *)CharString(inputString));
         // callerPattern->dump();
     }
     delete parseMatcher;
@@ -607,67 +599,6 @@ void RegexTest::API_Match() {
         REGEX_ASSERT(m1->lookingAt(status) == FALSE);
         REGEX_ASSERT(m1->input() == empty);
         REGEX_ASSERT(&m1->pattern() == pat2);
-
-        //
-        //  reset(pos, status) 
-        //
-        m1->reset(inStr1);
-        m1->reset(4, status);
-        REGEX_CHECK_STATUS;
-        REGEX_ASSERT(m1->input() == inStr1);
-        REGEX_ASSERT(m1->lookingAt(status) == TRUE);
-
-        m1->reset(-1, status);
-        REGEX_ASSERT(status == U_INDEX_OUTOFBOUNDS_ERROR);
-        status = U_ZERO_ERROR;
-
-        m1->reset(0, status);
-        REGEX_CHECK_STATUS;
-        status = U_ZERO_ERROR;
-
-        int32_t len = m1->input().length();
-        m1->reset(len-1, status);
-        REGEX_CHECK_STATUS;
-        status = U_ZERO_ERROR;
-
-        m1->reset(len, status);
-        REGEX_ASSERT(status == U_INDEX_OUTOFBOUNDS_ERROR);
-        status = U_ZERO_ERROR;
-
-        //
-        // match(pos, status)
-        //
-        m1->reset(instr2);
-        REGEX_ASSERT(m1->matches(4, status) == TRUE);
-        m1->reset();
-        REGEX_ASSERT(m1->matches(3, status) == FALSE);
-        m1->reset();
-        REGEX_ASSERT(m1->matches(5, status) == FALSE);
-        REGEX_ASSERT(m1->matches(4, status) == TRUE);
-        REGEX_ASSERT(m1->matches(-1, status) == FALSE);
-        REGEX_ASSERT(status == U_INDEX_OUTOFBOUNDS_ERROR);
-        status = U_ZERO_ERROR;
-        len = m1->input().length();
-        REGEX_ASSERT(m1->matches(len, status) == FALSE);
-        REGEX_ASSERT(status == U_INDEX_OUTOFBOUNDS_ERROR);
-       
-
-        //
-        // lookingAt(pos, status)
-        //
-        status = U_ZERO_ERROR;
-        m1->reset(instr2);  // "not abc"
-        REGEX_ASSERT(m1->lookingAt(4, status) == TRUE);
-        REGEX_ASSERT(m1->lookingAt(5, status) == FALSE);
-        REGEX_ASSERT(m1->lookingAt(3, status) == FALSE);
-        REGEX_ASSERT(m1->lookingAt(4, status) == TRUE);
-        REGEX_ASSERT(m1->lookingAt(-1, status) == FALSE);
-        REGEX_ASSERT(status == U_INDEX_OUTOFBOUNDS_ERROR);
-        status = U_ZERO_ERROR;
-        len = m1->input().length();
-        REGEX_ASSERT(m1->lookingAt(len, status) == FALSE);
-        REGEX_ASSERT(status == U_INDEX_OUTOFBOUNDS_ERROR);
-        
         delete m1;
         delete pat2;
     }
@@ -817,61 +748,6 @@ void RegexTest::API_Match() {
         delete matcher;
         delete pat;
     }
-
-    //
-    //   find with zero length matches, match position should bump ahead
-    //     to prevent loops.
-    //
-    {
-        int                 i;
-        UErrorCode          status=U_ZERO_ERROR;
-        RegexMatcher        m("(?= ?)", 0, status);   // This pattern will zero-length matches anywhere,
-                                                      //   using an always-true look-ahead.
-        REGEX_CHECK_STATUS;
-        UnicodeString s("    ");
-        m.reset(s);
-        for (i=0; ; i++) {
-            if (m.find() == FALSE) {
-                break;
-            }
-            REGEX_ASSERT(m.start(status) == i);
-            REGEX_ASSERT(m.end(status) == i);
-        }
-        REGEX_ASSERT(i==5);
-
-        // Check that the bump goes over surrogate pairs OK
-        s = "\\U00010001\\U00010002\\U00010003\\U00010004";
-        s = s.unescape();
-        m.reset(s);
-        for (i=0; ; i+=2) {
-            if (m.find() == FALSE) {
-                break;
-            }
-            REGEX_ASSERT(m.start(status) == i);
-            REGEX_ASSERT(m.end(status) == i);
-        }
-        REGEX_ASSERT(i==10);
-    }
-    {
-        // find() loop breaking test.
-        //        with pattern of /.?/, should see a series of one char matches, then a single
-        //        match of zero length at the end of the input string.
-        int                 i;
-        UErrorCode          status=U_ZERO_ERROR;
-        RegexMatcher        m(".?", 0, status);     
-        REGEX_CHECK_STATUS;
-        UnicodeString s("    ");
-        m.reset(s);
-        for (i=0; ; i++) {
-            if (m.find() == FALSE) {
-                break;
-            }
-            REGEX_ASSERT(m.start(status) == i);
-            REGEX_ASSERT(m.end(status) == (i<4 ? i+1 : i));
-        }
-        REGEX_ASSERT(i==5);
-    }
-
 
     //
     // Matchers with no input string behave as if they had an empty input string.
@@ -1071,7 +947,7 @@ void RegexTest::API_Pattern() {
     REGEX_ASSERT(*pat1a == *pat1);
 
     REGEX_ASSERT(pat1a->flags() == 0);
-
+#if 0
     // Compile with different flags should be not equal
     RegexPattern        *pat1b = RegexPattern::compile(re1, UREGEX_CASE_INSENSITIVE, pe, status);
     REGEX_CHECK_STATUS;
@@ -1080,39 +956,23 @@ void RegexTest::API_Pattern() {
     REGEX_ASSERT(pat1b->flags() == UREGEX_CASE_INSENSITIVE);
     REGEX_ASSERT(pat1a->flags() == 0);
     delete pat1b;
+#endif    // add test back in when we actually support flag settings.
 
     // clone
     RegexPattern *pat1c = pat1->clone();
     REGEX_ASSERT(*pat1c == *pat1);
     REGEX_ASSERT(*pat1c != *pat2);
 
+
+    // TODO:  Actually do some matches with the cloned/copied/assigned patterns.
+
+
+
     delete pat1c;
     delete pat1a;
     delete pat1;
     delete pat2;
 
-
-    //
-    //   Verify that a matcher created from a cloned pattern works.
-    //     (Jitterbug 3423)
-    //
-    {
-        UErrorCode     status     = U_ZERO_ERROR;
-        RegexPattern  *pSource    = RegexPattern::compile("\\p{L}+", 0, status);
-        RegexPattern  *pClone     = pSource->clone();
-        delete         pSource;
-        RegexMatcher  *mFromClone = pClone->matcher(status);
-        REGEX_CHECK_STATUS;
-        UnicodeString s = "Hello World";
-        mFromClone->reset(s);
-        REGEX_ASSERT(mFromClone->find() == TRUE);
-        REGEX_ASSERT(mFromClone->group(status) == "Hello");
-        REGEX_ASSERT(mFromClone->find() == TRUE);
-        REGEX_ASSERT(mFromClone->group(status) == "World");
-        REGEX_ASSERT(mFromClone->find() == FALSE);
-        delete mFromClone;
-        delete pClone;
-    }
 
     //
     //   matches convenience API
@@ -1315,49 +1175,29 @@ void RegexTest::API_Pattern() {
 //                     A description of the test data format is included in that file.
 //
 //---------------------------------------------------------------------------
-
-const char *
-RegexTest::getPath(char buffer[2048], const char *filename) {
-    UErrorCode status=U_ZERO_ERROR;
-    const char *testDataDirectory = loadTestData(status);
-    if (U_FAILURE(status)) {
-        errln("ERROR: loadTestData() failed - %s", u_errorName(status));
-	    return NULL;
-    }
-
-    const char *folder=U_FILE_SEP_STRING "out" U_FILE_SEP_STRING "testdata";
-    const char *outTestdata=strstr(testDataDirectory, folder);
-    if(outTestdata!=NULL) {
-        /* skip the initial '/' */
-        outTestdata+=strlen(U_FILE_SEP_STRING);
-        int32_t length=outTestdata-testDataDirectory;
-
-        /* replace the trailing folder with the filename */
-        memcpy(buffer, testDataDirectory, length);
-        strcpy(buffer+length, filename);
-        return buffer;
-    } else {
-        errln("Could not find test data file %s because test data directory does not contain %s", filename, folder);
-        return NULL;
-    }
-}
-
 void RegexTest::Extended() {
-    char tdd[2048];
-    const char *path;
     UErrorCode  status  = U_ZERO_ERROR;
     int32_t     lineNum = 0;
 
     //
     //  Open and read the test data file.
     //
-    path=getPath(tdd, "regextst.txt");
-    if(path==NULL) {
-        return; /* something went wrong, error already output */
+    const char *testDataDirectory = loadTestData(status);
+    if (U_FAILURE(status)) {
+        errln("ERROR: could not open test data %s", u_errorName(status));
+	    return;
+    }
+    UnicodeString tdd(testDataDirectory);
+    RegexMatcher m("([/\\\\])out[/\\\\]testdata", tdd, 0, status);
+    if(U_SUCCESS(status)) {
+      tdd = m.replaceFirst("$1regextst.txt", status);
+    } else {
+      errln("Couldn't set up tests. Error %s", u_errorName(status));
+      return;
     }
 
     int    len;
-    UChar *testData = ReadAndConvertFile(path, len, status);
+    UChar *testData = ReadAndConvertFile((const char *)CharString(tdd), len, status);
 
     //
     //  Put the test data into a UnicodeString
@@ -1366,7 +1206,7 @@ void RegexTest::Extended() {
 
     RegexMatcher    quotedStuffMat("\\s*([\\'\\\"/])(.+?)\\1", 0, status);
     RegexMatcher    commentMat    ("\\s*(#.*)?$", 0, status); 
-    RegexMatcher    flagsMat      ("\\s*([ixsmdtGv]*)([:letter:]*)", 0, status);
+    RegexMatcher    flagsMat      ("\\s*([ixsmdtG]*)([:letter:]*)", 0, status);
 
     RegexMatcher    lineMat("(.*?)\\r?\\n", testString, 0, status);
     UnicodeString   testPattern;   // The pattern for test from the test file.
@@ -1662,21 +1502,28 @@ cleanUpAndReturn:
 //
 //-------------------------------------------------------------------------------
 void RegexTest::PerlTests() {
-    char tdd[2048];
-    const char *path;
     UErrorCode  status = U_ZERO_ERROR;
     UParseError pe;
 
     //
     //  Open and read the test data file.
     //
-    path=getPath(tdd, "re_tests.txt");
-    if(path==NULL) {
-        return; /* something went wrong, error already output */
+    const char *testDataDirectory = loadTestData(status);
+    if (U_FAILURE(status)) {
+        errln("ERROR: could not open test data %s", u_errorName(status));
+	    return;
+    }
+    UnicodeString tdd(testDataDirectory);
+    RegexMatcher m("([/\\\\])out[/\\\\]testdata", tdd, 0, status);
+    if(U_SUCCESS(status)) {
+      tdd = m.replaceFirst("$1re_tests.txt", status);
+    } else {
+      errln("Couldn't set up tests. Error %s", u_errorName(status));
+      return;
     }
 
     int    len;
-    UChar *testData = ReadAndConvertFile(path, len, status);
+    UChar *testData = ReadAndConvertFile((const char *)CharString(tdd), len, status);
 
     //
     //  Put the test data into a UnicodeString
@@ -1956,8 +1803,8 @@ void RegexTest::PerlTests() {
 
         if (expectedS.compare(resultString) != 0) {
             errln("Line %d: Incorrect perl expression results.  Expected \"%s\"; got \"%s\"",
-                lineNum, (const char *)CharString(expectedS, 0),
-                (const char *)CharString(resultString, 0));
+                lineNum, (const char *)CharString(expectedS),
+                (const char *)CharString(resultString));
         }
 
         delete testMat;

@@ -238,6 +238,7 @@ U_CAPI char*    U_EXPORT2 uprv_tzname(int n);
 /**
  * Get UTC (GMT) time measured in seconds since 0:00 on 1/1/70.
  * @return the UTC time measured in seconds 
+ * @stable ICU 2.0
  * @internal
  */
 U_CAPI int32_t  U_EXPORT2 uprv_getUTCtime(void);
@@ -313,24 +314,18 @@ U_CAPI const char*  U_EXPORT2 uprv_getDefaultLocaleID(void);
  */
 #ifdef XP_MAC
 #   define U_FILE_SEP_CHAR ':'
-#   define U_FILE_ALT_SEP_CHAR ':'
 #   define U_PATH_SEP_CHAR ';'
 #   define U_FILE_SEP_STRING ":"
-#   define U_FILE_ALT_SEP_STRING ":"
 #   define U_PATH_SEP_STRING ";"
 #elif defined(WIN32) || defined(OS2)
 #   define U_FILE_SEP_CHAR '\\'
-#   define U_FILE_ALT_SEP_CHAR '/'
 #   define U_PATH_SEP_CHAR ';'
 #   define U_FILE_SEP_STRING "\\"
-#   define U_FILE_ALT_SEP_STRING "/"
 #   define U_PATH_SEP_STRING ";"
 #else
 #   define U_FILE_SEP_CHAR '/'
-#   define U_FILE_ALT_SEP_CHAR '/'
 #   define U_PATH_SEP_CHAR ':'
 #   define U_FILE_SEP_STRING "/"
-#   define U_FILE_ALT_SEP_STRING "/"
 #   define U_PATH_SEP_STRING ":"
 #endif
 
@@ -374,35 +369,9 @@ U_CAPI void U_EXPORT2
 u_UCharsToChars(const UChar *us, char *cs, int32_t length);
 
 /**
- * Check if a char string only contains invariant characters.
- * See utypes.h for details.
- *
- * @param s Input string pointer.
- * @param length Length of the string, can be -1 if NUL-terminated.
- * @return TRUE if s contains only invariant characters.
- *
- * @internal (ICU 2.8)
- */
-U_CAPI UBool U_EXPORT2
-uprv_isInvariantString(const char *s, int32_t length);
-
-/**
- * Check if a Unicode string only contains invariant characters.
- * See utypes.h for details.
- *
- * @param s Input string pointer.
- * @param length Length of the string, can be -1 if NUL-terminated.
- * @return TRUE if s contains only invariant characters.
- *
- * @internal (ICU 2.8)
- */
-U_CAPI UBool U_EXPORT2
-uprv_isInvariantUString(const UChar *s, int32_t length);
-
-/**
  * \def U_UPPER_ORDINAL
  * Get the ordinal number of an uppercase invariant character
- * @internal
+ * @stable ICU 2.4
  */
 #if U_CHARSET_FAMILY==U_ASCII_FAMILY
 #   define U_UPPER_ORDINAL(x) ((x)-'A')

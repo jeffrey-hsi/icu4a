@@ -45,7 +45,7 @@ void TestFlushCache(void) {
         log_data_err("FAILURE! %s\n", myErrorName(err));
     }
 
-    someConverters[4] = ucnv_open("ibm-954", &err);
+    someConverters[4] = ucnv_open("ibm-949", &err);
     if (U_FAILURE(err)) {
         log_data_err("FAILURE! %s\n", myErrorName(err));
     }

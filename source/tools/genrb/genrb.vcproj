@@ -35,8 +35,9 @@
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; ..\..\..\bin"
-				Outputs="..\..\..\bin\$(TargetFileName)"/>
+				CommandLine="copy $(TargetPath) ..\..\..\bin
+"
+				Outputs="..\..\..\bin\$(InputName).exe"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
@@ -94,8 +95,9 @@
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; ..\..\..\bin"
-				Outputs="..\..\..\bin\$(TargetFileName)"/>
+				CommandLine="copy $(TargetPath) ..\..\..\bin
+"
+				Outputs="..\..\..\bin\$(InputName).exe"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
@@ -140,9 +142,6 @@
 				RelativePath=".\parse.c">
 			</File>
 			<File
-				RelativePath=".\prscmnts.cpp">
-			</File>
-			<File
 				RelativePath=".\read.c">
 			</File>
 			<File
@@ -175,9 +174,6 @@
 			</File>
 			<File
 				RelativePath=".\parse.h">
-			</File>
-			<File
-				RelativePath=".\prscmnts.h">
 			</File>
 			<File
 				RelativePath=".\read.h">

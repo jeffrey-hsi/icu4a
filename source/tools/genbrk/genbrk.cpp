@@ -52,22 +52,11 @@ static UOption options[]={
     { "rules", NULL, NULL, NULL, 'r', UOPT_REQUIRES_ARG, 0 },   /* 3 */
     { "out",   NULL, NULL, NULL, 'o', UOPT_REQUIRES_ARG, 0 },   /* 4 */
     UOPTION_ICUDATADIR,         /* 5 */
-    UOPTION_DESTDIR,            /* 6 */
-    UOPTION_COPYRIGHT,          /* 7 */
+    UOPTION_DESTDIR             /* 6 */
 };
 
 void usageAndDie(int retCode) {
-        printf("Usage: %s [-v] [-options] -r rule-file -o output-file\n", progName);
-        printf("\tRead in break iteration rules text and write out the binary data\n"
-            "options:\n"
-            "\t-h or -? or --help  this usage text\n"
-            "\t-V or --version     show a version message\n"
-            "\t-c or --copyright   include a copyright notice\n"
-            "\t-v or --verbose     turn on verbose output\n"
-            "\t-i or --icudatadir  directory for locating any needed intermediate data files,\n"
-            "\t                    followed by path, defaults to %s\n"
-            "\t-d or --destdir     destination directory, followed by the path\n",
-            u_getDataDirectory());
+        printf("Usage: %s [-v] -r rule-file -o output-file\n", progName);
         exit (retCode);
 }
 
@@ -108,8 +97,8 @@ DataHeader dh ={
         0,                          //     reserved
 
     { 0x42, 0x72, 0x6b, 0x20 },     //     dataFormat="Brk "
-    { 3, 0, 0, 0 },                 //     formatVersion
-        { 4, 0, 0, 0 }                //   dataVersion (Unicode version)
+    { 2, 1, 0, 0 },                 //     formatVersion
+        { 3, 1, 0, 0 }                //   dataVersion (Unicode version)
     }};
 
 #endif
@@ -124,7 +113,8 @@ int  main(int argc, char **argv) {
     const char *ruleFileName;
     const char *outFileName;
     const char *outDir = NULL;
-    const char *copyright = NULL;
+    char *outFullFileName;
+    int32_t outFullFileNameLen;
 
     //
     // Pick up and check the command line arguments,
@@ -150,27 +140,24 @@ int  main(int argc, char **argv) {
     }
     ruleFileName = options[3].value;
     outFileName  = options[4].value;
+    outFullFileNameLen = strlen(outFileName);
 
     if (options[5].doesOccur) {
         u_setDataDirectory(options[5].value);
     }
 
-    /* Initialize ICU */
-    u_init(&status);
-    if (U_FAILURE(status)) {
-        fprintf(stderr, "%s: can not initialize ICU.  status = %s\n",
-            argv[0], u_errorName(status));
-        exit(1);
-    }
-    status = U_ZERO_ERROR;
-
     /* Combine the directory with the file name */
     if(options[6].doesOccur) {
         outDir = options[6].value;
+        outFullFileNameLen += strlen(outDir);
     }
-    if (options[7].doesOccur) {
-        copyright = U_COPYRIGHT_STRING;
+    outFullFileName = (char*)malloc(outFullFileNameLen + 2);
+    outFullFileName[0] = 0;
+    if (outDir) {
+        strcpy(outFullFileName, outDir);
+        strcat(outFullFileName, U_FILE_SEP_STRING);
     }
+    strcat(outFullFileName, outFileName);
 
 #if UCONFIG_NO_BREAK_ITERATION
 
@@ -213,7 +200,7 @@ int  main(int argc, char **argv) {
     //
     //  Read in the rule source file
     //
-    long        result;
+    int         result;
     long        ruleFileSize;
     FILE        *file;
     char        *ruleBufferC;
@@ -228,7 +215,7 @@ int  main(int argc, char **argv) {
     fseek(file, 0, SEEK_SET);
     ruleBufferC = new char[ruleFileSize+10];
 
-    result = (long)fread(ruleBufferC, 1, ruleFileSize, file);
+    result = fread(ruleBufferC, 1, ruleFileSize, file);
     if (result != ruleFileSize)  {
         fprintf(stderr, "Error reading file \"%s\"\n", ruleFileName);
         exit (-1);
@@ -323,30 +310,28 @@ int  main(int argc, char **argv) {
     //  Create the output file
     //
     size_t bytesWritten;
-    UNewDataMemory *pData;
-    pData = udata_create(outDir, NULL, outFileName, &(dh.info), copyright, &status);
-    if(U_FAILURE(status)) {
-        fprintf(stderr, "genbrk: Could not open output file \"%s\", \"%s\"\n", 
-                         outFileName, u_errorName(status));
-        exit(status);
-    }
-    //  Write the data itself.
-    udata_writeBlock(pData, outData, outDataSize);
-    // finish up 
-    bytesWritten = udata_finish(pData, &status);
-    if(U_FAILURE(status)) {
-        fprintf(stderr, "genbrk: error %d writing the output file\n", status);
-        exit(status);
-    }
-    
-    if (bytesWritten != outDataSize) {
-        fprintf(stderr, "Error writing to output file \"%s\"\n", outFileName);
+    file = fopen(outFullFileName, "wb");
+    if (file == 0) {
+        fprintf(stderr, "Could not open output file \"%s\"\n", outFullFileName);
         exit(-1);
     }
 
+    bytesWritten = fwrite(&dh, 1, sizeof(DataHeader), file);
+
+    //
+    //  Write the data itself.
+    //
+    bytesWritten = fwrite(outData, 1, outDataSize, file);
+    if (bytesWritten != outDataSize) {
+        fprintf(stderr, "Error writing to output file \"%s\"\n", outFullFileName);
+        exit(-1);
+    }
+
+    fclose(file);
     delete bi;
     delete[] ruleSourceU;
     delete[] ruleBufferC;
+    free(outFullFileName);
     u_cleanup();
 
 
@@ -355,4 +340,3 @@ int  main(int argc, char **argv) {
 
 #endif /* #if !UCONFIG_NO_BREAK_ITERATION */
 }
-

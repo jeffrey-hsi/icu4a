@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				OutputFile="..\..\bin\icudt28l.dll"
+				OutputFile="..\..\bin\icudt26l.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				ProgramDatabaseFile=".\Release/icudt26l.pdb"
@@ -58,7 +58,7 @@
 				Name="VCPreBuildEventTool"/>
 			<Tool
 				Name="VCPreLinkEventTool"
-				CommandLine="echo &quot;File with stubdata build time, used as a dependency to trigger fresh data build, since stubdata dll will overwrite the real one.&quot; &gt; &quot;$(ProjectDir)stubdatabuilt.txt&quot;"/>
+				CommandLine="echo &quot;File with stubdata build time, used as a dependency to trigger fresh data build, since stubdata dll will overwrite the real one.&quot; &gt; $(ProjectDir)stubdatabuilt.txt"/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
@@ -99,7 +99,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				OutputFile="..\..\bin\icudt28l.dll"
+				OutputFile="..\..\bin\icudt26l.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				ProgramDatabaseFile=".\Debug/icudt26l.pdb"
@@ -117,7 +117,7 @@
 				Name="VCPreBuildEventTool"/>
 			<Tool
 				Name="VCPreLinkEventTool"
-				CommandLine="echo &quot;File with stubdata build time, used as a dependency to trigger fresh data build, since stubdata dll will overwrite the real one.&quot; &gt; &quot;$(ProjectDir)stubdatabuilt.txt&quot;"/>
+				CommandLine="echo &quot;File with stubdata build time, used as a dependency to trigger fresh data build, since stubdata dll will overwrite the real one.&quot; &gt; $(ProjectDir)stubdatabuilt.txt"/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"

@@ -23,12 +23,12 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(TitlecaseTransliterator)
+const char TitlecaseTransliterator::fgClassID=0;
 
 /**
  * ID for this transliterator.
  */
-const char CURR_ID[] = "Any-Title";
+const char TitlecaseTransliterator::_ID[] = "Any-Title";
 
 /**
  * The set of characters we skip.  These are neither cased nor
@@ -45,7 +45,7 @@ static UnicodeSet* SKIP = NULL;
 static UnicodeSet* CASED = NULL;
 
 TitlecaseTransliterator::TitlecaseTransliterator(const Locale& theLoc) :
-    Transliterator(UnicodeString(CURR_ID, ""), 0),
+    Transliterator(_ID, 0),
     loc(theLoc), 
     buffer(0)
 {
@@ -120,9 +120,7 @@ Transliterator* TitlecaseTransliterator::clone(void) const {
  */
 void TitlecaseTransliterator::handleTransliterate(
                                   Replaceable& text, UTransPosition& offsets,
-                                  UBool /*isIncremental*/) const
-{
-    /* TODO: Verify that isIncremental can be ignored */
+                                  UBool isIncremental) const {
     if (SKIP == NULL) {
         return;
     }

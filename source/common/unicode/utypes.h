@@ -330,68 +330,60 @@ typedef void* UClassID;
  */
 
 /**
- * \def U_IO_API
+ * \def U_USTDIO_API
  * Set to export library symbols from inside the ustdio library,
  * and to import them from outside.
  * @stable ICU 2.0
  */
 
 #if defined(U_COMBINED_IMPLEMENTATION)
-#define U_DATA_API     U_EXPORT
 #define U_COMMON_API   U_EXPORT
 #define U_I18N_API     U_EXPORT
 #define U_LAYOUT_API   U_EXPORT
 #define U_LAYOUTEX_API U_EXPORT
-#define U_IO_API       U_EXPORT
+#define U_USTDIO_API   U_EXPORT
 #elif defined(U_STATIC_IMPLEMENTATION)
-#define U_DATA_API
 #define U_COMMON_API
 #define U_I18N_API
 #define U_LAYOUT_API
 #define U_LAYOUTEX_API
-#define U_IO_API
+#define U_USTDIO_API
 #elif defined(U_COMMON_IMPLEMENTATION)
-#define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_EXPORT
 #define U_I18N_API     U_IMPORT
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_IMPORT
-#define U_IO_API       U_IMPORT
+#define U_USTDIO_API   U_IMPORT
 #elif defined(U_I18N_IMPLEMENTATION)
-#define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
 #define U_I18N_API     U_EXPORT
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_IMPORT
-#define U_IO_API       U_IMPORT
+#define U_USTDIO_API   U_IMPORT
 #elif defined(U_LAYOUT_IMPLEMENTATION)
-#define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
 #define U_I18N_API     U_IMPORT
 #define U_LAYOUT_API   U_EXPORT
 #define U_LAYOUTEX_API U_IMPORT
-#define U_IO_API       U_IMPORT
+#define U_USTDIO_API   U_IMPORT
 #elif defined(U_LAYOUTEX_IMPLEMENTATION)
-#define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
 #define U_I18N_API     U_IMPORT
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_EXPORT
-#define U_IO_API       U_IMPORT
+#define U_USTDIO_API   U_IMPORT
 #elif defined(U_USTDIO_IMPLEMENTATION)
-#define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
 #define U_I18N_API     U_IMPORT
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_IMPORT
-#define U_IO_API       U_EXPORT
+#define U_USTDIO_API   U_EXPORT
 #else
-#define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
 #define U_I18N_API     U_IMPORT
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_IMPORT
-#define U_IO_API       U_IMPORT
+#define U_USTDIO_API   U_IMPORT
 #endif
 
 /**
@@ -536,9 +528,9 @@ typedef enum UErrorCode {
     U_MEMORY_ALLOCATION_ERROR =  7,     /**< Memory allocation error */
     U_INDEX_OUTOFBOUNDS_ERROR =  8,     /**< Trying to access the index that is out of bounds */
     U_PARSE_ERROR             =  9,     /**< Equivalent to Java ParseException */
-    U_INVALID_CHAR_FOUND      = 10,     /**< Character conversion: Unmappable input sequence. In other APIs: Invalid character. */
-    U_TRUNCATED_CHAR_FOUND    = 11,     /**< Character conversion: Incomplete input sequence. */
-    U_ILLEGAL_CHAR_FOUND      = 12,     /**< Character conversion: Illegal input sequence/combination of input units.. */
+    U_INVALID_CHAR_FOUND      = 10,     /**< In the Character conversion routines: Invalid character or sequence was encountered. In other APIs: Invalid character or code point name. */
+    U_TRUNCATED_CHAR_FOUND    = 11,     /**< In the Character conversion routines: More bytes are required to complete the conversion successfully */
+    U_ILLEGAL_CHAR_FOUND      = 12,     /**< In codeset conversion: a sequence that does NOT belong in the codepage has been encountered */
     U_INVALID_TABLE_FORMAT    = 13,     /**< Conversion table file found, but corrupted */
     U_INVALID_TABLE_FILE      = 14,     /**< Conversion table file not found */
     U_BUFFER_OVERFLOW_ERROR   = 15,     /**< A result would not fit in the supplied buffer */
@@ -554,7 +546,6 @@ typedef enum UErrorCode {
                                              It is very possible that a circular alias definition has occured */
     U_ENUM_OUT_OF_SYNC_ERROR  = 25,     /**< UEnumeration out of sync with underlying collection */
     U_INVARIANT_CONVERSION_ERROR = 26,  /**< Unable to convert a UChar* string to char* with the invariant converter. */
-    U_INVALID_STATE_ERROR     = 27,     /**< Requested operation can not be completed with ICU in its current state */
 
     U_STANDARD_ERROR_LIMIT,             /**< This must always be the last value to indicate the limit for standard errors */
     /*
@@ -633,7 +624,6 @@ typedef enum UErrorCode {
     U_BRK_UNDEFINED_VARIABLE,              /**< Use of an undefined $Variable in an RBBI rule.    */
     U_BRK_INIT_ERROR,                      /**< Initialization failure.  Probable missing ICU Data. */
     U_BRK_RULE_EMPTY_SET,                  /**< Rule contains an empty Unicode Set.               */
-    U_BRK_UNRECOGNIZED_OPTION,             /**< !!option in RBBI rules not recognized.            */
     U_BRK_ERROR_LIMIT,                     /**< This must always be the last value to indicate the limit for Break Iterator failures */
 
     /*
@@ -660,23 +650,16 @@ typedef enum UErrorCode {
       * The error code in the range 0x10400-0x104ff are reserved for IDNA related error codes
       */
       U_IDNA_ERROR_START=0x10400,
-      U_IDNA_PROHIBITED_ERROR,
-      U_IDNA_UNASSIGNED_ERROR,
+      U_IDNA_PROHIBITED_CODEPOINT_FOUND_ERROR,
+      U_IDNA_UNASSIGNED_CODEPOINT_FOUND_ERROR,
       U_IDNA_CHECK_BIDI_ERROR,
       U_IDNA_STD3_ASCII_RULES_ERROR,
       U_IDNA_ACE_PREFIX_ERROR,
       U_IDNA_VERIFICATION_ERROR,
       U_IDNA_LABEL_TOO_LONG_ERROR,
       U_IDNA_ERROR_LIMIT,
-      /*
-       * Aliases for StringPrep
-       */
-      U_STRINGPREP_PROHIBITED_ERROR = U_IDNA_PROHIBITED_ERROR,
-      U_STRINGPREP_UNASSIGNED_ERROR = U_IDNA_UNASSIGNED_ERROR,
-      U_STRINGPREP_CHECK_BIDI_ERROR = U_IDNA_CHECK_BIDI_ERROR,
-      
 
-      U_ERROR_LIMIT=U_IDNA_ERROR_LIMIT      /**< This must always be the last value to indicate the limit for UErrorCode (last error code +1) */
+    U_ERROR_LIMIT=U_IDNA_ERROR_LIMIT      /**< This must always be the last value to indicate the limit for UErrorCode (last error code +1) */
 } UErrorCode;
 
 /* Use the following to determine if an UErrorCode represents */

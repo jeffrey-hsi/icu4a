@@ -30,9 +30,7 @@
 #include "ucln_cmn.h"
 #include "utrie.h"
 #include "ustr_imp.h"
-#include "udataswp.h"
 #include "uprops.h"
-#include "uassert.h"
 
 #define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
@@ -56,10 +54,7 @@ static const uint32_t *pData32=NULL, *props32Table=NULL, *exceptionsTable=NULL, 
 static const UChar *ucharsTable=NULL;
 static int32_t countPropsVectors=0, propsVectorsColumns=0;
 
-static int8_t havePropsData=0;     /*  == 0   ->  Data has not been loaded.
-                                    *   < 0   ->  Error occured attempting to load data.
-                                    *   > 0   ->  Data has been successfully loaded.
-                                    */
+static int8_t havePropsData=0;
 
 /* index values loaded from uprops.dat */
 static int32_t indexes[UPROPS_INDEX_COUNT];
@@ -112,14 +107,13 @@ uchar_cleanup()
     propsVectors=NULL;
     countPropsVectors=0;
     dataErrorCode=U_ZERO_ERROR;
-    havePropsData=0;
+    havePropsData=FALSE;
 
     return TRUE;
 }
 
-
-U_CFUNC int8_t
-uprv_loadPropsData(UErrorCode *errorCode) {
+static int8_t
+loadPropsData(void) {
     /* load Unicode character properties data from file if necessary */
 
     /*
@@ -129,14 +123,15 @@ uprv_loadPropsData(UErrorCode *errorCode) {
      */
     if(havePropsData==0) {
         UTrie trie={ 0 }, trie2={ 0 };
+        UErrorCode errorCode=U_ZERO_ERROR;
         UDataMemory *data;
         const uint32_t *p=NULL;
         int32_t length;
 
         /* open the data outside the mutex block */
-        data=udata_openChoice(NULL, DATA_TYPE, DATA_NAME, isAcceptable, NULL, errorCode);
-        dataErrorCode=*errorCode;
-        if(U_FAILURE(*errorCode)) {
+        data=udata_openChoice(NULL, DATA_TYPE, DATA_NAME, isAcceptable, NULL, &errorCode);
+        dataErrorCode=errorCode;
+        if(U_FAILURE(errorCode)) {
             return havePropsData=-1;
         }
 
@@ -144,9 +139,9 @@ uprv_loadPropsData(UErrorCode *errorCode) {
 
         /* unserialize the trie; it is directly after the int32_t indexes[UPROPS_INDEX_COUNT] */
         length=(int32_t)p[UPROPS_PROPS32_INDEX]*4;
-        length=utrie_unserialize(&trie, (const uint8_t *)(p+UPROPS_INDEX_COUNT), length-64, errorCode);
-        if(U_FAILURE(*errorCode)) {
-            dataErrorCode=*errorCode;
+        length=utrie_unserialize(&trie, (const uint8_t *)(p+UPROPS_INDEX_COUNT), length-64, &errorCode);
+        if(U_FAILURE(errorCode)) {
+            dataErrorCode=errorCode;
             udata_close(data);
             return havePropsData=-1;
         }
@@ -157,8 +152,8 @@ uprv_loadPropsData(UErrorCode *errorCode) {
             p[UPROPS_ADDITIONAL_VECTORS_INDEX]!=0
         ) {
             length=(int32_t)(p[UPROPS_ADDITIONAL_VECTORS_INDEX]-p[UPROPS_ADDITIONAL_TRIE_INDEX])*4;
-            length=utrie_unserialize(&trie2, (const uint8_t *)(p+p[UPROPS_ADDITIONAL_TRIE_INDEX]), length, errorCode);
-            if(U_FAILURE(*errorCode)) {
+            length=utrie_unserialize(&trie2, (const uint8_t *)(p+p[UPROPS_ADDITIONAL_TRIE_INDEX]), length, &errorCode);
+            if(U_FAILURE(errorCode)) {
                 uprv_memset(&trie2, 0, sizeof(trie2));
             } else {
                 trie2.getFoldingOffset=getFoldingPropsOffset;
@@ -201,150 +196,10 @@ uprv_loadPropsData(UErrorCode *errorCode) {
     return havePropsData;
 }
 
-
-static int8_t 
-loadPropsData(void) {
-    UErrorCode   errorCode = U_ZERO_ERROR;
-    int8_t       retVal    = uprv_loadPropsData(&errorCode);
-    return retVal;
-}
-
-
-/* Unicode properties data swapping ----------------------------------------- */
-
-U_CAPI int32_t U_EXPORT2
-uprops_swap(const UDataSwapper *ds,
-            const void *inData, int32_t length, void *outData,
-            UErrorCode *pErrorCode) {
-    const UDataInfo *pInfo;
-    int32_t headerSize, i;
-
-    int32_t dataIndexes[UPROPS_INDEX_COUNT];
-    const int32_t *inData32;
-
-    /* udata_swapDataHeader checks the arguments */
-    headerSize=udata_swapDataHeader(ds, inData, length, outData, pErrorCode);
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    /* check data format and format version */
-    pInfo=(const UDataInfo *)((const char *)inData+4);
-    if(!(
-        pInfo->dataFormat[0]==0x55 &&   /* dataFormat="UPro" */
-        pInfo->dataFormat[1]==0x50 &&
-        pInfo->dataFormat[2]==0x72 &&
-        pInfo->dataFormat[3]==0x6f &&
-        pInfo->formatVersion[0]==3 &&
-        pInfo->formatVersion[2]==UTRIE_SHIFT &&
-        pInfo->formatVersion[3]==UTRIE_INDEX_SHIFT
-    )) {
-        udata_printError(ds, "uprops_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not a Unicode properties file\n",
-                         pInfo->dataFormat[0], pInfo->dataFormat[1],
-                         pInfo->dataFormat[2], pInfo->dataFormat[3],
-                         pInfo->formatVersion[0]);
-        *pErrorCode=U_UNSUPPORTED_ERROR;
-        return 0;
-    }
-
-    /* the properties file must contain at least the indexes array */
-    if(length>=0 && (length-headerSize)<sizeof(dataIndexes)) {
-        udata_printError(ds, "uprops_swap(): too few bytes (%d after header) for a Unicode properties file\n",
-                         length-headerSize);
-        *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
-        return 0;
-    }
-
-    /* read the indexes */
-    inData32=(const int32_t *)((const char *)inData+headerSize);
-    for(i=0; i<UPROPS_INDEX_COUNT; ++i) {
-        dataIndexes[i]=udata_readInt32(ds, inData32[i]);
-    }
-
-    /*
-     * comments are copied from the data format description in genprops/store.c
-     * indexes[] constants are in uprops.h
-     */
-    if(length>=0) {
-        int32_t *outData32;
-
-        if((length-headerSize)<(4*dataIndexes[UPROPS_RESERVED_INDEX])) {
-            udata_printError(ds, "uprops_swap(): too few bytes (%d after header) for a Unicode properties file\n",
-                             length-headerSize);
-            *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
-            return 0;
-        }
-
-        outData32=(int32_t *)((char *)outData+headerSize);
-
-        /* copy everything for inaccessible data (padding) */
-        if(inData32!=outData32) {
-            uprv_memcpy(outData32, inData32, 4*dataIndexes[UPROPS_RESERVED_INDEX]);
-        }
-
-        /* swap the indexes[16] */
-        ds->swapArray32(ds, inData32, 4*UPROPS_INDEX_COUNT, outData32, pErrorCode);
-
-        /*
-         * swap the main properties UTrie
-         * PT serialized properties trie, see utrie.h (byte size: 4*(i0-16))
-         */
-        utrie_swap(ds,
-            inData32+UPROPS_INDEX_COUNT,
-            4*(dataIndexes[UPROPS_PROPS32_INDEX]-UPROPS_INDEX_COUNT),
-            outData32+UPROPS_INDEX_COUNT,
-            pErrorCode);
-
-        /*
-         * swap the properties and exceptions words
-         * P  const uint32_t props32[i1-i0];
-         * E  const uint32_t exceptions[i2-i1];
-         */
-        ds->swapArray32(ds,
-            inData32+dataIndexes[UPROPS_PROPS32_INDEX],
-            4*(dataIndexes[UPROPS_EXCEPTIONS_TOP_INDEX]-dataIndexes[UPROPS_PROPS32_INDEX]),
-            outData32+dataIndexes[UPROPS_PROPS32_INDEX],
-            pErrorCode);
-
-        /*
-         * swap the UChars
-         * U  const UChar uchars[2*(i3-i2)];
-         */
-        ds->swapArray16(ds,
-            inData32+dataIndexes[UPROPS_EXCEPTIONS_TOP_INDEX],
-            4*(dataIndexes[UPROPS_ADDITIONAL_TRIE_INDEX]-dataIndexes[UPROPS_EXCEPTIONS_TOP_INDEX]),
-            outData32+dataIndexes[UPROPS_EXCEPTIONS_TOP_INDEX],
-            pErrorCode);
-
-        /*
-         * swap the additional UTrie
-         * i3 additionalTrieIndex; -- 32-bit unit index to the additional trie for more properties
-         */
-        utrie_swap(ds,
-            inData32+dataIndexes[UPROPS_ADDITIONAL_TRIE_INDEX],
-            4*(dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX]-dataIndexes[UPROPS_ADDITIONAL_TRIE_INDEX]),
-            outData32+dataIndexes[UPROPS_ADDITIONAL_TRIE_INDEX],
-            pErrorCode);
-
-        /*
-         * swap the properties vectors
-         * PV const uint32_t propsVectors[(i6-i4)/i5][i5]==uint32_t propsVectors[i6-i4];
-         */
-        ds->swapArray32(ds,
-            inData32+dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX],
-            4*(dataIndexes[UPROPS_RESERVED_INDEX]-dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX]),
-            outData32+dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX],
-            pErrorCode);
-    }
-
-    /* i6 reservedItemIndex; -- 32-bit unit index to the top of the properties vectors table */
-    return headerSize+4*dataIndexes[UPROPS_RESERVED_INDEX];
-}
-
-/* constants and macros for access to the data ------------------------------ */
+/* constants and macros for access to the data */
 
 /* getting a uint32_t properties word from the data */
-#define HAVE_DATA (havePropsData>0 || loadPropsData()>0)
+#define HAVE_DATA (havePropsData>0 || (havePropsData==0 && loadPropsData()>0))
 #define VALIDATE(c) (((uint32_t)(c))<=0x10ffff && HAVE_DATA)
 #define GET_PROPS_UNSAFE(c, result) \
     UTRIE_GET16(&propsTrie, c, result); \
@@ -391,12 +246,13 @@ static const uint8_t flagsOffset[256]={
 
 U_CFUNC UBool
 uprv_haveProperties(UErrorCode *pErrorCode) {
-    if (havePropsData == 0) {
-        uprv_loadPropsData(pErrorCode);
+    if(HAVE_DATA) {
+        return TRUE;
+    } else {
+        *pErrorCode=dataErrorCode;
+        return FALSE;
     }
-    return (havePropsData>0);
 }
-
 
 /* API functions ------------------------------------------------------------ */
 

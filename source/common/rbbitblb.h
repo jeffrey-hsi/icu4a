@@ -4,7 +4,7 @@
 
 /*
 **********************************************************************
-*   Copyright (c) 2002-2003, International Business Machines
+*   Copyright (c) 2002, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -44,13 +44,11 @@ public:
                                         //     Sufficient memory must exist at
                                         //     the specified location.
 
-
 private:
     void     calcNullable(RBBINode *n);
     void     calcFirstPos(RBBINode *n);
     void     calcLastPos(RBBINode  *n);
     void     calcFollowPos(RBBINode *n);
-    void     calcChainedFollowPos(RBBINode *n);
     void     buildStateTable();
     void     flagAcceptingStates();
     void     flagLookAheadStates();
@@ -62,15 +60,10 @@ private:
     void     setAdd(UVector *dest, UVector *source);
     UBool    setEquals(UVector *a, UVector *b);
 
-#ifdef RBBI_DEBUG
     void     printSet(UVector *s);
-    void     printPosSets(RBBINode *n /* = NULL*/);
+    void     printPosSets(RBBINode *n = NULL);
     void     printStates();
-#else
-    #define  printSet(s)
-    #define  printPosSets(n)
-    #define  printStates()
-#endif
+
 
 private:
     RBBIRuleBuilder  *fRB;
@@ -81,7 +74,6 @@ private:
     UVector          *fDStates;            //  D states (Aho's terminology)
                                            //  Index is state number
                                            //  Contents are RBBIStateDescriptor pointers.
-
 
     RBBITableBuilder(const RBBITableBuilder &other); // forbid copying of this class
     RBBITableBuilder &operator=(const RBBITableBuilder &other); // forbid copying of this class

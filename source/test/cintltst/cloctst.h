@@ -67,35 +67,16 @@ static  void TestDisplayNames(void);
  /* Make sure that Country information is the same across locales, within reason. */
  static void TestConsistentCountryInfo(void);
 
- /* Make sure we can pass "de_DE@Collation=PHONEBOOK" */
- static void MoreVariants(void);
- 
- /* Test getting keyword enumeratin */
- static void TestKeywordVariants(void);
-
- /* Test getting keyword values */
- static void TestKeywordVariantParsing(void);
-
 /**
  * routine to perform subtests, used by TestDisplayNames
  */
  static void doTestDisplayNames(const char* inLocale, int32_t compareIndex);
-
- static void TestCanonicalization(void);
-
- static void TestDisplayKeywords(void);
-
- static void TestDisplayKeywordValues(void);
-
- static void TestGetBaseName(void);
-
-static void TestGetLocale(void);
 
 /**
  * additional intialization for datatables storing expected values
  */
 static void setUpDataTable(void);
 static void cleanUpDataTable(void);
-/*static void displayDataTable(void);*/
+void displayDataTable(void);
 
 #endif

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2001-2003, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) 2001, International Business Machines Corporation and others. All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
 *   07/26/01    aliu        Creation.
@@ -16,7 +16,7 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(Quantifier)
+const char Quantifier::fgClassID=0;
 
 Quantifier::Quantifier(UnicodeFunctor *adoptedMatcher,
                        uint32_t _minCount, uint32_t _maxCount) {
@@ -29,7 +29,6 @@ Quantifier::Quantifier(UnicodeFunctor *adoptedMatcher,
 
 Quantifier::Quantifier(const Quantifier& o) :
     UnicodeFunctor(o),
-    UnicodeMatcher(o),
     matcher(o.matcher->clone()),
     minCount(o.minCount),
     maxCount(o.maxCount)

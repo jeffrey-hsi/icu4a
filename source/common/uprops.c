@@ -26,118 +26,51 @@
 
 #define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
-#ifdef DEBUG
-#include <stdio.h>
-#endif
-
-/**
- * Get the next non-ignorable ASCII character from a property name
- * and lowercases it.
- * @return ((advance count for the name)<<8)|character
- */
-static U_INLINE int32_t
-getASCIIPropertyNameChar(const char *name) {
-    int32_t i;
-    char c;
-
-    /* Ignore delimiters '-', '_', and ASCII White_Space */
-    for(i=0;
-        (c=name[i++])==0x2d || c==0x5f ||
-        c==0x20 || (0x09<=c && c<=0x0d);
-    ) {}
-
-    if(c!=0) {
-        return (i<<8)|(uint8_t)uprv_asciitolower((char)c);
-    } else {
-        return i<<8;
-    }
-}
-
-/**
- * Get the next non-ignorable EBCDIC character from a property name
- * and lowercases it.
- * @return ((advance count for the name)<<8)|character
- */
-static U_INLINE int32_t
-getEBCDICPropertyNameChar(const char *name) {
-    int32_t i;
-    char c;
-
-    /* Ignore delimiters '-', '_', and EBCDIC White_Space */
-    for(i=0;
-        (c=name[i++])==0x60 || c==0x6d ||
-        c==0x40 || c==0x05 || c==0x15 || c==0x25 || c==0x0b || c==0x0c || c==0x0d;
-    ) {}
-
-    if(c!=0) {
-        return (i<<8)|(uint8_t)uprv_ebcdictolower((char)c);
-    } else {
-        return i<<8;
-    }
-}
-
 /**
  * Unicode property names and property value names are compared
  * "loosely". Property[Value]Aliases.txt say:
  *   "With loose matching of property names, the case distinctions, whitespace,
  *    and '_' are ignored."
  *
- * This function does just that, for (char *) name strings.
+ * This function does just that, for ASCII (char *) name strings.
  * It is almost identical to ucnv_compareNames() but also ignores
- * C0 White_Space characters (U+0009..U+000d, and U+0085 on EBCDIC).
+ * ASCII White_Space characters (U+0009..U+000d).
  *
  * @internal
  */
-
 U_CAPI int32_t U_EXPORT2
-uprv_compareASCIIPropertyNames(const char *name1, const char *name2) {
-    int32_t rc, r1, r2;
+uprv_comparePropertyNames(const char *name1, const char *name2) {
+    int32_t rc;
+    unsigned char c1, c2;
 
     for(;;) {
-        r1=getASCIIPropertyNameChar(name1);
-        r2=getASCIIPropertyNameChar(name2);
+        /* Ignore delimiters '-', '_', and ASCII White_Space */
+        while((c1=(unsigned char)*name1)=='-' || c1=='_' ||
+              c1==' ' || c1=='\t' || c1=='\n' || c1=='\v' || c1=='\f' || c1=='\r'
+        ) {
+            ++name1;
+        }
+        while((c2=(unsigned char)*name2)=='-' || c2=='_' ||
+              c2==' ' || c2=='\t' || c2=='\n' || c2=='\v' || c2=='\f' || c2=='\r'
+        ) {
+            ++name2;
+        }
 
         /* If we reach the ends of both strings then they match */
-        if(((r1|r2)&0xff)==0) {
+        if((c1|c2)==0) {
             return 0;
         }
         
-        /* Compare the lowercased characters */
-        if(r1!=r2) {
-            rc=(r1&0xff)-(r2&0xff);
+        /* Case-insensitive comparison */
+        if(c1!=c2) {
+            rc=(int32_t)(unsigned char)uprv_tolower(c1)-(int32_t)(unsigned char)uprv_tolower(c2);
             if(rc!=0) {
                 return rc;
             }
         }
 
-        name1+=r1>>8;
-        name2+=r2>>8;
-    }
-}
-
-U_CAPI int32_t U_EXPORT2
-uprv_compareEBCDICPropertyNames(const char *name1, const char *name2) {
-    int32_t rc, r1, r2;
-
-    for(;;) {
-        r1=getEBCDICPropertyNameChar(name1);
-        r2=getEBCDICPropertyNameChar(name2);
-
-        /* If we reach the ends of both strings then they match */
-        if(((r1|r2)&0xff)==0) {
-            return 0;
-        }
-        
-        /* Compare the lowercased characters */
-        if(r1!=r2) {
-            rc=(r1&0xff)-(r2&0xff);
-            if(rc!=0) {
-                return rc;
-            }
-        }
-
-        name1+=r1>>8;
-        name2+=r2>>8;
+        ++name1;
+        ++name2;
     }
 }
 
@@ -257,14 +190,10 @@ u_isUWhiteSpace(UChar32 c) {
 
 U_CAPI UBool U_EXPORT2
 uprv_isRuleWhiteSpace(UChar32 c) {
-    /* "white space" in the sense of ICU rule parsers
-       This is a FIXED LIST that is NOT DEPENDENT ON UNICODE PROPERTIES.
-       See UTR #31: http://www.unicode.org/reports/tr31/.
-       U+0009..U+000D, U+0020, U+0085, U+200E..U+200F, and U+2028..U+2029
-    */
-    return (c >= 0x0009 && c <= 0x2029 &&
-            (c <= 0x000D || c == 0x0020 || c == 0x0085 ||
-             c == 0x200E || c == 0x200F || c >= 0x2028));
+    /* "white space" in the sense of ICU rule parsers: Cf+White_Space */
+    return
+        u_charType(c)==U_FORMAT_CHAR ||
+        u_hasBinaryProperty(c, UCHAR_WHITE_SPACE);
 }
 
 static const UChar _PATTERN[] = {
@@ -500,20 +429,6 @@ u_getIntPropertyMaxValue(UProperty which) {
  * Do not use a UnicodeSet pattern because that causes infinite recursion;
  * UnicodeSet depends on the inclusions set.
  */
-#ifdef DEBUG 
-static uint32_t 
-strrch(const char* source,uint32_t sourceLen,char find){
-    const char* tSourceEnd =source + (sourceLen-1);
-    while(tSourceEnd>= source){
-        if(*tSourceEnd==find){
-            return (uint32_t)(tSourceEnd-source);
-        }
-        tSourceEnd--;
-    }
-    return (uint32_t)(tSourceEnd-source);
-}
-#endif
-
 U_CAPI void U_EXPORT2
 uprv_getInclusions(USet* set, UErrorCode *pErrorCode) {
     if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
@@ -526,64 +441,4 @@ uprv_getInclusions(USet* set, UErrorCode *pErrorCode) {
     unorm_addPropertyStarts(set, pErrorCode);
 #endif
     uchar_addPropertyStarts(set, pErrorCode);
-
-#ifdef DEBUG
-    {
-        UChar* result=NULL;
-        int32_t resultCapacity=0;
-        int32_t bufLen = uset_toPattern(set,result,resultCapacity,TRUE,pErrorCode);
-        char* resultChars = NULL;
-        if(*pErrorCode == U_BUFFER_OVERFLOW_ERROR){
-            uint32_t len = 0, add=0;
-            char *buf=NULL, *current = NULL;
-            *pErrorCode = U_ZERO_ERROR;
-            resultCapacity = bufLen;
-            result = (UChar*) uprv_malloc(resultCapacity * U_SIZEOF_UCHAR);
-            bufLen = uset_toPattern(set,result,resultCapacity,TRUE,pErrorCode);
-            resultChars = (char*) uprv_malloc(len+1);
-            u_UCharsToChars(result,resultChars,bufLen);
-            resultChars[bufLen] = 0;
-            buf = resultChars;
-            /*printf(resultChars);*/
-             while(len < bufLen){
-                    add = 70-5/* for ", +\n */;
-                    current = buf +len;
-                    if (add < (bufLen-len)) {
-                        uint32_t index = strrch(current,add,'\\');
-                        if (index > add) {
-                            index = add;
-                        } else {
-                            int32_t num =index-1;
-                            uint32_t seqLen;
-                            while(num>0){
-                                if(current[num]=='\\'){
-                                    num--;
-                                }else{
-                                    break;
-                                }
-                            }
-                            if ((index-num)%2==0) {
-                                index--;
-                            }
-                            seqLen = (current[index+1]=='u') ? 6 : 2;
-                            if ((add-index) < seqLen) {
-                                add = index + seqLen;
-                            }
-                        }
-                    }
-                    fwrite("\"",1,1,stdout);
-                    if(len+add<bufLen){
-                        fwrite(current,1,add,stdout);
-                        fwrite("\" +\n",1,4,stdout);
-                    }else{
-                        fwrite(current,1,bufLen-len,stdout);
-                    }
-                    len+=add;
-                }
-
-        }
-        uprv_free(result);
-        uprv_free(resultChars);
-    }
-#endif
 }

@@ -82,8 +82,6 @@ ICULIBSUFFIX=@ICULIBSUFFIX@
 
 # Compiler and tools
 
-ENABLE_DEBUG = @ENABLE_DEBUG@
-ENABLE_RELEASE = @ENABLE_RELEASE@
 EXEEXT = @EXEEXT@
 CC = @CC@
 CXX = @CXX@
@@ -149,17 +147,9 @@ MIDDLE_SO_TARGET = $(SO_TARGET).$(SO_TARGET_VERSION_MAJOR)
 ICUPREFIX = icu
 LIBICU = lib$(ICUPREFIX)
 
-# Static library prefix and file extension
-STATIC_PREFIX = s
-LIBSICU = lib$(STATIC_PREFIX)$(ICUPREFIX)
-A = a
-
 # Force removal [for make clean]
 RMV = rm -rf
-
 # Platform commands to remove or move executable and library targets
-# INSTALL-L installs libraries. Override in mh-* file to INSTALL_PROGRAM
-#           when the library needs to have executable permissions
 INSTALL-S = $(INSTALL_PROGRAM)
 INSTALL-L = $(INSTALL_DATA)
 

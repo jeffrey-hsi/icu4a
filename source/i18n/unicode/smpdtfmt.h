@@ -557,7 +557,7 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static UClassID getStaticClassID(void);
+    static inline UClassID getStaticClassID(void);
 
     /**
      * Returns a unique class ID POLYMORPHICALLY. Pure virtual override. This
@@ -584,6 +584,12 @@ public:
     virtual void adoptCalendar(Calendar* calendarToAdopt);
 
 private:
+    static const char fgClassID;
+
+    static const char fgDateTimePatternsTag[];   // resource bundle tag for default date and time patterns
+
+    static const UChar fgDefaultPattern[];    // date/time pattern of last resort
+
     friend class DateFormat;
 
     void initializeDefaultCentury(void);
@@ -756,6 +762,16 @@ private:
      */
     void         parseAmbiguousDatesAsAfter(UDate startDate, UErrorCode& status);
 
+
+    /**
+     * Last-resort string to use for "GMT" when constructing time zone strings.
+     */
+    // For time zones that have no names, use strings GMT+minutes and
+    // GMT-minutes. For instance, in France the time zone is GMT+60.
+    static const UChar fgGmtPlus[];
+    static const UChar fgGmtMinus[];
+    static const UChar fgGmt[];
+
     /**
      * Used to map pattern characters to Calendar field identifiers.
      */
@@ -798,7 +814,25 @@ private:
     /*transient*/ int32_t   fDefaultCenturyStartYear;
     
     UBool fHaveDefaultCentury;
+
+public:
+    /**
+     * If a start date is set to this value, that indicates that the system default
+     * start is in effect for this instance.
+     * @internal
+     * @obsolete ICU 2.8 Use parseAmbiguousDatesAsAfter instead, since this member will be removed in that release.
+     */
+    static const UDate        fgSystemDefaultCentury;
+    // TODO Not supposed to be public: make it private in 2.8!
 };
+
+inline UClassID
+SimpleDateFormat::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+SimpleDateFormat::getDynamicClassID(void) const
+{ return SimpleDateFormat::getStaticClassID(); }
 
 inline UDate
 SimpleDateFormat::get2DigitYearStart(UErrorCode& /*status*/) const

@@ -23,8 +23,7 @@
 				InlineFunctionExpansion="2"
 				ImproveFloatingPointConsistency="TRUE"
 				AdditionalIncludeDirectories="..\..\..\include,..\..\common"
-				OptimizeForProcessor="2"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;U_USTDIO_IMPLEMENTATION"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;USTDIO_EXPORTS;U_USTDIO_IMPLEMENTATION"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
@@ -33,7 +32,6 @@
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
-				BrowseInformation="1"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -43,12 +41,11 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="icuuc.lib icuin.lib"
-				OutputFile="..\..\..\bin\icuio28.dll"
+				OutputFile="..\..\..\bin\icuio26.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\..\lib\"
-				ProgramDatabaseFile=".\..\..\..\lib/icuio28.pdb"
-				BaseAddress="0x4ab00000"
+				ProgramDatabaseFile=".\..\..\..\lib/icuio26.pdb"
 				ImportLibrary="..\..\..\lib/icuio.lib"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -87,7 +84,7 @@
 				ImproveFloatingPointConsistency="TRUE"
 				OptimizeForProcessor="2"
 				AdditionalIncludeDirectories="..\..\..\include,..\..\common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;U_USTDIO_IMPLEMENTATION"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;USTDIO_EXPORTS;U_USTDIO_IMPLEMENTATION"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DisableLanguageExtensions="TRUE"
@@ -106,13 +103,12 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="icuucd.lib icuind.lib"
-				OutputFile="..\..\..\bin\icuio28d.dll"
+				OutputFile="..\..\..\bin\icuio26d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="debug,..\..\..\lib\"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\..\..\..\lib/icuio28d.pdb"
-				BaseAddress="0x4ab00000"
+				ProgramDatabaseFile=".\..\..\..\lib/icuio26d.pdb"
 				ImportLibrary="..\..\..\lib\icuiod.lib"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -146,10 +142,19 @@
 				RelativePath=".\locbund.c">
 			</File>
 			<File
+				RelativePath=".\loccache.c">
+			</File>
+			<File
 				RelativePath=".\sprintf.c">
 			</File>
 			<File
+				RelativePath=".\sprntf_p.c">
+			</File>
+			<File
 				RelativePath=".\sscanf.c">
+			</File>
+			<File
+				RelativePath=".\sscanf_p.c">
 			</File>
 			<File
 				RelativePath=".\ufile.c">
@@ -198,10 +203,19 @@
 				RelativePath=".\locbund.h">
 			</File>
 			<File
+				RelativePath=".\loccache.h">
+			</File>
+			<File
 				RelativePath=".\sprintf.h">
 			</File>
 			<File
+				RelativePath=".\sprntf_p.h">
+			</File>
+			<File
 				RelativePath=".\sscanf.h">
+			</File>
+			<File
+				RelativePath=".\sscanf_p.h">
 			</File>
 			<File
 				RelativePath=".\ufile.h">
@@ -230,15 +244,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\..\include\unicode"
-						Outputs="..\..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy $(InputPath) ..\..\..\include\unicode
+"
+						Outputs="..\..\..\include\unicode\ustdio.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\..\include\unicode"
-						Outputs="..\..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy $(InputPath) ..\..\..\include\unicode
+"
+						Outputs="..\..\..\include\unicode\ustdio.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -247,15 +263,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\..\include\unicode"
-						Outputs="..\..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy $(InputPath) ..\..\..\include\unicode
+"
+						Outputs="..\..\..\include\unicode\ustream.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\..\include\unicode"
-						Outputs="..\..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy $(InputPath) ..\..\..\include\unicode
+"
+						Outputs="..\..\..\include\unicode\ustream.h"/>
 				</FileConfiguration>
 			</File>
 		</Filter>

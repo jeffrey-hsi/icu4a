@@ -21,7 +21,6 @@
 #define UCNV_IMP_H
 
 #include "unicode/utypes.h"
-#include "unicode/uloc.h"
 #include "ucnv_bld.h"
 
 /* figures out if we need to go to file to read in the data tables.
@@ -55,21 +54,6 @@ ucnv_createConverterFromSharedData(UConverter *myUConverter, UConverterSharedDat
 
 UConverter* ucnv_createConverterFromPackage(const char *packageName, const char *converterName,  
                                             UErrorCode *err);
-
-typedef struct {
-    char cnvName[UCNV_MAX_CONVERTER_NAME_LENGTH], locale[ULOC_FULLNAME_CAPACITY];
-    const char *realName;
-    uint32_t options;
-} UConverterLookupData;
-
-/**
- * Load a converter but do not create a UConverter object.
- * Simply return the UConverterSharedData.
- * Performs alias lookup etc.
- * @internal
- */
-UConverterSharedData *
-ucnv_loadSharedData(const char *converterName, UConverterLookupData *lookup, UErrorCode * err);
 
 /**
  * This may unload the shared data in a thread safe manner.

@@ -61,7 +61,7 @@ class LEGlyphFilter;
  * @see LEFontInstance
  * @see ScriptAndLanguageTags.h
  *
- * @stable ICU 2.8
+ * @draft ICU 2.2
  */
 class U_LAYOUT_API LayoutEngine : public UObject {
 protected:
@@ -163,7 +163,7 @@ protected:
      * @param offset - the offset of the first character to process
      * @param count - the number of characters to process
      * @param max - the number of characters in the context.
-     * @param rightToLeft - TRUE if the text is in a right to left directional run
+     * @param rightToLeft - true if the text is in a right to left directional run
      *
      * Output parameters:
      * @param glyphs - the glyph index array
@@ -207,7 +207,7 @@ protected:
      * @param chars - the input character context
      * @param offset - the offset of the first character to process
      * @param count - the number of characters to process
-     * @param reverse - TRUE if the glyphs in the glyph array have been reordered
+     * @param reverse - true if the glyphs in the glyph array have been reordered
      * @param glyphs - the input glyph array
      * @param glyphCount - the number of glyphs
      * @param positions - the position array, will be updated as needed
@@ -218,7 +218,20 @@ protected:
      *
      * @internal
      */
-    virtual void adjustGlyphPositions(const LEUnicode chars[], le_int32 offset, le_int32 count, le_bool /*reverse*/, LEGlyphID glyphs[], le_int32 glyphCount, float positions[], LEErrorCode &success);
+    virtual void adjustGlyphPositions(const LEUnicode chars[], le_int32 offset, le_int32 count, le_bool /*reverse*/, LEGlyphID glyphs[], le_int32 glyphCount, float positions[], LEErrorCode &success)
+    {
+        if (LE_FAILURE(success)) {
+            return;
+        }
+
+        if (chars == NULL || glyphs == NULL || positions == NULL || offset < 0 || count < 0 || glyphCount < 0) {
+            success = LE_ILLEGAL_ARGUMENT_ERROR;
+            return;
+        }
+
+        // default is no adjustments
+        return;
+    };
 
     /**
      * This method gets a table from the font associated with
@@ -249,8 +262,8 @@ protected:
      * @param chars - the input character context
      * @param offset - the offset of the first character to be mapped
      * @param count - the number of characters to be mapped
-     * @param reverse - if TRUE, the output will be in reverse order
-     * @param mirror - if TRUE, do character mirroring
+     * @param reverse - if true, the output will be in reverse order
+     * @param mirror - if true, do character mirroring
      *
      * Output parameters:
      * @param glyphs - the glyph array
@@ -269,7 +282,7 @@ protected:
      * 
      * @param glyphs - the glyph array
      * @param glyphCount - the number of glyphs
-     * @param reverse - TRUE if the glyph array has been reordered
+     * @param reverse - true if the glyph array has been reordered
      * @param markFilter - used to identify mark glyphs
      * @param positions - the glyph position array - updated as required
      * @param success - output parameter set to an error code if the operation fails
@@ -287,7 +300,7 @@ public:
      * method. It is declared virtual so that it will be invoked by the
      * subclass destructors.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual ~LayoutEngine();
 
@@ -300,7 +313,7 @@ public:
      * @param offset - the offset of the first character to process
      * @param count - the number of characters to process
      * @param max - the number of characters in the input context
-     * @param rightToLeft - TRUE if the characers are in a right to left directional run
+     * @param rightToLeft - true if the characers are in a right to left directional run
      * @param x - the initial X position
      * @param y - the initial Y position
      * @param success - output parameter set to an error code if the operation fails
@@ -310,7 +323,7 @@ public:
      * Note; the glyph, character index and position array can be accessed
      * using the getter method below.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual le_int32 layoutChars(const LEUnicode chars[], le_int32 offset, le_int32 count, le_int32 max, le_bool rightToLeft, float x, float y, LEErrorCode &success);
 
@@ -321,7 +334,7 @@ public:
      *
      * @return the number of glyphs in the glyph array
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     le_int32 getGlyphCount() const
     {
@@ -336,7 +349,7 @@ public:
      * @param glyphs - the destiniation glyph array
      * @param success - set to an error code if the operation fails
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     void getGlyphs(LEGlyphID glyphs[], LEErrorCode &success) const;
 
@@ -350,7 +363,7 @@ public:
      * @param extraBits - this value will be ORed with each glyph index
      * @param success - set to an error code if the operation fails
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual void getGlyphs(le_uint32 glyphs[], le_uint32 extraBits, LEErrorCode &success) const;
 
@@ -362,7 +375,7 @@ public:
      * @param charIndices - the destiniation character index array
      * @param success - set to an error code if the operation fails
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     void getCharIndices(le_int32 charIndices[], LEErrorCode &success) const;
 
@@ -375,7 +388,7 @@ public:
      * @param indexBase - an offset which will be added to each index
      * @param success - set to an error code if the operation fails
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     void getCharIndices(le_int32 charIndices[], le_int32 indexBase, LEErrorCode &success) const;
 
@@ -388,7 +401,7 @@ public:
      * @param glyphs - the destiniation position array
      * @param success - set to an error code if the operation fails
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     void getGlyphPositions(float positions[], LEErrorCode &success) const;
 
@@ -404,7 +417,7 @@ public:
      * @param y - the glyph's Y position
      * @param success - set to an error code if the operation fails
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     void getGlyphPosition(le_int32 glyphIndex, float &x, float &y, LEErrorCode &success) const;
 
@@ -413,7 +426,7 @@ public:
      * so that the LayoutEngine can be reused to layout a different
      * characer array. (This method is also called by the destructor)
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual void reset();
 
@@ -431,21 +444,21 @@ public:
      *
      * @see LEFontInstance
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static LayoutEngine *layoutEngineFactory(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode, LEErrorCode &success);
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 

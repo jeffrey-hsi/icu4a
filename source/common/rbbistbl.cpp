@@ -43,12 +43,11 @@ RBBISymbolTable::RBBISymbolTable(RBBIRuleScanner *rs, const UnicodeString &rules
 {
     fHashTable       = NULL;
     fCachedSetLookup = NULL;
-    
-    fHashTable = uhash_open(uhash_hashUnicodeString, uhash_compareUnicodeString, &status);
-    // uhash_open checks status
     if (U_FAILURE(status)) {
         return;
     }
+
+    fHashTable = uhash_open(uhash_hashUnicodeString, uhash_compareUnicodeString, &status);
     uhash_setValueDeleter(fHashTable, RBBISymbolTableEntry_deleter);
 }
 
@@ -224,8 +223,7 @@ RBBISymbolTableEntry::~RBBISymbolTableEntry() {
 //
 //  RBBISymbolTable::print    Debugging function, dump out the symbol table contents.
 //
-#ifdef RBBI_DEBUG
-void RBBISymbolTable::rbbiSymtablePrint() const {
+void RBBISymbolTable::print() const {
     RBBIDebugPrintf("Variable Definitions\n"
            "Name               Node Val     String Val\n"
            "----------------------------------------------------------------------\n");
@@ -239,9 +237,9 @@ void RBBISymbolTable::rbbiSymtablePrint() const {
         }
         RBBISymbolTableEntry  *s   = (RBBISymbolTableEntry *)e->value.pointer;
 
-        RBBI_DEBUG_printUnicodeString(s->key, 15);
+        RBBINode::printUnicodeString(s->key, 15);
         RBBIDebugPrintf("   %8p   ", (void *)s->val);
-        RBBI_DEBUG_printUnicodeString(s->val->fLeftChild->fText);
+        RBBINode::printUnicodeString(s->val->fLeftChild->fText);
         RBBIDebugPrintf("\n");
     }
 
@@ -253,12 +251,12 @@ void RBBISymbolTable::rbbiSymtablePrint() const {
             break;
         }
         RBBISymbolTableEntry  *s   = (RBBISymbolTableEntry *)e->value.pointer;
-        RBBI_DEBUG_printUnicodeString(s->key);
-        s->val->fLeftChild->printTree(TRUE);
+        RBBINode::printUnicodeString(s->key);
+        s->val->fLeftChild->printTree();
         RBBIDebugPrintf("\n");
     }
 }
-#endif
+
 
 
 

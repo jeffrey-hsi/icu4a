@@ -34,7 +34,6 @@
 #include "unicode/unistr.h"
 #include "unicode/putil.h"
 #include "unicode/uloc.h"
-#include "unicode/strenum.h"
 
 /**
  * \file
@@ -251,8 +250,6 @@ public:
      * @param country  Uppercase two-letter ISO-3166 code. (optional)
      * @param variant  Uppercase vendor and browser specific code. See class
      *                 description. (optional)
-     * @param keywordsAndValues A string consisting of keyword/values pairs, such as
-     *                 "collation=phonebook;currency=euro"
      *
      * @see getDefault
      * @see uloc_getDefault
@@ -260,8 +257,7 @@ public:
      */
     Locale( const   char * language,
             const   char * country  = 0, 
-            const   char * variant  = 0,
-            const   char * keywordsAndValues = 0);
+            const   char * variant  = 0);
 
     /**
      * Initializes a Locale object from another Locale object.
@@ -307,19 +303,6 @@ public:
     UBool   operator!=(const    Locale&     other) const;
 
     /**
-     * Clone this object.
-     * Clones can be used concurrently in multiple threads.
-     * If an error occurs, then NULL is returned.
-     * The caller must delete the clone.
-     *
-     * @return a clone of this object
-     *
-     * @see getDynamicClassID
-     * @draft ICU 2.8
-     */
-    Locale *clone() const;
-
-    /**
      * Common methods of getting the current default Locale. Used for the
      * presentation: menus, dialogs, etc. Generally set once when your applet or
      * application is initialized, then never reset. (If you do reset the
@@ -342,14 +325,13 @@ public:
      * setDefault() only changes ICU's default locale ID, <strong>not</strong>
      * the default locale ID of the runtime environment.
      *
-     * @param newLocale Locale to set to.  If NULL, set to the value obtained
-     *                  from the runtime environement.
+     * @param newLocale Locale to set to.
      * @param success The error code.
      * @system
      * @stable ICU 2.0
      */
     static  void    setDefault(const    Locale&     newLocale,
-                               UErrorCode&  success);
+                                                    UErrorCode&  success);
 
     
     /**
@@ -370,15 +352,6 @@ public:
      * @stable ICU 2.0
      */
     inline const char *  getLanguage( ) const;
-
-    /**
-     * Returns the locale's ISO-15924 abbreviation script code.
-     * @return      An alias to the code
-     * @see uscript_getShortName
-     * @see uscript_getCode
-     * @draft ICU 2.8
-     */
-    inline const char *  getScript( ) const;
 
     /**
      * Returns the locale's ISO-3166 country code.
@@ -403,37 +376,6 @@ public:
      * @stable ICU 2.0
      */
     inline const char * getName() const;
-
-    /**
-     * Returns the programmatic name of the entire locale as getName would return,
-     * but without keywords.
-     * @return      A pointer to "name".
-     * @see getName
-     * @draft ICU 2.8
-     */
-    const char * getBaseName() const;
-
-
-    /**
-     * Gets the list of keywords for the specified locale. 
-     *
-     * @return pointer to StringEnumeration class. Client must dispose of it by calling delete.
-     * @param status Returns any error information while performing this operation.
-     * @draft ICU 2.8
-     */
-    StringEnumeration * createKeywords(UErrorCode &status) const;
-
-    /**
-     * Get the value for a keyword. 
-     * 
-     * @param keywordName name of the keyword for which we want the value. Case insensitive.
-     * @param status Returns any error information while performing this operation.
-     * @return pointer to the keyword value owned by the Locale object or NULL if there is 
-     *         no such a keyword.
-     *
-     * @draft ICU 2.8
-     */
-     int32_t getKeywordValue(const char* keywordName, char *buffer, int32_t bufLen, UErrorCode &status) const;
 
     /**
      * returns the locale's three-letter language code, as specified
@@ -472,47 +414,19 @@ public:
 
     /**
      * Fills in "dispLang" with the name of this locale's language in a format suitable for
-     * user display in the locale specified by "displayLocale".  For example, if the locale's
-     * language code is "en" and displayLocale's language code is "fr", this function would set
+     * user display in the locale specified by "inLocale".  For example, if the locale's
+     * language code is "en" and inLocale's language code is "fr", this function would set
      * dispLang to "Anglais".
-     * @param displayLocale  Specifies the locale to be used to display the name.  In other words,
+     * @param inLocale  Specifies the locale to be used to display the name.  In other words,
      *                  if the locale's language code is "en", passing Locale::getFrench() for
-     *                  displayLocale would result in "Anglais", while passing Locale::getGerman()
-     *                  for displayLocale would result in "Englisch".
+     *                  inLocale would result in "Anglais", while passing Locale::getGerman()
+     *                  for inLocale would result in "Englisch".
      * @param dispLang  Receives the language's display name.
      * @return          A reference to "dispLang".
      * @stable ICU 2.0
      */
-    UnicodeString&  getDisplayLanguage( const   Locale&         displayLocale,
+    UnicodeString&  getDisplayLanguage( const   Locale&         inLocale,
                                                 UnicodeString&  dispLang) const;
-
-    /**
-     * Fills in "dispScript" with the name of this locale's script in a format suitable
-     * for user display in the default locale.  For example, if the locale's script code
-     * is "LATN" and the default locale's language code is "en", this function would set
-     * dispScript to "Latin".
-     * @param dispScript    Receives the scripts's display name.
-     * @return              A reference to "dispScript".
-     * @draft ICU 2.8
-     */
-    UnicodeString&  getDisplayScript(          UnicodeString& dispScript) const;
-
-    /**
-     * Fills in "dispScript" with the name of this locale's country in a format suitable
-     * for user display in the locale specified by "displayLocale".  For example, if the locale's
-     * script code is "LATN" and displayLocale's language code is "en", this function would set
-     * dispScript to "Latin".
-     * @param displayLocale      Specifies the locale to be used to display the name.  In other
-     *                      words, if the locale's script code is "LATN", passing
-     *                      Locale::getFrench() for displayLocale would result in "", while
-     *                      passing Locale::getGerman() for displayLocale would result in
-     *                      "".
-     * @param dispScript    Receives the scripts's display name.
-     * @return              A reference to "dispScript".
-     * @draft ICU 2.8
-     */
-    UnicodeString&  getDisplayScript(  const   Locale&         displayLocale,
-                                               UnicodeString&  dispScript) const;
 
     /**
      * Fills in "dispCountry" with the name of this locale's country in a format suitable
@@ -527,19 +441,19 @@ public:
 
     /**
      * Fills in "dispCountry" with the name of this locale's country in a format suitable
-     * for user display in the locale specified by "displayLocale".  For example, if the locale's
-     * country code is "US" and displayLocale's language code is "fr", this function would set
+     * for user display in the locale specified by "inLocale".  For example, if the locale's
+     * country code is "US" and inLocale's language code is "fr", this function would set
      * dispCountry to "Etats-Unis".
-     * @param displayLocale      Specifies the locale to be used to display the name.  In other
+     * @param inLocale      Specifies the locale to be used to display the name.  In other
      *                      words, if the locale's country code is "US", passing
-     *                      Locale::getFrench() for displayLocale would result in "États-Unis", while
-     *                      passing Locale::getGerman() for displayLocale would result in
+     *                      Locale::getFrench() for inLocale would result in "États-Unis", while
+     *                      passing Locale::getGerman() for inLocale would result in
      *                      "Vereinigte Staaten".
      * @param dispCountry   Receives the country's display name.
      * @return              A reference to "dispCountry".
      * @stable ICU 2.0
      */
-    UnicodeString&  getDisplayCountry(  const   Locale&         displayLocale,
+    UnicodeString&  getDisplayCountry(  const   Locale&         inLocale,
                                                 UnicodeString&  dispCountry) const;
 
     /**
@@ -553,13 +467,13 @@ public:
 
     /**
      * Fills in "dispVar" with the name of this locale's variant code in a format
-     * suitable for user display in the locale specified by "displayLocale".
-     * @param displayLocale  Specifies the locale to be used to display the name.
+     * suitable for user display in the locale specified by "inLocale".
+     * @param inLocale  Specifies the locale to be used to display the name.
      * @param dispVar   Receives the variant's display name.
      * @return          A reference to "dispVar".
      * @stable ICU 2.0
      */
-    UnicodeString&  getDisplayVariant(  const   Locale&         displayLocale,
+    UnicodeString&  getDisplayVariant(  const   Locale&         inLocale,
                                                 UnicodeString&  dispVar) const;
 
     /**
@@ -577,17 +491,17 @@ public:
 
     /**
      * Fills in "name" with the name of this locale in a format suitable for user display 
-     * in the locale specfied by "displayLocale".  This function uses getDisplayLanguage(),
+     * in the locale specfied by "inLocale".  This function uses getDisplayLanguage(),
      * getDisplayCountry(), and getDisplayVariant() to do its work, and outputs the display
-     * name in the format "language (country[,variant])".  For example, if displayLocale is
+     * name in the format "language (country[,variant])".  For example, if inLocale is
      * fr_FR, then en_US's display name would be "Anglais (États-Unis)", and no_NO_NY's
      * display name would be "norvégien (Norvège,NY)".
-     * @param displayLocale  Specifies the locale to be used to display the name.
+     * @param inLocale  Specifies the locale to be used to display the name.
      * @param name      Receives the locale's display name.
      * @return          A reference to "name".
      * @stable ICU 2.0
      */
-    UnicodeString&  getDisplayName( const   Locale&         displayLocale,
+    UnicodeString&  getDisplayName( const   Locale&         inLocale,
                                             UnicodeString&  name) const;
 
     /**
@@ -644,18 +558,18 @@ public:
     static const char* const*  getISOLanguages();
 
     /**
-     * ICU "poor man's RTTI", returns a UClassID for this class.
-     *
-     * @stable ICU 2.2
-     */
-    static UClassID getStaticClassID();
-
-    /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const;
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID();
 
 protected: /* only protected for testing purposes. DO NOT USE. */
     /**
@@ -689,25 +603,31 @@ private:
     static Locale *getLocaleCache(void);
 
     char language[ULOC_LANG_CAPACITY];
-    char script[ULOC_SCRIPT_CAPACITY];
     char country[ULOC_COUNTRY_CAPACITY];
     int32_t variantBegin;
     char* fullName;
     char fullNameBuffer[ULOC_FULLNAME_CAPACITY];
-    // name without keywords
-    char* baseName;
-    char baseNameBuffer[ULOC_FULLNAME_CAPACITY];
 
     UBool fIsBogus;
 
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
+    
     static const Locale &getLocale(int locid);
 
-    /**
-     * A friend to allow the default locale to be set by either the C or C++ API.
-     * @internal
-     */
     friend void locale_set_default_internal(const char *);
 };
+
+inline UClassID
+Locale::getStaticClassID()
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+Locale::getDynamicClassID() const
+{ return Locale::getStaticClassID(); }
 
 inline UBool
 Locale::operator!=(const    Locale&     other) const
@@ -725,12 +645,6 @@ inline const char *
 Locale::getLanguage() const
 {
     return language;
-}
-
-inline const char *
-Locale::getScript() const
-{
-    return script;
 }
 
 inline const char *
@@ -753,4 +667,3 @@ Locale::isBogus(void) const {
 U_NAMESPACE_END
 
 #endif
-

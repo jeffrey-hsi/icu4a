@@ -126,7 +126,7 @@ static const int32_t DEFAULT_INITIAL_CAPACITY = 10;
 U_NAMESPACE_BEGIN
 
 // -------------------------------------
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(MessageFormat)
+const char MessageFormat::fgClassID = 0; // Value is irrelevant
 
 //--------------------------------------------------------------------
 
@@ -187,7 +187,6 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
         return;
     }
     applyPattern(pattern, success);
-    setLocaleIDs(fLocale.getName(), fLocale.getName());
 }
  
 MessageFormat::MessageFormat(const UnicodeString& pattern,
@@ -211,7 +210,6 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
         return;
     }
     applyPattern(pattern, success);
-    setLocaleIDs(fLocale.getName(), fLocale.getName());
 }
 
 MessageFormat::MessageFormat(const UnicodeString& pattern,
@@ -236,7 +234,6 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
         return;
     }
     applyPattern(pattern, parseError, success);
-    setLocaleIDs(fLocale.getName(), fLocale.getName());
 }
 
 MessageFormat::MessageFormat(const MessageFormat& that)
@@ -392,6 +389,7 @@ MessageFormat::operator==(const Format& rhs) const
 
     // Check class ID before checking MessageFormat members
     if (!Format::operator==(rhs) ||
+        getDynamicClassID() != that.getDynamicClassID() ||
         fPattern != that.fPattern ||
         fLocale != that.fLocale) {
         return FALSE;
@@ -429,7 +427,6 @@ MessageFormat::setLocale(const Locale& theLocale)
         defaultDateFormat = NULL;
     }
     fLocale = theLocale;
-    setLocaleIDs(fLocale.getName(), fLocale.getName());
 }
  
 // -------------------------------------
@@ -978,20 +975,15 @@ MessageFormat::format(const Formattable* arguments,
             }
         }
         // If the obj data type is a number, use a NumberFormat instance.
-        else if ((type == Formattable::kDouble) || 
-                 (type == Formattable::kLong) ||
-                 (type == Formattable::kInt64)) {
-
+        else if ((type == Formattable::kDouble) || (type == Formattable::kLong)) {
             const NumberFormat* nf = getDefaultNumberFormat(success);
             if (nf == NULL) { 
                 return appendTo; 
             }
             if (type == Formattable::kDouble) {
                 nf->format(obj->getDouble(), appendTo);
-            } else if (type == Formattable::kLong) {
-                nf->format(obj->getLong(), appendTo);
             } else {
-                nf->format(obj->getInt64(), appendTo);
+                nf->format(obj->getLong(), appendTo);
             }
         }
         // If the obj data type is a Date instance, use a DateFormat instance.

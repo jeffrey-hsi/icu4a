@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2002-2003, International Business Machines
+*   Copyright (C) 2002, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -15,11 +15,12 @@
 */
 
 #include "unicode/uobject.h"
+
+#if U_OVERRIDE_CXX_ALLOCATION
+
 #include "cmemory.h"
 
 U_NAMESPACE_BEGIN
-
-#if U_OVERRIDE_CXX_ALLOCATION
 
 /*
  * Default implementation of UMemory::new/delete
@@ -76,10 +77,7 @@ void UMemory::operator delete[](void *p) {
     }
 }
 
-#endif
-
-UObject::~UObject() {}
-
 U_NAMESPACE_END
 
+#endif
 

@@ -263,8 +263,8 @@ void   RBBINode::findNodes(UVector *dest, RBBINode::NodeType kind, UErrorCode &s
 //    print.         Print out a single node, for debugging.
 //
 //-------------------------------------------------------------------------
+void RBBINode::print() {
 #ifdef RBBI_DEBUG
-void RBBINode::printNode() {
     static const char * const nodeTypeNames[] = {
                 "setRef",
                 "uset",
@@ -284,23 +284,21 @@ void RBBINode::printNode() {
                 "opLParen"
     };
 
-    if (this==NULL) {
-        RBBIDebugPrintf("%10p", (void *)this);
-    } else {
-        RBBIDebugPrintf("%10p  %12s  %10p  %10p  %10p      %4d     %6d   %d ",
-            (void *)this, nodeTypeNames[fType], (void *)fParent, (void *)fLeftChild, (void *)fRightChild,
-            fSerialNum, fFirstPos, fVal);
-        if (fType == varRef) {
-            RBBI_DEBUG_printUnicodeString(fText);
-        }
+    RBBIDebugPrintf("%10p  %12s  %10p  %10p  %10p      %4d     %6d   %d ",
+        (void *)this, nodeTypeNames[fType], (void *)fParent, (void *)fLeftChild, (void *)fRightChild,
+        fSerialNum, fFirstPos, fVal);
+    if (fType == varRef) {
+        printUnicodeString(fText);
     }
     RBBIDebugPrintf("\n");
-}
 #endif
+}
 
 
 #ifdef RBBI_DEBUG
-U_CFUNC void RBBI_DEBUG_printUnicodeString(const UnicodeString &s, int minWidth)
+void RBBINode::printUnicodeString(const UnicodeString &, int) {}
+#else
+void RBBINode::printUnicodeString(const UnicodeString &s, int minWidth)
 {
     int i;
     for (i=0; i<s.length(); i++) {
@@ -320,24 +318,24 @@ U_CFUNC void RBBI_DEBUG_printUnicodeString(const UnicodeString &s, int minWidth)
 //
 //-------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
-void RBBINode::printTree(UBool printHeading) {
+void RBBINode::printTree(UBool, UBool) {}
+#else
+void RBBINode::printTree(UBool printHeading, UBool doVars) {
     if (printHeading) {
         RBBIDebugPrintf( "-------------------------------------------------------------------\n"
                          "    Address       type         Parent   LeftChild  RightChild    serial  position value\n"
               );
     }
-    this->printNode();
-    if (this != NULL) {
-        // Only dump the definition under a variable reference if asked to.
-        // Unconditinally dump children of all other node types.
-        if (fType != varRef) {
-            if (fLeftChild != NULL) {
-                fLeftChild->printTree(FALSE);
-            }
-            
-            if (fRightChild != NULL) {
-                fRightChild->printTree(FALSE);
-            }
+    this->print();
+    // Only dump the definition under a variable reference if asked to.
+    // Unconditinally dump children of all other node types.
+    if (fType != varRef || doVars) {
+        if (fLeftChild != NULL) {
+            fLeftChild->printTree(FALSE);
+        }
+
+        if (fRightChild != NULL) {
+            fRightChild->printTree(FALSE);
         }
     }
 }

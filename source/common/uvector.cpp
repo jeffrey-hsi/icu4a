@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-* Copyright (C) 1999-2003, International Business Machines Corporation and   *
+* Copyright (C) 1999-2001, International Business Machines Corporation and   *
 * others. All Rights Reserved.                                               *
 ******************************************************************************
 *   Date        Name        Description
@@ -23,7 +23,7 @@ U_NAMESPACE_BEGIN
 #define HINT_KEY_POINTER   (1)
 #define HINT_KEY_INTEGER   (0)
  
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(UVector)
+const char UVector::fgClassID=0;
 
 UVector::UVector(UErrorCode &status) :
     count(0),
@@ -464,6 +464,8 @@ void UVector::sortedInsert(UHashTok tok, USortComparator *compare, UErrorCode& e
         ++count;
     }
 }
+
+const char UStack::fgClassID=0;
 
 UStack::UStack(UErrorCode &status) :
     UVector(status)

@@ -187,7 +187,7 @@ SOURCE=.\filemode.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\make.c
+SOURCE=.\nmake.c
 # End Source File
 # Begin Source File
 

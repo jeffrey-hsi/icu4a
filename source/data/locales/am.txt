@@ -57,7 +57,7 @@ am {
         "\u12F2\u1234\u121D\u1260\u122D",
     }
     LocaleScript {
-        "Ethi",
+    	"Ethi",
     }
     ExemplarCharacters{"[:Ethi:]"}
     DateTimeElements:intvector { 
@@ -168,7 +168,7 @@ am {
         sa { "\u1233\u1295\u1235\u12AD\u122A\u1275\u129B" }
         sd { "\u1232\u1295\u12F5\u1202\u129B" }
         sg { "\u1233\u1295\u130E\u129B" }
-        // sh { "\u0073\u0068"} // this is an error.. we need translation for this
+        sh { "\u0073\u0068"}
         si { "\u1235\u1295\u1203\u120D\u129B" }
         sk { "\u1235\u120E\u126B\u12AD\u129B" }
         sl { "\u1235\u120E\u126A\u129B" }
@@ -208,7 +208,6 @@ am {
         za { "\u12E1\u12CB\u1295\u130D\u129B" }
         zh { "\u127B\u12ED\u1295\u129B" }
         zu { "\u12D9\u1209\u129B" }
-        byn { "\u1265\u120A\u1295" }
         gez { "\u130D\u12D5\u12DD\u129B" }
         tig { "\u1275\u130D\u1228" }
         sid { "\u1232\u12F3\u121D\u129B" }

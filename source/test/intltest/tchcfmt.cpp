@@ -64,7 +64,7 @@ TestChoiceFormat::TestSimpleExample( void )
         }
         //form->parse(res1, f, parse_pos);
         res2 = " ??? ";
-        it_logln(UnicodeString("") + ix + UnicodeString(" -> ") + res1 + UnicodeString(" -> ") + res2);
+        it_out << ix << " -> " << res1 << " -> " << res2 << endl;
     }
     //Testing ==operator
     const double filelimits[] = {0,1,2};
@@ -176,11 +176,11 @@ TestChoiceFormat::TestComplexExample( void )
     UnicodeString str;
     UnicodeString res1, res2;
     pattform->toPattern( res1 );
-    it_logln("MessageFormat toPattern: " + res1);
+    it_out << "MessageFormat toPattern: " << res1 << endl;
     fileform->toPattern( res1 );
-    it_logln("ChoiceFormat toPattern: " + res1);
+    it_out << "ChoiceFormat toPattern: " << res1 << endl;
     if (res1 == "-1.0#are corrupted files|0.0#are no files|1.0#is one file|2.0#are {2} files") {
-        it_logln("toPattern tested!");
+        it_out << "toPattern tested!" << endl;
     }else{
         it_errln("***  ChoiceFormat to Pattern result!");
     }
@@ -219,16 +219,15 @@ TestChoiceFormat::TestComplexExample( void )
             delete pattform;
             return;
         }
-        it_logln(i + UnicodeString(" -> ") + res2);
+        it_out << i << " -> " << res2 << endl;
         if (res2 != checkstr[i - start]) {
             it_errln("***  test_complex_example res string");
-            it_errln(UnicodeString("*** ") + i + UnicodeString(" -> '") + res2 + UnicodeString("' unlike '") + checkstr[i] + UnicodeString("' ! "));
+            it_out << "*** " << i << " -> '" << res2 << "' unlike '" << checkstr[i] << "' ! " << endl;
         }
     }
-    it_logln();
+    it_out << endl;
 
-    it_logln("------ additional testing in complex test ------");
-    it_logln();
+    it_out << "------ additional testing in complex test ------" << endl << endl;
     //
     int32_t retCount;
     const double* retLimits = fileform->getLimits( retCount );
@@ -237,7 +236,7 @@ TestChoiceFormat::TestComplexExample( void )
     && (retLimits[1] == 0.0)
     && (retLimits[2] == 1.0)
     && (retLimits[3] == 2.0)) {
-        it_logln("getLimits tested!");
+        it_out << "getLimits tested!" << endl;
     }else{
         it_errln("***  getLimits unexpected result!");
     }
@@ -248,7 +247,7 @@ TestChoiceFormat::TestComplexExample( void )
     && (retFormats[1] == "are no files") 
     && (retFormats[2] == "is one file")
     && (retFormats[3] == "are {2} files")) {
-        it_logln("getFormats tested!");
+        it_out << "getFormats tested!" << endl;
     }else{
         it_errln("***  getFormats unexpected result!");
     }
@@ -261,8 +260,7 @@ TestChoiceFormat::TestComplexExample( void )
     };
 
     fileform->applyPattern("0#is no folder|1#is one folder|2#are many folders", status );
-    if (status == U_ZERO_ERROR)
-        it_logln("status applyPattern OK!");
+    if (status == U_ZERO_ERROR) it_out << "status applyPattern OK!" << endl;
     if (!chkstatus( status, "***  test_complex_example pattform" )) {
         delete fileform;
         delete filenumform;
@@ -283,10 +281,10 @@ TestChoiceFormat::TestComplexExample( void )
             delete pattform;
             return;
         }
-        it_logln(UnicodeString() + i + UnicodeString(" -> ") + res2);
+        it_out << i << " -> " << res2 << endl;
         if (res2 != checkstr2[i]) {
             it_errln("***  test_complex_example res string");
-            it_errln(UnicodeString("*** ") + i + UnicodeString(" -> '") + res2 + UnicodeString("' unlike '") + checkstr2[i] + UnicodeString("' ! "));
+            it_out << "*** " << i << " -> '" << res2 << "' unlike '" << checkstr2[i] << "' ! " << endl;
         }
     }
 
@@ -301,13 +299,13 @@ TestChoiceFormat::TestComplexExample( void )
         it_errln("***  test-choiceFormat not allocatable!");
     }else{
         if (*form_A == *form_A2) {
-            it_logln("operator== tested.");
+            it_out << "operator== tested." << endl;
         }else{
             it_errln("***  operator==");
         }
 
         if (*form_A != *form_B) {
-            it_logln("operator!= tested.");
+            it_out << "operator!= tested." << endl;
         }else{
             it_errln("***  operator!=");
         }
@@ -317,7 +315,7 @@ TestChoiceFormat::TestComplexExample( void )
             it_errln("***  ChoiceFormat->clone is nil.");
         }else{
             if ((*form_A3 == *form_A) && (*form_A3 != *form_B)) {
-                it_logln("method clone tested.");
+                it_out << "method clone tested." << endl;
             }else{
                 it_errln("***  ChoiceFormat clone or operator==, or operator!= .");
             }
@@ -328,7 +326,7 @@ TestChoiceFormat::TestComplexExample( void )
         form_Assigned = *form_B;
         ok = ok && (form_Assigned != *form_A) && (form_Assigned == *form_B);
         if (ok) {
-            it_logln("copy constructor and operator= tested.");
+            it_out << "copy constructor and operator= tested." << endl;
         }else{
             it_errln("***  copy constructor or operator= or operator == or operator != .");
         }
@@ -349,7 +347,7 @@ TestChoiceFormat::TestComplexExample( void )
 
     form_pat.toPattern( res1 );
     if (res1 == "0.0#none|1.0#one|2.0#many") {
-        it_logln("ChoiceFormat contructor( newPattern, status) tested");
+        it_out << "ChoiceFormat contructor( newPattern, status) tested" << endl;
     }else{
         it_errln("***  ChoiceFormat contructor( newPattern, status) or toPattern result!");
     }
@@ -367,7 +365,7 @@ TestChoiceFormat::TestComplexExample( void )
     form_pat.toPattern( res1 );
     it_out << "ChoiceFormat adoptChoices toPattern: " << res1 << endl;
     if (res1 == "1.0#first|2.0#second") {
-        it_logln("ChoiceFormat adoptChoices tested");
+        it_out << "ChoiceFormat adoptChoices tested" << endl;
     }else{
         it_errln("***  ChoiceFormat adoptChoices result!");
     }
@@ -378,9 +376,9 @@ TestChoiceFormat::TestComplexExample( void )
 
     form_pat.setChoices( d_a2, s_a2, 2 );
     form_pat.toPattern( res1 );
-    it_logln(UnicodeString("ChoiceFormat adoptChoices toPattern: ") + res1);
+    it_out << "ChoiceFormat adoptChoices toPattern: " << res1 << endl;
     if (res1 == "3.0#third|4.0#forth") {
-        it_logln("ChoiceFormat adoptChoices tested");
+        it_out << "ChoiceFormat adoptChoices tested" << endl;
     }else{
         it_errln("***  ChoiceFormat adoptChoices result!");
     }
@@ -390,7 +388,7 @@ TestChoiceFormat::TestComplexExample( void )
     status = U_ZERO_ERROR;
     double arg_double = 3.0;
     res1 = form_pat.format( arg_double, str, fpos );
-    it_logln(UnicodeString("ChoiceFormat format:") + res1);
+    it_out << "ChoiceFormat format:" << res1 << endl;
     if (res1 != "third") it_errln("***  ChoiceFormat format (double, ...) result!");
 
     str = "";
@@ -398,7 +396,7 @@ TestChoiceFormat::TestComplexExample( void )
     status = U_ZERO_ERROR;
     int32_t arg_long = 3;
     res1 = form_pat.format( arg_long, str, fpos );
-    it_logln(UnicodeString("ChoiceFormat format:") + res1);
+    it_out << "ChoiceFormat format:" << res1 << endl;
     if (res1 != "third") it_errln("***  ChoiceFormat format (int32_t, ...) result!");
 
     Formattable ft( (int32_t)3 );
@@ -412,7 +410,7 @@ TestChoiceFormat::TestComplexExample( void )
         delete pattform;
         return;
     }
-    it_logln(UnicodeString("ChoiceFormat format:") + res1);
+    it_out << "ChoiceFormat format:" << res1 << endl;
     if (res1 != "third") it_errln("***  ChoiceFormat format (Formattable, ...) result!");
 
     Formattable fta[] = { (int32_t)3 };
@@ -426,7 +424,7 @@ TestChoiceFormat::TestComplexExample( void )
         delete pattform;
         return;
     }
-    it_logln(UnicodeString("ChoiceFormat format:") + res1);
+    it_out << "ChoiceFormat format:" << res1 << endl;
     if (res1 != "third") it_errln("***  ChoiceFormat format (Formattable[], cnt, ...) result!");
 
     ParsePosition parse_pos = 0;
@@ -435,7 +433,7 @@ TestChoiceFormat::TestComplexExample( void )
     form_pat.parse( parsetext, result, parse_pos );
     double rd = (result.getType() == Formattable::kLong) ? result.getLong() : result.getDouble();
     if (rd == 3.0) {
-        it_logln("parse( ..., ParsePos ) tested.");
+        it_out << "parse( ..., ParsePos ) tested." << endl;
     }else{
         it_errln("*** ChoiceFormat parse( ..., ParsePos )!");
     }
@@ -443,7 +441,7 @@ TestChoiceFormat::TestComplexExample( void )
     form_pat.parse( parsetext, result, status );
     rd = (result.getType() == Formattable::kLong) ? result.getLong() : result.getDouble();
     if (rd == 3.0) {
-        it_logln("parse( ..., UErrorCode ) tested.");
+        it_out << "parse( ..., UErrorCode ) tested." << endl;
     }else{
         it_errln("*** ChoiceFormat parse( ..., UErrorCode )!");
     }
@@ -457,7 +455,7 @@ TestChoiceFormat::TestComplexExample( void )
     }
     */
 
-    it_logln();
+    it_out << endl;
 
     delete fileform; 
     delete filenumform;

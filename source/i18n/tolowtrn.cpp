@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2001-2003, International Business Machines
+*   Copyright (C) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -20,15 +20,14 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(LowercaseTransliterator)
+const char LowercaseTransliterator::fgClassID=0;
 
-const char CURR_ID[] = "Any-Lower";
+const char LowercaseTransliterator::_ID[] = "Any-Lower";
 
 /**
  * Constructs a transliterator.
  */
-LowercaseTransliterator::LowercaseTransliterator(const Locale& theLoc) : 
-    Transliterator(UnicodeString(CURR_ID, ""), 0),
+LowercaseTransliterator::LowercaseTransliterator(const Locale& theLoc) : Transliterator(_ID, 0),
     loc(theLoc) , buffer(0)
 {
     buffer = (UChar *)uprv_malloc(u_getMaxCaseExpansion()*sizeof(buffer[0]));
@@ -74,9 +73,8 @@ Transliterator* LowercaseTransliterator::clone(void) const {
  */
 void LowercaseTransliterator::handleTransliterate(Replaceable& text,
                                  UTransPosition& offsets, 
-                                 UBool /*isIncremental*/) const
+                                 UBool isIncremental) const
 {
-    /* TODO: Verify that isIncremental can be ignored */
     int32_t textPos = offsets.start;
     if (textPos >= offsets.limit) return;
 

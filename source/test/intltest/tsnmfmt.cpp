@@ -11,9 +11,6 @@
 #include "unicode/decimfmt.h"
 #include "tsnmfmt.h"
 #include <float.h>
-#include <stdlib.h>
-
-IntlTestNumberFormat::~IntlTestNumberFormat() {}
 
 static const char * formattableTypeName(Formattable::Type t)
 {
@@ -23,7 +20,6 @@ static const char * formattableTypeName(Formattable::Type t)
   case Formattable::kLong: return "kLong";
   case Formattable::kString: return "kString";
   case Formattable::kArray: return "kArray";
-  case Formattable::kInt64: return "kInt64";
   default: return "??unknown??";
   }
 }
@@ -132,15 +128,13 @@ uint32_t IntlTestNumberFormat::randLong()
 }
 
 
-/* Make sure that we don't get something too large and multiply into infinity.
-   @param smallerThanMax the requested maximum value smaller than DBL_MAX */
+/* Make sure that we don't get something too large and multiply into infinity. */
 double IntlTestNumberFormat::getSafeDouble(double smallerThanMax) {
     double it;
-    double high = (DBL_MAX/smallerThanMax)/10.0;
-    double low = -high;
     do {
         it = randDouble();
-    } while (low > it || it > high);
+    } while (-DBL_MAX/smallerThanMax > it || it > DBL_MAX/smallerThanMax);
+    it *= smallerThanMax/10.0;
     return it;
 }
 
@@ -296,8 +290,6 @@ IntlTestNumberFormat::tryIt(double aNumber)
         // Convert from long to double
         if (number[i].getType() == Formattable::kLong)
             number[i].setDouble(number[i].getLong());
-		else if (number[i].getType() == Formattable::kInt64)
-			number[i].setDouble((double)number[i].getInt64());
         else if (number[i].getType() != Formattable::kDouble)
         {
             errMsg = ("**** FAIL: Parse of " + prettify(string[i-1])

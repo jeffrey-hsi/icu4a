@@ -7,17 +7,15 @@
 
 zh_MO {
     Version{ "2.0" }
-    collations { 
-        default { "traditional" }
-    }
-    Countries:alias { "zh_TW" }
+    CollationElements:alias { "zh_TW" }
+    
     DateTimePatterns { 
         "ahh'\u6642'mm'\u5206'ss'\u79D2' z",
         "ahh'\u6642'mm'\u5206'ss'\u79D2'",
         "ahh:mm:ss",
         "ah:mm",
         "yyyy'\u5E74'MM'\u6708'dd'\u65E5' EEEE",
-        "yyyy'\u5E74'MM'\u6708'dd'\u65E5'",
+        "yyyy'\u5E74'MM'\u6708'dd'\u65E5' EEEE",
         "yyyy'\u5E74'M'\u6708'd'\u65E5'",
         "yy'\u5E74'M'\u6708'd'\u65E5'",
         "{1} {0}",
@@ -31,8 +29,8 @@ zh_MO {
         "\u4E94",
         "\u516D",
     }
-    ExemplarCharacters:alias { "zh_TW" }
-    Languages:alias { "zh_TW" }
+    LocaleID:int { 0x1404 }
+//    LocaleString { "zh_MO" }
     MonthAbbreviations { 
         "1\u6708",
         "2\u6708",
@@ -53,9 +51,7 @@ zh_MO {
         "#,##0%",
         "#E0",
     }
-    //Keys:alias { "zh_TW" }
-    Types:alias { "zh_TW" }
-    Variants:alias { "zh_TW" }
+//    ShortCountry { "MAC" }
 //    zoneStrings { 
 //        {
 //                "CTT",
@@ -67,4 +63,3 @@ zh_MO {
 //        }
 //    }
 }
-

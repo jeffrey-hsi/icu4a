@@ -8,7 +8,6 @@
 
 #include "unicode/utypes.h"
 #include "unicode/uenum.h"
-#include "unicode/uloc.h"
 
 #if !UCONFIG_NO_FORMATTING
 
@@ -160,127 +159,46 @@ typedef enum UCalendarType UCalendarType;
  * @stable ICU 2.0
  */
 enum UCalendarDateFields {
-  /** 
-   * Era field
-   * @stable ICU 2.6 
-   */
+  /** Era field */
   UCAL_ERA,
-  /**
-   * Year field
-   * @stable ICU 2.6 
-   */
+  /** Year field */
   UCAL_YEAR,
-  /**
-   * Month field
-   * @stable ICU 2.6 
-   */
+  /** Month field */
   UCAL_MONTH,
-  /**
-   * Week of year field
-   * @stable ICU 2.6 
-   */
+  /** Week of year field */
   UCAL_WEEK_OF_YEAR,
-  /**
-   * Week of month field
-   * @stable ICU 2.6 
-   */
+  /** Week of month field */
   UCAL_WEEK_OF_MONTH,
-  /**
-   * Date field
-   * @stable ICU 2.6 
-   */
+  /** Date field */
   UCAL_DATE,
-  /**
-   * Day of year field
-   * @stable ICU 2.6 
-   */
+  /** Day of year field */
   UCAL_DAY_OF_YEAR,
-  /**
-   * Day of week field
-   * @stable ICU 2.6 
-   */
+  /** Day of week field */
   UCAL_DAY_OF_WEEK,
-  /**
-   * Day of week in month field
-   * @stable ICU 2.6 
-   */
+  /** Day of week in month field */
   UCAL_DAY_OF_WEEK_IN_MONTH,
-  /**
-   * AM/PM field
-   * @stable ICU 2.6 
-   */
+  /** AM/PM field */
   UCAL_AM_PM,
-  /**
-   * Hour field
-   * @stable ICU 2.6 
-   */
+  /** Hour field */
   UCAL_HOUR,
-  /**
-   * Hour of day field
-   * @stable ICU 2.6 
-   */
+  /** Hour of day field */
   UCAL_HOUR_OF_DAY,
-  /**
-   * Minute field
-   * @stable ICU 2.6 
-   */
+  /** Minute field */
   UCAL_MINUTE,
-  /**
-   * Second field
-   * @stable ICU 2.6 
-   */
+  /** Second field */
   UCAL_SECOND,
-  /**
-   * Millisecond field
-   * @stable ICU 2.6 
-   */
+  /** Millisecond field */
   UCAL_MILLISECOND,
-  /**
-   * Zone offset field
-   * @stable ICU 2.6 
-   */
+  /** Zone offset field */
   UCAL_ZONE_OFFSET,
-  /**
-   * DST offset field
-   * @stable ICU 2.6 
-   */
+  /** DST offset field */
   UCAL_DST_OFFSET,
-  /**
-   * Year / week of year 
-   * @stable ICU 2.6
-   */
+  /** Year / week of year */
   UCAL_YEAR_WOY,
-  /**
-   * Day of week, localized (1..7) 
-   * @stable ICU 2.6
-   */
+  /** Day of week, localized (1..7) */
   UCAL_DOW_LOCAL,
-  /**
-   * Year of this calendar system, encompassing all supra-year fields. For example, in Gregorian/Julian calendars, positive Extended Year values indicate years AD,  1 BC = 0 extended, 2 BC = -1 extended, and so on. 
-   * @draft ICU 2.8 
-   */
-  UCAL_EXTENDED_YEAR,       
-  /**
-   * Modified Julian day number, encompassing all date-related fields.  Demarcates at local midnight.
-   * @draft ICU 2.8
-   */
-  UCAL_JULIAN_DAY, 
-  /**
-   * Ranges from 0 to 23:59:59.999 (regardless of DST).  This field behaves <em>exactly</em> like a composite of all time-related fields, not including the zone fields.  As such, it also reflects discontinuities of those fields on DST transition days.  On a day of DST onset, it will jump forward.  On a day of DST cessation, it will jump backward.  This reflects the fact that is must be combined with the DST_OFFSET field to obtain a unique local time value.
-   * @draft ICU 2.8
-   */
-  UCAL_MILLISECONDS_IN_DAY,
-  /**
-   * Field count
-   * @stable ICU 2.6
-   */
-  UCAL_FIELD_COUNT,
-
-  /**
-   * Synonym for UCAL_DATE
-   * @draft ICU 2.8
-   **/
-  UCAL_DAY_OF_MONTH=UCAL_DATE
+  /** Field count */
+  UCAL_FIELD_COUNT
 };
 
 /** @stable ICU 2.0 */
@@ -884,7 +802,6 @@ ucal_getLimit(const UCalendar*     cal,
               UCalendarLimitType   type,
               UErrorCode*          status);
 
-#ifdef U_USE_UCAL_OBSOLETE_2_8
 /**
  * Get an available TimeZone ID.
  * A Timezone ID is a string of the form "America/Los Angeles".
@@ -911,17 +828,6 @@ ucal_getAvailableTZIDs(int32_t      rawOffset,
  */
 U_CAPI int32_t U_EXPORT2 
 ucal_countAvailableTZIDs(int32_t rawOffset);
-#endif
-
-/** Get the locale for this calendar object. You can choose between valid and actual locale.
- *  @param cal The calendar object
- *  @param type type of the locale we're looking for (valid or actual) 
- *  @param status error code for the operation
- *  @return the locale name
- * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
- */
-U_CAPI const char * U_EXPORT2
-ucal_getLocaleByType(const UCalendar *cal, ULocDataLocaleType type, UErrorCode* status);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

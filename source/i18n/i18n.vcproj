@@ -23,8 +23,8 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="TRUE"
 				ImproveFloatingPointConsistency="TRUE"
-				AdditionalIncludeDirectories="..\..\include,..\common"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;U_I18N_IMPLEMENTATION"
+				AdditionalIncludeDirectories="..\..\include,..\..\source\common"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;I18N_EXPORTS;U_I18N_IMPLEMENTATION"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
@@ -44,11 +44,11 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="icuuc.lib"
-				OutputFile="..\..\bin\icuin28.dll"
+				OutputFile="..\..\bin\icuin26.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\lib"
-				ProgramDatabaseFile=".\..\..\lib/icuin28.pdb"
+				ProgramDatabaseFile=".\..\..\lib/icuin26.pdb"
 				BaseAddress="0x4a900000"
 				ImportLibrary="..\..\lib\icuin.lib"/>
 			<Tool
@@ -87,8 +87,8 @@
 				Optimization="0"
 				ImproveFloatingPointConsistency="TRUE"
 				OptimizeForProcessor="2"
-				AdditionalIncludeDirectories="..\..\include,..\common"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;U_I18N_IMPLEMENTATION"
+				AdditionalIncludeDirectories="..\..\include,..\..\source\common"
+				PreprocessorDefinitions="_WINDOWS;_USRDLL;I18N_EXPORTS;U_I18N_IMPLEMENTATION;WIN32;_DEBUG;UDATA_MAP"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DisableLanguageExtensions="TRUE"
@@ -107,12 +107,12 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="icuucd.lib"
-				OutputFile="..\..\bin\icuin28d.dll"
+				OutputFile="..\..\bin\icuin26d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\..\..\lib/icuin28d.pdb"
+				ProgramDatabaseFile=".\..\..\lib/icuin26d.pdb"
 				BaseAddress="0x4a900000"
 				ImportLibrary="..\..\lib\icuind.lib"/>
 			<Tool
@@ -158,15 +158,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\coleitr.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\coleitr.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -178,15 +180,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\coll.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\coll.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -198,15 +202,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\search.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\search.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -218,15 +224,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\sortkey.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\sortkey.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -238,15 +246,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\stsearch.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\stsearch.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -258,15 +268,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\tblcoll.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\tblcoll.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -278,15 +290,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\ucol.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\ucol.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -331,15 +345,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\ucoleitr.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\ucoleitr.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -351,15 +367,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\usearch.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\usearch.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -369,12 +387,6 @@
 		<Filter
 			Name="formatting"
 			Filter="">
-			<File
-				RelativePath=".\astro.cpp">
-			</File>
-			<File
-				RelativePath=".\astro.h">
-			</File>
 			<File
 				RelativePath=".\buddhcal.cpp">
 			</File>
@@ -390,15 +402,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\calendar.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\calendar.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -410,15 +424,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\choicfmt.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\choicfmt.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -430,15 +446,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\datefmt.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\datefmt.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -450,15 +468,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\dcfmtsym.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\dcfmtsym.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -470,22 +490,18 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\decimfmt.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\decimfmt.h"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\digitlst.cpp">
-			</File>
-			<File
-				RelativePath=".\digitlst.h">
 			</File>
 			<File
 				RelativePath=".\dtfmtsym.cpp">
@@ -496,15 +512,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\dtfmtsym.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\dtfmtsym.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -513,15 +531,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\fieldpos.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\fieldpos.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -533,15 +553,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\fmtable.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\fmtable.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -553,15 +575,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\format.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\format.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -573,40 +597,18 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\gregocal.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\gregocal.h"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\chnsecal.cpp">
-			</File>
-			<File
-				RelativePath=".\chnsecal.h">
-			</File>
-			<File
-				RelativePath=".\gregoimp.cpp">
-			</File>
-			<File
-				RelativePath=".\gregoimp.h">
-			</File>
-			<File
-				RelativePath=".\hebrwcal.cpp">
-			</File>
-			<File
-				RelativePath=".\hebrwcal.h">
-			</File>
-			<File
-				RelativePath=".\islamcal.cpp">
-			</File>
-			<File
-				RelativePath=".\islamcal.h">
 			</File>
 			<File
 				RelativePath=".\japancal.cpp">
@@ -623,15 +625,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\msgfmt.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\msgfmt.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -664,22 +668,18 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\numfmt.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\numfmt.h"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\olsontz.cpp">
-			</File>
-			<File
-				RelativePath=".\olsontz.h">
 			</File>
 			<File
 				RelativePath=".\rbnf.cpp">
@@ -690,15 +690,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\rbnf.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\rbnf.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -710,15 +712,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\simpletz.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\simpletz.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -730,15 +734,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\smpdtfmt.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\smpdtfmt.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -750,16 +756,21 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\timezone.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\timezone.h"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\tzdat.h">
 			</File>
 			<File
 				RelativePath=".\ucal.cpp">
@@ -770,15 +781,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\ucal.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\ucal.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -790,19 +803,18 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\ucurr.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\ucurr.h"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\ucurrimp.h">
 			</File>
 			<File
 				RelativePath=".\udat.cpp">
@@ -813,15 +825,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\udat.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\udat.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -833,15 +847,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\umsg.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\umsg.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -856,35 +872,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\unum.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\ulocdata.c">
-			</File>
-			<File
-				RelativePath=".\unicode\ulocdata.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\unum.h"/>
 				</FileConfiguration>
 			</File>
 		</Filter>
@@ -910,15 +908,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\regex.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\regex.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1075,15 +1075,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\translit.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\translit.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1119,15 +1121,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\unifltlg.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\unifltlg.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1136,15 +1140,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\unirepl.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\unirepl.h"/>
 				</FileConfiguration>
 			</File>
 			<File
@@ -1162,15 +1168,17 @@
 					Name="Release|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\utrans.h"/>
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
+						CommandLine="copy    $(InputPath)    ..\..\include\unicode
+"
+						Outputs="..\..\include\unicode\utrans.h"/>
 				</FileConfiguration>
 			</File>
 		</Filter>

@@ -38,7 +38,7 @@ public:
      *
      * @return the adjusted character
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual LEUnicode32 mapChar(LEUnicode32 ch) const = 0;
 };
@@ -75,7 +75,7 @@ public:
      * This virtual destructor is here so that the subclass
      * destructors can be invoked through the base class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual inline ~LEFontInstance() {};
 
@@ -150,7 +150,7 @@ public:
      * @return the address of the table in memory, or <code>NULL</code>
      *         if the table doesn't exist.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual const void *getFontTable(LETag tableTag) const = 0;
 
@@ -161,12 +161,12 @@ public:
      * to glyph mapping.
      *
      * The default implementation of this method will return
-     * <code>TRUE</code> if <code>mapCharToGlyph(ch)</code>
+     * <code>true</code> if <code>mapCharToGlyph(ch)</code>
      * returns a non-zero value.
      *
      * @param ch - the character to be tested
      *
-     * @return TRUE if the font can render ch.
+     * @return true if the font can render ch.
      *
      * @draft ICU 2.6
      */
@@ -178,7 +178,7 @@ public:
      *
      * @return the number of design units pre EM.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual le_int32 getUnitsPerEM() const = 0;
 
@@ -189,7 +189,7 @@ public:
      * @param chars - the character array
      * @param offset - the index of the first character
      * @param count - the number of characters
-     * @param reverse - if TRUE, store the glyph indices in reverse order.
+     * @param reverse - if true, store the glyph indices in reverse order.
      * @param mapper - the character mapper.
      * @param glyphs - the output glyph array
      *
@@ -251,9 +251,9 @@ public:
      * @param pointNumber - the number of the point
      * @param point - the point's X and Y pixel values will be stored here
      *
-     * @return TRUE if the point coordinates could be stored.
+     * @return true if the point coordinates could be stored.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual le_bool getGlyphPoint(LEGlyphID glyph, le_int32 pointNumber, LEPoint &point) const = 0;
 
@@ -263,7 +263,7 @@ public:
      *
      * @return the pixel width of the EM square
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual float getXPixelsPerEm() const = 0;
 
@@ -273,7 +273,7 @@ public:
      *
      * @return the pixel height of the EM square
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual float getYPixelsPerEm() const = 0;
 
@@ -395,7 +395,7 @@ public:
      *
      * @return the floating point value
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static float fixedToFloat(le_int32 fixed);
 
@@ -407,7 +407,7 @@ public:
      *
      * @return the fixed point value
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static le_int32 floatToFixed(float theFloat);
 

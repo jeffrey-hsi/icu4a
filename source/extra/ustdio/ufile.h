@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1998-2003, International Business Machines
+*   Copyright (C) 1998-1999, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -49,7 +49,8 @@ struct UFILE {
   UBool        fOwnFile;    /* TRUE if fFile should be closed */
 
 #if !UCONFIG_NO_FORMATTING
-  ULocaleBundle        fBundle;     /* formatters */
+  ULocaleBundle        *fBundle;     /* formatters */
+  UBool        fOwnBundle;     /* TRUE if fBundle should be deleted */
 #endif
 
   UConverter        *fConverter;     /* for codeset conversion */

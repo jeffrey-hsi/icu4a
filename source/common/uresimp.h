@@ -53,7 +53,7 @@ struct UResourceDataEntry {
     int32_t fHashKey; /* for faster access in the hashtable */
 };
 
-#define RES_BUFSIZE 64
+#define RES_BUFSIZE 256
 #define RES_PATH_SEPARATOR   '/'
 #define RES_PATH_SEPARATOR_S   "/"
 
@@ -73,12 +73,14 @@ struct UResourceBundle {
     ResourceData fResData;
     Resource fRes;
 
-    UResourceDataEntry *fTopLevelData; /* for getting the valid locale */
-    const UResourceBundle *fParentRes; /* needed to get the actual locale for a child resource */
-
+    /* parent of this resource - 
+     * lives in the same data entry 
+     */
+    /* This cannot be done right now - need support in genrb */
+    /*Resource fParent; */
 };
 
-U_CAPI void U_EXPORT2 ures_initStackObject(UResourceBundle* resB);
+U_CFUNC void ures_initStackObject(UResourceBundle* resB);
 U_CFUNC void ures_setIsStackObject( UResourceBundle* resB, UBool state);
 U_CFUNC UBool ures_isStackObject( UResourceBundle* resB);
 
@@ -88,7 +90,6 @@ U_CFUNC const char* ures_getPath(const UResourceBundle* resB);
 U_CFUNC void ures_appendResPath(UResourceBundle *resB, const char* toAdd, int32_t lenToAdd);
 /*U_CFUNC void ures_setResPath(UResourceBundle *resB, const char* toAdd);*/
 U_CFUNC void ures_freeResPath(UResourceBundle *resB);
-U_CFUNC void ures_freeRequestedLocale(UResourceBundle *resB);
 
 /* Candidates for export */
 U_CFUNC UResourceBundle *ures_copyResb(UResourceBundle *r, const UResourceBundle *original, UErrorCode *status);
@@ -128,14 +129,7 @@ ures_findResource(const char* pathToResource,
  */
 U_CAPI UResourceBundle* U_EXPORT2
 ures_findSubResource(const UResourceBundle *resB, 
-                     char* pathToResource, 
+                     const char* pathToResource, 
                      UResourceBundle *fillIn, UErrorCode *status);
-
-U_CAPI UResourceBundle* U_EXPORT2 
-ures_getByKeyWithFallback(const UResourceBundle *resB, 
-                          const char* inKey, 
-                          UResourceBundle *fillIn, 
-                          UErrorCode *status);
-
 
 #endif /*URESIMP_H*/

@@ -284,13 +284,12 @@ class TransliterationRuleData;
  * @internal Use transliterator factory methods instead since this class will be removed in that release.
  */
 class U_I18N_API RuleBasedTransliterator : public Transliterator {
-private:
+
     /**
      * The data object is immutable, so we can freely share it with
      * other instances of RBT, as long as we do NOT own this object.
-     *  TODO:  data is no longer immutable.  See bugs #1866, 2155
      */
-    TransliterationRuleData* fData;
+    TransliterationRuleData* data;
 
     /**
      * If true, we own the data object and must delete it.
@@ -351,7 +350,7 @@ public:
                             const UnicodeString& rules,
                             UnicodeFilter* adoptedFilter,
                             UErrorCode& status);
-private:
+ private:
 
      friend class TransliteratorRegistry; // to access TransliterationRuleData convenience ctor
     /**
@@ -377,7 +376,7 @@ private:
                             TransliterationRuleData* data,
                             UBool isDataAdopted);
 
-public:
+ public:
 
     /**
      * Copy constructor.
@@ -393,7 +392,7 @@ public:
      */
     Transliterator* clone(void) const;
 
-protected:
+ protected:
     /**
      * Implements {@link Transliterator#handleTransliterate}.
      * @internal Use transliterator factory methods instead since this class will be removed in that release.
@@ -401,7 +400,7 @@ protected:
     virtual void handleTransliterate(Replaceable& text, UTransPosition& offsets,
                                      UBool isIncremental) const;
 
-public:
+ public:
     /**
      * Return a representation of this transliterator as source rules.
      * These rules will produce an equivalent transliterator if used
@@ -417,13 +416,13 @@ public:
     virtual UnicodeString& toRules(UnicodeString& result,
                                    UBool escapeUnprintable) const;
 
-protected:
+ protected:
     /**
      * Implement Transliterator framework
      */
     virtual void handleGetSourceSet(UnicodeSet& result) const;
 
-public:
+ public:
     /**
      * Override Transliterator framework
      */
@@ -440,7 +439,7 @@ public:
      * @return          The class ID for all objects of this class.
      * @internal Use transliterator factory methods instead since this class will be removed in that release.
      */
-    static UClassID getStaticClassID(void);
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
      * Returns a unique class ID <b>polymorphically</b>.  This method
@@ -464,9 +463,14 @@ public:
      * class have the same class ID.  Objects of other classes have
      * different class IDs.
      */
-    virtual UClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); };
 
 private:
+
+    /**
+     * Class identifier for RuleBasedTransliterator.
+     */
+    static const char fgClassID;
 
     void _construct(const UnicodeString& rules,
                     UTransDirection direction,
@@ -474,6 +478,87 @@ private:
                     UErrorCode& status);
 };
 
+/**
+ * Constructs a new transliterator from the given rules.
+ * @param id            the id for the transliterator.
+ * @param rules         rules, separated by ';'
+ * @param direction     either FORWARD or REVERSE.
+ * @param adoptedFilter the filter for this transliterator.
+ * @param parseError    Struct to recieve information on position 
+ *                      of error if an error is encountered
+ * @param status        Output param set to success/failure code.
+ * @exception IllegalArgumentException if rules are malformed
+ * or direction is invalid.
+ */
+inline RuleBasedTransliterator::RuleBasedTransliterator(
+                            const UnicodeString& id,
+                            const UnicodeString& rules,
+                            UTransDirection direction,
+                            UnicodeFilter* adoptedFilter,
+                            UParseError& parseError,
+                            UErrorCode& status) :
+    Transliterator(id, adoptedFilter) {
+    _construct(rules, direction,parseError,status);
+}
+
+/**
+ * Constructs a new transliterator from the given rules.
+ * @param id            the id for the transliterator.
+ * @param rules         rules, separated by ';'
+ * @param direction     either FORWARD or REVERSE.
+ * @param adoptedFilter the filter for this transliterator.
+ * @param status        Output param set to success/failure code.
+ * @exception IllegalArgumentException if rules are malformed
+ * or direction is invalid.
+ */
+inline RuleBasedTransliterator::RuleBasedTransliterator(
+                            const UnicodeString& id,
+                            const UnicodeString& rules,
+                            UTransDirection direction,
+                            UnicodeFilter* adoptedFilter,
+                            UErrorCode& status) :
+    Transliterator(id, adoptedFilter) {
+    UParseError parseError;
+    _construct(rules, direction,parseError, status);
+}
+
+/**
+ * Covenience constructor with no filter.
+ */
+inline RuleBasedTransliterator::RuleBasedTransliterator(
+                            const UnicodeString& id,
+                            const UnicodeString& rules,
+                            UTransDirection direction,
+                            UErrorCode& status) :
+    Transliterator(id, 0) {
+    UParseError parseError;
+    _construct(rules, direction,parseError, status);
+}
+
+/**
+ * Covenience constructor with no filter and FORWARD direction.
+ */
+inline RuleBasedTransliterator::RuleBasedTransliterator(
+                            const UnicodeString& id,
+                            const UnicodeString& rules,
+                            UErrorCode& status) :
+    Transliterator(id, 0) {
+    UParseError parseError;
+    _construct(rules, UTRANS_FORWARD, parseError, status);
+}
+
+/**
+ * Covenience constructor with FORWARD direction.
+ */
+inline RuleBasedTransliterator::RuleBasedTransliterator(
+                            const UnicodeString& id,
+                            const UnicodeString& rules,
+                            UnicodeFilter* adoptedFilter,
+                            UErrorCode& status) :
+    Transliterator(id, adoptedFilter) {
+    UParseError parseError;
+    _construct(rules, UTRANS_FORWARD,parseError, status);
+}
 
 U_NAMESPACE_END
 

@@ -1,7 +1,6 @@
+tmp
 Debug
 Release
-decmn_win32_Debug
-decmn_win32_Release
 Makefile
 *.d
 *.pdb

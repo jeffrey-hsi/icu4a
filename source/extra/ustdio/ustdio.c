@@ -27,38 +27,22 @@
 
 #include <string.h>
 
-#define DELIM_LF 0x000A
-#define DELIM_VT 0x000B
-#define DELIM_FF 0x000C
 #define DELIM_CR 0x000D
-#define DELIM_NEL 0x0085
-#define DELIM_LS 0x2028
-#define DELIM_PS 0x2029
+#define DELIM_LF 0x000A
 
 /* Leave this copyright notice here! */
 static const char copyright[] = U_COPYRIGHT_STRING;
 
-/* TODO: is this correct for all codepages? Should we just use \n and let the converter handle it? */
 #ifdef WIN32
 static const UChar DELIMITERS [] = { DELIM_CR, DELIM_LF, 0x0000 };
 static const uint32_t DELIMITERS_LEN = 2;
-#elif (U_CHARSET_FAMILY == U_EBCDIC_FAMILY)
-static const UChar DELIMITERS [] = { DELIM_NEL, 0x0000 };
-static const uint32_t DELIMITERS_LEN = 1;
 #else
 static const UChar DELIMITERS [] = { DELIM_LF, 0x0000 };
 static const uint32_t DELIMITERS_LEN = 1;
 #endif
 
-#define IS_FIRST_STRING_DELIMITER(c1) \
- (UBool)((DELIM_LF <= (c1) && (c1) <= DELIM_CR) \
-        || (c1) == DELIM_NEL \
-        || (c1) == DELIM_LS \
-        || (c1) == DELIM_PS)
-#define CAN_HAVE_COMBINED_STRING_DELIMITER(c1) (UBool)((c1) == DELIM_CR)
-#define IS_COMBINED_STRING_DELIMITER(c1, c2) \
- (UBool)((c1) == DELIM_CR && (c2) == DELIM_LF)
-
+#define IS_STRING_DELIMITER(s)    (UBool)(    (s) == DELIM_CR || \
+(s) == DELIM_LF    )
 
 #if !UCONFIG_NO_TRANSLITERATION
 
@@ -305,19 +289,14 @@ u_file_write_flush(    const UChar     *chars,
                    UBool         flush)
 {
     /* Set up conversion parameters */
-    UErrorCode         status       = U_ZERO_ERROR;
-    const UChar        *mySource    = chars;
-    const UChar        *sourceAlias = chars;
-    const UChar        *mySourceEnd;
-    char            *myTarget   = f->fCharBuffer;
-    int32_t        bufferSize   = UFILE_CHARBUFFER_SIZE;
-    int32_t        written      = 0;
-    int32_t        numConverted = 0;
-
-    if (count < 0) {
-        count = u_strlen(chars);
-    }
-    mySourceEnd     = chars + count;
+    UErrorCode         status        = U_ZERO_ERROR;
+    const UChar        *mySource       = chars;
+    const UChar        *sourceAlias       = chars;
+    const UChar        *mySourceEnd     = chars + count;
+    char            *myTarget     = f->fCharBuffer;
+    int32_t        bufferSize    = UFILE_CHARBUFFER_SIZE;
+    int32_t        written        = 0;
+    int32_t        numConverted   = 0;
 
 #if !UCONFIG_NO_TRANSLITERATION
     if((f->fTranslit) && (f->fTranslit->translit))
@@ -440,16 +419,15 @@ ufile_fill_uchar_buffer(UFILE *f)
 }
 
 U_CAPI UChar* U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fgets(UChar        *s,
-        int32_t       n,
-        UFILE        *f)
+u_fgets(UFILE        *f,
+        int32_t        n,
+        UChar        *s)
 {
     int32_t dataSize;
     int32_t count;
     UChar *alias;
     UChar *limit;
     UChar *sItr;
-    UChar currDelim = 0;
 
     if (n <= 0) {
         /* Caller screwed up. We need to write the null terminatior. */
@@ -474,7 +452,6 @@ u_fgets(UChar        *s,
     /* otherwise, iteratively fill the buffer and copy */
     count = 0;
     sItr = s;
-    currDelim = 0;
     while (dataSize > 0 && count < n) {
         alias = f->fUCPos;
 
@@ -486,35 +463,22 @@ u_fgets(UChar        *s,
             limit = alias + n;
         }
 
-        if (!currDelim) {
-            /* Copy UChars until we find the first occurrence of a delimiter character */
-            while (alias < limit && !IS_FIRST_STRING_DELIMITER(*alias)) {
-                count++;
-                *(sItr++) = *(alias++);
-            }
-            /* Preserve the newline */
-            if (alias < limit && IS_FIRST_STRING_DELIMITER(*alias)) {
-                if (CAN_HAVE_COMBINED_STRING_DELIMITER(*alias)) {
-                    currDelim = *alias;
-                }
-                count++;
-                *(sItr++) = *(alias++);
-            }
+        /* Copy UChars until we find the first occurrence of a delimiter character */
+        while (alias < limit && !IS_STRING_DELIMITER(*alias)) {
+            count++;
+            *(sItr++) = *(alias++);
         }
-        /* If we have a CRLF combination, preserve that too. */
-        if (alias < limit) {
-            if (currDelim && IS_COMBINED_STRING_DELIMITER(currDelim, *alias)) {
-                count++;
-                *(sItr++) = *(alias++);
-            }
-            currDelim = 0;
+        /* Preserve the newline */
+        if (alias < limit && IS_STRING_DELIMITER(*alias)) {
+            count++;
+            *(sItr++) = *(alias++);
         }
 
         /* update the current buffer position */
         f->fUCPos = alias;
 
         /* if we found a delimiter */
-        if (alias < f->fUCLimit && !currDelim) {
+        if (alias < f->fUCLimit) {
 
             /* break out */
             break;
@@ -541,70 +505,78 @@ u_fgetc(UFILE        *f)
     /* otherwise, fill the buffer and return the next character */
     else {
         ufile_fill_uchar_buffer(f);
-        if(f->fUCPos < f->fUCLimit) {
+        if(f->fUCPos < f->fUCLimit)
             return *(f->fUCPos)++;
-        }
-        else {
-            return U_EOF;
-        }
+        else
+            return 0xFFFF;
     }
+}
+
+/* u_unescapeAt() callback to return a UChar from a UFILE */
+static UChar U_CALLCONV
+_charAt(int32_t offset, void *context) {
+    return ((UFILE*) context)->fUCPos[offset];
 }
 
 /* Read a UChar from a UFILE and process escape sequences */
 U_CAPI UChar32 U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
 u_fgetcx(UFILE        *f)
 {
+    int32_t length;
+    int32_t offset;
     UChar32 c32;
+    UChar c16;
 
     /* Fill the buffer if it is empty */
-    if (f->fUCPos + 1 >= f->fUCLimit) {
+    if (f->fUCPos >= f->fUCLimit) {
         ufile_fill_uchar_buffer(f);
     }
 
     /* Get the next character in the buffer */
     if (f->fUCPos < f->fUCLimit) {
-        c32 = *(f->fUCPos)++;
-    }
-    else {
-        c32 = U_EOF;
+        c16 = *(f->fUCPos)++;
+    } else {
+        c16 = U_EOF;
     }
 
-    if (U_IS_LEAD(c32)) {
-        if (f->fUCPos < f->fUCLimit) {
-            UChar c16 = *(f->fUCPos)++;
-            c32 = U16_GET_SUPPLEMENTARY(c32, c16);
-        }
-        else {
-            c32 = U_EOF;
-        }
+    /* If it isn't a backslash, return it */
+    if (c16 != 0x005C /*'\\'*/) {
+        return c16;
     }
+
+    /* Determine the amount of data in the buffer */
+    length = (int32_t)(f->fUCLimit - f->fUCPos);
+
+    /* The longest escape sequence is \Uhhhhhhhh; make sure
+    we have at least that many characters */
+    if (length < 10) {
+        /* fill the buffer */
+        ufile_fill_uchar_buffer(f);
+        length = (int32_t)(f->fUCLimit - f->fUCPos);
+    }
+
+    /* Process the escape */
+    offset = 0;
+    c32 = u_unescapeAt(_charAt, &offset, length, (void*)f);
+
+    /* Update the current buffer position */
+    f->fUCPos += offset;
 
     return c32;
 }
 
-U_CAPI UChar32 U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
-u_fungetc(UChar32        ch,
+U_CAPI UChar U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */
+u_fungetc(UChar        c,
     UFILE        *f)
 {
     /* if we're at the beginning of the buffer, sorry! */
-    if (f->fUCPos == f->fUCBuffer
-        || (U_IS_LEAD(ch) && (f->fUCPos - 1) == f->fUCBuffer))
-    {
-        ch = U_EOF;
-    }
+    if(f->fUCPos == f->fUCBuffer)
+        return 0xFFFF;
+    /* otherwise, put the character back */
     else {
-        /* otherwise, put the character back */
-        /* TODO: Maybe we shouldn't be writing to the buffer and just verify the contents */
-        if (U_IS_LEAD(ch)) {
-            /* Remember, put them back on in the reverse order. */
-            *--(f->fUCPos) = U16_TRAIL(ch);
-            *--(f->fUCPos) = U16_LEAD(ch);
-        }
-        else {
-            *--(f->fUCPos) = (UChar)ch;
-        }
+        *--(f->fUCPos) = c;
+        return c;
     }
-    return ch;
 }
 
 U_CAPI int32_t U_EXPORT2 /* U_CAPI ... U_EXPORT2 added by Peter Kirk 17 Nov 2001 */

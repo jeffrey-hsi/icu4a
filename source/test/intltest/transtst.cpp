@@ -17,10 +17,13 @@
 #include "unicode/dtfmtsym.h"
 #include "unicode/normlzr.h"
 #include "unicode/translit.h"
+#include "unicode/ucnv.h"
+#include "unicode/ucnv_err.h"
 #include "unicode/uchar.h"
 #include "unicode/unifilt.h"
 #include "unicode/uniset.h"
 #include "unitohex.h"
+#include "unicode/utypes.h"
 #include "unicode/ustring.h"
 #include "unicode/usetiter.h"
 #include "unicode/uscript.h"
@@ -39,7 +42,6 @@
 #include "unesctrn.h"
 #include "uni2name.h"
 #include "cstring.h"
-#include <stdio.h>
 
 /***********************************************************************
 
@@ -99,8 +101,6 @@ TransliteratorTest::TransliteratorTest()
     DESERET_dee((UChar32)0x1043C)
 {
 }
-
-TransliteratorTest::~TransliteratorTest() {}
 
 void
 TransliteratorTest::runIndexedTest(int32_t index, UBool exec,
@@ -1296,10 +1296,7 @@ void TransliteratorTest::TestCreateInstance(){
         UnicodeString expID(DATA[i+2]);
         Transliterator* t =
             Transliterator::createInstance(id,dir,err,ec);
-        UnicodeString newID;
-        if (t) {
-            newID = t->getID();
-        }
+        UnicodeString newID = t?t->getID():UnicodeString();
         UBool ok = (newID == expID);
         if (!t) {
             newID = u_errorName(ec);
@@ -2253,22 +2250,15 @@ void TransliteratorTest::TestCompoundFilterID(void) {
             t = Transliterator::createInstance(id, direction, pe, ec);
         }
         UBool ok = (t != NULL && U_SUCCESS(ec));
-        UnicodeString transID;
-        if (t!=0) {
-            transID = t->getID();
-        }
-        else {
-            transID = UnicodeString("NULL", "");
-        }
         if (ok == expOk) {
-            logln((UnicodeString)"Ok: " + id + " => " + transID + ", " +
+            logln((UnicodeString)"Ok: " + id + " => " + (t!=0?t->getID():(UnicodeString)"NULL") + ", " +
                   u_errorName(ec));
             if (source.length() != 0) {
                 expect(*t, source, exp);
             }
             delete t;
         } else {
-            errln((UnicodeString)"FAIL: " + id + " => " + transID + ", " +
+            errln((UnicodeString)"FAIL: " + id + " => " + (t!=0?t->getID():(UnicodeString)"NULL") + ", " +
                   u_errorName(ec));
         }
     }

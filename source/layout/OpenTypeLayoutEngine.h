@@ -113,14 +113,14 @@ public:
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
@@ -225,7 +225,7 @@ protected:
      * @param offset - the index of the first character to process
      * @param count - the number of characters to process
      * @param max - the number of characters in the input context
-     * @param rightToLeft - TRUE if the characters are in a right to left directional run
+     * @param rightToLeft - true if the characters are in a right to left directional run
      *
      * Output parameters:
      * @param outChars - the output character array, if different from the input
@@ -238,7 +238,19 @@ protected:
      * @internal
      */
     virtual le_int32 characterProcessing(const LEUnicode /*chars*/[], le_int32 offset, le_int32 count, le_int32 max, le_bool /*rightToLeft*/,
-            LEUnicode *&/*outChars*/, le_int32 *&/*charIndices*/, const LETag **&/*featureTags*/, LEErrorCode &success);
+            LEUnicode *&/*outChars*/, le_int32 *&/*charIndices*/, const LETag **&/*featureTags*/, LEErrorCode &success) /*= 0;*/
+    {
+        if (LE_FAILURE(success)) {
+            return 0;
+        }
+
+        if (offset < 0 || count < 0 || max < 0 || offset >= max || offset + count > max) {
+            success = LE_ILLEGAL_ARGUMENT_ERROR;
+            return 0;
+        }
+
+        return count;
+    };
 
     /**
      * This method does character to glyph mapping, and applies the GSUB table. The
@@ -254,7 +266,7 @@ protected:
      * @param offset - the index of the first character to process
      * @param count - the number of characters to process
      * @param max - the number of characters in the input context
-     * @param rightToLeft - TRUE if the characters are in a right to left directional run
+     * @param rightToLeft - true if the characters are in a right to left directional run
      * @param featureTags - the feature tag array
      *
      * Output parameters:
@@ -270,7 +282,7 @@ protected:
      * @internal
      */
     virtual le_int32 glyphProcessing(const LEUnicode chars[], le_int32 offset, le_int32 count, le_int32 max, le_bool rightToLeft,
-            const LETag **&featureTags, LEGlyphID *&glyphs, le_int32 *&charIndices, LEErrorCode &success);
+            const LETag **featureTags, LEGlyphID *&glyphs, le_int32 *&charIndices, LEErrorCode &success);
 
     /**
      * This method does any processing necessary to convert "fake"
@@ -298,7 +310,17 @@ protected:
      * @internal
      */
     virtual le_int32 glyphPostProcessing(LEGlyphID tempGlyphs[], le_int32 tempCharIndices[], le_int32 tempGlyphCount,
-                    LEGlyphID *&glyphs, le_int32 *&charIndices, LEErrorCode &success);
+                    LEGlyphID *&glyphs, le_int32 *&charIndices, LEErrorCode &success)
+    {
+        if (LE_FAILURE(success)) {
+            return 0;
+        }
+
+        glyphs = tempGlyphs;
+        charIndices = tempCharIndices;
+
+        return tempGlyphCount;
+    };
 
     /**
      * This method applies the characterProcessing, glyphProcessing and glyphPostProcessing
@@ -309,7 +331,7 @@ protected:
      * @param offset - the index of the first character to process
      * @param count - the number of characters to process
      * @param max - the number of characters in the input context
-     * @param rightToLeft - TRUE if the text is in a right to left directional run
+     * @param rightToLeft - true if the text is in a right to left directional run
      *
      * Output parameters:
      * @param glyphs - the glyph index array

@@ -16,7 +16,6 @@
 #ifndef REGEX_H
 #define REGEX_H
 
-// #define REGEX_DEBUG
 
 /**
  * \file
@@ -51,14 +50,11 @@ U_NAMESPACE_BEGIN
 // Forward Declarations...
 
 class RegexMatcher;
-class RegexPattern;
 class UVector;
 class UVector32;
 class UnicodeSet;
 struct REStackFrame;
 struct Regex8BitSet;
-class  RuleBasedBreakIterator;
-
 
 
 /**
@@ -83,31 +79,8 @@ enum {
       *    If set, recognize line terminators within string,
       *    otherwise, match only at start and end of input string.
       *   @draft ICU 2.4 */
-    UREGEX_MULTILINE        = 8,
-
-    /**  Unicode word boundaries.
-      *     If set, \b uses the Unicode TR 29 definition of word boundaries.
-      *     Warning: Unicode word boundaries are quite different from
-      *     traditional regular expression word boundaries.  See
-      *     http://unicode.org/reports/tr29/#Word_Boundaries
-      *     @draft ICU 2.8
-      */
-    UREGEX_UWORD            = 256
+    UREGEX_MULTILINE        = 8
 };
-
-
-
-
-/**
- *   RBBIPatternDump   Debug function, displays the compiled form of a pattern.
- *   @internal
- */
-#ifdef REGEX_DEBUG
-U_CAPI void U_EXPORT2
-    RegexPatternDump(const RegexPattern *pat);
-#else
-    #define RegexPatternDump(pat)
-#endif
 
 
 
@@ -353,19 +326,26 @@ public:
         UErrorCode       &status) const;
 
 
+
+    /**
+     *   dump   Debug function, displays the compiled form of a pattern.
+     *   @internal
+     */
+    void dump() const;
+
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
      * @draft ICU 2.4
      */
-    virtual UClassID getDynamicClassID() const; 
+    virtual inline UClassID getDynamicClassID() const; 
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.4
      */
-    static UClassID getStaticClassID(); 
+    static inline UClassID getStaticClassID(); 
 
 private:
     //
@@ -415,6 +395,12 @@ private:
     UChar32         fInitialChar;
     Regex8BitSet   *fInitialChars8;
 
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
+
     friend class RegexCompile;
     friend class RegexMatcher;
 
@@ -423,12 +409,16 @@ private:
     //
     void        init();            // Common initialization, for use by constructors.
     void        zap();             // Common cleanup
-#ifdef REGEX_DEBUG
     void        dumpOp(int32_t index) const;
-    friend     void RegexPatternDump(const RegexPattern *);
-#endif
+
 
 };
+
+
+
+
+
+
 
 
 
@@ -495,17 +485,6 @@ public:
     */
     virtual UBool matches(UErrorCode &status);
 
-   /**
-    *   Attempts to match the input string, beginning at startIndex, against the pattern.
-    *   The match must extend to the end of the input string.
-    *    @param   startIndex The input string index at which to begin matching.
-    *    @param   status     A reference to a UErrorCode to receive any errors.
-    *    @return TRUE if there is a match
-    *    @draft ICU 2.8
-    */
-    virtual UBool matches(int32_t startIndex, UErrorCode &status);
-
-
 
 
    /**
@@ -522,21 +501,6 @@ public:
     */
     virtual UBool lookingAt(UErrorCode &status);
 
-
-  /**
-    *   Attempts to match the input string, starting from the specified index, against the pattern.
-    *   The match may be of any length, and is not required to extend to the end
-    *   of the input string.  Contrast with match().
-    *
-    *   <p>If the match succeeds then more information can be obtained via the <code>start()</code>,
-    *     <code>end()</code>, and <code>group()</code> functions.</p>
-    *
-    *    @param   startIndex The input string index at which to begin matching.
-    *    @param   status     A reference to a UErrorCode to receive any errors.
-    *    @return  TRUE if there is a match.
-    *    @draft ICU 2.8
-    */
-    virtual UBool lookingAt(int32_t startIndex, UErrorCode &status);
 
    /**
     *  Find the next pattern match in the input string.
@@ -663,18 +627,6 @@ public:
     *   @draft ICU 2.4
     */
     virtual RegexMatcher &reset();
-
-
-   /**
-    *   Resets this matcher, and set the current input position.
-    *   The effect is to remove any memory of previous matches,
-    *       and to cause subsequent find() operations to begin at 
-    *       the specified position in the input string.
-    *
-    *   @return this RegexMatcher.
-    *   @draft ICU 2.8
-    */
-    virtual RegexMatcher &reset(int32_t index, UErrorCode &status);
 
 
    /**
@@ -832,16 +784,16 @@ public:
     /**
     * ICU "poor man's RTTI", returns a UClassID for this class.
     *
-    * @stable ICU 2.2
+    * @draft ICU 2.2
     */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID();
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const;
 
 private:
     // Constructors and other object boilerplate are private.
@@ -859,8 +811,7 @@ private:
     //
     void                 MatchAt(int32_t startIdx, UErrorCode &status);
     inline void          backTrack(int32_t &inputIdx, int32_t &patIdx);
-    UBool                isWordBoundary(int32_t pos);         // perform Perl-like  \b test
-    UBool                isUWordBoundary(int32_t pos);        // perform RBBI based \b test
+    UBool                isWordBoundary(int32_t pos);         // perform the \b test
     REStackFrame        *resetStack();
     inline REStackFrame *StateSave(REStackFrame *fp, int32_t savePatIdx,
                                    int32_t frameSize, UErrorCode &status);
@@ -889,9 +840,21 @@ private:
     UErrorCode          fDeferredStatus;   // Save error state if that cannot be immediately
                                            //   reported, or that permanently disables this matcher.
 
-    RuleBasedBreakIterator  *fWordBreakItr;
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char   fgClassID;
+
 
 };
+
+inline UClassID RegexPattern::getStaticClassID() { return (UClassID)&fgClassID; }
+inline UClassID RegexPattern::getDynamicClassID() const { return getStaticClassID(); }
+
+inline UClassID RegexMatcher::getStaticClassID() { return (UClassID)&fgClassID; }
+inline UClassID RegexMatcher::getDynamicClassID() const { return getStaticClassID(); }
+
 
 U_NAMESPACE_END
 #endif  // UCONFIG_NO_REGULAR_EXPRESSIONS

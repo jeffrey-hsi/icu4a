@@ -50,6 +50,10 @@ static const UChar NEW_LINE[] = {0x0a,0};
 static void TestFileFromICU(UFILE *myFile) {
     int32_t n[1];
     float myFloat = -1234.0;
+    UDate myDate = 0.0;
+    UDate dec_31_1969 = -57600000.000000; /* TODO: These are not correct */
+    UDate midnight = 86400000.000000; /* TODO: These are not correct */
+    UDate myNewDate = -1.0;
     int32_t newValuePtr[1];
     double newDoubleValuePtr[1];
     UChar myUString[256];
@@ -83,12 +87,15 @@ static void TestFileFromICU(UFILE *myFile) {
     u_fprintf(myFile, "Uppercase float %%G: %G\n", myFloat);
 //    u_fprintf(myFile, "Pointer %%p: %p\n", myFile);
     u_fprintf(myFile, "Char %%c: %c\n", 'A');
-    u_fprintf(myFile, "UChar %%C: %C\n", L'A');
+    u_fprintf(myFile, "UChar %%K (non-ANSI, should be %%C for Microsoft?): %K\n", L'A');
     u_fprintf(myFile, "String %%s: %s\n", "My-String");
     u_fprintf(myFile, "NULL String %%s: %s\n", NULL);
-    u_fprintf(myFile, "Unicode String %%S: %S\n", L"My-String");
-    u_fprintf(myFile, "NULL Unicode String %%S: %S\n", NULL);
+    u_fprintf(myFile, "Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U\n", L"My-String");
+    u_fprintf(myFile, "NULL Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U\n", NULL);
+    u_fprintf(myFile, "Date %%D (non-ANSI): %D\n", myDate);
+    u_fprintf(myFile, "Time %%T (non-ANSI): %T\n", myDate);
     u_fprintf(myFile, "Percent %%P (non-ANSI): %P\n", myFloat);
+    u_fprintf(myFile, "Currency %%M (non-ANSI): %M\n", myFloat);
     u_fprintf(myFile, "Spell Out %%V (non-ANSI): %V\n", myFloat);
 
     *n = 1;
@@ -107,33 +114,23 @@ static void TestFileFromICU(UFILE *myFile) {
         return;
     }
 
-    myUString[0] = u_fgetc(myFile);
-    if (myUString[0] != 0x53 /* S */) {
+    *n = -1234;
+
+    myString[0] = u_fgetc(myFile);
+    if (myString[0] != 0x53 /* S */) {
         log_err("u_fgetc 1 returned %X. Expected 'S'.", myString[0]);
     }
-    u_fungetc(myUString[0], myFile);
-    myUString[0] = u_fgetc(myFile);
-    if (myUString[0] != 0x53 /* S */) {
+    u_fungetc(myString[0], myFile);
+    myString[0] = u_fgetc(myFile);
+    if (myString[0] != 0x53 /* S */) {
         log_err("u_fgetc 2 returned %X. Expected 'S'.", myString[0]);
     }
-    u_fungetc(myUString[0], myFile);
-    myUString[0] = u_fgetc(myFile);
-    if (myUString[0] != 0x53 /* S */) {
+    u_fungetc(myString[0], myFile);
+    myString[0] = u_fgetc(myFile);
+    if (myString[0] != 0x53 /* S */) {
         log_err("u_fgetc 3 returned %X. Expected 'S'.", myString[0]);
     }
-    u_fungetc(myUString[0], myFile);
-    myUString[0] = u_fgetc(myFile);
-    *n = (int32_t)u_fgetcx(myFile); /* Mix getc and getcx and see what happens. */
-    myUString[1] = *n;
-    myUString[2] = u_fgetc(myFile);
-    if (myUString[0] != 0x53 /* S */ && *n != 0x69 /* i */ && myUString[2] != 0x6E /* n */) {
-        log_err("u_fgetcx returned \\u%04X\\u%04X\\u%04X. Expected 'Sin'.", myString[0], myString[1], myString[2]);
-    }
-    u_fungetc(myUString[2], myFile);
-    u_fungetc(myUString[1], myFile);
-    u_fungetc(myUString[0], myFile);
-
-    *n = -1234;
+    u_fungetc(myString[0], myFile);
 
     *newValuePtr = 1;
     u_fscanf(myFile, "Signed decimal integer %%d: %d\n", newValuePtr);
@@ -195,7 +192,7 @@ static void TestFileFromICU(UFILE *myFile) {
     if (*myString != 'A') {
         log_err("%%c Got: %c, Expected: A\n", *myString);
     }
-    u_fscanf(myFile, "UChar %%C: %C\n", myUString);
+    u_fscanf(myFile, "UChar %%K (non-ANSI, should be %%C for Microsoft?): %K\n", myUString);
     if (*myUString != L'A') {
         log_err("%%C Got: %C, Expected: A\n", *myUString);
     }
@@ -207,18 +204,33 @@ static void TestFileFromICU(UFILE *myFile) {
     if (strcmp(myString, "(null)")) {
         log_err("%%s Got: %s, Expected: My String\n", myString);
     }
-    u_fscanf(myFile, "Unicode String %%S: %S\n", myUString);
+    u_fscanf(myFile, "Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U\n", myUString);
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
     if (strcmp(myString, "My-String")) {
         log_err("%%S Got: %S, Expected: My String\n", myUString);
     }
-    u_fscanf(myFile, "NULL Unicode String %%S: %S\n", myUString);
+    u_fscanf(myFile, "NULL Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U\n", myUString);
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
     if (strcmp(myString, "(null)")) {
         log_err("%%S Got: %S, Expected: My String\n", myUString);
     }
+    myNewDate = -1.0;
+    u_fscanf(myFile, "Date %%D (non-ANSI): %D\n", &myNewDate);
+    if (myNewDate != dec_31_1969) {
+        log_err("%%D Got: %f, Expected: %f\n", myNewDate, dec_31_1969);
+    }
+    myNewDate = -1.0;
+    u_fscanf(myFile, "Time %%T (non-ANSI): %T\n", &myNewDate);
+    if (myNewDate != midnight) {
+        log_err("%%T Got: %f, Expected: %f\n", myNewDate, midnight);
+    }
     *newDoubleValuePtr = -1.0;
     u_fscanf(myFile, "Percent %%P (non-ANSI): %P\n", newDoubleValuePtr);
+    if (myFloat != *newDoubleValuePtr) {
+        log_err("%%P Got: %f, Expected: %f\n", *newDoubleValuePtr, myFloat);
+    }
+    *newDoubleValuePtr = -1.0;
+    u_fscanf(myFile, "Currency %%M (non-ANSI): %M\n", newDoubleValuePtr);
     if (myFloat != *newDoubleValuePtr) {
         log_err("%%P Got: %f, Expected: %f\n", *newDoubleValuePtr, myFloat);
     }
@@ -228,13 +240,13 @@ static void TestFileFromICU(UFILE *myFile) {
         log_err("%%V Got: %f, Expected: %f\n", *newDoubleValuePtr, myFloat);
     }
 
-    u_fgets(myUString, 4, myFile);
+    u_fgets(myFile, 4, myUString);
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
     if (myString == NULL || strcmp(myString, "\t\n") != 0) {
         log_err("u_fgets got \"%s\"\n", myString);
     }
 
-    if (u_fgets(myUString, sizeof(myUString)/sizeof(*myUString), myFile) != myUString) {
+    if (u_fgets(myFile, sizeof(myUString)/sizeof(*myUString), myUString) != myUString) {
         log_err("u_fgets did not return myUString\n");
     }
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
@@ -242,7 +254,7 @@ static void TestFileFromICU(UFILE *myFile) {
         log_err("u_fgets got \"%s\"\n", myString);
     }
 
-    if (u_fgets(myUString, sizeof(myUString)/sizeof(*myUString), myFile) != myUString) {
+    if (u_fgets(myFile, sizeof(myUString)/sizeof(*myUString), myUString) != myUString) {
         log_err("u_fgets did not return myUString\n");
     }
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
@@ -250,7 +262,7 @@ static void TestFileFromICU(UFILE *myFile) {
         log_err("u_fgets got \"%s\"\n", myString);
     }
 
-    if (u_fgets(myUString, sizeof(myUString)/sizeof(*myUString), myFile) != myUString) {
+    if (u_fgets(myFile, sizeof(myUString)/sizeof(*myUString), myUString) != myUString) {
         log_err("u_fgets did not return myUString\n");
     }
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
@@ -258,11 +270,11 @@ static void TestFileFromICU(UFILE *myFile) {
         log_err("u_fgets got \"%s\"\n", myString);
     }
 
-    if (u_fgets(myUString, 0, myFile) != NULL) {
+    if (u_fgets(myFile, 0, myUString) != NULL) {
         log_err("u_fgets got \"%s\" and it should have returned NULL\n", myString);
     }
 
-    if (u_fgets(myUString, 1, myFile) != myUString) {
+    if (u_fgets(myFile, 1, myUString) != myUString) {
         log_err("u_fgets did not return myUString\n");
     }
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
@@ -270,7 +282,7 @@ static void TestFileFromICU(UFILE *myFile) {
         log_err("u_fgets got \"%s\"\n", myString);
     }
 
-    if (u_fgets(myUString, 2, myFile) != myUString) {
+    if (u_fgets(myFile, 2, myUString) != myUString) {
         log_err("u_fgets did not return myUString\n");
     }
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
@@ -387,7 +399,7 @@ static void TestfgetsBuffers() {
     if (u_fgetc(myFile) != 0xFF41) {
         log_err("The second character is wrong\n");
     }
-    if (u_fgets(buffer, sizeof(buffer)/sizeof(buffer[0]), myFile) != buffer) {
+    if (u_fgets(myFile, sizeof(buffer)/sizeof(buffer[0]), buffer) != buffer) {
         log_err("Didn't get the buffer back\n");
         return;
     }
@@ -433,7 +445,7 @@ static void TestfgetsBuffers() {
     if (u_fgetc(myFile) != 0xFF41) {
         log_err("The second character is wrong\n");
     }
-    if (u_fgets(buffer, sizeof(buffer)/sizeof(buffer[0]), myFile) != buffer) {
+    if (u_fgets(myFile, sizeof(buffer)/sizeof(buffer[0]), buffer) != buffer) {
         log_err("Didn't get the buffer back\n");
         return;
     }
@@ -466,7 +478,7 @@ static void TestfgetsBuffers() {
 
     u_memset(buffer, 0xDEAD, sizeof(buffer)/sizeof(buffer[0]));
     myFile = u_fopen(STANDARD_TEST_FILE, "r", NULL, "UTF-8");
-    if (u_fgets(buffer, 2, myFile) != buffer) {
+    if (u_fgets(myFile, 2, buffer) != buffer) {
         log_err("Didn't get the buffer back\n");
         return;
     }
@@ -512,7 +524,7 @@ static void TestfgetsLineCount() {
     for (;;) {
         u_memset(buffer, 0xDEAD, sizeof(buffer)/sizeof(buffer[0]));
         char *returnedCharBuffer = fgets(charBuffer, sizeof(charBuffer)/sizeof(charBuffer[0]), stdFile);
-        UChar *returnedUCharBuffer = u_fgets(buffer, sizeof(buffer)/sizeof(buffer[0]), myFile);
+        UChar *returnedUCharBuffer = u_fgets(myFile, sizeof(buffer)/sizeof(buffer[0]), buffer);
 
         if (!returnedCharBuffer && !returnedUCharBuffer) {
             /* Both returned NULL. stop. */
@@ -536,156 +548,6 @@ static void TestfgetsLineCount() {
     }
     fclose(stdFile);
     u_fclose(myFile);
-}
-
-static void TestfgetsNewLineHandling() {
-    UChar buffer[256];
-    static const UChar testUStr[][16] = {
-        {0x000D, 0},
-        {0x000D, 0x000A, 0},
-        {0x000D, 0},
-        {0x000D, 0},
-        {0x0085, 0},
-        {0x000A, 0},
-        {0x000D, 0},
-        {0x000B, 0},
-        {0x000C, 0},
-        {0x000C, 0},
-        {0x2028, 0},
-        {0x0085, 0},
-        {0x2029, 0},
-        {0x0085, 0},
-
-        {0x008B, 0x000D, 0},
-        {0x00A0, 0x000D, 0x000A, 0},
-        {0x3000, 0x000D, 0},
-        {0xd800, 0xdfff, 0x000D, 0},
-        {0x00AB, 0x0085, 0},
-        {0x00AC, 0x000A, 0},
-        {0x00AD, 0x000D, 0},
-        {0x00BA, 0x000B, 0},
-        {0x00AB, 0x000C, 0},
-        {0x00B1, 0x000C, 0},
-        {0x30BB, 0x2028, 0},
-        {0x00A5, 0x0085, 0},
-        {0x0080, 0x2029, 0},
-        {0x00AF, 0x0085, 0}
-
-    };
-    UFILE *myFile = NULL;
-    int32_t lineIdx;
-
-    myFile = u_fopen(STANDARD_TEST_FILE, "w", NULL, "UTF-8");
-    for (lineIdx = 0; lineIdx < (int32_t)(sizeof(testUStr)/sizeof(testUStr[0])); lineIdx++) {
-        u_file_write(testUStr[lineIdx], u_strlen(testUStr[lineIdx]), myFile);
-    }
-    u_fclose(myFile);
-
-    myFile = u_fopen(STANDARD_TEST_FILE, "r", NULL, "UTF-8");
-
-    for (lineIdx = 0; lineIdx < (int32_t)(sizeof(testUStr)/sizeof(testUStr[0])); lineIdx++) {
-        u_memset(buffer, 0xDEAD, sizeof(buffer)/sizeof(buffer[0]));
-        UChar *returnedUCharBuffer = u_fgets(buffer, sizeof(buffer)/sizeof(buffer[0]), myFile);
-
-        if (!returnedUCharBuffer) {
-            /* Returned NULL. stop. */
-            break;
-        }
-        if (u_strcmp(buffer, testUStr[lineIdx]) != 0) {
-            log_err("buffers are different at index = %d\n", lineIdx);
-        }
-        if (buffer[u_strlen(buffer)+1] != 0xDEAD) {
-            log_err("u_fgets wrote too much\n");
-        }
-    }
-    if (lineIdx != (int32_t)(sizeof(testUStr)/sizeof(testUStr[0]))) {
-        log_err("u_fgets read too much\n");
-    }
-    if (u_fgets(buffer, sizeof(buffer)/sizeof(buffer[0]), myFile) != NULL) {
-        log_err("u_file_write wrote too much\n");
-    }
-    u_fclose(myFile);
-}
-
-
-static void TestCodepage() {
-    UFILE *myFile = NULL;
-    static const UChar strABAccentA[] = { 0x0041, 0x0042, 0x00C1, 0x0043, 0};
-    static const UChar strBadConversion[] = { 0x0041, 0x0042, 0xfffd, 0x0043, 0};
-    UChar testBuf[sizeof(strABAccentA)/sizeof(strABAccentA[0])*2]; /* *2 to see if too much was  */
-    char convName[UCNV_MAX_CONVERTER_NAME_LENGTH];
-    int32_t retVal;
-    UErrorCode status = U_ZERO_ERROR;
-
-    myFile = u_fopen(STANDARD_TEST_FILE, "w", NULL, "absurd converter that can't be opened");
-
-    if (myFile) {
-        log_err("Recieved a UFILE * with an invalid codepage parameter\n");
-        u_fclose(myFile);
-    }
-
-    myFile = u_fopen(STANDARD_TEST_FILE, "w", NULL, "ISO-8859-1");
-    if (strcmp("ISO-8859-1", u_fgetcodepage(myFile)) != 0) {
-        log_err("Couldn't get ISO-8859-1 back as opened codepage\n");
-    }
-    u_file_write(strABAccentA, u_strlen(strABAccentA), myFile);
-    u_fclose(myFile);
-
-    /* Now see what we got wrote */
-    myFile = u_fopen(STANDARD_TEST_FILE, "r", NULL, NULL);
-    if (u_fsetcodepage("ISO-8859-1", myFile) != 0) {
-        log_err("u_fsetcodepage didn't set the codepage\n");
-    }
-    retVal = u_file_read(testBuf, u_strlen(strABAccentA), myFile);
-    if (u_strncmp(strABAccentA, testBuf, u_strlen(strABAccentA)) != 0) {
-        log_err("The test data was read and written differently!\n");
-    }
-    if (retVal != u_strlen(strABAccentA)) {
-        log_err("The test data returned different lengths. Got: %d, Expected %d\n", retVal, u_strlen(strABAccentA));
-    }
-    u_fclose(myFile);
-
-    /* What happens on invalid input? */
-    myFile = u_fopen(STANDARD_TEST_FILE, "r", NULL, "ISO-8859-1");
-    if (strcmp(ucnv_getName(u_fgetConverter(myFile), &status), "ISO-8859-1") != 0) {
-        log_err("u_fgetConverter returned %s\n", ucnv_getName(u_fgetConverter(myFile), &status));
-    }
-    if (u_fsetcodepage("UTF-8", myFile) != 0) {
-        log_err("u_fsetcodepage didn't set the codepage to UTF-8\n");
-    }
-    if (strcmp(ucnv_getName(u_fgetConverter(myFile), &status), "UTF-8") != 0) {
-        log_err("u_fgetConverter returned %s\n", ucnv_getName(u_fgetConverter(myFile), &status));
-    }
-    retVal = u_file_read(testBuf, u_strlen(strBadConversion), myFile);
-    if (u_strncmp(strBadConversion, testBuf, u_strlen(strBadConversion)) != 0) {
-        log_err("The test data wasn't subsituted as expected\n");
-    }
-    u_fclose(myFile);
-
-    /* Can't currently swap codepages midstream */
-    myFile = u_fopen(STANDARD_TEST_FILE, "r", NULL, "ISO-8859-1");
-    strcpy(convName, u_fgetcodepage(myFile));
-    u_file_read(testBuf, 1, myFile);
-    if (u_fsetcodepage("UTF-8", myFile) == 0) {
-        log_err("u_fsetcodepage set the codepage after reading a byte\n");
-    }
-    retVal = u_file_read(testBuf + 1, u_strlen(strABAccentA) - 1, myFile);
-    if (u_strncmp(strABAccentA, testBuf, u_strlen(strABAccentA)) != 0) {
-        log_err("u_fsetcodepage changed the codepages after writing data\n");
-    }
-    if ((retVal + 1) != u_strlen(strABAccentA)) {
-        log_err("The test data returned different lengths. Got: %d, Expected %d\n", retVal, u_strlen(strABAccentA));
-    }
-    u_frewind(myFile);
-    retVal = u_file_read(testBuf, u_strlen(strABAccentA), myFile);
-    if (u_strncmp(strABAccentA, testBuf, u_strlen(strABAccentA)) != 0) {
-        log_err("The test data was read and written differently!\n");
-    }
-    if (retVal != u_strlen(strABAccentA)) {
-        log_err("The test data returned different lengths. Got: %d, Expected %d\n", retVal, u_strlen(strABAccentA));
-    }
-    u_fclose(myFile);
-
 }
 
 static void TestFilePrintCompatibility() {
@@ -830,7 +692,7 @@ static void TestFilePrintCompatibility() {
     uNumPrinted = u_fprintf(myFile, uFormat, uValue);\
     u_fclose(myFile);\
     myFile = u_fopen(STANDARD_TEST_FILE, "r", "en_US_POSIX", NULL);\
-    u_fgets(uBuffer, sizeof(uBuffer)/sizeof(*uBuffer), myFile);\
+    u_fgets(myFile, sizeof(uBuffer)/sizeof(*uBuffer), uBuffer);\
     u_fclose(myFile);\
     u_austrncpy(compBuffer, uBuffer, sizeof(uBuffer)/sizeof(*uBuffer));\
     cNumPrinted = sprintf(buffer, cFormat, cValue);\
@@ -853,7 +715,7 @@ static void TestFilePrintCompatibility() {
     uNumPrinted = u_fprintf(myFile, format, precision, value);\
     u_fclose(myFile);\
     myFile = u_fopen(STANDARD_TEST_FILE, "r", "en_US_POSIX", NULL);\
-    u_fgets(uBuffer, sizeof(uBuffer)/sizeof(*uBuffer), myFile);\
+    u_fgets(myFile, sizeof(uBuffer)/sizeof(*uBuffer), uBuffer);\
     u_fclose(myFile);\
     u_austrncpy(compBuffer, uBuffer, sizeof(uBuffer)/sizeof(*uBuffer));\
     cNumPrinted = sprintf(buffer, format, precision, value);\
@@ -876,17 +738,15 @@ static void TestFprintfFormat() {
 
     TestFPrintFormat("%8U", abcUChars, "%8s", abcChars);
     TestFPrintFormat("%-8U", abcUChars, "%-8s", abcChars);
-    TestFPrintFormat("%.2U", abcUChars, "%.2s", abcChars); /* strlen is 3 */
 
     TestFPrintFormat("%8s", abcChars, "%8s", abcChars);
     TestFPrintFormat("%-8s", abcChars, "%-8s", abcChars);
-    TestFPrintFormat("%.2s", abcChars, "%.2s", abcChars); /* strlen is 3 */
 
     TestFPrintFormat("%8c", 0x65, "%8c", 0x65);
     TestFPrintFormat("%-8c", 0x65, "%-8c", 0x65);
 
-    TestFPrintFormat("%8C", (UChar)0x65, "%8c", (char)0x65);
-    TestFPrintFormat("%-8C", (UChar)0x65, "%-8c", (char)0x65);
+    TestFPrintFormat("%8K", (UChar)0x65, "%8c", (char)0x65);
+    TestFPrintFormat("%-8K", (UChar)0x65, "%-8c", (char)0x65);
 
     TestFPrintFormat("%10f", 1.23456789, "%10f", 1.23456789);
     TestFPrintFormat("%-10f", 1.23456789, "%-10f", 1.23456789);
@@ -910,43 +770,32 @@ static void TestFprintfFormat() {
 
     TestFPrintFormat("%8x", 123456, "%8x", 123456);
     TestFPrintFormat("%-8x", 123456, "%-8x", 123456);
-    TestFPrintFormat("%08x", 123456, "%08x", 123456);
 
     TestFPrintFormat("%8X", 123456, "%8X", 123456);
     TestFPrintFormat("%-8X", 123456, "%-8X", 123456);
-    TestFPrintFormat("%08X", 123456, "%08X", 123456);
     TestFPrintFormat("%#x", 123456, "%#x", 123456);
     TestFPrintFormat("%#x", -123456, "%#x", -123456);
 
     TestFPrintFormat("%8o", 123456, "%8o", 123456);
     TestFPrintFormat("%-8o", 123456, "%-8o", 123456);
-    TestFPrintFormat("%08o", 123456, "%08o", 123456);
     TestFPrintFormat("%#o", 123, "%#o", 123);
     TestFPrintFormat("%#o", -123, "%#o", -123);
 
     TestFPrintFormat("%8u", 123456, "%8u", 123456);
     TestFPrintFormat("%-8u", 123456, "%-8u", 123456);
-    TestFPrintFormat("%08u", 123456, "%08u", 123456);
     TestFPrintFormat("%8u", -123456, "%8u", -123456);
     TestFPrintFormat("%-8u", -123456, "%-8u", -123456);
-    TestFPrintFormat("%-08u", -123456, "%-08u", -123456);
 
     TestFPrintFormat("%8d", 123456, "%8d", 123456);
     TestFPrintFormat("%-8d", 123456, "%-8d", 123456);
-    TestFPrintFormat("%08d", 123456, "%08d", 123456);
     TestFPrintFormat("% d", 123456, "% d", 123456);
     TestFPrintFormat("% d", -123456, "% d", -123456);
 
     TestFPrintFormat("%8i", 123456, "%8i", 123456);
     TestFPrintFormat("%-8i", 123456, "%-8i", 123456);
-    TestFPrintFormat("%08i", 123456, "%08i", 123456);
 
     TestFPrintFormat2("%+1.*e", 4, 1.2345678);
     TestFPrintFormat2("%+2.*e", 6, 1.2345678);
-
-    /* TODO: Figure out what to do here. This is very platform dependent */
-    /*TestFPrintFormat("%p", (void*)123456, "%p", (void*)123456);
-    TestFPrintFormat("%.2p", (void*)123456, "%.2p", (void*)123456);*/
 
     log_verbose("Get really crazy with the formatting.\n");
 
@@ -965,12 +814,10 @@ static void TestFprintfFormat() {
     TestFPrintFormat("% 12d", -123,  "% 12d", -123);
     TestFPrintFormat("%12d", 123,    "%12d", 123);
     TestFPrintFormat("%12d", -123,   "%12d", -123);
-    TestFPrintFormat("%.12d", 123,   "%.12d", 123);
-    TestFPrintFormat("%.12d", -123,  "%.12d", -123);
 
     TestFPrintFormat("%-+12.1e", 1.234,  "%-+12.1e", 1.234);
     TestFPrintFormat("%-+12.1e", -1.234, "%-+12.1e", -1.234);
-    TestFPrintFormat("%- 12.10e", 1.234, "%- 12.10e", 1.234);
+    TestFPrintFormat("%- 12.1e", 1.234,  "%- 12.1e", 1.234);
     TestFPrintFormat("%- 12.1e", -1.234, "%- 12.1e", -1.234);
     TestFPrintFormat("%+12.1e", 1.234,   "%+12.1e", 1.234);
     TestFPrintFormat("%+12.1e", -1.234,  "%+12.1e", -1.234);
@@ -985,7 +832,7 @@ static void TestFprintfFormat() {
 
     TestFPrintFormat("%-+12.1f", 1.234,  "%-+12.1f", 1.234);
     TestFPrintFormat("%-+12.1f", -1.234, "%-+12.1f", -1.234);
-    TestFPrintFormat("%- 12.10f", 1.234, "%- 12.10f", 1.234);
+    TestFPrintFormat("%- 12.1f", 1.234,  "%- 12.1f", 1.234);
     TestFPrintFormat("%- 12.1f", -1.234, "%- 12.1f", -1.234);
     TestFPrintFormat("%+12.1f", 1.234,   "%+12.1f", 1.234);
     TestFPrintFormat("%+12.1f", -1.234,  "%+12.1f", -1.234);
@@ -998,27 +845,6 @@ static void TestFprintfFormat() {
     TestFPrintFormat("%3f", 1.234,       "%3f", 1.234);
     TestFPrintFormat("%3f", -1.234,      "%3f", -1.234);
 
-    myFile = u_fopen(STANDARD_TEST_FILE, "w", "en_US_POSIX", NULL);
-    /* Reinitialize the buffer to verify null termination works. */
-    u_memset(uBuffer, 0x2a, sizeof(uBuffer)/sizeof(*uBuffer));
-    memset(buffer, 0x2a, sizeof(buffer)/sizeof(*buffer));
-    
-    uNumPrinted = u_fprintf(myFile, "%d % d %d", -1234, 1234, 1234);
-    u_fclose(myFile);
-    myFile = u_fopen(STANDARD_TEST_FILE, "r", "en_US_POSIX", NULL);
-    u_fgets(uBuffer, sizeof(uBuffer)/sizeof(*uBuffer), myFile);
-    u_fclose(myFile);
-    u_austrncpy(compBuffer, uBuffer, sizeof(uBuffer)/sizeof(*uBuffer));
-    cNumPrinted = sprintf(buffer, "%d % d %d", -1234, 1234, 1234);
-    if (strcmp(buffer, compBuffer) != 0) {
-        log_err("%%d %% d %%d Got: \"%s\", Expected: \"%s\"\n", compBuffer, buffer);
-    }
-    if (cNumPrinted != uNumPrinted) {
-        log_err("%%d %% d %%d number printed Got: %d, Expected: %d\n", uNumPrinted, cNumPrinted);
-    }
-    if (buffer[uNumPrinted+1] != 0x2a) {
-        log_err("%%d %% d %%d too much stored\n");
-    }
 }
 
 #undef TestFPrintFormat
@@ -1036,7 +862,6 @@ static void TestString() {
     UChar uStringBuf[512];
     char myString[512] = "";
     char testBuf[512] = "";
-    int32_t retVal;
 
     u_memset(myUString, 0x0a, sizeof(myUString)/ sizeof(*myUString));
     u_memset(uStringBuf, 0x0a, sizeof(uStringBuf) / sizeof(*uStringBuf));
@@ -1128,8 +953,8 @@ static void TestString() {
         log_err("%%c Got: %c, Expected: A\n", *myString);
     }
 
-    u_sprintf(uStringBuf, NULL, "UChar %%C: %C", L'A');
-    u_sscanf(uStringBuf, NULL, "UChar %%C: %C", myUString);
+    u_sprintf(uStringBuf, NULL, "UChar %%K (non-ANSI, should be %%C for Microsoft?): %K", L'A');
+    u_sscanf(uStringBuf, NULL, "UChar %%K (non-ANSI, should be %%C for Microsoft?): %K", myUString);
     if (*myUString != L'A') {
         log_err("%%C Got: %C, Expected: A\n", *myUString);
     }
@@ -1148,23 +973,44 @@ static void TestString() {
         log_err("%%s Got: %s, Expected: My-String\n", myString);
     }
 
-    u_sprintf(uStringBuf, NULL, "Unicode String %%S: %S", L"My-String");
-    u_sscanf(uStringBuf, NULL, "Unicode String %%S: %S", myUString);
+    u_sprintf(uStringBuf, NULL, "Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U", L"My-String");
+    u_sscanf(uStringBuf, NULL, "Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U", myUString);
     u_austrncpy(myString, myUString, sizeof(myString)/sizeof(*myString));
     if (strcmp(myString, "My-String")) {
-        log_err("%%S Got: %s, Expected: My String\n", myString);
+        log_err("%%U Got: %s, Expected: My String\n", myString);
     }
 
-    u_sprintf(uStringBuf, NULL, "NULL Unicode String %%S: %S", NULL);
-    u_sscanf(uStringBuf, NULL, "NULL Unicode String %%S: %S", myUString);
+    u_sprintf(uStringBuf, NULL, "NULL Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U", NULL);
+    u_sscanf(uStringBuf, NULL, "NULL Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U", myUString);
     u_austrncpy(myString, myUString, sizeof(myString)/sizeof(*myString));
     if (strcmp(myString, "(null)")) {
-        log_err("%%S Got: %s, Expected: (null)\n", myString);
+        log_err("%%U Got: %s, Expected: (null)\n", myString);
+    }
+
+    u_sprintf(uStringBuf, NULL, "Date %%D (non-ANSI): %D", myDate);
+    myNewDate = -1.0;
+    u_sscanf(uStringBuf, NULL, "Date %%D (non-ANSI): %D", &myNewDate);
+    if (myNewDate != dec_31_1969) {
+        log_err("%%D Got: %f, Expected: %f\n", myNewDate, dec_31_1969);
+    }
+
+    u_sprintf(uStringBuf, NULL, "Time %%T (non-ANSI): %T", myDate);
+    myNewDate = -1.0;
+    u_sscanf(uStringBuf, NULL, "Time %%T (non-ANSI): %T", &myNewDate);
+    if (myNewDate != midnight) {
+        log_err("%%T Got: %f, Expected: %f\n", myNewDate, midnight);
     }
 
     u_sprintf(uStringBuf, NULL, "Percent %%P (non-ANSI): %P", myFloat);
     *newDoubleValuePtr = -1.0;
     u_sscanf(uStringBuf, NULL, "Percent %%P (non-ANSI): %P", newDoubleValuePtr);
+    if (myFloat != *newDoubleValuePtr) {
+        log_err("%%P Got: %P, Expected: %P\n", *newDoubleValuePtr, myFloat);
+    }
+
+    u_sprintf(uStringBuf, NULL, "Currency %%M (non-ANSI): %M", myFloat);
+    *newDoubleValuePtr = -1.0;
+    u_sscanf(uStringBuf, NULL, "Currency %%M (non-ANSI): %M", newDoubleValuePtr);
     if (myFloat != *newDoubleValuePtr) {
         log_err("%%P Got: %P, Expected: %P\n", *newDoubleValuePtr, myFloat);
     }
@@ -1182,52 +1028,14 @@ static void TestString() {
         log_err("%%V Got: %f, Expected: %f\n", *newDoubleValuePtr, myFloat);
     }
 
-//  u_sscanf(uStringBuf, NULL, "Pointer %%p: %p\n", myFile);
-
-    {
-        static const char longStr[] = "This is a long test12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
-
-        retVal = u_sprintf(uStringBuf, NULL, longStr);
-        u_austrncpy(myString, uStringBuf, sizeof(uStringBuf)/sizeof(*uStringBuf));
-        if (strcmp(myString, longStr)) {
-            log_err("%%S Got: %s, Expected: %s\n", myString, longStr);
-        }
-        if (retVal != strlen(longStr)) {
-            log_err("%%S returned different sizes. Got: %d  Expected: %d\n", retVal, strlen(longStr));
-        }
-
-        retVal = u_sprintf(uStringBuf, NULL, "%s", longStr);
-        u_austrncpy(myString, uStringBuf, sizeof(uStringBuf)/sizeof(*uStringBuf));
-        if (strcmp(myString, longStr)) {
-            log_err("%%S Got: %s, Expected: %s\n", myString, longStr);
-        }
-        if (retVal != strlen(longStr)) {
-            log_err("%%S returned different sizes. Got: %d  Expected: %d\n", retVal, strlen(longStr));
-        }
-
-        u_uastrncpy(myUString, longStr, sizeof(longStr)/sizeof(*longStr));
-        u_sprintf_u(uStringBuf, NULL, myUString);
-        if (u_strcmp(myUString, uStringBuf)) {
-            log_err("%%S Long strings differ. Expected: %s\n", longStr);
-        }
-
-        u_uastrncpy(myUString, longStr, sizeof(longStr)/sizeof(*longStr));
-        retVal = u_sprintf_u(uStringBuf, NULL, myUString+10);
-        if (u_strcmp(myUString+10, uStringBuf)) {
-            log_err("%%S Long strings differ. Expected: %s\n", longStr + 10);
-        }
-        if (retVal != strlen(longStr + 10)) {
-            log_err("%%S returned different sizes. Got: %d  Expected: %d\n", retVal, strlen(longStr));
-        }
-
-        u_memset(uStringBuf, 1, sizeof(longStr)/sizeof(*longStr));
-        u_uastrncpy(myUString, longStr, sizeof(longStr)/sizeof(*longStr));
-        retVal = u_snprintf_u(uStringBuf, 10, NULL, myUString);
-        if (u_strncmp(myUString, uStringBuf, 10) || uStringBuf[10] != 1 || retVal != 10) {
-            log_err("%%S Long strings differ. Expected the first 10 characters of %s\n", longStr);
-        }
+    u_sprintf(myUString, NULL, "This is a long test123456789012345678901234567890123456789012345678901234567890");
+    u_austrncpy(myString, myUString, sizeof(myString)/sizeof(*myString));
+    if (strcmp(myString, "This is a long test123456789012345678901234567890123456789012345678901234567890")) {
+        log_err("%%U Got: %s, Expected: My String\n", myString);
     }
 
+
+//  u_sscanf(uStringBuf, NULL, "Pointer %%p: %p\n", myFile);
 }
 
 #define Test_u_snprintf(limit, format, value, expectedSize, expectedStr) \
@@ -1316,17 +1124,15 @@ static void TestSprintfFormat() {
 
     TestSPrintFormat("%8U", abcUChars, "%8s", abcChars);
     TestSPrintFormat("%-8U", abcUChars, "%-8s", abcChars);
-    TestSPrintFormat("%.2U", abcUChars, "%.2s", abcChars); /* strlen is 3 */
 
     TestSPrintFormat("%8s", abcChars, "%8s", abcChars);
     TestSPrintFormat("%-8s", abcChars, "%-8s", abcChars);
-    TestSPrintFormat("%.2s", abcChars, "%.2s", abcChars); /* strlen is 3 */
 
     TestSPrintFormat("%8c", 0x65, "%8c", 0x65);
     TestSPrintFormat("%-8c", 0x65, "%-8c", 0x65);
 
-    TestSPrintFormat("%8C", (UChar)0x65, "%8c", (char)0x65);
-    TestSPrintFormat("%-8C", (UChar)0x65, "%-8c", (char)0x65);
+    TestSPrintFormat("%8K", (UChar)0x65, "%8c", (char)0x65);
+    TestSPrintFormat("%-8K", (UChar)0x65, "%-8c", (char)0x65);
 
     TestSPrintFormat("%10f", 1.23456789, "%10f", 1.23456789);
     TestSPrintFormat("%-10f", 1.23456789, "%-10f", 1.23456789);
@@ -1377,10 +1183,6 @@ static void TestSprintfFormat() {
     TestSPrintFormat2("%+1.*e", 4, 1.2345678);
     TestSPrintFormat2("%+2.*e", 6, 1.2345678);
 
-    /* TODO: Figure out what to do here. This is very platform dependent */
-    /*TestSPrintFormat("%p", (void*)123456, "%p", (void*)123456);
-    TestSPrintFormat("%.2p", (void*)123456, "%.2p", (void*)123456);*/
-
     log_verbose("Get really crazy with the formatting.\n");
 
     TestSPrintFormat("%-#12x", 123, "%-#12x", 123);
@@ -1398,12 +1200,10 @@ static void TestSprintfFormat() {
     TestSPrintFormat("% 12d", -123,  "% 12d", -123);
     TestSPrintFormat("%12d", 123,    "%12d", 123);
     TestSPrintFormat("%12d", -123,   "%12d", -123);
-    TestSPrintFormat("%.12d", 123,   "%.12d", 123);
-    TestSPrintFormat("%.12d", -123,  "%.12d", -123);
 
     TestSPrintFormat("%-+12.1e", 1.234,  "%-+12.1e", 1.234);
     TestSPrintFormat("%-+12.1e", -1.234, "%-+12.1e", -1.234);
-    TestSPrintFormat("%- 12.10e", 1.234, "%- 12.10e", 1.234);
+    TestSPrintFormat("%- 12.1e", 1.234,  "%- 12.1e", 1.234);
     TestSPrintFormat("%- 12.1e", -1.234, "%- 12.1e", -1.234);
     TestSPrintFormat("%+12.1e", 1.234,   "%+12.1e", 1.234);
     TestSPrintFormat("%+12.1e", -1.234,  "%+12.1e", -1.234);
@@ -1418,7 +1218,7 @@ static void TestSprintfFormat() {
 
     TestSPrintFormat("%-+12.1f", 1.234,  "%-+12.1f", 1.234);
     TestSPrintFormat("%-+12.1f", -1.234, "%-+12.1f", -1.234);
-    TestSPrintFormat("%- 12.10f", 1.234, "%- 12.10f", 1.234);
+    TestSPrintFormat("%- 12.1f", 1.234,  "%- 12.1f", 1.234);
     TestSPrintFormat("%- 12.1f", -1.234, "%- 12.1f", -1.234);
     TestSPrintFormat("%+12.1f", 1.234,   "%+12.1f", 1.234);
     TestSPrintFormat("%+12.1f", -1.234,  "%+12.1f", -1.234);
@@ -1558,11 +1358,11 @@ static void TestSScanf() {
     int32_t uNumScanned;
     int32_t cNumScanned;
 
-    TestSScanSetFormat("%[bc]S", abcUChars, abcChars);
-    TestSScanSetFormat("%[cb]S", abcUChars, abcChars);
+    TestSScanSetFormat("%[bc]U", abcUChars, abcChars);
+    TestSScanSetFormat("%[cb]U", abcUChars, abcChars);
 
-    TestSScanSetFormat("%[ab]S", abcUChars, abcChars);
-    TestSScanSetFormat("%[ba]S", abcUChars, abcChars);
+    TestSScanSetFormat("%[ab]U", abcUChars, abcChars);
+    TestSScanSetFormat("%[ba]U", abcUChars, abcChars);
 
     TestSScanSetFormat("%[ab]", abcUChars, abcChars);
     TestSScanSetFormat("%[ba]", abcUChars, abcChars);
@@ -1605,7 +1405,7 @@ static void TestSScanf() {
     u_memset(uBuffer, 0x2a, sizeof(uBuffer)/sizeof(*uBuffer));\
     memset(buffer, 0x2a, sizeof(buffer)/sizeof(*buffer));\
     \
-    u_fprintf(myFile, "%S", uValue);\
+    u_fprintf(myFile, "%U", uValue);\
     u_fclose(myFile);\
     myFile = u_fopen(STANDARD_TEST_FILE, "r", "en_US_POSIX", NULL);\
     uNumScanned = u_fscanf(myFile, format, uBuffer);\
@@ -1633,11 +1433,11 @@ static void TestFScanf() {
     int32_t uNumScanned;
     int32_t cNumScanned;
 
-    TestFScanSetFormat("%[bc]S", abcUChars, abcChars);
-    TestFScanSetFormat("%[cb]S", abcUChars, abcChars);
+    TestFScanSetFormat("%[bc]U", abcUChars, abcChars);
+    TestFScanSetFormat("%[cb]U", abcUChars, abcChars);
 
-    TestFScanSetFormat("%[ab]S", abcUChars, abcChars);
-    TestFScanSetFormat("%[ba]S", abcUChars, abcChars);
+    TestFScanSetFormat("%[ab]U", abcUChars, abcChars);
+    TestFScanSetFormat("%[ba]U", abcUChars, abcChars);
 
     TestFScanSetFormat("%[ab]", abcUChars, abcChars);
     TestFScanSetFormat("%[ba]", abcUChars, abcChars);
@@ -1890,10 +1690,8 @@ static void addAllTests(TestNode** root) {
     addTest(root, &TestCodepageAndLocale, "file/TestCodepageAndLocale");
     addTest(root, &TestfgetsBuffers, "file/TestfgetsBuffers");
     addTest(root, &TestfgetsLineCount, "file/TestfgetsLineCount");
-    addTest(root, &TestfgetsNewLineHandling, "file/TestfgetsNewLineHandling");
     addTest(root, &TestFprintfFormat, "file/TestFprintfFormat");
     addTest(root, &TestFScanf, "file/TestFScanf");
-    addTest(root, &TestCodepage, "file/TestCodepage");
     addTest(root, &TestFilePrintCompatibility, "file/TestFilePrintCompatibility");
 
     addTest(root, &TestString, "string/TestString");

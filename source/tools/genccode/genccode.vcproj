@@ -36,8 +36,9 @@
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; ..\..\..\bin"
-				Outputs="..\..\..\bin\$(TargetFileName)"/>
+				CommandLine="copy $(TargetPath) ..\..\..\bin
+"
+				Outputs="..\..\..\bin\$(InputName).exe"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
@@ -93,9 +94,9 @@
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; ..\..\..\bin
+				CommandLine="copy $(TargetPath) ..\..\..\bin
 "
-				Outputs="..\..\..\bin\$(TargetFileName)"/>
+				Outputs="..\..\..\bin\$(InputName).exe"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"

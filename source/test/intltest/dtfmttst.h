@@ -39,6 +39,7 @@ public:
 public: // package
     // internal utility routine (genrates escape sequences for characters)
     static UnicodeString& escape(UnicodeString& s);
+    static const char* fieldNames[];
  
 public:
     /**
@@ -152,8 +153,6 @@ public: // package
     void TestExactCountFormat(void);
 
     void TestWhiteSpaceParsing(void);
-
-    void TestInvalidPattern(void);
 
  private:
     void expectParse(const char** data, int32_t data_length,

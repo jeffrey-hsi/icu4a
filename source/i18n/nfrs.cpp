@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-*   Copyright (C) 1997-2003, International Business Machines
+*   Copyright (C) 1997-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ******************************************************************************
 *   file name:  nfrs.cpp
@@ -266,7 +266,7 @@ NFRuleSet::~NFRuleSet()
     delete fractionRules[2];
 }
 
-static UBool
+UBool
 util_equalRules(const NFRule* rule1, const NFRule* rule2)
 {
     if (rule1) {

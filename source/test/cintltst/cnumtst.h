@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2003, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -32,11 +32,6 @@
      * The function used to test the Number format API with padding
      **/
     static void TestNumberFormatPadding(void);
-
-    /**
-     * The function used to test the Number format API with padding
-     **/
-    static void TestInt64Format(void);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

@@ -29,7 +29,7 @@
 #include "rbt_rule.h"
 #include "strmatch.h"
 #include "strrepl.h"
-#include "unicode/symtable.h"
+#include "symtable.h"
 #include "tridpars.h"
 #include "uvector.h"
 #include "util.h"
@@ -1093,7 +1093,7 @@ UBool TransliteratorParser::checkVariableRange(UChar32 ch) const {
  * Set the maximum backup to 'backup', in response to a pragma
  * statement.
  */
-void TransliteratorParser::pragmaMaximumBackup(int32_t /*backup*/) {
+void TransliteratorParser::pragmaMaximumBackup(int32_t backup) {
     //TODO Finish
 }
 
@@ -1101,7 +1101,7 @@ void TransliteratorParser::pragmaMaximumBackup(int32_t /*backup*/) {
  * Begin normalizing all rules using the given mode, in response
  * to a pragma statement.
  */
-void TransliteratorParser::pragmaNormalizeRules(UNormalizationMode /*mode*/) {
+void TransliteratorParser::pragmaNormalizeRules(UNormalizationMode mode) {
     //TODO Finish
 }
 
@@ -1417,7 +1417,7 @@ int32_t TransliteratorParser::syntaxError(UErrorCode parseErrorCode,
  */
 UChar TransliteratorParser::parseSet(const UnicodeString& rule,
                                           ParsePosition& pos) {
-    UnicodeSet* set = new UnicodeSet(rule, pos, USET_IGNORE_SPACE, parseData, status);
+    UnicodeSet* set = new UnicodeSet(rule, pos, *parseData, status);
     set->compact();
     return generateStandInFor(set);
 }

@@ -5,15 +5,8 @@
 // *
 // ***************************************************************************
 
-kw {
+kw{
     Version { "2.0" }
-    AmPmMarkers {
-        "a.m.",
-        "p.m.",
-    }
-    Countries {
-        GB { "Rywvaneth Unys" }
-    }
     DayAbbreviations { 
         "Sul",
         "Lun",
@@ -31,17 +24,6 @@ kw {
         "De Yow",
         "De Gwener",
         "De Sadorn",
-    }
-    Eras {
-        "RC", // BC
-        "AD"   // AD
-    }
-    ExemplarCharacters { "[a-z]" }
-    LocaleScript:array{ 
-        "Latn",  // ISO 15924 Name 
-    }
-    Languages {
-        kw { "kernewek" }
     }
     MonthAbbreviations { 
         "Gen",
@@ -84,11 +66,15 @@ kw {
 //        "\u221e",
 //        "\ufffd",
 //    }
-
+//    LocaleScript{ 
+//        "Latn",  // ISO 15924 Name 
+//    }
     // /**************** Info Below is needed ****************/
-    // collations{}
+    // CollationElements{}
     // Countries{}
+    // Eras{}
     // Languages{}
+    // ShortLanguage { }
     // localPatternChars{}
     //
 }

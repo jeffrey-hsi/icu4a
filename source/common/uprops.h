@@ -22,7 +22,6 @@
 
 #include "unicode/utypes.h"
 #include "unicode/uset.h"
-#include "udataswp.h"
 
 /* indexes[] entries */
 enum {
@@ -202,32 +201,19 @@ U_CFUNC int32_t
 uprv_getMaxValues(int32_t column);
 
 /**
- * \var uprv_comparePropertyNames
  * Unicode property names and property value names are compared
  * "loosely". Property[Value]Aliases.txt say:
  *   "With loose matching of property names, the case distinctions, whitespace,
  *    and '_' are ignored."
  *
- * This function does just that, for (char *) name strings.
+ * This function does just that, for ASCII (char *) name strings.
  * It is almost identical to ucnv_compareNames() but also ignores
- * C0 White_Space characters (U+0009..U+000d, and U+0085 on EBCDIC).
+ * ASCII White_Space characters (U+0009..U+000d).
  *
  * @internal
  */
-
 U_CAPI int32_t U_EXPORT2
-uprv_compareASCIIPropertyNames(const char *name1, const char *name2);
-
-U_CAPI int32_t U_EXPORT2
-uprv_compareEBCDICPropertyNames(const char *name1, const char *name2);
-
-#if U_CHARSET_FAMILY==U_ASCII_FAMILY
-#   define uprv_comparePropertyNames uprv_compareASCIIPropertyNames
-#elif U_CHARSET_FAMILY==U_EBCDIC_FAMILY
-#   define uprv_comparePropertyNames uprv_compareEBCDICPropertyNames
-#else
-#   error U_CHARSET_FAMILY is not valid
-#endif
+uprv_comparePropertyNames(const char *name1, const char *name2);
 
 /** Turn a bit index into a bit flag. @internal */
 #define FLAG(n) ((uint32_t)1<<(n))
@@ -367,23 +353,5 @@ uchar_addPropertyStarts(USet *set, UErrorCode *pErrorCode);
  */
 U_CAPI void U_EXPORT2
 uprv_getInclusions(USet* set, UErrorCode *pErrorCode);
-
-/**
- * Swap the ICU Unicode properties file. See uchar.c.
- * @internal
- */
-U_CAPI int32_t U_EXPORT2
-uprops_swap(const UDataSwapper *ds,
-            const void *inData, int32_t length, void *outData,
-            UErrorCode *pErrorCode);
-
-/**
- * Swap the ICU Unicode character names file. See uchar.c.
- * @internal
- */
-U_CAPI int32_t U_EXPORT2
-uchar_swapNames(const UDataSwapper *ds,
-                const void *inData, int32_t length, void *outData,
-                UErrorCode *pErrorCode);
 
 #endif

@@ -300,7 +300,7 @@ public:
    *         "mode" normalization form.
    *
    * @see quickCheck
-   * @stable ICU 2.2
+   * @draft ICU 2.2
    */
   static inline UBool
   isNormalized(const UnicodeString &src, UNormalizationMode mode, UErrorCode &errorCode);
@@ -420,7 +420,7 @@ public:
    * @see u_strCompare
    * @see u_strCaseCompare
    *
-   * @stable ICU 2.2
+   * @draft ICU 2.2
    */
   static inline int32_t
   compare(const UnicodeString &s1, const UnicodeString &s2,
@@ -692,18 +692,18 @@ public:
   void            getText(UnicodeString&  result);
 
   /**
-   * ICU "poor man's RTTI", returns a UClassID for this class.
-   * @returns a UClassID for this class.
-   * @stable ICU 2.2
-   */
-  static UClassID getStaticClassID();
-
-  /**
    * ICU "poor man's RTTI", returns a UClassID for the actual class.
    * @return a UClassID for the actual class.
-   * @stable ICU 2.2
+   * @draft ICU 2.2
    */
-  virtual UClassID getDynamicClassID() const;
+  virtual inline UClassID getDynamicClassID() const;
+
+  /**
+   * ICU "poor man's RTTI", returns a UClassID for this class.
+   * @returns a UClassID for this class.
+   * @draft ICU 2.2
+   */
+  static inline UClassID getStaticClassID();
 
 private:
   //-------------------------------------------------------------------------
@@ -739,11 +739,24 @@ private:
   UnicodeString       buffer;
   int32_t         bufferPos;
 
+  /**
+   * The address of this static class variable serves as this class's ID
+   * for ICU "poor man's RTTI".
+   */
+  static const char fgClassID;
 };
 
 //-------------------------------------------------------------------------
 // Inline implementations
 //-------------------------------------------------------------------------
+
+inline UClassID
+Normalizer::getStaticClassID()
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+Normalizer::getDynamicClassID() const
+{ return Normalizer::getStaticClassID(); }
 
 inline UBool
 Normalizer::operator!= (const Normalizer& other) const

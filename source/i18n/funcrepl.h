@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2002-2003, International Business Machines Corporation
+*   Copyright (c) 2002, International Business Machines Corporation
 *   and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -44,6 +44,12 @@ class U_I18N_API FunctionReplacer : public UnicodeFunctor, public UnicodeReplace
      * processed by 'translit'.  Must not be null.  OWNED.
      */
     UnicodeFunctor* replacer;
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 
  public:
 
@@ -105,14 +111,14 @@ class U_I18N_API FunctionReplacer : public UnicodeFunctor, public UnicodeReplace
      *
      * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 };
 
 U_NAMESPACE_END

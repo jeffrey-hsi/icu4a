@@ -37,8 +37,9 @@
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; ..\..\..\bin"
-				Outputs="..\..\..\bin\$(TargetFileName)"/>
+				CommandLine="copy $(TargetPath) ..\..\..\bin
+"
+				Outputs="..\..\..\bin\$(InputName).exe"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
@@ -96,8 +97,9 @@
 				CompileAs="0"/>
 			<Tool
 				Name="VCCustomBuildTool"
-				CommandLine="copy &quot;$(TargetPath)&quot; ..\..\..\bin"
-				Outputs="..\..\..\bin\$(TargetFileName)"/>
+				CommandLine="copy $(TargetPath) ..\..\..\bin
+"
+				Outputs="..\..\..\bin\$(InputName).exe"/>
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
@@ -135,16 +137,10 @@
 			<File
 				RelativePath=".\gentest.c">
 			</File>
-			<File
-				RelativePath=".\genres32.c">
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
-			<File
-				RelativePath=".\gentest.h">
-			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

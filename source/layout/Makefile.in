@@ -2,6 +2,9 @@
 ## others. All Rights Reserved.
 ## Makefile.in for ICU - layout
 
+SO_TARGET_VERSION = @LIB_VERSION@
+SO_TARGET_VERSION_MAJOR = @LIB_VERSION_MAJOR@
+
 ## Install directory information
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
@@ -21,25 +24,15 @@ CLEANFILES = *~ $(DEPS)
 TARGET_STUBNAME=le
 
 ifneq ($(ENABLE_STATIC),)
-TARGET = $(LIBSICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(A)
+TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).a
 endif
 
 ifneq ($(ENABLE_SHARED),)
 SO_TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(SO)
 ALL_SO_TARGETS = $(SO_TARGET) $(MIDDLE_SO_TARGET) $(FINAL_SO_TARGET)
-
-ifeq ($(ENABLE_SO_VERSION_DATA),1)
-SO_VERSION_DATA = layout.res
 endif
 
-ifeq ($(OS390BATCH),1)
-BATCH_TARGET = $(BATCH_LAYOUT_TARGET)
-BATCH_LIBS = $(BATCH_LIBICUUC) -lm
-endif   # OS390BATCH
-
-endif   # ENABLE_SHARED
-
-ALL_TARGETS = $(TARGET) $(ALL_SO_TARGETS) $(BATCH_TARGET)
+ALL_TARGETS = $(TARGET) $(ALL_SO_TARGETS)
 
 DYNAMICCPPFLAGS = $(SHAREDLIBCPPFLAGS)
 DYNAMICCFLAGS = $(SHAREDLIBCFLAGS)
@@ -87,7 +80,6 @@ Features.o \
 GDEFMarkFilter.o \
 GlyphDefinitionTables.o \
 GlyphIterator.o \
-GlyphLookupTables.o \
 GlyphPosnLookupProc.o \
 GlyphPositioningTables.o \
 GlyphSubstLookupProc.o \
@@ -119,7 +111,7 @@ STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
 DEPS = $(OBJECTS:.o=.d)
 
 ## Header files to install
-HEADERS= $(srcdir)/LayoutEngine.h $(srcdir)/LE*.h
+HEADERS= $(srcdir)/*LayoutEngine.h $(srcdir)/LE*.h
 LOHEADERS= $(srcdir)/unicode/loengine.h
 
 ## List of phony targets
@@ -180,7 +172,8 @@ dist-local:
 
 clean-local:
 	test -z "$(CLEANFILES)" || $(RMV) $(CLEANFILES)
-	$(RMV) $(OBJECTS) $(ALL_TARGETS) $(SO_VERSION_DATA)
+	$(RMV) $(OBJECTS) $(ALL_TARGETS)
+#	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS)
 
 distclean-local: clean-local
 	$(RMV) Makefile
@@ -197,14 +190,8 @@ $(TARGET): $(TARGET)($(STATIC_OBJECTS))
 endif
 
 ifneq ($(ENABLE_SHARED),)
-$(FINAL_SO_TARGET): $(OBJECTS) $(SO_VERSION_DATA)
+$(FINAL_SO_TARGET): $(OBJECTS)
 	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(LIBS)
-
-ifeq ($(OS390BATCH),1)
-$(BATCH_TARGET): $(OBJECTS)
-	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(BATCH_LIBS)
-endif   # OS390BATCH
-
 endif
 
 ifeq (,$(MAKECMDGOALS))

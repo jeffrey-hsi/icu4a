@@ -16,18 +16,11 @@
 
 #include "unicode/utypes.h"
 #include "unicode/uclean.h"
-#include "utracimp.h"
 #include "ustr_imp.h"
 #include "unormimp.h"
 #include "ucln_cmn.h"
 #include "umutex.h"
 #include "ucln.h"
-#include "cmemory.h"
-#include "uassert.h"
-
-static UBool gICUInitialized = FALSE;
-static UMTX  gICUInitMutex   = NULL;
-
 
 static cleanupFunc *gCleanupFunctions[UCLN_COMMON] = {
     NULL,
@@ -41,7 +34,6 @@ U_CAPI void U_EXPORT2
 ucln_registerCleanup(ECleanupLibraryType type,
                      cleanupFunc *func)
 {
-    U_ASSERT(UCLN_START < type && type < UCLN_COMMON);
     if (UCLN_START < type && type < UCLN_COMMON)
     {
         gCleanupFunctions[type] = func;
@@ -55,19 +47,18 @@ ucln_registerCleanup(ECleanupLibraryType type,
 U_CAPI void U_EXPORT2
 u_cleanup(void)
 {
-    ECleanupLibraryType libType;
 
-    UTRACE_ENTRY_OC(UTRACE_U_CLEANUP);
-    for (libType = UCLN_START+1; libType<UCLN_COMMON; libType++) {
+    ECleanupLibraryType libType = UCLN_START;
+    while (++libType < UCLN_COMMON)
+    {
         if (gCleanupFunctions[libType])
         {
             gCleanupFunctions[libType]();
-            gCleanupFunctions[libType] = NULL;
         }
-    }
 
+    }
 #if !UCONFIG_NO_IDNA
-    usprep_cleanup();
+    ustrprep_cleanup();
 #endif
 #if !UCONFIG_NO_BREAK_ITERATION
 	breakiterator_cleanup();
@@ -89,13 +80,15 @@ u_cleanup(void)
     ucnv_io_cleanup();
     udata_cleanup();
     putil_cleanup();
-
-    umtx_destroy(&gICUInitMutex);
-    umtx_cleanup();
-    cmemory_cleanup();       /* undo any heap functions set by u_setMemoryFunctions(). */
-    gICUInitialized = FALSE;
-    UTRACE_EXIT();           /* Must be before utrace_cleanup(), which turns off tracing. */
-    utrace_cleanup();       
+    /*
+     * WARNING! Destroying the global mutex can cause synchronization
+     * problems.  ICU must be reinitialized from a single thread
+     * before the library is used again.  You never want two
+     * threads trying to initialize the global mutex at the same
+     * time. The global mutex is being destroyed so that heap and
+     * resource checkers don't complain. [grhoten]
+     */
+    umtx_destroy(NULL);
 }
 
 
@@ -109,15 +102,15 @@ u_cleanup(void)
 
 U_CAPI void U_EXPORT2
 u_init(UErrorCode *status) {
-    UTRACE_ENTRY_OC(UTRACE_U_INIT);
     /* Make sure the global mutexes are initialized. */
+    /*
+     * NOTE:  This section of code replicates functionality from GlobalMutexInitialize()
+     *        in the file mutex.cpp.  Any changes must be made in both places.
+     *        TODO:  combine them.
+     */
     umtx_init(NULL);
-    umtx_lock(&gICUInitMutex);
-    if (gICUInitialized || U_FAILURE(*status)) {
-        umtx_unlock(&gICUInitMutex);
-        UTRACE_EXIT_STATUS(*status);
-        return;
-    }
+    ucnv_init(status);
+    ures_init(status);
 
     /* Do any required init for services that don't have open operations
      * and use "only" the double-check initialization method for performance
@@ -126,14 +119,10 @@ u_init(UErrorCode *status) {
      */
 
     /* Char Properties */
-    uprv_loadPropsData(status);
+    uprv_haveProperties(status);
 
 #if !UCONFIG_NO_NORMALIZATION
     /*  Normalization  */
     unorm_haveData(status);
 #endif
-    gICUInitialized = TRUE;    /* TODO:  don't set if U_FAILURE? */
-    umtx_unlock(&gICUInitMutex);
-    UTRACE_EXIT_STATUS(*status);
 }
-

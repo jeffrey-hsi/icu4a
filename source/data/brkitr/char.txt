@@ -17,7 +17,7 @@ $CR = \r;
 $LF = \n;
 $Control    = [[:Zl:] [:Zp:] [:Cc:] [:Cf:]];
 
-$Extend     = [[:Grapheme_Extend = TRUE:]];
+$Extend     = [[:Grapheme_Extend = TRUE:]]; 
 
 #
 # Korean Syllable Definitions
@@ -31,31 +31,15 @@ $LVT = [:Hangul_Syllable_Type = LVT:];
 
 $HangulSyllable = $L+ | ($L* ($LV? $V+ | $LV | $LVT) $T*) | $T+;
 
-## -------------------------------------------------
-
-!!forward;
-
+#
+#  Forward Break Rules
+#
 $CR $LF;
 ([^$Control] | $HangulSyllable) $Extend*;
+.;
 
-## -------------------------------------------------
 
-!!reverse;
-
-$BackHangulSyllable = $L+ | ($T* ($V+$LV? | $LV | $LVT) $L*) | $T+;
-$BackOneCluster = ($LF $CR) | ($Extend* ([^$Control] | $BackHangulSyllable));
-$BackOneCluster;
-
-## -------------------------------------------------
-
-!!safe_reverse;
-
-# rule 6, 7, 8
-$V+ $L;
-
-## -------------------------------------------------
-
-!!safe_forward;
-
-# rule 6, 7, 8
-$V+ $T;
+#
+#  Reverse Rule, back up to the beginning of some preceding grapheme cluster.
+#
+! ($Extend | $V | $T )*   ($LF $CR | ($LV | $LVT)?$L* | .);

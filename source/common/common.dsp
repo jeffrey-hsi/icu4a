@@ -55,7 +55,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /machine:I386 /out:"..\..\bin\icuuc28.dll" /implib:"..\..\lib\icuuc.lib" /libpath:"..\..\lib"
+# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /machine:I386 /out:"..\..\bin\icuuc26.dll" /implib:"..\..\lib\icuuc.lib" /libpath:"..\..\lib"
 # SUBTRACT LINK32 /pdb:none /debug
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /debug /machine:I386 /out:"..\..\bin\icuuc28d.dll" /implib:"..\..\lib\icuucd.lib" /pdbtype:sept /libpath:"..\..\lib"
+# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /debug /machine:I386 /out:"..\..\bin\icuuc26d.dll" /implib:"..\..\lib\icuucd.lib" /pdbtype:sept /libpath:"..\..\lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "common - Win64 Release"
@@ -109,7 +109,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:IX86 /machine:IA64
-# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /machine:IX86 /out:"..\..\bin\icuuc28.dll" /implib:"..\..\lib\icuuc.lib" /libpath:"..\..\lib" /machine:IA64
+# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /machine:IX86 /out:"..\..\bin\icuuc26.dll" /implib:"..\..\lib\icuuc.lib" /libpath:"..\..\lib" /machine:IA64
 # SUBTRACT LINK32 /debug
 
 !ELSEIF  "$(CFG)" == "common - Win64 Debug"
@@ -136,7 +136,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:IX86 /pdbtype:sept /machine:IA64
-# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /incremental:no /debug /machine:IX86 /out:"..\..\bin\icuuc28d.dll" /implib:"..\..\lib\icuucd.lib" /pdbtype:sept /libpath:"..\..\lib" /machine:IA64
+# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /incremental:no /debug /machine:IX86 /out:"..\..\bin\icuuc26d.dll" /implib:"..\..\lib\icuucd.lib" /pdbtype:sept /libpath:"..\..\lib" /machine:IA64
 
 !ENDIF 
 
@@ -544,19 +544,6 @@ InputPath=.\unicode\ubrk.h
 
 # End Source File
 # End Group
-# Begin Group "collation"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\ucol_swp.c
-# ADD CPP /I "..\i18n"
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucol_swp.h
-# End Source File
-# End Group
 # Begin Group "collections"
 
 # PROP Default_Filter ""
@@ -696,10 +683,6 @@ SOURCE=.\uhash_us.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\ustack.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\ustrenum.cpp
 # End Source File
 # Begin Source File
@@ -757,6 +740,10 @@ SOURCE=.\locmap.c
 # Begin Source File
 
 SOURCE=.\locmap.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\mutex.cpp
 # End Source File
 # Begin Source File
 
@@ -1022,61 +1009,6 @@ InputPath=.\unicode\urename.h
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\utrace.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\utrace.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\utrace.h
-
-"..\..\include\unicode\utrace.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\utrace.h
-
-"..\..\include\unicode\utrace.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\utrace.h
-
-"..\..\include\unicode\utrace.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\utrace.h
-
-"..\..\include\unicode\utrace.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\utracimp.h
 # End Source File
 # Begin Source File
 
@@ -1351,14 +1283,6 @@ InputPath=.\unicode\ucnv_err.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\ucnv_ext.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_ext.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\ucnv_imp.h
 # End Source File
 # Begin Source File
@@ -1558,14 +1482,6 @@ SOURCE=.\udatamem.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\udataswp.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\udataswp.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\umapfile.c
 # ADD CPP /Ze
 # End Source File
@@ -1630,6 +1546,14 @@ InputPath=.\unicode\uobject.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=.\digitlst.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\digitlst.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\unicode\parseerr.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
@@ -1674,10 +1598,6 @@ InputPath=.\unicode\parseerr.h
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\parsepos.cpp
 # End Source File
 # Begin Source File
 
@@ -1794,80 +1714,9 @@ SOURCE=.\util.cpp
 SOURCE=.\util.h
 # End Source File
 # End Group
-# Begin Group "idna"
-
-# PROP Default_Filter "*.c,*.h"
-# Begin Source File
-
-SOURCE=.\punycode.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\punycode.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uidna.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uidna.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uidna.h
-
-"..\..\include\unicode\uidna.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uidna.h
-
-"..\..\include\unicode\uidna.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uidna.h
-
-"..\..\include\unicode\uidna.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uidna.h
-
-"..\..\include\unicode\uidna.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# End Group
 # Begin Group "locales & resources"
 
 # PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\locbased.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\locbased.h
-# End Source File
 # Begin Source File
 
 SOURCE=.\locid.cpp
@@ -2318,58 +2167,7 @@ SOURCE=.\propname.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\ruleiter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ruleiter.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\symtable.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\symtable.h
-
-"..\..\include\unicode\symtable.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\symtable.h
-
-"..\..\include\unicode\symtable.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\symtable.h
-
-"..\..\include\unicode\symtable.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\symtable.h
-
-"..\..\include\unicode\symtable.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
+SOURCE=.\symtable.h
 # End Source File
 # Begin Source File
 
@@ -2830,65 +2628,6 @@ SOURCE=.\icuserv.cpp
 # Begin Source File
 
 SOURCE=.\icuserv.h
-# End Source File
-# End Group
-# Begin Group "sprep"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\sprpimpl.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\usprep.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\usprep.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\usprep.h
-
-"..\..\include\unicode\usprep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\usprep.h
-
-"..\..\include\unicode\usprep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\usprep.h
-
-"..\..\include\unicode\usprep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\usprep.h
-
-"..\..\include\unicode\usprep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
 # End Source File
 # End Group
 # Begin Group "strings"
@@ -3561,6 +3300,65 @@ InputPath=.\unicode\utf_old.h
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
+
+!ENDIF 
+
+# End Source File
+# End Group
+# Begin Group "idna"
+
+# PROP Default_Filter "*.c,*.h"
+# Begin Source File
+
+SOURCE=.\nameprep.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\nameprep.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\punycode.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\punycode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\sprpimpl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\strprep.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\strprep.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\uidna.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uidna.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uidna.h
+
+"..\..\include\unicode\uidna.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
 
 !ENDIF 
 

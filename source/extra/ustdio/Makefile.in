@@ -27,16 +27,12 @@ CLEANFILES = *~ $(DEPS)
 TARGET_STUBNAME=io
 
 ifneq ($(ENABLE_STATIC),)
-TARGET = $(LIBSICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(A)
+TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).a
 endif
 
 ifneq ($(ENABLE_SHARED),)
 SO_TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(SO)
 ALL_SO_TARGETS = $(SO_TARGET) $(MIDDLE_SO_TARGET) $(FINAL_SO_TARGET)
-
-ifeq ($(ENABLE_SO_VERSION_DATA),1)
-SO_VERSION_DATA = ustdio.res
-endif
 
 ifeq ($(OS390BATCH),1)
 BATCH_TARGET = $(BATCH_USTDIO_TARGET)
@@ -55,9 +51,9 @@ CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n
 DEFS += -DU_USTDIO_IMPLEMENTATION
 LIBS = $(LIBICUUC) $(LIBICUI18N) $(DEFAULT_LIBS)
 
-OBJECTS = locbund.o ufile.o ufmt_cmn.o uprintf.o uprntf_p.o \
-uscanf.o uscanf_p.o uscanset.o ustdio.o sprintf.o \
-sscanf.o ustream.o
+OBJECTS = locbund.o loccache.o ufile.o ufmt_cmn.o uprintf.o uprntf_p.o \
+uscanf.o uscanf_p.o uscanset.o ustdio.o sprintf.o sprntf_p.o \
+sscanf.o sscanf_p.o ustream.o
 
 STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
 
@@ -118,7 +114,7 @@ dist-local:
 
 clean-local:
 	test -z "$(CLEANFILES)" || $(RMV) $(CLEANFILES)
-	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS) $(SO_VERSION_DATA)
+	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS)
 
 distclean-local: clean-local
 	$(RMV) Makefile
@@ -135,7 +131,7 @@ $(TARGET): $(TARGET)($(STATIC_OBJECTS))
 endif
 
 ifneq ($(ENABLE_SHARED),)
-$(FINAL_SO_TARGET): $(OBJECTS) $(SO_VERSION_DATA)
+$(FINAL_SO_TARGET): $(OBJECTS)
 	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(LIBS)
 
 ifeq ($(OS390BATCH),1)

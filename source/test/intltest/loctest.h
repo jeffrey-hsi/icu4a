@@ -69,15 +69,6 @@ public:
     void Test4147552(void);
     
     void TestVariantParsing(void);
-
-   /* Test getting keyword enumeratin */
-   void TestKeywordVariants(void);
-
-   /* Test getting keyword values */
-   void TestKeywordVariantParsing(void);
-
-   /* Test getting the locale base name */
-   void TestGetBaseName(void);
     
 #if !UCONFIG_NO_FORMATTING
     void Test4105828(void) ;
@@ -85,20 +76,11 @@ public:
 
     void TestSetIsBogus(void);
 
-    void TestGetLocale();
-
 #if !UCONFIG_NO_FORMATTING
     static UDate date(int32_t y, int32_t m, int32_t d, int32_t hr = 0, int32_t min = 0, int32_t sec = 0);
 #endif
 
 private:
-    void _checklocs(const char* label,
-                    const char* req,
-                    const Locale& validLoc,
-                    const Locale& actualLoc,
-                    const char* expReqValid="gt",
-                    const char* expValidActual="ge"); 
-
     /**
      * routine to perform subtests, used by TestDisplayNames
      **/
@@ -116,46 +98,37 @@ private:
         CROATIAN = 2,
         GREEK = 3,
         NORWEGIAN = 4,
-        ITALIAN = 5,
-        XX = 6,
-        CHINESE = 7,
-        MAX_LOCALES = 7
+        MAX_LOCALES = 4
     };
 
     enum {
         LANG = 0,
-        SCRIPT,
-        CTRY,
-        VAR,
-        NAME,
-        LANG3,
-        CTRY3,
-        LCID,
-        DLANG_EN,
-        DSCRIPT_EN,
-        DCTRY_EN,
-        DVAR_EN,
-        DNAME_EN,
-        DLANG_FR,
-        DSCRIPT_FR,
-        DCTRY_FR,
-        DVAR_FR,
-        DNAME_FR,
-        DLANG_CA,
-        DSCRIPT_CA,
-        DCTRY_CA,
-        DVAR_CA,
-        DNAME_CA,
-        DLANG_EL,
-        DSCRIPT_EL,
-        DCTRY_EL,
-        DVAR_EL,
-        DNAME_EL,
-        DLANG_NO,
-        DSCRIPT_NO,
-        DCTRY_NO,
-        DVAR_NO,
-        DNAME_NO
+        CTRY = 1,
+        VAR = 2,
+        NAME = 3,
+        LANG3 = 4,
+        CTRY3 = 5,
+        LCID = 6,
+        DLANG_EN = 7,
+        DCTRY_EN = 8,
+        DVAR_EN = 9,
+        DNAME_EN = 10,
+        DLANG_FR = 11,
+        DCTRY_FR = 12,
+        DVAR_FR = 13,
+        DNAME_FR = 14,
+        DLANG_HR = 15,
+        DCTRY_HR = 16,
+        DVAR_HR = 17,
+        DNAME_HR = 18,
+        DLANG_EL = 19,
+        DCTRY_EL = 20,
+        DVAR_EL = 21,
+        DNAME_EL = 22,
+        DLANG_RT = 23,
+        DCTRY_RT = 24,
+        DVAR_RT = 25,
+        DNAME_RT = 26
     };
 };
 

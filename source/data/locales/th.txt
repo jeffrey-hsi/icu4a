@@ -12,8 +12,7 @@ th {
     //
     // First put in all of the consonants, after Z
     //
-    collations {
-      standard { 
+    CollationElements {
         Version { "3.0" }
         Sequence { 
            // Tailoring of UCA for Thai Royal Institute Dictionary Sort, B.E. 2525
@@ -43,10 +42,10 @@ th {
            "<< \u0E4D"  // U+0E4D  THAI CHARACTER NIKHAHIT
 
            // make punctuation and  Paiyannoi...Khomut secondary ignorable. This will make them sort after the same
-           // strings that don't contain them.
+	   // strings that don't contain them.
 
            "& [last secondary ignorable]"
-           "<<< ' '"    // Space
+	   "<<< ' '"    // Space
            "<<< '-'"    // Hyphen
            "<<< '.'"    // Full stop
            "<<< '...'"  // Ellipsis
@@ -57,7 +56,6 @@ th {
            "<<< \u0E5B" // U+0E5B  THAI CHARACTER KHOMUT (ancient symbol used to mark end of story)
  
         }
-      }
     }
     Countries { 
         AF { "\u0e2d\u0e31\u0e1f\u0e01\u0e32\u0e19\u0e34\u0e2a\u0e16\u0e32\u0e19" }
@@ -442,6 +440,8 @@ th {
         za { "\u0e08\u0e27\u0e07" }
         zu { "\u0e0b\u0e39\u0e25\u0e39" }
     }
+    LocaleID:int { 0x1e }
+//    LocaleString { "th" }
     MonthAbbreviations { 
         "\u0E21.\u0E04.",
         "\u0E01.\u0E1E.",
@@ -470,8 +470,8 @@ th {
         "\u0E1E\u0E24\u0E28\u0E08\u0E34\u0E01\u0E32\u0E22\u0E19",
         "\u0E18\u0E31\u0E19\u0E27\u0E32\u0E04\u0E21",
     }
+//    ShortLanguage { "tha" }
     localPatternChars { "GanjkHmsSEDFwWxhKzAe" }
-    /*
     zoneStrings { 
         {
             "THA",
@@ -482,7 +482,6 @@ th {
             "Bangkok",
         }
     }
-    */
     LocaleScript{ 
         "Thai", // Script Name  
     }
@@ -495,35 +494,35 @@ th {
 
     SpelloutRules {
         "%default:\n"
-          "-x: \u0e25\u0e1a>>;\n"
-          "x.x: <<\u0e08\u0e38\u0e14>>>;\n"
-          "\u0e28\u0e39\u0e19\u0e22\u0e4c; \u0e2b\u0e19\u0e36\u0e48\u0e07; \u0e2a\u0e2d\u0e07; \u0e2a\u0e32\u0e21;\n"
-          "\u0e2a\u0e35\u0e48; \u0e2b\u0e49\u0e32; \u0e2b\u0e01; \u0e40\u0e08\u0e47\u0e14; \u0e41\u0e1b\u0e14;\n"
-          "\u0e40\u0e01\u0e49\u0e32; \u0e2a\u0e34\u0e1a; \u0e2a\u0e34\u0e1a\u0e40\u0e2d\u0e47\u0e14;\n"
-          "\u0e2a\u0e34\u0e1a\u0e2a\u0e2d\u0e07; \u0e2a\u0e34\u0e1a\u0e2a\u0e32\u0e21;\n"
-          "\u0e2a\u0e34\u0e1a\u0e2a\u0e35\u0e48; \u0e2a\u0e34\u0e1a\u0e2b\u0e49\u0e32;\n"
-          "\u0e2a\u0e34\u0e1a\u0e2b\u0e01; \u0e2a\u0e34\u0e1a\u0e40\u0e08\u0e47\u0e14;\n"
-          "\u0e2a\u0e34\u0e1a\u0e41\u0e1b\u0e14; \u0e2a\u0e34\u0e1a\u0e40\u0e01\u0e49\u0e32;\n"
-          "20: \u0e22\u0e35\u0e48\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
-          "30: \u0e2a\u0e32\u0e21\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
-          "40: \u0e2a\u0e35\u0e48\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
-          "50: \u0e2b\u0e49\u0e32\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
-          "60: \u0e2b\u0e01\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
-          "70: \u0e40\u0e08\u0e47\u0e14\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
-          "80: \u0e41\u0e1b\u0e14\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
-          "90: \u0e40\u0e01\u0e49\u0e32\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
-          "100: <<\u0e23\u0e49\u0e2d\u0e22[>>];\n"
-          "1000: <<\u0e1e\u0e31\u0e19[>>];\n"
-          "10000: <<\u0e2b\u0e21\u0e37\u0e48\u0e19[>>];\n"
-          "100000: <<\u0e41\u0e2a\u0e19[>>];\n"
-          "1,000,000: <<\u0e25\u0e49\u0e32\u0e19[>>];\n"
-          "1,000,000,000: <<\u0e1e\u0e31\u0e19\u0e25\u0e49\u0e32\u0e19[>>];\n"
-          "1,000,000,000,000: <<\u0e25\u0e49\u0e32\u0e19\u0e25\u0e49\u0e32\u0e19[>>];\n"
-          "1,000,000,000,000,000: =#,##0=;\n"
+        "  -x: \u0e25\u0e1a>>;\n"
+        "  x.x: <<\u0e08\u0e38\u0e14>>>;\n"
+        "  \u0e28\u0e39\u0e19\u0e22\u0e4c; \u0e2b\u0e19\u0e36\u0e48\u0e07; \u0e2a\u0e2d\u0e07; \u0e2a\u0e32\u0e21;\n"
+        "  \u0e2a\u0e35\u0e48; \u0e2b\u0e49\u0e32; \u0e2b\u0e01; \u0e40\u0e08\u0e47\u0e14; \u0e41\u0e1b\u0e14;\n"
+        "  \u0e40\u0e01\u0e49\u0e32; \u0e2a\u0e34\u0e1a; \u0e2a\u0e34\u0e1a\u0e40\u0e2d\u0e47\u0e14;\n"
+        "  \u0e2a\u0e34\u0e1a\u0e2a\u0e2d\u0e07; \u0e2a\u0e34\u0e1a\u0e2a\u0e32\u0e21;\n"
+        "  \u0e2a\u0e34\u0e1a\u0e2a\u0e35\u0e48; \u0e2a\u0e34\u0e1a\u0e2b\u0e49\u0e32;\n"
+        "  \u0e2a\u0e34\u0e1a\u0e2b\u0e01; \u0e2a\u0e34\u0e1a\u0e40\u0e08\u0e47\u0e14;\n"
+        "  \u0e2a\u0e34\u0e1a\u0e41\u0e1b\u0e14; \u0e2a\u0e34\u0e1a\u0e40\u0e01\u0e49\u0e32;\n"
+        "  20: \u0e22\u0e35\u0e48\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
+        "  30: \u0e2a\u0e32\u0e21\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
+        "  40: \u0e2a\u0e35\u0e48\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
+        "  50: \u0e2b\u0e49\u0e32\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
+        "  60: \u0e2b\u0e01\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
+        "  70: \u0e40\u0e08\u0e47\u0e14\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
+        "  80: \u0e41\u0e1b\u0e14\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
+        "  90: \u0e40\u0e01\u0e49\u0e32\u0e2a\u0e34\u0e1a[>%%alt-ones>];\n"
+        "  100: <<\u0e23\u0e49\u0e2d\u0e22[>>];\n"
+        "  1000: <<\u0e1e\u0e31\u0e19[>>];\n"
+        "  10000: <<\u0e2b\u0e21\u0e37\u0e48\u0e19[>>];\n"
+        "  100000: <<\u0e41\u0e2a\u0e19[>>];\n"
+        "  1,000,000: <<\u0e25\u0e49\u0e32\u0e19[>>];\n"
+        "  1,000,000,000: <<\u0e1e\u0e31\u0e19\u0e25\u0e49\u0e32\u0e19[>>];\n"
+        "  1,000,000,000,000: <<\u0e25\u0e49\u0e32\u0e19\u0e25\u0e49\u0e32\u0e19[>>];\n"
+        "  1,000,000,000,000,000: =#,##0=;\n"
         "%%alt-ones:\n"
-          "\u0e28\u0e39\u0e19\u0e22\u0e4c;\n"
-          "\u0e40\u0e2d\u0e47\u0e14;\n"
-          "=%default=;\n"
+        "  \u0e28\u0e39\u0e19\u0e22\u0e4c;\n"
+        "  \u0e40\u0e2d\u0e47\u0e14;\n"
+        "  =%default=;\n"
     }
 
     // Currency display names
@@ -535,13 +534,14 @@ th {
     Eras_buddhist:array { "\u0e1e.\u0e28." }
 
     DateTimePatterns_buddhist { 
-        "H' \u0E19\u0E32\u0E2C\u0E34\u0E01\u0E32 'm' \u0E19\u0E32\u0E17\u0E35 'ss' \u0E27\u0E34\u0E19\u0E32\u0E17\u0E35'",
+        "H' \u0E19\u0E32\u0E2C\u0E34\u0E01\u0E32 'm' \u0E19\u0E32\u0E17\u0E35 'ss' \u0E27"
+        "\u0E34\u0E19\u0E32\u0E17\u0E35'",
         "H' \u0E19\u0E32\u0E2C\u0E34\u0E01\u0E32 'm' \u0E19\u0E32\u0E17\u0E35'",
         "H:mm:ss",
         "H:mm",
         "EEEE'\u0E17\u0E35\u0E48 'd MMMM G yyyy",
-        "d MMMM yyyy",
-        "d MMM yyyy",
+        "d MMMM yyyy G",
+        "d MMM yyyy G",
         "d/M/yyyy",
         "{1}, {0}",
     }

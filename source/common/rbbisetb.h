@@ -2,7 +2,7 @@
 //  rbbisetb.h
 /*
 **********************************************************************
-*   Copyright (c) 2001-2003, International Business Machines
+*   Copyright (c) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -14,6 +14,7 @@
 #include "unicode/uobject.h"
 #include "rbbirb.h"
 #include "uvector.h"
+#include "uhash.h"
 
 struct  UNewTrie;
 
@@ -85,16 +86,9 @@ public:
                                    //    columns in the DFA state table
     int32_t  getTrieSize();        // Size in bytes of the serialized Trie.
     void     serializeTrie(uint8_t *where);  // write out the serialized Trie.
-    UChar32  getFirstChar(int32_t  val);
-#ifdef RBBI_DEBUG
     void     printSets();
     void     printRanges();
     void     printRangeGroups();
-#else
-    #define printSets()
-    #define printRanges()
-    #define printRangeGroups()
-#endif
 
 private:
     void           numberSets();

@@ -248,19 +248,6 @@ public:
                             UnicodeString& appendTo) const;
 
     /**
-     * Format an int64 number. These methods call the NumberFormat
-     * pure virtual format() methods with the default FieldPosition.
-     *
-     * @param number    The value to be formatted.
-     * @param appendTo  Output parameter to receive result.
-     *                  Result is appended to existing contents.
-     * @return          Reference to 'appendTo' parameter.
-     * @draft ICU 2.8
-     */
-    UnicodeString& format(  int64_t number,
-                            UnicodeString& appendTo) const;
-
-    /**
      * Format a double number. Concrete subclasses must implement
      * these pure virtual methods.
      *
@@ -291,22 +278,6 @@ public:
                                   UnicodeString& appendTo,
                                   FieldPosition& pos) const = 0;
 
-    /**
-     * Format an int64 number. (Not abstract to retain compatibility
-	 * with earlier releases, however subclasses should override this
-	 * method as it just delegates to format(int32_t number...);
-     *
-     * @param number    The value to be formatted.
-     * @param appendTo  Output parameter to receive result.
-     *                  Result is appended to existing contents.
-     * @param pos       On input: an alignment field, if desired.
-     *                  On output: the offsets of the alignment field.
-     * @return          Reference to 'appendTo' parameter.
-     * @draft ICU 2.8
-    */
-    virtual UnicodeString& format(int64_t number,
-                                  UnicodeString& appendTo,
-                                  FieldPosition& pos) const;
     /**
      * Redeclared Format method.
      * @param obj       The object to be formatted.
@@ -603,10 +574,9 @@ public:
      * @param theCurrency a 3-letter ISO code indicating new currency
      * to use.  It need not be null-terminated.  May be the empty
      * string or NULL to indicate no currency.
-     * @param ec input-output error code
-     * @draft ICU 3.0
+     * @draft ICU 2.6
      */
-    virtual void setCurrency(const UChar* theCurrency, UErrorCode& ec);
+    virtual void setCurrency(const UChar* theCurrency);
 
     /**
      * Gets the currency used to display currency
@@ -618,6 +588,19 @@ public:
     const UChar* getCurrency() const;
 
 public:
+
+    /**
+     * Return the class ID for this class.  This is useful only for
+     * comparing to a return value from getDynamicClassID().  For example:
+     * <pre>
+     * .   Base* polymorphic_pointer = createPolymorphicObject();
+     * .   if (polymorphic_pointer->getDynamicClassID() ==
+     * .       Derived::getStaticClassID()) ...
+     * </pre>
+     * @return The class ID for all objects of this class.
+     * @stable ICU 2.0
+     */
+    static inline UClassID getStaticClassID(void);
 
     /**
      * Returns a unique class ID POLYMORPHICALLY.  Pure virtual override.
@@ -657,6 +640,7 @@ private:
     static const int32_t fgMinIntegerDigits;
 
 private:
+    static const char fgClassID;
 
     enum EStyles {
         kNumberStyle,
@@ -696,10 +680,10 @@ private:
     UBool      fParseIntegerOnly;
 
     // ISO currency code
-    UChar      fCurrency[4];
+    UChar      currency[4];
 
-    friend class ICUNumberFormatFactory; // access to makeInstance, EStyles
-    friend class ICUNumberFormatService;
+	friend class ICUNumberFormatFactory; // access to makeInstance, EStyles
+	friend class ICUNumberFormatService;
 };
 
 /**
@@ -726,7 +710,7 @@ public:
      * is returned in count;
      * @draft ICU 2.6
      */
-    virtual const UnicodeString * getSupportedIDs(int32_t &count, UErrorCode& status) const = 0;
+    virtual const UnicodeString * const getSupportedIDs(int32_t &count, UErrorCode& status) const = 0;
 
     /**
      * Return a number format of the appropriate type.  If the locale
@@ -776,7 +760,7 @@ public:
     /**
      * @draft ICU 2.6
      */
-    virtual const UnicodeString * getSupportedIDs(int32_t &count, UErrorCode& status) const 
+    virtual const UnicodeString * const getSupportedIDs(int32_t &count, UErrorCode& status) const 
       {
         if (U_SUCCESS(status)) {
           count = 1;
@@ -789,6 +773,10 @@ public:
 
 
 // -------------------------------------
+
+inline UClassID
+NumberFormat::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
 
 inline UBool
 NumberFormat::isParseIntegerOnly() const

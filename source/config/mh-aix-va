@@ -1,9 +1,9 @@
 ## -*-makefile-*-
 ## Aix-specific setup (for Visual Age 5+)
-## Copyright (c) 1999-2003, International Business Machines Corporation and
+## Copyright (c) 1999-2002, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-aix-va,v 1.31 2004/01/08 22:54:22 grhoten-oss Exp $
+## $Id: mh-aix-va,v 1.28 2003/08/08 23:53:43 grhoten-oss Exp $
 
 ## Commands to generate dependency files
 GEN_DEPS.c=	$(CC) -E -M $(DEFS) $(CPPFLAGS)
@@ -15,8 +15,7 @@ GEN_DEPS.cc=	$(CXX) -E -M $(DEFS) $(CPPFLAGS)
 CFLAGS += -qproto -qroconst
 CXXFLAGS += -qproto -qroconst
 
-# If you readd this line, you must change the SO value
-#LDFLAGS += -brtl
+LDFLAGS += -brtl -bh:5
 
 ## We need to delete things prior to linking, or else we'll get
 ## SEVERE ERROR: output file in use ..  on AIX. 
@@ -58,9 +57,7 @@ SO_TARGET_VERSION_SUFFIX = $(SO_TARGET_VERSION_MAJOR)
 LD_SONAME = 
 
 ## Shared object suffix
-#SO=	so
-# without the -brtl option, the library names use .a. AIX is funny that way.
-SO=	a
+SO=		so
 ## Non-shared intermediate object suffix
 STATIC_O = o
 

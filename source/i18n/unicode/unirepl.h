@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2002-2003, International Business Machines Corporation
+*   Copyright (c) 2002, International Business Machines Corporation
 *   and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -36,7 +36,7 @@ class U_I18N_API UnicodeReplacer /* not : public UObject because this is an inte
      * Destructor.
      * @draft ICU 2.4
      */
-    virtual ~UnicodeReplacer();
+    virtual inline ~UnicodeReplacer() {};
 
     /**
      * Replace characters in 'text' from 'start' to 'limit' with the

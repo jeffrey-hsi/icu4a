@@ -3,7 +3,7 @@
 ## Copyright (c) 1999-2003, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-hpux-acc,v 1.36 2003/12/11 18:40:38 grhoten-oss Exp $
+## $Id: mh-hpux-acc,v 1.34 2003/08/08 23:53:43 grhoten-oss Exp $
 
 ## Commands to generate dependency files
 GEN_DEPS.c=	:
@@ -13,11 +13,6 @@ GEN_DEPS.cc= 	:
 SHAREDLIBCFLAGS = +z
 SHAREDLIBCXXFLAGS = +z
 
-## Additional flags when building libraries with threads
-## We use this instead of -mt, which isn't available in all versions of aCC
-## Our tools won't compile with -D_POSIX_C_SOURCE=199506L
-THREADSCPPFLAGS = -D_REENTRANT -D_THREAD_SAFE
-
 # Use Extended ANSI mode, which is useful for 64-bit numbers
 # +Olibcalls uses intrinsic functions for strlen and others
 # +W ignores some warnings
@@ -25,10 +20,8 @@ THREADSCPPFLAGS = -D_REENTRANT -D_THREAD_SAFE
 #    740 Unsafe cast between pointers/references to incomplete classes...
 #    749 This operation is non-portable and potentially unsafe.
 #        (Ironically the solution to fix this warning is non-portable)
-#    823 Redundant preprocessing concatenation operation results in two valid
-#        preprocessing tokens. This comes from INT64_C in <inttypes.h>
 CFLAGS += +Olibcalls -Ae +ESlit
-CXXFLAGS += +Olibcalls +W495 +W740 +W749 +W823
+CXXFLAGS += +Olibcalls +W495 +W740 +W749
 
 ## Commands to compile
 COMPILE.c=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS) -c

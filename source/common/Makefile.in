@@ -4,7 +4,7 @@
 #   Corporation and others.  All Rights Reserved.
 #
 #******************************************************************************
-## Makefile.in for ICU - icuuc.so
+## Makefile.in for ICU - icu.so
 ## Stephen F. Booth
 
 ## Source directory information
@@ -27,16 +27,12 @@ CLEANFILES = *~ $(DEPS)
 TARGET_STUBNAME=uc
 
 ifneq ($(ENABLE_STATIC),)
-TARGET = $(LIBSICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(A)
+TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).a
 endif
 
 ifneq ($(ENABLE_SHARED),)
 SO_TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(SO)
 ALL_SO_TARGETS = $(SO_TARGET) $(MIDDLE_SO_TARGET) $(FINAL_SO_TARGET)
-
-ifeq ($(ENABLE_SO_VERSION_DATA),1)
-SO_VERSION_DATA = common.res
-endif
 
 ifeq ($(OS390BATCH),1)
 BATCH_TARGET = $(BATCH_COMMON_TARGET)
@@ -51,29 +47,29 @@ DYNAMICCPPFLAGS = $(SHAREDLIBCPPFLAGS)
 DYNAMICCFLAGS = $(SHAREDLIBCFLAGS)
 DYNAMICCXXFLAGS = $(SHAREDLIBCXXFLAGS)
 
-CPPFLAGS += -I. -I$(srcdir) -I$(srcdir)/../i18n $(LIBCPPFLAGS)
+CPPFLAGS += -I. -I$(srcdir) $(LIBCPPFLAGS)
 DEFS += -DU_COMMON_IMPLEMENTATION
 
 # $(LIBICUDT) is either stub data or the real DLL common data.
 LIBS = $(LIBICUDT) $(DEFAULT_LIBS)
 
-OBJECTS = putil.o uobject.o cmemory.o umutex.o \
-udata.o ucmndata.o udatamem.o udataswp.o umapfile.o ucol_swp.o \
-uresbund.o uresdata.o resbund.o ucat.o locmap.o uloc.o locid.o \
-uhash.o uhash_us.o \
-ucnv.o ucnv_bld.o ucnv_cb.o ucnv_cnv.o ucnv_err.o ucnv_ext.o ucnv_io.o ucnvlat1.o \
-ucnv_u7.o ucnv_u8.o ucnv_u16.o ucnv_u32.o ucnvscsu.o ucnvbocu.o \
-ucnvmbcs.o ucnv2022.o ucnvhz.o ucnv_lmb.o ucnvisci.o \
+OBJECTS = putil.o uobject.o locmap.o mutex.o umutex.o \
+udata.o ucmndata.o udatamem.o umapfile.o filestrm.o \
+uresbund.o uresdata.o resbund.o cwchar.o uloc.o locid.o uhash.o uhash_us.o \
+ucnv.o ucnv_bld.o ucnv_cb.o ucnv_cnv.o ucnv_err.o ucnv_io.o ucnvlat1.o \
+ucnv_u7.o ucnv_u8.o ucnv_u16.o ucnv_u32.o \
+ucnvmbcs.o ucnv2022.o ucnvhz.o ucnv_lmb.o ucnvscsu.o \
+ucnvbocu.o ucnvisci.o \
 unistr.o utf_impl.o ustring.o ustrcase.o cstring.o ustrfmt.o ustrtrns.o \
 normlzr.o unorm.o unorm_it.o chariter.o schriter.o uchriter.o uiter.o \
 uchar.o uprops.o propname.o ubidi.o ubidiwrt.o ubidiln.o ushape.o unames.o \
-ucln_cmn.o uscript.o usc_impl.o uvector.o ustack.o uvectr32.o ucmp8.o \
-uarrsort.o utrie.o uset.o uniset.o ruleiter.o caniter.o unifilt.o unifunct.o usetiter.o \
+ucln_cmn.o uscript.o usc_impl.o umemstrm.o ucmp8.o uvector.o uvectr32.o digitlst.o \
 brkiter.o brkdict.o ubrk.o dbbi.o dbbi_tbl.o \
 rbbi.o rbbidata.o rbbinode.o rbbirb.o rbbiscan.o rbbisetb.o rbbistbl.o rbbitblb.o \
-icuserv.o iculserv.o icunotif.o uenum.o ustrenum.o \
-uidna.o usprep.o punycode.o \
-cwchar.o filestrm.o umemstrm.o util.o parsepos.o utrace.o locbased.o
+utrie.o uset.o cmemory.o caniter.o \
+unifilt.o unifunct.o uniset.o usetiter.o util.o uenum.o \
+icuserv.o iculserv.o icunotif.o ustrenum.o \
+uidna.o strprep.o nameprep.o punycode.o ucat.o uarrsort.o
 
 STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
 
@@ -137,7 +133,7 @@ dist-local:
 
 clean-local:
 	test -z "$(CLEANFILES)" || $(RMV) $(CLEANFILES)
-	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS) $(SO_VERSION_DATA)
+	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS)
 
 distclean-local: clean-local
 	$(RMV) Makefile icucfg.h unicode/platform.h
@@ -158,7 +154,7 @@ $(TARGET): $(TARGET)($(STATIC_OBJECTS))
 endif
 
 ifneq ($(ENABLE_SHARED),)
-$(FINAL_SO_TARGET): $(OBJECTS) $(SO_VERSION_DATA)
+$(FINAL_SO_TARGET): $(OBJECTS)
 	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(LIBS)
 
 ifeq ($(OS390BATCH),1)

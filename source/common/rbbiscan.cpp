@@ -32,7 +32,6 @@
 #include "rbbirb.h"
 #include "rbbinode.h"
 #include "rbbiscan.h"
-#include "rbbitblb.h"
 
 #include "uassert.h"
 
@@ -114,8 +113,6 @@ RBBIRuleScanner::RBBIRuleScanner(RBBIRuleBuilder *rb)
     fCharNum    = 0;
     fQuoteMode  = FALSE;
 
-    // Do not check status until after all critical fields are sufficiently initialized
-    //   that the destructor can run cleanly.
     if (U_FAILURE(*rb->fStatus)) {
         return;
     }
@@ -323,11 +320,10 @@ UBool RBBIRuleScanner::doParseActions(EParseAction action)
         // The ';' that terminates an expression really just functions as a '|' with
         //   a low operator prededence.
         //
-        // Each of the four sets of rules are collected separately.
-        //  (forward, reverse, safe_forward, safe_reverse)
-        //  OR this rule into the appropriate group of them.
+        // Forward and reverse rules are collected separately.  Or this rule into
+        //  the appropriate group of them.
         //
-        RBBINode **destRules = (fReverseRule? &fRB->fReverseTree : fRB->fDefaultTree);
+        RBBINode **destRules = (fReverseRule? &fRB->fReverseTree : &fRB->fForwardTree);
 
         if (*destRules != NULL) {
             // This is not the first rule encounted.
@@ -464,33 +460,6 @@ UBool RBBIRuleScanner::doParseActions(EParseAction action)
         break;
 
 
-    case doOptionStart:
-        // Scanning a !!option.   At the start of string.
-        fOptionStart = fScanIndex;
-        break;
-
-    case doOptionEnd:
-        {
-            UnicodeString opt(fRB->fRules, fOptionStart, fScanIndex-fOptionStart);
-            if (opt == "chain") {
-                fRB->fChainRules = TRUE;
-            } else if (opt == "LBCMNoChain") {
-                fRB->fLBCMNoChain = TRUE;
-            } else if (opt == "forward") {
-                fRB->fDefaultTree   = &fRB->fForwardTree;
-            } else if (opt == "reverse") {
-                fRB->fDefaultTree   = &fRB->fReverseTree;
-            } else if (opt == "safe_forward") {
-                fRB->fDefaultTree   = &fRB->fSafeFwdTree;
-            } else if (opt == "safe_reverse") {
-                fRB->fDefaultTree   = &fRB->fSafeRevTree;
-            } else if (opt == "lookAheadHardBreak") {
-                fRB->fLookAheadHardBreak = TRUE;
-            } else {
-                error(U_BRK_UNRECOGNIZED_OPTION);
-            }
-        }
-        break;
 
     case doReverseDir:
         fReverseRule = TRUE;
@@ -884,7 +853,7 @@ void RBBIRuleScanner::nextChar(RBBIRuleChar &c) {
 //---------------------------------------------------------------------------------
 //
 //  Parse RBBI rules.   The state machine for rules parsing is here.
-//                      The state tables are hand-written in the file rbbirpt.txt,
+//                      The state tables are hand-written in the file TODO.txt,
 //                      and converted to the form used here by a perl
 //                      script rbbicst.pl
 //
@@ -1033,17 +1002,13 @@ void RBBIRuleScanner::parse() {
     // We now have a parse tree for the rule expressions
     // and a list of all UnicodeSets that are referenced.
     //
-    if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "symbols")) {fSymbolTable->rbbiSymtablePrint();}
+    if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "symbols")) {fSymbolTable->print();}
     if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "ptree"))
     {
         RBBIDebugPrintf("Completed Forward Rules Parse Tree...\n");
-        fRB->fForwardTree->printTree(TRUE);
+        fRB->fForwardTree->printTree();
         RBBIDebugPrintf("\nCompleted Reverse Rules Parse Tree...\n");
-        fRB->fReverseTree->printTree(TRUE);
-        RBBIDebugPrintf("\nCompleted Safe Point Forward Rules Parse Tree...\n");
-        fRB->fSafeFwdTree->printTree(TRUE);
-        RBBIDebugPrintf("\nCompleted Safe Point Reverse Rules Parse Tree...\n");
-        fRB->fSafeRevTree->printTree(TRUE);
+        fRB->fReverseTree->printTree();
     }
 
 }
@@ -1057,7 +1022,7 @@ void RBBIRuleScanner::parse() {
 void RBBIRuleScanner::printNodeStack(const char *title) {
     int i;
     RBBIDebugPrintf("%s.  Dumping node stack...\n", title);
-    for (i=fNodeStackPtr; i>0; i--) {fNodeStack[i]->printTree(TRUE);}
+    for (i=fNodeStackPtr; i>0; i--) {fNodeStack[i]->printTree();}
 }
 
 
@@ -1113,8 +1078,8 @@ void RBBIRuleScanner::scanSet() {
     pos.setIndex(fScanIndex);
     startPos = fScanIndex;
     UErrorCode localStatus = U_ZERO_ERROR;
-    uset = new UnicodeSet(fRB->fRules, pos, USET_IGNORE_SPACE,
-                         fSymbolTable,
+    uset = new UnicodeSet(fRB->fRules, pos,
+                         *fSymbolTable,
                          localStatus);
     if (U_FAILURE(localStatus)) {
         //  TODO:  Get more accurate position of the error from UnicodeSet's return info.

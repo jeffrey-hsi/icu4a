@@ -26,8 +26,6 @@
 #include "ustrtest.h"
 #include "tstdtmod.h"
 
-StringCaseTest::~StringCaseTest() {}
-
 void
 StringCaseTest::runIndexedTest(int32_t index, UBool exec, const char *&name, char * /*par*/) {
     if (exec) logln("TestSuite StringCaseTest: ");
@@ -324,51 +322,51 @@ StringCaseTest::TestCaseConversion()
 
 void
 StringCaseTest::TestTitleCasing() {
-    UErrorCode status = U_ZERO_ERROR;
-    UBreakIterator *iter;
-    char cLocaleID[100];
-    UnicodeString locale, input, result;
-    int32_t type;
-    TestLog myLog;
-    TestDataModule *driver = TestDataModule::getTestDataModule("casing", myLog, status);
-    if(U_SUCCESS(status)) {
-        TestData *casingTest = driver->createTestData("titlecasing", status);
-        const DataMap *myCase = NULL;
-        while(casingTest->nextCase(myCase, status)) {
-            locale = myCase->getString("Locale", status);
-            locale.extract(0, 0x7fffffff, cLocaleID, sizeof(cLocaleID), "");
-            type = myCase->getInt("Type", status);
+  UErrorCode status = U_ZERO_ERROR;
+  UBreakIterator *iter;
+  char cLocaleID[100];
+  UnicodeString locale, input, result;
+  int32_t type;
+  TestLog myLog;
+  TestDataModule *driver = TestDataModule::getTestDataModule("casing", myLog, status);
+  if(U_SUCCESS(status)) {
+    TestData *casingTest = driver->createTestData("titlecasing", status);
+    const DataMap *myCase = NULL;
+    while(casingTest->nextCase(myCase, status)) {
+      locale = myCase->getString("Locale", status);
+      locale.extract(0, 0x7fffffff, cLocaleID, sizeof(cLocaleID), "");
+      type = myCase->getInt("Type", status);
       
 
-            input = myCase->getString("Input", status);
-            if(type<0) {
-                iter=0;
-            } else {
-                iter=ubrk_open((UBreakIteratorType)type, cLocaleID, NULL, 0, &status);
-            }
+      input = myCase->getString("Input", status);
+      if(type<0) {
+          iter=0;
+      } else {
+          iter=ubrk_open((UBreakIteratorType)type, cLocaleID, input.getBuffer(), input.length(), &status);
+      }
 
-            if(U_FAILURE(status)) {
-                errln("error: TestTitleCasing() ubrk_open(%d) failed for test case  from casing.res: %s", type,  u_errorName(status));
-                status = U_ZERO_ERROR;
-            } else {
-                result=input;
-                result.toTitle((BreakIterator *)iter, Locale(cLocaleID));
-                if(result!=myCase->getString("Output", status)) {
-                    errln("error: TestTitleCasing() got a wrong result for test case from casing.res");
-                }
-                ubrk_close(iter);
-            }
-        }
-        delete casingTest;
+      if(U_FAILURE(status)) {
+          errln("error: TestTitleCasing() ubrk_open(%d) failed for test case  from casing.res: %s", type,  u_errorName(status));
+          status = U_ZERO_ERROR;
+      } else {
+          result=input;
+          result.toTitle((BreakIterator *)iter, Locale(cLocaleID));
+          if(result!=myCase->getString("Output", status)) {
+              errln("error: TestTitleCasing() got a wrong result for test case from casing.res");
+          }
+      }
+      ubrk_close(iter);
     }
-    delete driver;
+    delete casingTest;
+  }
+  delete driver;
 
     // more tests for API coverage
     status=U_ZERO_ERROR;
     input=UNICODE_STRING_SIMPLE("sTrA\\u00dfE").unescape();
     (result=input).toTitle(NULL);
     if(result!=UNICODE_STRING_SIMPLE("Stra\\u00dfe").unescape()) {
-        errln("UnicodeString::toTitle(NULL) failed");
+        errln("UnicodeString::toTitle(BreakIterator *) failed");
     }
 
 #if 0

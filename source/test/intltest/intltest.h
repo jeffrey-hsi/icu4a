@@ -11,7 +11,10 @@
 #ifndef _INTLTEST
 #define _INTLTEST
 
-// The following includes utypes.h, uobject.h and unistr.h
+#include <stdio.h>
+
+#include "unicode/utypes.h"
+#include "unicode/unistr.h"
 #include "unicode/fmtable.h"
 
 U_NAMESPACE_USE
@@ -22,12 +25,13 @@ U_NAMESPACE_USE
 #pragma map(IntlTest::log( const UnicodeString &message ),"logos390")
 #endif
 
+#define it_out (*IntlTest::gTest)
+
 //-----------------------------------------------------------------------------
 //convenience classes to ease porting code that uses the Java
 //string-concatenation operator (moved from findword test by rtg)
 UnicodeString UCharToUnicodeString(UChar c);
-UnicodeString Int64ToUnicodeString(int64_t num);
-//UnicodeString operator+(const UnicodeString& left, int64_t num); // Some compilers don't allow this because of the long type.
+UnicodeString operator+(const UnicodeString& left, const UnicodeString& right);
 UnicodeString operator+(const UnicodeString& left, long num);
 UnicodeString operator+(const UnicodeString& left, unsigned long num);
 UnicodeString operator+(const UnicodeString& left, double num);
@@ -113,30 +117,9 @@ public:
         
     virtual void usage( void ) ;
 
-    /**
-     * Returns a uniform random value x, with 0.0 <= x < 1.0.  Use
-     * with care: Does not return all possible values; returns one of
-     * 714,025 values, uniformly spaced.  However, the period is
-     * effectively infinite.  See: Numerical Recipes, section 7.1.
-     *
-     * @param seedp pointer to seed. Set *seedp to any negative value
-     * to restart the sequence.
-     */
-    static float random(int32_t* seedp);
-
-    /**
-     * Convenience method using a global seed.
-     */
-    static float random();
+    FILE *testoutfp;
 
 protected:
-    /* JUnit-like assertions. Each returns TRUE if it succeeds. */
-    UBool assertTrue(const char* message, UBool condition);
-    UBool assertFalse(const char* message, UBool condition);
-    UBool assertSuccess(const char* message, UErrorCode ec);
-    UBool assertEquals(const char* message, const UnicodeString& expected,
-                       const UnicodeString& actual);
-
     virtual void runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = NULL ); // overide !
 
     virtual UBool runTestLoop( char* testname, char* par );
@@ -159,11 +142,7 @@ private:
     IntlTest*   caller;
     char*       path;           // specifies subtests
 
-    //FILE *testoutfp;
-    void *testoutfp;
-
 protected:
-
     virtual void LL_message( UnicodeString message, UBool newline );
 
     // used for collation result reporting, defined here for convenience
@@ -202,14 +181,18 @@ void it_err(void);
 void it_err( UnicodeString message );
 void it_errln( UnicodeString message );
 
+IntlTest& operator<<(IntlTest& test, const UnicodeString& string);
+IntlTest& operator<<(IntlTest& test, const char* string);
+IntlTest& operator<<(IntlTest& test, const int32_t num);
+
+IntlTest& endl( IntlTest& test );
+IntlTest& operator<<(IntlTest& test,  IntlTest& ( * _f)(IntlTest&));
+
 /**
  * This is a variant of cintltst/ccolltst.c:CharsToUChars().
  * It converts a character string into a UnicodeString, with
  * unescaping \u sequences.
  */
 extern UnicodeString CharsToUnicodeString(const char* chars);
-
-/* alias for CharsToUnicodeString */
-extern UnicodeString ctou(const char* chars);
 
 #endif // _INTLTEST

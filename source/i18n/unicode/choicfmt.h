@@ -493,22 +493,6 @@ public:
     virtual UnicodeString& format(int32_t number,
                                   UnicodeString& appendTo,
                                   FieldPosition& pos) const;
-
-    /**
-     * Format an int64_t number using this object's choices.
-     *
-     * @param number    The value to be formatted.
-     * @param appendTo  Output parameter to receive result.
-     *                  Result is appended to existing contents.
-     * @param pos       On input: an alignment field, if desired.
-     *                  On output: the offsets of the alignment field.
-     * @return          Reference to 'appendTo' parameter.
-     * @draft ICU 2.8
-     */
-    virtual UnicodeString& format(int64_t number,
-                                  UnicodeString& appendTo,
-                                  FieldPosition& pos) const;
-
     /**
      * Format an array of objects using this object's choices.
      *
@@ -658,7 +642,7 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static UClassID getStaticClassID(void);
+    static inline UClassID getStaticClassID(void);
 
 private:
     // static cache management (thread-safe)
@@ -681,6 +665,13 @@ private:
      * @return the converted string.
      */
     static UnicodeString& dtos(double value, UnicodeString& string);
+
+    //static UMTX fgMutex;
+    //static NumberFormat* fgNumberFormat;
+    static const char fgClassID;
+
+    static const UChar fgPositiveInfinity[];
+    static const UChar fgNegativeInfinity[];
 
     ChoiceFormat(); // default constructor not implemented
 
@@ -743,6 +734,18 @@ private:
     int32_t         fCount;
 };
  
+inline UClassID
+ChoiceFormat::getStaticClassID(void)
+{
+    return (UClassID)&fgClassID;
+}
+
+inline UClassID 
+ChoiceFormat::getDynamicClassID() const
+{ 
+    return ChoiceFormat::getStaticClassID(); 
+}
+
 inline UnicodeString&
 ChoiceFormat::format(const Formattable& obj,
                      UnicodeString& appendTo,

@@ -18,8 +18,6 @@
 #                                   x      free spacing and comments
 #                                   s      dot-matches-all mode
 #                                   m      multi-line mode.  $ and ^ match at embedded new-lines
-#                                   v      If icu configured without break iteration, this
-#                                          regex test pattern should not compile.
 #                                   d      dump the compiled pattern
 #                                   t      trace operation of match engine.
 #                                 White space must be present between the flags and the match string.
@@ -68,7 +66,6 @@
 ".*\Ahello"                    "stuff\nhello" # don't match after embedded new-line.
 
 # \b \B
-#
 ".*?\b(.).*"                   "<0>  $%^&*( <1>h</1>ello123%^&*()gxx</0>"
 "\ba\b"                        "-<0>a</0>"
 "\by\b"                        "xy"
@@ -80,20 +77,6 @@
 ".*?((?:\B.)+).*?((?:\B.)+).*?((?:\B.)+)"    "<0>H<1>ello</1> <2>    </2>g<3>oodbye</3></0> "
 
 "(?:.*?\b(.))?(?:.*?\b(.))?(?:.*?\b(.))?(?:.*?\b(.))?(?:.*?\b(.))?.*"   "<0>   \u0301 \u0301<1>A</1>\u0302BC\u0303\u0304<2> </2>\u0305 \u0306<3>X</3>\u0307Y\u0308</0>"
-
-
-#
-#  Unicode word boundary mode
-#
-"(?w).*?\b"                      v   "<0></0>hello, world"
-"(?w).*?(\b.+?\b).*"             v   "<0><1> </1> 123.45   </0>"
-"(?w).*?(\b\d.*?\b).*"           v   "<0>  <1>123.45</1>   </0>"
-".*?(\b.+?\b).*"                     "<0>  <1>123</1>.45   </0>"
-"(?w:.*?(\b\d.*?\b).*)"          v   "<0>  <1>123.45</1>   </0>"
-"(?w:.*?(\b.+?\b).*)"            v   "<0><1>don't</1>   </0>"
-"(?w:.+?(\b\S.+?\b).*)"          v   "<0>  <1>don't</1>   </0>"
-"(?w:(\b.+?)(\b.+?)(\b.+?)(\b.+?)(\b.+?)(\b.+?)(\b.+?).*)"     v "<0><1>.</1><2> </2><3>,</3><4>:</4><5>$</5><6>37,000.50</6><7> </7>   </0>"
-
 
 # . does not match new-lines
 "."                            "\u000a\u000d\u0085\u000c\u2028\u2029<0>X</0>\u000aY"
@@ -367,27 +350,6 @@
 "(\ud800)(\udc00)"                "\U00010000"
 
 
-#
-# Bug 3225
-
-"1|9"                             "<0>1</0>"
-"1|9"                             "<0>9</0>"
-"1*|9"                            "<0>1</0>"
-"1*|9"                            "<0></0>9"
-
-"(?:a|ac)d"                       "<0>acd</0>"
-"a|ac"                            "<0>a</0>c"
-
-#
-# Bug 3320
-#
-"(a([^ ]+)){0,} (c)"              "<0><1>a<2>b</2></1> <3>c</3></0> "
-"(a([^ ]+))* (c)"                 "<0><1>a<2>b</2></1> <3>c</3></0> "
-
-#
-# Bug 3436
-#
-"(.*?) *$"                        "<0><1>test</1>    </0>"
 
 #
 #  Random debugging, Temporary

@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2000-2003, International Business Machines
+*   Copyright (C) 2000-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -25,14 +25,31 @@
 #include "unicode/ustdio.h"
 #include "ufmt_cmn.h"
 #include "locbund.h"
-#include "uscanf.h"
+
+/**
+ * Struct encapsulating a single uscanf format specification.
+ */
+struct u_sscanf_spec_info {
+  UChar     fSpec;            /* Format specification  */
+
+  int32_t    fWidth;            /* Width  */
+
+  UChar     fPadChar;        /* Padding character  */
+
+  UBool     fIsLongDouble;        /* L flag  */
+  UBool     fIsShort;        /* h flag  */
+  UBool     fIsLong;        /* l flag  */
+  UBool     fIsLongLong;        /* ll flag  */
+};
+typedef struct u_sscanf_spec_info u_sscanf_spec_info;
 
 struct u_localized_string {
   UChar     *str;   /* Place to write the string */
   int32_t   pos;    /* Number of codeunits available to write to */
   int32_t   len;    /* Maximum number of code units that can be written to output */
 
-  ULocaleBundle  fBundle;     /* formatters */
+  ULocaleBundle  *fBundle;     /* formatters */
+  UBool        fOwnBundle;     /* TRUE if fBundle should be deleted */
 };
 typedef struct u_localized_string u_localized_string;
 
@@ -52,7 +69,7 @@ typedef struct u_localized_string u_localized_string;
  * error occurred.
  */
 typedef int32_t (*u_sscanf_handler) (u_localized_string    *input,
-                   const u_scanf_spec_info     *info,
+                   const u_sscanf_spec_info     *info,
                    ufmt_args  *args,
                    const UChar            *fmt,
                    int32_t            *consumed);

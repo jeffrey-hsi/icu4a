@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1997-2003, International Business Machines
+*   Copyright (C) 1997-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -66,11 +66,6 @@
    setting in umachine.h which is for all platforms. */
 #ifndef U_OVERRIDE_CXX_ALLOCATION
 #define U_OVERRIDE_CXX_ALLOCATION 1
-#endif
-
-/* Determine whether to enable tracing. */
-#ifndef U_ENABLE_TRACING
-#define U_ENABLE_TRACING 1
 #endif
 
 /*===========================================================================*/

@@ -86,7 +86,6 @@ class RuleBasedCollator;
  * @see          RuleBasedCollator
  * @version      1.3 12/18/96
  * @author       Helena Shih
- * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
  */
 class U_I18N_API CollationKey : public UObject {
 public:
@@ -95,7 +94,7 @@ public:
     * collation key contains no sorting information.  When comparing two empty
     * collation keys, the result is Collator::EQUAL.  Comparing empty collation key
     * with non-empty collation key is always Collator::LESS.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     CollationKey();
 
@@ -105,7 +104,7 @@ public:
     * @param values the collation key values
     * @param count number of collation key values, including trailing nulls.
     * @see #createBits
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     CollationKey(const  uint8_t*    values,
                 int32_t     count);
@@ -113,20 +112,20 @@ public:
     /**
     * Copy constructor.
     * @param other    the object to be copied.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     CollationKey(const CollationKey& other);
 
     /**
     * Sort key destructor.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     ~CollationKey();
 
     /**
     * Assignment operator
     * @param other    the object to be copied.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     const   CollationKey&   operator=(const CollationKey& other);
 
@@ -134,7 +133,7 @@ public:
     * Compare if two collation keys are the same.
     * @param source the collation key to compare to.
     * @return Returns true if two collation keys are equal, false otherwise.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     UBool                   operator==(const CollationKey& source) const;
 
@@ -142,7 +141,7 @@ public:
     * Compare if two collation keys are not the same.
     * @param source the collation key to compare to.
     * @return Returns TRUE if two collation keys are different, FALSE otherwise.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     UBool                   operator!=(const CollationKey& source) const;
 
@@ -151,7 +150,7 @@ public:
     * Test to see if the key is in an invalid state. The key will be in an
     * invalid state if it couldn't allocate memory for some operation.
     * @return Returns TRUE if the key is in an invalid, FALSE otherwise.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     UBool                   isBogus(void) const;
 
@@ -162,7 +161,7 @@ public:
     * @param count the output parameter of number of collation key values,
     * including any trailing nulls.
     * @return a pointer to the collation key values.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     const    uint8_t*       getByteArray(int32_t& count) const;
 
@@ -196,7 +195,7 @@ public:
     * @return Returns UCOL_LESS if sourceKey &lt; targetKey,
     * UCOL_GREATER if sourceKey > targetKey and UCOL_EQUAL
     * otherwise.
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @draft ICU 2.6
     */
     UCollationResult compareTo(const CollationKey& target, UErrorCode &status) const;
 
@@ -218,21 +217,23 @@ public:
     * </pre>
     * @return the hash value based on the string's collation order.
     * @see UnicodeString#hashCode
-    * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+    * @stable ICU 2.0
     */
     int32_t                 hashCode(void) const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
-     * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+     *
+     * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
-     * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
+     *
+     * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID();
 
 private:
     /**
@@ -248,51 +249,64 @@ private:
     * Creates a collation key with a string.
     */
 
-    /**
-    * If this CollationKey has capacity less than newSize,
-    * its internal capacity will be increased to newSize.
-    * @param newSize minimum size this CollationKey has to have
-    * @return this CollationKey
-    */
+	/**
+	* If this CollationKey has capacity less than newSize,
+	* its internal capacity will be increased to newSize.
+	* @param newSize minimum size this CollationKey has to have
+	* @return this CollationKey
+	*/
     CollationKey&           ensureCapacity(int32_t newSize);
-    /**
-    * Set the CollationKey to a "bogus" or invalid state
-    * @return this CollationKey
-    */
+	/**
+	* Set the CollationKey to a "bogus" or invalid state
+	* @return this CollationKey
+	*/
     CollationKey&           setToBogus(void);
-    /**
-    * Resets this CollationKey to an empty state
-    * @return this CollationKey
-    */
+	/**
+	* Resets this CollationKey to an empty state
+	* @return this CollationKey
+	*/
     CollationKey&           reset(void);
-    
-    /**
-    * Allow private access to RuleBasedCollator
-    */
+	
+	/**
+	* Allow private access to RuleBasedCollator
+	*/
     friend  class           RuleBasedCollator;
-    /**
-    * Bogus status
-    */
+	/**
+	* Bogus status
+	*/
     UBool                   fBogus;
-    /**
-    * Size of fBytes used to store the sortkey. i.e. up till the 
-    * null-termination.
-    */
+	/**
+	* Size of fBytes used to store the sortkey. i.e. up till the 
+	* null-termination.
+	*/
     int32_t                 fCount;
-    /**
-    * Full size of the fBytes
-    */
+	/**
+	* Full size of the fBytes
+	*/
     int32_t                 fCapacity;
-    /**
-    * Unique hash value of this CollationKey
-    */
+	/**
+	* Unique hash value of this CollationKey
+	*/
     int32_t                 fHashCode;
-    /**
-    * Array to store the sortkey
-    */
+	/**
+	* Array to store the sortkey
+	*/
     uint8_t*                fBytes;
 
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+inline UClassID
+CollationKey::getStaticClassID()
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+CollationKey::getDynamicClassID() const
+{ return CollationKey::getStaticClassID(); }
 
 inline UBool
 CollationKey::operator!=(const CollationKey& other) const

@@ -232,19 +232,13 @@ uiter_setString(UCharIterator *iter, const UChar *s, int32_t length) {
  * except that UChars are assembled from byte pairs.
  */
 
-/* internal helper function */
-static inline UChar32
-utf16BEIteratorGet(UCharIterator *iter, int32_t index) {
-    const uint8_t *p=(const uint8_t *)iter->context;
-    return ((UChar)p[2*index]<<8)|(UChar)p[2*index+1];
-}
-
 static UChar32 U_CALLCONV
 utf16BEIteratorCurrent(UCharIterator *iter) {
     int32_t index;
 
     if((index=iter->index)<iter->limit) {
-        return utf16BEIteratorGet(iter, index);
+        const uint8_t *p=(const uint8_t *)iter->context;
+        return ((UChar)p[2*index]<<8)|(UChar)p[2*index+1];
     } else {
         return U_SENTINEL;
     }
@@ -255,8 +249,9 @@ utf16BEIteratorNext(UCharIterator *iter) {
     int32_t index;
 
     if((index=iter->index)<iter->limit) {
+        const uint8_t *p=(const uint8_t *)iter->context;
         iter->index=index+1;
-        return utf16BEIteratorGet(iter, index);
+        return ((UChar)p[2*index]<<8)|(UChar)p[2*index+1];
     } else {
         return U_SENTINEL;
     }
@@ -267,8 +262,9 @@ utf16BEIteratorPrevious(UCharIterator *iter) {
     int32_t index;
 
     if((index=iter->index)>iter->start) {
+        const uint8_t *p=(const uint8_t *)iter->context;
         iter->index=--index;
-        return utf16BEIteratorGet(iter, index);
+        return ((UChar)p[2*index]<<8)|(UChar)p[2*index+1];
     } else {
         return U_SENTINEL;
     }
@@ -762,7 +758,7 @@ utf8IteratorMove(UCharIterator *iter, int32_t delta, UCharIteratorOrigin origin)
             iter->index=iter->length; /* may or may not be <0 (unknown) */
             iter->start=iter->limit;
             iter->reservedField=0;
-            return iter->index>=0 ? iter->index : (int32_t)UITER_UNKNOWN_INDEX;
+            return iter->index>=0 ? iter->index : UITER_UNKNOWN_INDEX;
         }
     }
 
@@ -844,7 +840,7 @@ utf8IteratorMove(UCharIterator *iter, int32_t delta, UCharIteratorOrigin origin)
 
 static UBool U_CALLCONV
 utf8IteratorHasNext(UCharIterator *iter) {
-    return iter->start<iter->limit || iter->reservedField!=0;
+    return iter->reservedField!=0 || iter->start<iter->limit;
 }
 
 static UBool U_CALLCONV

@@ -30,7 +30,6 @@ struct RBBIDataHeader;
 class  RuleBasedBreakIteratorTables;
 class  BreakIterator;
 class  RBBIDataWrapper;
-struct RBBIStateTable;
 
 
 
@@ -62,6 +61,8 @@ protected:
      * @internal
      */
     RBBIDataWrapper    *fData;
+    /** @internal */
+    UTrie              *fCharMappings;
 
     /** Rule {tag} value for the most recent match. 
      *  @internal
@@ -92,10 +93,25 @@ protected:
     static UBool        fTrace;
 
 
+
+private:
+    /**
+     * Class ID
+     */
+    static const char fgClassID;
+
 protected:
     //=======================================================================
     // constructors
     //=======================================================================
+
+    /**
+     * This constructor uses the udata interface to create a BreakIterator
+     * whose internal tables live in a memory-mapped file.  "image" is a pointer
+     * to the beginning of that file.
+     * @internal
+     */
+    RuleBasedBreakIterator(UDataMemory* image, UErrorCode &status);
 
     /**
      * Constructor from a flattened set of RBBI data in malloced memory.
@@ -118,7 +134,7 @@ public:
 
     /** Default constructor.  Creates an empty shell of an iterator, with no
      *  rules or text to iterate over.   Object can subsequently be assigned to.
-     *  @stable ICU 2.2
+     *  @draft ICU 2.2
      */
     RuleBasedBreakIterator();
 
@@ -136,27 +152,11 @@ public:
      * @param parseError  In the event of a syntax error in the rules, provides the location
      *                    within the rules of the problem.
      * @param status Information on any errors encountered.
-     * @stable ICU 2.2
+     *  @draft ICU 2.2
      */
     RuleBasedBreakIterator( const UnicodeString    &rules,
                              UParseError           &parseError,
                              UErrorCode            &status);
-
-
-    /**
-     * This constructor uses the udata interface to create a BreakIterator
-     * whose internal tables live in a memory-mapped file.  "image" is an 
-     * ICU UDataMemory handle for the pre-compiled break iterator tables.
-     * @param image handle to the memory image for the break iterator data.
-     *        Ownership of the UDataMemory handle passes to the Break Iterator,
-     *        which will be responsible for closing it when it is no longer needed.
-     * @param status Information on any errors encountered.
-     * @see udata_open
-     * @see #getBinaryRules
-     * @draft ICU 2.8
-     */
-    RuleBasedBreakIterator(UDataMemory* image, UErrorCode &status);
-
     /**
      * Destructor
      *  @stable ICU 2.0
@@ -345,7 +345,7 @@ public:
      * returned break position.
      *
      * @see UWordBreak
-     * @stable ICU 2.2
+     * @draft ICU 2.2
      */
     virtual int32_t getRuleStatus() const;
 
@@ -360,7 +360,7 @@ public:
      *                  other classes have different class IDs.
      * @stable ICU 2.0
      */
-    virtual UClassID getDynamicClassID(void) const;
+    inline virtual UClassID getDynamicClassID(void) const;
 
     /**
      * Returns the class ID for this class.  This is useful only for
@@ -373,7 +373,7 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static UClassID getStaticClassID(void);
+    inline static UClassID getStaticClassID(void);
 
     /*
      * Create a clone (copy) of this break iterator in memory provided
@@ -411,7 +411,7 @@ public:
      * is much faster than building one from the source form of the
      * break rules.
      *
-     * The binary data can only be used with the same version of ICU
+     * The binary data is can only be used with the same version of ICU
      *  and on the same platform type (processor endian-ness)
      *
      * @param length Returns the length of the binary data.  (Out paramter.)
@@ -473,39 +473,24 @@ protected:
       */
     void init();
 
-private:
-
-    /**
-     * This method backs the iterator back up to a "safe position" in the text.
-     * This is a position that we know, without any context, must be a break position.
-     * The various calling methods then iterate forward from this safe position to
-     * the appropriate position to return.  (For more information, see the description
-     * of buildBackwardsStateTable() in RuleBasedBreakIterator.Builder.)
-     * @param statetable state table used of moving backwards
-     * @internal
-     */
-    int32_t handlePrevious(const RBBIStateTable *statetable);
-
-    /**
-     * This method is the actual implementation of the next() method.  All iteration
-     * vectors through here.  This method initializes the state machine to state 1
-     * and advances through the text character by character until we reach the end
-     * of the text or the state machine transitions to state 0.  We update our return
-     * value every time the state machine passes through a possible end state.
-     * @param statetable state table used of moving forwards
-     * @internal
-     */
-    int32_t handleNext(const RBBIStateTable *statetable);
 };
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
 //
 //   Inline Functions Definitions ...
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------
 
 inline UBool RuleBasedBreakIterator::operator!=(const BreakIterator& that) const {
     return !operator==(that);
+}
+
+inline UClassID RuleBasedBreakIterator::getStaticClassID(void) {
+    return (UClassID)(&fgClassID);
+}
+
+inline UClassID RuleBasedBreakIterator::getDynamicClassID(void) const {
+    return RuleBasedBreakIterator::getStaticClassID();
 }
 
 U_NAMESPACE_END

@@ -16,10 +16,10 @@ en_HK {
         "h:mm:ss a z",
         "h:mm:ss a",
         "h:mm a",
-        "EEEE, d MMMM yyyy",
-        "d MMMM yyyy",
-        "d MMM yyyy",
-        "dd/MM/yyyy",
+        "EEEE, MMMM d, yyyy",
+        "MMMM d, yyyy",
+        "d-MMM-yy",
+        "dd/MM/yy",
         "{1} {0}",
     }
 //    NumberElements {
@@ -40,9 +40,5 @@ en_HK {
         "\u00A4#,##0.00;(\u00A4#,##0.00)",
         "#,##0%",
         "#E0",
-    }
-    Currencies{
-        HKD { "$",  "Hong Kong Dollar"     } 
-        USD { "US$",     "USD" } // US Dollar
     }
 }

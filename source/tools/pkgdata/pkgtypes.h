@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-*   Copyright (C) 2000-2003, International Business Machines
+*   Copyright (C) 2000, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ***************************************************************************
@@ -119,7 +119,6 @@ typedef struct UPKGOptions_
   UBool      nooutput;
   UBool      verbose;
   UBool      hadStdin;     /* Stdin was a dependency - don't make anything depend on the file list coming in. */
-  UBool      numeric;      /* use numeric, short, temporary file names */
 
   UPKGMODE  *fcn;          /* Handler function */
 } UPKGOptions;
@@ -147,6 +146,5 @@ typedef struct UPKGOptions_
 #define UDATA_CMN_SUFFIX ".dat"
 #define UDATA_CMN_INTERMEDIATE_SUFFIX "_dat"
 
-#define PKGDATA_DERIVED_PATH '\t'
 
 #endif

@@ -31,7 +31,6 @@ es_PY {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
     NumberPatterns { 
         "#,##0.###;-#,##0.###",
@@ -39,4 +38,7 @@ es_PY {
         "#,##0%",
         "#E0",
     }
+    LocaleID:int { 0x3c0a }
+//    LocaleString { "es_PY" }
+//    ShortCountry { "PRY" }
 }

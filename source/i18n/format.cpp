@@ -39,9 +39,6 @@ uprv_icuin_lib_dummy(int32_t i) {
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/format.h"
-#include "unicode/resbund.h"
-#include "cstring.h"
-#include "locbased.h"
 
 // *****************************************************************************
 // class Format
@@ -49,14 +46,7 @@ uprv_icuin_lib_dummy(int32_t i) {
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(FieldPosition)
-
-FieldPosition::~FieldPosition() {}
-
-FieldPosition *
-FieldPosition::clone() const {
-    return new FieldPosition(*this);
-}
+const char FieldPosition::fgClassID=0;
 
 // -------------------------------------
 // default constructor
@@ -64,7 +54,6 @@ FieldPosition::clone() const {
 Format::Format()
     : UObject()
 {
-    *validLocale = *actualLocale = 0;
 }
 
 // -------------------------------------
@@ -79,17 +68,14 @@ Format::~Format()
 Format::Format(const Format &that)
     : UObject(that)
 {
-    *this = that;
 }
 
 // -------------------------------------
 // assignment operator
 
 Format&
-Format::operator=(const Format& that)
+Format::operator=(const Format& /*that*/)
 {
-    uprv_strcpy(validLocale, that.validLocale);
-    uprv_strcpy(actualLocale, that.actualLocale);
     return *this;
 }
 
@@ -132,10 +118,10 @@ Format::parseObject(const UnicodeString& source,
 // -------------------------------------
 
 UBool
-Format::operator==(const Format& that) const
+Format::operator==(const Format& /*that*/) const
 {
-    // Subclasses: Call this method and then add more specific checks.
-    return getDynamicClassID() == that.getDynamicClassID();
+    // Add this implementation to make linker happy.
+    return TRUE;
 }
 //---------------------------------------
 
@@ -168,31 +154,6 @@ void Format::syntaxError(const UnicodeString& pattern,
     pattern.extract(start,stop-start,parseError.postContext,0);
     //null terminate the buffer
     parseError.postContext[stop-start]= 0;
-}
-
-Locale 
-Format::getLocale(ULocDataLocaleType type, UErrorCode& status) const {
-    U_LOCALE_BASED(locBased, *this);
-    return locBased.getLocale(type, status);
-}
-
-const char *
-Format::getLocaleID(ULocDataLocaleType type, UErrorCode& status) const {
-    U_LOCALE_BASED(locBased, *this);
-    return locBased.getLocaleID(type, status);
-}
-
-void
-Format::setLocales(const ResourceBundle& res) {
-    UErrorCode status = U_ZERO_ERROR;
-    setLocaleIDs(res.getLocale(ULOC_VALID_LOCALE, status).getName(),
-                 res.getLocale(ULOC_ACTUAL_LOCALE, status).getName());
-}
-
-void
-Format::setLocaleIDs(const char* valid, const char* actual) {
-    U_LOCALE_BASED(locBased, *this);
-    locBased.setLocaleIDs(valid, actual);
 }
 
 U_NAMESPACE_END

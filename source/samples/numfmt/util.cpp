@@ -89,7 +89,6 @@ UnicodeString formattableToString(const Formattable& f) {
             return UnicodeString(buf, "");
         }
     case Formattable::kLong:
-    case Formattable::kInt64:
         {
             char buf[256];
             sprintf(buf, "%ldL", f.getLong());

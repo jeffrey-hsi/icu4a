@@ -33,14 +33,10 @@ alpha*-*-linux-gnu)
 	fi ;;
 *-*-*bsd*) 	icu_cv_host_frag=mh-bsd-gcc ;;
 *-*-aix*)
-       if test "$ac_cv_prog_gcc" = yes; then
-        icu_cv_host_frag=mh-aix-gcc
-       else
 	if test -n "`$CXX --help 2>&1 | grep 'IBM C and C++ Compilers$'`"; then
 		icu_cv_host_frag=mh-aix
 	else
 		icu_cv_host_frag=mh-aix-va
-       fi
 	fi ;;
 *-*-hpux*)
 	if test "$ac_cv_prog_gcc" = yes; then
@@ -55,11 +51,9 @@ alpha*-*-linux-gnu)
 *-*-os400*)	icu_cv_host_frag=mh-os400 ;;
 *-apple-rhapsody*)	icu_cv_host_frag=mh-darwin ;;
 *-apple-darwin*)	icu_cv_host_frag=mh-darwin ;;
-*-*-beos)	icu_cv_host_frag=mh-beos ;;
 *-*-irix*)	icu_cv_host_frag=mh-irix ;;
 *-dec-osf*) icu_cv_host_frag=mh-alpha-osf ;;
 *-*-nto*)	icu_cv_host_frag=mh-qnx ;;
-*-ncr-*)	icu_cv_host_frag=mh-mpras ;;
 *-sequent-*) 	icu_cv_host_frag=mh-ptx ;;
 *) 		icu_cv_host_frag=mh-unknown ;;
 esac
@@ -118,12 +112,12 @@ AC_DEFUN(AC_CHECK_64BIT_LIBS,
     if test "$ENABLE_64BIT_LIBS" = no; then
         case "${host}" in
         *-*-hpux*)
-#            case "${CXX}" in
-#            *CC)
-#                CFLAGS="${CFLAGS} +DAportable"
-#                CXXFLAGS="${CXXFLAGS} +DAportable"
-#                ;;
-#            esac;;
+            case "${CXX}" in
+            *CC)
+                CFLAGS="${CFLAGS} +DAportable"
+                CXXFLAGS="${CXXFLAGS} +DAportable"
+                ;;
+            esac;;
         esac
     else
         case "${host}" in
@@ -144,24 +138,20 @@ AC_DEFUN(AC_CHECK_64BIT_LIBS,
             fi
             ;;
         *-*-aix*)
-            if test "$ac_cv_prog_gcc" = no; then
-             # Note: Have not tested 64-bitness with gcc.
-             # Maybe the flag "-maix64" could be used with gcc?
-             OLD_CFLAGS="${CFLAGS}"
-             OLD_CXXFLAGS="${CXXFLAGS}"
-             OLD_LDFLAGS="${LDFLAGS}"
-             CFLAGS="${CFLAGS} -q64"
-             CXXFLAGS="${CXXFLAGS} -q64"
-             LDFLAGS="${LDFLAGS} -q64"
-             AC_TRY_RUN(int main(void) {return 0;},
+            OLD_CFLAGS="${CFLAGS}"
+            OLD_CXXFLAGS="${CXXFLAGS}"
+            OLD_LDFLAGS="${LDFLAGS}"
+            CFLAGS="${CFLAGS} -q64"
+            CXXFLAGS="${CXXFLAGS} -q64"
+            LDFLAGS="${LDFLAGS} -q64"
+            AC_TRY_RUN(int main(void) {return 0;},
                 ENABLE_64BIT_LIBS=yes, ENABLE_64BIT_LIBS=no, ENABLE_64BIT_LIBS=no)
-             if test "$ENABLE_64BIT_LIBS" = no; then
+            if test "$ENABLE_64BIT_LIBS" = no; then
                 CFLAGS="${OLD_CFLAGS}"
                 CXXFLAGS="${OLD_CXXFLAGS}"
                 LDFLAGS="${OLD_LDFLAGS}"
-             else
+            else
                 ARFLAGS="${ARFLAGS} -X64"
-             fi
             fi
             ;;
         *-*-hpux*)
@@ -203,7 +193,7 @@ AC_DEFUN(AC_CHECK_STRICT_COMPILE,
     then
         if test "$GCC" = yes
         then
-            CFLAGS="$CFLAGS -Wall -ansi -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings -Winline -Wno-long-long"
+            CFLAGS="$CFLAGS -Wall -ansi -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings -Winline"
             case "${host}" in
             *-*-solaris*)
                 CFLAGS="$CFLAGS -D__STDC__=0";;
@@ -211,7 +201,7 @@ AC_DEFUN(AC_CHECK_STRICT_COMPILE,
         fi
         if test "$GXX" = yes
         then
-            CXXFLAGS="$CXXFLAGS -W -Wall -ansi -pedantic -Wpointer-arith -Wmissing-prototypes -Wwrite-strings -Winline -Wno-long-long"
+            CXXFLAGS="$CXXFLAGS -W -Wall -ansi -pedantic -Wpointer-arith -Wmissing-prototypes -Wwrite-strings -Winline"
             case "${host}" in
             *-*-solaris*)
                 CXXFLAGS="$CXXFLAGS -D__STDC__=0";;

@@ -48,7 +48,6 @@
 #include "unicode/dcfmtsym.h"
 #include "unicode/resbund.h"
 #include "unicode/uchar.h"
-#include "ucurrimp.h"
 #include "uprops.h"
 #include "digitlst.h"
 #include "cmemory.h"
@@ -77,41 +76,35 @@ static void debugout(UnicodeString s) {
 // class DecimalFormat
 // *****************************************************************************
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(DecimalFormat)
+const char DecimalFormat::fgClassID = 0; // Value is irrelevant
 
 // Constants for characters used in programmatic (unlocalized) patterns.
-#define kPatternZeroDigit            ((UChar)0x0030) /*'0'*/
-#define kPatternGroupingSeparator    ((UChar)0x002C) /*','*/
-#define kPatternDecimalSeparator     ((UChar)0x002E) /*'.'*/
-#define kPatternPerMill              ((UChar)0x2030)
-#define kPatternPercent              ((UChar)0x0025) /*'%'*/
-#define kPatternDigit                ((UChar)0x0023) /*'#'*/
-#define kPatternSeparator            ((UChar)0x003B) /*';'*/
-#define kPatternExponent             ((UChar)0x0045) /*'E'*/
-#define kPatternPlus                 ((UChar)0x002B) /*'+'*/
-#define kPatternMinus                ((UChar)0x002D) /*'-'*/
-#define kPatternPadEscape            ((UChar)0x002A) /*'*'*/
-#define kQuote                       ((UChar)0x0027) /*'\''*/
-/**
- * The CURRENCY_SIGN is the standard Unicode symbol for currency.  It
- * is used in patterns and substitued with either the currency symbol,
- * or if it is doubled, with the international currency symbol.  If the
- * CURRENCY_SIGN is seen in a pattern, then the decimal separator is
- * replaced with the monetary decimal separator.
- */
-#define kCurrencySign                ((UChar)0x00A4)
-#define kDefaultPad                  ((UChar)0x0020) /* */
+const UChar DecimalFormat::kPatternZeroDigit           = 0x0030 /*'0'*/;
+const UChar DecimalFormat::kPatternGroupingSeparator   = 0x002C /*','*/;
+const UChar DecimalFormat::kPatternDecimalSeparator    = 0x002E /*'.'*/;
+const UChar DecimalFormat::kPatternPerMill             = 0x2030;
+const UChar DecimalFormat::kPatternPercent             = 0x0025 /*'%'*/;
+const UChar DecimalFormat::kPatternDigit               = 0x0023 /*'#'*/;
+const UChar DecimalFormat::kPatternSeparator           = 0x003B /*';'*/;
+const UChar DecimalFormat::kPatternExponent            = 0x0045 /*'E'*/;
+const UChar DecimalFormat::kPatternPlus                = 0x002B /*'+'*/;
+const UChar DecimalFormat::kPatternMinus               = 0x002D /*'-'*/;
+const UChar DecimalFormat::kPatternPadEscape           = 0x002A /*'*'*/;
+const UChar DecimalFormat::kCurrencySign               = 0x00A4;
+const UChar DecimalFormat::kQuote                      = 0x0027 /*'\''*/;
+
+//const int8_t DecimalFormat::fgMaxDigit                  = 9;
 
 const int32_t DecimalFormat::kDoubleIntegerDigits  = 309;
 const int32_t DecimalFormat::kDoubleFractionDigits = 340;
-
-const int32_t DecimalFormat::kMaxScientificIntegerDigits = 8;
 
 /**
  * These are the tags we expect to see in normal resource bundle files associated
  * with a locale.
  */
 const char DecimalFormat::fgNumberPatterns[]="NumberPatterns";
+
+static const UChar kDefaultPad = 0x0020; /* */
 
 //------------------------------------------------------------------------------
 // Constructs a DecimalFormat instance in the default locale.
@@ -297,16 +290,10 @@ DecimalFormat::construct(UErrorCode&             status,
         return;
     }
 
-    if (pattern->indexOf((UChar)kCurrencySign) >= 0) {
-        // If it looks like we are going to use a currency pattern
-        // then do the time consuming lookup.
-        if (symbolsToAdopt == NULL) {
-            setCurrencyForLocale(uloc_getDefault(), status);
-        } else {
-            setCurrencyForSymbols();
-        }
+    if (symbolsToAdopt == NULL) {
+        setCurrencyForLocale(uloc_getDefault(), status);
     } else {
-        setCurrency(NULL, status);
+        setCurrencyForSymbols();
     }
 
     applyPattern(*pattern, FALSE /*not localized*/,parseErr, status);
@@ -321,10 +308,9 @@ void DecimalFormat::setCurrencyForLocale(const char* locale, UErrorCode& ec) {
         // Trap an error in mapping locale to currency.  If we can't
         // map, then don't fail and set the currency to "".
         UErrorCode ec2 = U_ZERO_ERROR;
-        UChar c[4];
-        ucurr_forLocale(locale, c, 4, &ec2);
+        c = ucurr_forLocale(locale, &ec2);
     }
-    setCurrency(c, ec);
+    setCurrency(c);
 }
 
 //------------------------------------------------------------------------------
@@ -438,7 +424,9 @@ DecimalFormat::operator==(const Format& that) const
     if (this == &that)
         return TRUE;
 
-    // NumberFormat::operator== guarantees this cast is safe
+    if (getDynamicClassID() != that.getDynamicClassID())
+        return FALSE;
+
     const DecimalFormat* other = (DecimalFormat*)&that;
 
 #ifdef FMT_DEBUG
@@ -592,16 +580,6 @@ DecimalFormat::format(int32_t number,
                       UnicodeString& appendTo,
                       FieldPosition& fieldPosition) const
 {
-	return format((int64_t)number, appendTo, fieldPosition);
-}
-
-//------------------------------------------------------------------------------
- 
-UnicodeString&
-DecimalFormat::format(int64_t number,
-                      UnicodeString& appendTo,
-                      FieldPosition& fieldPosition) const
-{
     DigitList digits;
 
     // Clears field positions.
@@ -618,16 +596,19 @@ DecimalFormat::format(int64_t number,
     // check for this before multiplying, and if it happens we use doubles
     // instead, trading off accuracy for range.
     if (fRoundingIncrement != NULL
-        || (fMultiplier != 0 && (number > (U_INT64_MAX / fMultiplier)
-                              || number < (U_INT64_MIN / fMultiplier))))
+        || (fMultiplier != 0 && (number > (INT32_MAX / fMultiplier)
+                              || number < (INT32_MIN / fMultiplier))))
     {
         digits.set(((double)number) * fMultiplier,
-			precision(FALSE),
+                   fUseExponentialNotation ?
+                            getMinimumIntegerDigits() + getMaximumFractionDigits() : 0,
                    !fUseExponentialNotation);
     }
     else
     {
-        digits.set(number * fMultiplier, precision(TRUE));
+        digits.set(number * fMultiplier,
+                   fUseExponentialNotation ?
+                            getMinimumIntegerDigits() + getMaximumFractionDigits() : 0);
     }
 
     return subformat(appendTo, fieldPosition, digits, TRUE);
@@ -711,7 +692,9 @@ DecimalFormat::format(  double number,
     DigitList digits;
 
     // This detects negativity too.
-    digits.set(number, precision(FALSE),
+    digits.set(number, fUseExponentialNotation ?
+                             getMinimumIntegerDigits() + getMaximumFractionDigits() :
+                             getMaximumFractionDigits(),
                              !fUseExponentialNotation);
 
     return subformat(appendTo, fieldPosition, digits, FALSE);
@@ -807,15 +790,6 @@ DecimalFormat::subformat(UnicodeString& appendTo,
     }
     int32_t maxIntDig = getMaximumIntegerDigits();
     int32_t minIntDig = getMinimumIntegerDigits();
-    if (fUseExponentialNotation && maxIntDig > kMaxScientificIntegerDigits) {
-        maxIntDig = 1;
-	    if (maxIntDig < minIntDig) {
-		    maxIntDig = minIntDig;
-	    }
-    }
-    if (fUseExponentialNotation && maxIntDig > minIntDig) {
-        minIntDig = 1;
-    }
 
     /* Per bug 4147706, DecimalFormat must respect the sign of numbers which
      * format as zero.  This allows sensible computations and preserves
@@ -940,14 +914,8 @@ DecimalFormat::subformat(UnicodeString& appendTo,
 
         DigitList expDigits;
         expDigits.set(exponent);
-		{
-            int expDig = fMinExponentDigits;
-            if (fUseExponentialNotation && expDig < 1) {
-                expDig = 1;
-            }
-            for (i=expDigits.fDecimalAt; i<expDig; ++i)
-                appendTo += (zero);
-		}
+        for (i=expDigits.fDecimalAt; i<fMinExponentDigits; ++i)
+            appendTo += (zero);
         for (i=0; i<expDigits.fDecimalAt; ++i)
         {
             UChar32 c = (UChar32)((i < expDigits.fCount) ?
@@ -1195,17 +1163,6 @@ DecimalFormat::parse(const UnicodeString& text,
             return;
         }
     }
-    else if (digits.fitsIntoInt64(isParseIntegerOnly())) {
-        int64_t n = digits.getInt64();
-        if (n % mult == 0) {
-            result.setInt64(n / mult);
-            return;
-        }
-        else {  // else handle the remainder
-            result.setDouble(((double)n) / mult);
-            return;
-        }
-    }
     else {
         // Handle non-integral or very large values
         // Dividing by one is okay and not that costly.
@@ -1292,6 +1249,7 @@ UBool DecimalFormat::subparse(const UnicodeString& text, ParsePosition& parsePos
             decimal = &getConstSymbol(DecimalFormatSymbols::kDecimalSeparatorSymbol);
         }
         const UnicodeString *grouping = &getConstSymbol(DecimalFormatSymbols::kGroupingSeparatorSymbol);
+        const UnicodeString *exponentChar = &getConstSymbol(DecimalFormatSymbols::kExponentialSymbol);
         UBool sawDecimal = FALSE;
         UBool sawDigit = FALSE;
         int32_t backup = -1;
@@ -1762,24 +1720,11 @@ DecimalFormat::getDecimalFormatSymbols() const
 void
 DecimalFormat::adoptDecimalFormatSymbols(DecimalFormatSymbols* symbolsToAdopt)
 {
-    if (symbolsToAdopt == NULL) {
-        return; // do not allow caller to set fSymbols to NULL
-    }
-
-    UBool sameSymbols = FALSE;
-    if (fSymbols != NULL) {
-        sameSymbols = (UBool)(getConstSymbol(DecimalFormatSymbols::kCurrencySymbol) ==
-            symbolsToAdopt->getConstSymbol(DecimalFormatSymbols::kCurrencySymbol) &&
-            getConstSymbol(DecimalFormatSymbols::kIntlCurrencySymbol) ==
-            symbolsToAdopt->getConstSymbol(DecimalFormatSymbols::kIntlCurrencySymbol));
+    if (fSymbols != NULL)
         delete fSymbols;
-    }
 
     fSymbols = symbolsToAdopt;
-    if (!sameSymbols) {
-        // If the currency symbols are the same, there is no need to recalculate.
-        setCurrencyForSymbols();
-    }
+    setCurrencyForSymbols();
     expandAffixes();
 }
 //------------------------------------------------------------------------------
@@ -1812,23 +1757,17 @@ DecimalFormat::setCurrencyForSymbols() {
     // currency object to one for that locale.  If it is custom,
     // we set the currency to null.
     UErrorCode ec = U_ZERO_ERROR;
-    const UChar* c = NULL;
-    const char* loc = fSymbols->getLocale().getName();
-    UChar intlCurrencySymbol[4]; 
-    ucurr_forLocale(loc, intlCurrencySymbol, 4, &ec);
-    UnicodeString currencySymbol;
+    DecimalFormatSymbols def(fSymbols->getLocale(), ec);
 
-    uprv_getStaticCurrencyName(intlCurrencySymbol, loc, currencySymbol, ec);
-    if (U_SUCCESS(ec)
-        && getConstSymbol(DecimalFormatSymbols::kCurrencySymbol) == currencySymbol
-        && getConstSymbol(DecimalFormatSymbols::kIntlCurrencySymbol) == intlCurrencySymbol)
-    {
-        // Trap an error in mapping locale to currency.  If we can't
-        // map, then don't fail and set the currency to "".
-        c = intlCurrencySymbol;
+    if (getConstSymbol(DecimalFormatSymbols::kCurrencySymbol) ==
+        def.getConstSymbol(DecimalFormatSymbols::kCurrencySymbol) &&
+        getConstSymbol(DecimalFormatSymbols::kIntlCurrencySymbol) ==
+        def.getConstSymbol(DecimalFormatSymbols::kIntlCurrencySymbol)
+    ) {
+        setCurrencyForLocale(fSymbols->getLocale().getName(), ec);
+    } else {
+        setCurrency(NULL); // Use DFS currency info
     }
-    ec = U_ZERO_ERROR; // reset local error code!
-    setCurrency(c, ec);
 }
 
 
@@ -2022,10 +1961,29 @@ void DecimalFormat::setFormatWidth(int32_t width) {
     fFormatWidth = (width > 0) ? width : 0;
 }
 
+/**
+ * Get the character used to pad to the format width.  The default is ' '.
+ * @return the pad character
+ * @see #setFormatWidth
+ * @see #getFormatWidth
+ * @see #setPadCharacter
+ * @see #getPadPosition
+ * @see #setPadPosition
+ */
 UnicodeString DecimalFormat::getPadCharacterString() {
     return fPad;
 }
 
+/**
+ * Set the character used to pad to the format width.  This has no effect
+ * unless padding is enabled.
+ * @param padChar the pad character
+ * @see #setFormatWidth
+ * @see #getFormatWidth
+ * @see #getPadCharacter
+ * @see #getPadPosition
+ * @see #setPadPosition
+ */
 void DecimalFormat::setPadCharacter(const UnicodeString &padChar) {
     if (padChar.length() > 0) {
         fPad = padChar.char32At(0);
@@ -2104,6 +2062,9 @@ UBool DecimalFormat::isScientificNotation() {
  */
 void DecimalFormat::setScientificNotation(UBool useScientific) {
     fUseExponentialNotation = useScientific;
+    if (fUseExponentialNotation && fMinExponentDigits < 1) {
+        fMinExponentDigits = 1;
+    }
 }
 
 /**
@@ -2629,15 +2590,9 @@ DecimalFormat::toPattern(UnicodeString& result, UBool localized) const
         if (g > 0 && fGroupingSize2 > 0 && fGroupingSize2 != fGroupingSize) {
             g += fGroupingSize2;
         }
-        int maxIntDig = getMaximumIntegerDigits();
-        if (fUseExponentialNotation) {
-            if (maxIntDig > kMaxScientificIntegerDigits) {
-                maxIntDig = 1;
-            }
-        } else {
-            maxIntDig = uprv_max(uprv_max(g, getMinimumIntegerDigits()),
-                      roundingDecimalPos) + 1;
-        }
+        int32_t maxIntDig = fUseExponentialNotation ? getMaximumIntegerDigits() :
+          (uprv_max(uprv_max(g, getMinimumIntegerDigits()),
+                   roundingDecimalPos) + 1);
         for (i = maxIntDig; i > 0; --i) {
             if (!fUseExponentialNotation && i<maxIntDig &&
                 isGroupingPosition(i)) {
@@ -2883,7 +2838,7 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
         int8_t groupingCount = -1;
         int8_t groupingCount2 = -1;
         int32_t padPos = -1;
-        UChar32 padChar = 0;
+        UChar32 padChar;
         int32_t roundingPos = -1;
         DigitList roundingInc;
         int8_t expDigits = -1;
@@ -3448,44 +3403,35 @@ void DecimalFormat::setMinimumFractionDigits(int32_t newValue) {
     NumberFormat::setMinimumFractionDigits(uprv_min(newValue, kDoubleFractionDigits));
 }
 
-void DecimalFormat::setCurrency(const UChar* theCurrency, UErrorCode& ec) {
+/**
+ * Sets the <tt>Currency</tt> object used to display currency
+ * amounts.  This takes effect immediately, if this format is a
+ * currency format.  If this format is not a currency format, then
+ * the currency object is used if and when this object becomes a
+ * currency format through the application of a new pattern.
+ * @param theCurrency new currency object to use.  Must not be
+ * null.
+ * @since ICU 2.2
+ */
+void DecimalFormat::setCurrency(const UChar* theCurrency) {
     // If we are a currency format, then modify our affixes to
     // encode the currency symbol for the given currency in our
     // locale, and adjust the decimal digits and rounding for the
     // given currency.
 
-    // Note: The code is ordered so that this object is *not changed*
-    // until we are sure we are going to succeed.
-    
-    // NULL or empty currency is *legal* and indicates no currency.
-    UBool isCurr = (theCurrency && *theCurrency);
-
-    double rounding = 0.0;
-    int32_t frac = 0;
-    if (fIsCurrencyFormat && isCurr) {
-        rounding = ucurr_getRoundingIncrement(theCurrency, &ec);
-        frac = ucurr_getDefaultFractionDigits(theCurrency, &ec);
-    }
-     
-    NumberFormat::setCurrency(theCurrency, ec);
-    if (U_FAILURE(ec)) return;
+    NumberFormat::setCurrency(theCurrency);
 
     if (fIsCurrencyFormat) {
-        // NULL or empty currency is *legal* and indicates no currency.
-        if (isCurr) {
-            setRoundingIncrement(rounding);
-            setMinimumFractionDigits(frac);
-            setMaximumFractionDigits(frac);
+        if (theCurrency && *theCurrency) {
+            setRoundingIncrement(ucurr_getRoundingIncrement(theCurrency));
+            
+            int32_t d = ucurr_getDefaultFractionDigits(theCurrency);
+            setMinimumFractionDigits(d);
+            setMaximumFractionDigits(d);
         }
+
         expandAffixes();
     }
-}
-
-int32_t
-DecimalFormat::precision(UBool isIntegral) const {
-	return fUseExponentialNotation 
-	    ? getMinimumIntegerDigits() + getMaximumFractionDigits() 
-	    : (isIntegral ? 0 : getMaximumFractionDigits());
 }
 
 U_NAMESPACE_END

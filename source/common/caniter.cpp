@@ -80,7 +80,7 @@ U_NAMESPACE_BEGIN
 
 // TODO: add boilerplate methods.
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CanonicalIterator)
+const char CanonicalIterator::fgClassID=0;
 
 /**
  *@param source string to get results for

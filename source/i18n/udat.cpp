@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-*   Copyright (C) 1996-2003, International Business Machines
+*   Copyright (C) 1996-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *******************************************************************************
 */
@@ -573,17 +573,4 @@ udat_setSymbols(    UDateFormat             *format,
   }
 }
 
-U_CAPI const char* U_EXPORT2
-udat_getLocaleByType(const UDateFormat *fmt,
-                     ULocDataLocaleType type,
-                     UErrorCode* status)
-{
-    if (fmt == NULL) {
-        if (U_SUCCESS(*status)) {
-            *status = U_ILLEGAL_ARGUMENT_ERROR;
-        }
-        return NULL;
-    }
-    return ((Format*)fmt)->getLocaleID(type, *status);
-}
 #endif /* #if !UCONFIG_NO_FORMATTING */

@@ -11,7 +11,6 @@
 #include "numrgts.h"
 
 #include <float.h> // DBL_MIN, DBL_MAX
-#include <stdio.h>
 
 #include "unicode/dcfmtsym.h"
 #include "unicode/decimfmt.h"
@@ -1307,7 +1306,7 @@ void NumberFormatRegressionTest::Test4106658(void)
     UnicodeString temp;
     FieldPosition pos(FieldPosition::DONT_CARE);
 
-#if defined(U_HPUX)
+#if defined(HPUX)
     d1 = 0.0 * -1.0;    // old HPUX compiler ignores volatile keyword
 #else
     d1 *= -1.0; // Some compilers have a problem with defining -0.0
@@ -1438,7 +1437,7 @@ void NumberFormatRegressionTest::Test4106667(void)
     FieldPosition pos(FieldPosition::DONT_CARE);
 
     logln("pattern: \"" + df->toPattern(temp) + "\"");
-#if defined(U_HPUX)
+#if defined(HPUX)
     d = 0.0 * -1.0;    // old HPUX compiler ignores volatile keyword
 #else
     d *= -1.0; // Some compilers have a problem with defining -0.0
@@ -1851,7 +1850,7 @@ void NumberFormatRegressionTest::Test4147706(void)
     volatile double d1 = 0.0;   // volatile to prevent code optimization
     double d2 = -0.0001;
 
-#if defined(U_HPUX)
+#if defined(HPUX)
     d1 = 0.0 * -1.0;    // old HPUX compiler ignores volatile keyword
 #else
     d1 *= -1.0; // Some compilers have a problem with defining -0.0
@@ -1916,16 +1915,10 @@ NumberFormatRegressionTest::Test4162198(void)
     //}
     
     //logln("The string " + s + " parsed as " + n);
-
-    // {dlf} The old code assumes n is a double, but it isn't any more...
-    // Formattable apparently does not and never did interconvert... too bad.
-    //if(n.getDouble() != dbl) {
-    //    errln("Round trip failure");
-    //}
-	if (n.getInt64() != dbl) {
-		errln("Round trip failure");
-	}
-
+    
+    if(n.getDouble() != dbl) {
+        errln("Round trip failure");
+    }
     delete f;
 }
 

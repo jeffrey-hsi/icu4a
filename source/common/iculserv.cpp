@@ -86,7 +86,7 @@ LocaleUtility::initNameFromLocale(const Locale& locale, UnicodeString& result)
 }
 
 const Hashtable*
-LocaleUtility::getAvailableLocaleNames(const UnicodeString& /* bundleID */)
+LocaleUtility::getAvailableLocaleNames(const UnicodeString& bundleID)
 {
     // have to ignore bundleID for the moment, since we don't have easy C++ api.
     // assume it's the default bundle
@@ -293,7 +293,7 @@ LocaleKey::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(LocaleKey)
+const char LocaleKey::fgClassID = 0;
 
 /*
  ******************************************************************
@@ -346,7 +346,7 @@ LocaleKeyFactory::updateVisibleIDs(Hashtable& result, UErrorCode& status) const 
 
         const UHashElement* elem = NULL;
         int32_t pos = 0;
-        while ((elem = supported->nextElement(pos)) != NULL) {
+        while (elem = supported->nextElement(pos)) {
             const UnicodeString& id = *((const UnicodeString*)elem->key.pointer);
             if (!visible) {
                 result.remove(id);
@@ -375,10 +375,7 @@ LocaleKeyFactory::getDisplayName(const UnicodeString& id, const Locale& locale, 
 }
 
 UObject*
-LocaleKeyFactory::handleCreate(const Locale& /* loc */, 
-			       int32_t /* kind */, 
-			       const ICUService* /* service */, 
-			       UErrorCode& /* status */) const {
+LocaleKeyFactory::handleCreate(const Locale& loc, int32_t kind, const ICUService* service, UErrorCode& status) const {
     return NULL;
 }
 
@@ -389,7 +386,7 @@ LocaleKeyFactory::isSupportedID(const UnicodeString& id, UErrorCode& status) con
 }
 
 const Hashtable*
-LocaleKeyFactory::getSupportedIDs(UErrorCode& /* status */) const {
+LocaleKeyFactory::getSupportedIDs(UErrorCode& status) const {
     return NULL;
 }
 
@@ -412,7 +409,7 @@ LocaleKeyFactory::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(LocaleKeyFactory)
+const char LocaleKeyFactory::fgClassID = 0;
 
 /*
  ******************************************************************
@@ -464,7 +461,7 @@ SimpleLocaleKeyFactory::create(const ICUServiceKey& key, const ICUService* servi
 }
 
 UBool
-SimpleLocaleKeyFactory::isSupportedID(const UnicodeString& id, UErrorCode& /* status */) const
+SimpleLocaleKeyFactory::isSupportedID(const UnicodeString& id, UErrorCode& status) const
 {
     return id == _id;
 }
@@ -500,7 +497,7 @@ SimpleLocaleKeyFactory::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(SimpleLocaleKeyFactory)
+const char SimpleLocaleKeyFactory::fgClassID = 0;
 
 /*
  ******************************************************************
@@ -528,7 +525,7 @@ ICUResourceBundleFactory::getSupportedIDs(UErrorCode& status) const
 }
 
 UObject*
-ICUResourceBundleFactory::handleCreate(const Locale& loc, int32_t /* kind */, const ICUService* /* service */, UErrorCode& status) const
+ICUResourceBundleFactory::handleCreate(const Locale& loc, int32_t kind, const ICUService* service, UErrorCode& status) const
 {
     if (U_SUCCESS(status)) {
         return new ResourceBundle(_bundleName, loc, status);
@@ -552,7 +549,7 @@ ICUResourceBundleFactory::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ICUResourceBundleFactory)
+const char ICUResourceBundleFactory::fgClassID = '\0';
 
 /*
  ******************************************************************
@@ -694,35 +691,19 @@ private:
     int32_t _timestamp;
     UVector _ids;
     int32_t _pos;
+    void* _bufp;
+    int32_t _buflen;
 
 private:
-    ServiceEnumeration(const ICULocaleService* service, UErrorCode &status)
+    ServiceEnumeration(const ICULocaleService* service, UErrorCode status)
         : _service(service)
         , _timestamp(service->getTimestamp())
         , _ids(uhash_deleteUnicodeString, NULL, status)
         , _pos(0)
+        , _bufp(NULL)
+        , _buflen(0)
     {
         _service->getVisibleIDs(_ids, status);
-    }
-
-    ServiceEnumeration(const ServiceEnumeration &other, UErrorCode &status)
-        : _service(other._service)
-        , _timestamp(other._timestamp)
-        , _ids(uhash_deleteUnicodeString, NULL, status)
-        , _pos(0)
-    {
-        if(U_SUCCESS(status)) {
-            int32_t i, length;
-
-            length = other._ids.size();
-            for(i = 0; i < length; ++i) {
-                _ids.addElement(((UnicodeString *)other._ids.elementAt(i))->clone(), status);
-            }
-
-            if(U_SUCCESS(status)) {
-                _pos = other._pos;
-            }
-        }
     }
 
 public:
@@ -736,20 +717,55 @@ public:
         return NULL;
     }
 
-    virtual ~ServiceEnumeration() {}
-
-    virtual StringEnumeration *clone() const {
-        UErrorCode status = U_ZERO_ERROR;
-        ServiceEnumeration *cl = new ServiceEnumeration(*this, status);
-        if(U_FAILURE(status)) {
-            delete cl;
-            cl = NULL;
-        }
-        return cl;
+    virtual ~ServiceEnumeration() {
+        uprv_free(_bufp);
     }
 
     virtual int32_t count(UErrorCode& status) const {
         return upToDate(status) ? _ids.size() : 0;
+    }
+
+    const char* next(int32_t* resultLength, UErrorCode& status) {
+        const UnicodeString* us = snext(status);
+        if (us) {
+            while (TRUE) {
+                int32_t newlen = us->extract((char*)_bufp, _buflen / sizeof(char), NULL, status);
+                if (status == U_STRING_NOT_TERMINATED_WARNING || status == U_BUFFER_OVERFLOW_ERROR) {
+                    resizeBuffer((newlen + 1) * sizeof(char));
+                    status = U_ZERO_ERROR;
+                } else if (U_SUCCESS(status)) {
+                    ((char*)_bufp)[newlen] = 0;
+                    if (resultLength) {
+                        resultLength[0] = newlen;
+                    }
+                    return (const char*)_bufp;
+                } else {
+                    break;
+                }
+            }
+        }
+        return NULL;
+    }
+
+    const UChar* unext(int32_t* resultLength, UErrorCode& status) {
+        const UnicodeString* us = snext(status);
+        if (us) {
+            while (TRUE) {
+                int32_t newlen = us->extract((UChar*)_bufp, _buflen / sizeof(UChar), status);
+                if (status == U_STRING_NOT_TERMINATED_WARNING || status == U_BUFFER_OVERFLOW_ERROR) {
+                    resizeBuffer((newlen + 1) * sizeof(UChar));
+                } else if (U_SUCCESS(status)) {
+                    ((UChar*)_bufp)[newlen] = 0;
+                    if (resultLength) {
+                        resultLength[0] = newlen;
+                    }
+                    return (const UChar*)_bufp;
+                } else {
+                    break;
+                }
+            }
+        }
+        return NULL;
     }
 
     const UnicodeString* snext(UErrorCode& status) {
@@ -757,6 +773,15 @@ public:
             return (const UnicodeString*)_ids[_pos++];
         }
         return NULL;
+    }
+
+    void resizeBuffer(int32_t newlen) {
+        if (_bufp) {
+            _bufp = uprv_realloc(_bufp, newlen);
+        } else {
+            _bufp = uprv_malloc(newlen);
+        }
+        _buflen = newlen;
     }
 
     UBool upToDate(UErrorCode& status) const {
@@ -781,11 +806,13 @@ public:
     }
 
 public:
-    static UClassID getStaticClassID(void);
-    virtual UClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
+private:
+    static const char fgClassID;
 };
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ServiceEnumeration)
+const char ServiceEnumeration::fgClassID = '\0';
 
 StringEnumeration*
 ICULocaleService::getAvailableLocales(void) const

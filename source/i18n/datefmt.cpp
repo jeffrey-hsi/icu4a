@@ -25,10 +25,6 @@
 #include "unicode/datefmt.h"
 #include "unicode/smpdtfmt.h"
 
-#if defined( U_DEBUG_CALSVC ) || defined (U_DEBUG_CAL)
-#include <stdio.h>
-#endif
-
 // *****************************************************************************
 // class DateFormat
 // *****************************************************************************
@@ -90,13 +86,14 @@ DateFormat::operator==(const Format& other) const
     // which have confirmed that the other object being compared against is
     // an instance of a sublcass of DateFormat.  THIS IS IMPORTANT.
 
-    // Format::operator== guarantees that this cast is safe
+    // We only dereference this pointer after we have confirmed below that
+    // 'other' is a DateFormat subclass.
     DateFormat* fmt = (DateFormat*)&other;
 
     return (this == fmt) ||
-        (Format::operator==(other) &&
+        ((getDynamicClassID() == other.getDynamicClassID()) &&
          fCalendar&&(fCalendar->isEquivalentTo(*fmt->fCalendar)) &&
-         (fNumberFormat && *fNumberFormat == *fmt->fNumberFormat));
+         (fNumberFormat&&(*fNumberFormat == *fmt->fNumberFormat)) );
 }
 
 //----------------------------------------------------------------------
@@ -196,13 +193,7 @@ DateFormat::parse(const UnicodeString& text,
 
     ParsePosition pos(0);
     UDate result = parse(text, pos);
-    if (pos.getIndex() == 0) {
-#if defined (U_DEBUG_CAL)
-      fprintf(stderr, "%s:%d - - failed to parse  - err index %d\n"
-              , __FILE__, __LINE__, pos.getErrorIndex() );
-#endif
-      status = U_ILLEGAL_ARGUMENT_ERROR;
-    }
+    if (pos.getIndex() == 0) status = U_ILLEGAL_ARGUMENT_ERROR;
     return result;
 }
 

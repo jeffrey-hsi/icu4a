@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2001-2003, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) 2001, International Business Machines Corporation and others. All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
 *   07/23/01    aliu        Creation.
@@ -19,7 +19,7 @@ U_NAMESPACE_BEGIN
 
 const UChar EMPTY[] = { 0 }; // empty string: ""
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringMatcher)
+const char StringMatcher::fgClassID=0;
 
 StringMatcher::StringMatcher(const UnicodeString& theString,
                              int32_t start,
@@ -35,9 +35,7 @@ StringMatcher::StringMatcher(const UnicodeString& theString,
 }
 
 StringMatcher::StringMatcher(const StringMatcher& o) :
-    UnicodeFunctor(o),
     UnicodeMatcher(o),
-    UnicodeReplacer(o),
     pattern(o.pattern),
     data(o.data),
     segmentNumber(o.segmentNumber),
@@ -195,13 +193,13 @@ UBool StringMatcher::matchesIndexValue(uint8_t v) const {
 void StringMatcher::addMatchSetTo(UnicodeSet& toUnionTo) const {
     UChar32 ch;
     for (int32_t i=0; i<pattern.length(); i+=UTF_CHAR_LENGTH(ch)) {
-        ch = pattern.char32At(i);
-        const UnicodeMatcher* matcher = data->lookupMatcher(ch);
-        if (matcher == NULL) {
-            toUnionTo.add(ch);
-        } else {
-            matcher->addMatchSetTo(toUnionTo);
-        }
+	ch = pattern.char32At(i);
+	const UnicodeMatcher* matcher = data->lookupMatcher(ch);
+	if (matcher == NULL) {
+	    toUnionTo.add(ch);
+	} else {
+	    matcher->addMatchSetTo(toUnionTo);
+	}
     }
 }
 
@@ -211,7 +209,7 @@ void StringMatcher::addMatchSetTo(UnicodeSet& toUnionTo) const {
 int32_t StringMatcher::replace(Replaceable& text,
                                int32_t start,
                                int32_t limit,
-                               int32_t& /*cursor*/) {
+                               int32_t& cursor) {
     
     int32_t outLen = 0;
     
@@ -235,7 +233,7 @@ int32_t StringMatcher::replace(Replaceable& text,
  * UnicodeReplacer API
  */
 UnicodeString& StringMatcher::toReplacerPattern(UnicodeString& rule,
-                                                UBool /*escapeUnprintable*/) const {
+                                                UBool escapeUnprintable) const {
     // assert(segmentNumber > 0);
     rule.truncate(0);
     rule.append((UChar)0x0024 /*$*/);
@@ -256,7 +254,7 @@ UnicodeString& StringMatcher::toReplacerPattern(UnicodeString& rule,
  * into the given set.
  * @param toUnionTo the set into which to union the output characters
  */
-void StringMatcher::addReplacementSetTo(UnicodeSet& /*toUnionTo*/) const {
+void StringMatcher::addReplacementSetTo(UnicodeSet& toUnionTo) const {
     // The output of this replacer varies; it is the source text between
     // matchStart and matchLimit.  Since this varies depending on the
     // input text, we can't compute it here.  We can either do nothing

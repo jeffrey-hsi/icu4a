@@ -18,22 +18,20 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(UnicodeToHexTransliterator)
+const char UnicodeToHexTransliterator::fgClassID=0;
 
 /**
  * ID for this transliterator.
  */
-const char CURR_ID[] = "Any-Hex";
+const char UnicodeToHexTransliterator::_ID[] = "Any-Hex";
 
-static const UChar HEX_DIGITS[32] = {
+const UChar UnicodeToHexTransliterator::HEX_DIGITS[32] = {
     // Use Unicode hex values for EBCDIC compatibility
     0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, // 01234567
     0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, // 89abcdef
     0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, // 01234567
     0x38, 0x39, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, // 89ABCDEF
 };
-
-UnicodeToHexTransliterator::~UnicodeToHexTransliterator() {}
 
 /**
  * Constructs a transliterator.
@@ -43,9 +41,8 @@ UnicodeToHexTransliterator::UnicodeToHexTransliterator(
                                 UBool isUppercase,
                                 UnicodeFilter* adoptedFilter,
                                 UErrorCode& status) :
-    Transliterator(UnicodeString(CURR_ID, ""), adoptedFilter),
-    uppercase(isUppercase)
-{
+    Transliterator(_ID, adoptedFilter),
+    uppercase(isUppercase) {
 
     if (U_FAILURE(status)) {
         return;
@@ -59,7 +56,7 @@ UnicodeToHexTransliterator::UnicodeToHexTransliterator(
 UnicodeToHexTransliterator::UnicodeToHexTransliterator(
                                 const UnicodeString& thePattern,
                                 UErrorCode& status) :
-    Transliterator(UnicodeString(CURR_ID, ""), 0),
+    Transliterator(_ID, 0),
     uppercase(TRUE) {
 
     if (U_FAILURE(status)) {
@@ -74,7 +71,7 @@ UnicodeToHexTransliterator::UnicodeToHexTransliterator(
  */
 UnicodeToHexTransliterator::UnicodeToHexTransliterator(
                                 UnicodeFilter* adoptedFilter) :
-    Transliterator(UnicodeString(CURR_ID, ""), adoptedFilter),
+    Transliterator(_ID, adoptedFilter),
     pattern("\\\\u0000", ""),
     prefix("\\u", 2, ""),
     suffix(),

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2001-2003, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) 2001, International Business Machines Corporation and others. All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
 *   07/26/01    aliu        Creation.
@@ -101,14 +101,14 @@ class Quantifier : public UnicodeFunctor, public UnicodeMatcher {
      *
      * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
  private:
 
@@ -119,6 +119,12 @@ class Quantifier : public UnicodeFunctor, public UnicodeMatcher {
     uint32_t minCount;
 
     uint32_t maxCount;
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 U_NAMESPACE_END

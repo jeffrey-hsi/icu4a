@@ -70,10 +70,6 @@ private:
 
     void TestInvalidCodePoint(void);
 
-    void TestSymbolTable(void);
-
-    void TestSurrogate();
-
 private:
 
     UBool toPatternAux(UChar32 start, UChar32 end);

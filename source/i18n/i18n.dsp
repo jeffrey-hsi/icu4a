@@ -55,7 +55,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 icuuc.lib /nologo /base:"0x4a900000" /dll /machine:I386 /out:"..\..\bin\icuin28.dll" /implib:"..\..\lib\icuin.lib" /libpath:"..\..\lib"
+# ADD LINK32 icuuc.lib /nologo /base:"0x4a900000" /dll /machine:I386 /out:"..\..\bin\icuin26.dll" /implib:"..\..\lib\icuin.lib" /libpath:"..\..\lib"
 # SUBTRACT LINK32 /pdb:none /debug
 
 !ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 icuucd.lib /nologo /base:"0x4a900000" /dll /debug /machine:I386 /out:"..\..\bin\icuin28d.dll" /implib:"..\..\lib\icuind.lib" /pdbtype:sept /libpath:"..\..\lib"
+# ADD LINK32 icuucd.lib /nologo /base:"0x4a900000" /dll /debug /machine:I386 /out:"..\..\bin\icuin26d.dll" /implib:"..\..\lib\icuind.lib" /pdbtype:sept /libpath:"..\..\lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "i18n - Win64 Release"
@@ -109,7 +109,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:IX86 /machine:IA64
-# ADD LINK32 icuuc.lib /nologo /base:"0x4a900000" /dll /machine:IX86 /out:"..\..\bin\icuin28.dll" /implib:"..\..\lib\icuin.lib" /libpath:"..\..\lib" /machine:IA64
+# ADD LINK32 icuuc.lib /nologo /base:"0x4a900000" /dll /machine:IX86 /out:"..\..\bin\icuin26.dll" /implib:"..\..\lib\icuin.lib" /libpath:"..\..\lib" /machine:IA64
 # SUBTRACT LINK32 /debug
 
 !ELSEIF  "$(CFG)" == "i18n - Win64 Debug"
@@ -136,7 +136,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:IX86 /pdbtype:sept /machine:IA64
-# ADD LINK32 icuucd.lib /nologo /base:"0x4a900000" /dll /incremental:no /debug /machine:IX86 /out:"..\..\bin\icuin28d.dll" /implib:"..\..\lib\icuind.lib" /pdbtype:sept /libpath:"..\..\lib" /machine:IA64
+# ADD LINK32 icuucd.lib /nologo /base:"0x4a900000" /dll /incremental:no /debug /machine:IX86 /out:"..\..\bin\icuin26d.dll" /implib:"..\..\lib\icuind.lib" /pdbtype:sept /libpath:"..\..\lib" /machine:IA64
 
 !ENDIF 
 
@@ -678,39 +678,7 @@ SOURCE=.\buddhcal.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\islamcal.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\islamcal.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\astro.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\astro.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\calendar.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\chnsecal.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\chnsecal.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\hebrwcal.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\hebrwcal.h
 # End Source File
 # Begin Source File
 
@@ -965,14 +933,6 @@ InputPath=.\unicode\decimfmt.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\digitlst.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\digitlst.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\dtfmtsym.cpp
 # End Source File
 # Begin Source File
@@ -1224,14 +1184,6 @@ InputPath=.\unicode\gregocal.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\gregoimp.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\gregoimp.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\japancal.cpp
 # End Source File
 # Begin Source File
@@ -1367,14 +1319,6 @@ InputPath=.\unicode\numfmt.h
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\olsontz.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\olsontz.h
 # End Source File
 # Begin Source File
 
@@ -1582,6 +1526,10 @@ InputPath=.\unicode\timezone.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\tzdat.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\ucal.cpp
 # End Source File
 # Begin Source File
@@ -1681,10 +1629,6 @@ InputPath=.\unicode\ucurr.h
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucurrimp.h
 # End Source File
 # Begin Source File
 
@@ -1942,6 +1886,10 @@ SOURCE=.\rematch.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\remtrans.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\repattrn.cpp
 # End Source File
 # End Group
@@ -2059,10 +2007,6 @@ SOURCE=.\rbt_set.cpp
 # Begin Source File
 
 SOURCE=.\rbt_set.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\remtrans.cpp
 # End Source File
 # Begin Source File
 
@@ -2340,37 +2284,6 @@ InputPath=.\unicode\utrans.h
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
-
-!ENDIF 
-
-# End Source File
-# End Group
-# Begin Group "locale"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\ulocdata.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\ulocdata.h
-
-!IF  "$(CFG)" == "i18n - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ulocdata.h
-
-"..\..\include\unicode\ulocdata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "i18n - Win64 Release"
-
-!ELSEIF  "$(CFG)" == "i18n - Win64 Debug"
 
 !ENDIF 
 

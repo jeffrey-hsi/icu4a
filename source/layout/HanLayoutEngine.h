@@ -4,7 +4,7 @@
  *
  * (C) Copyright IBM Corp. 1998-2003 - All Rights Reserved.
  *
- * $Source: /xsrl/Nsvn/icu/icu/source/layout/HanLayoutEngine.h,v $ $Date: 2003/12/08 22:41:38 $ $Revision: 1.5 $
+ * $Source: /xsrl/Nsvn/icu/icu/source/layout/HanLayoutEngine.h,v $ $Date: 2003/06/10 17:44:58 $ $Revision: 1.3 $
  */
 
 #ifndef __HANLAYOUTENGINE_H
@@ -60,14 +60,14 @@ public:
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
@@ -82,7 +82,7 @@ protected:
      * @param offset - the index of the first character to process
      * @param count - the number of characters to process
      * @param max - the number of characters in the input context
-     * @param rightToLeft - TRUE if the characters are in a right to left directional run
+     * @param rightToLeft - true if the characters are in a right to left directional run
      *
      * Output parameters:
      * @param outChars - the output character arrayt

@@ -167,9 +167,7 @@ public:
         kTimezoneField,      // TIMEZONE field alignment.
         kYearWOYField,   // Corrected year for week representation
         kDOWLocalField, // localized day of week
-        kExtendedYearField,
-        kJulianDayField,
-        kMillisecondsInDayField,
+
         
         
     /**
@@ -602,6 +600,7 @@ public:
      */
     virtual void setTimeZone(const TimeZone& zone);
 
+    
 protected:
     /**
      * Default constructor.  Creates a DateFormat with no Calendar or NumberFormat

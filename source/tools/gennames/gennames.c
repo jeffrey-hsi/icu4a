@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2003, International Business Machines
+*   Copyright (C) 1999-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -124,7 +124,6 @@
 #include "unicode/putil.h"
 #include "cmemory.h"
 #include "cstring.h"
-#include "unicode/uclean.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
 #include "uoptions.h"
@@ -283,21 +282,8 @@ extern int
 main(int argc, char* argv[]) {
     UVersionInfo version;
     UBool store10Names=FALSE;
-    UErrorCode errorCode = U_ZERO_ERROR;
 
     U_MAIN_INIT_ARGS(argc, argv);
-
-    /* Initialize ICU */
-    u_init(&errorCode);
-    if (U_FAILURE(errorCode) && errorCode != U_FILE_ACCESS_ERROR) {
-        /* Note: u_init() will try to open ICU property data.
-         *       failures here are expected when building ICU from scratch.
-         *       ignore them.
-         */
-        fprintf(stderr, "%s: can not initialize ICU.  errorCode = %s\n",
-            argv[0], u_errorName(errorCode));
-        exit(1);
-    }
 
     /* preset then read command line options */
     options[5].value=u_getDataDirectory();
@@ -354,7 +340,6 @@ main(int argc, char* argv[]) {
     compress();
     generateData(options[5].value);
 
-    u_cleanup();
     return 0;
 }
 
@@ -368,22 +353,6 @@ init() {
 }
 
 /* parsing ------------------------------------------------------------------ */
-
-/* get a name, strip leading and trailing whitespace */
-static int16_t
-getName(char **pStart, char *limit) {
-    /* strip leading whitespace */
-    char *start=(char *)u_skipWhitespace(*pStart);
-
-    /* strip trailing whitespace */
-    while(start<limit && (*(limit-1)==' ' || *(limit-1)=='\t')) {
-        --limit;
-    }
-
-    /* return results */
-    *pStart=start;
-    return (int16_t)(limit-start);
-}
 
 static void U_CALLCONV
 lineFn(void *context,
@@ -402,8 +371,9 @@ lineFn(void *context,
 
     /* get the character name */
     names[0]=fields[1][0];
-    lengths[0]=getName(names+0, fields[1][1]);
-    if(names[0][0]=='<') {
+    if(fields[1][0][0]!='<') {
+        lengths[0]=(int16_t)(fields[1][1]-names[0]);
+    } else {
         /* do not store pseudo-names in <> brackets */
         lengths[0]=0;
     }
@@ -412,16 +382,15 @@ lineFn(void *context,
     /* get the second character name, the one from Unicode 1.0 */
     /* do not store pseudo-names in <> brackets */
     names[1]=fields[10][0];
-    lengths[1]=getName(names+1, fields[10][1]);
-    if(*(UBool *)context && names[1][0]!='<') {
-        /* keep the name */
+    if(*(UBool *)context && fields[10][0][0]!='<') {
+        lengths[1]=(int16_t)(fields[10][1]-names[1]);
     } else {
         lengths[1]=0;
     }
 
     /* get the ISO 10646 comment */
     names[2]=fields[11][0];
-    lengths[2]=getName(names+2, fields[11][1]);
+    lengths[2]=(int16_t)(fields[11][1]-names[2]);
 
     if(lengths[0]+lengths[1]+lengths[2]==0) {
         return;

@@ -93,96 +93,38 @@ void RBDataMap::init(UResourceBundle *headers, UResourceBundle *data, UErrorCode
   ures_close(t);
 }
 
-const ResourceBundle *RBDataMap::getItem(const char* key, UErrorCode &status) const
-{
-  if(U_FAILURE(status)) {
-    return NULL;
-  }
-
-  UnicodeString hashKey(key, "");
-  const ResourceBundle *r = (ResourceBundle *)fData->get(hashKey);
-  if(r != NULL) {
-    return r;
-  } else {
-    status = U_MISSING_RESOURCE_ERROR;
-    return NULL;
-  }
-}
 
 const UnicodeString RBDataMap::getString(const char* key, UErrorCode &status) const
 {
-  const ResourceBundle *r = getItem(key, status);
-  if(U_SUCCESS(status)) {
+  UnicodeString hashKey(key, "");
+  ResourceBundle *r = (ResourceBundle *)fData->get(hashKey);
+  if(r != NULL) {
     return r->getString(status);
   } else {
     status = U_MISSING_RESOURCE_ERROR;
-    return UnicodeString();
+    return UnicodeString("", "");
   }
 }
 
-int32_t
-RBDataMap::getInt28(const char* key, UErrorCode &status) const
-{
-  const ResourceBundle *r = getItem(key, status);
-  if(U_SUCCESS(status)) {
-    return r->getInt(status);
-  } else {
-    return 0;
-  }
-}
-
-uint32_t
-RBDataMap::getUInt28(const char* key, UErrorCode &status) const
-{
-  const ResourceBundle *r = getItem(key, status);
-  if(U_SUCCESS(status)) {
-    return r->getUInt(status);
-  } else {
-    return 0;
-  }
-}
-
-const int32_t *
-RBDataMap::getIntVector(int32_t &length, const char *key, UErrorCode &status) const {
-  const ResourceBundle *r = getItem(key, status);
-  if(U_SUCCESS(status)) {
-    return r->getIntVector(length, status);
-  } else {
-    return NULL;
-  }
-}
-
-const uint8_t *
-RBDataMap::getBinary(int32_t &length, const char *key, UErrorCode &status) const {
-  const ResourceBundle *r = getItem(key, status);
-  if(U_SUCCESS(status)) {
-    return r->getBinary(length, status);
-  } else {
-    return NULL;
-  }
-}
 
 int32_t RBDataMap::getInt(const char* key, UErrorCode &status) const
 {
+  int32_t result = 0;
   UnicodeString r = this->getString(key, status);
   if(U_SUCCESS(status)) {
-    return utoi(r);
-  } else {
-    return 0;
+    result = utoi(r);
   }
+  return result;
 }
 
 const UnicodeString* RBDataMap::getStringArray(int32_t& count, const char* key, UErrorCode &status) const 
 {
-  const ResourceBundle *r = getItem(key, status);
-  if(U_SUCCESS(status)) {
+  UnicodeString hashKey(key, "");
+  ResourceBundle *r = (ResourceBundle *)fData->get(hashKey);
+  if(r != NULL) {
     int32_t i = 0;
 
     count = r->getSize();
-    if(count <= 0) {
-      return NULL;
-    }
-
     UnicodeString *result = new UnicodeString[count];
     for(i = 0; i<count; i++) {
       result[i] = r->getStringEx(i, status);
@@ -196,15 +138,12 @@ const UnicodeString* RBDataMap::getStringArray(int32_t& count, const char* key, 
 
 const int32_t* RBDataMap::getIntArray(int32_t& count, const char* key, UErrorCode &status) const
 {
-  const ResourceBundle *r = getItem(key, status);
-  if(U_SUCCESS(status)) {
+  UnicodeString hashKey(key, "");
+  ResourceBundle *r = (ResourceBundle *)fData->get(hashKey);
+  if(r != NULL) {
     int32_t i = 0;
 
     count = r->getSize();
-    if(count <= 0) {
-      return NULL;
-    }
-
     int32_t *result = new int32_t[count];
     UnicodeString stringRes;
     for(i = 0; i<count; i++) {
@@ -217,3 +156,5 @@ const int32_t* RBDataMap::getIntArray(int32_t& count, const char* key, UErrorCod
     return NULL;
   }
 }
+
+

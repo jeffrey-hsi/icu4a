@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (C) 1998-2003, International Business Machines Corporation 
+* Copyright (C) 1998-2000, International Business Machines Corporation 
 * and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -196,20 +196,14 @@ U_CAPI int u_wmsg(FILE *fp, const char *tag, ... )
 }
 
 /* these will break if the # of messages change. simply add or remove 0's .. */
-UChar **gInfoMessages = NULL;
+UChar * gInfoMessages[U_ERROR_WARNING_LIMIT-U_ERROR_WARNING_START] = 
+    { 0,0 };
 
-UChar **gErrMessages = NULL;
+UChar * gErrMessages[U_ERROR_LIMIT] = 
+    { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
 static const UChar *fetchErrorName(UErrorCode err)
 {
-    if (!gInfoMessages) {
-        gInfoMessages = (UChar **)malloc((U_ERROR_WARNING_LIMIT-U_ERROR_WARNING_START)*sizeof(UChar*));
-        memset(gInfoMessages, 0, (U_ERROR_WARNING_LIMIT-U_ERROR_WARNING_START)*sizeof(UChar*));
-    }
-    if (!gErrMessages) {
-        gErrMessages = (UChar **)malloc(U_ERROR_LIMIT*sizeof(UChar*));
-        memset(gErrMessages, 0, U_ERROR_LIMIT*sizeof(UChar*));
-    }
     if(err>=0)
         return gErrMessages[err];
     else

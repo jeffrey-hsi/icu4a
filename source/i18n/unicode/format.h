@@ -31,12 +31,8 @@
 #include "unicode/fieldpos.h"
 #include "unicode/parsepos.h"
 #include "unicode/parseerr.h" 
-#include "unicode/locid.h"
 
 U_NAMESPACE_BEGIN
-
-class ResourceBundle;
-
 /**
  * Base class for all formats.  This is an abstract base class which
  * specifies the protocol for classes which convert other objects or
@@ -225,7 +221,12 @@ public:
      * This method is to implement a simple version of RTTI, since not all
      * C++ compilers support genuine RTTI.  Polymorphic operator==() and
      * clone() methods call this method.
+     * <P>
      * Concrete subclasses of Format must implement getDynamicClassID()
+     * and also a static method and data member:
+     *
+     *      static UClassID getStaticClassID() { return (UClassID)&fgClassID; }
+     *      static char fgClassID;
      *
      * @return          The class ID for this object. All objects of a
      *                  given class have the same class ID.  Objects of
@@ -233,28 +234,6 @@ public:
      * @stable ICU 2.0
      */
     virtual UClassID getDynamicClassID() const = 0;
-
-    /** Get the locale for this format object. You can choose between valid and actual locale.
-     *  @param type type of the locale we're looking for (valid or actual) 
-     *  @param status error code for the operation
-     *  @return the locale
-     *  @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
-     */
-    Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
-
-    /** Get the locale for this format object. You can choose between valid and actual locale.
-     *  @param type type of the locale we're looking for (valid or actual) 
-     *  @param status error code for the operation
-     *  @return the locale
-     *  @internal
-     */
-    const char* getLocaleID(ULocDataLocaleType type, UErrorCode &status) const;
-
- protected:
-    
-    void setLocales(const ResourceBundle& res);
-
-    void setLocaleIDs(const char* valid, const char* actual);
 
 protected:
     /**
@@ -285,10 +264,6 @@ protected:
     static void syntaxError(const UnicodeString& pattern,
                             int32_t pos,
                             UParseError& parseError);
-
- private:
-    char actualLocale[ULOC_FULLNAME_CAPACITY];
-    char validLocale[ULOC_FULLNAME_CAPACITY];
 };
 
 U_NAMESPACE_END

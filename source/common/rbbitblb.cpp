@@ -25,20 +25,9 @@ U_NAMESPACE_BEGIN
 
 RBBITableBuilder::RBBITableBuilder(RBBIRuleBuilder *rb, RBBINode **rootNode) :
  fTree(*rootNode) {
-    fRB                 = rb;
-    fStatus             = fRB->fStatus;
-    UErrorCode status   = U_ZERO_ERROR;
-    fDStates            = new UVector(status);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
-    if (U_FAILURE(status)) {
-        *fStatus = status;
-        return;
-    }
-    if (fDStates == NULL) {
-        *fStatus = U_MEMORY_ALLOCATION_ERROR;;
-    }
+    fRB             = rb;
+    fStatus         = fRB->fStatus;
+    fDStates        = new UVector(*fStatus);
 }
 
 
@@ -117,13 +106,6 @@ void  RBBITableBuilder::build() {
     if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "pos")) {
         RBBIDebugPrintf("\n\n");
         printPosSets(fTree);
-    }
-
-    //
-    //  For "chained" rules, modify the followPos sets
-    //
-    if (fRB->fChainRules) {
-        calcChainedFollowPos(fTree);
     }
 
     //
@@ -319,97 +301,6 @@ void RBBITableBuilder::calcFollowPos(RBBINode *n) {
 
 //-----------------------------------------------------------------------------
 //
-//   calcChainedFollowPos.    Modify the previously calculated followPos sets
-//                            to implement rule chaining.  NOT described by Aho
-//
-//-----------------------------------------------------------------------------
-void RBBITableBuilder::calcChainedFollowPos(RBBINode *tree) {
-
-    UVector         endMarkerNodes(*fStatus);
-    UVector         leafNodes(*fStatus);
-    int32_t         i;
-
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
-
-    // get a list of all endmarker nodes.
-    tree->findNodes(&endMarkerNodes, RBBINode::endMark, *fStatus);
-
-    // get a list all leaf nodes 
-    tree->findNodes(&leafNodes, RBBINode::leafChar, *fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
-
-    // Get all nodes that can be the start a match, which is FirstPosition(root)
-    UVector *matchStartNodes = tree->fFirstPosSet;
-
-
-    // Iteratate over all leaf nodes,
-    //
-    int32_t  endNodeIx;
-    int32_t  startNodeIx;
-
-    for (endNodeIx=0; endNodeIx<leafNodes.size(); endNodeIx++) {
-        RBBINode *tNode   = (RBBINode *)leafNodes.elementAt(endNodeIx);
-        RBBINode *endNode = NULL;
-
-        // Identify leaf nodes that correspond to overall rule match positions.
-        //   These include an endMarkerNode in their followPos sets.
-        for (i=0; i<endMarkerNodes.size(); i++) {
-            if (tNode->fFollowPos->contains(endMarkerNodes.elementAt(i))) {
-                endNode = tNode;
-                break;
-            }
-        }
-        if (endNode == NULL) {
-            // node wasn't an end node.  Try again with the next.
-            continue;
-        }
-
-        // We've got a node that can end a match.
-
-        // Line Break Specific hack:  If this node's val correspond to the $CM char class,
-        //                            don't chain from it.
-        // TODO:  Add rule syntax for this behavior, get specifics out of here and
-        //        into the rule file.
-        if (fRB->fLBCMNoChain) {
-            UChar32 c = this->fRB->fSetBuilder->getFirstChar(endNode->fVal);
-            U_ASSERT(c != -1);
-            ULineBreak cLBProp = (ULineBreak)u_getIntPropertyValue(c, UCHAR_LINE_BREAK);
-            if (cLBProp == U_LB_COMBINING_MARK) {
-                continue;
-            }
-        }
-
-
-        // Now iterate over the nodes that can start a match, looking for ones
-        //   with the same char class as our ending node.
-        RBBINode *startNode;
-        for (startNodeIx = 0; startNodeIx<matchStartNodes->size(); startNodeIx++) {
-            startNode = (RBBINode *)matchStartNodes->elementAt(startNodeIx);
-            if (startNode->fType != RBBINode::leafChar) {
-                continue;
-            }
-
-            if (endNode->fVal == startNode->fVal) {
-                // The end val (character class) of one possible match is the
-                //   same as the start of another.
-
-                // Add all nodes from the followPos of the start node to the
-                //  followPos set of the end node, which will have the effect of
-                //  letting matches transition from a match state at endNode
-                //  to the second char of a match starting with startNode.
-                setAdd(endNode->fFollowPos, startNode->fFollowPos);
-            }
-        }
-    }
-}
-
-
-//-----------------------------------------------------------------------------
-//
 //   buildStateTable()    Determine the set of runtime DFA states and the
 //                        transition tables for these states, by the algorithm
 //                        of fig. 3.44 in Aho.
@@ -418,37 +309,19 @@ void RBBITableBuilder::calcChainedFollowPos(RBBINode *tree) {
 //
 //-----------------------------------------------------------------------------
 void RBBITableBuilder::buildStateTable() {
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     //
     // Add a dummy state 0 - the stop state.  Not from Aho.
     int      lastInputSymbol = fRB->fSetBuilder->getNumCharCategories() - 1;
     RBBIStateDescriptor *failState = new RBBIStateDescriptor(lastInputSymbol, fStatus);
     failState->fPositions = new UVector(*fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     fDStates->addElement(failState, *fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
 
     // initially, the only unmarked state in Dstates is firstpos(root),
     //       where toot is the root of the syntax tree for (r)#;
     RBBIStateDescriptor *initialState = new RBBIStateDescriptor(lastInputSymbol, fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     initialState->fPositions = new UVector(*fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     setAdd(initialState->fPositions, fTree->fFirstPosSet);
     fDStates->addElement(initialState, *fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
 
     // while there is an unmarked state T in Dstates do begin
     for (;;) {
@@ -510,14 +383,8 @@ void RBBITableBuilder::buildStateTable() {
                 if (!UinDstates)
                 {
                     RBBIStateDescriptor *newState = new RBBIStateDescriptor(lastInputSymbol, fStatus);
-                    if (U_FAILURE(*fStatus)) {
-                        return;
-                    }
                     newState->fPositions = U;
                     fDStates->addElement(newState, *fStatus);
-                    if (U_FAILURE(*fStatus)) {
-                        return;
-                    }
                     ux = fDStates->size()-1;
                 }
 
@@ -540,22 +407,12 @@ void RBBITableBuilder::buildStateTable() {
 //
 //-----------------------------------------------------------------------------
 void     RBBITableBuilder::flagAcceptingStates() {
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     UVector     endMarkerNodes(*fStatus);
     RBBINode    *endMarker;
     int32_t     i;
     int32_t     n;
 
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
-
     fTree->findNodes(&endMarkerNodes, RBBINode::endMark, *fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
 
     for (i=0; i<endMarkerNodes.size(); i++) {
         endMarker = (RBBINode *)endMarkerNodes.elementAt(i);
@@ -587,18 +444,12 @@ void     RBBITableBuilder::flagAcceptingStates() {
 //
 //-----------------------------------------------------------------------------
 void     RBBITableBuilder::flagLookAheadStates() {
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     UVector     lookAheadNodes(*fStatus);
     RBBINode    *lookAheadNode;
     int32_t     i;
     int32_t     n;
 
     fTree->findNodes(&lookAheadNodes, RBBINode::lookAhead, *fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     for (i=0; i<lookAheadNodes.size(); i++) {
         lookAheadNode = (RBBINode *)lookAheadNodes.elementAt(i);
 
@@ -620,21 +471,12 @@ void     RBBITableBuilder::flagLookAheadStates() {
 //
 //-----------------------------------------------------------------------------
 void     RBBITableBuilder::flagTaggedStates() {
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     UVector     tagNodes(*fStatus);
     RBBINode    *tagNode;
     int32_t     i;
     int32_t     n;
 
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     fTree->findNodes(&tagNodes, RBBINode::tag, *fStatus);
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
     for (i=0; i<tagNodes.size(); i++) {                   // For each tag node t (all of 'em)
         tagNode = (RBBINode *)tagNodes.elementAt(i);
 
@@ -665,7 +507,7 @@ void RBBITableBuilder::setAdd(UVector *dest, UVector *source) {
     int sourceSize       = source->size();
     int32_t  si, di;
 
-    for (si=0; si<sourceSize && U_SUCCESS(*fStatus); si++) {
+    for (si=0; si<sourceSize; si++) {
         void *elToAdd = source->elementAt(si);
         for (di=0; di<destOriginalSize; di++) {
             if (dest->elementAt(di) == elToAdd) {
@@ -673,7 +515,7 @@ void RBBITableBuilder::setAdd(UVector *dest, UVector *source) {
             }
         }
         dest->addElement(elToAdd, *fStatus);
-        elementAlreadyInDest: ;
+    elementAlreadyInDest: ;
     }
 }
 
@@ -725,12 +567,12 @@ UBool RBBITableBuilder::setEquals(UVector *a, UVector *b) {
 //                 for each node in the tree.
 //
 //-----------------------------------------------------------------------------
-#ifdef RBBI_DEBUG
 void RBBITableBuilder::printPosSets(RBBINode *n) {
+#ifdef RBBI_DEBUG
     if (n==NULL) {
         return;
     }
-    n->printNode();
+    n->print();
     RBBIDebugPrintf("         Nullable:  %s\n", n->fNullable?"TRUE":"FALSE");
 
     RBBIDebugPrintf("         firstpos:  ");
@@ -744,8 +586,8 @@ void RBBITableBuilder::printPosSets(RBBINode *n) {
 
     printPosSets(n->fLeftChild);
     printPosSets(n->fRightChild);
-}
 #endif
+}
 
 
 
@@ -805,11 +647,6 @@ void RBBITableBuilder::exportTable(void *where) {
     table->fRowLen    = sizeof(RBBIStateTableRow) +
                             sizeof(uint16_t) * (fRB->fSetBuilder->getNumCharCategories() - 2);
     table->fNumStates = fDStates->size();
-    table->fFlags     = 0;
-    if (fRB->fLookAheadHardBreak) {
-        table->fFlags  |= RBBI_LOOKAHEAD_HARD_BREAK;
-    }
-    table->fReserved  = 0;
 
     for (state=0; state<table->fNumStates; state++) {
         RBBIStateDescriptor *sd = (RBBIStateDescriptor *)fDStates->elementAt(state);
@@ -832,16 +669,16 @@ void RBBITableBuilder::exportTable(void *where) {
 //   printSet    Debug function.   Print the contents of a UVector
 //
 //-----------------------------------------------------------------------------
-#ifdef RBBI_DEBUG
 void RBBITableBuilder::printSet(UVector *s) {
+#ifdef RBBI_DEBUG
     int32_t  i;
     for (i=0; i<s->size(); i++) {
         void *v = s->elementAt(i);
         RBBIDebugPrintf("%10p", v);
     }
     RBBIDebugPrintf("\n");
-}
 #endif
+}
 
 
 //-----------------------------------------------------------------------------
@@ -849,8 +686,8 @@ void RBBITableBuilder::printSet(UVector *s) {
 //   printStates    Debug Function.  Dump the fully constructed state transition table.
 //
 //-----------------------------------------------------------------------------
-#ifdef RBBI_DEBUG
 void RBBITableBuilder::printStates() {
+#ifdef RBBI_DEBUG
     int     c;    // input "character"
     int     n;    // state number
 
@@ -872,8 +709,8 @@ void RBBITableBuilder::printStates() {
         RBBIDebugPrintf("\n");
     }
     RBBIDebugPrintf("\n\n");
-}
 #endif
+}
 
 
 
@@ -893,16 +730,10 @@ RBBIStateDescriptor::RBBIStateDescriptor(int lastInputSymbol, UErrorCode *fStatu
     fTagVal    = 0;
     fPositions = NULL;
     fDtran     = NULL;
-    
-    UErrorCode status = U_ZERO_ERROR;
-    fDtran     = new UVector(lastInputSymbol+1, status);
     if (U_FAILURE(*fStatus)) {
         return;
     }
-    if (U_FAILURE(status)) {
-        *fStatus = status;
-        return;
-    }
+    fDtran     = new UVector(lastInputSymbol+1, *fStatus);
     if (fDtran == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
         return;

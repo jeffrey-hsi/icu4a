@@ -101,19 +101,7 @@ U_CDECL_END
 
 U_NAMESPACE_BEGIN
 
-/* The Replaceable virtual destructor can't be defined in the header
-   due to how AIX works with multiple definitions of virtual functions.
-*/
-Replaceable::~Replaceable() {}
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(UnicodeString)
-
-UnicodeString
-operator+ (const UnicodeString &s1, const UnicodeString &s2) {
-    return
-        UnicodeString(s1.length()+s2.length()+1, (UChar32)0, 0).
-            append(s1).
-                append(s2);
-}
+const char UnicodeString::fgClassID=0;
 
 //========================================
 // Reference Counting functions, put at top of file so that optimizing compilers
@@ -284,7 +272,7 @@ UnicodeString::UnicodeString(UChar *buff,
     fCapacity = US_STACKBUF_SIZE;
     fArray = fStackBuffer;
     fFlags = kShortString;
-  } else if(buffLength < -1 || buffCapacity < 0 || buffLength > buffCapacity) {
+  } else if(buffLength < -1 || buffLength > buffCapacity) {
     setToBogus();
   } else if(buffLength == -1) {
     // fLength = u_strlen(buff); but do not look beyond buffCapacity
@@ -1053,16 +1041,9 @@ UnicodeString::setTo(UChar *buffer,
     return *this;
   }
 
-  if(buffLength < -1 || buffCapacity < 0 || buffLength > buffCapacity) {
+  if(buffLength < 0 || buffLength > buffCapacity) {
     setToBogus();
     return *this;
-  } else if(buffLength == -1) {
-    // buffLength = u_strlen(buff); but do not look beyond buffCapacity
-    const UChar *p = buffer, *limit = buffer + buffCapacity;
-    while(p != limit && *p != 0) {
-      ++p;
-    }
-    buffLength = (int32_t)(p - buffer);
   }
 
   releaseArray();
@@ -1180,19 +1161,18 @@ UnicodeString::caseMap(BreakIterator *titleIter,
   UBreakIterator *cTitleIter = 0;
 
   if(toWhichCase == TO_TITLE) {
-    errorCode = U_ZERO_ERROR;
     if(titleIter != 0) {
       cTitleIter = (UBreakIterator *)titleIter;
-      ubrk_setText(cTitleIter, oldArray, oldLength, &errorCode);
     } else {
+      errorCode = U_ZERO_ERROR;
       cTitleIter = ubrk_open(UBRK_WORD, locale.getName(),
                              oldArray, oldLength,
                              &errorCode);
-    }
-    if(U_FAILURE(errorCode)) {
-      uprv_free(bufferToDelete);
-      setToBogus();
-      return *this;
+      if(U_FAILURE(errorCode)) {
+        uprv_free(bufferToDelete);
+        setToBogus();
+        return *this;
+      }
     }
   }
 #endif
@@ -1677,11 +1657,8 @@ UnicodeString::doCodepageCreate(const char *codepageData,
                 const char *codepage)
 {
   // if there's nothing to convert, do nothing
-  if(codepageData == 0 || dataLength == 0 || dataLength < -1) {
+  if(codepageData == 0 || dataLength <= 0) {
     return;
-  }
-  if(dataLength == -1) {
-    dataLength = uprv_strlen(codepageData);
   }
 
   UErrorCode status = U_ZERO_ERROR;

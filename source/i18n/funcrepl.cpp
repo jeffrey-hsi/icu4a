@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2002-2003, International Business Machines Corporation
+*   Copyright (c) 2002, International Business Machines Corporation
 *   and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -22,7 +22,7 @@ static const UChar CLOSE[]   = {32,41,0}; // " )"
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(FunctionReplacer)
+const char FunctionReplacer::fgClassID=0;
 
 /**
  * Construct a replacer that takes the output of the given
@@ -38,10 +38,7 @@ FunctionReplacer::FunctionReplacer(Transliterator* adoptedTranslit,
 /**
  * Copy constructor.
  */
-FunctionReplacer::FunctionReplacer(const FunctionReplacer& other) :
-    UnicodeFunctor(other),
-    UnicodeReplacer(other)
-{
+FunctionReplacer::FunctionReplacer(const FunctionReplacer& other) {
     translit = other.translit->clone();
     replacer = other.replacer->clone();
 }

@@ -4,7 +4,7 @@
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 * $Source: /xsrl/Nsvn/icu/icu/source/i18n/unicode/ucurr.h,v $ 
-* $Revision: 1.12 $
+* $Revision: 1.9 $
 **********************************************************************
 */
 #ifndef _UCURR_H_
@@ -34,24 +34,16 @@ typedef const void* UCurrRegistryKey;
  */
 
 /**
- * Finds a currency code for the given locale.
- * @param locale the locale for which to retrieve a currency code. 
- *               Currency can be specified by the "currency" keyword
- *               in which case it overrides the default currency code
- * @param buff   fill in buffer. Can be NULL for preflighting.
- * @param buffCapacity capacity of the fill in buffer. Can be 0 for
- *               preflighting. If it is non-zero, the buff parameter
- *               must not be NULL.
+ * Returns a currency code for the default currency in the given
+ * locale.
+ * @param locale the locale for which to retrieve a currency code
  * @param ec error code
- * @return length of the currency string. It should always be 3. If 0,
- *                currency couldn't be found or the input values are 
- *                invalid. 
- * @draft ICU 2.8
+ * @return a pointer to a 3-character ISO 4217 currency code, or
+ * NULL if none is found.
+ * @draft ICU 2.2
  */
-U_CAPI int32_t U_EXPORT2
+U_CAPI const UChar* U_EXPORT2
 ucurr_forLocale(const char* locale,
-                UChar* buff,
-                int32_t buffCapacity,
                 UErrorCode* ec);
 
 /**
@@ -133,27 +125,22 @@ ucurr_getName(const UChar* currency,
  * Returns the number of the number of fraction digits that should
  * be displayed for the given currency.
  * @param currency null-terminated 3-letter ISO 4217 code
- * @param ec input-output error code
  * @return a non-negative number of fraction digits to be
- * displayed, or 0 if there is an error
- * @draft ICU 3.0
+ * displayed
+ * @draft ICU 2.2
  */
 U_CAPI int32_t U_EXPORT2
-ucurr_getDefaultFractionDigits(const UChar* currency,
-                               UErrorCode* ec);
+ucurr_getDefaultFractionDigits(const UChar* currency);
 
 /**
  * Returns the rounding increment for the given currency, or 0.0 if no
  * rounding is done by the currency.
  * @param currency null-terminated 3-letter ISO 4217 code
- * @param ec input-output error code
- * @return the non-negative rounding increment, or 0.0 if none,
- * or 0.0 if there is an error
- * @draft ICU 3.0
+ * @return the non-negative rounding increment, or 0.0 if none
+ * @draft ICU 2.2
  */
 U_CAPI double U_EXPORT2
-ucurr_getRoundingIncrement(const UChar* currency,
-                           UErrorCode* ec);
+ucurr_getRoundingIncrement(const UChar* currency);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 

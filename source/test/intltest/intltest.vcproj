@@ -24,7 +24,7 @@
 				ImproveFloatingPointConsistency="TRUE"
 				OptimizeForProcessor="2"
 				AdditionalIncludeDirectories="..\..\..\include,..\..\..\source\common,..\..\..\source\i18n,..\..\tools\toolutil"
-				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE"
+				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE,UDATA_MAP_DLL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DisableLanguageExtensions="TRUE"
@@ -42,6 +42,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="odbc32.lib odbccp32.lib"
 				OutputFile=".\Debug/intltest.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
@@ -96,6 +97,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="odbc32.lib odbccp32.lib"
 				OutputFile=".\Release/intltest.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -288,16 +290,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="collections"
-			Filter="">
-			<File
-				RelativePath=".\v32test.cpp">
-			</File>
-			<File
-				RelativePath=".\v32test.h">
-			</File>
-		</Filter>
-		<Filter
 			Name="configuration"
 			Filter="">
 			<File
@@ -325,20 +317,16 @@
 				RelativePath=".\tsmthred.h">
 			</File>
 			<File
+				RelativePath=".\tsmutex.cpp">
+			</File>
+			<File
+				RelativePath=".\tsmutex.h">
+			</File>
+			<File
 				RelativePath=".\tsputil.cpp">
 			</File>
 			<File
 				RelativePath=".\tsputil.h">
-			</File>
-		</Filter>
-		<Filter
-			Name="conversion"
-			Filter="">
-			<File
-				RelativePath=".\convtest.cpp">
-			</File>
-			<File
-				RelativePath=".\convtest.h">
 			</File>
 		</Filter>
 		<Filter
@@ -354,18 +342,6 @@
 		<Filter
 			Name="formatting"
 			Filter="">
-			<File
-				RelativePath=".\astrotst.cpp">
-			</File>
-			<File
-				RelativePath=".\astrotst.h">
-			</File>
-			<File
-				RelativePath=".\calcasts.cpp">
-			</File>
-			<File
-				RelativePath=".\calcasts.h">
-			</File>
 			<File
 				RelativePath=".\callimts.cpp">
 			</File>
@@ -554,37 +530,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="idna"
-			Filter="*.c,*.h">
-			<File
-				RelativePath=".\idnaref.cpp">
-			</File>
-			<File
-				RelativePath=".\idnaref.h">
-			</File>
-			<File
-				RelativePath=".\nptrans.cpp">
-			</File>
-			<File
-				RelativePath=".\nptrans.h">
-			</File>
-			<File
-				RelativePath=".\punyref.c">
-			</File>
-			<File
-				RelativePath=".\punyref.h">
-			</File>
-			<File
-				RelativePath=".\testidn.cpp">
-			</File>
-			<File
-				RelativePath=".\testidna.cpp">
-			</File>
-			<File
-				RelativePath=".\testidna.h">
-			</File>
-		</Filter>
-		<Filter
 			Name="locales &amp; resources"
 			Filter="">
 			<File
@@ -739,18 +684,6 @@
 			</File>
 			<File
 				RelativePath=".\ustrtest.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="FALSE"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="FALSE"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\ustrtest.h">
@@ -819,6 +752,41 @@
 			<File
 				RelativePath=".\unhxtrts.h">
 			</File>
+		</Filter>
+		<Filter
+			Name="idna"
+			Filter="*.c,*.h">
+			<File
+				RelativePath=".\idnaref.cpp">
+			</File>
+			<File
+				RelativePath=".\idnaref.h">
+			</File>
+			<File
+				RelativePath=".\nptrans.cpp">
+			</File>
+			<File
+				RelativePath=".\nptrans.h">
+			</File>
+			<File
+				RelativePath=".\punyref.c">
+			</File>
+			<File
+				RelativePath=".\punyref.h">
+			</File>
+			<File
+				RelativePath=".\testidn.cpp">
+			</File>
+			<File
+				RelativePath=".\testidna.cpp">
+			</File>
+			<File
+				RelativePath=".\testidna.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="collections"
+			Filter="">
 		</Filter>
 	</Files>
 	<Globals>

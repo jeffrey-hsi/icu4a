@@ -17,33 +17,18 @@ U_NAMESPACE_BEGIN
  * A convenience macro which invokes the swapWord member function
  * from a concise call.
  *
- * @stable ICU 2.8
+ * @draft ICU 2.2
  */
-#if defined(U_IS_BIG_ENDIAN)
-	#if U_IS_BIG_ENDIAN
-		#define SWAPW(value) (value)
-	#else
-		#define SWAPW(value) LESwaps::swapWord(value)
-	#endif
-#else
-	#define SWAPW(value) (LESwaps::isBigEndian() ? (value) : LESwaps::swapWord(value))
-#endif
+#define SWAPW(value) (LESwaps::isBigEndian() ? (value) : LESwaps::swapWord(value))
+
 
 /**
  * A convenience macro which invokes the swapLong member function
  * from a concise call.
  *
- * @stable ICU 2.8
+ * @draft ICU 2.2
  */
-#if defined(U_IS_BIG_ENDIAN)
-	#if U_IS_BIG_ENDIAN
-		#define SWAPL(value) (value)
-	#else
-		#define SWAPL(value) LESwaps::swapLong(value)
-	#endif
-#else
-	#define SWAPL(value) (LESwaps::isBigEndian() ? (value) : LESwaps::swapLong(value))
-#endif
+#define SWAPL(value) (LESwaps::isBigEndian() ? (value) : LESwaps::swapLong(value))
 
 /**
  * This class is used to access data which stored in big endian order
@@ -54,12 +39,11 @@ U_NAMESPACE_BEGIN
  * All methods are static and inline in an attempt to induce the compiler
  * to do most of the calculations at compile time.
  *
- * @stable ICU 2.8
+ * @draft ICU 2.2
  */
 class U_LAYOUT_API LESwaps /* not : public UObject because all methods are static */ {
 public:
 
-#if !defined(U_IS_BIG_ENDIAN)
     /**
      * This method detects the endian-ness of the platform by
      * casting a pointer to a word to a pointer to a byte. On
@@ -67,17 +51,16 @@ public:
      * lowest address. On little endian platforms, the FF will
      * be in the byte with the highest address.
      *
-     * @return TRUE if the platform is big endian
+     * @return true if the platform is big endian
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
-    static le_uint8 isBigEndian()
+    static le_bool isBigEndian()
     {
         const le_uint16 word = 0xFF00;
 
         return *((le_uint8 *) &word);
     };
-#endif
 
     /**
      * This method does the byte swap required on little endian platforms
@@ -87,7 +70,7 @@ public:
      *
      * @return the byte swapped word
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static le_uint16 swapWord(le_uint16 value)
     {
@@ -102,7 +85,7 @@ public:
      *
      * @return the byte swapped long
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static le_uint32 swapLong(le_uint32 value)
     {

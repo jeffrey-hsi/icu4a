@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2002-2003, International Business Machines Corporation
+*   Copyright (c) 2002, International Business Machines Corporation
 *   and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -21,8 +21,7 @@ U_NAMESPACE_BEGIN
 
 const UChar EMPTY[] = { 0 }; // empty string: ""
 
-UnicodeReplacer::~UnicodeReplacer() {}
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringReplacer)
+const char StringReplacer::fgClassID=0;
 
 /**
  * Construct a StringReplacer that sets the emits the given output
@@ -66,10 +65,7 @@ StringReplacer::StringReplacer(const UnicodeString& theOutput,
 /**
  * Copy constructor.
  */
-StringReplacer::StringReplacer(const StringReplacer& other) :
-    UnicodeFunctor(other),
-    UnicodeReplacer(other)
-{
+StringReplacer::StringReplacer(const StringReplacer& other) {
     output = other.output;
     cursorPos = other.cursorPos;
     hasCursor = other.hasCursor;

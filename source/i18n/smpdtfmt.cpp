@@ -40,12 +40,7 @@
 #include "unicode/uchar.h"
 #include "unicode/ustring.h"
 #include "uprops.h"
-#include "cstring.h"
 #include <float.h>
-
-#if defined( U_DEBUG_CALSVC ) || defined (U_DEBUG_CAL)
-#include <stdio.h>
-#endif
 
 // *****************************************************************************
 // class SimpleDateFormat
@@ -53,19 +48,16 @@
 
 U_NAMESPACE_BEGIN
 
-/**
- * Last-resort string to use for "GMT" when constructing time zone strings.
- */
 // For time zones that have no names, use strings GMT+minutes and
 // GMT-minutes. For instance, in France the time zone is GMT+60.
 // Also accepted are GMT+H:MM or GMT-H:MM.
-static const UChar gGmt[]      = {0x0047, 0x004D, 0x0054, 0x0000};         // "GMT"
-static const UChar gGmtPlus[]  = {0x0047, 0x004D, 0x0054, 0x002B, 0x0000}; // "GMT+"
-static const UChar gGmtMinus[] = {0x0047, 0x004D, 0x0054, 0x002D, 0x0000}; // "GMT-"
+const UChar SimpleDateFormat::fgGmt[]      = {0x0047, 0x004D, 0x0054, 0x0000};         // "GMT"
+const UChar SimpleDateFormat::fgGmtPlus[]  = {0x0047, 0x004D, 0x0054, 0x002B, 0x0000}; // "GMT+"
+const UChar SimpleDateFormat::fgGmtMinus[] = {0x0047, 0x004D, 0x0054, 0x002D, 0x0000}; // "GMT-"
 
 // This is a pattern-of-last-resort used when we can't load a usable pattern out
 // of a resource.
-static const UChar gDefaultPattern[] =
+const UChar SimpleDateFormat::fgDefaultPattern[] =
 {
     0x79, 0x79, 0x79, 0x79, 0x4D, 0x4D, 0x64, 0x64, 0x20, 0x68, 0x68, 0x3A, 0x6D, 0x6D, 0x20, 0x61, 0
 };  /* "yyyyMMdd hh:mm a" */
@@ -79,9 +71,15 @@ static const UChar SUPPRESS_NEGATIVE_PREFIX[] = {0xAB00, 0};
  * These are the tags we expect to see in normal resource bundle files associated
  * with a locale.
  */
-static const char gDateTimePatternsTag[]="DateTimePatterns";
+const char SimpleDateFormat::fgDateTimePatternsTag[]="DateTimePatterns";
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(SimpleDateFormat)
+const char      SimpleDateFormat::fgClassID = 0; // Value is irrelevant
+
+/**
+ * This value of defaultCenturyStart indicates that the system default is to be
+ * used.  To be removed in 2.8
+ */
+const UDate     SimpleDateFormat::fgSystemDefaultCentury        = DBL_MIN;
 
 static const UChar QUOTE = 0x27; // Single quote
 
@@ -181,7 +179,7 @@ SimpleDateFormat::SimpleDateFormat(EStyle timeStyle,
  */
 SimpleDateFormat::SimpleDateFormat(const Locale& locale,
                                    UErrorCode& status)
-:   fPattern(gDefaultPattern),
+:   fPattern(fgDefaultPattern),
     fLocale(locale),
     fSymbols(NULL)
 {
@@ -249,8 +247,9 @@ SimpleDateFormat::clone() const
 UBool
 SimpleDateFormat::operator==(const Format& other) const
 {
-    if (DateFormat::operator==(other)) {
-        // DateFormat::operator== guarantees following cast is safe
+    if (DateFormat::operator==(other) &&
+        other.getDynamicClassID() == getStaticClassID())
+    {
         SimpleDateFormat* that = (SimpleDateFormat*)&other;
         return     (fPattern             == that->fPattern &&
                 fSymbols             != NULL && // Check for pathological object
@@ -282,7 +281,7 @@ void SimpleDateFormat::construct(EStyle timeStyle,
     initializeCalendar(NULL, locale, status);
 
     // use Date Format Symbols' helper function to do the actual load.
-    ResourceBundle dateTimePatterns = DateFormatSymbols::getData(resources, gDateTimePatternsTag, fCalendar?fCalendar->getType():NULL,  status);
+    ResourceBundle dateTimePatterns = DateFormatSymbols::getData(resources, fgDateTimePatternsTag, fCalendar?fCalendar->getType():NULL,  status);
     if (U_FAILURE(status)) return;
 
     if (dateTimePatterns.getSize() <= kDateTime)
@@ -290,8 +289,6 @@ void SimpleDateFormat::construct(EStyle timeStyle,
         status = U_INVALID_FORMAT_ERROR;
         return;
     }
-
-    setLocales(dateTimePatterns);
 
     // create a symbols object from the locale
     initializeSymbols(locale,fCalendar, status);
@@ -534,8 +531,7 @@ SimpleDateFormat::fgPatternIndexToCalendarField[] =
     UCAL_DAY_OF_YEAR, UCAL_DAY_OF_WEEK_IN_MONTH, 
     UCAL_WEEK_OF_YEAR, UCAL_WEEK_OF_MONTH, 
     UCAL_AM_PM, UCAL_HOUR, UCAL_HOUR, UCAL_ZONE_OFFSET,
-    UCAL_YEAR_WOY, UCAL_DOW_LOCAL,UCAL_EXTENDED_YEAR,
-    UCAL_JULIAN_DAY,UCAL_MILLISECONDS_IN_DAY
+    UCAL_YEAR_WOY, UCAL_DOW_LOCAL
 };
 
 // Map index into pattern character string to DateFormat field number
@@ -550,8 +546,7 @@ SimpleDateFormat::fgPatternIndexToDateFormatField[] = {
     DateFormat::kWeekOfMonthField, DateFormat::kAmPmField,
     DateFormat::kHour1Field, DateFormat::kHour0Field,
     DateFormat::kTimezoneField, DateFormat::kYearWOYField, 
-    DateFormat::kDOWLocalField, DateFormat::kExtendedYearField,
-    DateFormat::kJulianDayField, DateFormat::kMillisecondsInDayField
+    DateFormat::kDOWLocalField
 };
 
 
@@ -565,10 +560,6 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
                             Calendar& cal,
                             UErrorCode& status) const
 {
-    if (U_FAILURE(status)) {
-        return;
-    }
-
     // this function gets called by format() to produce the appropriate substitution
     // text for an individual pattern symbol (e.g., "HH" or "yyyy")
 
@@ -581,7 +572,6 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
     if (patternCharPtr == NULL)
     {
         status = U_INVALID_FORMAT_ERROR;
-        return;
     }
 
     patternCharIndex = (EField)(patternCharPtr - DateFormatSymbols::getPatternUChars());
@@ -677,11 +667,11 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
                     cal.get(UCAL_DST_OFFSET, status);
 
             if (value < 0) {
-                appendTo += gGmtMinus;
+                appendTo += fgGmtMinus;
                 value = -value; // suppress the '-' sign for text display.
             }
             else
-                appendTo += gGmtPlus;
+                appendTo += fgGmtPlus;
             
             zeroPaddingNumber(appendTo, (int32_t)(value/U_MILLIS_PER_HOUR), 2, 2);
             appendTo += (UChar)0x003A /*':'*/;
@@ -1081,10 +1071,6 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
     UnicodeString temp;
     UChar *patternCharPtr = u_strchr(DateFormatSymbols::getPatternUChars(), ch);
 
-#if defined (U_DEBUG_CAL)
-    //fprintf(stderr, "%s:%d - [%c]  st=%d \n", __FILE__, __LINE__, (char) ch, start);
-#endif
-
     if (patternCharPtr == NULL) {
         return -start;
     }
@@ -1238,7 +1224,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
         // characters of GMT+/-HH:MM etc.
 
         UnicodeString lcaseText(text);
-        UnicodeString lcaseGMT(gGmt);
+        UnicodeString lcaseGMT(fgGmt);
         int32_t sign = 0;
         int32_t offset;
         int32_t gmtLen = lcaseGMT.length();
@@ -1339,14 +1325,14 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
             // a little more permissive than RFC 822.  It will try to do
             // its best with numbers that aren't strictly 4 digits long.
             UErrorCode status = U_ZERO_ERROR;
-            DecimalFormat fmt("+####;-####", status);
+            DecimalFormat *fmt = new DecimalFormat("+####;-####", status);
             if(U_FAILURE(status))
                 return -start;
-            fmt.setParseIntegerOnly(TRUE);
+            fmt->setParseIntegerOnly(TRUE);
             // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
             int32_t parseStart = pos.getIndex();
             Formattable tzNumber;
-            fmt.parse( text, tzNumber, pos );
+            fmt->parse( text, tzNumber, pos );
             if( pos.getIndex() == parseStart) {
                 // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
                 return -start;   // Wasn't actually a number.
@@ -1562,6 +1548,7 @@ void SimpleDateFormat::adoptCalendar(Calendar* calendarToAdopt)
   initializeSymbols(fLocale, fCalendar, status);  // we need new symbols
   initializeDefaultCentury();  // we need a new century (possibly)
 }
+
 
 U_NAMESPACE_END
 

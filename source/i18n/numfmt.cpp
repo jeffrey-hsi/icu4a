@@ -35,23 +35,7 @@
 #include "uhash.h"
 #include "iculserv.h"
 #include "ucln_in.h"
-#include "cstring.h"
 #include <float.h>
-
-//#define FMT_DEBUG
-
-#ifdef FMT_DEBUG
-#include <stdio.h>
-static void debugout(UnicodeString s) {
-    char buf[2000];
-    s.extract((int32_t) 0, s.length(), buf);
-    printf("%s", buf);
-}
-#define debug(x) printf("%s", x);
-#else
-#define debugout(x)
-#define debug(x)
-#endif
 
 // If no number pattern can be located for a locale, this is the last
 // resort.
@@ -72,6 +56,8 @@ static const UChar gLastResortScientificPat[] = {
 // *****************************************************************************
 
 U_NAMESPACE_BEGIN
+
+const char NumberFormat::fgClassID = 0; // Value is irrelevant
 
 // If the maximum base 10 exponent were 4, then the largest number would
 // be 99,999 which has 5 digits.
@@ -99,7 +85,6 @@ NumberFormat::NumberFormat()
     fMinFractionDigits(0),
     fParseIntegerOnly(FALSE)
 {
-    fCurrency[0] = 0;
 }
 
 // -------------------------------------
@@ -131,7 +116,6 @@ NumberFormat::operator=(const NumberFormat& rhs)
         fMaxFractionDigits = rhs.fMaxFractionDigits;
         fMinFractionDigits = rhs.fMinFractionDigits;
         fParseIntegerOnly = rhs.fParseIntegerOnly;
-        u_strncpy(fCurrency, rhs.fCurrency, 4);
     }
     return *this;
 }
@@ -141,54 +125,20 @@ NumberFormat::operator=(const NumberFormat& rhs)
 UBool
 NumberFormat::operator==(const Format& that) const
 {
-    // Format::operator== guarantees this cast is safe
     NumberFormat* other = (NumberFormat*)&that;
-
-#ifdef FMT_DEBUG
-    // This code makes it easy to determine why two format objects that should
-    // be equal aren't.
-    UBool first = TRUE;
-    if (!Format::operator==(that)) {
-        if (first) { printf("[ "); first = FALSE; } else { printf(", "); }
-        debug("Format::!=");
-    }
-    if (!(fMaxIntegerDigits == other->fMaxIntegerDigits &&
-          fMinIntegerDigits == other->fMinIntegerDigits)) {
-        if (first) { printf("[ "); first = FALSE; } else { printf(", "); }
-        debug("Integer digits !=");
-    }
-    if (!(fMaxFractionDigits == other->fMaxFractionDigits &&
-          fMinFractionDigits == other->fMinFractionDigits)) {
-        if (first) { printf("[ "); first = FALSE; } else { printf(", "); }
-        debug("Fraction digits !=");
-    }
-    if (!(fGroupingUsed == other->fGroupingUsed)) {
-        if (first) { printf("[ "); first = FALSE; } else { printf(", "); }
-        debug("fGroupingUsed != ");
-    }
-    if (!(fParseIntegerOnly == other->fParseIntegerOnly)) {
-        if (first) { printf("[ "); first = FALSE; } else { printf(", "); }
-        debug("fParseIntegerOnly != ");
-    }
-    if (!(u_strcmp(fCurrency, other->fCurrency) == 0)) {
-        if (first) { printf("[ "); first = FALSE; } else { printf(", "); }
-        debug("fCurrency !=");
-    }
-    if (!first) { printf(" ]"); }    
-#endif
 
     return ((this == &that) ||
             ((Format::operator==(that) &&
+              getDynamicClassID()== that.getDynamicClassID() &&
               fMaxIntegerDigits == other->fMaxIntegerDigits &&
               fMinIntegerDigits == other->fMinIntegerDigits &&
               fMaxFractionDigits == other->fMaxFractionDigits &&
               fMinFractionDigits == other->fMinFractionDigits &&
               fGroupingUsed == other->fGroupingUsed &&
-              fParseIntegerOnly == other->fParseIntegerOnly &&
-              u_strcmp(fCurrency, other->fCurrency) == 0)));
+              fParseIntegerOnly == other->fParseIntegerOnly)));
 }
 
-// -------------------------------------x
+// -------------------------------------
 // Formats the number object and save the format
 // result in the toAppendTo string buffer.
 
@@ -206,25 +156,11 @@ NumberFormat::format(const Formattable& obj,
     else if (obj.getType() == Formattable::kLong) {
         return format(obj.getLong(), appendTo, pos);
     }
-    else if (obj.getType() == Formattable::kInt64) {
-       return format(obj.getInt64(), appendTo, pos);
-    }
     // can't try to format a non-numeric object
     else {
         status = U_INVALID_FORMAT_ERROR;
         return appendTo;
     }
-}
-
-// -------------------------------------
-
-UnicodeString& 
-NumberFormat::format(int64_t number,
-                     UnicodeString& appendTo,
-                     FieldPosition& pos) const
-{
-	// default so we don't introduce a new abstract method
-	return format((int32_t)number, appendTo, pos);
 }
 
 // -------------------------------------
@@ -254,16 +190,6 @@ NumberFormat::format(double number, UnicodeString& appendTo) const
 
 UnicodeString&
 NumberFormat::format(int32_t number, UnicodeString& appendTo) const
-{
-    FieldPosition pos(0);
-    return format(number, appendTo, pos);
-}
-
-// -------------------------------------
-// Formats a long number and save the result in a string.
-
-UnicodeString&
-NumberFormat::format(int64_t number, UnicodeString& appendTo) const
 {
     FieldPosition pos(0);
     return format(number, appendTo, pos);
@@ -390,7 +316,7 @@ static ICULocaleService* gService = NULL;
 
 class ICUNumberFormatFactory : public ICUResourceBundleFactory {
 protected:
-  virtual UObject* handleCreate(const Locale& loc, int32_t kind, const ICUService* /* service */, UErrorCode& status) const {
+  virtual UObject* handleCreate(const Locale& loc, int32_t kind, const ICUService* service, UErrorCode& status) const {
 // !!! kind is not an EStyles, need to determine how to handle this
 	  return NumberFormat::makeInstance(loc, (NumberFormat::EStyles)kind, status);
   }
@@ -472,7 +398,7 @@ public:
 	  return ((NumberFormat*)instance)->clone();
   }
 
-  virtual UObject* handleDefault(const ICUServiceKey& key, UnicodeString* /* actualID */, UErrorCode& status) const {
+  virtual UObject* handleDefault(const ICUServiceKey& key, UnicodeString* actualID, UErrorCode& status) const {
 	LocaleKey& lkey = (LocaleKey&)key;
 	int32_t kind = lkey.kind();
 	Locale loc;
@@ -680,20 +606,17 @@ NumberFormat::setMinimumFractionDigits(int32_t newValue)
 
 // -------------------------------------
 
-void NumberFormat::setCurrency(const UChar* theCurrency, UErrorCode& ec) {
-    if (U_FAILURE(ec)) {
-        return;
-    }
+void NumberFormat::setCurrency(const UChar* theCurrency) {
     if (theCurrency) {
-        u_strncpy(fCurrency, theCurrency, 3);
-        fCurrency[3] = 0;
+        u_strncpy(currency, theCurrency, 3);
+        currency[3] = 0;
     } else {
-        fCurrency[0] = 0;
+        currency[0] = 0;
     }
 }
 
 const UChar* NumberFormat::getCurrency() const {
-    return fCurrency;
+    return currency;
 }
 
 // -------------------------------------
@@ -788,9 +711,7 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
     if (U_FAILURE(status)) {
         delete f;
         f = NULL;
-        return NULL;
     }
-    f->setLocales(numberPatterns);
     return f;
 }
 

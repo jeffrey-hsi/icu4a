@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2003, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -52,6 +52,7 @@ private:
     int32_t pass;
     int32_t fail;
 
+    IntlTest& OUT;
 };
 
 #endif

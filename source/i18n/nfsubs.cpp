@@ -437,8 +437,9 @@ NFSubstitution::doParse(const UnicodeString& text,
     // of its own).  Derive a parse result and return it as a Long,
     // if possible, or a Double
     if (parsePosition.getIndex() != 0) {
-        UErrorCode status = U_ZERO_ERROR;
-        double tempResult = result.getDouble(&status);
+        double tempResult = (result.getType() == Formattable::kLong) ?
+            (double)result.getLong() :
+        result.getDouble();
 
         // composeRuleValue() produces a full parse result from
         // the partial parse result passed to this function from
@@ -828,15 +829,13 @@ FractionalPartSubstitution::doParse(const UnicodeString& text,
             workPos.setIndex(0);
             Formattable temp;
             getRuleSet()->parse(workText, workPos, 10, temp);
-            UErrorCode status = U_ZERO_ERROR;
-            digit = temp.getLong(&status);
-//            digit = temp.getType() == Formattable::kLong ?
-//               temp.getLong() :
-//            (int32_t)temp.getDouble();
+            digit = temp.getType() == Formattable::kLong ?
+                temp.getLong() :
+            (int32_t)temp.getDouble();
 
             if (lenientParse && workPos.getIndex() == 0) {
                 if (!fmt) {
-                    status = U_ZERO_ERROR;
+                    UErrorCode status = U_ZERO_ERROR;
                     fmt = NumberFormat::createInstance(status);
                     if (U_FAILURE(status)) {
                         delete fmt;

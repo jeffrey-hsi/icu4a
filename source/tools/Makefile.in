@@ -58,8 +58,7 @@ VERSION = @VERSION@
 
 
 SUBDIRS = ctestfw toolutil makeconv genrb genuca genbrk \
-genprops gennames genpname gennorm gencmn gencnval gensprep genccode pkgdata \
-gentest  icuswap
+genccode genprops gennames genpname gennorm gencmn gencnval gentz gentest genidna pkgdata
 
 ## List of phony targets
 .PHONY : all all-local all-recursive install install-local install-files install-dlls build-cmnfile build-dll		\

@@ -14,6 +14,7 @@
 #ifndef REP_H
 #define REP_H
 
+#include "unicode/utypes.h"
 #include "unicode/uobject.h"
 
 U_NAMESPACE_BEGIN
@@ -233,6 +234,8 @@ protected:
 };
 
 inline Replaceable::Replaceable() {}
+
+inline Replaceable::~Replaceable() {}
 
 inline int32_t
 Replaceable::length() const {

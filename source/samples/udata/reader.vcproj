@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding = "Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.00"
@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\reader_Win32_Debug"
-			IntermediateDirectory=".\reader_Win32_Debug"
+			OutputDirectory=".\Debug"
+			IntermediateDirectory=".\Debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -27,10 +27,10 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\reader_Win32_Debug/reader.pch"
-				AssemblerListingLocation=".\reader_Win32_Debug/"
-				ObjectFile=".\reader_Win32_Debug/"
-				ProgramDataBaseFileName=".\reader_Win32_Debug/"
+				PrecompiledHeaderFile=".\Debug/reader.pch"
+				AssemblerListingLocation=".\Debug/"
+				ObjectFile=".\Debug/"
+				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -41,16 +41,16 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="icuucd.lib"
-				OutputFile=".\reader_Win32_Debug/reader.exe"
+				OutputFile=".\Debug/reader.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="../../../lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\reader_Win32_Debug/reader.pdb"
+				ProgramDatabaseFile=".\Debug/reader.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\reader_Win32_Debug/reader.tlb"/>
+				TypeLibraryName=".\Debug/reader.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool
@@ -68,8 +68,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\reader_Win32_Release"
-			IntermediateDirectory=".\reader_Win32_Release"
+			OutputDirectory=".\Release"
+			IntermediateDirectory=".\Release"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -84,10 +84,10 @@
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\reader_Win32_Release/reader.pch"
-				AssemblerListingLocation=".\reader_Win32_Release/"
-				ObjectFile=".\reader_Win32_Release/"
-				ProgramDataBaseFileName=".\reader_Win32_Release/"
+				PrecompiledHeaderFile=".\Release/reader.pch"
+				AssemblerListingLocation=".\Release/"
+				ObjectFile=".\Release/"
+				ProgramDataBaseFileName=".\Release/"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -97,15 +97,15 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="icuuc.lib"
-				OutputFile=".\reader_Win32_Release/reader.exe"
+				OutputFile=".\Release/reader.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="../../../lib"
-				ProgramDatabaseFile=".\reader_Win32_Release/reader.pdb"
+				ProgramDatabaseFile=".\Release/reader.pdb"
 				SubSystem="1"/>
 			<Tool
 				Name="VCMIDLTool"
-				TypeLibraryName=".\reader_Win32_Release/reader.tlb"/>
+				TypeLibraryName=".\Release/reader.tlb"/>
 			<Tool
 				Name="VCPostBuildEventTool"/>
 			<Tool

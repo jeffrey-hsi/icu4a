@@ -1,4 +1,4 @@
-# Copyright (c) 2001-2003 IBM, Inc. and others
+# Copyright (c) 2001 IBM, Inc. and others
 
 #
 # File
@@ -51,5 +51,3 @@ clean-$(RESDIR):
 
 install-$(RESDIR):
 	$(MAKE) -C $(RESDIR) install
-
-install: install-$(RESDIR)

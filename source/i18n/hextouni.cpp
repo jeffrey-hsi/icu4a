@@ -20,12 +20,12 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(HexToUnicodeTransliterator)
+const char HexToUnicodeTransliterator::fgClassID=0;
 
 /**
  * ID for this transliterator.
  */
-const char CURR_ID[] = "Hex-Any";
+const char HexToUnicodeTransliterator::_ID[] = "Hex-Any";
 
 /**
  * This pattern encodes the following specs for the default constructor:
@@ -36,7 +36,7 @@ const char CURR_ID[] = "Hex-Any";
  * The multiple backslashes resolve to a single backslash
  * in the effective prefix.
  */
-static const UChar DEFAULT_PATTERN[] = {
+const UChar HexToUnicodeTransliterator::DEFAULT_PATTERN[] = {
     0x5C, 0x5C, 0x75, 0x30, 0x30, 0x30, 0x30, 0x3B,  /* "\\u0000;" */
     0x5C, 0x5C, 0x55, 0x30, 0x30, 0x30, 0x30, 0x3B,  /* "\\U0000;" */
     0x75, 0x2B, 0x30, 0x30, 0x30, 0x30, 0x3B,        /* "u+0000;" */
@@ -47,13 +47,11 @@ static const UChar gQuadA[] = {
     0x41, 0x41, 0x41, 0x41, 0
 };  /* "AAAA" */
 
-HexToUnicodeTransliterator::~HexToUnicodeTransliterator() {}
-
 /**
  * Constructs a transliterator.
  */
 HexToUnicodeTransliterator::HexToUnicodeTransliterator(UnicodeFilter* adoptedFilter) :
-    Transliterator(UnicodeString(CURR_ID, ""), adoptedFilter) {
+    Transliterator(_ID, adoptedFilter) {
     // We don't need to pass the status back to the caller because
     // we know that the DEFAULT_PATTERN parses.
     UErrorCode status = U_ZERO_ERROR;
@@ -65,7 +63,7 @@ HexToUnicodeTransliterator::HexToUnicodeTransliterator(UnicodeFilter* adoptedFil
  */
 HexToUnicodeTransliterator::HexToUnicodeTransliterator(const UnicodeString& thePattern,
                                                        UErrorCode& status) :
-    Transliterator(UnicodeString(CURR_ID, ""), 0) {
+    Transliterator(_ID, 0) {
     applyPattern(thePattern, status);
 }
 
@@ -75,7 +73,7 @@ HexToUnicodeTransliterator::HexToUnicodeTransliterator(const UnicodeString& theP
 HexToUnicodeTransliterator::HexToUnicodeTransliterator(const UnicodeString& thePattern,
                                                        UnicodeFilter* adoptedFilter,
                                                        UErrorCode& status) :
-    Transliterator(UnicodeString(CURR_ID, ""), adoptedFilter) {
+    Transliterator(_ID, adoptedFilter) {
     applyPattern(thePattern, status);
 }
 

@@ -47,7 +47,7 @@ RBBIRuleBuilder::RBBIRuleBuilder(const UnicodeString   &rules,
                                        UErrorCode      &status)
  : fRules(rules)
 {
-    fStatus = &status; // status is checked below
+    fStatus     = &status;
     fParseError = &parseErr;
     fDebugEnv   = NULL;
 #ifdef RBBI_DEBUG
@@ -57,28 +57,11 @@ RBBIRuleBuilder::RBBIRuleBuilder(const UnicodeString   &rules,
 
     fForwardTree        = NULL;
     fReverseTree        = NULL;
-    fSafeFwdTree        = NULL;
-    fSafeRevTree        = NULL;
-    fDefaultTree        = &fForwardTree;
     fForwardTables      = NULL;
     fReverseTables      = NULL;
-    fSafeFwdTables      = NULL;
-    fSafeRevTables      = NULL;
-    fChainRules         = FALSE;
-    fLBCMNoChain        = FALSE;
-    fLookAheadHardBreak = FALSE;
-
-    UErrorCode oldstatus = status;   
-
-    fUSetNodes          = new UVector(status); // bcos status gets overwritten here
+    fUSetNodes          = new UVector(status);
     fScanner            = new RBBIRuleScanner(this);
     fSetBuilder         = new RBBISetBuilder(this);
-    if (U_FAILURE(oldstatus)) {
-        status = oldstatus;
-    }
-    if (U_FAILURE(status)) {
-        return;
-    }
     if(fSetBuilder == 0 || fScanner == 0 || fUSetNodes == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
     }
@@ -106,13 +89,8 @@ RBBIRuleBuilder::~RBBIRuleBuilder() {
     delete fSetBuilder;
     delete fForwardTables;
     delete fReverseTables;
-    delete fSafeFwdTables;
-    delete fSafeRevTables;
-
     delete fForwardTree;
     delete fReverseTree;
-    delete fSafeFwdTree;
-    delete fSafeRevTree;
     delete fScanner;
 }
 
@@ -145,13 +123,11 @@ RBBIDataHeader *RBBIRuleBuilder::flattenData() {
     int32_t headerSize        = align8(sizeof(RBBIDataHeader));
     int32_t forwardTableSize  = align8(fForwardTables->getTableSize());
     int32_t reverseTableSize  = align8(fReverseTables->getTableSize());
-    int32_t safeFwdTableSize  = align8(fSafeFwdTables->getTableSize());
-    int32_t safeRevTableSize  = align8(fSafeRevTables->getTableSize());
     int32_t trieSize          = align8(fSetBuilder->getTrieSize());
     int32_t rulesSize         = align8((strippedRules.length()+1) * sizeof(UChar));
 
     int32_t         totalSize = headerSize + forwardTableSize + reverseTableSize
-                                + safeFwdTableSize + safeRevTableSize + trieSize + rulesSize;
+                                + trieSize + rulesSize;
     RBBIDataHeader  *data     = (RBBIDataHeader *)uprv_malloc(totalSize);
     if (data == NULL) {
         *fStatus = U_MEMORY_ALLOCATION_ERROR;
@@ -167,24 +143,17 @@ RBBIDataHeader *RBBIRuleBuilder::flattenData() {
 
     data->fFTable        = headerSize;
     data->fFTableLen     = forwardTableSize;
-    data->fRTable        = data->fFTable  + forwardTableSize;
+    data->fRTable        = data->fFTable + forwardTableSize;
     data->fRTableLen     = reverseTableSize;
-    data->fSFTable       = data->fRTable  + reverseTableSize;
-    data->fSFTableLen    = safeFwdTableSize;
-    data->fSRTable       = data->fSFTable + safeFwdTableSize;
-    data->fSRTableLen    = safeRevTableSize;
-
-    data->fTrie          = data->fSRTable + safeRevTableSize;
+    data->fTrie          = data->fRTable + reverseTableSize;
     data->fTrieLen       = fSetBuilder->getTrieSize();
-    data->fRuleSource    = data->fTrie    + trieSize;
+    data->fRuleSource    = data->fTrie   + trieSize;
     data->fRuleSourceLen = strippedRules.length() * sizeof(UChar);
 
     uprv_memset(data->fReserved, 0, sizeof(data->fReserved));
 
     fForwardTables->exportTable((uint8_t *)data + data->fFTable);
     fReverseTables->exportTable((uint8_t *)data + data->fRTable);
-    fSafeFwdTables->exportTable((uint8_t *)data + data->fSFTable);
-    fSafeRevTables->exportTable((uint8_t *)data + data->fSRTable);
     fSetBuilder->serializeTrie ((uint8_t *)data + data->fTrie);
     strippedRules.extract((UChar *)((uint8_t *)data+data->fRuleSource), rulesSize/2+1, *fStatus);
 
@@ -207,7 +176,9 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
                                     UParseError      &parseError,
                                     UErrorCode       &status)
 {
-    // status checked below
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
 
     //
     // Read the input rules, generate a parse tree, symbol table,
@@ -215,7 +186,7 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
     //
     RBBIRuleBuilder  builder(rules, parseError, status);
     builder.fScanner->parse();
-    if (U_FAILURE(status)) { // status checked here bcos build below doesn't
+    if (U_FAILURE(status)) {
         return NULL;
     }
 
@@ -233,29 +204,24 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
     //
     builder.fForwardTables = new RBBITableBuilder(&builder, &builder.fForwardTree);
     builder.fReverseTables = new RBBITableBuilder(&builder, &builder.fReverseTree);
-    builder.fSafeFwdTables = new RBBITableBuilder(&builder, &builder.fSafeFwdTree);
-    builder.fSafeRevTables = new RBBITableBuilder(&builder, &builder.fSafeRevTree);
-    if (U_SUCCESS(status)
-        && (builder.fForwardTables == NULL || builder.fReverseTables == NULL ||
-            builder.fSafeFwdTables == NULL || builder.fSafeRevTables == NULL)) 
-    {
+    if(builder.fForwardTables == NULL || builder.fReverseTables == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return NULL;
     }
 
     builder.fForwardTables->build();
     builder.fReverseTables->build();
-    builder.fSafeFwdTables->build();
-    builder.fSafeRevTables->build();
     if (U_FAILURE(status)) {
         return NULL;
     }
+
 
     //
     //   Package up the compiled data into a memory image
     //      in the run-time format.
     //
-    RBBIDataHeader *data = builder.flattenData(); // returns NULL if error
+    RBBIDataHeader   *data;
+    data = builder.flattenData();
 
 
     //
@@ -267,14 +233,16 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
     //  Create a break iterator from the compiled rules.
     //     (Identical to creation from stored pre-compiled rules)
     //
-    // status is checked after init in construction.
     RuleBasedBreakIterator *This = new RuleBasedBreakIterator(data, status);
+    /* test for NULL */
+    if(This == NULL) {
+        status = U_MEMORY_ALLOCATION_ERROR;
+        return NULL;
+    }
+
     if (U_FAILURE(status)) {
         delete This;
         This = NULL;
-    } 
-    else if(This == NULL) { // test for NULL
-        status = U_MEMORY_ALLOCATION_ERROR;
     }
     return This;
 }

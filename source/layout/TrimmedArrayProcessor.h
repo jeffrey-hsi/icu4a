@@ -33,14 +33,14 @@ public:
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.2
      */
     static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
@@ -48,8 +48,8 @@ private:
     TrimmedArrayProcessor();
 
 protected:
-    TTGlyphID firstGlyph;
-    TTGlyphID lastGlyph;
+    le_int16 firstGlyph;
+    le_int16 lastGlyph;
     const TrimmedArrayLookupTable *trimmedArrayLookupTable;
 
 private:

@@ -1,122 +1,85 @@
 /********************************************************************
- * COPYRIGHT:
+ * COPYRIGHT: 
  * Copyright (c) 1997-2003, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
 #include "loctest.h"
 #include <stdio.h>
-#include "unicode/decimfmt.h"
-#include "unicode/ucurr.h"
-#include "unicode/smpdtfmt.h"
-#include "unicode/dtfmtsym.h"
-#include "unicode/brkiter.h"
-#include "unicode/coll.h"
-#include "cstring.h"
-#include "uassert.h"
+#include <string.h>
+#include <cstring.h>
 
-const char* rawData[33][8] = {
+#include "unicode/decimfmt.h"
+//#include "unicode/datefmt.h"
+#include "unicode/smpdtfmt.h"
+
+const char* rawData[27][7] = {
 
         // language code
-        {   "en",   "fr",   "ca",   "el",   "no",   "it",   "xx",   "zh"  },
-        // script code
-        {   "",     "",     "",     "",     "",     "",     "",     "Hans" },
+        {   "en",   "fr",   "hr",   "el",   "no",   "it",   "xx"    },
         // country code
-        {   "US",   "FR",   "ES",   "GR",   "NO",   "",     "YY",   "CN"  },
+        {   "US",   "FR",   "HR",   "GR",   "NO",   "",     "YY"    },
         // variant code
-        {   "",     "",     "",     "",     "NY",   "",     "",   ""    },
+        {   "",     "",     "",     "",     "NY",   "",     ""    },
         // full name
-        {   "en_US",    "fr_FR",    "ca_ES",    "el_GR",    "no_NO_NY", "it",   "xx_YY",   "zh_Hans_CN" },
+        {   "en_US",    "fr_FR",    "hr_HR",    "el_GR",    "no_NO_NY", "it",   "xx_YY"  },
         // ISO-3 language
-        {   "eng",  "fra",  "cat",  "ell",  "nor",  "ita",  "",   "zho"   },
+        {   "eng",  "fra",  "hrv",  "ell",  "nor",  "ita",  ""   },
         // ISO-3 country
-        {   "USA",  "FRA",  "ESP",  "GRC",  "NOR",  "",     "",   "CHN"   },
-        // LCID
-        {   "409", "40c", "403", "408", "814", "10",     "0",   "804"  },
+        {   "USA",  "FRA",  "HRV",  "GRC",  "NOR",  "",     ""   },
+        // LCID (not currently public)
+        {   "409", "40c", "41a", "408", "814", "",     ""  },
 
         // display langage (English)
-        {   "English",  "French",   "Catalan", "Greek",    "Norwegian",    "Italian",  "xx",   "Chinese" },
-        // display script (English)
-        {   "",     "",     "",     "",     "",   "",     "",   "Simplified Han" },
+        {   "English",  "French",   "Croatian", "Greek",    "Norwegian",    "Italian",  "xx" },
         // display country (English)
-        {   "United States",    "France",   "Spain",  "Greece",   "Norway",   "",     "YY",   "China" },
+        {   "United States",    "France",   "Croatia",  "Greece",   "Norway",   "",     "YY" },
         // display variant (English)
-        {   "",     "",     "",     "",     "NY",   "",     "",   ""},
+        {   "",     "",     "",     "",     "Nynorsk",   "",     ""},
+        //{   "",     "",     "",     "",     "NY",   "",     ""},
         // display name (English)
         // Updated no_NO_NY English display name for new pattern-based algorithm
         // (part of Euro support).
-        {   "English (United States)", "French (France)", "Catalan (Spain)", "Greek (Greece)", "Norwegian (Norway, NY)", "Italian", "xx (YY)", "Chinese (Simplified Han, China)" },
+        {   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway, Nynorsk)", "Italian", "xx (YY)" },
+        //{   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway,NY)", "Italian", "xx (YY)" },
 
         // display langage (French)
-        {   "anglais",  "fran\\u00E7ais",   "catalan", "grec",    "norv\\u00E9gien",    "italien", "xx", "chinois" },
-        // display script (French)
-        {   "",     "",     "",     "",     "",     "",     "",   "Hans" },
+        {   "anglais",  "fran\\u00E7ais",   "croate", "grec",    "norv\\u00E9gien",    "italien", "xx" },
         // display country (French)
-        {   "\\u00C9tats-Unis",    "France",   "Espagne",  "Gr\\u00E8ce",   "Norv\\u00E8ge", "", "YY", "Chine" },
+        {   "\\u00C9tats-Unis",    "France",   "Croatie",  "Gr\\u00E8ce",   "Norv\\u00E8ge", "",     "YY" },
         // display variant (French)
-        {   "",     "",     "",     "",     "NY",     "",     "",   "" },
+        {   "",     "",     "",     "",     "Nynorsk",     "",     "" },
         // display name (French)
-        //{   "anglais (États-Unis)", "français (France)", "catalan (Espagne)", "grec (Grèce)", "norvégien (Norvège,Nynorsk)", "italien", "xx (YY)" },
-        {   "anglais (\\u00C9tats-Unis)", "fran\\u00E7ais (France)", "catalan (Espagne)", "grec (Gr\\u00E8ce)", "norv\\u00E9gien (Norv\\u00E8ge, NY)", "italien", "xx (YY)", "chinois (Hans, Chine)" }, // STILL not right
+        //{   "anglais (États-Unis)", "français (France)", "croate (Croatie)", "grec (Grèce)", "norvégien (Norvège,Nynorsk)", "italien", "xx (YY)" },
+        {   "anglais (\\u00C9tats-Unis)", "fran\\u00E7ais (France)", "croate (Croatie)", "grec (Gr\\u00E8ce)", "norv\\u00E9gien (Norv\\u00E8ge, Nynorsk)", "italien", "xx (YY)" }, // STILL not right
 
-
-        /* display language (Catalan) */
-        {   "angl\\u00E8s", "franc\\u00E8s", "catal\\u00E0", "grec",  "noruec", "itali\\u00E0", "", "xin\\u00E9s" },
-        /* display script (Catalan) */
-        {   "", "", "",                    "", "", "", "", "Hans" },
-        /* display country (Catalan) */
-        {   "Estats Units", "Fran\\u00E7a", "Espanya",  "Gr\\u00E8cia", "Noruega", "", "", "Xina" },
-        /* display variant (Catalan) */
-        {   "", "", "",                    "", "NY", "", "" },
-        /* display name (Catalan) */
-        {   "angl\\u00E8s (Estats Units)", "franc\\u00E8s (Fran\\u00E7a)", "catal\\u00E0 (Espanya)", "grec (Gr\\u00E8cia)", "noruec (Noruega, NY)", "itali\\u00E0", "", "xin\\u00E9s (Hans, Xina)" },
+        // display langage (Croatian)
+        {   "",  "", "hrvatski", "",    "", "", "xx" },
+        // display country (Croatian)
+        {   "",    "",   "Hrvatska",  "",   "", "", "YY" },
+        // display variant (Croatian)
+        {   "",     "",     "",     "",     "", "", ""},
+        // display name (Croatian)
+        {   "", "", "hrvatski (Hrvatska)", "", "",  "", "xx (YY)" },
 
         // display langage (Greek)[actual values listed below]
-        {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac",
-            "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac",
-            "\\u039a\\u03b1\\u03c4\\u03b1\\u03bb\\u03b1\\u03bd\\u03b9\\u03ba\\u03ac",
-            "\\u0395\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac",
-            "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac",
-            "\\u0399\\u03c4\\u03b1\\u03bb\\u03b9\\u03ba\\u03ac",
-            "",
-            "\\u039A\\u03B9\\u03BD\\u03B5\\u03B6\\u03B9\\u03BA\\u03AC"
-        },
-        // display script (Greek)
-        {   "", "", "", "", "", "", "", "Hans" },
+        {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac", "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03b9\\u03ba\\u03ac", "",    "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac", "", "" },
         // display country (Greek)[actual values listed below]
-        {   "\\u0397\\u03BD\\u03C9\\u03BC\\u03AD\\u03BD\\u03B5\\u03C2 \\u03A0\\u03BF\\u03BB\\u03B9\\u03C4\\u03B5\\u03AF\\u03B5\\u03C2",
-            "\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1",
-            "\\u0399\\u03c3\\u03c0\\u03b1\\u03bd\\u03af\\u03b1",
-            "\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1",
-            "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1",
-            "",
-            "",
-            "\\u039A\\u03AF\\u03BD\\u03B1"
-        },
+        {   "\\u0397\\u03bd\\u03c9\\u03bc\\u03ad\\u03bd\\u03b5\\u03c2 \\u03a0\\u03bf\\u03bb\\u03b9\\u03c4\\u03b5\\u03af\\u03b5\\u03c2 \\u0391\\u03bc\\u03b5\\u03c1\\u03b9\\u03ba\\u03ae\\u03c2", "\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03af\\u03b1", "",    "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1", "", "" },
         // display variant (Greek)
-        {   "", "", "", "", "NY", "", "" },
+        {   "",     "",     "",     "",     "", "", "" },
         // display name (Greek)[actual values listed below]
-        {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac (\\u0397\\u03BD\\u03C9\\u03BC\\u03AD\\u03BD\\u03B5\\u03C2 \\u03A0\\u03BF\\u03BB\\u03B9\\u03C4\\u03B5\\u03AF\\u03B5\\u03C2)",
-            "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac (\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1)",
-            "\\u039a\\u03b1\\u03c4\\u03b1\\u03bb\\u03b1\\u03bd\\u03b9\\u03ba\\u03ac (\\u0399\\u03c3\\u03c0\\u03b1\\u03bd\\u03af\\u03b1)",
-            "\\u0395\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac (\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1)",
-            "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac (\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1, NY)",
-            "\\u0399\\u03c4\\u03b1\\u03bb\\u03b9\\u03ba\\u03ac",
-            "",
-            "\\u039A\\u03B9\\u03BD\\u03B5\\u03B6\\u03B9\\u03BA\\u03AC (Hans, \\u039A\\u03AF\\u03BD\\u03B1)"
-        },
+        {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac (\\u0397\\u03bd\\u03c9\\u03bc\\u03ad\\u03bd\\u03b5\\u03c2 \\u03a0\\u03bf\\u03bb\\u03b9\\u03c4\\u03b5\\u03af\\u03b5\\u03c2 \\u0391\\u03bc\\u03b5\\u03c1\\u03b9\\u03ba\\u03ae\\u03c2)", "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac (\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1)", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03b9\\u03ba\\u03ac (\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03af\\u03b1)", "",    "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac (\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1, Nynorsk)", "", "" },
 
         // display langage (<root>)
-        {   "English",  "French",   "Catalan", "Greek",    "Norwegian",    "Italian",  "xx", "" },
-        // display script (<root>)
-        {   "",     "",     "",     "",     "",   "",     "", ""},
+        {   "English",  "French",   "Croatian", "Greek",    "Norwegian",    "Italian",  "xx" },
         // display country (<root>)
-        {   "United States",    "France",   "Spain",  "Greece",   "Norway",   "",     "YY", "" },
+        {   "United States",    "France",   "Croatia",  "Greece",   "Norway",   "",     "YY" },
         // display variant (<root>)
-        {   "",     "",     "",     "",     "Nynorsk",   "",     "", ""},
+        {   "",     "",     "",     "",     "Nynorsk",   "",     ""},
         // display name (<root>)
-        //{   "English (United States)", "French (France)", "Catalan (Spain)", "Greek (Greece)", "Norwegian (Norway,Nynorsk)", "Italian", "xx (YY)" },
-        {   "English (United States)", "French (France)", "Catalan (Spain)", "Greek (Greece)", "Norwegian (Norway,NY)", "Italian", "xx (YY)", "" }
+        //{   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway,Nynorsk)", "Italian", "xx (YY)" },
+        {   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway,NY)", "Italian", "xx (YY)" }
 };
 
 // * test macros
@@ -130,7 +93,7 @@ const char* rawData[33][8] = {
 
    Example:
        test_compare(i=3,i,3, someNumberFormatter(i));
-       test_compare(0,1+1,2,someNumberFormatter(1+1));
+       test_compare(0,1+1,2,someNumberFormatter(1+1)); 
 
    Note that in the second example the expression is 0, because the fcn produces it's own result.
 
@@ -181,7 +144,7 @@ LocaleTest::LocaleTest()
 LocaleTest::~LocaleTest()
 {
     if (dataTable != 0) {
-        for (int32_t i = 0; i < 33; i++) {
+        for (int32_t i = 0; i < 27; i++) {
             delete []dataTable[i];
         }
         delete []dataTable;
@@ -189,49 +152,48 @@ LocaleTest::~LocaleTest()
     }
 }
 
+#define CASE(id,test) case id: name = #test; if (exec) { logln(#test "---"); logln((UnicodeString)""); test(); } break;
+
 void LocaleTest::runIndexedTest( int32_t index, UBool exec, const char* &name, char* /*par*/ )
 {
+    if (exec) logln("TestSuite LocaleTest: ");
     switch (index) {
-        TESTCASE(0, TestBasicGetters);
-        TESTCASE(1, TestSimpleResourceInfo);
-        TESTCASE(2, TestDisplayNames);
-        TESTCASE(3, TestSimpleObjectStuff);
-        TESTCASE(4, TestPOSIXParsing);
-        TESTCASE(5, TestGetAvailableLocales);
-        TESTCASE(6, TestDataDirectory);
-        TESTCASE(7, TestISO3Fallback);
-        TESTCASE(8, TestGetLangsAndCountries);
-        TESTCASE(9, TestSimpleDisplayNames);
-        TESTCASE(10, TestUninstalledISO3Names);
-        TESTCASE(11, TestAtypicalLocales);
-#if !UCONFIG_NO_FORMATTING
-        TESTCASE(12, TestThaiCurrencyFormat);
-        TESTCASE(13, TestEuroSupport);
-#endif
-        TESTCASE(14, TestToString);
-#if !UCONFIG_NO_FORMATTING
-        TESTCASE(15, Test4139940);
-        TESTCASE(16, Test4143951);
-#endif
-        TESTCASE(17, Test4147315);
-        TESTCASE(18, Test4147317);
-        TESTCASE(19, Test4147552);
-        TESTCASE(20, TestVariantParsing);
-#if !UCONFIG_NO_FORMATTING
-        TESTCASE(21, Test4105828);
-#endif
-        TESTCASE(22, TestSetIsBogus);
-        TESTCASE(23, TestParallelAPIValues);
-        TESTCASE(24, TestKeywordVariants);
-        TESTCASE(25, TestKeywordVariantParsing);
-        TESTCASE(26, TestGetBaseName);
-        TESTCASE(27, TestGetLocale);
+        case 0: name = "TestBasicGetters"; if (exec) TestBasicGetters(); break;
+        case 1: name = "TestSimpleResourceInfo"; if (exec) TestSimpleResourceInfo(); break;
+        case 2: name = "TestDisplayNames"; if (exec) TestDisplayNames(); break;
+        case 3: name = "TestSimpleObjectStuff"; if (exec) TestSimpleObjectStuff(); break;
+        case 4: name = "TestPOSIXParsing"; if (exec) TestPOSIXParsing(); break;
+        case 5: name = "TestGetAvailableLocales"; if (exec) TestGetAvailableLocales(); break;
+        case 6: name = "TestDataDirectory"; if (exec) TestDataDirectory(); break;
 
+        CASE(7, TestISO3Fallback)
+        CASE(8, TestGetLangsAndCountries)
+        CASE(9, TestSimpleDisplayNames)
+        CASE(10, TestUninstalledISO3Names)
+        CASE(11, TestAtypicalLocales)
+#if !UCONFIG_NO_FORMATTING
+        CASE(12, TestThaiCurrencyFormat)
+        CASE(13, TestEuroSupport)
+#endif
+        CASE(14, TestToString)
+#if !UCONFIG_NO_FORMATTING
+        CASE(15, Test4139940)
+        CASE(16, Test4143951)
+#endif
+        CASE(17, Test4147315)
+        CASE(18, Test4147317)
+        CASE(19, Test4147552)
+        CASE(20, TestVariantParsing)
+#if !UCONFIG_NO_FORMATTING
+        CASE(21, Test4105828)
+#endif
+        CASE(22, TestSetIsBogus)
+        CASE(23, TestParallelAPIValues)
         // keep the last index in sync with the condition in default:
 
         default:
-            if (index <= 27) { // keep this in sync with the last index!
-                name = "(test omitted by !UCONFIG_NO_FORMATTING)";
+            if(index <= 23) { // keep this in sync with the last index!
+                name = "switched off"; // UCONFIG_NO_FORMATTING
             } else {
                 name = "";
             }
@@ -244,21 +206,12 @@ void LocaleTest::TestBasicGetters() {
 
     int32_t i;
     for (i = 0; i <= MAX_LOCALES; i++) {
-        Locale testLocale("");
-        if (rawData[SCRIPT][i] && rawData[SCRIPT][i][0] != 0) {
-            testLocale = Locale(rawData[LANG][i], rawData[SCRIPT][i], rawData[CTRY][i], rawData[VAR][i]);
-        }
-        else {
-            testLocale = Locale(rawData[LANG][i], rawData[CTRY][i], rawData[VAR][i]);
-        }
+        Locale testLocale(rawData[LANG][i], rawData[CTRY][i], rawData[VAR][i]);
         logln("Testing " + (UnicodeString)testLocale.getName() + "...");
 
         if ( (temp=testLocale.getLanguage()) != (dataTable[LANG][i]))
             errln("  Language code mismatch: " + temp + " versus "
                         + dataTable[LANG][i]);
-        if ( (temp=testLocale.getScript()) != (dataTable[SCRIPT][i]))
-            errln("  Script code mismatch: " + temp + " versus "
-                        + dataTable[SCRIPT][i]);
         if ( (temp=testLocale.getCountry()) != (dataTable[CTRY][i]))
             errln("  Country code mismatch: " + temp + " versus "
                         + dataTable[CTRY][i]);
@@ -272,49 +225,36 @@ void LocaleTest::TestBasicGetters() {
 
     logln("Same thing without variant codes...");
     for (i = 0; i <= MAX_LOCALES; i++) {
-        Locale testLocale("");
-        if (rawData[SCRIPT][i] && rawData[SCRIPT][i][0] != 0) {
-            testLocale = Locale(rawData[LANG][i], rawData[SCRIPT][i], rawData[CTRY][i]);
-        }
-        else {
-            testLocale = Locale(rawData[LANG][i], rawData[CTRY][i]);
-        }
+        Locale testLocale(rawData[LANG][i], rawData[CTRY][i]);
         logln("Testing " + (temp=testLocale.getName()) + "...");
 
         if ( (temp=testLocale.getLanguage()) != (dataTable[LANG][i]))
-            errln("Language code mismatch: " + temp + " versus "
+            errln("  Language code mismatch: " + temp + " versus "
                         + dataTable[LANG][i]);
-        if ( (temp=testLocale.getScript()) != (dataTable[SCRIPT][i]))
-            errln("Script code mismatch: " + temp + " versus "
-                        + dataTable[SCRIPT][i]);
         if ( (temp=testLocale.getCountry()) != (dataTable[CTRY][i]))
-            errln("Country code mismatch: " + temp + " versus "
+            errln("  Country code mismatch: " + temp + " versus "
                         + dataTable[CTRY][i]);
         if (testLocale.getVariant()[0] != 0)
-            errln("Variant code mismatch: something versus \"\"");
+            errln("  Variant code mismatch: something versus \"\"");
     }
 
     logln("Testing long language names and getters");
-    Locale  test8 = Locale::createFromName("x-klingon-latn-zx.utf32be@special");
+    Locale  test8 = Locale::createFromName("x-klingon-zx.utf32be@special");
 
     temp = test8.getLanguage();
     if (temp != UnicodeString("x-klingon") )
-        errln("Language code mismatch: " + temp + "  versus \"x-klingon\"");
-
-    temp = test8.getScript();
-    if (temp != UnicodeString("Latn") )
-        errln("Script code mismatch: " + temp + "  versus \"Latn\"");
+      errln("  Language code mismatch: " + temp + "  versus \"x-klingon\"");
 
     temp = test8.getCountry();
     if (temp != UnicodeString("ZX") )
-        errln("Country code mismatch: " + temp + "  versus \"ZX\"");
+      errln("  Country code mismatch: " + temp + "  versus \"ZX\"");
 
     temp = test8.getVariant();
     if (temp != UnicodeString("SPECIAL") )
-        errln("Variant code mismatch: " + temp + "  versus \"SPECIAL\"");
+      errln("  Variant code mismatch: " + temp + "  versus \"SPECIAL\"");
 
     if (Locale::getDefault() != Locale::createFromName(NULL))
-        errln("Locale::getDefault() == Locale::createFromName(NULL)");
+      errln("Locale::getDefault() == Locale::createFromName(NULL)");
 
     /*----------*/
     // NOTE: There used to be a special test for locale names that had language or
@@ -336,13 +276,6 @@ void LocaleTest::TestBasicGetters() {
     ) {
         errln("assignment to bogus Locale does not unbogus it or sets bad data");
     }
-
-    Locale a("eo_DE@currency=DEM");
-    Locale *pb=a.clone();
-    if(pb==&a || *pb!=a) {
-        errln("Locale.clone() failed");
-    }
-    delete pb;
 }
 
 void LocaleTest::TestParallelAPIValues() {
@@ -416,40 +349,40 @@ void LocaleTest::TestParallelAPIValues() {
 
 
 void LocaleTest::TestSimpleResourceInfo() {
-    UnicodeString   temp;
-    char            temp2[20];
-    UErrorCode err = U_ZERO_ERROR;
-    int32_t i = 0;
+  UnicodeString   temp;
+  char            temp2[20];
+  UErrorCode err = U_ZERO_ERROR;
+  int32_t i = 0;
 
-    for (i = 0; i <= MAX_LOCALES; i++) {
-        Locale testLocale(rawData[LANG][i], rawData[CTRY][i], rawData[VAR][i]);
-        logln("Testing " + (temp=testLocale.getName()) + "...");
+  for (i = 0; i <= MAX_LOCALES; i++) {
+    Locale testLocale(rawData[LANG][i], rawData[CTRY][i], rawData[VAR][i]);
+    logln("Testing " + (temp=testLocale.getName()) + "...");
+    
+    if ( (temp=testLocale.getISO3Language()) != (dataTable[LANG3][i]))
+      errln("  ISO-3 language code mismatch: " + temp
+        + " versus " + dataTable[LANG3][i]);
+    if ( (temp=testLocale.getISO3Country()) != (dataTable[CTRY3][i]))
+      errln("  ISO-3 country code mismatch: " + temp
+        + " versus " + dataTable[CTRY3][i]);
+    
+    sprintf(temp2, "%x", testLocale.getLCID());
+    if (UnicodeString(temp2) != dataTable[LCID][i])
+      errln((UnicodeString)"  LCID mismatch: " + temp2 + " versus "
+        + dataTable[LCID][i]);
 
-        if ( (temp=testLocale.getISO3Language()) != (dataTable[LANG3][i]))
-            errln("  ISO-3 language code mismatch: " + temp
-                + " versus " + dataTable[LANG3][i]);
-        if ( (temp=testLocale.getISO3Country()) != (dataTable[CTRY3][i]))
-            errln("  ISO-3 country code mismatch: " + temp
-                + " versus " + dataTable[CTRY3][i]);
+    if(U_FAILURE(err))
+      {
+        errln((UnicodeString)"Some error on number " + i + u_errorName(err));
+      }
+    err = U_ZERO_ERROR;
+  }
 
-        sprintf(temp2, "%x", testLocale.getLCID());
-        if (UnicodeString(temp2) != dataTable[LCID][i])
-            errln((UnicodeString)"  LCID mismatch: " + temp2 + " versus "
-                + dataTable[LCID][i]);
-
-        if(U_FAILURE(err))
-        {
-            errln((UnicodeString)"Some error on number " + i + u_errorName(err));
-        }
-        err = U_ZERO_ERROR;
-    }
-
-    Locale locale("en");
-    if(strcmp(locale.getName(), "en") != 0||
-        strcmp(locale.getLanguage(), "en") != 0) {
-        errln("construction of Locale(en) failed\n");
-    }
-    /*-----*/
+   Locale locale("en");
+   if(strcmp(locale.getName(), "en") != 0||
+       strcmp(locale.getLanguage(), "en") != 0) {
+       errln("construction of Locale(en) failed\n");
+   }
+   /*-----*/
 
 }
 
@@ -459,20 +392,20 @@ void LocaleTest::TestSimpleResourceInfo() {
  * The lookup of display names must not fall back through the default
  * locale because that yields useless results.
  */
-void
-LocaleTest::TestDisplayNames()
+void 
+LocaleTest::TestDisplayNames() 
 {
     Locale  english("en", "US");
     Locale  french("fr", "FR");
-    Locale  croatian("ca", "ES");
+    Locale  croatian("hr", "HR");
     Locale  greek("el", "GR");
 
     logln("  In locale = en_US...");
     doTestDisplayNames(english, DLANG_EN);
     logln("  In locale = fr_FR...");
     doTestDisplayNames(french, DLANG_FR);
-    logln("  In locale = ca_ES...");
-    doTestDisplayNames(croatian, DLANG_CA);
+    logln("  In locale = hr_HR...");
+    doTestDisplayNames(croatian, DLANG_HR);
     logln("  In locale = el_GR...");
     doTestDisplayNames(greek, DLANG_EL);
 
@@ -524,8 +457,8 @@ void LocaleTest::TestSimpleObjectStuff() {
     Locale  test2("aa", "AA");
     Locale  test3(test1);
     Locale  test4("zz", "ZZ");
-    Locale  test5("aa", "AA", "");
-    Locale  test6("aa", "AA", "ANTARES");
+    Locale  test5("aa", "AA", ""); 
+    Locale  test6("aa", "AA", "ANTARES"); 
     Locale  test7("aa", "AA", "JUPITER");
     Locale  test8 = Locale::createFromName("aa-aa.utf8@jupiter");
 
@@ -597,7 +530,7 @@ void LocaleTest::TestSimpleObjectStuff() {
     test_assert(!(test3 != test4));
     test_assert(test1 == test4);
     test_assert(test4 == test1);
-
+    
     // test assignments with a variant
     logln("test7 = test6");
     test7 = test6;
@@ -642,7 +575,7 @@ void LocaleTest::TestPOSIXParsing()
 
     POSIXLocale test4("ab_AB_Antares");
     POSIXLocale test5(UnicodeString("ab_AB_Antares"));
-    Locale  test6("ab", "AB", "Antares");
+    Locale  test6("ab", "AB", "Antares"); 
 
     test_dumpLocale(test1);
     test_dumpLocale(test2);
@@ -720,7 +653,7 @@ void LocaleTest::TestDataDirectory()
     logln("second fetch of language retrieved " + testValue);
     if (testValue != "xxx")
         errln("setDataDirectory() failed: expected \"xxx\", got \"" + testValue + "\"");
-
+    
     Locale::setDataDirectory(oldDirectory);
     test.getISO3Language(testValue);
     logln("third fetch of language retrieved " + testValue);
@@ -733,31 +666,22 @@ void LocaleTest::TestDataDirectory()
 
 void LocaleTest::doTestDisplayNames(Locale& displayLocale, int32_t compareIndex) {
     UnicodeString   temp;
-
+    
     for (int32_t i = 0; i <= MAX_LOCALES; i++) {
-        Locale testLocale("");
-        if (rawData[SCRIPT][i] && rawData[SCRIPT][i][0] != 0) {
-            testLocale = Locale(rawData[LANG][i], rawData[SCRIPT][i], rawData[CTRY][i], rawData[VAR][i]);
-        }
-        else {
-            testLocale = Locale(rawData[LANG][i], rawData[CTRY][i], rawData[VAR][i]);
-        }
+        Locale testLocale(rawData[LANG][i], rawData[CTRY][i], rawData[VAR][i]);
         logln("  Testing " + (temp=testLocale.getName()) + "...");
 
         UnicodeString  testLang;
-        UnicodeString  testScript;
         UnicodeString  testCtry;
         UnicodeString  testVar;
         UnicodeString  testName;
 
         testLocale.getDisplayLanguage(displayLocale, testLang);
-        testLocale.getDisplayScript(displayLocale, testScript);
         testLocale.getDisplayCountry(displayLocale, testCtry);
         testLocale.getDisplayVariant(displayLocale, testVar);
         testLocale.getDisplayName(displayLocale, testName);
 
         UnicodeString  expectedLang;
-        UnicodeString  expectedScript;
         UnicodeString  expectedCtry;
         UnicodeString  expectedVar;
         UnicodeString  expectedName;
@@ -766,32 +690,26 @@ void LocaleTest::doTestDisplayNames(Locale& displayLocale, int32_t compareIndex)
         if (expectedLang.length() == 0)
             expectedLang = dataTable[DLANG_EN][i];
 
-        expectedScript = dataTable[compareIndex + 1][i];
-        if (expectedScript.length() == 0)
-            expectedScript = dataTable[DSCRIPT_EN][i];
-
-        expectedCtry = dataTable[compareIndex + 2][i];
+        expectedCtry = dataTable[compareIndex + 1][i];
         if (expectedCtry.length() == 0)
             expectedCtry = dataTable[DCTRY_EN][i];
 
-        expectedVar = dataTable[compareIndex + 3][i];
+        expectedVar = dataTable[compareIndex + 2][i];
         if (expectedVar.length() == 0)
             expectedVar = dataTable[DVAR_EN][i];
 
-        expectedName = dataTable[compareIndex + 4][i];
+        expectedName = dataTable[compareIndex + 3][i];
         if (expectedName.length() == 0)
             expectedName = dataTable[DNAME_EN][i];
 
         if (testLang != expectedLang)
-            errln("Display language (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testLang + " expected " + expectedLang);
-        if (testScript != expectedScript)
-            errln("Display script (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testScript + " expected " + expectedScript);
+            errln("Display language (" + UnicodeString(displayLocale.getName()) + ") got " + testLang + " expected " + expectedLang);
         if (testCtry != expectedCtry)
-            errln("Display country (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testCtry + " expected " + expectedCtry);
+            errln("Display country (" + UnicodeString(displayLocale.getName()) + ") got " + testCtry + " expected " + expectedCtry);
         if (testVar != expectedVar)
-            errln("Display variant (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testVar + " expected " + expectedVar);
+            errln("Display variant (" + UnicodeString(displayLocale.getName()) + ") got " + testVar + " expected " + expectedVar);
         if (testName != expectedName)
-            errln("Display name (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testName + " expected " + expectedName);
+            errln("Display name (" + UnicodeString(displayLocale.getName()) + ") got " + testName + " expected " + expectedName);
     }
 }
 
@@ -800,18 +718,25 @@ void LocaleTest::doTestDisplayNames(Locale& displayLocale, int32_t compareIndex)
 //---------------------------------------------------
 
 
-
+UChar greekDisplayLanguage[] = { 0x03b5, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba, 0x03ac, 0 };
+UChar greekDisplayCountry[] = { 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, 0 };
+UChar greekDisplayName[] = { 0x03b5, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba,
+    0x03ac, 0x20, 0x28, 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, 0x29, 0 };
+    
 void LocaleTest::setUpDataTable()
 {
     if (dataTable == 0) {
-        dataTable = new UnicodeString*[33];
+        dataTable = new UnicodeString*[27];
 
-        for (int32_t i = 0; i < 33; i++) {
-            dataTable[i] = new UnicodeString[8];
-            for (int32_t j = 0; j < 8; j++) {
+        for (int32_t i = 0; i < 27; i++) {
+            dataTable[i] = new UnicodeString[7];
+            for (int32_t j = 0; j < 7; j++) {
                 dataTable[i][j] = CharsToUnicodeString(rawData[i][j]);
             }
         }
+        dataTable[DLANG_EL][GREEK] = greekDisplayLanguage;
+        dataTable[DCTRY_EL][GREEK] = greekDisplayCountry;
+        dataTable[DNAME_EL][GREEK] = greekDisplayName;
     }
 }
 
@@ -821,8 +746,8 @@ void LocaleTest::setUpDataTable()
 /**
  * @bug 4011756 4011380
  */
-void
-LocaleTest::TestISO3Fallback()
+void 
+LocaleTest::TestISO3Fallback() 
 {
     Locale test("xx", "YY");
 
@@ -830,7 +755,7 @@ LocaleTest::TestISO3Fallback()
 
     result = test.getISO3Language();
 
-    // Conform to C API usage
+    // Conform to C API usage 
 
     if (!result || (result[0] != 0))
         errln("getISO3Language() on xx_YY returned " + UnicodeString(result) + " instead of \"\"");
@@ -844,8 +769,8 @@ LocaleTest::TestISO3Fallback()
 /**
  * @bug 4106155 4118587
  */
-void
-LocaleTest::TestGetLangsAndCountries()
+void 
+LocaleTest::TestGetLangsAndCountries() 
 {
     // It didn't seem right to just do an exhaustive test of everything here, so I check
     // for the following things:
@@ -857,17 +782,17 @@ LocaleTest::TestGetLangsAndCountries()
     // 4) Is each list in sorted order?
     int32_t testCount = 0;
     const char * const * test = Locale::getISOLanguages();
-    const char spotCheck1[ ][4] = { "en", "es", "fr", "de", "it",
-                                    "ja", "ko", "zh", "th", "he",
+    const char spotCheck1[ ][4] = { "en", "es", "fr", "de", "it", 
+                                    "ja", "ko", "zh", "th", "he", 
                                     "id", "iu", "ug", "yi", "za" };
 
     int32_t i;
-
+    
     for(testCount = 0;test[testCount];testCount++)
       ;
 
-    if (testCount != 467)
-        errln("Expected getISOLanguages() to return 467 languages; it returned %d", testCount);
+    if (testCount != 450)
+        errln("Expected getISOLanguages() to return 450 languages; it returned %d", testCount);
     else {
         for (i = 0; i < 15; i++) {
             int32_t j;
@@ -890,8 +815,8 @@ LocaleTest::TestGetLangsAndCountries()
     }
 
     test = Locale::getISOCountries();
-    UnicodeString spotCheck2 [] = { "US", "CA", "GB", "FR", "DE",
-                                    "IT", "JP", "KR", "CN", "TW",
+    UnicodeString spotCheck2 [] = { "US", "CA", "GB", "FR", "DE", 
+                                    "IT", "JP", "KR", "CN", "TW", 
                                     "TH" };
     int32_t spot2Len = 11;
     for(testCount=0;test[testCount];testCount++)
@@ -929,15 +854,15 @@ LocaleTest::TestGetLangsAndCountries()
 /**
  * @bug 4118587
  */
-void
-LocaleTest::TestSimpleDisplayNames()
+void 
+LocaleTest::TestSimpleDisplayNames() 
 {
     // This test is different from TestDisplayNames because TestDisplayNames checks
     // fallback behavior, combination of language and country names to form locale
     // names, and other stuff like that.  This test just checks specific language
     // and country codes to make sure we have the correct names for them.
     char languageCodes[] [4] = { "he", "id", "iu", "ug", "yi", "za" };
-    UnicodeString languageNames [] = { "Hebrew", "Indonesian", "Inuktitut", "Uighur", "Yiddish",
+    UnicodeString languageNames [] = { "Hebrew", "Indonesian", "Inukitut", "Uighur", "Yiddish",
                                "Zhuang" };
 
     for (int32_t i = 0; i < 6; i++) {
@@ -953,14 +878,14 @@ LocaleTest::TestSimpleDisplayNames()
 /**
  * @bug 4118595
  */
-void
-LocaleTest::TestUninstalledISO3Names()
+void 
+LocaleTest::TestUninstalledISO3Names() 
 {
     // This test checks to make sure getISO3Language and getISO3Country work right
     // even for locales that are not installed.
-    const char iso2Languages [][4] = {     "am", "ba", "fy", "mr", "rn",
+    const char iso2Languages [][4] = {     "am", "ba", "fy", "mr", "rn", 
                                         "ss", "tw", "zu" };
-    const char iso3Languages [][5] = {     "amh", "bak", "fry", "mar", "run",
+    const char iso3Languages [][5] = {     "amh", "bak", "fry", "mar", "run", 
                                         "ssw", "twi", "zul" };
 
     int32_t i;
@@ -976,9 +901,9 @@ LocaleTest::TestUninstalledISO3Names()
                     iso3Languages[i] + "\", got \"" + test + "\"." + UnicodeString(u_errorName(err)));
     }
 
-    char iso2Countries [][4] = {     "AF", "BW", "KZ", "MO", "MN",
+    char iso2Countries [][4] = {     "AF", "BW", "KZ", "MO", "MN", 
                                         "SB", "TC", "ZW" };
-    char iso3Countries [][4] = {     "AFG", "BWA", "KAZ", "MAC", "MNG",
+    char iso3Countries [][4] = {     "AFG", "BWA", "KAZ", "MAC", "MNG", 
                                         "SLB", "TCA", "ZWE" };
 
     for (i = 0; i < 8; i++) {
@@ -997,8 +922,8 @@ LocaleTest::TestUninstalledISO3Names()
  * big locale-data reorg of 10/28/97.  The lookup logic for language and country
  * display names was also changed at that time in that check-in.    --rtg 3/20/98
  */
-void
-LocaleTest::TestAtypicalLocales()
+void 
+LocaleTest::TestAtypicalLocales() 
 {
     Locale localesToTest [] = { Locale("de", "CA"),
                                   Locale("ja", "ZA"),
@@ -1038,17 +963,16 @@ LocaleTest::TestAtypicalLocales()
                                      "Suecia",
                                      CharsToUnicodeString("Rep\\u00FAblica Dominicana"),
                                      CharsToUnicodeString("B\\u00E9lgica") };
-    // De-Anglicizing root required the change from
-    // English display names to ISO Codes - ram 2003/09/26
-    UnicodeString bengaliDisplayNames [] = { "de (CA)",
-                                     "ja (ZA)",
-                                     "ru (MX)",
-                                     "en (FR)",
-                                     "es (DE)",
-                                     "HR",
-                                     "SE",
-                                     "DO",
-                                     "BE" };
+    UnicodeString arabicDisplayNames [] = { "German (Canada)",
+                                     "Japanese (South Africa)",
+                                     "Russian (Mexico)",
+                                     "English (France)",
+                                     "Spanish (Germany)",
+                                     "Croatia",
+                                     "Sweden",
+                                     "Dominican Republic",
+                                     "Belgium" };
+
 
     int32_t i;
     UErrorCode status = U_ZERO_ERROR;
@@ -1085,15 +1009,15 @@ LocaleTest::TestAtypicalLocales()
 
     for (i = 0; i < 9; i++) {
         UnicodeString name;
-        localesToTest[i].getDisplayName(Locale("be", "ES"), name);
-        logln(name + " Locale fallback to be, and data fallback to root");
-        if (name != bengaliDisplayNames[i])
-            errln("Lookup in Bengali failed: expected \"" + bengaliDisplayNames[i]
+        localesToTest[i].getDisplayName(Locale("ar", "ES"), name);
+        logln(name + " Locale fallback to ar, and data fallback to root");
+        if (name != arabicDisplayNames[i])
+            errln("Lookup in Arabic failed: expected \"" + arabicDisplayNames[i]
                         + "\", got \"" + name + "\"");
-        localesToTest[i].getDisplayName(Locale("be", "EG"), name);
+        localesToTest[i].getDisplayName(Locale("ar", "EG"), name);
         logln(name + " Data fallback to root");
-        if (name != bengaliDisplayNames[i])
-            errln("Lookup in Bengali failed: expected \"" + bengaliDisplayNames[i]
+        if (name != arabicDisplayNames[i])
+            errln("Lookup in Arabic failed: expected \"" + arabicDisplayNames[i]
                         + "\", got \"" + name + "\"");
     }
 }
@@ -1105,8 +1029,8 @@ LocaleTest::TestAtypicalLocales()
  * This would be better tested by the LocaleDataTest.  Will move it when I
  * get the LocaleDataTest working again.
  */
-void
-LocaleTest::TestThaiCurrencyFormat()
+void 
+LocaleTest::TestThaiCurrencyFormat() 
 {
     UErrorCode status = U_ZERO_ERROR;
     DecimalFormat *thaiCurrency = (DecimalFormat*)NumberFormat::createCurrencyInstance(
@@ -1140,8 +1064,8 @@ LocaleTest::TestThaiCurrencyFormat()
  * test must be updated.
  *
  */
-void
-LocaleTest::TestEuroSupport()
+void 
+LocaleTest::TestEuroSupport() 
 {
     UChar euro = 0x20ac;
     const UnicodeString EURO_CURRENCY(&euro, 1, 1); // Look for this UnicodeString in formatted Euro currency
@@ -1153,8 +1077,6 @@ LocaleTest::TestEuroSupport()
                             "el_GR",
                             "en_BE",
                             "en_IE",
-                            "en_GB_EURO",
-                            "en_US_EURO",
                             "es_ES",
                             "eu_ES",
                             "fi_FI",
@@ -1178,58 +1100,24 @@ LocaleTest::TestEuroSupport()
     for (;*locales!=NULL;locales++) {
         Locale loc (*locales);
         UnicodeString temp;
-        NumberFormat *nf = NumberFormat::createCurrencyInstance(loc, status);
-        UnicodeString pos;
-        nf->format(271828.182845, pos);
-        UnicodeString neg;
-        nf->format(-271828.182845, neg);
-        if (pos.indexOf(EURO_CURRENCY) >= 0 &&
-            neg.indexOf(EURO_CURRENCY) >= 0) {
-            logln("Ok: " + (temp=loc.getName()) +
-                ": " + pos + " / " + neg);
-        }
-        else {
-            errln("Fail: " + (temp=loc.getName()) +
-                " formats without " + EURO_CURRENCY +
-                ": " + pos + " / " + neg +
-                "\n*** THIS FAILURE MAY ONLY MEAN THAT LOCALE DATA HAS CHANGED ***");
-        }
-
-        delete nf;
-    }
-
-    UnicodeString dollarStr("USD", ""), euroStr("EUR", ""), genericStr((UChar)0x00a4), resultStr;
-    UChar tmp[4];
-    status = U_ZERO_ERROR;
-
-    ucurr_forLocale("en_US", tmp, 4, &status);
-    resultStr.setTo(tmp);
-    if (dollarStr != resultStr) {
-        errln("Fail: en_US didn't return USD");
-    }
-    ucurr_forLocale("en_US_EURO", tmp, 4, &status);
-    resultStr.setTo(tmp);
-    if (euroStr != resultStr) {
-        errln("Fail: en_US_EURO didn't return EUR");
-    }
-    ucurr_forLocale("en_GB_EURO", tmp, 4, &status);
-    resultStr.setTo(tmp);
-    if (euroStr != resultStr) {
-        errln("Fail: en_GB_EURO didn't return EUR");
-    }
-    ucurr_forLocale("en_US_PREEURO", tmp, 4, &status);
-    resultStr.setTo(tmp);
-    if (dollarStr != resultStr) {
-        errln("Fail: en_US_PREEURO didn't fallback to en_US");
-    }
-    ucurr_forLocale("en_US_Q", tmp, 4, &status);
-    resultStr.setTo(tmp);
-    if (dollarStr != resultStr) {
-        errln("Fail: en_US_Q didn't fallback to en_US");
-    }
-    int32_t invalidLen = ucurr_forLocale("en_QQ", tmp, 4, &status);
-    if (invalidLen || U_SUCCESS(status)) {
-        errln("Fail: en_QQ didn't return NULL");
+            NumberFormat *nf = NumberFormat::createCurrencyInstance(loc, status);
+            UnicodeString pos;
+            nf->format(271828.182845, pos);
+            UnicodeString neg;
+            nf->format(-271828.182845, neg);
+            if (pos.indexOf(EURO_CURRENCY) >= 0 &&
+                neg.indexOf(EURO_CURRENCY) >= 0) {
+                logln("Ok: " + (temp=loc.getName()) +
+                      ": " + pos + " / " + neg);
+            }
+            else {
+                errln("Fail: " + (temp=loc.getName()) +
+                      " formats without " + EURO_CURRENCY +
+                      ": " + pos + " / " + neg +
+                      "\n*** THIS FAILURE MAY ONLY MEAN THAT LOCALE DATA HAS CHANGED ***");
+            }
+        
+            delete nf;
     }
 }
 
@@ -1239,7 +1127,7 @@ LocaleTest::TestEuroSupport()
  * @bug 4139504
  * toString() doesn't work with language_VARIANT.
  */
-void
+void 
 LocaleTest::TestToString() {
     Locale DATA [] = {
         Locale("xx", "", ""),
@@ -1260,7 +1148,7 @@ LocaleTest::TestToString() {
         "_YY_ZZ",
         "xx_YY_ZZ",
     };
-
+    
     for (int32_t i=0; i < 7; ++i) {
       const char *name;
       name = DATA[i].getName();
@@ -1281,8 +1169,8 @@ LocaleTest::TestToString() {
  * Couldn't reproduce this bug -- probably was fixed earlier.
  *
  * ORIGINAL BUG REPORT:
- * -- basically, hungarian for monday shouldn't have an \u00f4
- * (o circumflex)in it instead it should be an o with 2 inclined
+ * -- basically, hungarian for monday shouldn't have an \u00f4 
+ * (o circumflex)in it instead it should be an o with 2 inclined 
  * (right) lines over it..
  *
  * You may wonder -- why do all this -- why not just add a line to
@@ -1292,10 +1180,10 @@ LocaleTest::TestToString() {
  * is that something is wrong with the font mapping subsystem, but we can't
  * test that here.
  */
-void
-LocaleTest::Test4139940()
+void 
+LocaleTest::Test4139940() 
 {
-    Locale mylocale("hu", "", "");
+    Locale mylocale("hu", "", "");       
     UDate mydate = date(98,3,13); // A Monday
     UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat df_full("EEEE", mylocale, status);
@@ -1306,11 +1194,8 @@ LocaleTest::Test4139940()
     // o double acute (\u0151) IS.
     UChar ocf = 0x00f4;
     UChar oda = 0x0151;
-    if (str.indexOf(oda) < 0 || str.indexOf(ocf) >= 0) {
-      errln("Fail: Monday in Hungarian is wrong - oda's index is %d and ocf's is %d",
-            str.indexOf(oda), str.indexOf(ocf));
-      logln(UnicodeString("String is: ") + str );
-    }
+    if (str.indexOf(oda) < 0 || str.indexOf(ocf) >= 0)
+        errln("Fail: Monday in Hungarian is wrong");
 }
 
 UDate
@@ -1318,14 +1203,14 @@ LocaleTest::date(int32_t y, int32_t m, int32_t d, int32_t hr, int32_t min, int32
 {
     UErrorCode status = U_ZERO_ERROR;
     Calendar *cal = Calendar::createInstance(status);
-    if (cal == 0)
+    if (cal == 0) 
         return 0.0;
     cal->clear();
     cal->set(1900 + y, m, d, hr, min, sec); // Add 1900 to follow java.util.Date protocol
     UDate dt = cal->getTime(status);
     if (U_FAILURE(status))
         return 0.0;
-
+    
     delete cal;
     return dt;
 }
@@ -1334,8 +1219,8 @@ LocaleTest::date(int32_t y, int32_t m, int32_t d, int32_t hr, int32_t min, int32
  * @bug 4143951
  * Russian first day of week should be Monday. Confirmed.
  */
-void
-LocaleTest::Test4143951()
+void 
+LocaleTest::Test4143951() 
 {
     UErrorCode status = U_ZERO_ERROR;
     Calendar *cal = Calendar::createInstance(Locale("ru", "", ""), status);
@@ -1354,19 +1239,19 @@ LocaleTest::Test4143951()
  * java.util.Locale.getISO3Country() works wrong for non ISO-3166 codes.
  * Should throw an exception for unknown locales
  */
-void
-LocaleTest::Test4147315()
+void 
+LocaleTest::Test4147315() 
 {
   UnicodeString temp;
     // Try with codes that are the wrong length but happen to match text
     // at a valid offset in the mapping table
     Locale locale("aaa", "CCC");
-
+    
     const char *result = locale.getISO3Country();
 
     // Change to conform to C api usage
     if((result==NULL)||(result[0] != 0))
-      errln("ERROR: getISO3Country() returns: " + UnicodeString(result,"") +
+      errln("ERROR: getISO3Country() returns: " + UnicodeString(result,"") + 
                 " for locale '" + (temp=locale.getName()) + "' rather than exception" );
 }
 
@@ -1375,48 +1260,52 @@ LocaleTest::Test4147315()
  * java.util.Locale.getISO3Language() works wrong for non ISO-3166 codes.
  * Should throw an exception for unknown locales
  */
-void
-LocaleTest::Test4147317()
+void 
+LocaleTest::Test4147317() 
 {
     UnicodeString temp;
     // Try with codes that are the wrong length but happen to match text
     // at a valid offset in the mapping table
     Locale locale("aaa", "CCC");
-
+    
     const char *result = locale.getISO3Language();
 
     // Change to conform to C api usage
     if((result==NULL)||(result[0] != 0))
-      errln("ERROR: getISO3Language() returns: " + UnicodeString(result,"") +
+      errln("ERROR: getISO3Language() returns: " + UnicodeString(result,"") + 
                 " for locale '" + (temp=locale.getName()) + "' rather than exception" );
 }
 
 /*
  * @bug 4147552
  */
-void
-LocaleTest::Test4147552()
+void 
+LocaleTest::Test4147552() 
 {
-    Locale locales [] = {     Locale("no", "NO"),
+    Locale locales [] = {     Locale("no", "NO"), 
                             Locale("no", "NO", "B"),
-                             Locale("no", "NO", "NY")
+                             Locale("no", "NO", "NY") 
     };
-
-    UnicodeString edn("Norwegian (Norway, B)");
-    UnicodeString englishDisplayNames [] = {
+    
+    UnicodeString edn("Norwegian (Norway, Bokm");
+    edn += (UChar32)0x00e5;
+    edn += "l)";
+    UnicodeString englishDisplayNames [] = { 
                                                 "Norwegian (Norway)",
                                                  edn,
                                                  // "Norwegian (Norway,B)",
-                                                 //"Norwegian (Norway,NY)"
-                                                 "Norwegian (Norway, NY)"
+                                                 //"Norwegian (Norway,NY)" 
+                                                 "Norwegian (Norway, Nynorsk)" 
     };
-    UnicodeString ndn("norsk (Norge, B");
-    UnicodeString norwegianDisplayNames [] = {
+    UnicodeString ndn("norsk (Norge, Bokm");
+    ndn += (UChar32)0x00e5;
+    ndn += "l)";
+    UnicodeString norwegianDisplayNames [] = { 
                                                 "norsk (Norge)",
-                                                "norsk (Norge, B)",
-                                                //ndn,
-                                                 "norsk (Noreg, NY)"
-                                                 //"Norsk (Noreg, Nynorsk)"
+                                                //"norsk (Norge,B)", 
+                                                ndn, 
+                                                 //"norsk (Norge,NY)" 
+                                                 "norsk (Noreg, Nynorsk)" 
     };
 
     for (int32_t i = 0; i < 3; ++i) {
@@ -1439,9 +1328,9 @@ LocaleTest::TestVariantParsing()
 
     UnicodeString dispName("English (United States, DE ANZA_CUPERTINO_CALIFORNIA_UNITED STATES_EARTH)");
     UnicodeString dispVar("DE ANZA_CUPERTINO_CALIFORNIA_UNITED STATES_EARTH");
-
+    
     UnicodeString got;
-
+    
     en_US_custom.getDisplayVariant(Locale::getUS(), got);
     if(got != dispVar) {
         errln("FAIL: getDisplayVariant()");
@@ -1458,7 +1347,7 @@ LocaleTest::TestVariantParsing()
 
     Locale shortVariant("fr", "FR", "foo");
     shortVariant.getDisplayVariant(got);
-
+    
     if(got != "FOO") {
         errln("FAIL: getDisplayVariant()");
         errln("Wanted: foo");
@@ -1467,7 +1356,7 @@ LocaleTest::TestVariantParsing()
 
     Locale bogusVariant("fr", "FR", "_foo");
     bogusVariant.getDisplayVariant(got);
-
+    
     if(got != "FOO") {
         errln("FAIL: getDisplayVariant()");
         errln("Wanted: foo");
@@ -1476,7 +1365,7 @@ LocaleTest::TestVariantParsing()
 
     Locale bogusVariant2("fr", "FR", "foo_");
     bogusVariant2.getDisplayVariant(got);
-
+    
     if(got != "FOO") {
         errln("FAIL: getDisplayVariant()");
         errln("Wanted: foo");
@@ -1485,7 +1374,7 @@ LocaleTest::TestVariantParsing()
 
     Locale bogusVariant3("fr", "FR", "_foo_");
     bogusVariant3.getDisplayVariant(got);
-
+    
     if(got != "FOO") {
         errln("FAIL: getDisplayVariant()");
         errln("Wanted: foo");
@@ -1500,8 +1389,8 @@ LocaleTest::TestVariantParsing()
  * Currency symbol in zh is wrong.  We will test this at the NumberFormat
  * end to test the whole pipe.
  */
-void
-LocaleTest::Test4105828()
+void 
+LocaleTest::Test4105828() 
 {
     Locale LOC [] = { Locale::getChinese(),  Locale("zh", "CN", ""),
                      Locale("zh", "TW", ""), Locale("zh", "HK", "") };
@@ -1529,411 +1418,14 @@ LocaleTest::Test4105828()
 // Jitterbug 1735
 void
 LocaleTest::TestSetIsBogus() {
-    Locale l("en_US");
-    l.setToBogus();
-    if(l.isBogus() != TRUE) {
-        errln("After setting bogus, didn't return TRUE");
-    }
-    l = "en_US"; // This should reset bogus
-    if(l.isBogus() != FALSE) {
-        errln("After resetting bogus, didn't return FALSE");
-    }
+  Locale l("en_US");
+  l.setToBogus();
+  if(l.isBogus() != TRUE) {
+    errln("After setting bogus, didn't return TRUE");
+  }
+  l = "en_US"; // This should reset bogus
+  if(l.isBogus() != FALSE) {
+    errln("After resetting bogus, didn't return FALSE");
+  }
 }
 
-
-void
-LocaleTest::TestKeywordVariants(void) {
-    struct {
-        const char *localeID;
-        const char *expectedLocaleID;
-        const char *expectedKeywords[10];
-        int32_t numKeywords;
-        UErrorCode expectedStatus;
-    } testCases[] = {
-        { "de_DE@  currency = euro; C o ll A t i o n   = Phonebook   ; C alen dar = budhist   ",
-          "de_DE@c alen dar=budhist;c o ll a t i o n=Phonebook;currency=euro",
-        { "c alen dar", "c o ll a t i o n", "currency"},
-        3,
-        U_ZERO_ERROR
-        },
-        { "de_DE@euro", "de_DE_EURO", {""}, 0, U_ZERO_ERROR}, // In C++, locale name gets canonicalized first.
-        // therefore, getKeywords will not encounter the POSIX variant
-        /*{ "de_DE@euro;collation=phonebook", "", "", U_INVALID_FORMAT_ERROR}*/
-    };
-    UErrorCode status = U_ZERO_ERROR;
-
-    int32_t i = 0, j = 0;
-    const char *result = NULL;
-    StringEnumeration *keywords;
-    int32_t keyCount = 0;
-    const char *keyword = NULL;
-    const UnicodeString *keywordString;
-    int32_t keywordLen = 0;
-
-    for(i = 0; i < (int32_t)(sizeof(testCases)/sizeof(testCases[0])); i++) {
-        status = U_ZERO_ERROR;
-        Locale l(testCases[i].localeID);
-        keywords = l.createKeywords(status);
-
-        if(status != testCases[i].expectedStatus) {
-            err("Expected to get status %s. Got %s instead\n",
-                u_errorName(testCases[i].expectedStatus), u_errorName(status));
-        }
-        status = U_ZERO_ERROR;
-        if(keywords) {
-            if((keyCount = keywords->count(status)) != testCases[i].numKeywords) {
-                err("Expected to get %i keywords, got %i\n", testCases[i].numKeywords, keyCount);
-            }
-            if(keyCount) {
-                for(j = 0;;) {
-                    if((j&1)==0) {
-                        if((keyword = keywords->next(&keywordLen, status)) == NULL) {
-                            break;
-                        }
-                        if(strcmp(keyword, testCases[i].expectedKeywords[j]) != 0) {
-                            err("Expected to get keyword value %s, got %s\n", testCases[i].expectedKeywords[j], keyword);
-                        }
-                    } else {
-                        if((keywordString = keywords->snext(status)) == NULL) {
-                            break;
-                        }
-                        if(*keywordString != UnicodeString(testCases[i].expectedKeywords[j], "")) {
-                            err("Expected to get keyword UnicodeString %s, got %s\n", testCases[i].expectedKeywords[j], keyword);
-                        }
-                    }
-                    j++;
-
-                    if(j == keyCount / 2) {
-                        // replace keywords with a clone of itself
-                        StringEnumeration *k2 = keywords->clone();
-                        if(k2 == NULL || keyCount != k2->count(status)) {
-                            errln("KeywordEnumeration.clone() failed");
-                        } else {
-                            delete keywords;
-                            keywords = k2;
-                        }
-                    }
-                }
-            }
-            delete keywords;
-        }
-        result = l.getName();
-        if(uprv_strcmp(testCases[i].expectedLocaleID, result) != 0) {
-            err("Expected to get \"%s\" from \"%s\". Got \"%s\" instead\n",
-                testCases[i].expectedLocaleID, testCases[i].localeID, result);
-        }
-
-    }
-
-}
-
-void
-LocaleTest::TestKeywordVariantParsing(void) {
-    struct {
-        const char *localeID;
-        const char *keyword;
-        const char *expectedValue;
-    } testCases[] = {
-        { "de_DE@  C o ll A t i o n   = Phonebook   ", "c o ll a t i o n", "Phonebook" },
-        { "de_DE", "collation", ""},
-        { "de_DE@collation= PHONEBOOK", "collation", "PHONEBOOK" },
-        { "de_DE@ currency = euro   ; CoLLaTion   = PHONEBOOk   ", "collatiON", "PHONEBOOk" },
-    };
-
-    UErrorCode status = U_ZERO_ERROR;
-
-    int32_t i = 0;
-    int32_t resultLen = 0;
-    char buffer[256];
-
-    for(i = 0; i < (int32_t)(sizeof(testCases)/sizeof(testCases[0])); i++) {
-        *buffer = 0;
-        Locale l(testCases[i].localeID);
-        resultLen = l.getKeywordValue(testCases[i].keyword, buffer, 256, status);
-        if(uprv_strcmp(testCases[i].expectedValue, buffer) != 0) {
-            err("Expected to extract \"%s\" from \"%s\" for keyword \"%s\". Got \"%s\" instead\n",
-                testCases[i].expectedValue, testCases[i].localeID, testCases[i].keyword, buffer);
-        }
-    }
-}
-
-void
-LocaleTest::TestGetBaseName(void) {
-    struct {
-        const char *localeID;
-        const char *baseName;
-    } testCases[] = {
-        { "de_DE@  C o ll A t i o n   = Phonebook   ", "de_DE" },
-        { "de@currency = euro; CoLLaTion   = PHONEBOOk", "de" },
-        { "ja@calendar = buddhist", "ja" }
-    };
-
-    int32_t i = 0;
-
-    for(i = 0; i < (int32_t)(sizeof(testCases)/sizeof(testCases[0])); i++) {
-        Locale loc(testCases[i].localeID);
-        if(strcmp(testCases[i].baseName, loc.getBaseName())) {
-            errln("For locale \"%s\" expected baseName \"%s\", but got \"%s\"",
-                testCases[i].localeID, testCases[i].baseName, loc.getBaseName());
-            return;
-        }
-    }
-}
-
-/**
- * Compare two locale IDs.  If they are equal, return 0.  If `string'
- * starts with `prefix' plus an additional element, that is, string ==
- * prefix + '_' + x, then return 1.  Otherwise return a value < 0.
- */
-static UBool _loccmp(const char* string, const char* prefix) {
-    int32_t slen = uprv_strlen(string),
-            plen = uprv_strlen(prefix);
-    int32_t c = uprv_strncmp(string, prefix, plen);
-    /* 'root' is "less than" everything */
-    if (uprv_strcmp(prefix, "root") == 0) {
-        return (uprv_strcmp(string, "root") == 0) ? 0 : 1;
-    }
-    if (c) return -1; /* mismatch */
-    if (slen == plen) return 0;
-    if (string[plen] == '_') return 1;
-    return -2; /* false match, e.g. "en_USX" cmp "en_US" */
-}
-
-/**
- * Check the relationship between requested locales, and report problems.
- * The caller specifies the expected relationships between requested
- * and valid (expReqValid) and between valid and actual (expValidActual).
- * Possible values are:
- * "gt" strictly greater than, e.g., en_US > en
- * "ge" greater or equal,      e.g., en >= en
- * "eq" equal,                 e.g., en == en
- */
-void LocaleTest::_checklocs(const char* label,
-                            const char* req,
-                            const Locale& validLoc,
-                            const Locale& actualLoc,
-                            const char* expReqValid,
-                            const char* expValidActual) {
-    const char* valid = validLoc.getName();
-    const char* actual = actualLoc.getName();
-    int32_t reqValid = _loccmp(req, valid);
-    int32_t validActual = _loccmp(valid, actual);
-    if (((0 == uprv_strcmp(expReqValid, "gt") && reqValid > 0) ||
-         (0 == uprv_strcmp(expReqValid, "ge") && reqValid >= 0) ||
-         (0 == uprv_strcmp(expReqValid, "eq") && reqValid == 0)) &&
-        ((0 == uprv_strcmp(expValidActual, "gt") && validActual > 0) ||
-         (0 == uprv_strcmp(expValidActual, "ge") && validActual >= 0) ||
-         (0 == uprv_strcmp(expValidActual, "eq") && validActual == 0))) {
-        logln("%s; req=%s, valid=%s, actual=%s",
-              label, req, valid, actual);
-    } else {
-        errln("FAIL: %s; req=%s, valid=%s, actual=%s",
-              label, req, valid, actual);
-    }
-}
-
-void LocaleTest::TestGetLocale() {
-    UErrorCode ec = U_ZERO_ERROR;
-    const char *req;
-    Locale valid, actual, reqLoc;
-    
-    // Calendar
-#if !UCONFIG_NO_FORMATTING
-    req = "en_US_BROOKLYN";
-    Calendar* cal = Calendar::createInstance(Locale::createFromName(req), ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: Calendar::createInstance failed");
-    } else {
-        valid = cal->getLocale(ULOC_VALID_LOCALE, ec);
-        actual = cal->getLocale(ULOC_ACTUAL_LOCALE, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: Calendar::getLocale() failed");
-        } else {
-            _checklocs("Calendar", req, valid, actual);
-        }
-    }
-    delete cal;
-#endif
-
-    // DecimalFormat, DecimalFormatSymbols
-#if !UCONFIG_NO_FORMATTING
-    req = "fr_FR_NICE";
-    DecimalFormat* dec = (DecimalFormat*)
-        NumberFormat::createInstance(Locale::createFromName(req), ec);
-    U_ASSERT(dec->getDynamicClassID() == DecimalFormat::getStaticClassID());
-    if (U_FAILURE(ec)) {
-        errln("FAIL: NumberFormat::createInstance failed");
-    } else {
-        valid = dec->getLocale(ULOC_VALID_LOCALE, ec);
-        actual = dec->getLocale(ULOC_ACTUAL_LOCALE, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: DecimalFormat::getLocale() failed");
-        } else {
-            _checklocs("DecimalFormat", req, valid, actual);
-        }
-
-        const DecimalFormatSymbols* sym = dec->getDecimalFormatSymbols();
-        U_ASSERT(sym != 0);
-        valid = sym->getLocale(ULOC_VALID_LOCALE, ec);
-        actual = sym->getLocale(ULOC_ACTUAL_LOCALE, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: DecimalFormatSymbols::getLocale() failed");
-        } else {
-            _checklocs("DecimalFormatSymbols", req, valid, actual);
-        }        
-    }
-    delete dec;
-#endif
-
-    // DateFormat, DateFormatSymbols
-#if !UCONFIG_NO_FORMATTING
-    req = "de_CH_LUCERNE";
-    SimpleDateFormat* dat = (SimpleDateFormat*)
-        DateFormat::createDateInstance(DateFormat::kDefault,
-                                       Locale::createFromName(req));
-    U_ASSERT(dat != 0);
-    U_ASSERT(dat->getDynamicClassID() == SimpleDateFormat::getStaticClassID());
-    valid = dat->getLocale(ULOC_VALID_LOCALE, ec);
-    actual = dat->getLocale(ULOC_ACTUAL_LOCALE, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: SimpleDateFormat::getLocale() failed");
-    } else {
-        _checklocs("SimpleDateFormat", req, valid, actual);
-    }
-    
-    const DateFormatSymbols* sym = dat->getDateFormatSymbols();
-    U_ASSERT(sym != 0);
-    valid = sym->getLocale(ULOC_VALID_LOCALE, ec);
-    actual = sym->getLocale(ULOC_ACTUAL_LOCALE, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: DateFormatSymbols::getLocale() failed");
-    } else {
-        _checklocs("DateFormatSymbols", req, valid, actual);
-    }        
-    delete dat;
-#endif
-
-    // BreakIterator
-#if !UCONFIG_NO_BREAK_ITERATION
-    req = "es_ES_BARCELONA";
-    reqLoc = Locale::createFromName(req);
-    BreakIterator* brk = BreakIterator::createWordInstance(reqLoc, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: BreakIterator::createWordInstance failed");
-    } else {
-        valid = brk->getLocale(ULOC_VALID_LOCALE, ec);
-        actual = brk->getLocale(ULOC_ACTUAL_LOCALE, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: BreakIterator::getLocale() failed");
-        } else {
-            _checklocs("BreakIterator", req, valid, actual);
-        }
-        
-        // After registering something, the behavior should be different
-        URegistryKey key = BreakIterator::registerInstance(brk, reqLoc, UBRK_WORD, ec);
-        brk = 0; // registerInstance adopts
-        if (U_FAILURE(ec)) {
-            errln("FAIL: BreakIterator::registerInstance() failed");
-        } else {
-            brk = BreakIterator::createWordInstance(reqLoc, ec);
-            if (U_FAILURE(ec)) {
-                errln("FAIL: BreakIterator::createWordInstance failed");
-            } else {
-                valid = brk->getLocale(ULOC_VALID_LOCALE, ec);
-                actual = brk->getLocale(ULOC_ACTUAL_LOCALE, ec);
-                if (U_FAILURE(ec)) {
-                    errln("FAIL: BreakIterator::getLocale() failed");
-                } else {
-                    // N.B.: now expect valid==actual==req
-                    _checklocs("BreakIterator(registered)",
-                               req, valid, actual, "eq", "eq");
-                }
-            }
-            // No matter what, unregister
-            BreakIterator::unregister(key, ec);
-            if (U_FAILURE(ec)) {
-                errln("FAIL: BreakIterator::unregister() failed");
-            }
-            delete brk;
-            brk = 0;
-        }
-
-        // After unregistering, should behave normally again
-        brk = BreakIterator::createWordInstance(reqLoc, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: BreakIterator::createWordInstance failed");
-        } else {
-            valid = brk->getLocale(ULOC_VALID_LOCALE, ec);
-            actual = brk->getLocale(ULOC_ACTUAL_LOCALE, ec);
-            if (U_FAILURE(ec)) {
-                errln("FAIL: BreakIterator::getLocale() failed");
-            } else {
-                _checklocs("BreakIterator(unregistered)", req, valid, actual);
-            }
-        }
-    }
-    delete brk;
-#endif
-
-    // Collator
-#if !UCONFIG_NO_COLLATION
-    req = "hi_IN_BHOPAL";
-    reqLoc = Locale::createFromName(req);
-    Collator* coll = Collator::createInstance(reqLoc, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: Collator::createInstance failed");
-    } else {
-        valid = coll->getLocale(ULOC_VALID_LOCALE, ec);
-        actual = coll->getLocale(ULOC_ACTUAL_LOCALE, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: Collator::getLocale() failed");
-        } else {
-            _checklocs("Collator", req, valid, actual);
-        }
-
-        // After registering something, the behavior should be different
-        URegistryKey key = Collator::registerInstance(coll, reqLoc, ec);
-        coll = 0; // registerInstance adopts
-        if (U_FAILURE(ec)) {
-            errln("FAIL: Collator::registerInstance() failed");
-        } else {
-            coll = Collator::createInstance(reqLoc, ec);
-            if (U_FAILURE(ec)) {
-                errln("FAIL: Collator::createWordInstance failed");
-            } else {
-                valid = coll->getLocale(ULOC_VALID_LOCALE, ec);
-                actual = coll->getLocale(ULOC_ACTUAL_LOCALE, ec);
-                if (U_FAILURE(ec)) {
-                    errln("FAIL: Collator::getLocale() failed");
-                } else {
-                    // N.B.: now expect valid==actual==req
-                    _checklocs("Collator(registered)",
-                               req, valid, actual, "eq", "eq");
-                }
-            }
-            // No matter what, unregister
-            Collator::unregister(key, ec);
-            if (U_FAILURE(ec)) {
-                errln("FAIL: Collator::unregister() failed");
-            }
-            delete coll;
-            coll = 0;
-        }
-
-        // After unregistering, should behave normally again
-        coll = Collator::createInstance(reqLoc, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: Collator::createInstance failed");
-        } else {
-            valid = coll->getLocale(ULOC_VALID_LOCALE, ec);
-            actual = coll->getLocale(ULOC_ACTUAL_LOCALE, ec);
-            if (U_FAILURE(ec)) {
-                errln("FAIL: Collator::getLocale() failed");
-            } else {
-                _checklocs("Collator(unregistered)", req, valid, actual);
-            }
-        }
-    }
-    delete coll;
-#endif
-}

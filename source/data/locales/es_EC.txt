@@ -18,6 +18,8 @@ es_EC {
         "dd/MM/yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x300a }
+//    LocaleString { "es_EC" }
     NumberElements { 
         ",",
         ".",
@@ -31,7 +33,6 @@ es_EC {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
     NumberPatterns { 
         "#,##0.###;-#,##0.###",
@@ -39,4 +40,5 @@ es_EC {
         "#,##0%",
         "#E0",
     }
+//    ShortCountry { "ECU" }
 }

@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2003, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
  
@@ -206,33 +206,24 @@ void MessageFormatRegressionTest::Test4031438()
                 temp = obj.getString(temp);
             else {
                 fmt = NumberFormat::createInstance(status);
-                switch (obj.getType()) {
-                case Formattable::kLong: fmt->format(obj.getLong(), temp); break;
-                case Formattable::kInt64: fmt->format(obj.getInt64(), temp); break;
-                case Formattable::kDouble: fmt->format(obj.getDouble(), temp); break;
-                default: break;
-                }
+                fmt->format(obj.getType() == Formattable::kLong ? obj.getLong() : obj.getDouble(), temp);
             }
 
             // convert to string if not already
             Formattable obj1 = params[i];
             temp1.remove();
-            if(obj1.getType() == Formattable::kString)
-                temp1 = obj1.getString(temp1);
-            else {
+            if(obj1.getType() == Formattable::kDouble || obj1.getType() == Formattable::kLong) {
                 fmt = NumberFormat::createInstance(status);
-                switch (obj1.getType()) {
-                case Formattable::kLong: fmt->format(obj1.getLong(), temp1); break;
-                case Formattable::kInt64: fmt->format(obj1.getInt64(), temp1); break;
-                case Formattable::kDouble: fmt->format(obj1.getDouble(), temp1); break;
-                default: break;
-                }
+                fmt->format(obj1.getType() == Formattable::kLong ? obj1.getLong() : obj1.getDouble(), temp1);
             }
+            else
+                temp1 = obj1.getString(temp1);
 
             //if (objs[i] != NULL && objs[i].getString(temp1) != params[i].getString(temp2)) {
             if (temp != temp1) {
                 errln("Parse failed on object " + objs[i].getString(temp1) + " at index : " + i);
-            }       
+            }
+        
         }
 
         delete fmt;

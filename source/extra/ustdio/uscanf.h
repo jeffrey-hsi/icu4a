@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1998-2003, International Business Machines
+*   Copyright (C) 1998-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -30,16 +30,16 @@
  * Struct encapsulating a single uscanf format specification.
  */
 struct u_scanf_spec_info {
-  int32_t    fWidth;        /* Width  */
+  UChar     fSpec;            /* Format specification  */
 
-  UChar     fSpec;          /* Format specification  */
+  int32_t    fWidth;            /* Width  */
 
-  UChar     fPadChar;       /* Padding character  */
+  UChar     fPadChar;        /* Padding character  */
 
-  UBool     fIsLongDouble;  /* L flag  */
-  UBool     fIsShort;       /* h flag  */
+  UBool     fIsLongDouble;        /* L flag  */
+  UBool     fIsShort;        /* h flag  */
   UBool     fIsLong;        /* l flag  */
-  UBool     fIsLongLong;    /* ll flag  */
+  UBool     fIsLongLong;        /* ll flag  */
 };
 typedef struct u_scanf_spec_info u_scanf_spec_info;
 
@@ -67,4 +67,3 @@ typedef int32_t (*u_scanf_handler) (UFILE            *stream,
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif
-

@@ -48,7 +48,8 @@ le_int32 MarkToMarkPositioningSubtable::process(GlyphIterator *glyphIterator, co
         return 0;
     }
 
-    GlyphIterator mark2Iterator(*glyphIterator);
+    // FIXME: we probably don't want to find a mark before a previous base glyph...
+    GlyphIterator mark2Iterator(*glyphIterator, (le_uint16) (lfIgnoreLigatures /*| lfIgnoreBaseGlyphs*/));
     LEGlyphID mark2Glyph = findMark2Glyph(&mark2Iterator);
     le_int32 mark2Coverage = getBaseCoverage((LEGlyphID) mark2Glyph);
     const Mark2Array *mark2Array = (const Mark2Array *) ((char *) this + SWAPW(baseArrayOffset));

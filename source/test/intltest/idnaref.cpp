@@ -18,6 +18,7 @@
 
 #if !UCONFIG_NO_IDNA && !UCONFIG_NO_TRANSLITERATION
 #include "idnaref.h"
+#include "strprep.h"
 #include "punyref.h"
 #include "ustr_imp.h"
 #include "cmemory.h"
@@ -42,6 +43,21 @@ static const UChar ACE_PREFIX[] ={ 0x0058,0x004E,0x002d,0x002d } ;
 #define LOWER_CASE_DELTA 0x0020
 #define FULL_STOP        0x002E
 
+
+NamePrepTransform* TestIDNA::prep = NULL;
+
+NamePrepTransform* TestIDNA::getInstance(UErrorCode& status){
+    if(TestIDNA::prep == NULL){
+        UParseError parseError;
+        TestIDNA::prep = NamePrepTransform::createInstance(parseError, status);
+        if(TestIDNA::prep ==NULL){
+           //status = U_MEMORY_ALLOCATION_ERROR;
+           return NULL;
+        }
+    }
+    return TestIDNA::prep;
+
+}
 
 inline static UBool 
 startsWithPrefix(const UChar* src , int32_t srcLength){

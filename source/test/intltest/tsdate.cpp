@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2003, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -16,8 +16,6 @@
 #include <stdlib.h>
 
 const double IntlTestDateFormat::ONEYEAR = 365.25 * ONEDAY; // Approximate
-
-IntlTestDateFormat::~IntlTestDateFormat() {}
 
 /**
  * This test does round-trip testing (format -> parse -> format -> parse -> etc.) of
@@ -152,9 +150,6 @@ void IntlTestDateFormat::tryDate(UDate theDate)
     int32_t dateMatch = 0;
     int32_t stringMatch = 0;
     UBool dump = FALSE;
-#if defined (U_CAL_DEBUG)
-    dump = TRUE;
-#endif
     int32_t i;
 
     date[0] = theDate;

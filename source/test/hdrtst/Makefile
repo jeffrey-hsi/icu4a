@@ -1,5 +1,5 @@
 #
-#  Copyright (c) 1999-2003, International Business Machines Corporation and
+#  Copyright (c) 1999-2002, International Business Machines Corporation and
 #  others. All Rights Reserved.
 #
 #
@@ -26,18 +26,16 @@
 ifeq ($(USE_ICU_CONFIG),1)
 	include $(shell icu-config --incfile)
 	DIRS=$(shell icu-config --prefix)/include/unicode
-	LDIRS=$(shell icu-config --prefix)/include/layout
 else
 	include ../../config/Makefile.inc
 	DIRS=../../../common/unicode ../../../i18n/unicode ../../../extra/ustdio/unicode
-	LDIRS=../../../layout/layout ../../../layoutex/layout
 endif
 
 all: 
 	@echo Please read this Makefile for more information.
 	@echo run \'$(MAKE) check\' to run the test 
 
-check: hdrdir lodir dtest ctest cpptest lotest doclean
+check: hdrdir dtest ctest cpptest doclean
 	@echo "All header tests have finished. If deprecation #errors appeared, "
 	@echo "       add files to hdrtst/dfiles.txt"
 	@echo "#################################################################"
@@ -61,16 +59,6 @@ hdrdir:
 	done
 	rm unicode/pwin32.h
 
-lodir:
-	@-$(RMV) ./layout
-	@mkdir ./layout
-	@echo Preparing layout/ directory ..
-	@cd ./layout ; \
-	for dir in $(LDIRS); do \
-	  echo "linking from " $$dir '(' `ls $$dir/*.h | wc -l` 'headers )' ; \
-	  ln -s $$dir/*.h . ; \
-	done
-
 cpptest:
 	@echo "C++ test #######################################################"
 	@rm -f Makefile.sub
@@ -82,21 +70,8 @@ cpptest:
 	  echo '#include "'unicode/$$incfile'.h"' > ht_$$incfile.cpp ; \
 	  echo 'void junk(){}' >> ht_$$incfile.cpp ; \
           $(COMPILE.cc) -c -I. ht_$$incfile.cpp ; \
-	  echo $$? ; \
-	done
-
-lotest:
-	@echo "Layout test #######################################################"
-	@rm -f Makefile.sub
-	@echo 'Testing all layout  files under C++'
-	@echo 'the number after the hyphen (-) refers to the exit code - should be zero!'
-	@for file in layout/*.h; do \
-	  incfile=`basename $$file .h` ; \
-	  echo -n "C++  layout/$$incfile.h 	- " ; \
-	  echo '#include "'layout/$$incfile'.h"' > ht_$$incfile.cpp ; \
-	  echo 'void junk(){}' >> ht_$$incfile.cpp ; \
-          $(COMPILE.cc) -c -I. ht_$$incfile.cpp ; \
-	  echo $$? ; \
+	  RES=$$? ; \
+	  echo $$RES ; \
 	done
 
 dtest:
@@ -139,5 +114,4 @@ ctest:
 distclean clean:
 	-@rm -f *.h *.c *.cpp *.o *.junk
 	-@$(RMV) ./unicode
-	-@$(RMV) ./layout
 
