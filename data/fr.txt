@@ -65,7 +65,7 @@ fr {
             "samedi",
     }
     Eras { 
-            "av. J.-C.",
+            "BC",
             "ap. J.-C.",
     }
     Languages { 

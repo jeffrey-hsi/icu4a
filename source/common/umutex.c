@@ -108,7 +108,7 @@ void umtx_unlock( UMTX* mutex )
 
       if(*mutex == NULL)
         {
-          return; /* jitterbug 135, fix for multiprocessor machines */
+          umtx_init(NULL);
         }
     }
 

@@ -16,8 +16,6 @@
 
 #include "utypes.h"
 /**
- * @name BreakIterator C API
- *
  * The BreakIterator C API defines  methods for finding the location
  * of boundaries in text. Pointer to a UBreakIterator maintain a 
  * current position and scan over text returning the index of characters 
@@ -158,11 +156,7 @@
  * .      }
  * </pre>
  */
-
-/** 
- * A text-break iterator.
- *  For usage in C programs.
- */
+/** A text-break iterator */
 typedef void* UBreakIterator;
 
 /** The possible types of text boundaries. */
@@ -178,9 +172,7 @@ enum UBreakIteratorType {
 };
 typedef enum UBreakIteratorType UBreakIteratorType;
 
-/** Value indicating all text boundaries have been returned. 
- *
- */
+/** Value indicating all text boundaries have been returned. */
 #define UBRK_DONE ((UTextOffset) -1)
 
 /**

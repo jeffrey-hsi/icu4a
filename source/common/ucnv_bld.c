@@ -40,12 +40,11 @@ static const char *algorithmicConverterNames[] = {
   "UTF8",
   "UTF16_BigEndian",
   "UTF16_LittleEndian",
-  "UTF16_PlatformEndian",
-  "UTF16_OppositeEndian",
   "ISO_2022",
   "JIS",
   "EUC",
   "GB",
+  "ISO_2022",
   ""
 };
 
@@ -374,18 +373,6 @@ UConverterType
     return UCNV_GB;
   else if (icu_strcmp (realName, "ISO_2022") == 0)
     return UCNV_ISO_2022;
-  else if (icu_strcmp (realName, "UTF16_PlatformEndian") == 0)
-#  if U_IS_BIG_ENDIAN
-      return UCNV_UTF16_BigEndian;
-#  else
-      return UCNV_UTF16_LittleEndian;
-#  endif
-  else if (icu_strcmp (realName, "UTF16_OppositeEndian") == 0)
-#  if U_IS_BIG_ENDIAN
-      return UCNV_UTF16_LittleEndian;
-#  else
-      return UCNV_UTF16_BigEndian;
-#  endif
   else
     return UCNV_UNSUPPORTED_CONVERTER;
 }
@@ -780,7 +767,6 @@ void
 
 	break;
       }
-
     case UCNV_UTF16_LittleEndian:
       {
 	myConverter->sharedData->minBytesPerChar = 2;

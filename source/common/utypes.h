@@ -95,7 +95,8 @@ typedef uint16_t UChar;
 /* ICU version number                                                        */
 /*===========================================================================*/
 
-/*
+/**
+ * ICU package code version number.
  * This version number is incremented if and only if the code has changed
  * in a binary incompatible way.  For example, if the algorithm for generating
  * sort keys has changed, this code version must be incremented.
@@ -106,11 +107,6 @@ typedef uint16_t UChar;
  * ResourceBundle::getVersionNumber() returns a full version number
  * for a resource, which consists of this code version number concatenated
  * with the ResourceBundle data file version number.
- */
-
-/**
- * ICU package code version number.
- * For internal use only. Please use ResourceBundle::getVersionNumber()
  */
 #define ICU_VERSION "3"
 
@@ -233,17 +229,14 @@ typedef void* UClassID;
 /* UErrorCode */
 /*===========================================================================*/
 
-/** Error code to replace exception handling.
- *  So that the code is compatible with all C++ compilers.
- */
+/** Error code to replace exception handling */
 enum UErrorCode {
     U_ERROR_INFO_START        = -128,     /* Start of information results (semantically successful) */
     U_USING_FALLBACK_ERROR    = -128,
     U_USING_DEFAULT_ERROR     = -127,
     U_ERROR_INFO_LIMIT,
 
-	/** success */
-    U_ZERO_ERROR              =  0,       	
+    U_ZERO_ERROR              =  0,       /* success */
 
     U_ILLEGAL_ARGUMENT_ERROR  =  1,       /* Start of codes indicating failure */
     U_MISSING_RESOURCE_ERROR  =  2,

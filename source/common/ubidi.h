@@ -109,26 +109,19 @@ DOCXX_TAG
  */
 typedef uint8_t UBiDiLevel;
 
-/** Paragraph level setting.
- *  If there is no strong character, then set the paragraph level to 0 (left-to-right).
- */
+/** @memo If there is no strong character, then set the paragraph level to 0 (left-to-right). */
 #define UBIDI_DEFAULT_LTR 0xfe
 
-/** Paragraph level setting.
- *  If there is no strong character, then set the paragraph level to 1 (right-to-left).
- */
+/** @memo If there is no strong character, then set the paragraph level to 1 (right-to-left). */
 #define UBIDI_DEFAULT_RTL 0xff
 
 /**
- * Maximum explicit embedding level.
+ * @memo Maximum explicit embedding level
  * (The maximum resolved level can be up to <code>UBIDI_MAX_EXPLICIT_LEVEL+1</code>).
- *
  */
 #define UBIDI_MAX_EXPLICIT_LEVEL 61
 
-/** Bit flag for level input. 
- *  Overrides directional properties. 
- */
+/** @memo Bit flag for level input: overrides directional properties. */
 #define UBIDI_LEVEL_OVERRIDE 0x80
 
 /**

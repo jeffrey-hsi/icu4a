@@ -99,11 +99,6 @@ da {
     }
     ShortLanguage { "dan" }
     localPatternChars { "GuMtkHmsSEDFwWahKz" }
-    Eras { 
-            "f.Kr.",
-            "e.Kr.",
-    }
-
     zoneStrings { 
         {
                 "Africa/Casablanca",
