@@ -8,11 +8,6 @@
 #ifndef __MULTIPLESUBSTITUTIONSUBTABLES_H
 #define __MULTIPLESUBSTITUTIONSUBTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEGlyphFilter.h"
 #include "OpenTypeTables.h"
@@ -24,7 +19,7 @@ U_NAMESPACE_BEGIN
 struct SequenceTable
 {
     le_uint16 glyphCount;
-    TTGlyphID substituteArray[ANY_NUMBER];
+    LEGlyphID substituteArray[ANY_NUMBER];
 };
 
 struct MultipleSubstitutionSubtable : GlyphSubstitutionSubtable

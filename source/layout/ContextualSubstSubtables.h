@@ -8,11 +8,6 @@
 #ifndef __CONTEXTUALSUBSTITUTIONSUBTABLES_H
 #define __CONTEXTUALSUBSTITUTIONSUBTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEFontInstance.h"
 #include "OpenTypeTables.h"
@@ -31,7 +26,7 @@ struct SubstitutionLookupRecord
 struct ContextualSubstitutionBase : GlyphSubstitutionSubtable
 {
     static le_bool matchGlyphIDs(
-        const TTGlyphID *glyphArray, le_uint16 glyphCount, GlyphIterator *glyphIterator,
+        const LEGlyphID *glyphArray, le_uint16 glyphCount, GlyphIterator *glyphIterator,
         le_bool backtrack = false);
 
     static le_bool matchGlyphClasses(
@@ -76,7 +71,7 @@ struct SubRuleTable
 {
     le_uint16  glyphCount;
     le_uint16  substCount;
-    TTGlyphID inputGlyphArray[ANY_NUMBER];
+    LEGlyphID inputGlyphArray[ANY_NUMBER];
   //SubstitutionLookupRecord substLookupRecordArray[ANY_NUMBER];
 };
 
@@ -143,11 +138,11 @@ struct ChainSubRuleSetTable
 struct ChainSubRuleTable
 {
     le_uint16  backtrackGlyphCount;
-    TTGlyphID backtrackGlyphArray[ANY_NUMBER];
+    LEGlyphID backtrackGlyphArray[ANY_NUMBER];
   //le_uint16  inputGlyphCount;
-  //TTGlyphID inputGlyphArray[ANY_NUMBER];
+  //LEGlyphID inputGlyphArray[ANY_NUMBER];
   //le_uint16  lookaheadGlyphCount;
-  //TTGlyphID lookaheadGlyphArray[ANY_NUMBER];
+  //LEGlyphID lookaheadGlyphArray[ANY_NUMBER];
   //le_uint16  substCount;
   //SubstitutionLookupRecord substLookupRecordArray[ANY_NUMBER];
 };

@@ -28,6 +28,9 @@ public:
     virtual ~CollationGermanTest();
     void runIndexedTest( int32_t index, UBool exec, const char* &name, char* par = NULL );
 
+    //main test routine, tests rules specific to germa locale
+    void doTest( UnicodeString source, UnicodeString target, Collator::EComparisonResult result);
+
     // perform test with strength PRIMARY
     void TestPrimary(/* char* par */);
 

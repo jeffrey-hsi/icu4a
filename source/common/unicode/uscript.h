@@ -63,26 +63,12 @@ typedef enum UScriptCode {
       USCRIPT_THAANA       = 37,  /* Thaa */
       USCRIPT_THAI         = 38,  /* Thai */
       USCRIPT_TIBETAN      = 39,  /* Tibt */
-      /** Canadian_Aboriginal script. @draft ICU 2.6 */
-      USCRIPT_CANADIAN_ABORIGINAL = 40,  /* Cans */
-      /** Canadian_Aboriginal script (alias). @draft ICU 2.2 */
-      USCRIPT_UCAS         = USCRIPT_CANADIAN_ABORIGINAL,
+      USCRIPT_UCAS         = 40,  /* Cans */
       USCRIPT_YI           = 41,  /* Yiii */
       USCRIPT_TAGALOG      = 42,  /* Tglg */
       USCRIPT_HANUNOO      = 43,  /* Hano */
       USCRIPT_BUHID        = 44,  /* Buhd */
       USCRIPT_TAGBANWA     = 45,  /* Tagb */
-
-      /* New scripts in Unicode 4 @draft ICU 2.6 */
-      USCRIPT_BRAILLE,            /* Brai */
-      USCRIPT_CYPRIOT,            /* Cprt */
-      USCRIPT_LIMBU,              /* Limb */
-      USCRIPT_LINEAR_B,           /* Linb */
-      USCRIPT_OSMANYA,            /* Osma */
-      USCRIPT_SHAVIAN,            /* Shaw */
-      USCRIPT_TAI_LE,             /* Tale */
-      USCRIPT_UGARITIC,           /* Ugar */
-
       USCRIPT_CODE_LIMIT
 } UScriptCode;
 

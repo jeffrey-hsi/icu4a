@@ -8,11 +8,6 @@
 #ifndef __MARKTOMARKPOSITIONINGSUBTABLES_H
 #define __MARKTOMARKPOSITIONINGSUBTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEFontInstance.h"
 #include "OpenTypeTables.h"

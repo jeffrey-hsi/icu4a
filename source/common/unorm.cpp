@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-* Copyright (c) 1996-2003, International Business Machines
+* Copyright (c) 1996-2002, International Business Machines
 * Corporation and others. All Rights Reserved.
 ******************************************************************************
 * File unorm.cpp
@@ -27,8 +27,6 @@
 #include "unicode/udata.h"
 #include "unicode/uchar.h"
 #include "unicode/uiter.h"
-#include "unicode/uniset.h"
-#include "unicode/usetiter.h"
 #include "unicode/unorm.h"
 #include "cmemory.h"
 #include "ustr_imp.h"
@@ -36,41 +34,6 @@
 #include "utrie.h"
 #include "unicode/uset.h"
 #include "unormimp.h"
-
-/*
- * Status of tailored normalization
- *
- * This was done initially for investigation on Unicode public review issue 7
- * (http://www.unicode.org/review/). See Jitterbug 2481.
- * While the UTC at meeting #94 (2003mar) did not take up the issue, this is
- * a permanent feature in ICU 2.6 in support of IDNA which requires true
- * Unicode 3.2 normalization.
- * (NormalizationCorrections are rolled into IDNA mapping tables.)
- *
- * Tailored normalization as implemented here allows to "normalize less"
- * than full Unicode normalization would.
- * Based internally on a UnicodeSet of code points that are
- * "excluded from normalization", the normalization functions leave those
- * code points alone ("inert"). This means that tailored normalization
- * still transforms text into a canonically equivalent form.
- * It does not add decompositions to code points that do not have any or
- * change decomposition results.
- *
- * Any function that searches for a safe boundary has not been touched,
- * which means that these functions will be over-pessimistic when
- * exclusions are applied.
- * This should not matter because subsequent checks and normalizations
- * do apply the exclusions; only a little more of the text may be processed
- * than necessary under exclusions.
- *
- * Normalization exclusions have the following effect on excluded code points c:
- * - c is not decomposed
- * - c is not a composition target
- * - c does not combine forward or backward for composition
- *   except that this is not implemented for Jamo
- * - c is treated as having a combining class of 0
- */
-#define LENGTHOF(array) (sizeof(array)/sizeof((array)[0]))
 
 /*
  * This new implementation of the normalization code loads its data from
@@ -84,19 +47,25 @@ enum {
     _STACK_BUFFER_CAPACITY=100
 };
 
-/*
- * Constants for the bit fields in the options bit set parameter.
- * These need not be public.
- * A user only needs to know the currently assigned values.
- * The number and positions of reserved bits per field can remain private
- * and may change in future implementations.
- */
+#ifndef ICU_UNORM_USE_DEPRECATES
 enum {
-    _NORM_OPTIONS_NX_MASK=0x1f,
-    _NORM_OPTIONS_UNICODE_MASK=0xe0,
-    _NORM_OPTIONS_SETS_MASK=0xff,
+    UNORM_IGNORE_HANGUL=16
+};
+#endif /* ICU_UNORM_USE_DEPRECATES */
 
-    _NORM_OPTIONS_UNICODE_SHIFT=5
+/* Korean Hangul and Jamo constants */
+enum {
+    JAMO_L_BASE=0x1100,     /* "lead" jamo */
+    JAMO_V_BASE=0x1161,     /* "vowel" jamo */
+    JAMO_T_BASE=0x11a7,     /* "trail" jamo */
+
+    HANGUL_BASE=0xac00,
+
+    JAMO_L_COUNT=19,
+    JAMO_V_COUNT=21,
+    JAMO_T_COUNT=28,
+
+    HANGUL_COUNT=JAMO_L_COUNT*JAMO_V_COUNT*JAMO_T_COUNT
 };
 
 static inline UBool
@@ -143,8 +112,6 @@ isJamoVTNorm32JamoV(uint32_t norm32) {
     return norm32<_NORM_JAMO_V_TOP;
 }
 
-/* some prototypes ---------------------------------------------------------- */
-
 static const UChar *
 _findPreviousStarter(const UChar *start, const UChar *src,
                      uint32_t ccOrQCMask, uint32_t decompQCMask, UChar minNoMaybe);
@@ -157,7 +124,6 @@ static const UChar *
 _composePart(UChar *stackBuffer, UChar *&buffer, int32_t &bufferCapacity, int32_t &length,
              const UChar *prevStarter, const UChar *src,
              uint32_t qcMask, uint8_t &prevCC,
-             const UnicodeSet *nx,
              UErrorCode *pErrorCode);
 
 /* load unorm.dat ----------------------------------------------------------- */
@@ -185,26 +151,16 @@ static UBool formatVersion_2_1=FALSE, formatVersion_2_2=FALSE;
 /* the Unicode version of the normalization data */
 static UVersionInfo dataVersion={ 3, 1, 0, 0 };
 
-/* cache UnicodeSets for each combination of exclusion flags */
-static UnicodeSet *nxCache[_NORM_OPTIONS_SETS_MASK+1]={ NULL };
-
 U_CDECL_BEGIN
 
 UBool
 unorm_cleanup() {
-    int32_t i;
-
     if(normData!=NULL) {
         udata_close(normData);
         normData=NULL;
     }
     dataErrorCode=U_ZERO_ERROR;
     haveNormData=0;
-
-    for(i=0; i<LENGTHOF(nxCache); ++i) {
-        delete nxCache[i];
-    }
-    uprv_memset(nxCache, 0, sizeof(nxCache));
 
     return TRUE;
 }
@@ -417,219 +373,6 @@ static inline const uint16_t *
 _getExtraData(uint32_t norm32) {
     return extraData+(norm32>>_NORM_EXTRA_SHIFT);
 }
-
-/* normalization exclusion sets --------------------------------------------- */
-
-/*
- * Normalization exclusion UnicodeSets are used for tailored normalization;
- * see the comment near the beginning of this file.
- *
- * By specifying one or several sets of code points,
- * those code points become inert for normalization.
- */
-
-static const UnicodeSet *
-internalGetNXHangul(UErrorCode &errorCode) {
-    /* internal function, does not check for incoming U_FAILURE */
-
-    if(nxCache[UNORM_NX_HANGUL]==NULL) {
-        UnicodeSet *set=new UnicodeSet(0xac00, 0xd7a3);
-        if(set==NULL) {
-            errorCode=U_MEMORY_ALLOCATION_ERROR;
-            return NULL;
-        }
-
-        umtx_lock(NULL);
-        if(nxCache[UNORM_NX_HANGUL]==NULL) {
-            nxCache[UNORM_NX_HANGUL]=set;
-            set=NULL;
-        }
-        umtx_unlock(NULL);
-
-        delete set;
-    }
-
-    return nxCache[UNORM_NX_HANGUL];
-}
-
-static const UnicodeSet *
-internalGetNXCJKCompat(UErrorCode &errorCode) {
-    /* internal function, does not check for incoming U_FAILURE */
-
-    if(nxCache[UNORM_NX_CJK_COMPAT]==NULL) {
-        /* build a set from [CJK Ideographs]&[has canonical decomposition] */
-        UnicodeSet *set, *hasDecomp;
-
-        set=new UnicodeSet(UNICODE_STRING("[:Ideographic:]", 15), errorCode);
-        if(set==NULL) {
-            errorCode=U_MEMORY_ALLOCATION_ERROR;
-            return NULL;
-        }
-        if(U_FAILURE(errorCode)) {
-            delete set;
-            return NULL;
-        }
-
-        /* start with an empty set for [has canonical decomposition] */
-        hasDecomp=new UnicodeSet();
-        if(hasDecomp==NULL) {
-            delete set;
-            errorCode=U_MEMORY_ALLOCATION_ERROR;
-            return NULL;
-        }
-
-        /* iterate over all ideographs and remember which canonically decompose */
-        UnicodeSetIterator it(*set);
-        UChar32 start, end;
-        uint32_t norm32;
-
-        while(it.nextRange() && !it.isString()) {
-            start=it.getCodepoint();
-            end=it.getCodepointEnd();
-            while(start<=end) {
-                UTRIE_GET32(&normTrie, start, norm32);
-                if(norm32&_NORM_QC_NFD) {
-                    hasDecomp->add(start);
-                }
-                ++start;
-            }
-        }
-
-        /* hasDecomp now contains all ideographs that decompose canonically */
-
-        umtx_lock(NULL);
-        if(nxCache[UNORM_NX_CJK_COMPAT]==NULL) {
-            nxCache[UNORM_NX_CJK_COMPAT]=hasDecomp;
-            hasDecomp=NULL;
-        }
-        umtx_unlock(NULL);
-
-        delete hasDecomp;
-        delete set;
-    }
-
-    return nxCache[UNORM_NX_CJK_COMPAT];
-}
-
-static const UnicodeSet *
-internalGetNXUnicode(uint32_t options, UErrorCode &errorCode) {
-    /* internal function, does not check for incoming U_FAILURE */
-    options&=_NORM_OPTIONS_UNICODE_MASK;
-    if(options==0) {
-        return NULL;
-    }
-
-    if(nxCache[options]==NULL) {
-        /* build a set with all code points that were not designated by the specified Unicode version */
-        UnicodeSet *set;
-
-        switch(options) {
-        case UNORM_UNICODE_3_2:
-            set=new UnicodeSet(UNICODE_STRING("[:^Age=3.2:]", 12), errorCode);
-            break;
-        default:
-            errorCode=U_ILLEGAL_ARGUMENT_ERROR;
-            return NULL;
-        }
-
-        if(set==NULL) {
-            errorCode=U_MEMORY_ALLOCATION_ERROR;
-            return NULL;
-        }
-        if(U_FAILURE(errorCode)) {
-            delete set;
-            return NULL;
-        }
-
-        umtx_lock(NULL);
-        if(nxCache[options]==NULL) {
-            nxCache[options]=set;
-            set=NULL;
-        }
-        umtx_unlock(NULL);
-
-        delete set;
-    }
-
-    return nxCache[options];
-}
-
-/* Get a decomposition exclusion set. The data must be loaded. */
-static const UnicodeSet *
-internalGetNX(int32_t options, UErrorCode &errorCode) {
-    options&=_NORM_OPTIONS_SETS_MASK;
-
-    if(nxCache[options]==NULL) {
-        /* return basic sets */
-        if(options==UNORM_NX_HANGUL) {
-            return internalGetNXHangul(errorCode);
-        }
-        if(options==UNORM_NX_CJK_COMPAT) {
-            return internalGetNXCJKCompat(errorCode);
-        }
-        if((options&_NORM_OPTIONS_UNICODE_MASK)!=0 && (options&_NORM_OPTIONS_NX_MASK)==0) {
-            return internalGetNXUnicode(options, errorCode);
-        }
-
-        /* build a set from multiple subsets */
-        UnicodeSet *set;
-        const UnicodeSet *other;
-
-        set=new UnicodeSet();
-        if(set==NULL) {
-            errorCode=U_MEMORY_ALLOCATION_ERROR;
-            return NULL;
-        }
-
-        if((options&UNORM_NX_HANGUL)!=0 && NULL!=(other=internalGetNXHangul(errorCode))) {
-            set->addAll(*other);
-        }
-        if((options&UNORM_NX_CJK_COMPAT)!=0 && NULL!=(other=internalGetNXCJKCompat(errorCode))) {
-            set->addAll(*other);
-        }
-        if((options&_NORM_OPTIONS_UNICODE_MASK)!=0 && NULL!=(other=internalGetNXUnicode(options, errorCode))) {
-            set->addAll(*other);
-        }
-
-        if(U_FAILURE(errorCode)) {
-            delete set;
-            return NULL;
-        }
-
-        umtx_lock(NULL);
-        if(nxCache[options]==NULL) {
-            nxCache[options]=set;
-            set=NULL;
-        }
-        umtx_unlock(NULL);
-
-        delete set;
-    }
-
-    return nxCache[options];
-}
-
-static inline const UnicodeSet *
-getNX(int32_t options, UErrorCode &errorCode) {
-    if(U_FAILURE(errorCode) || (options&=_NORM_OPTIONS_SETS_MASK)==0) {
-        /* incoming failure, or no decomposition exclusions requested */
-        return NULL;
-    } else {
-        return internalGetNX(options, errorCode);
-    }
-}
-
-static inline UBool
-nx_contains(const UnicodeSet *nx, UChar32 c) {
-    return nx!=NULL && nx->contains(c);
-}
-
-static inline UBool
-nx_contains(const UnicodeSet *nx, UChar c, UChar c2) {
-    return nx!=NULL && nx->contains(c2==0 ? c : U16_GET_SUPPLEMENTARY(c, c2));
-}
-
-/* other normalization primitives ------------------------------------------- */
 
 /* get the canonical or compatibility decomposition for one character */
 static inline const UChar *
@@ -1270,7 +1013,7 @@ _mergeOrdered(UChar *start, UChar *current,
 /* quick check functions ---------------------------------------------------- */
 
 static UBool
-unorm_checkFCD(const UChar *src, int32_t srcLength, const UnicodeSet *nx) {
+unorm_checkFCD(const UChar *src, int32_t srcLength) {
     const UChar *limit;
     UChar c, c2;
     uint16_t fcd16;
@@ -1333,16 +1076,8 @@ unorm_checkFCD(const UChar *src, int32_t srcLength, const UnicodeSet *nx) {
                 ++src;
                 fcd16=_getFCD16FromSurrogatePair(fcd16, c2);
             } else {
-                c2=0;
                 fcd16=0;
             }
-        } else {
-            c2=0;
-        }
-
-        if(nx_contains(nx, c, c2)) {
-            prevCC=0; /* excluded: fcd16==0 */
-            continue;
         }
 
         /*
@@ -1358,11 +1093,7 @@ unorm_checkFCD(const UChar *src, int32_t srcLength, const UnicodeSet *nx) {
         if(cc!=0) {
             if(prevCC<0) {
                 /* the previous character was <_NORM_MIN_WITH_LEAD_CC, we need to get its trail cc */
-                if(!nx_contains(nx, (UChar32)-prevCC)) {
-                    prevCC=(int16_t)(_getFCD16((UChar)-prevCC)&0xff);
-                } else {
-                    prevCC=0; /* excluded: fcd16==0 */
-                }
+                prevCC=(int16_t)(_getFCD16((UChar)-prevCC)&0xff);
             }
 
             if(cc<prevCC) {
@@ -1378,7 +1109,6 @@ _quickCheck(const UChar *src,
             int32_t srcLength,
             UNormalizationMode mode,
             UBool allowMaybe,
-            const UnicodeSet *nx,
             UErrorCode *pErrorCode) {
     UChar stackBuffer[_STACK_BUFFER_CAPACITY];
     UChar *buffer;
@@ -1423,7 +1153,7 @@ _quickCheck(const UChar *src,
         qcMask=_NORM_QC_NFKD;
         break;
     case UNORM_FCD:
-        return unorm_checkFCD(src, srcLength, nx) ? UNORM_YES : UNORM_NO;
+        return unorm_checkFCD(src, srcLength) ? UNORM_YES : UNORM_NO;
     default:
         *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
         return UNORM_MAYBE;
@@ -1480,16 +1210,8 @@ _quickCheck(const UChar *src,
                 ++src;
                 norm32=_getNorm32FromSurrogatePair(norm32, c2);
             } else {
-                c2=0;
                 norm32=0;
             }
-        } else {
-            c2=0;
-        }
-
-        if(nx_contains(nx, c, c2)) {
-            /* excluded: norm32==0 */
-            norm32=0;
         }
 
         /* check the combining order */
@@ -1533,7 +1255,7 @@ _quickCheck(const UChar *src,
                              prevStarter,
                              src,
                              qcMask,
-                             prevCC, nx, pErrorCode);
+                             prevCC, pErrorCode);
                 if(U_FAILURE(*pErrorCode)) {
                     result=UNORM_MAYBE; /* error (out of memory) */
                     break;
@@ -1561,30 +1283,16 @@ endloop:
 U_CAPI UNormalizationCheckResult U_EXPORT2
 unorm_quickCheck(const UChar *src,
                  int32_t srcLength, 
-                 UNormalizationMode mode,
+                 UNormalizationMode mode, 
                  UErrorCode *pErrorCode) {
-    return _quickCheck(src, srcLength, mode, TRUE, NULL, pErrorCode);
-}
-
-U_CAPI UNormalizationCheckResult U_EXPORT2
-unorm_quickCheckWithOptions(const UChar *src, int32_t srcLength, 
-                            UNormalizationMode mode, int32_t options,
-                            UErrorCode *pErrorCode) {
-    return _quickCheck(src, srcLength, mode, TRUE, getNX(options, *pErrorCode), pErrorCode);
+    return _quickCheck(src, srcLength, mode, TRUE, pErrorCode);
 }
 
 U_CAPI UBool U_EXPORT2
 unorm_isNormalized(const UChar *src, int32_t srcLength,
                    UNormalizationMode mode,
                    UErrorCode *pErrorCode) {
-    return (UBool)(UNORM_YES==_quickCheck(src, srcLength, mode, FALSE, NULL, pErrorCode));
-}
-
-U_CAPI UBool U_EXPORT2
-unorm_isNormalizedWithOptions(const UChar *src, int32_t srcLength,
-                              UNormalizationMode mode, int32_t options,
-                              UErrorCode *pErrorCode) {
-    return (UBool)(UNORM_YES==_quickCheck(src, srcLength, mode, FALSE, getNX(options, *pErrorCode), pErrorCode));
+    return (UBool)(UNORM_YES==_quickCheck(src, srcLength, mode, FALSE, pErrorCode));
 }
 
 /* make NFD & NFKD ---------------------------------------------------------- */
@@ -1678,7 +1386,7 @@ unorm_getDecomposition(UChar32 c, UBool compat,
 static int32_t
 _decompose(UChar *dest, int32_t destCapacity,
            const UChar *src, int32_t srcLength,
-           UBool compat, const UnicodeSet *nx,
+           UBool compat, UBool ignoreHangul,
            uint8_t &outTrailCC) {
     UChar buffer[3];
     const UChar *limit, *prevSrc, *p;
@@ -1762,7 +1470,7 @@ _decompose(UChar *dest, int32_t destCapacity,
          * otherwise, p[length] is merged in with _mergeOrdered()
          */
         if(isNorm32HangulOrJamo(norm32)) {
-            if(nx_contains(nx, c)) {
+            if(ignoreHangul) {
                 c2=0;
                 p=NULL;
                 length=1;
@@ -1803,11 +1511,7 @@ _decompose(UChar *dest, int32_t destCapacity,
             }
 
             /* get the decomposition and the lead and trail cc's */
-            if(nx_contains(nx, c, c2)) {
-                /* excluded: norm32==0 */
-                cc=trailCC=0;
-                p=NULL;
-            } else if((norm32&qcMask)==0) {
+            if((norm32&qcMask)==0) {
                 /* c does not decompose */
                 cc=trailCC=(uint8_t)(norm32>>_NORM_CC_SHIFT);
                 p=NULL;
@@ -1871,9 +1575,8 @@ _decompose(UChar *dest, int32_t destCapacity,
 U_CAPI int32_t U_EXPORT2
 unorm_decompose(UChar *dest, int32_t destCapacity,
                 const UChar *src, int32_t srcLength,
-                UBool compat, int32_t options,
+                UBool compat, UBool ignoreHangul,
                 UErrorCode *pErrorCode) {
-    const UnicodeSet *nx;
     int32_t destIndex;
     uint8_t trailCC;
 
@@ -1881,14 +1584,9 @@ unorm_decompose(UChar *dest, int32_t destCapacity,
         return 0;
     }
 
-    nx=getNX(options, *pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
     destIndex=_decompose(dest, destCapacity,
                          src, srcLength,
-                         compat, nx,
+                         compat, ignoreHangul,
                          trailCC);
 
     return u_terminateUChars(dest, destCapacity, destIndex, pErrorCode);
@@ -1950,8 +1648,7 @@ _findSafeFCD(const UChar *src, const UChar *limit, uint16_t fcd16) {
 
 static uint8_t
 _decomposeFCD(const UChar *src, const UChar *decompLimit,
-              UChar *dest, int32_t &destIndex, int32_t destCapacity,
-              const UnicodeSet *nx) {
+              UChar *dest, int32_t &destIndex, int32_t destCapacity) {
     const UChar *p;
     uint32_t norm32;
     int32_t reorderStartIndex, length;
@@ -1997,11 +1694,7 @@ _decomposeFCD(const UChar *src, const UChar *decompLimit,
         }
 
         /* get the decomposition and the lead and trail cc's */
-        if(nx_contains(nx, c, c2)) {
-            /* excluded: norm32==0 */
-            cc=trailCC=0;
-            p=NULL;
-        } else if((norm32&_NORM_QC_NFD)==0) {
+        if((norm32&_NORM_QC_NFD)==0) {
             /* c does not decompose */
             cc=trailCC=(uint8_t)(norm32>>_NORM_CC_SHIFT);
             p=NULL;
@@ -2063,7 +1756,6 @@ _decomposeFCD(const UChar *src, const UChar *decompLimit,
 static int32_t
 unorm_makeFCD(UChar *dest, int32_t destCapacity,
               const UChar *src, int32_t srcLength,
-              const UnicodeSet *nx,
               UErrorCode *pErrorCode) {
     const UChar *limit, *prevSrc, *decompStart;
     int32_t destIndex, length;
@@ -2147,11 +1839,7 @@ unorm_makeFCD(UChar *dest, int32_t destCapacity,
             /* prevCC<0 is only possible from the above loop, i.e., only if prevSrc<src */
             if(prevCC<0) {
                 /* the previous character was <_NORM_MIN_WITH_LEAD_CC, we need to get its trail cc */
-                if(!nx_contains(nx, (UChar32)-prevCC)) {
-                    prevCC=(int16_t)(_getFCD16((UChar)-prevCC)&0xff);
-                } else {
-                    prevCC=0; /* excluded: fcd16==0 */
-                }
+                prevCC=(int16_t)(_getFCD16((UChar)-prevCC)&0xff);
 
                 /*
                  * set a pointer to this below-U+0300 character;
@@ -2194,9 +1882,6 @@ unorm_makeFCD(UChar *dest, int32_t destCapacity,
         }
 
         /* we are looking at the character (c, c2) at [prevSrc..src[ */
-        if(nx_contains(nx, c, c2)) {
-            fcd16=0; /* excluded: fcd16==0 */
-        }
 
         /* check the combining order, get the lead cc */
         cc=(int16_t)(fcd16>>8);
@@ -2236,8 +1921,7 @@ unorm_makeFCD(UChar *dest, int32_t destCapacity,
              * decompose and reorder a limited piece of the text
              */
             prevCC=_decomposeFCD(decompStart, src,
-                                 dest, destIndex, destCapacity,
-                                 nx);
+                                 dest, destIndex, destCapacity);
             decompStart=src;
         }
     }
@@ -2251,27 +1935,24 @@ unorm_makeFCD(UChar *dest, int32_t destCapacity,
 static inline uint32_t
 _getNextCombining(UChar *&p, const UChar *limit,
                   UChar &c, UChar &c2,
-                  uint16_t &combiningIndex, uint8_t &cc,
-                  const UnicodeSet *nx) {
+                  uint16_t &combiningIndex, uint8_t &cc) {
     uint32_t norm32, combineFlags;
 
-    /* get properties */
     c=*p++;
     norm32=_getNorm32(c);
-
-    /* preset output values for most characters */
-    c2=0;
-    combiningIndex=0;
-    cc=0;
-
     if((norm32&(_NORM_CC_MASK|_NORM_COMBINES_ANY))==0) {
+        c2=0;
+        combiningIndex=0;
+        cc=0;
         return 0;
     } else {
         if(isNorm32Regular(norm32)) {
-            /* set cc etc. below */
+            c2=0;
         } else if(isNorm32HangulOrJamo(norm32)) {
             /* a compatibility decomposition contained Jamos */
+            c2=0;
             combiningIndex=(uint16_t)(0xfff0|(norm32>>_NORM_EXTRA_SHIFT));
+            cc=0;
             return norm32&_NORM_COMBINES_ANY;
         } else {
             /* c is a lead surrogate, get the real norm32 */
@@ -2280,20 +1961,18 @@ _getNextCombining(UChar *&p, const UChar *limit,
                 norm32=_getNorm32FromSurrogatePair(norm32, c2);
             } else {
                 c2=0;
+                combiningIndex=0;
+                cc=0;
                 return 0;
             }
         }
-
-        if(nx_contains(nx, c, c2)) {
-            return 0; /* excluded: norm32==0 */
-        }
-
-        cc=(uint8_t)(norm32>>_NORM_CC_SHIFT);
 
         combineFlags=norm32&_NORM_COMBINES_ANY;
         if(combineFlags!=0) {
             combiningIndex=*(_getExtraData(norm32)-1);
         }
+
+        cc=(uint8_t)(norm32>>_NORM_CC_SHIFT);
         return combineFlags;
     }
 }
@@ -2394,7 +2073,7 @@ _combine(const uint16_t *table, uint16_t combineBackIndex,
  * while the combining mark that is removed has at least one code unit
  */
 static uint8_t
-_recompose(UChar *p, UChar *&limit, const UnicodeSet *nx) {
+_recompose(UChar *p, UChar *&limit) {
     UChar *starter, *pRemove, *q, *r;
     uint32_t combineFlags;
     UChar c, c2;
@@ -2411,7 +2090,7 @@ _recompose(UChar *p, UChar *&limit, const UnicodeSet *nx) {
     prevCC=0;
 
     for(;;) {
-        combineFlags=_getNextCombining(p, limit, c, c2, combineBackIndex, cc, nx);
+        combineFlags=_getNextCombining(p, limit, c, c2, combineBackIndex, cc);
         if((combineFlags&_NORM_COMBINES_BACK) && starter!=NULL) {
             if(combineBackIndex&0x8000) {
                 /* c is a Jamo V/T, see if we can compose it with the previous character */
@@ -2427,23 +2106,14 @@ _recompose(UChar *p, UChar *&limit, const UnicodeSet *nx) {
                             ++p;
                             c+=c2;
                         }
-                        if(!nx_contains(nx, c)) {
-                            *starter=c;
-                        } else {
-                            /* excluded */
-                            if(!isHangulWithoutJamoT(c)) {
-                                --p; /* undo the ++p from reading the Jamo T */
-                            }
-                            /* c is modified but not used any more -- c=*(p-1); -- re-read the Jamo V/T */
-                            pRemove=NULL;
-                        }
+                        *starter=c;
                     }
 #if 0
                 /*
                  * The following is disabled with #if 0 because it can not occur:
                  * Since the input is in NFD, there are no Hangul LV syllables that
                  * a Jamo T could combine with.
-                 * All Jamo Ts are combined above when handling Jamo Vs.
+                 * All Jamo Ts are combined above when handling Jamo Ls.
                  */
                 } else {
                     /* Jamo T, compose with previous Hangul that does not have a Jamo T */
@@ -2480,10 +2150,8 @@ _recompose(UChar *p, UChar *&limit, const UnicodeSet *nx) {
                 !(combineFwdIndex&0x8000) &&
                 /* the combining mark is not blocked and */
                 (prevCC<cc || prevCC==0) &&
-                /* the starter and the combining mark (c, c2) do combine and */
-                0!=(result=_combine(combiningTable+combineFwdIndex, combineBackIndex, value, value2)) &&
-                /* the composition result is not excluded */
-                !nx_contains(nx, value, value2)
+                /* the starter and the combining mark (c, c2) do combine */
+                0!=(result=_combine(combiningTable+combineFwdIndex, combineBackIndex, value, value2))
             ) {
                 /* replace the starter with the composition, remove the combining mark */
                 pRemove= c2==0 ? p-1 : p-2; /* pointer to the combining mark */
@@ -2556,7 +2224,7 @@ _recompose(UChar *p, UChar *&limit, const UnicodeSet *nx) {
 
         /* if (c, c2) did not combine, then check if it is a starter */
         if(cc==0) {
-            /* found a new starter; combineFlags==0 if (c, c2) is excluded */
+            /* found a new starter */
             if(combineFlags&_NORM_COMBINES_FWD) {
                 /* it may combine with something, prepare for it */
                 if(c2==0) {
@@ -2653,7 +2321,6 @@ static const UChar *
 _composePart(UChar *stackBuffer, UChar *&buffer, int32_t &bufferCapacity, int32_t &length,
              const UChar *prevStarter, const UChar *src,
              uint32_t qcMask, uint8_t &prevCC,
-             const UnicodeSet *nx,
              UErrorCode *pErrorCode) {
     UChar *recomposeLimit;
     uint8_t trailCC;
@@ -2664,7 +2331,7 @@ _composePart(UChar *stackBuffer, UChar *&buffer, int32_t &bufferCapacity, int32_
     /* decompose [prevStarter..src[ */
     length=_decompose(buffer, bufferCapacity,
                       prevStarter, src-prevStarter,
-                      compat, nx,
+                      compat, FALSE,
                       trailCC);
     if(length>bufferCapacity) {
         if(!u_growBufferFromStatic(stackBuffer, &buffer, &bufferCapacity, 2*length, 0)) {
@@ -2673,14 +2340,14 @@ _composePart(UChar *stackBuffer, UChar *&buffer, int32_t &bufferCapacity, int32_
         }
         length=_decompose(buffer, bufferCapacity,
                           prevStarter, src-prevStarter,
-                          compat, nx,
+                          compat, FALSE,
                           trailCC);
     }
 
     /* recompose the decomposition */
     recomposeLimit=buffer+length;
     if(length>=2) {
-        prevCC=_recompose(buffer, recomposeLimit, nx);
+        prevCC=_recompose(buffer, recomposeLimit);
     }
 
     /* return with a pointer to the recomposition and its length */
@@ -2690,7 +2357,7 @@ _composePart(UChar *stackBuffer, UChar *&buffer, int32_t &bufferCapacity, int32_
 
 static inline UBool
 _composeHangul(UChar prev, UChar c, uint32_t norm32, const UChar *&src, const UChar *limit,
-               UBool compat, UChar *dest, const UnicodeSet *nx) {
+               UBool compat, UChar *dest) {
     if(isJamoVTNorm32JamoV(norm32)) {
         /* c is a Jamo V, compose with previous Jamo L and following Jamo T */
         prev=(UChar)(prev-JAMO_L_BASE);
@@ -2723,12 +2390,6 @@ _composeHangul(UChar prev, UChar c, uint32_t norm32, const UChar *&src, const UC
                     }
                 }
             }
-            if(nx_contains(nx, c)) {
-                if(!isHangulWithoutJamoT(c)) {
-                    --src; /* undo ++src from reading the Jamo T */
-                }
-                return FALSE;
-            }
             if(dest!=0) {
                 *dest=c;
             }
@@ -2736,12 +2397,8 @@ _composeHangul(UChar prev, UChar c, uint32_t norm32, const UChar *&src, const UC
         }
     } else if(isHangulWithoutJamoT(prev)) {
         /* c is a Jamo T, compose with previous Hangul LV that does not contain a Jamo T */
-        c=(UChar)(prev+(c-JAMO_T_BASE));
-        if(nx_contains(nx, c)) {
-            return FALSE;
-        }
         if(dest!=0) {
-            *dest=c;
+            *dest=(UChar)(prev+(c-JAMO_T_BASE));
         }
         return TRUE;
     }
@@ -2751,7 +2408,7 @@ _composeHangul(UChar prev, UChar c, uint32_t norm32, const UChar *&src, const UC
 static int32_t
 _compose(UChar *dest, int32_t destCapacity,
          const UChar *src, int32_t srcLength,
-         UBool compat, const UnicodeSet *nx,
+         UBool compat, UBool /* ### TODO: need to do this? -- ignoreHangul -- ### */,
          UErrorCode *pErrorCode) {
     UChar stackBuffer[_STACK_BUFFER_CAPACITY];
     UChar *buffer;
@@ -2896,12 +2553,11 @@ _compose(UChar *dest, int32_t destCapacity,
             prevCC=cc=0;
             reorderStartIndex=destIndex;
 
-            if(
+            if( /* ### TODO: do we need to do this? !ignoreHangul && ### */
                 destIndex>0 &&
                 _composeHangul(
                     *(prevSrc-1), c, norm32, src, limit, compat,
-                    destIndex<=destCapacity ? dest+(destIndex-1) : 0,
-                    nx)
+                    destIndex<=destCapacity ? dest+(destIndex-1) : 0)
             ) {
                 prevStarter=src;
                 continue;
@@ -2930,10 +2586,7 @@ _compose(UChar *dest, int32_t destCapacity,
             }
 
             /* we are looking at the character (c, c2) at [prevSrc..src[ */
-            if(nx_contains(nx, c, c2)) {
-                /* excluded: norm32==0 */
-                cc=0;
-            } else if((norm32&qcMask)==0) {
+            if((norm32&qcMask)==0) {
                 cc=(uint8_t)(norm32>>_NORM_CC_SHIFT);
             } else {
                 const UChar *p;
@@ -2975,7 +2628,6 @@ _compose(UChar *dest, int32_t destCapacity,
                                prevStarter, src,
                                qcMask,
                                prevCC,          /* output */
-                               nx,
                                pErrorCode);
 
                 if(p==NULL) {
@@ -3036,69 +2688,65 @@ _compose(UChar *dest, int32_t destCapacity,
 U_CAPI int32_t U_EXPORT2
 unorm_compose(UChar *dest, int32_t destCapacity,
               const UChar *src, int32_t srcLength,
-              UBool compat, int32_t options,
+              UBool compat, UBool ignoreHangul,
               UErrorCode *pErrorCode) {
-    const UnicodeSet *nx;
     int32_t destIndex;
 
     if(!_haveData(*pErrorCode)) {
         return 0;
     }
 
-    nx=getNX(options, *pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
     destIndex=_compose(dest, destCapacity,
                        src, srcLength,
-                       compat, nx,
+                       compat, ignoreHangul,
                        pErrorCode);
 
     return u_terminateUChars(dest, destCapacity, destIndex, pErrorCode);
 }
+
+/*
+ ### TODO
+ task items:
+ - 2.0 Java sample code from unicode.org compare vs. JNI around C implementation - do monkey test
+ - 2.1 port that sample code to C/C++ and run as part of regular test suite
+ */
 
 /* normalize() API ---------------------------------------------------------- */
 
 /**
  * Internal API for normalizing.
  * Does not check for bad input.
- * Requires _haveData() to be true.
  * @internal
  */
-static int32_t
+U_CAPI int32_t U_EXPORT2
 unorm_internalNormalize(UChar *dest, int32_t destCapacity,
                         const UChar *src, int32_t srcLength,
-                        UNormalizationMode mode, const UnicodeSet *nx,
+                        UNormalizationMode mode, UBool ignoreHangul,
                         UErrorCode *pErrorCode) {
-    int32_t destLength;
-    uint8_t trailCC;
-
     switch(mode) {
     case UNORM_NFD:
-        destLength=_decompose(dest, destCapacity,
-                              src, srcLength,
-                              FALSE, nx, trailCC);
-        break;
+        return unorm_decompose(dest, destCapacity,
+                               src, srcLength,
+                               FALSE, ignoreHangul,
+                               pErrorCode);
     case UNORM_NFKD:
-        destLength=_decompose(dest, destCapacity,
-                              src, srcLength,
-                              TRUE, nx, trailCC);
-        break;
+        return unorm_decompose(dest, destCapacity,
+                               src, srcLength,
+                               TRUE, ignoreHangul,
+                               pErrorCode);
     case UNORM_NFC:
-        destLength=_compose(dest, destCapacity,
-                            src, srcLength,
-                            FALSE, nx, pErrorCode);
-        break;
+        return unorm_compose(dest, destCapacity,
+                             src, srcLength,
+                             FALSE, ignoreHangul,
+                             pErrorCode);
     case UNORM_NFKC:
-        destLength=_compose(dest, destCapacity,
-                            src, srcLength,
-                            TRUE, nx, pErrorCode);
-        break;
+        return unorm_compose(dest, destCapacity,
+                             src, srcLength,
+                             TRUE, ignoreHangul,
+                             pErrorCode);
     case UNORM_FCD:
         return unorm_makeFCD(dest, destCapacity,
                              src, srcLength,
-                             nx,
                              pErrorCode);
     case UNORM_NONE:
         /* just copy the string */
@@ -3108,47 +2756,17 @@ unorm_internalNormalize(UChar *dest, int32_t destCapacity,
         if(srcLength>0 && srcLength<=destCapacity) {
             uprv_memcpy(dest, src, srcLength*U_SIZEOF_UCHAR);
         }
-        destLength=srcLength;
-        break;
+        return u_terminateUChars(dest, destCapacity, srcLength, pErrorCode);
     default:
         *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
     }
-
-    return u_terminateUChars(dest, destCapacity, destLength, pErrorCode);
-}
-
-/**
- * Internal API for normalizing.
- * Does not check for bad input.
- * @internal
- */
-U_CAPI int32_t U_EXPORT2
-unorm_internalNormalize(UChar *dest, int32_t destCapacity,
-                        const UChar *src, int32_t srcLength,
-                        UNormalizationMode mode, int32_t options,
-                        UErrorCode *pErrorCode) {
-    const UnicodeSet *nx;
-
-    if(!_haveData(*pErrorCode)) {
-        return 0;
-    }
-
-    nx=getNX(options, *pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    return unorm_internalNormalize(dest, destCapacity,
-                                   src, srcLength,
-                                   mode, nx,
-                                   pErrorCode);
 }
 
 /** Public API for normalizing. */
 U_CAPI int32_t U_EXPORT2
 unorm_normalize(const UChar *src, int32_t srcLength,
-                UNormalizationMode mode, int32_t options,
+                UNormalizationMode mode, int32_t option,
                 UChar *dest, int32_t destCapacity,
                 UErrorCode *pErrorCode) {
     /* check argument values */
@@ -3174,7 +2792,7 @@ unorm_normalize(const UChar *src, int32_t srcLength,
 
     return unorm_internalNormalize(dest, destCapacity,
                                    src, srcLength,
-                                   mode, options,
+                                   mode, (UBool)((option&(UNORM_IGNORE_HANGUL|1))!=0),
                                    pErrorCode);
 }
 
@@ -3232,7 +2850,7 @@ _getPrevNorm32(UCharIterator &src, uint32_t minC, uint32_t mask, UChar &c, UChar
     } else {
         /* unpaired second surrogate, undo the c2=src.previous() movement */
         src.move(&src, 1, UITER_CURRENT);
-        c2=0;
+        c2 = 0;
         return 0;
     }
 }
@@ -3409,7 +3027,7 @@ unorm_previous(UCharIterator *src,
         if(doNormalize) {
             destLength=unorm_internalNormalize(dest, destCapacity,
                                                buffer+startIndex, bufferLength,
-                                               mode, options,
+                                               mode, (UBool)((options&(UNORM_IGNORE_HANGUL|1))!=0),
                                                pErrorCode);
             if(pNeededToNormalize!=0 && U_SUCCESS(*pErrorCode)) {
                 *pNeededToNormalize=
@@ -3468,7 +3086,7 @@ _getNextNorm32(UCharIterator &src, uint32_t minC, uint32_t mask, UChar &c, UChar
             }
         } else {
             /* unmatched surrogate */
-            c2=0;
+            c2 = 0;
             return 0;
         }
     }
@@ -3656,7 +3274,7 @@ unorm_next(UCharIterator *src,
         if(doNormalize) {
             destLength=unorm_internalNormalize(dest, destCapacity,
                                                buffer, bufferLength,
-                                               mode, options,
+                                               mode, (UBool)((options&(UNORM_IGNORE_HANGUL|1))!=0),
                                                pErrorCode);
             if(pNeededToNormalize!=0 && U_SUCCESS(*pErrorCode)) {
                 *pNeededToNormalize=
@@ -3806,12 +3424,12 @@ unorm_concatenate(const UChar *left, int32_t leftLength,
     if(destCapacity>destLength) {
         destLength+=unorm_internalNormalize(dest+destLength, destCapacity-destLength,
                                             buffer, bufferLength,
-                                            mode, options,
+                                            mode, (UBool)((options&(UNORM_IGNORE_HANGUL|1))!=0),
                                             pErrorCode);
     } else {
         destLength+=unorm_internalNormalize(NULL, 0,
                                             buffer, bufferLength,
-                                            mode, options,
+                                            mode, (UBool)((options&(UNORM_IGNORE_HANGUL|1))!=0),
                                             pErrorCode);
     }
     /*
@@ -4288,10 +3906,8 @@ unorm_compare(const UChar *s1, int32_t length1,
               const UChar *s2, int32_t length2,
               uint32_t options,
               UErrorCode *pErrorCode) {
-    UChar fcd1[300], fcd2[300];
-    UChar *d1, *d2;
-    const UnicodeSet *nx;
-    UNormalizationMode mode;
+    UChar fold1[300], fold2[300], fcd1[300], fcd2[300];
+    UChar *f1, *f2, *d1, *d2;
     int32_t result;
 
     /* argument checking */
@@ -4310,69 +3926,90 @@ unorm_compare(const UChar *s1, int32_t length1,
         return 0;
     }
 
-    nx=getNX((int32_t)(options>>UNORM_COMPARE_NORM_OPTIONS_SHIFT), *pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    d1=d2=0;
+    f1=f2=d1=d2=0;
     options|=_COMPARE_EQUIV;
     result=0;
-
-    /*
-     * UAX #21 Case Mappings, as fixed for Unicode version 4
-     * (see Jitterbug 2021), defines a canonical caseless match as
-     *
-     * A string X is a canonical caseless match
-     * for a string Y if and only if
-     * NFD(toCasefold(NFD(X))) = NFD(toCasefold(NFD(Y)))
-     *
-     * For better performance, we check for FCD (or let the caller tell us that
-     * both strings are in FCD) for the inner normalization.
-     * BasicNormalizerTest::FindFoldFCDExceptions() makes sure that
-     * case-folding preserves the FCD-ness of a string.
-     * The outer normalization is then only performed by unorm_cmpEquivFold()
-     * when there is a difference.
-     *
-     * Exception: When using the Turkic case-folding option, we do perform
-     * full NFD first. This is because in the Turkic case precomposed characters
-     * with 0049 capital I or 0069 small i fold differently whether they
-     * are first decomposed or not, so an FCD check - a check only for
-     * canonical order - is not sufficient.
-     */
-    if(options&U_FOLD_CASE_EXCLUDE_SPECIAL_I) {
-        mode=UNORM_NFD;
-        options&=~UNORM_INPUT_IS_FCD;
-    } else {
-        mode=UNORM_FCD;
-    }
-
+    
     if(!(options&UNORM_INPUT_IS_FCD)) {
         int32_t _len1, _len2;
         UBool isFCD1, isFCD2;
 
         // check if s1 and/or s2 fulfill the FCD conditions
-        isFCD1= UNORM_YES==_quickCheck(s1, length1, mode, TRUE, nx, pErrorCode);
-        isFCD2= UNORM_YES==_quickCheck(s2, length2, mode, TRUE, nx, pErrorCode);
-        if(U_FAILURE(*pErrorCode)) {
-            return 0;
+        isFCD1=unorm_checkFCD(s1, length1);
+        isFCD2=unorm_checkFCD(s2, length2);
+
+        if((options&U_COMPARE_IGNORE_CASE)!=0 && !(isFCD1 && isFCD2)) {
+            // case-fold first to keep the order of operations as in UAX 21 2.5
+            _len1=u_strFoldCase(fold1, sizeof(fold1)/U_SIZEOF_UCHAR,
+                                s1, length1,
+                                options,
+                                pErrorCode);
+            if(*pErrorCode!=U_BUFFER_OVERFLOW_ERROR) {
+                s1=fold1;
+            } else {
+                f1=(UChar *)uprv_malloc(_len1*U_SIZEOF_UCHAR);
+                if(f1==0) {
+                    *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
+                    goto cleanup;
+                }
+
+                *pErrorCode=U_ZERO_ERROR;
+                _len1=u_strFoldCase(f1, _len1,
+                                    s1, length1,
+                                    options,
+                                    pErrorCode);
+                if(U_FAILURE(*pErrorCode)) {
+                    goto cleanup;
+                }
+
+                s1=f1;
+            }
+            length1=_len1;
+
+            _len2=u_strFoldCase(fold2, sizeof(fold2)/U_SIZEOF_UCHAR,
+                                s2, length2,
+                                options,
+                                pErrorCode);
+            if(*pErrorCode!=U_BUFFER_OVERFLOW_ERROR) {
+                s2=fold2;
+            } else {
+                f2=(UChar *)uprv_malloc(_len2*U_SIZEOF_UCHAR);
+                if(f2==0) {
+                    *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
+                    goto cleanup;
+                }
+
+                *pErrorCode=U_ZERO_ERROR;
+                _len2=u_strFoldCase(f2, _len2,
+                                    s2, length2,
+                                    options,
+                                    pErrorCode);
+                if(U_FAILURE(*pErrorCode)) {
+                    goto cleanup;
+                }
+
+                s2=f2;
+            }
+            length2=_len2;
+
+            // turn off U_COMPARE_IGNORE_CASE and re-check FCD
+            options&=~U_COMPARE_IGNORE_CASE;
+            isFCD1=unorm_checkFCD(s1, length1);
+            isFCD2=unorm_checkFCD(s2, length2);
         }
 
-        /*
-         * ICU 2.4 had a further optimization:
-         * If both strings were not in FCD, then they were both NFD'ed,
-         * and the _COMPARE_EQUIV option was turned off.
-         * It is not entirely clear that this is valid with the current
-         * definition of the canonical caseless match.
-         * Therefore, ICU 2.6 removes that optimization.
-         */
+        if(!isFCD1 && !isFCD2) {
+            // if both strings need normalization then make them NFD right away and
+            // turn off normalization in the comparison function
+            uint8_t trailCC;
 
-        if(!isFCD1) {
-            _len1=unorm_internalNormalize(fcd1, LENGTHOF(fcd1),
-                                          s1, length1,
-                                          mode, nx,
-                                          pErrorCode);
-            if(*pErrorCode!=U_BUFFER_OVERFLOW_ERROR) {
+            // fully decompose (NFD) s1 and s2
+
+            _len1=_decompose(fcd1, sizeof(fcd1)/U_SIZEOF_UCHAR,
+                             s1, length1,
+                             FALSE, FALSE,
+                             trailCC);
+            if(_len1<=(int32_t)(sizeof(fcd1)/U_SIZEOF_UCHAR)) {
                 s1=fcd1;
             } else {
                 d1=(UChar *)uprv_malloc(_len1*U_SIZEOF_UCHAR);
@@ -4381,26 +4018,20 @@ unorm_compare(const UChar *s1, int32_t length1,
                     goto cleanup;
                 }
 
-                *pErrorCode=U_ZERO_ERROR;
-                _len1=unorm_internalNormalize(d1, _len1,
-                                              s1, length1,
-                                              mode, nx,
-                                              pErrorCode);
-                if(U_FAILURE(*pErrorCode)) {
-                    goto cleanup;
-                }
+                _len1=_decompose(d1, _len1,
+                                 s1, length1,
+                                 FALSE, FALSE,
+                                 trailCC);
 
                 s1=d1;
             }
             length1=_len1;
-        }
 
-        if(!isFCD2) {
-            _len2=unorm_internalNormalize(fcd2, LENGTHOF(fcd2),
-                                          s2, length2,
-                                          mode, nx,
-                                          pErrorCode);
-            if(*pErrorCode!=U_BUFFER_OVERFLOW_ERROR) {
+            _len2=_decompose(fcd2, sizeof(fcd2)/U_SIZEOF_UCHAR,
+                             s2, length2,
+                             FALSE, FALSE,
+                             trailCC);
+            if(_len2<=(int32_t)(sizeof(fcd2)/U_SIZEOF_UCHAR)) {
                 s2=fcd2;
             } else {
                 d2=(UChar *)uprv_malloc(_len2*U_SIZEOF_UCHAR);
@@ -4409,26 +4040,91 @@ unorm_compare(const UChar *s1, int32_t length1,
                     goto cleanup;
                 }
 
-                *pErrorCode=U_ZERO_ERROR;
-                _len2=unorm_internalNormalize(d2, _len2,
-                                              s2, length2,
-                                              mode, nx,
-                                              pErrorCode);
-                if(U_FAILURE(*pErrorCode)) {
-                    goto cleanup;
-                }
+                _len2=_decompose(d2, _len2,
+                                 s2, length2,
+                                 FALSE, FALSE,
+                                 trailCC);
 
                 s2=d2;
             }
             length2=_len2;
+
+            // compare NFD strings
+            options&=~_COMPARE_EQUIV;
+        } else {
+            // if at least one string is already in FCD then only makeFCD the other
+            // and compare for equivalence
+            if(!isFCD1) {
+                _len1=unorm_makeFCD(fcd1, sizeof(fcd1)/U_SIZEOF_UCHAR,
+                                    s1, length1,
+                                    pErrorCode);
+                if(*pErrorCode!=U_BUFFER_OVERFLOW_ERROR) {
+                    s1=fcd1;
+                } else {
+                    d1=(UChar *)uprv_malloc(_len1*U_SIZEOF_UCHAR);
+                    if(d1==0) {
+                        *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
+                        goto cleanup;
+                    }
+
+                    *pErrorCode=U_ZERO_ERROR;
+                    _len1=unorm_makeFCD(d1, _len1,
+                                        s1, length1,
+                                        pErrorCode);
+                    if(U_FAILURE(*pErrorCode)) {
+                        goto cleanup;
+                    }
+
+                    s1=d1;
+                }
+                length1=_len1;
+            }
+
+            if(!isFCD2) {
+                _len2=unorm_makeFCD(fcd2, sizeof(fcd2)/U_SIZEOF_UCHAR,
+                                    s2, length2,
+                                    pErrorCode);
+                if(*pErrorCode!=U_BUFFER_OVERFLOW_ERROR) {
+                    s2=fcd2;
+                } else {
+                    d2=(UChar *)uprv_malloc(_len2*U_SIZEOF_UCHAR);
+                    if(d2==0) {
+                        *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
+                        goto cleanup;
+                    }
+
+                    *pErrorCode=U_ZERO_ERROR;
+                    _len2=unorm_makeFCD(d2, _len2,
+                                        s2, length2,
+                                        pErrorCode);
+                    if(U_FAILURE(*pErrorCode)) {
+                        goto cleanup;
+                    }
+
+                    s2=d2;
+                }
+                length2=_len2;
+            }
         }
     }
 
-    if(U_SUCCESS(*pErrorCode)) {
+    if(U_FAILURE(*pErrorCode)) {
+        // do nothing
+    } else if(!(options&(_COMPARE_EQUIV|U_COMPARE_IGNORE_CASE))) {
+        // compare NFD strings case-sensitive: just use normal comparison
+        result=uprv_strCompare(s1, length1, s2, length2,
+                    FALSE, (UBool)(0!=(options&U_COMPARE_CODE_POINT_ORDER)));
+    } else {
         result=unorm_cmpEquivFold(s1, length1, s2, length2, options, pErrorCode);
     }
 
 cleanup:
+    if(f1!=0) {
+        uprv_free(f1);
+    }
+    if(f2!=0) {
+        uprv_free(f2);
+    }
     if(d1!=0) {
         uprv_free(d1);
     }

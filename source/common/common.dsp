@@ -55,7 +55,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /machine:I386 /out:"..\..\bin\icuuc26.dll" /implib:"..\..\lib\icuuc.lib" /libpath:"..\..\lib"
+# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /machine:I386 /out:"..\..\bin\icuuc24.dll" /implib:"..\..\lib\icuuc.lib" /libpath:"..\..\lib"
 # SUBTRACT LINK32 /pdb:none /debug
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /debug /machine:I386 /out:"..\..\bin\icuuc26d.dll" /implib:"..\..\lib\icuucd.lib" /pdbtype:sept /libpath:"..\..\lib"
+# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /debug /machine:I386 /out:"..\..\bin\icuuc24d.dll" /implib:"..\..\lib\icuucd.lib" /pdbtype:sept /libpath:"..\..\lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "common - Win64 Release"
@@ -109,7 +109,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:IX86 /machine:IA64
-# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /machine:IX86 /out:"..\..\bin\icuuc26.dll" /implib:"..\..\lib\icuuc.lib" /libpath:"..\..\lib" /machine:IA64
+# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /machine:IX86 /out:"..\..\bin\icuuc24.dll" /implib:"..\..\lib\icuuc.lib" /libpath:"..\..\lib" /machine:IA64
 # SUBTRACT LINK32 /debug
 
 !ELSEIF  "$(CFG)" == "common - Win64 Debug"
@@ -136,7 +136,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:IX86 /pdbtype:sept /machine:IA64
-# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /incremental:no /debug /machine:IX86 /out:"..\..\bin\icuuc26d.dll" /implib:"..\..\lib\icuucd.lib" /pdbtype:sept /libpath:"..\..\lib" /machine:IA64
+# ADD LINK32 icudata.lib kernel32.lib user32.lib advapi32.lib shell32.lib /nologo /base:"0x4a800000" /dll /incremental:no /debug /machine:IX86 /out:"..\..\bin\icuuc24d.dll" /implib:"..\..\lib\icuucd.lib" /pdbtype:sept /libpath:"..\..\lib" /machine:IA64
 
 !ENDIF 
 
@@ -146,63 +146,141 @@ LINK32=link.exe
 # Name "common - Win32 Debug"
 # Name "common - Win64 Release"
 # Name "common - Win64 Debug"
-# Begin Group "bidi"
+# Begin Group "Source Files"
 
-# PROP Default_Filter ""
+# PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Source File
+
+SOURCE=.\bidi.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\brkdict.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\brkiter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\caniter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\chariter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\cmemory.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\convert.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\cstring.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cwchar.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\dbbi.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\dbbi_tbl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\digitlst.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\filestrm.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\iculserv.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\icunotif.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\icuserv.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\locid.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\locmap.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\mutex.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\normlzr.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\propname.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\putil.c
+# ADD CPP /Ze
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbi.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbidata.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbinode.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbirb.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbiscan.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbisetb.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbistbl.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbitblb.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\resbund.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\schriter.cpp
+# End Source File
 # Begin Source File
 
 SOURCE=.\ubidi.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\ubidi.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ubidi.h
-
-"..\..\include\unicode\ubidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ubidi.h
-
-"..\..\include\unicode\ubidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ubidi.h
-
-"..\..\include\unicode\ubidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ubidi.h
-
-"..\..\include\unicode\ubidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\ubidiimp.h
 # End Source File
 # Begin Source File
 
@@ -214,18 +292,261 @@ SOURCE=.\ubidiwrt.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ubrk.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\uchar.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uchriter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucln_cmn.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucmndata.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucmp8.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv2022.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_bld.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_cb.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_cnv.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_err.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_io.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_lmb.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_u16.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_u32.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_u7.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_u8.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnvbocu.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnvhz.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnvisci.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnvlat1.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnvmbcs.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnvscsu.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\udata.c
+# ADD CPP /Za
+# End Source File
+# Begin Source File
+
+SOURCE=.\udatamem.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uenum.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uhash.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uhash_us.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\uiter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\uloc.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\umapfile.c
+# ADD CPP /Ze
+# End Source File
+# Begin Source File
+
+SOURCE=.\umemstrm.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\umutex.c
+# ADD CPP /Ze
+# End Source File
+# Begin Source File
+
+SOURCE=.\unames.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\unifilt.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\unifunct.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\uniset.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\unistr.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\unorm.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\unorm_it.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uobject.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\uprops.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uresbund.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uresdata.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\usc_impl.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uscript.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uset.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\usetiter.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\ushape.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\unicode\ushape.h
+SOURCE=.\ustrcase.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ustrenum.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\ustrfmt.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ustring.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ustrtrns.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\utf_impl.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\util.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\utrie.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\uvector.cpp
+# End Source File
+# End Group
+# Begin Group "Header Files"
+
+# PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\unicode\bidi.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
 # Begin Custom Build
-InputPath=.\unicode\ushape.h
+InputPath=.\unicode\bidi.h
 
-"..\..\include\unicode\ushape.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\bidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -233,9 +554,9 @@ InputPath=.\unicode\ushape.h
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
 # Begin Custom Build
-InputPath=.\unicode\ushape.h
+InputPath=.\unicode\bidi.h
 
-"..\..\include\unicode\ushape.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\bidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -243,9 +564,9 @@ InputPath=.\unicode\ushape.h
 !ELSEIF  "$(CFG)" == "common - Win64 Release"
 
 # Begin Custom Build
-InputPath=.\unicode\ushape.h
+InputPath=.\unicode\bidi.h
 
-"..\..\include\unicode\ushape.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\bidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -253,9 +574,9 @@ InputPath=.\unicode\ushape.h
 !ELSEIF  "$(CFG)" == "common - Win64 Debug"
 
 # Begin Custom Build
-InputPath=.\unicode\ushape.h
+InputPath=.\unicode\bidi.h
 
-"..\..\include\unicode\ushape.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\bidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -263,21 +584,9 @@ InputPath=.\unicode\ushape.h
 !ENDIF 
 
 # End Source File
-# End Group
-# Begin Group "break iteration"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\brkdict.cpp
-# End Source File
 # Begin Source File
 
 SOURCE=.\brkdict.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\brkiter.cpp
 # End Source File
 # Begin Source File
 
@@ -328,7 +637,164 @@ InputPath=.\unicode\brkiter.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\dbbi.cpp
+SOURCE=.\unicode\caniter.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\caniter.h
+
+"..\..\include\unicode\caniter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\caniter.h
+
+"..\..\include\unicode\caniter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\caniter.h
+
+"..\..\include\unicode\caniter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\caniter.h
+
+"..\..\include\unicode\caniter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\chariter.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\chariter.h
+
+"..\..\include\unicode\chariter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\chariter.h
+
+"..\..\include\unicode\chariter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\chariter.h
+
+"..\..\include\unicode\chariter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\chariter.h
+
+"..\..\include\unicode\chariter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\charstr.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cmemory.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\convert.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\convert.h
+
+"..\..\include\unicode\convert.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\convert.h
+
+"..\..\include\unicode\convert.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\convert.h
+
+"..\..\include\unicode\convert.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\convert.h
+
+"..\..\include\unicode\convert.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\cpputils.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cstring.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cwchar.h
 # End Source File
 # Begin Source File
 
@@ -379,347 +845,11 @@ InputPath=.\unicode\dbbi.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\dbbi_tbl.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\dbbi_tbl.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\rbbi.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\rbbi.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\rbbi.h
-
-"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\rbbi.h
-
-"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\rbbi.h
-
-"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\rbbi.h
-
-"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbidata.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbidata.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbinode.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbinode.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbirb.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbirb.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbirpt.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbiscan.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbiscan.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbisetb.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbisetb.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbistbl.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbitblb.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\rbbitblb.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ubrk.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\ubrk.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ubrk.h
-
-"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ubrk.h
-
-"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ubrk.h
-
-"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ubrk.h
-
-"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# End Group
-# Begin Group "collections"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\hash.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\strenum.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\strenum.h
-
-"..\..\include\unicode\strenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\strenum.h
-
-"..\..\include\unicode\strenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\strenum.h
-
-"..\..\include\unicode\strenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\strenum.h
-
-"..\..\include\unicode\strenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucmp8.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucmp8.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uenum.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uenum.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uenum.h
-
-"..\..\include\unicode\uenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uenum.h
-
-"..\..\include\unicode\uenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uenum.h
-
-"..\..\include\unicode\uenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uenum.h
-
-"..\..\include\unicode\uenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\uenumimp.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uhash.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\uhash.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uhash_us.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ustrenum.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ustrenum.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\utrie.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\utrie.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uvector.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\uvector.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uvectr32.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\uvectr32.h
-# End Source File
-# End Group
-# Begin Group "configuration"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\common.rc
-# End Source File
-# Begin Source File
-
-SOURCE=.\cpputils.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\filestrm.c
+SOURCE=.\digitlst.h
 # End Source File
 # Begin Source File
 
@@ -727,7 +857,74 @@ SOURCE=.\filestrm.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\locmap.c
+SOURCE=.\hash.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\iculdata.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\iculserv.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\icunotif.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\icurwlck.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\icuserv.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\locid.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\locid.h
+
+"..\..\include\unicode\locid.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\locid.h
+
+"..\..\include\unicode\locid.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\locid.h
+
+"..\..\include\unicode\locid.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\locid.h
+
+"..\..\include\unicode\locid.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -735,27 +932,18 @@ SOURCE=.\locmap.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\mutex.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\mutex.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\putil.c
-# ADD CPP /Ze
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\putil.h
+SOURCE=.\unicode\normlzr.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
 # Begin Custom Build
-InputPath=.\unicode\putil.h
+InputPath=.\unicode\normlzr.h
 
-"..\..\include\unicode\putil.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\normlzr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -763,9 +951,9 @@ InputPath=.\unicode\putil.h
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
 # Begin Custom Build
-InputPath=.\unicode\putil.h
+InputPath=.\unicode\normlzr.h
 
-"..\..\include\unicode\putil.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\normlzr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -773,9 +961,9 @@ InputPath=.\unicode\putil.h
 !ELSEIF  "$(CFG)" == "common - Win64 Release"
 
 # Begin Custom Build
-InputPath=.\unicode\putil.h
+InputPath=.\unicode\normlzr.h
 
-"..\..\include\unicode\putil.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\normlzr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -783,766 +971,15 @@ InputPath=.\unicode\putil.h
 !ELSEIF  "$(CFG)" == "common - Win64 Debug"
 
 # Begin Custom Build
-InputPath=.\unicode\putil.h
+InputPath=.\unicode\normlzr.h
 
-"..\..\include\unicode\putil.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\normlzr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\pwin32.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\pwin32.h
-
-"..\..\include\unicode\pwin32.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\pwin32.h
-
-"..\..\include\unicode\pwin32.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\pwin32.h
-
-"..\..\include\unicode\pwin32.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\pwin32.h
-
-"..\..\include\unicode\pwin32.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\uassert.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uconfig.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uconfig.h
-
-"..\..\include\unicode\uconfig.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uconfig.h
-
-"..\..\include\unicode\uconfig.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uconfig.h
-
-"..\..\include\unicode\uconfig.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uconfig.h
-
-"..\..\include\unicode\uconfig.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\umachine.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\umachine.h
-
-"..\..\include\unicode\umachine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\umachine.h
-
-"..\..\include\unicode\umachine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\umachine.h
-
-"..\..\include\unicode\umachine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\umachine.h
-
-"..\..\include\unicode\umachine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\umemstrm.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\umemstrm.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\umutex.c
-# ADD CPP /Ze
-# End Source File
-# Begin Source File
-
-SOURCE=.\umutex.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\urename.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\urename.h
-
-"..\..\include\unicode\urename.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\urename.h
-
-"..\..\include\unicode\urename.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\urename.h
-
-"..\..\include\unicode\urename.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\urename.h
-
-"..\..\include\unicode\urename.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\utypes.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\utypes.h
-
-"..\..\include\unicode\utypes.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\utypes.h
-
-"..\..\include\unicode\utypes.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\utypes.h
-
-"..\..\include\unicode\utypes.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\utypes.h
-
-"..\..\include\unicode\utypes.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uversion.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uversion.h
-
-"..\..\include\unicode\uversion.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uversion.h
-
-"..\..\include\unicode\uversion.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uversion.h
-
-"..\..\include\unicode\uversion.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uversion.h
-
-"..\..\include\unicode\uversion.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# End Group
-# Begin Group "conversion"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\ucnv.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\ucnv.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv.h
-
-"..\..\include\unicode\ucnv.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv.h
-
-"..\..\include\unicode\ucnv.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv.h
-
-"..\..\include\unicode\ucnv.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv.h
-
-"..\..\include\unicode\ucnv.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv2022.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_bld.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_bld.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_cb.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\ucnv_cb.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv_cb.h
-
-"..\..\include\unicode\ucnv_cb.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv_cb.h
-
-"..\..\include\unicode\ucnv_cb.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv_cb.h
-
-"..\..\include\unicode\ucnv_cb.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv_cb.h
-
-"..\..\include\unicode\ucnv_cb.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_cnv.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_cnv.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_err.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\ucnv_err.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv_err.h
-
-"..\..\include\unicode\ucnv_err.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv_err.h
-
-"..\..\include\unicode\ucnv_err.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv_err.h
-
-"..\..\include\unicode\ucnv_err.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ucnv_err.h
-
-"..\..\include\unicode\ucnv_err.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_imp.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_io.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_io.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_lmb.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_u16.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_u32.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_u7.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnv_u8.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnvbocu.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnvhz.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnvisci.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnvlat1.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnvmbcs.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnvmbcs.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucnvscsu.c
-# End Source File
-# End Group
-# Begin Group "data & memory"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\cmemory.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cmemory.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uclean.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uclean.h
-
-"..\..\include\unicode\uclean.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uclean.h
-
-"..\..\include\unicode\uclean.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uclean.h
-
-"..\..\include\unicode\uclean.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uclean.h
-
-"..\..\include\unicode\uclean.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucln.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucln_cmn.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucln_cmn.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucmndata.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucmndata.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\udata.c
-# ADD CPP /Za
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\udata.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\udata.h
-
-"..\..\include\unicode\udata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\udata.h
-
-"..\..\include\unicode\udata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\udata.h
-
-"..\..\include\unicode\udata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\udata.h
-
-"..\..\include\unicode\udata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\udatamem.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\udatamem.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\umapfile.c
-# ADD CPP /Ze
-# End Source File
-# Begin Source File
-
-SOURCE=.\umapfile.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uobject.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uobject.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uobject.h
-
-"..\..\include\unicode\uobject.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputPath) ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uobject.h
-
-"..\..\include\unicode\uobject.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputPath) ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uobject.h
-
-"..\..\include\unicode\uobject.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputPath) ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uobject.h
-
-"..\..\include\unicode\uobject.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputPath) ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# End Group
-# Begin Group "formatting"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\digitlst.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\digitlst.h
 # End Source File
 # Begin Source File
 
@@ -1640,6 +1077,1097 @@ InputPath=.\unicode\parsepos.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\pnamedat.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\propname.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\putil.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\putil.h
+
+"..\..\include\unicode\putil.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\putil.h
+
+"..\..\include\unicode\putil.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\putil.h
+
+"..\..\include\unicode\putil.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\putil.h
+
+"..\..\include\unicode\putil.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\pwin32.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\pwin32.h
+
+"..\..\include\unicode\pwin32.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\pwin32.h
+
+"..\..\include\unicode\pwin32.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\pwin32.h
+
+"..\..\include\unicode\pwin32.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\pwin32.h
+
+"..\..\include\unicode\pwin32.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\rbbi.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\rbbi.h
+
+"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\rbbi.h
+
+"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\rbbi.h
+
+"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\rbbi.h
+
+"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbidata.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbinode.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbirb.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbirpt.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbiscan.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbisetb.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbitblb.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\rep.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\rep.h
+
+"..\..\include\unicode\rep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\rep.h
+
+"..\..\include\unicode\rep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\rep.h
+
+"..\..\include\unicode\rep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\rep.h
+
+"..\..\include\unicode\rep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\resbund.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\resbund.h
+
+"..\..\include\unicode\resbund.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\resbund.h
+
+"..\..\include\unicode\resbund.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\resbund.h
+
+"..\..\include\unicode\resbund.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\resbund.h
+
+"..\..\include\unicode\resbund.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\schriter.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\schriter.h
+
+"..\..\include\unicode\schriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\schriter.h
+
+"..\..\include\unicode\schriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\schriter.h
+
+"..\..\include\unicode\schriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\schriter.h
+
+"..\..\include\unicode\schriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\strenum.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\strenum.h
+
+"..\..\include\unicode\strenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\strenum.h
+
+"..\..\include\unicode\strenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\strenum.h
+
+"..\..\include\unicode\strenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\strenum.h
+
+"..\..\include\unicode\strenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\symtable.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\uassert.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\ubidi.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ubidi.h
+
+"..\..\include\unicode\ubidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ubidi.h
+
+"..\..\include\unicode\ubidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ubidi.h
+
+"..\..\include\unicode\ubidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ubidi.h
+
+"..\..\include\unicode\ubidi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\ubidiimp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\ubrk.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ubrk.h
+
+"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ubrk.h
+
+"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ubrk.h
+
+"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ubrk.h
+
+"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uchar.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uchar.h
+
+"..\..\include\unicode\uchar.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uchar.h
+
+"..\..\include\unicode\uchar.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uchar.h
+
+"..\..\include\unicode\uchar.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uchar.h
+
+"..\..\include\unicode\uchar.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uchriter.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uchriter.h
+
+"..\..\include\unicode\uchriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uchriter.h
+
+"..\..\include\unicode\uchriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uchriter.h
+
+"..\..\include\unicode\uchriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uchriter.h
+
+"..\..\include\unicode\uchriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uclean.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uclean.h
+
+"..\..\include\unicode\uclean.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uclean.h
+
+"..\..\include\unicode\uclean.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uclean.h
+
+"..\..\include\unicode\uclean.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uclean.h
+
+"..\..\include\unicode\uclean.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucln.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucln_cmn.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucmndata.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucmp8.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\ucnv.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv.h
+
+"..\..\include\unicode\ucnv.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv.h
+
+"..\..\include\unicode\ucnv.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv.h
+
+"..\..\include\unicode\ucnv.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv.h
+
+"..\..\include\unicode\ucnv.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_bld.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\ucnv_cb.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv_cb.h
+
+"..\..\include\unicode\ucnv_cb.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv_cb.h
+
+"..\..\include\unicode\ucnv_cb.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv_cb.h
+
+"..\..\include\unicode\ucnv_cb.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv_cb.h
+
+"..\..\include\unicode\ucnv_cb.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_cnv.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\ucnv_err.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv_err.h
+
+"..\..\include\unicode\ucnv_err.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv_err.h
+
+"..\..\include\unicode\ucnv_err.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv_err.h
+
+"..\..\include\unicode\ucnv_err.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ucnv_err.h
+
+"..\..\include\unicode\ucnv_err.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_imp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnv_io.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucnvmbcs.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uconfig.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uconfig.h
+
+"..\..\include\unicode\uconfig.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uconfig.h
+
+"..\..\include\unicode\uconfig.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uconfig.h
+
+"..\..\include\unicode\uconfig.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uconfig.h
+
+"..\..\include\unicode\uconfig.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\udata.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\udata.h
+
+"..\..\include\unicode\udata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\udata.h
+
+"..\..\include\unicode\udata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\udata.h
+
+"..\..\include\unicode\udata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\udata.h
+
+"..\..\include\unicode\udata.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\udatamem.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uenum.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uenum.h
+
+"..\..\include\unicode\uenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uenum.h
+
+"..\..\include\unicode\uenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uenum.h
+
+"..\..\include\unicode\uenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uenum.h
+
+"..\..\include\unicode\uenum.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\uenumimp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\uhash.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uiter.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uiter.h
+
+"..\..\include\unicode\uiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uiter.h
+
+"..\..\include\unicode\uiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uiter.h
+
+"..\..\include\unicode\uiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uiter.h
+
+"..\..\include\unicode\uiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uloc.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uloc.h
+
+"..\..\include\unicode\uloc.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uloc.h
+
+"..\..\include\unicode\uloc.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uloc.h
+
+"..\..\include\unicode\uloc.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uloc.h
+
+"..\..\include\unicode\uloc.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\umachine.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\umachine.h
+
+"..\..\include\unicode\umachine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\umachine.h
+
+"..\..\include\unicode\umachine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\umachine.h
+
+"..\..\include\unicode\umachine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\umachine.h
+
+"..\..\include\unicode\umachine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\umapfile.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\umemstrm.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\unicode\umisc.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
@@ -1691,38 +2219,18 @@ InputName=umisc
 # End Source File
 # Begin Source File
 
-SOURCE=.\ustrfmt.c
+SOURCE=.\umutex.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\ustrfmt.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\util.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\util.h
-# End Source File
-# End Group
-# Begin Group "locales & resources"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\locid.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\locid.h
+SOURCE=.\unicode\unicode.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
 # Begin Custom Build
-InputPath=.\unicode\locid.h
+InputPath=.\unicode\unicode.h
 
-"..\..\include\unicode\locid.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\unicode.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -1730,9 +2238,9 @@ InputPath=.\unicode\locid.h
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
 # Begin Custom Build
-InputPath=.\unicode\locid.h
+InputPath=.\unicode\unicode.h
 
-"..\..\include\unicode\locid.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\unicode.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -1740,9 +2248,9 @@ InputPath=.\unicode\locid.h
 !ELSEIF  "$(CFG)" == "common - Win64 Release"
 
 # Begin Custom Build
-InputPath=.\unicode\locid.h
+InputPath=.\unicode\unicode.h
 
-"..\..\include\unicode\locid.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\unicode.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -1750,475 +2258,15 @@ InputPath=.\unicode\locid.h
 !ELSEIF  "$(CFG)" == "common - Win64 Debug"
 
 # Begin Custom Build
-InputPath=.\unicode\locid.h
+InputPath=.\unicode\unicode.h
 
-"..\..\include\unicode\locid.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\unicode.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\resbund.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\resbund.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\resbund.h
-
-"..\..\include\unicode\resbund.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\resbund.h
-
-"..\..\include\unicode\resbund.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\resbund.h
-
-"..\..\include\unicode\resbund.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\resbund.h
-
-"..\..\include\unicode\resbund.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucat.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\ucat.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ucat.h
-
-"..\..\include\unicode\ucat.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ucat.h
-
-"..\..\include\unicode\ucat.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ucat.h
-
-"..\..\include\unicode\ucat.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ucat.h
-
-"..\..\include\unicode\ucat.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\uloc.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uloc.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uloc.h
-
-"..\..\include\unicode\uloc.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uloc.h
-
-"..\..\include\unicode\uloc.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uloc.h
-
-"..\..\include\unicode\uloc.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uloc.h
-
-"..\..\include\unicode\uloc.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\ures.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ures.h
-
-"..\..\include\unicode\ures.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ures.h
-
-"..\..\include\unicode\ures.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\ures.h
-
-"..\..\include\unicode\ures.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\ures.h
-
-"..\..\include\unicode\ures.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\uresbund.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\uresdata.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\uresdata.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uresimp.h
-# End Source File
-# End Group
-# Begin Group "normalization"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\caniter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\caniter.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\caniter.h
-
-"..\..\include\unicode\caniter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\caniter.h
-
-"..\..\include\unicode\caniter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\caniter.h
-
-"..\..\include\unicode\caniter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\caniter.h
-
-"..\..\include\unicode\caniter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\normlzr.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\normlzr.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\normlzr.h
-
-"..\..\include\unicode\normlzr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\normlzr.h
-
-"..\..\include\unicode\normlzr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\normlzr.h
-
-"..\..\include\unicode\normlzr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\normlzr.h
-
-"..\..\include\unicode\normlzr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unorm.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\unorm.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\unorm.h
-
-"..\..\include\unicode\unorm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\unorm.h
-
-"..\..\include\unicode\unorm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\unorm.h
-
-"..\..\include\unicode\unorm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\unorm.h
-
-"..\..\include\unicode\unorm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unorm_it.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unorm_it.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\unormimp.h
-# End Source File
-# End Group
-# Begin Group "properties & sets"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\propname.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\propname.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\symtable.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uchar.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uchar.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uchar.h
-
-"..\..\include\unicode\uchar.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uchar.h
-
-"..\..\include\unicode\uchar.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uchar.h
-
-"..\..\include\unicode\uchar.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uchar.h
-
-"..\..\include\unicode\uchar.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unames.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unifilt.cpp
 # End Source File
 # Begin Source File
 
@@ -2266,10 +2314,6 @@ InputPath=.\unicode\unifilt.h
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\unifunct.cpp
 # End Source File
 # Begin Source File
 
@@ -2367,10 +2411,6 @@ InputPath=.\unicode\unimatch.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\uniset.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\unicode\uniset.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
@@ -2418,490 +2458,6 @@ InputPath=.\unicode\uniset.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\uprops.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\uprops.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\usc_impl.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\usc_impl.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uscript.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uscript.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uscript.h
-
-"..\..\include\unicode\uscript.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uscript.h
-
-"..\..\include\unicode\uscript.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uscript.h
-
-"..\..\include\unicode\uscript.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uscript.h
-
-"..\..\include\unicode\uscript.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\uset.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uset.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uset.h
-
-"..\..\include\unicode\uset.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uset.h
-
-"..\..\include\unicode\uset.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uset.h
-
-"..\..\include\unicode\uset.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uset.h
-
-"..\..\include\unicode\uset.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\usetiter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\usetiter.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\usetiter.h
-
-"..\..\include\unicode\usetiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\usetiter.h
-
-"..\..\include\unicode\usetiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\usetiter.h
-
-"..\..\include\unicode\usetiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\usetiter.h
-
-"..\..\include\unicode\usetiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# End Group
-# Begin Group "registration"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\iculdata.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\iculserv.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\iculserv.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\icunotif.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\icunotif.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\icurwlck.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\icuserv.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\icuserv.h
-# End Source File
-# End Group
-# Begin Group "strings"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\chariter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\chariter.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\chariter.h
-
-"..\..\include\unicode\chariter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\chariter.h
-
-"..\..\include\unicode\chariter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\chariter.h
-
-"..\..\include\unicode\chariter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\chariter.h
-
-"..\..\include\unicode\chariter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\charstr.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cstring.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cstring.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cwchar.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cwchar.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\rep.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\rep.h
-
-"..\..\include\unicode\rep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\rep.h
-
-"..\..\include\unicode\rep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\rep.h
-
-"..\..\include\unicode\rep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\rep.h
-
-"..\..\include\unicode\rep.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\schriter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\schriter.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\schriter.h
-
-"..\..\include\unicode\schriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\schriter.h
-
-"..\..\include\unicode\schriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\schriter.h
-
-"..\..\include\unicode\schriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\schriter.h
-
-"..\..\include\unicode\schriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\uchriter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uchriter.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uchriter.h
-
-"..\..\include\unicode\uchriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uchriter.h
-
-"..\..\include\unicode\uchriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uchriter.h
-
-"..\..\include\unicode\uchriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uchriter.h
-
-"..\..\include\unicode\uchriter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\uiter.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uiter.h
-
-!IF  "$(CFG)" == "common - Win32 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uiter.h
-
-"..\..\include\unicode\uiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uiter.h
-
-"..\..\include\unicode\uiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Release"
-
-# Begin Custom Build
-InputPath=.\unicode\uiter.h
-
-"..\..\include\unicode\uiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "common - Win64 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uiter.h
-
-"..\..\include\unicode\uiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    $(InputPath)    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unistr.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\unicode\unistr.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
@@ -2940,6 +2496,159 @@ InputPath=.\unicode\unistr.h
 InputPath=.\unicode\unistr.h
 
 "..\..\include\unicode\unistr.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\unorm.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\unorm.h
+
+"..\..\include\unicode\unorm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\unorm.h
+
+"..\..\include\unicode\unorm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\unorm.h
+
+"..\..\include\unicode\unorm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\unorm.h
+
+"..\..\include\unicode\unorm.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unorm_it.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unormimp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uobject.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uobject.h
+
+"..\..\include\unicode\uobject.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy $(InputPath) ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uobject.h
+
+"..\..\include\unicode\uobject.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy $(InputPath) ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uobject.h
+
+"..\..\include\unicode\uobject.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy $(InputPath) ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uobject.h
+
+"..\..\include\unicode\uobject.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy $(InputPath) ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\uprops.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\urename.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\urename.h
+
+"..\..\include\unicode\urename.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\urename.h
+
+"..\..\include\unicode\urename.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\urename.h
+
+"..\..\include\unicode\urename.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\urename.h
+
+"..\..\include\unicode\urename.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
@@ -2996,15 +2705,262 @@ InputPath=.\unicode\urep.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\unicode\ures.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ures.h
+
+"..\..\include\unicode\ures.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ures.h
+
+"..\..\include\unicode\ures.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ures.h
+
+"..\..\include\unicode\ures.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ures.h
+
+"..\..\include\unicode\ures.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\uresdata.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\uresimp.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\usc_impl.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uscript.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uscript.h
+
+"..\..\include\unicode\uscript.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uscript.h
+
+"..\..\include\unicode\uscript.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uscript.h
+
+"..\..\include\unicode\uscript.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uscript.h
+
+"..\..\include\unicode\uscript.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uset.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uset.h
+
+"..\..\include\unicode\uset.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uset.h
+
+"..\..\include\unicode\uset.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uset.h
+
+"..\..\include\unicode\uset.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uset.h
+
+"..\..\include\unicode\uset.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\usetiter.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\usetiter.h
+
+"..\..\include\unicode\usetiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\usetiter.h
+
+"..\..\include\unicode\usetiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\usetiter.h
+
+"..\..\include\unicode\usetiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\usetiter.h
+
+"..\..\include\unicode\usetiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\ushape.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ushape.h
+
+"..\..\include\unicode\ushape.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ushape.h
+
+"..\..\include\unicode\ushape.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ushape.h
+
+"..\..\include\unicode\ushape.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ushape.h
+
+"..\..\include\unicode\ushape.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\ustr_imp.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\ustrcase.c
+SOURCE=.\ustrenum.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\ustring.c
+SOURCE=.\ustrfmt.h
 # End Source File
 # Begin Source File
 
@@ -3052,10 +3008,6 @@ InputPath=.\unicode\ustring.h
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\ustrtrns.c
 # End Source File
 # Begin Source File
 
@@ -3247,10 +3199,6 @@ InputPath=.\unicode\utf8.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\utf_impl.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\unicode\utf_old.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
@@ -3296,64 +3244,119 @@ InputPath=.\unicode\utf_old.h
 !ENDIF 
 
 # End Source File
-# End Group
-# Begin Group "idna"
-
-# PROP Default_Filter "*.c,*.h"
 # Begin Source File
 
-SOURCE=.\nameprep.cpp
+SOURCE=.\util.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\nameprep.h
+SOURCE=.\utrie.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\punycode.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\punycode.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\sprpimpl.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\strprep.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\strprep.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\uidna.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uidna.h
+SOURCE=.\unicode\utypes.h
 
 !IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\utypes.h
+
+"..\..\include\unicode\utypes.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
 # Begin Custom Build
-InputPath=.\unicode\uidna.h
+InputPath=.\unicode\utypes.h
 
-"..\..\include\unicode\uidna.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"..\..\include\unicode\utypes.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy    $(InputPath)    ..\..\include\unicode
 
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "common - Win64 Release"
 
+# Begin Custom Build
+InputPath=.\unicode\utypes.h
+
+"..\..\include\unicode\utypes.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
 !ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\utypes.h
+
+"..\..\include\unicode\utypes.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=.\uvector.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\uversion.h
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uversion.h
+
+"..\..\include\unicode\uversion.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uversion.h
+
+"..\..\include\unicode\uversion.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\uversion.h
+
+"..\..\include\unicode\uversion.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "common - Win64 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\uversion.h
+
+"..\..\include\unicode\uversion.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy    $(InputPath)    ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# End Group
+# Begin Group "Resource Files"
+
+# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
+# Begin Source File
+
+SOURCE=.\common.rc
 # End Source File
 # End Group
 # End Target

@@ -18,19 +18,16 @@ case "${host}" in
 	else
 		icu_cv_host_frag=mh-solaris
 	fi ;;
+*-*-irix*)	icu_cv_host_frag=mh-irix ;;
 alpha*-*-linux-gnu)
 	if test "$ac_cv_prog_gcc" = yes; then
 		icu_cv_host_frag=mh-alpha-linux-gcc
 	else  
 		icu_cv_host_frag=mh-alpha-linux-cc
 	fi ;;
+*-dec-osf*) icu_cv_host_frag=mh-alpha-osf ;;
 *-*-linux*) icu_cv_host_frag=mh-linux ;;
-*-*-cygwin)
-	if test "$ac_cv_prog_gcc" = yes; then
-	  	icu_cv_host_frag=mh-cygwin
-	else
-	  	icu_cv_host_frag=mh-cygwin-msvc
-	fi ;;
+*-*-cygwin)	icu_cv_host_frag=mh-cygwin ;;
 *-*-*bsd*) 	icu_cv_host_frag=mh-bsd-gcc ;;
 *-*-aix*)
 	if test -n "`$CXX --help 2>&1 | grep 'IBM C and C++ Compilers$'`"; then
@@ -38,6 +35,7 @@ alpha*-*-linux-gnu)
 	else
 		icu_cv_host_frag=mh-aix-va
 	fi ;;
+*-sequent-*) 	icu_cv_host_frag=mh-ptx ;;
 *-*-hpux*)
 	if test "$ac_cv_prog_gcc" = yes; then
 		icu_cv_host_frag=mh-hpux-gcc
@@ -51,10 +49,6 @@ alpha*-*-linux-gnu)
 *-*-os400*)	icu_cv_host_frag=mh-os400 ;;
 *-apple-rhapsody*)	icu_cv_host_frag=mh-darwin ;;
 *-apple-darwin*)	icu_cv_host_frag=mh-darwin ;;
-*-*-irix*)	icu_cv_host_frag=mh-irix ;;
-*-dec-osf*) icu_cv_host_frag=mh-alpha-osf ;;
-*-*-nto*)	icu_cv_host_frag=mh-qnx ;;
-*-sequent-*) 	icu_cv_host_frag=mh-ptx ;;
 *) 		icu_cv_host_frag=mh-unknown ;;
 esac
 		]
@@ -173,6 +167,7 @@ AC_DEFUN(AC_CHECK_64BIT_LIBS,
     fi
     dnl Individual tests that fail should reset their own flags.
     AC_MSG_RESULT($ENABLE_64BIT_LIBS)
+    undefine([ENABLE_64BIT_LIBS])
 ])
 
 dnl Strict compilation options.
@@ -191,6 +186,7 @@ AC_DEFUN(AC_CHECK_STRICT_COMPILE,
 
     if test "$ac_use_strict_options" = yes
     then
+echo "${host}"
         if test "$GCC" = yes
         then
             CFLAGS="$CFLAGS -Wall -ansi -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings"

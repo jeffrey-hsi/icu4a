@@ -8,11 +8,6 @@
 #ifndef __ALTERNATESUBSTITUTIONSUBTABLES_H
 #define __ALTERNATESUBSTITUTIONSUBTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEGlyphFilter.h"
 #include "OpenTypeTables.h"
@@ -24,7 +19,7 @@ U_NAMESPACE_BEGIN
 struct AlternateSetTable
 {
     le_uint16 glyphCount;
-    TTGlyphID alternateArray[ANY_NUMBER];
+    LEGlyphID alternateArray[ANY_NUMBER];
 };
 
 struct AlternateSubstitutionSubtable : GlyphSubstitutionSubtable

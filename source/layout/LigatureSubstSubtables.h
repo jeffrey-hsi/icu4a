@@ -8,11 +8,6 @@
 #ifndef __LIGATURESUBSTITUTIONSUBTABLES_H
 #define __LIGATURESUBSTITUTIONSUBTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEGlyphFilter.h"
 #include "OpenTypeTables.h"
@@ -29,15 +24,15 @@ struct LigatureSetTable
 
 struct LigatureTable
 {
-    TTGlyphID ligGlyph;
+    LEGlyphID ligGlyph;
     le_uint16 compCount;
-    TTGlyphID componentArray[ANY_NUMBER];
+    LEGlyphID componentArray[ANY_NUMBER];
 };
 
 struct LigatureSubstitutionSubtable : GlyphSubstitutionSubtable
 {
-    le_uint16 ligSetCount;
-    Offset    ligSetTableOffsetArray[ANY_NUMBER];
+    le_uint16  ligSetCount;
+    Offset  ligSetTableOffsetArray[ANY_NUMBER];
 
     le_uint32  process(GlyphIterator *glyphIterator, const LEGlyphFilter *filter = NULL) const;
 };

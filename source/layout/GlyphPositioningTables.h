@@ -8,11 +8,6 @@
 #ifndef __GLYPHPOSITIONINGTABLES_H
 #define __GLYPHPOSITIONINGTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEFontInstance.h"
 #include "OpenTypeTables.h"
@@ -45,8 +40,7 @@ enum GlyphPositioningSubtableTypes
     gpstMarkToLigature  = 5,
     gpstMarkToMark      = 6,
     gpstContext         = 7,
-    gpstChainedContext  = 8,
-    gpstExtension       = 9
+    gpstChainedContext  = 8
 };
 
 typedef LookupSubtable GlyphPositioningSubtable;

@@ -4,7 +4,7 @@ dnl Copyright (c) 1999-2000, International Business Machines Corporation and
 dnl others. All Rights Reserved.
 dnl Stephen F. Booth, heavily modified by Yves and others
 
-dnl $Id: configure.in,v 1.182 2003/03/15 02:37:06 grhoten-oss Exp $
+dnl $Id: configure.in,v 1.177 2002/11/01 19:12:24 grhoten-oss Exp $
 
 dnl Process this file with autoconf to produce a configure script
 AC_INIT(common/unicode/utypes.h)
@@ -36,7 +36,7 @@ AC_SUBST(LIB_VERSION)
 AC_SUBST(LIB_VERSION_MAJOR)
 AC_MSG_RESULT([release $VERSION, library $LIB_VERSION])
 
-UNICODE_VERSION="4"
+UNICODE_VERSION="3.2"
 AC_SUBST(UNICODE_VERSION)
 
 AC_SUBST(CPPFLAGS)
@@ -399,8 +399,6 @@ fi
 AC_SUBST(U_HAVE_NAMESPACE)
 
 AC_MSG_CHECKING([for properly overriding new and delete])
-U_OVERRIDE_CXX_ALLOCATION=0
-U_HAVE_PLACEMENT_NEW=0
 AC_CACHE_VAL(ac_cv_override_cxx_allocation_ok,
     [AC_TRY_LINK(
     changequote(<<, >>)dnl
@@ -408,40 +406,19 @@ AC_CACHE_VAL(ac_cv_override_cxx_allocation_ok,
     class UObject {
     void *operator new(size_t size) {return malloc(size);}
     void *operator new[](size_t size) {return malloc(size);}
-    void operator delete(void *p) {free(p);}
-    void operator delete[](void *p) {free(p);}
+    void operator delete(void *p) {delete(p);}
+    void operator delete[](void *p) {delete(p);}
     };
     >>,
     changequote([, ])dnl
     [], ac_cv_override_cxx_allocation_ok=yes, ac_cv_override_cxx_allocation_ok=no)] )
 AC_MSG_RESULT($ac_cv_override_cxx_allocation_ok)
-if test $ac_cv_override_cxx_allocation_ok = yes
+U_OVERRIDE_CXX_ALLOCATION=1
+if test $ac_cv_override_cxx_allocation_ok = no
 then
-    U_OVERRIDE_CXX_ALLOCATION=1
-    AC_MSG_CHECKING([for placement new and delete])
-    AC_CACHE_VAL(ac_cv_override_placement_new_ok,
-        [AC_TRY_LINK(
-        changequote(<<, >>)dnl
-        <<#include <stdlib.h>
-        class UObject {
-        void *operator new(size_t size) {return malloc(size);}
-        void *operator new[](size_t size) {return malloc(size);}
-        void operator delete(void *p) {free(p);}
-        void operator delete[](void *p) {free(p);}
-        void * operator new(size_t, void *ptr) { return ptr; }
-        void operator delete(void *, void *) {}
-        };
-        >>,
-        changequote([, ])dnl
-        [], ac_cv_override_placement_new_ok=yes, ac_cv_override_placement_new_ok=no)] )
-    AC_MSG_RESULT($ac_cv_override_placement_new_ok)
-    if test $ac_cv_override_placement_new_ok = yes
-    then
-        U_HAVE_PLACEMENT_NEW=1
-    fi
+    U_OVERRIDE_CXX_ALLOCATION=0
 fi
 AC_SUBST(U_OVERRIDE_CXX_ALLOCATION)
-AC_SUBST(U_HAVE_PLACEMENT_NEW)
 
 AC_LANG_C
 AC_CHECK_FUNC(popen)
@@ -815,17 +792,16 @@ case "${host}" in
 	*-*-linux*) 	platform=U_LINUX ;;
 	*-*-*bsd*) 	platform=U_BSD ;;
 	*-*-aix*) 	platform=AIX ;;
+	*-sequent-*)	platform=PTX ;;
 	*-*-hpux*) 	platform=HPUX ;;
-	*-apple-darwin*|*-apple-rhapsody*)	platform=U_DARWIN ;;
-	*-*-cygwin*|*-*-mingw*)	platform=U_CYGWIN ;;
+	*-dec-osf*) 	platform=U_OSF ;;
+	*-*-irix*)      platform=IRIX ;;
 	*-*ibm-openedition*|*-*-os390*)	platform=OS390
 			ICUDATA_CHAR="e" ;;
 	*-*-os400*)	platform=OS400
 			ICUDATA_CHAR="e" ;;
-	*-*-nto*)	platform=U_QNX ;;
-	*-dec-osf*) 	platform=U_OSF ;;
-	*-*-irix*)      platform=IRIX ;;
-	*-sequent-*)	platform=PTX ;;
+	*-apple-darwin*|*-apple-rhapsody*)	platform=U_DARWIN ;;
+	*-*-cygwin*)	platform=U_CYGWIN ;;
 	*) 		platform=U_UNKNOWN_PLATFORM ;;
 esac
 AC_SUBST(ICUDATA_CHAR)
@@ -841,11 +817,11 @@ case "${host}" in
 	*-*-linux*) 	ld_rpath_suf=" " ;;
 	*-*-*bsd*) 	ld_rpath_suf=" " ;;
 	*-*-aix*) 	ld_rpath_suf="" ;;
+	*-sequent-*)	ld_rpath_suf="" ;;
 	*-*-hpux*) 	ld_rpath_suf=":" ;;
+	*-*-irix*)      ld_rpath_suf=" " ;;
 	*-*ibm-openedition*|*-*-os390*)	ld_rpath_suf="" ;;
 	*-*-os400*)	ld_rpath_suf=" " ;;
-	*-sequent-*)	ld_rpath_suf="" ;;
-	*-*-irix*)      ld_rpath_suf=" " ;;
 	*) 		ld_rpath_suf="" ;;
 esac
 AC_SUBST(ld_rpath_suf)
@@ -863,8 +839,7 @@ case "${host}" in
 			  tools/gencmn/gencmn tools/gencmn/decmn \
 			  tools/gencnval/gencnval tools/gennorm/gennorm \
 			  tools/gennames/gennames tools/gentest/gentest \
-			  tools/pkgdata/pkgdata tools/genprops/genprops \
-			  tools/pkgdata/pkgdata tools/genidna/genidna
+			  tools/pkgdata/pkgdata tools/genprops/genprops
 			do
 			  if test -f $file.c; then
 			    mv $file.c $file.cpp
@@ -938,13 +913,11 @@ AC_OUTPUT([README icudefs.mk \
 		tools/genprops/Makefile \
 		tools/genpname/Makefile \
 		tools/genbrk/Makefile \
-		tools/genidna/Makefile \
 		tools/dumpce/Makefile \
 		test/Makefile test/testdata/Makefile test/intltest/Makefile \
                 test/cintltst/Makefile test/iotest/Makefile \
 		test/ieeetest/Makefile \
 		test/collperf/Makefile \
-		test/perf/normperf/Makefile \
 		test/thaitest/Makefile \
 		test/letest/Makefile \
 		test/threadtest/Makefile \

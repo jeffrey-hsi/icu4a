@@ -661,16 +661,16 @@ static UResourceBundle *init_resb_result(const ResourceData *rdata, Resource r,
     resB->fKey = key;
     ures_freeResPath(resB);
     if(parent->fResPath) {
-      ures_appendResPath(resB, parent->fResPath, parent->fResPathLen);
+      ures_appendResPath(resB, parent->fResPath);
     }
     if(key != NULL) {
-      ures_appendResPath(resB, key, uprv_strlen(key));
-      ures_appendResPath(resB, RES_PATH_SEPARATOR_S, 1);
+      ures_appendResPath(resB, key);
+      ures_appendResPath(resB, RES_PATH_SEPARATOR_S);
     } else {
       char buf[256];
-      int32_t len = T_CString_integerToString(buf, index, 10);
-      ures_appendResPath(resB, buf, len);
-      ures_appendResPath(resB, RES_PATH_SEPARATOR_S, 1);
+      T_CString_integerToString(buf, index, 10);
+      ures_appendResPath(resB, buf);
+      ures_appendResPath(resB, RES_PATH_SEPARATOR_S);
     }
 
     resB->fVersion = NULL;
@@ -715,7 +715,7 @@ UResourceBundle *ures_copyResb(UResourceBundle *r, const UResourceBundle *origin
         uprv_memcpy(r, original, sizeof(UResourceBundle));
         r->fResPath = NULL;
         if(original->fResPath) {
-          ures_appendResPath(r, original->fResPath, original->fResPathLen);
+          ures_appendResPath(r, original->fResPath);
         }
         ures_setIsStackObject(r, isStackObject);
         if(r->fData != NULL) {
@@ -1321,14 +1321,13 @@ U_CFUNC void ures_setResPath(UResourceBundle *resB, const char* toAdd) {
   uprv_strcpy(resB->fResPath, toAdd);
 }
 */
-U_CFUNC void ures_appendResPath(UResourceBundle *resB, const char* toAdd, int32_t lenToAdd) {
-  int32_t resPathLenOrig = resB->fResPathLen;
+U_CFUNC void ures_appendResPath(UResourceBundle *resB, const char* toAdd) {
   if(resB->fResPath == NULL) {
     resB->fResPath = resB->fResBuf;
     *(resB->fResPath) = 0;
     resB->fResPathLen = 0;
   } 
-  resB->fResPathLen += lenToAdd;
+  resB->fResPathLen += uprv_strlen(toAdd);
   if(RES_BUFSIZE <= resB->fResPathLen+1) {
     if(resB->fResPath == resB->fResBuf) {
       resB->fResPath = (char *)uprv_malloc((resB->fResPathLen+1)*sizeof(char));
@@ -1337,7 +1336,7 @@ U_CFUNC void ures_appendResPath(UResourceBundle *resB, const char* toAdd, int32_
       resB->fResPath = (char *)uprv_realloc(resB->fResPath, (resB->fResPathLen+1)*sizeof(char));
     }
   }
-  uprv_strcpy(resB->fResPath + resPathLenOrig, toAdd);
+  uprv_strcat(resB->fResPath, toAdd);
 }
 
 U_CFUNC void ures_freeResPath(UResourceBundle *resB) {
@@ -1486,6 +1485,37 @@ ures_open(const char* path,
 
     return r;
 }
+
+#ifdef ICU_URES_USE_DEPRECATES
+U_CAPI UResourceBundle*  U_EXPORT2
+ures_openW(const wchar_t* myPath,
+                    const char* localeID,
+                    UErrorCode* status)
+{
+    UResourceBundle *r;
+    size_t pathSize = (uprv_wcslen(myPath) + 1) * sizeof(int32_t);
+    char *path = (char *)uprv_malloc(pathSize);
+    /* test for NULL */
+    if (path == NULL) {
+        *status = U_MEMORY_ALLOCATION_ERROR;
+        return NULL;
+    }
+
+    uprv_wcstombs(path, myPath, pathSize);
+
+    /*u_UCharsToChars(myPath, path, uprv_wcslen(myPath)+1);*/
+
+    r = ures_open(path, localeID, status);
+    uprv_free(path);
+
+    if (U_FAILURE(*status)) {
+        return NULL;
+    }
+
+    return r;
+}
+#endif /* ICU_URES_USE_DEPRECATES */
+
 
 U_CAPI UResourceBundle* U_EXPORT2 ures_openU(const UChar* myPath, 
                   const char* localeID, 

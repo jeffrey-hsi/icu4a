@@ -8,11 +8,6 @@
 #ifndef __SINGLESUBSTITUTIONSUBTABLES_H
 #define __SINGLESUBSTITUTIONSUBTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEGlyphFilter.h"
 #include "OpenTypeTables.h"
@@ -36,7 +31,7 @@ struct SingleSubstitutionFormat1Subtable : SingleSubstitutionSubtable
 struct SingleSubstitutionFormat2Subtable : SingleSubstitutionSubtable
 {
     le_uint16  glyphCount;
-    TTGlyphID  substituteArray[ANY_NUMBER];
+    LEGlyphID  substituteArray[ANY_NUMBER];
 
     le_uint32  process(GlyphIterator *glyphIterator, const LEGlyphFilter *filter = NULL) const;
 };

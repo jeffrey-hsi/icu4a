@@ -8,11 +8,6 @@
 #ifndef __COVERAGETABLES_H
 #define __COVERAGETABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "OpenTypeTables.h"
 
@@ -28,15 +23,15 @@ struct CoverageTable
 struct CoverageFormat1Table : CoverageTable
 {
     le_uint16  glyphCount;
-    TTGlyphID glyphArray[ANY_NUMBER];
+    LEGlyphID glyphArray[ANY_NUMBER];
 
     le_int32 getGlyphCoverage(LEGlyphID glyphID) const;
 };
 
 struct CoverageFormat2Table : CoverageTable
 {
-    le_uint16        rangeCount;
-    GlyphRangeRecord rangeRecordArray[ANY_NUMBER];
+    le_uint16              rangeCount;
+    GlyphRangeRecord    rangeRecordArray[ANY_NUMBER];
 
     le_int32 getGlyphCoverage(LEGlyphID glyphID) const;
 };

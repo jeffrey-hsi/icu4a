@@ -18,6 +18,8 @@
 #include "unicode/ustring.h"
 #include "unicode/uscript.h"
 
+#include "unicode/loengine.h"
+
 #include "GnomeFontInstance.h"
 
 #include "paragraph.h"
@@ -25,6 +27,7 @@
 #include "GnomeGUISupport.h"
 #include "GnomeFontMap.h"
 #include "UnicodeReader.h"
+#include "scrptrun.h"
 
 #define ARRAY_LENGTH(array) (sizeof array / sizeof array[0])
 
@@ -301,7 +304,7 @@ void closeSample(GtkWidget *app)
 
 int main (int argc, char *argv[])
 {
-    LEErrorCode   fontStatus = LE_NO_ERROR;
+    RFIErrorCode   fontStatus = RFI_NO_ERROR;
     GtkWidget     *app;
 
     TT_Init_FreeType(&engine);

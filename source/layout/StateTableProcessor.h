@@ -8,11 +8,6 @@
 #ifndef __STATETABLEPROCESSOR_H
 #define __STATETABLEPROCESSOR_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "MorphTables.h"
 #include "MorphStateTables.h"
@@ -44,8 +39,8 @@ protected:
     ByteOffset entryTableOffset;
 
     const ClassTable *classTable;
-    TTGlyphID firstGlyph;
-    TTGlyphID lastGlyph;
+    le_int16 firstGlyph;
+    le_int16 lastGlyph;
 
     const MorphStateTableHeader *stateTableHeader;
 

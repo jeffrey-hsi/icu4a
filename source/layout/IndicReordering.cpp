@@ -1,9 +1,7 @@
 /*
- * (C) Copyright IBM Corp. 1998 - 2003 - All Rights Reserved
+ * %W% %E%
  *
- * $Source: /xsrl/Nsvn/icu/icu/source/layout/IndicReordering.cpp,v $
- * $Date: 2003/01/28 23:30:56 $
- * $Revision: 1.9 $
+ * (C) Copyright IBM Corp. 1998, 1999, 2000 - All Rights Reserved
  *
  */
 
@@ -11,7 +9,6 @@
 #include "OpenTypeTables.h"
 #include "OpenTypeUtilities.h"
 #include "IndicReordering.h"
-#include "MPreFixups.h"
 
 U_NAMESPACE_BEGIN
 
@@ -30,9 +27,6 @@ private:
     LEUnicode fLengthMark;
     le_int32 fMatraIndex;
     const LETag *fMatraTags;
-    le_int32 fMPreOutIndex;
-
-    MPreFixups *fMPreFixups;
 
     void saveMatra(LEUnicode matra, IndicClassTable::CharClass matraClass)
     {
@@ -50,11 +44,14 @@ private:
         }
     }
 
+    ReorderingOutput(const ReorderingOutput &other); // forbid copying of this class
+    ReorderingOutput &operator=(const ReorderingOutput &other); // forbid copying of this class
+
 public:
-    ReorderingOutput(LEUnicode *outChars, le_int32 *charIndices, const LETag **charTags, MPreFixups *mpreFixups)
+    ReorderingOutput(LEUnicode *outChars, le_int32 *charIndices, const LETag **charTags)
         : fOutIndex(0), fOutChars(outChars), fCharIndices(charIndices), fCharTags(charTags),
           fMpre(0), fMbelow(0), fMabove(0), fMpost(0), fLengthMark(0),
-          fMatraIndex(0), fMatraTags(NULL), fMPreOutIndex(-1), fMPreFixups(mpreFixups)
+          fMatraIndex(0), fMatraTags(NULL)
     {
         // nothing else to do...
     }
@@ -69,7 +66,6 @@ public:
         IndicClassTable::CharClass matraClass = classTable->getCharClass(matra);
 
         fMpre = fMbelow = fMabove = fMpost = fLengthMark = 0;
-        fMPreOutIndex = -1;
         fMatraIndex = matraIndex;
         fMatraTags = matraTags;
 
@@ -90,17 +86,9 @@ public:
         }
     }
 
-    void noteBaseConsonant()
-    {
-        if (fMPreFixups != NULL && fMPreOutIndex >= 0) {
-            fMPreFixups->add(fOutIndex, fMPreOutIndex);
-        }
-    }
-
     void writeMpre()
     {
         if (fMpre != 0) {
-            fMPreOutIndex = fOutIndex;
             writeChar(fMpre, fMatraIndex, fMatraTags);
         }
     }
@@ -188,7 +176,7 @@ const LETag featureOrder[] =
 // that they shouldn't?
 const LETag tagArray[] =
 {
-    rphfFeatureTag, blwfFeatureTag, halfFeatureTag, pstfFeatureTag, nuktFeatureTag, akhnFeatureTag,
+    rphfFeatureTag, blwfFeatureTag, halfFeatureTag, nuktFeatureTag, akhnFeatureTag, pstfFeatureTag,
     vatuFeatureTag, presFeatureTag, blwsFeatureTag, abvsFeatureTag, pstsFeatureTag, halnFeatureTag,
     blwmFeatureTag, abvmFeatureTag, distFeatureTag, emptyTag
 };
@@ -233,18 +221,10 @@ le_int32 IndicReordering::findSyllable(const IndicClassTable *classTable, const 
     return cursor;
 }
 
-le_int32 IndicReordering::reorder(const LEUnicode *chars, le_int32 charCount, le_int32 scriptCode,
-                                  LEUnicode *outChars, le_int32 *charIndices, const LETag **charTags,
-                                  MPreFixups **outMPreFixups)
+le_int32 IndicReordering::reorder(const LEUnicode *chars, le_int32 charCount, le_int32 scriptCode, LEUnicode *outChars, le_int32 *charIndices, const LETag **charTags)
 {
-    MPreFixups *mpreFixups = NULL;
     const IndicClassTable *classTable = IndicClassTable::getScriptClassTable(scriptCode);
-
-    if (classTable->scriptFlags & IndicClassTable::SF_MPRE_FIXUP) {
-        mpreFixups = new MPreFixups(charCount);
-    }
-
-    ReorderingOutput output(outChars, charIndices, charTags, mpreFixups);
+    ReorderingOutput output(outChars, charIndices, charTags);
     le_int32 i, prev = 0;
 
     while (prev < charCount) {
@@ -295,194 +275,198 @@ le_int32 IndicReordering::reorder(const LEUnicode *chars, le_int32 charCount, le
         case IndicClassTable::CC_CONSONANT_WITH_NUKTA:
         {
             le_uint32 length = vmabove - prev;
-            le_int32  lastConsonant = vmabove - 1;
-            le_int32  baseLimit = prev;
+            le_int32 lastConsonant = vmabove - 1;
+            le_int32 baseLimit = prev;
 
             // Check for REPH at front of syllable
             if (length > 2 && classTable->isReph(chars[prev]) && classTable->isVirama(chars[prev + 1])) {
-                baseLimit += 2;
+                baseLimit = prev + 2;
 
                 // Check for eyelash RA, if the script supports it
                 if ((classTable->scriptFlags & IndicClassTable::SF_EYELASH_RA) != 0 &&
-                    chars[baseLimit] == C_SIGN_ZWJ) {
+                    chars[prev + 2] == C_SIGN_ZWJ) {
                     if (length > 3) {
                         baseLimit += 1;
                     } else {
-                        baseLimit -= 2;
+                        baseLimit = prev;
                     }
                 }
             }
 
-            while (lastConsonant > baseLimit && !classTable->isConsonant(chars[lastConsonant])) {
+            while (lastConsonant >= baseLimit && !classTable->isConsonant(chars[lastConsonant])) {
                 lastConsonant -= 1;
             }
 
             le_int32 baseConsonant = lastConsonant;
             le_int32 postBase = lastConsonant + 1;
-            le_int32 postBaseLimit = classTable->scriptFlags & IndicClassTable::SF_POST_BASE_LIMIT_MASK;
-            le_bool  seenVattu = false;
-            le_bool  seenBelowBaseForm = false;
 
-            while (baseConsonant > baseLimit) {
-                IndicClassTable::CharClass charClass = classTable->getCharClass(chars[baseConsonant]);
+            if (lastConsonant >= prev) {
+                int postBaseLimit = classTable->scriptFlags & IndicClassTable::SF_POST_BASE_LIMIT_MASK;
+                le_bool seenVattu = false;
+                le_bool seenBelowBaseForm = false;
 
-                if (IndicClassTable::isConsonant(charClass)) {
-                    if (postBaseLimit == 0 || seenVattu ||
-                        (baseConsonant > baseLimit && !classTable->isVirama(chars[baseConsonant - 1])) ||
-                        !IndicClassTable::hasPostOrBelowBaseForm(charClass)) {
-                        break;
-                    }
+                while (baseConsonant >= baseLimit) {
+                    IndicClassTable::CharClass charClass = classTable->getCharClass(chars[baseConsonant]);
 
-                    seenVattu = IndicClassTable::isVattu(charClass);
-
-                    if (IndicClassTable::hasPostBaseForm(charClass)) {
-                        if (seenBelowBaseForm) {
+                    if (IndicClassTable::isConsonant(charClass)) {
+                        if (postBaseLimit == 0 || seenVattu ||
+                            (baseConsonant > baseLimit && !classTable->isVirama(chars[baseConsonant - 1])) ||
+                            !IndicClassTable::hasPostOrBelowBaseForm(charClass)) {
                             break;
                         }
 
-                        postBase = baseConsonant;
-                    } else if (IndicClassTable::hasBelowBaseForm(charClass)) {
-                        seenBelowBaseForm = true;
+                        seenVattu = IndicClassTable::isVattu(charClass);
+
+                        if (IndicClassTable::hasPostBaseForm(charClass)) {
+                            if (seenBelowBaseForm) {
+                                break;
+                            }
+
+                            postBase = baseConsonant;
+                        } else if (IndicClassTable::hasBelowBaseForm(charClass)) {
+                            seenBelowBaseForm = true;
+                        }
+
+                        postBaseLimit -= 1;
                     }
 
-                    postBaseLimit -= 1;
+                    baseConsonant -= 1;
                 }
 
-                baseConsonant -= 1;
-            }
+                if (baseConsonant < baseLimit) {
+                    baseConsonant = baseLimit;
+                }
 
-            // Write Mpre
-            output.writeMpre();
+                // Write Mpre
+                output.writeMpre();
 
-            // Write eyelash RA
-            // NOTE: baseLimit == prev + 3 iff eyelash RA present...
-            if (baseLimit == prev + 3) {
-                output.writeChar(chars[prev], prev, &tagArray[2]);
-                output.writeChar(chars[prev + 1], prev + 1, &tagArray[2]);
-                output.writeChar(chars[prev + 2], prev + 2, &tagArray[2]);
-            }
+                // Write eyelash RA
+                // NOTE: baseLimit == prev + 3 iff eyelash RA present...
+                if (baseLimit == prev + 3) {
+                    output.writeChar(chars[prev], prev, &tagArray[2]);
+                    output.writeChar(chars[prev + 1], prev + 1, &tagArray[2]);
+                    output.writeChar(chars[prev + 2], prev + 2, &tagArray[2]);
+                }
 
-            // write any pre-base consonants
-            le_bool supressVattu = true;
+                // write any pre-base consonants
+                le_bool supressVattu = true;
 
-            for (i = baseLimit; i < baseConsonant; i += 1) {
-                LEUnicode ch = chars[i];
-                const LETag *tag = &tagArray[1];
-                IndicClassTable::CharClass charClass = classTable->getCharClass(ch);
+                for (i = baseLimit; i < baseConsonant; i += 1) {
+                    LEUnicode ch = chars[i];
+                    const LETag *tag = &tagArray[1];
+                    IndicClassTable::CharClass charClass = classTable->getCharClass(ch);
 
-                if (IndicClassTable::isConsonant(charClass)) {
-                    if (IndicClassTable::isVattu(charClass) && supressVattu) {
-                        tag = &tagArray[4];
+                    if (IndicClassTable::isConsonant(charClass)) {
+                        if (IndicClassTable::isVattu(charClass) && supressVattu) {
+                            tag = &tagArray[3];
+                        }
+
+                        supressVattu = IndicClassTable::isVattu(charClass);
+                    } else if (IndicClassTable::isVirama(charClass) && chars[i + 1] == C_SIGN_ZWNJ)
+                    {
+                        tag = &tagArray[3];
                     }
 
-                    supressVattu = IndicClassTable::isVattu(charClass);
-                } else if (IndicClassTable::isVirama(charClass) && chars[i + 1] == C_SIGN_ZWNJ)
-                {
-                    tag = &tagArray[4];
+                    output.writeChar(ch, i, tag);
                 }
 
-                output.writeChar(ch, i, tag);
-            }
+                le_int32 bcSpan = baseConsonant + 1;
 
-            le_int32 bcSpan = baseConsonant + 1;
-
-            if (bcSpan < vmabove && classTable->isNukta(chars[bcSpan])) {
-                bcSpan += 1;
-            }
-
-            if (baseConsonant == lastConsonant && bcSpan < vmabove && classTable->isVirama(chars[bcSpan])) {
-                bcSpan += 1;
-
-                if (bcSpan < vmabove && chars[bcSpan] == C_SIGN_ZWNJ) {
+                if (bcSpan < vmabove && classTable->isNukta(chars[bcSpan])) {
                     bcSpan += 1;
                 }
-            }
 
-            // note the base consonant for post-GSUB fixups
-            output.noteBaseConsonant();
+                if (baseConsonant == lastConsonant && bcSpan < vmabove && classTable->isVirama(chars[bcSpan])) {
+                    bcSpan += 1;
 
-            // write base consonant
-            for (i = baseConsonant; i < bcSpan; i += 1) {
-                output.writeChar(chars[i], i, &tagArray[4]);
-            }
-
-            if ((classTable->scriptFlags & IndicClassTable::SF_MATRAS_AFTER_BASE) != 0) {
-                output.writeMbelow();
-                output.writeMabove();
-                output.writeMpost();
-            }
-
-            // write below-base consonants
-            if (baseConsonant != lastConsonant) {
-                for (i = bcSpan + 1; i < postBase; i += 1) {
-                    output.writeChar(chars[i], i, &tagArray[1]);
+                    if (bcSpan < vmabove && chars[bcSpan] == C_SIGN_ZWNJ) {
+                        bcSpan += 1;
+                    }
                 }
 
-                if (postBase > lastConsonant) {
-                    // write halant that was after base consonant
-                    output.writeChar(chars[bcSpan], bcSpan, &tagArray[1]);
-                }
-            }
-
-            // write Mbelow, Mabove
-            if ((classTable->scriptFlags & IndicClassTable::SF_MATRAS_AFTER_BASE) == 0) {
-                output.writeMbelow();
-                output.writeMabove();
-            }
-
-           if ((classTable->scriptFlags & IndicClassTable::SF_REPH_AFTER_BELOW) != 0) {
-                if (baseLimit == prev + 2) {
-                    output.writeChar(chars[prev], prev, &tagArray[0]);
-                    output.writeChar(chars[prev + 1], prev + 1, &tagArray[0]);
+                // write base consonant
+                for (i = baseConsonant; i < bcSpan; i += 1) {
+                    output.writeChar(chars[i], i, &tagArray[3]);
                 }
 
-                // write VMabove
-                for (i = vmabove; i < vmpost; i += 1) {
-                    output.writeChar(chars[i], i, &tagArray[1]);
+                if ((classTable->scriptFlags & IndicClassTable::SF_MATRAS_AFTER_BASE) != 0) {
+                    output.writeMbelow();
+                    output.writeMabove();
+                    output.writeMpost();
                 }
-            }
 
-            // write post-base consonants
-            // FIXME: does this put the right tags on post-base consonants?
-            if (baseConsonant != lastConsonant) {
-                if (postBase <= lastConsonant) {
-                    for (i = postBase; i <= lastConsonant; i += 1) {
-                        output.writeChar(chars[i], i, &tagArray[3]);
+                // write below-base consonants
+                if (baseConsonant != lastConsonant) {
+                    for (i = bcSpan + 1; i < postBase; i += 1) {
+                        output.writeChar(chars[i], i, &tagArray[1]);
                     }
 
-                    // write halant that was after base consonant
-                    output.writeChar(chars[bcSpan], bcSpan, &tagArray[1]);
+                    if (postBase > lastConsonant) {
+                        // write halant that was after base consonant
+                        output.writeChar(chars[bcSpan], bcSpan, &tagArray[1]);
+                    }
                 }
 
-                // write the training halant, if there is one
-                if (lastConsonant < matra && classTable->isVirama(chars[matra])) {
-                    output.writeChar(chars[matra], matra, &tagArray[4]);
-                }
-            }
-
-            // write Mpost
-            if ((classTable->scriptFlags & IndicClassTable::SF_MATRAS_AFTER_BASE) == 0) {
-                output.writeMpost();
-            }
-
-            output.writeLengthMark();
-
-            // write reph
-            if ((classTable->scriptFlags & IndicClassTable::SF_REPH_AFTER_BELOW) == 0) {
-                if (baseLimit == prev + 2) {
-                    output.writeChar(chars[prev], prev, &tagArray[0]);
-                    output.writeChar(chars[prev + 1], prev + 1, &tagArray[0]);
+                // write Mbelow, Mabove
+                if ((classTable->scriptFlags & IndicClassTable::SF_MATRAS_AFTER_BASE) == 0) {
+                    output.writeMbelow();
+                    output.writeMabove();
                 }
 
-                // write VMabove
-                for (i = vmabove; i < vmpost; i += 1) {
+               if ((classTable->scriptFlags & IndicClassTable::SF_REPH_AFTER_BELOW) != 0) {
+                    if (baseLimit == prev + 2) {
+                        output.writeChar(chars[prev], prev, &tagArray[0]);
+                        output.writeChar(chars[prev + 1], prev + 1, &tagArray[0]);
+                    }
+
+                    // write VMabove
+                    for (i = vmabove; i < vmpost; i += 1) {
+                        output.writeChar(chars[i], i, &tagArray[1]);
+                    }
+                }
+
+                // write post-base consonants
+                // FIXME: does this put the right tags on post-base consonants?
+                if (baseConsonant != lastConsonant) {
+                    if (postBase <= lastConsonant) {
+                        for (i = postBase; i <= lastConsonant; i += 1) {
+                            output.writeChar(chars[i], i, &tagArray[3]);
+                        }
+
+                        // write halant that was after base consonant
+                        output.writeChar(chars[bcSpan], bcSpan, &tagArray[1]);
+                    }
+
+                    // write the training halant, if there is one
+                    if (lastConsonant < matra && classTable->isVirama(chars[matra])) {
+                        output.writeChar(chars[matra], matra, &tagArray[3]);
+                    }
+                }
+
+                // write Mpost
+                if ((classTable->scriptFlags & IndicClassTable::SF_MATRAS_AFTER_BASE) == 0) {
+                    output.writeMpost();
+                }
+
+                output.writeLengthMark();
+
+                // write reph
+                if ((classTable->scriptFlags & IndicClassTable::SF_REPH_AFTER_BELOW) == 0) {
+                    if (baseLimit == prev + 2) {
+                        output.writeChar(chars[prev], prev, &tagArray[0]);
+                        output.writeChar(chars[prev + 1], prev + 1, &tagArray[0]);
+                    }
+
+                    // write VMabove
+                    for (i = vmabove; i < vmpost; i += 1) {
+                        output.writeChar(chars[i], i, &tagArray[1]);
+                    }
+                }
+
+                // write VMpost
+                for (i = vmpost; i < syllable; i += 1) {
                     output.writeChar(chars[i], i, &tagArray[1]);
                 }
-            }
-
-            // write VMpost
-            for (i = vmpost; i < syllable; i += 1) {
-                output.writeChar(chars[i], i, &tagArray[1]);
             }
 
             break;
@@ -492,20 +476,73 @@ le_int32 IndicReordering::reorder(const LEUnicode *chars, le_int32 charCount, le
             break;
         }
 
+
         prev = syllable;
     }
-
-    *outMPreFixups = mpreFixups;
 
     return output.getOutputIndex();
 }
 
-void IndicReordering::adjustMPres(MPreFixups *mpreFixups, LEGlyphID *glyphs, le_int32 *charIndices)
+void IndicReordering::adjustMPres(const LEUnicode *chars, le_int32 charCount, LEGlyphID *glyphs, le_int32 *charIndices, le_int32 scriptCode)
 {
-    if (mpreFixups != NULL) {
-        mpreFixups->apply(glyphs, charIndices);
-        
-        delete mpreFixups;
+    const IndicClassTable *classTable = IndicClassTable::getScriptClassTable(scriptCode);
+
+    if (classTable->scriptFlags & IndicClassTable::SF_MPRE_FIXUP) {
+        le_int32 i;
+
+        for (i = 0; i < charCount; i += 1) {
+            if (classTable->isMpre(chars[i])) {
+                le_int32 j;
+                le_bool cflag = true;
+
+                for (j = i + 1; j < charCount; j += 1) {
+                    IndicClassTable::CharClass charClass = classTable->getCharClass(chars[j]);
+
+                    if (IndicClassTable::isConsonant(charClass)) {
+                        if (! cflag) {
+                            break;
+                        }
+
+                        cflag = false;
+                    } else if (IndicClassTable::isVirama(charClass)) {
+                        if (cflag) {
+                            break;
+                        }
+
+                        cflag = true;
+                    } else {
+                        break;
+                    }
+                }
+
+                // Don't bother to reorder if
+                // there's one or fewer consonants
+                if (j <= i + 2) {
+                    continue;
+                }
+
+                int lastConsonant = j - 1;
+                int base;
+
+                for (base = lastConsonant; base > i; base -= 1) {
+                    if (classTable->isConsonant(chars[base]) && glyphs[base] != 0xFFFF) {
+                        break;
+                    }
+                }
+
+                LEGlyphID matra = glyphs[i];
+                le_int32 mIndex = charIndices[i];
+                le_int32 x;
+
+                for (x = i; x < base - 1; x += 1) {
+                    glyphs[x] = glyphs[x + 1];
+                    charIndices[x] = charIndices[x + 1];
+                }
+
+                glyphs[base - 1] = matra;
+                charIndices[base - 1] = mIndex;
+            }
+        }
     }
 }
 

@@ -199,7 +199,8 @@ UCNV_FROM_U_CALLBACK_ESCAPE (
       {
         valueString[valueStringLength++] = (UChar) UNICODE_PERCENT_SIGN_CODEPOINT;  /* adding % */
         valueString[valueStringLength++] = (UChar) UNICODE_U_CODEPOINT; /* adding U */
-        valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[i++], 16, 4);
+        uprv_itou (valueString + valueStringLength, codeUnits[i++], 16, 4);
+        valueStringLength += 4;
       }
   }
   else
@@ -211,7 +212,8 @@ UCNV_FROM_U_CALLBACK_ESCAPE (
           {
             valueString[valueStringLength++] = (UChar) UNICODE_RS_CODEPOINT;    /* adding \ */
             valueString[valueStringLength++] = (UChar) UNICODE_U_LOW_CODEPOINT; /* adding u */
-            valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[i++], 16, 4);
+            uprv_itou (valueString + valueStringLength, codeUnits[i++], 16, 4);
+            valueStringLength += 4;
           }
           break;
 
@@ -220,12 +222,12 @@ UCNV_FROM_U_CALLBACK_ESCAPE (
 
             if(length==2){
                 valueString[valueStringLength++] = (UChar) UNICODE_U_CODEPOINT; /* adding U */
-                valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codePoint, 16, 8);
+                valueStringLength += uprv_itou (valueString + valueStringLength, codePoint, 16, 8);
                 
             }
             else{
                 valueString[valueStringLength++] = (UChar) UNICODE_U_LOW_CODEPOINT; /* adding u */
-                valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[0], 16, 4);
+                valueStringLength += uprv_itou (valueString + valueStringLength, codeUnits[0], 16, 4);
             }
           break;
 
@@ -234,10 +236,10 @@ UCNV_FROM_U_CALLBACK_ESCAPE (
             valueString[valueStringLength++] = (UChar) UNICODE_AMP_CODEPOINT;   /* adding & */
             valueString[valueStringLength++] = (UChar) UNICODE_HASH_CODEPOINT;  /* adding # */
             if(length==2){
-                valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codePoint, 10, 0);
+                valueStringLength += uprv_itou (valueString + valueStringLength, codePoint, 10, 0);
             }
             else{
-                valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[0], 10, 0);
+                valueStringLength += uprv_itou (valueString + valueStringLength, codeUnits[0], 10, 0);
             }
             valueString[valueStringLength++] = (UChar) UNICODE_SEMICOLON_CODEPOINT; /* adding ; */
           break;
@@ -248,10 +250,10 @@ UCNV_FROM_U_CALLBACK_ESCAPE (
             valueString[valueStringLength++] = (UChar) UNICODE_HASH_CODEPOINT;  /* adding # */
             valueString[valueStringLength++] = (UChar) UNICODE_X_LOW_CODEPOINT; /* adding x */
             if(length==2){
-                valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codePoint, 16, 0);
+                valueStringLength += uprv_itou (valueString + valueStringLength, codePoint, 16, 0);
             }
             else{
-                valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[0], 16, 0);
+                valueStringLength += uprv_itou (valueString + valueStringLength, codeUnits[0], 16, 0);
             }
             valueString[valueStringLength++] = (UChar) UNICODE_SEMICOLON_CODEPOINT; /* adding ; */
           break;
@@ -261,9 +263,9 @@ UCNV_FROM_U_CALLBACK_ESCAPE (
           valueString[valueStringLength++] = (UChar) UNICODE_U_CODEPOINT;    /* adding U */
           valueString[valueStringLength++] = (UChar) UNICODE_PLUS_CODEPOINT; /* adding + */
           if (length == 2) {
-            valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codePoint, 16, 4);
+            valueStringLength += uprv_itou (valueString + valueStringLength, codePoint, 16, 4);
           } else {
-            valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[0], 16, 4);
+            valueStringLength += uprv_itou (valueString + valueStringLength, codeUnits[0], 16, 4);
           }
           valueString[valueStringLength++] = (UChar) UNICODE_RIGHT_CURLY_CODEPOINT;    /* adding } */
           break;
@@ -273,7 +275,8 @@ UCNV_FROM_U_CALLBACK_ESCAPE (
           {
             valueString[valueStringLength++] = (UChar) UNICODE_PERCENT_SIGN_CODEPOINT;  /* adding % */
             valueString[valueStringLength++] = (UChar) UNICODE_U_CODEPOINT;             /* adding U */
-            valueStringLength += uprv_itou (valueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[i++], 16, 4);
+            uprv_itou (valueString + valueStringLength, codeUnits[i++], 16, 4);
+            valueStringLength += 4;
           }
       }
 
@@ -403,7 +406,8 @@ UCNV_TO_U_CALLBACK_ESCAPE (
     {
         uniValueString[valueStringLength++] = (UChar) UNICODE_PERCENT_SIGN_CODEPOINT; /* adding % */
         uniValueString[valueStringLength++] = (UChar) UNICODE_X_CODEPOINT;    /* adding X */
-        valueStringLength += uprv_itou (uniValueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, (uint8_t) codeUnits[i++], 16, 2);
+        uprv_itou (uniValueString + valueStringLength, (uint8_t) codeUnits[i++], 16, 2);
+        valueStringLength += 2;
     }
   }
   else
@@ -415,7 +419,7 @@ UCNV_TO_U_CALLBACK_ESCAPE (
            {
                 uniValueString[valueStringLength++] = (UChar) UNICODE_AMP_CODEPOINT;   /* adding & */
                 uniValueString[valueStringLength++] = (UChar) UNICODE_HASH_CODEPOINT;  /* adding # */
-                valueStringLength += uprv_itou (uniValueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[i++], 10, 0);
+                valueStringLength += uprv_itou (uniValueString + valueStringLength, codeUnits[i++], 10, 0);
                 uniValueString[valueStringLength++] = (UChar) UNICODE_SEMICOLON_CODEPOINT; /* adding ; */
            }
           break;
@@ -426,7 +430,7 @@ UCNV_TO_U_CALLBACK_ESCAPE (
                 uniValueString[valueStringLength++] = (UChar) UNICODE_AMP_CODEPOINT;   /* adding & */
                 uniValueString[valueStringLength++] = (UChar) UNICODE_HASH_CODEPOINT;  /* adding # */
                 uniValueString[valueStringLength++] = (UChar) UNICODE_X_LOW_CODEPOINT; /* adding x */
-                valueStringLength += uprv_itou (uniValueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[i++], 16, 0);
+                valueStringLength += uprv_itou (uniValueString + valueStringLength, codeUnits[i++], 16, 0);
                 uniValueString[valueStringLength++] = (UChar) UNICODE_SEMICOLON_CODEPOINT; /* adding ; */
           }
           break;
@@ -435,7 +439,7 @@ UCNV_TO_U_CALLBACK_ESCAPE (
           {
                 uniValueString[valueStringLength++] = (UChar) UNICODE_RS_CODEPOINT;    /* adding \ */
                 uniValueString[valueStringLength++] = (UChar) UNICODE_X_LOW_CODEPOINT; /* adding x */
-                valueStringLength += uprv_itou (uniValueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, codeUnits[i++], 16, 2);
+                valueStringLength += uprv_itou (uniValueString + valueStringLength, codeUnits[i++], 16, 2);
           }
           break;
         default:
@@ -443,7 +447,7 @@ UCNV_TO_U_CALLBACK_ESCAPE (
           {
                 uniValueString[valueStringLength++] = (UChar) UNICODE_PERCENT_SIGN_CODEPOINT; /* adding % */
                 uniValueString[valueStringLength++] = (UChar) UNICODE_X_CODEPOINT;    /* adding X */
-                uprv_itou (uniValueString + valueStringLength, VALUE_STRING_LENGTH - valueStringLength, (uint8_t) codeUnits[i++], 16, 2);
+                uprv_itou (uniValueString + valueStringLength, (uint8_t) codeUnits[i++], 16, 2);
                 valueStringLength += 2;
           }
       }

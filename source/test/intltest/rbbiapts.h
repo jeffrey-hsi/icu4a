@@ -59,21 +59,17 @@ public:
     /**
      * Tests the method IsBoundary() of RuleBasedBreakIterator
      **/
-    void TestIsBoundary(void);
+   void TestIsBoundary(void);
 
     /**
      * Tests creating RuleBasedBreakIterator from rules strings.
      **/
-    void TestBuilder(void);
-
-    void TestRoundtripRules(void);
-
-    void RoundtripRule(const char *dataFile);
+   void TestBuilder(void);
 
     /**
      * Tests grouping effect of 'single quotes' in rules.
      **/
-    void TestQuoteGrouping();
+   void TestQuoteGrouping();
 
     /**
      *  Tests word break status returns.

@@ -166,18 +166,6 @@ class DateFormat;
  * interpreted literally, regardless of the number of digits.  So using the
  * pattern "MM/dd/yyyy", "01/11/12" parses to Jan 11, 12 A.D.
  *
- * <p>
- * When numeric fields abut one another directly, with no intervening delimiter
- * characters, they constitute a run of abutting numeric fields.  Such runs are
- * parsed specially.  For example, the format "HHmmss" parses the input text
- * "123456" to 12:34:56, parses the input text "12345" to 1:23:45, and fails to
- * parse "1234".  In other words, the leftmost field of the run is flexible,
- * while the others keep a fixed width.  If the parse fails anywhere in the run,
- * then the leftmost field is shortened by one character, and the entire run is
- * parsed again. This is repeated until either the parse succeeds or the
- * leftmost field is one character in length.  If the parse still fails at that
- * point, the parse of the run fails.
- *
  * <P>
  * For time zones that have no names, SimpleDateFormat uses strings GMT+hours:minutes or
  * GMT-hours:minutes.
@@ -557,7 +545,7 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static inline UClassID getStaticClassID(void);
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
      * Returns a unique class ID POLYMORPHICALLY. Pure virtual override. This
@@ -570,7 +558,7 @@ public:
      *                  other classes have different class IDs.
      * @stable ICU 2.0
      */
-    virtual UClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
 
 private:
     static const char fgClassID;
@@ -580,6 +568,20 @@ private:
     static const UChar fgDefaultPattern[];    // date/time pattern of last resort
 
     friend class DateFormat;
+
+    /**
+     * Gets the index for the given time zone ID to obtain the timezone strings
+     * for formatting. The time zone ID is just for programmatic lookup. NOT
+     * LOCALIZED!!!
+     *
+     * @param DateFormatSymbols     a DateFormatSymbols object contianing the time zone names
+     * @param ID        the given time zone ID.
+     * @return          the index of the given time zone ID.  Returns -1 if
+     *                  the given time zone ID can't be located in the
+     *                  DateFormatSymbols object.
+     * @see SimpleTimeZone
+     */
+    //int32_t getZoneIndex(const DateFormatSymbols&, const UnicodeString& ID) const;
 
     void initializeDefaultCentury(void);
 
@@ -644,12 +646,6 @@ private:
                                      int32_t maxDigits) const;
 
     /**
-     * Return true if the given format character, occuring count
-     * times, represents a numeric field.
-     */
-    static UBool isNumeric(UChar formatChar, int32_t count);
-
-    /**
      * Called by several of the constructors to load pattern data and formatting symbols
      * out of a resource bundle and initialize the locale based on it.
      * @param timeStyle     The time style, as passed to DateFormat::createDateInstance().
@@ -680,7 +676,7 @@ private:
      * @return the new start position if matching succeeded; a negative number
      * indicating matching failure, otherwise.
      */
-    int32_t matchString(const UnicodeString& text, int32_t start, UCalendarDateFields field,
+    int32_t matchString(const UnicodeString& text, int32_t start, Calendar::EDateFields field,
                         const UnicodeString* stringArray, int32_t stringArrayCount, Calendar& cal) const;
 
     /**
@@ -698,12 +694,16 @@ private:
      * indicating matching failure, otherwise.
      */
     int32_t subParse(const UnicodeString& text, int32_t& start, UChar ch, int32_t count,
-                     UBool obeyCount, UBool allowNegative, UBool ambiguousYear[], Calendar& cal) const;
+                     UBool obeyCount, UBool ambiguousYear[], Calendar& cal) const;
 
-    void parseInt(const UnicodeString& text,
-                  Formattable& number,
-                  ParsePosition& pos,
-                  UBool allowNegative) const;
+    /**
+     * Parse the given text, at the given position, as a numeric value, using
+     * this object's NumberFormat. Return the corresponding long value in the
+     * fill-in parameter 'value'. If the parse fails, this method leaves pos
+     * unchanged and returns FALSE; otherwise it advances pos and
+     * returns TRUE.
+     */
+    //UBool subParseLong(const UnicodeString& text, ParsePosition& pos, int32_t& value) const;
 
     /**
      * Translate a pattern, mapping each character in the from string to the
@@ -722,6 +722,11 @@ private:
                                 const UnicodeString& from,
                                 const UnicodeString& to,
                                 UErrorCode& status);
+    /**
+     * Given a zone ID, try to locate it in our time zone array. Return the
+     * index (row index) of the found time zone, or -1 if we can't find it.
+     */
+    //int32_t getZoneIndex(const UnicodeString& ID) const;
 
     /**
      * Sets the starting date of the 100-year window that dates with 2-digit years
@@ -766,7 +771,7 @@ private:
     /**
      * Used to map pattern characters to Calendar field identifiers.
      */
-    static const UCalendarDateFields fgPatternIndexToCalendarField[];
+    static const Calendar::EDateFields fgPatternIndexToCalendarField[];
 
     /**
      * Map index into pattern character string to DateFormat field number
@@ -827,14 +832,6 @@ public:
     static const UDate        fgSystemDefaultCentury;
     // TODO Not supposed to be public: make it private in 2.8!
 };
-
-inline UClassID
-SimpleDateFormat::getStaticClassID(void)
-{ return (UClassID)&fgClassID; }
-
-inline UClassID
-SimpleDateFormat::getDynamicClassID(void) const
-{ return SimpleDateFormat::getStaticClassID(); }
 
 inline UDate
 SimpleDateFormat::get2DigitYearStart(UErrorCode& /*status*/) const

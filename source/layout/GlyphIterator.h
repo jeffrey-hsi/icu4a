@@ -8,15 +8,11 @@
 #ifndef __GLYPHITERATOR_H
 #define __GLYPHITERATOR_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "OpenTypeTables.h"
 #include "GlyphDefinitionTables.h"
 #include "GlyphPositionAdjustments.h"
+#include "cmemory.h"
 
 U_NAMESPACE_BEGIN
 
@@ -27,8 +23,6 @@ public:
         const GlyphDefinitionTableHeader *theGlyphDefinitionTableHeader);
 
     GlyphIterator(GlyphIterator &that);
-
-    GlyphIterator(GlyphIterator &that, LETag newFeatureTag);
 
     GlyphIterator(GlyphIterator &that, le_uint16 newLookupFlags);
 
@@ -57,7 +51,7 @@ public:
     float getCursiveBaselineAdjustment() const;
     void getCursiveLastPositionAdjustment(GlyphPositionAdjustment &adjustment) const;
 
-    void setCurrGlyphID(TTGlyphID glyphID);
+    void setCurrGlyphID(LEGlyphID glyphID);
     void setCurrStreamPosition(le_int32 position);
     void setCurrGlyphPositionAdjustment(const GlyphPositionAdjustment *adjustment);
     void setCurrGlyphBaseOffset(le_int32 baseOffset);

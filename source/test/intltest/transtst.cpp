@@ -12,25 +12,32 @@
 
 #if !UCONFIG_NO_TRANSLITERATION
 
+/* These APIs are becoming private */
+#define ICU_COMPOUNDTRANSLITERATOR_USE_DEPRECATES 1
+#define ICU_NULLTRANSLITERATOR_USE_DEPRECATES 1
+#define ICU_RULEBASEDTRANSLITERATOR_USE_DEPRECATES 1
+#define ICU_HEXTOUNICODETRANSLITERATOR_USE_DEPRECATES 1
+#define ICU_UNICODETOHEXTRANSLITERATOR_USE_DEPRECATES 1
+
 #include "transtst.h"
 #include "unicode/locid.h"
+#include "unicode/cpdtrans.h"
 #include "unicode/dtfmtsym.h"
+#include "unicode/hextouni.h"
 #include "unicode/normlzr.h"
+#include "unicode/nultrans.h"
+#include "unicode/rbt.h"
 #include "unicode/translit.h"
 #include "unicode/ucnv.h"
 #include "unicode/ucnv_err.h"
 #include "unicode/uchar.h"
 #include "unicode/unifilt.h"
 #include "unicode/uniset.h"
-#include "unitohex.h"
+#include "unicode/unitohex.h"
 #include "unicode/utypes.h"
 #include "unicode/ustring.h"
 #include "unicode/usetiter.h"
 #include "unicode/uscript.h"
-#include "hextouni.h"
-#include "cpdtrans.h"
-#include "nultrans.h"
-#include "rbt.h"
 #include "anytrans.h"
 #include "esctrn.h"
 #include "name2uni.h"
@@ -1267,49 +1274,18 @@ void TransliteratorTest::TestLiberalizedID(void) {
 
 /* test for Jitterbug 912 */
 void TransliteratorTest::TestCreateInstance(){
-    const char* FORWARD = "F";
-    const char* REVERSE = "R";
-    const char* DATA[] = {
-        // Column 1: id
-        // Column 2: direction
-        // Column 3: expected ID, or "" if expect failure
-        "Latin-Hangul", REVERSE, "Hangul-Latin", // JB#912
-
-        // JB#2689: bad compound causes crash
-        "InvalidSource-InvalidTarget", FORWARD, "",
-        "InvalidSource-InvalidTarget", REVERSE, "",
-        "Hex-Any;InvalidSource-InvalidTarget", FORWARD, "",
-        "Hex-Any;InvalidSource-InvalidTarget", REVERSE, "",
-        "InvalidSource-InvalidTarget;Hex-Any", FORWARD, "",
-        "InvalidSource-InvalidTarget;Hex-Any", REVERSE, "",
-
-        NULL
-    };
-
-    for (int32_t i=0; DATA[i]; i+=3) {
-        UParseError err;
-        UErrorCode ec = U_ZERO_ERROR;
-        UnicodeString id(DATA[i]);
-        UTransDirection dir = (DATA[i+1]==FORWARD)?
-            UTRANS_FORWARD:UTRANS_REVERSE;
-        UnicodeString expID(DATA[i+2]);
-        Transliterator* t =
-            Transliterator::createInstance(id,dir,err,ec);
-        UnicodeString newID = t?t->getID():UnicodeString();
-        UBool ok = (newID == expID);
-        if (!t) {
-            newID = u_errorName(ec);
-        }
-        if (ok) {
-            logln((UnicodeString)"Ok: createInstance(" +
-                  id + "," + DATA[i+1] + ") => " + newID);
-        } else {
-            errln((UnicodeString)"FAIL: createInstance(" +
-                  id + "," + DATA[i+1] + ") => " + newID +
-                  ", expected " + expID);
-        }
-        delete t;
+    UParseError err;
+    UErrorCode status = U_ZERO_ERROR;
+    Transliterator* myTrans = Transliterator::createInstance(UnicodeString("Latin-Hangul"),UTRANS_REVERSE,err,status);
+    if (myTrans == 0) {
+        errln("FAIL: createInstance failed");
+        return;
     }
+    UnicodeString newID =myTrans->getID();
+    if(newID!=UnicodeString("Hangul-Latin")){
+        errln(UnicodeString("Test for Jitterbug 912 Transliterator::createInstance(id,UTRANS_REVERSE) failed"));
+    }
+    delete myTrans;
 }
 
 /**
@@ -1869,7 +1845,7 @@ void TransliteratorTest::TestSTV(void) {
         errln((UnicodeString)"FAIL: Bad source count: " + ns);
         return;
     }
-    int32_t i, j;
+    int32_t i;
     for (i=0; i<ns; ++i) {
         UnicodeString source;
         Transliterator::getAvailableSource(i, source);
@@ -1910,8 +1886,6 @@ void TransliteratorTest::TestSTV(void) {
 
     // Test registration
     const char* IDS[] = { "Fieruwer", "Seoridf-Sweorie", "Oewoir-Oweri/Vsie" };
-    const char* FULL_IDS[] = { "Any-Fieruwer", "Seoridf-Sweorie", "Oewoir-Oweri/Vsie" };
-    const char* SOURCES[] = { NULL, "Seoridf", "Oewoir" };
     for (i=0; i<3; ++i) {
         Transliterator *t = new TestTrans(IDS[i]);
         if (t == 0) {
@@ -1940,36 +1914,6 @@ void TransliteratorTest::TestSTV(void) {
             errln((UnicodeString)"FAIL: Unregistration failed for ID " +
                   IDS[i]);
             delete t;
-        }
-    }
-
-    // Make sure getAvailable API reflects removal
-    int32_t n = Transliterator::countAvailableIDs();
-    for (i=0; i<n; ++i) {
-        UnicodeString id = Transliterator::getAvailableID(i);
-        for (j=0; j<3; ++j) {
-            if (id.caseCompare(FULL_IDS[j],0)==0) {
-                errln((UnicodeString)"FAIL: unregister(" + id + ") failed");
-            }
-        }
-    }
-    n = Transliterator::countAvailableTargets("Any");
-    for (i=0; i<n; ++i) {
-        UnicodeString t;
-        Transliterator::getAvailableTarget(i, "Any", t);
-        if (t.caseCompare(IDS[0],0)==0) {
-            errln((UnicodeString)"FAIL: unregister(Any-" + t + ") failed");
-        }
-    }
-    n = Transliterator::countAvailableSources();
-    for (i=0; i<n; ++i) {
-        UnicodeString s;
-        Transliterator::getAvailableSource(i, s);
-        for (j=0; j<3; ++j) {
-            if (SOURCES[j] == NULL) continue;
-            if (s.caseCompare(SOURCES[j],0)==0) {
-                errln((UnicodeString)"FAIL: unregister(" + s + "-*) failed");
-            }
         }
     }
 }

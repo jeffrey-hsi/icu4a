@@ -194,7 +194,7 @@ public:
      * @param value     value of the format sybmol
      * @stable ICU 2.0
      */
-    void setSymbol(ENumberFormatSymbol symbol, const UnicodeString &value);
+    void setSymbol(ENumberFormatSymbol symbol, UnicodeString value);
 
     /**
      * Returns the locale for which this object was constructed.
@@ -206,14 +206,14 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual inline UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static inline UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 private:
     /**
@@ -294,13 +294,6 @@ private:
     static const char fgClassID;
 };
 
-inline UClassID
-DecimalFormatSymbols::getStaticClassID()
-{ return (UClassID)&fgClassID; }
-
-inline UClassID
-DecimalFormatSymbols::getDynamicClassID() const
-{ return DecimalFormatSymbols::getStaticClassID(); }
 
 // -------------------------------------
 
@@ -324,8 +317,9 @@ DecimalFormatSymbols::getConstSymbol(ENumberFormatSymbol symbol) const {
 
 // -------------------------------------
 
+/* TODO: This should use "const UnicodeString &value" */
 inline void
-DecimalFormatSymbols::setSymbol(ENumberFormatSymbol symbol, const UnicodeString &value) {
+DecimalFormatSymbols::setSymbol(ENumberFormatSymbol symbol, UnicodeString value) {
     if(symbol<kFormatSymbolCount) {
         fSymbols[symbol]=value;
     }

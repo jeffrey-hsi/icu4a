@@ -245,6 +245,14 @@ public:
      */
     void setZoneStrings(const UnicodeString* const* strings, int32_t rowCount, int32_t columnCount);
 
+#ifdef ICU_DATEFORMATSYMBOLS_USE_DEPRECATES
+    /**
+     * Get the non-localized date-time pattern characters.
+     * @obsolete ICU 2.4. Use getPatternUChars instead since this API will be removed in that release.
+     */
+    static const UnicodeString& getPatternChars(void);
+#endif /* ICU_DATEFORMATSYMBOLS_USE_DEPRECATES */
+
     /**
      * Get the non-localized date-time pattern characters.
      * @return    the non-localized date-time pattern characters
@@ -273,14 +281,14 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual inline UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static inline UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 private:
     /**
@@ -451,14 +459,6 @@ private:
      */
     void disposeZoneStrings(void);
 };
-
-inline UClassID
-DateFormatSymbols::getStaticClassID()
-{ return (UClassID)&fgClassID; }
-
-inline UClassID
-DateFormatSymbols::getDynamicClassID() const
-{ return DateFormatSymbols::getStaticClassID(); }
 
 U_NAMESPACE_END
 

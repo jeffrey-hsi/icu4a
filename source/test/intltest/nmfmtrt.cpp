@@ -151,8 +151,7 @@ NumberFormatRoundTripTest::test(NumberFormat *fmt)
         if(fmt->getDynamicClassID() == DecimalFormat::getStaticClassID())
         {
 #if !defined(OS390) && !defined(OS400)
-            /* DBL_MAX/2 is here because randomDouble does a *2 in the math */
-            test(fmt, randomDouble(DBL_MAX/2.0) / ((DecimalFormat*)fmt)->getMultiplier());
+            test(fmt, randomDouble(1e308) / ((DecimalFormat*)fmt)->getMultiplier());
 #elif IEEE_754
             test(fmt, randomDouble(1e75) / ((DecimalFormat*)fmt)->getMultiplier());   
 #else

@@ -19,13 +19,16 @@
 
 static UBool i18n_cleanup(void)
 {
+#if defined(ICU_DATEFORMATSYMBOLS_USE_DEPRECATES) && !UCONFIG_NO_FORMATTING
+    dateFormatSymbols_cleanup();
+#endif
+
 #if !UCONFIG_NO_TRANSLITERATION
     transliterator_cleanup();
 #endif
 
 #if !UCONFIG_NO_FORMATTING
     timeZone_cleanup();
-	numfmt_cleanup();
 #endif
 
 #if !UCONFIG_NO_COLLATION

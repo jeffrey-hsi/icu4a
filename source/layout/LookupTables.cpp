@@ -25,16 +25,15 @@ U_NAMESPACE_BEGIN
     of the derived classes, and implement it in the others by casting
     the "this" pointer to the type that has the implementation.
 */ 
-const LookupSegment *BinarySearchLookupTable::lookupSegment(const LookupSegment *segments, LEGlyphID glyph) const
+const LookupSegment *BinarySearchLookupTable::lookupSegment(const LookupSegment *segments, le_uint32 glyph) const
 {
-    le_int16  unity = SWAPW(unitSize);
-    le_int16  probe = SWAPW(searchRange);
-    le_int16  extra = SWAPW(rangeShift);
-    TTGlyphID ttGlyph = (TTGlyphID) LE_GET_GLYPH(glyph);
+    le_int16 unity = SWAPW(unitSize);
+    le_int16 probe = SWAPW(searchRange);
+    le_int16 extra = SWAPW(rangeShift);
     const LookupSegment *entry = segments;
     const LookupSegment *trial = (const LookupSegment *) ((char *) entry + extra);
 
-    if (SWAPW(trial->lastGlyph) <= ttGlyph) {
+    if (SWAPW(trial->lastGlyph) <= glyph) {
         entry = trial;
     }
 
@@ -42,28 +41,27 @@ const LookupSegment *BinarySearchLookupTable::lookupSegment(const LookupSegment 
         probe >>= 1;
         trial = (const LookupSegment *) ((char *) entry + probe);
 
-        if (SWAPW(trial->lastGlyph) <= ttGlyph) {
+        if (SWAPW(trial->lastGlyph) <= glyph) {
             entry = trial;
         }
     }
 
-    if (SWAPW(entry->firstGlyph) <= ttGlyph) {
+    if (SWAPW(entry->firstGlyph) <= glyph) {
         return entry;
     }
 
     return NULL;
 }
 
-const LookupSingle *BinarySearchLookupTable::lookupSingle(const LookupSingle *entries, LEGlyphID glyph) const
+const LookupSingle *BinarySearchLookupTable::lookupSingle(const LookupSingle *entries, le_uint32 glyph) const
 {
-    le_int16  unity = SWAPW(unitSize);
-    le_int16  probe = SWAPW(searchRange);
-    le_int16  extra = SWAPW(rangeShift);
-    TTGlyphID ttGlyph = (TTGlyphID) LE_GET_GLYPH(glyph);
+    le_int16 unity = SWAPW(unitSize);
+    le_int16 probe = SWAPW(searchRange);
+    le_int16 extra = SWAPW(rangeShift);
     const LookupSingle *entry = entries;
     const LookupSingle *trial = (const LookupSingle *) ((char *) entry + extra);
 
-    if (SWAPW(trial->glyph) <= ttGlyph) {
+    if (SWAPW(trial->glyph) <= glyph) {
         entry = trial;
     }
 
@@ -71,12 +69,12 @@ const LookupSingle *BinarySearchLookupTable::lookupSingle(const LookupSingle *en
         probe >>= 1;
         trial = (const LookupSingle *) ((char *) entry + probe);
 
-        if (SWAPW(trial->glyph) <= ttGlyph) {
+        if (SWAPW(trial->glyph) <= glyph) {
             entry = trial;
         }
     }
 
-    if (SWAPW(entry->glyph) == ttGlyph) {
+    if (SWAPW(entry->glyph) == glyph) {
         return entry;
     }
 

@@ -8,11 +8,6 @@
 #ifndef __PAIRPOSITIONINGSUBTABLES_H
 #define __PAIRPOSITIONINGSUBTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEFontInstance.h"
 #include "OpenTypeTables.h"
@@ -25,7 +20,7 @@ U_NAMESPACE_BEGIN
 // NOTE: ValueRecord has a variable size
 struct PairValueRecord
 {
-    TTGlyphID     secondGlyph;
+    LEGlyphID     secondGlyph;
     ValueRecord valueRecord1;
 //  ValueRecord valueRecord2;
 };
@@ -52,7 +47,7 @@ struct PairPositioningFormat1Subtable : PairPositioningSubtable
     le_uint32  process(GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 
 private:
-    const PairValueRecord *findPairValueRecord(TTGlyphID glyphID, const PairValueRecord *records,
+    const PairValueRecord *findPairValueRecord(LEGlyphID glyphID, const PairValueRecord *records,
         le_uint16 recordCount, le_uint16 recordSize) const;
 };
 

@@ -17,7 +17,7 @@ subdir = test/cintltst
 CLEANFILES = *~ $(DEPS)
 
 ## Target information
-TARGET = cintltst$(EXEEXT)
+TARGET = cintltst
 
 # Oh, this hurts my sensibility. This is supposedly a C test and we need to
 # link using a C++ compiler?! This must be done so that C++ static
@@ -30,7 +30,6 @@ LINK = $(LINK.c)
 endif
 
 BUILDDIR := $(shell pwd)/../../
-BUILDDIR := $(BUILDDIR:test/cintltst/../../=)
 
 # we define ICU_UNICODE_VERSION so we can test it
 CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/ctestfw -I$(top_srcdir)/tools/toolutil
@@ -41,7 +40,7 @@ OBJECTS = callcoll.o calltest.o capitst.o cbiapts.o cbkittst.o \
 ccaltst.o ccapitst.o ccolltst.o cconvtst.o ccurrtst.o cdantst.o	\
 cdattst.o cdetst.o cdtdptst.o cdtrgtst.o cestst.o cfintst.o cformtst.o \
 cfrtst.o cg7coll.o chashtst.o cintltst.o citertst.o cjaptst.o cloctst.o \
-cmsccoll.o cmsgtst.o cposxtst.o \
+cmsccoll.o cmsgtst.o \
 cnmdptst.o cnormtst.o cnumtst.o cregrtst.o crestst.o creststn.o cturtst.o \
 cucdtst.o custrtst.o cstrcase.o cutiltst.o encoll.o nucnvtst.o nccbtst.o bocu1tst.o \
 cbiditst.o cbididat.o eurocreg.o udatatst.o utf16tst.o utransts.o \
@@ -88,7 +87,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 $(TARGET) : $(OBJECTS)
-	$(LINK) $(OUTOPT)$@ $^ $(LIBS)
+	$(LINK) -o $@ $^ $(LIBS)
 
 ifeq (,$(MAKECMDGOALS))
 -include $(DEPS)

@@ -39,11 +39,11 @@ class UnicodeString;
  * <p>To iterate over code point ranges, use a loop like this:
  * <pre>
  * UnicodeSetIterator it(set);
- * while (it.nextRange()) {
- *   if (it.isString()) {
- *     processString(it.getString());
+ * while (set.nextRange()) {
+ *   if (set.isString()) {
+ *     processString(set.getString());
  *   } else {
- *     processCodepointRange(it.getCodepoint(), it.getCodepointEnd());
+ *     processCodepointRange(set.getCodepoint(), set.getCodepointEnd());
  *   }
  * }
  * </pre>
@@ -209,14 +209,14 @@ class U_COMMON_API UnicodeSetIterator : public UObject {
      *
      * @draft ICU 2.2
      */
-    virtual inline UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static inline UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
     // ======================= PRIVATES ===========================
     
@@ -278,14 +278,6 @@ private:
      */
     static const char fgClassID;
 };
-
-inline UClassID
-UnicodeSetIterator::getStaticClassID()
-{ return (UClassID)&fgClassID; }
-
-inline UClassID
-UnicodeSetIterator::getDynamicClassID() const
-{ return UnicodeSetIterator::getStaticClassID(); }
 
 inline UBool UnicodeSetIterator::isString() const {
     return codepoint == (UChar32)IS_STRING;

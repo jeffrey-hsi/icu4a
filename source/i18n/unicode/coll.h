@@ -207,7 +207,7 @@ public:
   * GREATER is returned if source string is compared to be greater than
   * target string in the compare() method.
   * @see Collator#compare
-  * @deprecated ICU 2.6. Use C enum UCollationResult defined in ucol.h
+  * @stable ICU 2.0
   */
   enum EComparisonResult 
   {

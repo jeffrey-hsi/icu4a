@@ -8,11 +8,6 @@
 #ifndef __NONCONTEXTUALGLYPHSUBSTITUTIONPROCESSOR_H
 #define __NONCONTEXTUALGLYPHSUBSTITUTIONPROCESSOR_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "MorphTables.h"
 #include "SubtableProcessor.h"

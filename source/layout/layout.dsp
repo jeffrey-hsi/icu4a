@@ -55,7 +55,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 ..\..\lib\icuuc.lib /nologo /dll /machine:I386 /out:"..\..\bin\icule26.dll" /implib:"..\..\lib\icule.lib"
+# ADD LINK32 ..\..\lib\icuuc.lib /nologo /dll /machine:I386 /out:"..\..\bin\icule24.dll" /implib:"..\..\lib\icule.lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "layout - Win32 Debug"
@@ -82,7 +82,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 ..\..\lib\icuucd.lib /nologo /dll /debug /machine:I386 /out:"..\..\bin\icule26d.dll" /implib:"..\..\lib\iculed.lib" /pdbtype:sept
+# ADD LINK32 ..\..\lib\icuucd.lib /nologo /dll /debug /machine:I386 /out:"..\..\bin\icule24d.dll" /implib:"..\..\lib\iculed.lib" /pdbtype:sept
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "layout - Win64 Release"
@@ -109,7 +109,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:IX86 /machine:IA64
-# ADD LINK32 ..\..\lib\icuuc.lib /nologo /dll /machine:IX86 /out:"..\..\bin\icule26.dll" /implib:"..\..\lib\icule.lib" /machine:IA64
+# ADD LINK32 ..\..\lib\icuuc.lib /nologo /dll /machine:IX86 /out:"..\..\bin\icule24.dll" /implib:"..\..\lib\icule.lib" /machine:IA64
 
 !ELSEIF  "$(CFG)" == "layout - Win64 Debug"
 
@@ -135,7 +135,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:IX86 /pdbtype:sept /machine:IA64
-# ADD LINK32 ..\..\lib\icuucd.lib /nologo /dll /incremental:no /debug /machine:IX86 /out:"..\..\bin\icule26d.dll" /implib:"..\..\lib\iculed.lib" /pdbtype:sept /machine:IA64
+# ADD LINK32 ..\..\lib\icuucd.lib /nologo /dll /incremental:no /debug /machine:IX86 /out:"..\..\bin\icule24d.dll" /implib:"..\..\lib\iculed.lib" /pdbtype:sept /machine:IA64
 
 !ENDIF 
 
@@ -191,10 +191,6 @@ SOURCE=.\CursiveAttachmentSubtables.cpp
 # Begin Source File
 
 SOURCE=.\DeviceTables.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\ExtensionSubtables.cpp
 # End Source File
 # Begin Source File
 
@@ -262,10 +258,6 @@ SOURCE=.\LayoutEngine.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\LEFontInstance.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\LigatureSubstProc.cpp
 # End Source File
 # Begin Source File
@@ -307,10 +299,6 @@ SOURCE=.\MarkToMarkPosnSubtables.cpp
 # Begin Source File
 
 SOURCE=.\MorphTables.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\MPreFixups.cpp
 # End Source File
 # Begin Source File
 
@@ -455,10 +443,6 @@ SOURCE=.\DefaultCharMapper.h
 # Begin Source File
 
 SOURCE=.\DeviceTables.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ExtensionSubtables.h
 # End Source File
 # Begin Source File
 
@@ -831,8 +815,8 @@ SOURCE=.\unicode\loengine.h
 # Begin Custom Build
 InputPath=.\unicode\loengine.h
 
-"..\..\include\unicode\loengine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy  $(InputPath)  ..\..\include\unicode
+"..\..\include\layout\loengine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy  $(InputPath)  ..\..\include\layout
 
 # End Custom Build
 
@@ -841,8 +825,8 @@ InputPath=.\unicode\loengine.h
 # Begin Custom Build
 InputPath=.\unicode\loengine.h
 
-"..\..\include\unicode\loengine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy  $(InputPath)  ..\..\include\unicode
+"..\..\include\layout\loengine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy  $(InputPath)  ..\..\include\layout
 
 # End Custom Build
 
@@ -851,8 +835,8 @@ InputPath=.\unicode\loengine.h
 # Begin Custom Build
 InputPath=.\unicode\loengine.h
 
-"..\..\include\unicode\loengine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy  $(InputPath)  ..\..\include\unicode
+"..\..\include\layout\loengine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy  $(InputPath)  ..\..\include\layout
 
 # End Custom Build
 
@@ -861,8 +845,8 @@ InputPath=.\unicode\loengine.h
 # Begin Custom Build
 InputPath=.\unicode\loengine.h
 
-"..\..\include\unicode\loengine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy  $(InputPath)  ..\..\include\unicode
+"..\..\include\layout\loengine.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy  $(InputPath)  ..\..\include\layout
 
 # End Custom Build
 
@@ -904,10 +888,6 @@ SOURCE=.\MorphStateTables.h
 # Begin Source File
 
 SOURCE=.\MorphTables.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\MPreFixups.h
 # End Source File
 # Begin Source File
 

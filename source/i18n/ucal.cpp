@@ -13,7 +13,6 @@
 #include "unicode/uloc.h"
 #include "unicode/calendar.h"
 #include "unicode/timezone.h"
-#include "unicode/simpletz.h"
 #include "unicode/ustring.h"
 #include "unicode/strenum.h"
 #include "cmemory.h"
@@ -21,67 +20,9 @@
 
 U_NAMESPACE_USE
 
-static TimeZone*
-_createTimeZone(const UChar* zoneID, int32_t len, UErrorCode* ec) {
-    TimeZone* zone = NULL;
-    if (ec!=NULL && U_SUCCESS(*ec)) {
-        // Note that if zoneID is invalid, we get back GMT. This odd
-        // behavior is by design and goes back to the JDK. The only
-        // failure we will see is a memory allocation failure.
-        int32_t l = (len<0 ? u_strlen(zoneID) : len);
-        zone = TimeZone::createTimeZone(UnicodeString(zoneID, l));
-        if (zone == NULL) {
-            *ec = U_MEMORY_ALLOCATION_ERROR;
-        }
-    }
-    return zone;
-}
-
 U_CAPI UEnumeration* U_EXPORT2
-ucal_openTimeZones(UErrorCode* ec) {
-    return uenum_openStringEnumeration(TimeZone::createEnumeration(), ec);
-}
-
-U_CAPI UEnumeration* U_EXPORT2
-ucal_openCountryTimeZones(const char* country, UErrorCode* ec) {
-    return uenum_openStringEnumeration(TimeZone::createEnumeration(country), ec);
-}
-
-U_CAPI int32_t U_EXPORT2
-ucal_getDefaultTimeZone(UChar* result, int32_t resultCapacity, UErrorCode* ec) {
-    int32_t len = 0;
-    if (ec!=NULL && U_SUCCESS(*ec)) {
-        TimeZone* zone = TimeZone::createDefault();
-        if (zone == NULL) {
-            *ec = U_MEMORY_ALLOCATION_ERROR;
-        } else {
-            UnicodeString id;
-            zone->getID(id);
-            delete zone;
-            len = id.extract(result, resultCapacity, *ec);
-        }
-    }
-    return len;
-}
-
-U_CAPI void U_EXPORT2
-ucal_setDefaultTimeZone(const UChar* zoneID, UErrorCode* ec) {
-    TimeZone* zone = _createTimeZone(zoneID, -1, ec);
-    if (zone != NULL) {
-        TimeZone::adoptDefault(zone);
-    }
-}
-
-U_CAPI int32_t U_EXPORT2
-ucal_getDSTSavings(const UChar* zoneID, UErrorCode* ec) {
-    int32_t result = 0;
-    TimeZone* zone = _createTimeZone(zoneID, -1, ec);
-    if (U_SUCCESS(*ec) &&
-        zone->getDynamicClassID() == SimpleTimeZone::getStaticClassID()) {
-        result = ((SimpleTimeZone*) zone)->getDSTSavings();
-    }
-    delete zone;
-    return result;
+ucal_openTimeZoneEnumeration(int32_t rawOffset, UErrorCode* ec) {
+    return uenum_openStringEnumeration(TimeZone::createEnumeration(rawOffset), ec);
 }
 
 U_CAPI const UChar* U_EXPORT2
@@ -148,11 +89,18 @@ ucal_open(    const    UChar*          zoneID,
 
   if(U_FAILURE(*status)) return 0;
   
-  TimeZone* zone = (zoneID==NULL) ? TimeZone::createDefault()
-      : _createTimeZone(zoneID, len, status);
+  TimeZone *zone = 0;
+  if(zoneID == 0) {
+    zone = TimeZone::createDefault();
+  }
+  else {
+    int32_t length = (len == -1 ? u_strlen(zoneID) : len);
 
-  if (U_FAILURE(*status)) {
-      return NULL;
+    zone = TimeZone::createTimeZone(UnicodeString(zoneID, length));
+  }
+  if(zone == 0) {
+    *status = U_MEMORY_ALLOCATION_ERROR;
+    return 0;
   }
   
   return (UCalendar*)Calendar::createInstance(zone, Locale(locale), *status);
@@ -175,12 +123,21 @@ ucal_setTimeZone(    UCalendar*      cal,
   if(U_FAILURE(*status))
     return;
 
-  TimeZone* zone = (zoneID==NULL) ? TimeZone::createDefault()
-      : _createTimeZone(zoneID, len, status);
-
-  if (zone != NULL) {
-      ((Calendar*)cal)->adoptTimeZone(zone);
+  TimeZone *zone;
+  if(zoneID == NULL) {
+    zone = TimeZone::createDefault();
   }
+  else {
+    int32_t length = (len == -1 ? u_strlen(zoneID) : len);
+    zone = TimeZone::createTimeZone(UnicodeString((UChar*)zoneID, 
+                          length, length));
+  }
+  if(zone == 0) {
+    *status = U_MEMORY_ALLOCATION_ERROR;
+    return;
+  }
+
+  ((Calendar*)cal)->adoptTimeZone(zone);
 }
 
 U_CAPI int32_t U_EXPORT2
@@ -265,7 +222,7 @@ ucal_setAttribute(      UCalendar*              cal,
     break;
     
   case UCAL_FIRST_DAY_OF_WEEK:
-    ((Calendar*)cal)->setFirstDayOfWeek((UCalendarDaysOfWeek)newValue);
+    ((Calendar*)cal)->setFirstDayOfWeek((Calendar::EDaysOfWeek)newValue);
     break;
       
   case UCAL_MINIMAL_DAYS_IN_FIRST_WEEK:
@@ -355,7 +312,7 @@ ucal_add(    UCalendar*                cal,
 
   if(U_FAILURE(*status)) return;
 
-  ((Calendar*)cal)->add(field, amount, *status);
+  ((Calendar*)cal)->add((Calendar::EDateFields)field, amount, *status);
 }
 
 U_CAPI void  U_EXPORT2
@@ -367,7 +324,7 @@ ucal_roll(        UCalendar*            cal,
 
   if(U_FAILURE(*status)) return;
 
-  ((Calendar*)cal)->roll(field, amount, *status);
+  ((Calendar*)cal)->roll((Calendar::EDateFields)field, amount, *status);
 }
 
 U_CAPI int32_t  U_EXPORT2
@@ -378,7 +335,7 @@ ucal_get(    const    UCalendar*                cal,
 
   if(U_FAILURE(*status)) return -1;
 
-  return ((Calendar*)cal)->get(field, *status);
+  return ((Calendar*)cal)->get((Calendar::EDateFields)field, *status);
 }
 
 U_CAPI void  U_EXPORT2
@@ -387,7 +344,7 @@ ucal_set(    UCalendar*                cal,
         int32_t                    value)
 {
 
-  ((Calendar*)cal)->set(field, value);
+  ((Calendar*)cal)->set((Calendar::EDateFields)field, value);
 }
 
 U_CAPI UBool  U_EXPORT2
@@ -395,7 +352,7 @@ ucal_isSet(    const    UCalendar*                cal,
         UCalendarDateFields        field)
 {
 
-  return ((Calendar*)cal)->isSet(field);
+  return ((Calendar*)cal)->isSet((Calendar::EDateFields)field);
 }
 
 U_CAPI void  U_EXPORT2
@@ -403,7 +360,7 @@ ucal_clearField(    UCalendar*            cal,
             UCalendarDateFields field)
 {
 
-  ((Calendar*)cal)->clear(field);
+  ((Calendar*)cal)->clear((Calendar::EDateFields)field);
 }
 
 U_CAPI void  U_EXPORT2
@@ -426,23 +383,23 @@ ucal_getLimit(    const    UCalendar*              cal,
   
   switch(type) {
   case UCAL_MINIMUM:
-    return ((Calendar*)cal)->getMinimum(field);
+    return ((Calendar*)cal)->getMinimum((Calendar::EDateFields)field);
 
   case UCAL_MAXIMUM:
-    return ((Calendar*)cal)->getMaximum(field);
+    return ((Calendar*)cal)->getMaximum((Calendar::EDateFields)field);
 
   case UCAL_GREATEST_MINIMUM:
-    return ((Calendar*)cal)->getGreatestMinimum(field);
+    return ((Calendar*)cal)->getGreatestMinimum((Calendar::EDateFields)field);
 
   case UCAL_LEAST_MAXIMUM:
-    return ((Calendar*)cal)->getLeastMaximum(field);
+    return ((Calendar*)cal)->getLeastMaximum((Calendar::EDateFields)field);
 
   case UCAL_ACTUAL_MINIMUM:
-    return ((Calendar*)cal)->getActualMinimum(field,
+    return ((Calendar*)cal)->getActualMinimum((Calendar::EDateFields)field,
                           *status);
 
   case UCAL_ACTUAL_MAXIMUM:
-    return ((Calendar*)cal)->getActualMaximum(field,
+    return ((Calendar*)cal)->getActualMaximum((Calendar::EDateFields)field,
                           *status);
 
   default:

@@ -2,10 +2,10 @@
 //  file:  repattrn.cpp    
 //
 /*
-***************************************************************************
-*   Copyright (C) 2002-2003 International Business Machines Corporation   *
-*   and others. All rights reserved.                                      *
-***************************************************************************
+**********************************************************************
+*   Copyright (C) 2002 International Business Machines Corporation   *
+*   and others. All rights reserved.                                 *
+**********************************************************************
 */
 
 #include "unicode/utypes.h"
@@ -15,7 +15,6 @@
 #include "unicode/regex.h"
 #include "uassert.h"
 #include "uvector.h"
-#include "uvectr32.h"
 #include "regexcmp.h"
 #include "regeximp.h"
 
@@ -65,44 +64,40 @@ RegexPattern &RegexPattern::operator = (const RegexPattern &other) {
     fPattern          = other.fPattern;
     fFlags            = other.fFlags;
     fLiteralText      = other.fLiteralText;
-    fDeferredStatus   = other.fDeferredStatus;
-    fMinMatchLen      = other.fMinMatchLen;
+    fBadState         = other.fBadState;
+    fNumCaptureGroups = other.fNumCaptureGroups;
     fMaxCaptureDigits = other.fMaxCaptureDigits;
-    fStaticSets       = other.fStaticSets; 
-    
-    fStartType        = other.fStartType;
-    fInitialStringIdx = other.fInitialStringIdx;
-    fInitialStringLen = other.fInitialStringLen;
-    fInitialChars     = new UnicodeSet(*other.fInitialChars);
-    fInitialChars8    = new Regex8BitSet;
-    uprv_memcpy(fInitialChars8, other.fInitialChars8, sizeof(Regex8BitSet));
-    fInitialChar      = other.fInitialChar;
+    fStaticSets       = other.fStaticSets;    
+    if (fBadState) {
+        return *this;
+    }
 
     //  Copy the pattern.  It's just values, nothing deep to copy.
-    fCompiledPat->assign(*other.fCompiledPat, fDeferredStatus);
-    fGroupMap->assign(*other.fGroupMap, fDeferredStatus);
+    int        i;
+    UErrorCode status = U_ZERO_ERROR;
+    for (i=0; i<other.fCompiledPat->size(); i++) {
+        fCompiledPat->addElement(other.fCompiledPat->elementAti(i), status);
+    }
+
+    // Note:  do not copy fMatcher.  It'll be created on first use if the
+    //        destination needs one. 
 
     //  Copy the Unicode Sets.  
     //    Could be made more efficient if the sets were reference counted and shared,
     //    but I doubt that pattern copying will be particularly common. 
     //    Note:  init() already added an empty element zero to fSets
-    int32_t i;
     for (i=1; i<other.fSets->size(); i++) {
-        if (U_FAILURE(fDeferredStatus)) {
-            return *this;
-        }
         UnicodeSet *sourceSet = (UnicodeSet *)other.fSets->elementAt(i);
         UnicodeSet *newSet    = new UnicodeSet(*sourceSet);
         if (newSet == NULL) {
-            fDeferredStatus = U_MEMORY_ALLOCATION_ERROR;
+            fBadState = TRUE;
             break;
         }
-        fSets->addElement(newSet, fDeferredStatus);
+        fSets->addElement(newSet, status);
     }
-
-    int32_t numSets = other.fSets->size();
-    fSets8 = new Regex8BitSet[numSets];
-    uprv_memcpy(fSets8, other.fSets8, numSets*sizeof(Regex8BitSet));  // TODO: give Regex8BitSet some constructors
+    if (U_FAILURE(status)) {
+        fBadState = TRUE;
+    }
     return *this;
 }
 
@@ -115,36 +110,23 @@ RegexPattern &RegexPattern::operator = (const RegexPattern &other) {
 //--------------------------------------------------------------------------
 void RegexPattern::init() {
     fFlags            = 0;
-    fDeferredStatus   = U_ZERO_ERROR;
-    fMinMatchLen      = 0;
-    fMaxCaptureDigits = 1;  
+    fBadState         = FALSE;
+    fNumCaptureGroups = 0;
+    fMaxCaptureDigits = 1;     // TODO:  calculate for real.
     fStaticSets       = NULL;
-    fFrameSize        = 0;
-    fDataSize         = 0;
-    fStartType        = START_NO_INFO;
-    fInitialStringIdx = 0;
-    fInitialStringLen = 0;
-    fInitialChars     = NULL;
-    fInitialChars8    = NULL;
-    fInitialChar      = 0;
-    fSets8            = NULL;
+    fMatcher          = NULL;
     
-    fCompiledPat      = new UVector32(fDeferredStatus);
-    fGroupMap         = new UVector32(fDeferredStatus);
-    fSets             = new UVector(fDeferredStatus);
-    fInitialChars     = new UnicodeSet;
-    fInitialChars8    = new Regex8BitSet;
-    if (U_FAILURE(fDeferredStatus)) {
-        return;
-    }
-    if (fCompiledPat == NULL  || fGroupMap == NULL || fSets == NULL ||
-        fInitialChars == NULL || fInitialChars8 == NULL) {
-        fDeferredStatus = U_MEMORY_ALLOCATION_ERROR;
+    UErrorCode status=U_ZERO_ERROR;
+    // Init of a completely new RegexPattern.
+    fCompiledPat = new UVector(status);
+    fSets        = new UVector(status);
+    if (U_FAILURE(status) || fCompiledPat == NULL || fSets == NULL) {
+        fBadState = TRUE;
         return;
     }
 
     // Slot zero of the vector of sets is reserved.  Fill it here.
-    fSets->addElement((int32_t)0, fDeferredStatus);
+    fSets->addElement((int32_t)0, status);
 }
 
 
@@ -154,6 +136,8 @@ void RegexPattern::init() {
 //
 //--------------------------------------------------------------------------
 void RegexPattern::zap() {
+    delete fMatcher;
+    fMatcher = NULL;
     delete fCompiledPat;
     fCompiledPat = NULL;
     int i;
@@ -166,14 +150,6 @@ void RegexPattern::zap() {
     }
     delete fSets;
     fSets = NULL;
-    delete fGroupMap;
-    fGroupMap = NULL;
-    delete fInitialChars;
-    fInitialChars = NULL;
-    delete fInitialChars8;
-    fInitialChars8 = NULL;
-    delete[] fSets8;
-    fSets8 = NULL;
 }
 
 
@@ -207,7 +183,8 @@ RegexPattern  *RegexPattern::clone() const {
 UBool   RegexPattern::operator ==(const RegexPattern &other) const {
     UBool r = this->fFlags    == other.fFlags &&
               this->fPattern  == other.fPattern &&
-              this->fDeferredStatus == other.fDeferredStatus;
+              this->fBadState == FALSE &&
+              other.fBadState == FALSE;
     return r;
 }
 
@@ -225,16 +202,7 @@ RegexPattern  *RegexPattern::compile(
     if (U_FAILURE(status)) {
         return NULL;
     }
-
-    const uint32_t allFlags = UREGEX_CANON_EQ | UREGEX_CASE_INSENSITIVE | UREGEX_COMMENTS |
-                              UREGEX_DOTALL   | UREGEX_MULTILINE;
-
-    if ((flags & ~allFlags) != 0) {
-        status = U_REGEX_INVALID_FLAG;
-        return NULL;
-    }
-
-    if ((flags & UREGEX_CANON_EQ) != 0) {
+    if (flags != 0) {
         status = U_REGEX_UNIMPLEMENTED;
         return NULL;
     }
@@ -244,14 +212,14 @@ RegexPattern  *RegexPattern::compile(
         status = U_MEMORY_ALLOCATION_ERROR;
         return NULL;
     }
-    if (U_FAILURE(This->fDeferredStatus)) {
-        status = This->fDeferredStatus;
+    if (This->fBadState) {
+        status = U_REGEX_INVALID_STATE;
         return NULL;
     }
     This->fFlags = flags;
 
-    RegexCompile     compiler(This, status);
-    compiler.compile(regex, pe, status);
+    RegexCompile     compiler(status);
+    compiler.compile(*This, regex, pe, status);
 
     return This;
 };
@@ -264,19 +232,6 @@ RegexPattern *RegexPattern::compile( const UnicodeString &regex,
         UErrorCode           &err) 
 {
     return compile(regex, 0, pe, err); 
-}
-
-
-
-//
-//   compile with no UParseErr parameter.
-//
-RegexPattern *RegexPattern::compile( const UnicodeString &regex,
-        uint32_t             flags,
-        UErrorCode           &err) 
-{
-    UParseError pe;
-    return compile(regex, flags, pe, err); 
 }
 
 
@@ -297,37 +252,23 @@ uint32_t RegexPattern::flags() const {
 //
 //---------------------------------------------------------------------
 RegexMatcher *RegexPattern::matcher(const UnicodeString &input,
-                                    UErrorCode          &status)  const {
-    RegexMatcher    *retMatcher = matcher(status);
-    if (retMatcher != NULL) {
-        retMatcher->reset(input);
-    }
-    return retMatcher;
-};
-
-
-
-//---------------------------------------------------------------------
-//
-//   matcher(status)
-//
-//---------------------------------------------------------------------
-RegexMatcher *RegexPattern::matcher(UErrorCode &status)  const {
+                                    UErrorCode          &err)  const {
     RegexMatcher    *retMatcher = NULL;
 
-    if (U_FAILURE(status)) {
+    if (U_FAILURE(err)) {
         return NULL;
     }
-    if (U_FAILURE(fDeferredStatus)) {
-        status = fDeferredStatus;
+    if (fBadState) {
+        U_FAILURE(U_REGEX_INVALID_STATE);
         return NULL;
     }
 
     retMatcher = new RegexMatcher(this); 
     if (retMatcher == NULL) {
-        status = U_MEMORY_ALLOCATION_ERROR;
+        err = U_MEMORY_ALLOCATION_ERROR;
         return NULL;
     }
+    retMatcher->reset(input);
     return retMatcher;
 };
 
@@ -384,14 +325,94 @@ int32_t  RegexPattern::split(const UnicodeString &input,
         int32_t          destCapacity,
         UErrorCode       &status) const
 {
+    //
+    // Check arguements for validity
+    //
     if (U_FAILURE(status)) {
         return 0;
     };
 
-    RegexMatcher  m(this);
-    int32_t r = m.split(input, dest, destCapacity, status);
-    return r;
+    if (destCapacity < 1) {
+        status = U_ILLEGAL_ARGUMENT_ERROR;
+        return 0;
+    }
+
+    //
+    // If we don't already have a cached matcher object from a previous call
+    //   to split(), create one now.
+    //
+    if (fMatcher == NULL) {
+        RegexMatcher *m = matcher(input, status);
+        if (U_FAILURE(status)) {
+            return 0;
+        }
+        // Need to cast off const to cache the matcher
+        RegexPattern *nonConstThis = (RegexPattern *)this;
+        nonConstThis->fMatcher = m;
+    }
+
+    //
+    // Set our input text into the matcher
+    //
+    fMatcher->reset(input);
+    int32_t   inputLen = input.length();
+    int32_t   nextOutputStringStart = 0;
+    if (inputLen == 0) {
+        return 0;
+    }
+
+
+    //
+    // Loop through the input text, searching for the delimiter pattern
+    //
+    int i;
+    for (i=0; ; i++) {
+        if (i==destCapacity-1) {
+            // There is only one output string left.
+            // Fill it with whatever is left from the input, then exit the loop.
+            dest[i].setTo(input, nextOutputStringStart, inputLen-nextOutputStringStart);
+            break;
+        }
+        if (fMatcher->find()) {
+            // We found another delimiter.  Move everything from where we started looking
+            //  up until the start of the delimiter into the next output string.
+            int32_t fieldLen = fMatcher->fMatchStart - nextOutputStringStart;
+            dest[i].setTo(input, nextOutputStringStart, fieldLen);
+            nextOutputStringStart = fMatcher->fMatchEnd;
+
+            // If the delimiter pattern has capturing parentheses, the captured
+            //  text goes out into the next n destination strings.
+            int32_t groupNum;
+            for (groupNum=1; groupNum<=this->fNumCaptureGroups; groupNum++) {
+                if (i==destCapacity-1) {
+                    break;
+                }
+                i++;
+                dest[i] = fMatcher->group(groupNum, status);
+            }
+
+            if (nextOutputStringStart == inputLen) {
+                // The delimiter was at the end of the string.  We're done.
+                break;
+            }
+
+            if (i==destCapacity-1) {
+                // We've filled up the last output string with capture group data.
+                //  Give back the last string, to be used for the remainder of the input.
+                i--;
+            }
+        }
+        else
+        {
+            // We ran off the end of the input while looking for the next delimiter.
+            // All the remaining text goes into the current output string.
+            dest[i].setTo(input, nextOutputStringStart, inputLen-nextOutputStringStart);
+            break;
+        }
+    }
+    return i+1;
 }
+
 
 
 
@@ -416,60 +437,34 @@ void   RegexPattern::dumpOp(int32_t index) const {
     switch (type) {
     case URX_NOP:
     case URX_DOTANY:
-    case URX_DOTANY_ALL:
-    case URX_DOTANY_PL:
-    case URX_DOTANY_ALL_PL:
     case URX_FAIL:
-    case URX_CARET:
-    case URX_DOLLAR:
+    case URX_BACKSLASH_A:
     case URX_BACKSLASH_G:
     case URX_BACKSLASH_X:
     case URX_END:
-    case URX_DOLLAR_M:
-    case URX_CARET_M:
         // Types with no operand field of interest.
         break;
         
-    case URX_RESERVED_OP:
     case URX_START_CAPTURE:
     case URX_END_CAPTURE:
     case URX_STATE_SAVE:
     case URX_JMP:
-    case URX_JMP_SAV:
-    case URX_JMP_SAV_X:
     case URX_BACKSLASH_B:
     case URX_BACKSLASH_D:
+    case URX_BACKSLASH_W:
     case URX_BACKSLASH_Z:
+    case URX_CARET:
+    case URX_DOLLAR:
     case URX_STRING_LEN:
-    case URX_CTR_INIT:
-    case URX_CTR_INIT_NG:
-    case URX_CTR_LOOP:
-    case URX_CTR_LOOP_NG:
-    case URX_RELOC_OPRND:
-    case URX_STO_SP:
-    case URX_LD_SP:
-    case URX_BACKREF:
-    case URX_STO_INP_LOC:
-    case URX_JMPX:
-    case URX_LA_START:
-    case URX_LA_END:
-    case URX_BACKREF_I:
-    case URX_LB_START:
-    case URX_LB_CONT:
-    case URX_LB_END:
-    case URX_LBN_CONT:
-    case URX_LBN_END:
         // types with an integer operand field.
         REGEX_DUMP_DEBUG_PRINTF("%d", val);
         break;
         
     case URX_ONECHAR:
-    case URX_ONECHAR_I:
         REGEX_DUMP_DEBUG_PRINTF("%c", val<256?val:'?');
         break;
         
     case URX_STRING:
-    case URX_STRING_I:
         {
             int32_t lengthOp       = fCompiledPat->elementAti(index+1);
             U_ASSERT(URX_TYPE(lengthOp) == URX_STRING_LEN);
@@ -495,7 +490,6 @@ void   RegexPattern::dumpOp(int32_t index) const {
         break;
 
     case URX_STATIC_SETREF:
-    case URX_STAT_SETREF_N:
         {
             UnicodeString s;
             if (val & URX_NEG_SET) {
@@ -520,6 +514,9 @@ void   RegexPattern::dumpOp(int32_t index) const {
 
 
 
+
+
+
 void   RegexPattern::dump() const {
     int      index;
     int      i;
@@ -529,42 +526,7 @@ void   RegexPattern::dump() const {
         REGEX_DUMP_DEBUG_PRINTF("%c", fPattern.charAt(i));
     }
     REGEX_DUMP_DEBUG_PRINTF("\n");
-    REGEX_DUMP_DEBUG_PRINTF("   Min Match Length:  %d\n", fMinMatchLen);
-    REGEX_DUMP_DEBUG_PRINTF("   Match Start Type:  %s\n", START_OF_MATCH_STR(fStartType));   
-    if (fStartType == START_STRING) {
-        REGEX_DUMP_DEBUG_PRINTF("    Initial match sting: \"");
-        for (i=fInitialStringIdx; i<fInitialStringIdx+fInitialStringLen; i++) {
-            REGEX_DUMP_DEBUG_PRINTF("%c", fLiteralText[i]);   // TODO:  non-printables, surrogates.
-        }
-
-    } else if (fStartType == START_SET) {
-        int32_t numSetChars = fInitialChars->size();
-        if (numSetChars > 20) {
-            numSetChars = 20;
-        }
-        REGEX_DUMP_DEBUG_PRINTF("     Match First Chars : ");
-        for (i=0; i<numSetChars; i++) {
-            UChar32 c = fInitialChars->charAt(i);
-            if (0x20<c && c <0x7e) { 
-                REGEX_DUMP_DEBUG_PRINTF("%c ", c);
-            } else {
-                REGEX_DUMP_DEBUG_PRINTF("%#x ", c);
-            }
-        }
-        if (numSetChars < fInitialChars->size()) {
-            REGEX_DUMP_DEBUG_PRINTF(" ...");
-        }
-        REGEX_DUMP_DEBUG_PRINTF("\n");
-
-    } else if (fStartType == START_CHAR) {
-        REGEX_DUMP_DEBUG_PRINTF("    First char of Match : ");
-        if (0x20 < fInitialChar && fInitialChar<0x7e) {
-                REGEX_DUMP_DEBUG_PRINTF("%c\n", fInitialChar);
-            } else {
-                REGEX_DUMP_DEBUG_PRINTF("%#x\n", fInitialChar);
-            }
-    }
-
+    REGEX_DUMP_DEBUG_PRINTF("Pattern Valid?:     %s\n", fBadState? "no" : "yes");
     REGEX_DUMP_DEBUG_PRINTF("\nIndex   Binary     Type             Operand\n"
            "-------------------------------------------\n");
     for (index = 0; index<fCompiledPat->size(); index++) {
@@ -572,8 +534,6 @@ void   RegexPattern::dump() const {
     }
     REGEX_DUMP_DEBUG_PRINTF("\n\n");
 };
-
-
 
 const char RegexPattern::fgClassID = 0;
 

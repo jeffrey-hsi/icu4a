@@ -44,7 +44,6 @@ void DateFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &nam
         TESTCASE(16,TestWallyWedel);
         TESTCASE(17,TestDateFormatCalendar);
         TESTCASE(18,TestSpaceParsing);
-        TESTCASE(19,TestExactCountFormat);
         default: name = ""; break;
     }
 }
@@ -92,7 +91,7 @@ void DateFormatTest::TestWallyWedel()
         // offset = ttz.getRawOffset();
         cal->setTimeZone(*ttz);
         cal->setTime(today, status);
-        offset = cal->get(UCAL_ZONE_OFFSET, status) + cal->get(UCAL_DST_OFFSET, status);
+        offset = cal->get(Calendar::ZONE_OFFSET, status) + cal->get(Calendar::DST_OFFSET, status);
         // logln(i + " " + ids[i] + " offset " + offset);
         const char* sign = "+";
         if (offset < 0) {
@@ -298,7 +297,7 @@ DateFormatTest::TestFieldPosition(void)
         logln((UnicodeString)" Pattern = " + ((SimpleDateFormat*)df)->toPattern(str));
         str.truncate(0);
         logln((UnicodeString)"  Result = " + df->format(someDate, str));
-        for (int32_t i = 0; i < UCAL_FIELD_COUNT;++i) {
+        for (int32_t i = 0; i < Calendar::FIELD_COUNT;++i) {
             UnicodeString field;
             getFieldText(df, i, someDate, field);
             UnicodeString expStr;
@@ -478,8 +477,8 @@ DateFormatTest::TestCzechMonths459()
     DateFormat* fmt = DateFormat::createDateInstance(DateFormat::FULL, Locale("cs", "", ""));
     UnicodeString pattern;
     logln((UnicodeString)"Pattern " + ((SimpleDateFormat*) fmt)->toPattern(pattern));
-    UDate june = date(97, UCAL_JUNE, 15);
-    UDate july = date(97, UCAL_JULY, 15);
+    UDate june = date(97, Calendar::JUNE, 15);
+    UDate july = date(97, Calendar::JULY, 15);
     UnicodeString juneStr; fmt->format(june, juneStr);
     UnicodeString julyStr; fmt->format(july, julyStr);
     //try {
@@ -488,13 +487,13 @@ DateFormatTest::TestCzechMonths459()
         UnicodeString s; fmt->format(d, s);
         int32_t month,yr,day,hr,min,sec; dateToFields(d,yr,month,day,hr,min,sec);
         logln((UnicodeString)"  -> parse -> " + s + " (month = " + month + ")");
-        if (month != UCAL_JUNE) errln((UnicodeString)"FAIL: Month should be June");
+        if (month != Calendar::JUNE) errln((UnicodeString)"FAIL: Month should be June");
         logln((UnicodeString)"format(July 15 1997) = " + julyStr);
         d = fmt->parse(julyStr, status);
         fmt->format(d, s);
         dateToFields(d,yr,month,day,hr,min,sec);
         logln((UnicodeString)"  -> parse -> " + s + " (month = " + month + ")");
-        if (month != UCAL_JULY) errln((UnicodeString)"FAIL: Month should be July");
+        if (month != Calendar::JULY) errln((UnicodeString)"FAIL: Month should be July");
     //}
     //catch(ParseException e) {
     if (U_FAILURE(status))
@@ -589,7 +588,7 @@ DateFormatTest::TestQuotePattern161()
 {
     UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat* formatter = new SimpleDateFormat((UnicodeString)"MM/dd/yyyy 'at' hh:mm:ss a zzz", status);
-    UDate currentTime_1 = date(97, UCAL_AUGUST, 13, 10, 42, 28);
+    UDate currentTime_1 = date(97, Calendar::AUGUST, 13, 10, 42, 28);
     UnicodeString dateString; ((DateFormat*)formatter)->format(currentTime_1, dateString);
     UnicodeString exp("08/13/1997 at 10:42:28 AM ");
     logln((UnicodeString)"format(" + dateToString(currentTime_1) + ") = " + dateString);
@@ -768,14 +767,10 @@ DateFormatTest::TestBadInput135a()
 void
 DateFormatTest::TestTwoDigitYear()
 {
-    UErrorCode ec = U_ZERO_ERROR;
-    SimpleDateFormat fmt("dd/MM/yy", Locale::getUK(), ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: SimpleDateFormat constructor");
-        return;
-    }
-    parse2DigitYear(fmt, "5/6/17", date(117, UCAL_JUNE, 5));
-    parse2DigitYear(fmt, "4/6/34", date(34, UCAL_JUNE, 4));
+    DateFormat* fmt = DateFormat::createDateInstance(DateFormat::SHORT, Locale::getUK());
+    parse2DigitYear(*fmt, "5/6/17", date(117, Calendar::JUNE, 5));
+    parse2DigitYear(*fmt, "4/6/34", date(34, Calendar::JUNE, 4));
+    delete fmt;
 }
  
 // -------------------------------------
@@ -858,7 +853,7 @@ DateFormatTest::TestDateFormatZone146()
         //*****************************greenwichcalendar.setTimeZone(TimeZone.getDefault());
         //greenwichcalendar.set(1997, 3, 4, 23, 0);
         // try anything to set hour to 23:00 !!!
-        greenwichcalendar->set(UCAL_HOUR_OF_DAY, 23);
+        greenwichcalendar->set(Calendar::HOUR_OF_DAY, 23);
         // get time
         UDate greenwichdate = greenwichcalendar->getTime(status);
         // format every way
@@ -906,7 +901,7 @@ DateFormatTest::TestDateFormatZone146()
 void
 DateFormatTest::TestLocaleDateFormat() // Bug 495
 {
-    UDate testDate = date(97, UCAL_SEPTEMBER, 15);
+    UDate testDate = date(97, Calendar::SEPTEMBER, 15);
     DateFormat *dfFrench = DateFormat::createDateTimeInstance(DateFormat::FULL, 
         DateFormat::FULL, Locale::getFrench());
     DateFormat *dfUS = DateFormat::createDateTimeInstance(DateFormat::FULL, 
@@ -1017,115 +1012,56 @@ void DateFormatTest::TestDateFormatCalendar() {
  * Test DateFormat's parsing of space characters.  See jitterbug 1916.
  */
 void DateFormatTest::TestSpaceParsing() {
+    const char* PARSE_FAILURE = "parse failure";
     const char* DATA[] = {
-        "yyyy MM dd HH:mm:ss",
-
-        // pattern, input, expected parse or NULL if expect parse failure
-        "MMMM d yy", " 04 05 06",  NULL, // MMMM wants Apr/April
-        NULL,        "04 05 06",   NULL,
-        "MM d yy",   " 04 05 06",  "2006 04 05 00:00:00",
-        NULL,        "04 05 06",   "2006 04 05 00:00:00",
-        "MMMM d yy", " Apr 05 06", "2006 04 05 00:00:00",
-        NULL,        "Apr 05 06",  "2006 04 05 00:00:00",
+        // pattern, input, expexted output (in quotes)
+        "MMMM d yy", " 04 05 06", PARSE_FAILURE, // MMMM wants Apr/April
+        "MMMM d yy", "04 05 06", PARSE_FAILURE,
+        "MM d yy", " 04 05 06", "\"2006 04 05\"",
+        "MM d yy", "04 05 06", "\"2006 04 05\"",
+        "MMMM d yy", " Apr 05 06", "\"2006 04 05\"",
+        "MMMM d yy", "Apr 05 06", "\"2006 04 05\"",
     };
     const int32_t DATA_len = sizeof(DATA)/sizeof(DATA[0]);
-
-    expectParse(DATA, DATA_len, Locale("en"));
-}
-
-/**
- * Test handling of "HHmmss" pattern.
- */
-void DateFormatTest::TestExactCountFormat() {
-    const char* DATA[] = {
-        "yyyy MM dd HH:mm:ss",
-
-        // pattern, input, expected parse or NULL if expect parse failure
-        "HHmmss", "123456", "1970 01 01 12:34:56",
-        NULL,     "12345",  "1970 01 01 01:23:45",
-        NULL,     "1234",   NULL,
-        NULL,     "00-05",  NULL,
-        NULL,     "12-34",  NULL,
-        NULL,     "00+05",  NULL,
-        "ahhmm",  "PM730",  "1970 01 01 19:30:00",
-    };
-    const int32_t DATA_len = sizeof(DATA)/sizeof(DATA[0]);
-
-    expectParse(DATA, DATA_len, Locale("en"));
-}
-
-/**
- * Test parsing.  Input is an array that starts with the following
- * header:
- *
- * [0]   = pattern string to parse [i+2] with
- *
- * followed by test cases, each of which is 3 array elements:
- *
- * [i]   = pattern, or NULL to reuse prior pattern
- * [i+1] = input string
- * [i+2] = expected parse result (parsed with pattern [0])
- *
- * If expect parse failure, then [i+2] should be NULL.
- */
-void DateFormatTest::expectParse(const char** data, int32_t data_length,
-                                 const Locale& loc) {
-    const UDate FAIL = (UDate) -1;
-    const UnicodeString FAIL_STR("parse failure");
-    int32_t i = 0;
 
     UErrorCode ec = U_ZERO_ERROR;
-    SimpleDateFormat fmt("", loc, ec);
-    SimpleDateFormat ref(data[i++], loc, ec);
-    SimpleDateFormat gotfmt("G yyyy MM dd HH:mm:ss z", loc, ec);
+    Locale en("en");
+    SimpleDateFormat sdfObj("", en, ec);
     if (U_FAILURE(ec)) {
         errln("FAIL: SimpleDateFormat constructor");
         return;
     }
 
-    const char* currentPat = NULL;
-    while (i<data_length) {
-        const char* pattern  = data[i++];
-        const char* input    = data[i++];
-        const char* expected = data[i++];
-
-        ec = U_ZERO_ERROR;
-        if (pattern != NULL) {
-            fmt.applyPattern(pattern);
-            currentPat = pattern;
-        }
-        UDate got = fmt.parse(input, ec);
-        UnicodeString gotstr(FAIL_STR);
-        if (U_FAILURE(ec)) {
-            got = FAIL;
-        } else {
-            gotstr.remove();
-            gotfmt.format(got, gotstr);
-        }
-
-        UErrorCode ec2 = U_ZERO_ERROR;
-        UDate exp = FAIL;
-        UnicodeString expstr(FAIL_STR);
-        if (expected != NULL) {
-            expstr = expected;
-            exp = ref.parse(expstr, ec2);
-            if (U_FAILURE(ec2)) {
-                // This only happens if expected is in wrong format --
-                // should never happen once test is debugged.
-                errln("FAIL: Internal test error");
+    int32_t i;
+    for (i=0; i<DATA_len; i+=3) {
+        sdfObj.applyPattern(DATA[i]);
+        ParsePosition pp(0);
+        UDate udDate = sdfObj.parse(DATA[i+1], pp);
+        UnicodeString output;
+        if (pp.getErrorIndex() == -1) {
+            ec = U_ZERO_ERROR;
+            SimpleDateFormat formatter("yyyy MM dd", en, ec);
+            if (U_FAILURE(ec)) {
+                errln("FAIL: SimpleDateFormat constructor");
                 return;
             }
-        }
-
-        if (got == exp) {
-            logln((UnicodeString)"Ok: " + input + " x " +
-                  currentPat + " => " + gotstr);                
+            FieldPosition fp(0);
+            formatter.format(udDate, output, fp);
+            output.insert(0, (UChar)34);
+            output.append((UChar)34);
         } else {
-            errln((UnicodeString)"FAIL: " + input + " x " +
-                  currentPat + " => " + gotstr + ", expected " +
-                  expstr);
+            output = UnicodeString(PARSE_FAILURE, "");
         }
-    }    
+        UnicodeString exp(DATA[i+2], "");
+        if (output == exp) {
+            logln((UnicodeString)"Ok: Parse of \"" + DATA[i+1] + "\" with \"" +
+                  DATA[i] + "\" => " + output);
+        } else {
+            errln((UnicodeString)"FAIL: Parse of \"" + DATA[i+1] + "\" with \"" +
+                  DATA[i] + "\" => " +
+                  output + ", expected " + exp);
+        }
+    }
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

@@ -57,12 +57,6 @@ public:
      **/
     void testMsgFormatChoice(/* char* par */);
 
-    /**
-     * Verify that MessageFormat accomodates more than 10 arguments
-     * and more than 10 subformats.
-     */
-    void TestUnlimitedArgsAndSubformats();
-
     //
     /** 
      * ------------ API tests ----------
@@ -71,7 +65,6 @@ public:
      * they often test other methods as well.
      **/
     void testCopyConstructor(void);
-    void testCopyConstructor2(void);
     void testAssignment(void);
     void testClone(void);
     void testEquals(void);

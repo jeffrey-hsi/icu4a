@@ -527,7 +527,7 @@ static const char *udata_pathiter_next(UDataPathIterator *iter, int32_t *outPath
 /*----------------------------------------------------------------------*
  *                                                                      *
  *  Add a static reference to the common data  library                  *
- *   Unless overridden by an explicit udata_setCommonData, this will be *
+ *   Unless overridden by an explicit u_setCommonData, this will be     *
  *      our common data.                                                *
  *                                                                      *
  *----------------------------------------------------------------------*/
@@ -651,7 +651,7 @@ openCommonData(const char *path,          /*  Path from OpenCHoice?          */
 
 
 #ifdef OS390
-#   define MAX_STUB_ENTRIES 8
+#   define MAX_STUB_ENTRIES 7
 #else
 #   define MAX_STUB_ENTRIES 0
 #endif

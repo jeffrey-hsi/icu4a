@@ -8,11 +8,6 @@
 #ifndef __LOOKUPS_H
 #define __LOOKUPS_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "OpenTypeTables.h"
 

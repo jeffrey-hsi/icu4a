@@ -185,7 +185,7 @@ CollationKey::compareTo(const CollationKey& target) const
 
     // are we comparing the same string
     if (src == tgt)
-        return  Collator::EQUAL;
+        return Collator::EQUAL;
 
         /*
         int count = (this->fCount < target.fCount) ? this->fCount : target.fCount;
@@ -214,16 +214,16 @@ CollationKey::compareTo(const CollationKey& target) const
     if (this->fCount != target.fCount) {
         if (this->fCount < target.fCount) {
             minLength = this->fCount;
-            result    =  Collator::LESS;
+            result    = Collator::LESS;
         }
         else {
             minLength = target.fCount;
-            result    =  Collator::GREATER;
+            result    = Collator::GREATER;
         }
     }
     else {
         minLength = target.fCount;
-        result    =  Collator::EQUAL;
+        result    = Collator::EQUAL;
     }
 
     if (minLength > 0) {

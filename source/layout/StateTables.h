@@ -8,11 +8,6 @@
 #ifndef __STATETABLES_H
 #define __STATETABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LayoutTables.h"
 
@@ -40,7 +35,7 @@ typedef le_uint8 ClassCode;
 
 struct ClassTable
 {
-    TTGlyphID firstGlyph;
+    LEGlyphID firstGlyph;
     le_uint16 nGlyphs;
     ClassCode classArray[ANY_NUMBER];
 };

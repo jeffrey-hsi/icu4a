@@ -8,11 +8,6 @@
 #ifndef __LIGATURESUBSTITUTIONPROCESSOR_H
 #define __LIGATURESUBSTITUTIONPROCESSOR_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "MorphTables.h"
 #include "SubtableProcessor.h"

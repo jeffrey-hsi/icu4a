@@ -26,13 +26,13 @@ const char IndicOpenTypeLayoutEngine::fgClassID=0;
 
 IndicOpenTypeLayoutEngine::IndicOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode,
                     const GlyphSubstitutionTableHeader *gsubTable)
-    : OpenTypeLayoutEngine(fontInstance, scriptCode, languageCode, gsubTable), fMPreFixups(NULL)
+    : OpenTypeLayoutEngine(fontInstance, scriptCode, languageCode, gsubTable)
 {
     fFeatureOrder = IndicReordering::getFeatureOrder();
 }
 
 IndicOpenTypeLayoutEngine::IndicOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode)
-    : OpenTypeLayoutEngine(fontInstance, scriptCode, languageCode), fMPreFixups(NULL)
+    : OpenTypeLayoutEngine(fontInstance, scriptCode, languageCode)
 {
     fFeatureOrder = IndicReordering::getFeatureOrder();
 }
@@ -62,7 +62,7 @@ le_int32 IndicOpenTypeLayoutEngine::glyphProcessing(const LEUnicode chars[], le_
         return 0;
     }
 
-    IndicReordering::adjustMPres(fMPreFixups, glyphs, charIndices);
+    IndicReordering::adjustMPres(&chars[offset], count, glyphs, charIndices, fScriptCode);
 
     return retCount;
 }
@@ -79,32 +79,32 @@ le_int32 IndicOpenTypeLayoutEngine::characterProcessing(const LEUnicode chars[],
 
     le_int32 worstCase = count * IndicReordering::getWorstCaseExpansion(fScriptCode);
 
-    outChars = LE_NEW_ARRAY(LEUnicode, worstCase);
+    outChars = (LEUnicode *)uprv_malloc(worstCase * sizeof(LEUnicode));
 
     if (outChars == NULL) {
         success = LE_MEMORY_ALLOCATION_ERROR;
         return 0;
     }
 
-    charIndices = LE_NEW_ARRAY(le_int32, worstCase);
+    charIndices = (le_int32 *)uprv_malloc(worstCase * sizeof(le_int32));
     if (charIndices == NULL) {
-        LE_DELETE_ARRAY(outChars);
+        uprv_free(outChars);
         success = LE_MEMORY_ALLOCATION_ERROR;
         return 0;
     }
 
-    featureTags = LE_NEW_ARRAY(const LETag *, worstCase);
+    featureTags = (const LETag **)uprv_malloc(worstCase * sizeof(const LETag *));
 
     if (featureTags == NULL) {
-        LE_DELETE_ARRAY(charIndices);
-        LE_DELETE_ARRAY(outChars);
+        uprv_free(charIndices);
+        uprv_free(outChars);
         success = LE_MEMORY_ALLOCATION_ERROR;
         return 0;
     }
 
     // NOTE: assumes this allocates featureTags...
     // (probably better than doing the worst case stuff here...)
-    return IndicReordering::reorder(&chars[offset], count, fScriptCode, outChars, charIndices, featureTags, &fMPreFixups);
+    return IndicReordering::reorder(&chars[offset], count, fScriptCode, outChars, charIndices, featureTags);
 }
 
 U_NAMESPACE_END

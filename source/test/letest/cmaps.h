@@ -77,7 +77,7 @@ inline CMAPMapper::CMAPMapper(const CMAPTable *cmap)
 
 inline CMAPMapper::~CMAPMapper()
 {
-    LE_DELETE_ARRAY(fcmap);
+    delete[] (char *) fcmap;
 }
 
 #endif

@@ -130,14 +130,14 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual inline UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static inline UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 private:
     /**
@@ -159,14 +159,6 @@ private:
      */
     static const char fgClassID;
 };
-
-inline UClassID
-ParsePosition::getStaticClassID()
-{ return (UClassID)&fgClassID; }
-
-inline UClassID
-ParsePosition::getDynamicClassID() const
-{ return ParsePosition::getStaticClassID(); }
 
 inline ParsePosition&
 ParsePosition::operator=(const ParsePosition& copy)

@@ -63,7 +63,7 @@ U_NAMESPACE_BEGIN
  * Resource bundles in ICU4C are currently defined using text files which conform to the following
  * <a href="http://oss.software.ibm.com/cvs/icu/~checkout~/icuhtml/design/bnf_rb.txt">BNF definition</a>.
  * More on resource bundle concepts and syntax can be found in the 
- * <a href="http://oss.software.ibm.com/icu/userguide/ResourceManagement.html">Users Guide</a>.
+ * <a href="http://oss.software.ibm.com/icu/userguide/Fallbackmechanism.html">users guide</a>.
  * <P>
  *
  * The ResourceBundle class is not suitable for subclassing.
@@ -93,9 +93,9 @@ public:
      * The UErrorCode& err parameter is used to return status information to the user. To
      * check whether the construction succeeded or not, you should check the value of
      * U_SUCCESS(err). If you wish more detailed information, you can check for
-     * informational error results which still indicate success. U_USING_FALLBACK_WARNING
+     * informational error results which still indicate success. U_USING_FALLBACK_ERROR
      * indicates that a fall back locale was used. For example, 'de_CH' was requested,
-     * but nothing was found there, so 'de' was used. U_USING_DEFAULT_WARNING indicates that
+     * but nothing was found there, so 'de' was used. U_USING_DEFAULT_ERROR indicates that
      * the default locale data was used; neither the requested locale nor any of its
      * fall back locales could be found.
      * @stable ICU 2.0
@@ -121,6 +121,17 @@ public:
      * @stable ICU 2.0
      */
     ResourceBundle(UErrorCode &err);
+
+#ifdef ICU_RESOURCEBUNDLE_USE_DEPRECATES
+    /**
+     * Constructs a ResourceBundle
+     *
+     * @obsolete ICU 2.4. Use const char * pathnames instead since this API will be removed in that release.
+     */
+    ResourceBundle(const wchar_t* path,
+                   const Locale& locale,
+                   UErrorCode& err);
+#endif /* ICU_RESOURCEBUNDLE_USE_DEPRECATES */
 
     /**
      * Standard constructor, onstructs a resource bundle for the locale-specific
@@ -418,18 +429,28 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual inline UClassID getDynamicClassID() const;
+    virtual inline UClassID 
+      getDynamicClassID() const 
+    { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static inline UClassID getStaticClassID();
+    static inline UClassID 
+      getStaticClassID() 
+    { return (UClassID)&fgClassID; }
 
 private:
     UResourceBundle *resource;
     void constructForLocale(const UnicodeString& path, const Locale& locale, UErrorCode& error);
+#ifdef ICU_RESOURCEBUNDLE_USE_DEPRECATES
+    /**
+     * @obsolete ICU 2.4. Use const char * pathnames instead since this API will be removed in that release.
+     */
+    void constructForLocale(const wchar_t* path, const Locale& locale, UErrorCode& error);
+#endif /* ICU_RESOURCEBUNDLE_USE_DEPRECATES */
     Locale *locName;
 
     /**
@@ -438,14 +459,6 @@ private:
      */
     static const char fgClassID;
 };
-
-inline UClassID 
-ResourceBundle::getStaticClassID() 
-{ return (UClassID)&fgClassID; }
-
-inline UClassID 
-ResourceBundle::getDynamicClassID() const 
-{ return ResourceBundle::getStaticClassID(); }
 
 U_NAMESPACE_END
 #endif

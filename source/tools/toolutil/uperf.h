@@ -102,7 +102,7 @@ public:
 class U_EXPORT UPerfTest {
 public:
     UBool run();
-    UBool runTest( char* name = NULL, char* par = NULL ); // not to be overidden
+    virtual UBool runTest( char* name = NULL, char* par = NULL ); // not to be overidden
         
     virtual void usage( void ) ;
     

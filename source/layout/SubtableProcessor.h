@@ -8,11 +8,6 @@
 #ifndef __SUBTABLEPROCESSOR_H
 #define __SUBTABLEPROCESSOR_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "MorphTables.h"
 

@@ -91,14 +91,6 @@ us_arrayCopy(const UChar *src, int32_t srcStart,
   }
 }
 
-// u_unescapeAt() callback to get a UChar from a UnicodeString
-U_CDECL_BEGIN
-static UChar U_CALLCONV
-UnicodeString_charAt(int32_t offset, void *context) {
-    return ((UnicodeString*) context)->charAt(offset);
-}
-U_CDECL_END
-
 U_NAMESPACE_BEGIN
 
 const char UnicodeString::fgClassID=0;
@@ -563,6 +555,14 @@ UnicodeString UnicodeString::unescape() const {
     }
     return result;
 }
+
+// u_unescapeAt() callback to get a UChar from a UnicodeString
+U_CDECL_BEGIN
+static UChar U_CALLCONV
+UnicodeString_charAt(int32_t offset, void *context) {
+    return ((UnicodeString*) context)->charAt(offset);
+}
+U_CDECL_END
 
 UChar32 UnicodeString::unescapeAt(int32_t &offset) const {
     return u_unescapeAt(UnicodeString_charAt, &offset, length(), (void*)this);
@@ -1514,12 +1514,7 @@ UnicodeString::extract(int32_t start,
 
   // just write the NUL if the string length is 0
   if(length == 0) {
-      if(dstSize >= 0x80000000) {  
-          // careful: dstSize is unsigned! (0xffffffff means "unlimited")
-          // make sure that the NUL-termination works (takes int32_t)
-          dstSize=0x7fffffff;
-      }
-      return u_terminateChars(target, dstSize, 0, &status);
+    return u_terminateChars(target, dstSize, 0, &status);
   }
 
   // if the codepage is the default, use our cache

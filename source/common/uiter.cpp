@@ -953,10 +953,7 @@ utf8IteratorGetState(const UCharIterator *iter) {
 }
 
 static void U_CALLCONV
-utf8IteratorSetState(UCharIterator *iter,
-                     uint32_t state,
-                     UErrorCode *pErrorCode)
-{
+utf8IteratorSetState(UCharIterator *iter, uint32_t state, UErrorCode *pErrorCode) {
     if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
         /* do nothing */
     } else if(iter==NULL) {

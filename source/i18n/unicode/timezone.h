@@ -100,7 +100,7 @@ class StringEnumeration;
  * Anywhere the API requires an ID, you can use either form.
  * <P>
  * To create a new TimeZone, you call the factory function TimeZone::createTimeZone()
- * and pass it a time zone ID.  You can use the createEnumeration() function to
+ * and pass it a time zone ID.  You can use the createAvailableIDs() function to
  * obtain a list of all the time zone IDs recognized by createTimeZone().
  * <P>
  * You can also use TimeZone::createDefault() to create a TimeZone.  This function uses
@@ -115,6 +115,15 @@ public:
      * @stable ICU 2.0
      */
     virtual ~TimeZone();
+
+#ifdef ICU_TIMEZONE_USE_DEPRECATES
+    /**
+     * The GMT zone has a raw offset of zero and does not use daylight
+     * savings time.
+     * @obsolete ICU 2.6. Use getGMT() instead since this variable will be removed in that release.
+     */
+    static const TimeZone* GMT;
+#endif
 
     /**
      * The GMT time zone has a raw offset of zero and does not use daylight
@@ -138,8 +147,8 @@ public:
     static TimeZone* createTimeZone(const UnicodeString& ID);
 
     /**
-     * Returns an enumeration over all recognized time zone IDs. (i.e.,
-     * all strings that createTimeZone() accepts)
+     * Returns an enumeration over all recognized time zone IDs, i.e.,
+     * all strings that createTimeZone() accepts.
      *
      * @return an enumeration object, owned by the caller.
      * @draft ICU 2.4
@@ -358,6 +367,14 @@ public:
     virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
                               uint8_t dayOfWeek, int32_t millis, UErrorCode& status) const = 0;
 
+#ifdef ICU_TIMEZONE_USE_DEPRECATES
+    /**
+     * @obsolete ICU 1.8. Use the other getOffset() since this API will be removed in that release.
+     */
+    virtual int32_t getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
+                              uint8_t dayOfWeek, int32_t millis) const = 0;
+#endif /* ICU_TIMEZONE_USE_DEPRECATES */
+
     /**
      * Gets the time zone offset, for current date, modified in case of
      * daylight savings. This is the offset to add *to* UTC to get local time.
@@ -547,7 +564,7 @@ public:
      * @return The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static inline UClassID getStaticClassID(void);
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
      * Returns a unique class ID POLYMORPHICALLY. Pure virtual method. This method is to
@@ -620,10 +637,6 @@ private:
     UnicodeString           fID;    // this time zone's ID
 };
 
-
-inline UClassID
-TimeZone::getStaticClassID(void)
-{ return (UClassID)&fgClassID; }
 
 // -------------------------------------
 

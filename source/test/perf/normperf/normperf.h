@@ -23,8 +23,8 @@ inline int FoldStringW(DWORD dwMapFlags, const UChar* lpSrcStr,int cchSrc, UChar
 #endif
 
 #define DEST_BUFFER_CAPACITY 6000
-typedef int32_t (*NormFn)(const UChar* src,int32_t srcLen, UChar* dest,int32_t dstLen, int32_t options, UErrorCode* status);
-typedef int32_t (*QuickCheckFn)(const UChar* src,int32_t srcLen, UNormalizationMode mode, int32_t options, UErrorCode* status);
+typedef int32_t (*NormFn)(const UChar* src,int32_t srcLen, UChar* dest,int32_t dstLen, UErrorCode* status);
+typedef int32_t (*QuickCheckFn)(const UChar* src,int32_t srcLen, UNormalizationMode mode, UErrorCode* status);
 
 class QuickCheckPerfFunction : public UPerfFunction{
 private:
@@ -37,26 +37,24 @@ private:
     const UChar* src;
     int32_t srcLen;
     UBool line_mode;
-    int32_t options;
-
 public:
     virtual void call(UErrorCode* status){
         if(line_mode==TRUE){
             if(uselen){
                 for(int32_t i = 0; i< numLines; i++){
-                    retVal =  (*fn)(lines[i].name,lines[i].len,mode, options, status);
+                    retVal =  (*fn)(lines[i].name,lines[i].len,mode,status);
                 }
             }else{
                 for(int32_t i = 0; i< numLines; i++){
-                    retVal =  (*fn)(lines[i].name,-1,mode, options, status);
+                    retVal =  (*fn)(lines[i].name,-1,mode,status);
                 }
             }
         }else{
             if(uselen){
 
-                retVal =  (*fn)(src,srcLen,mode, options, status);
+                retVal =  (*fn)(src,srcLen,mode,status);
             }else{
-                retVal =  (*fn)(src,-1,mode, options, status);
+                retVal =  (*fn)(src,-1,mode,status);
             }
         }
 
@@ -72,7 +70,7 @@ public:
             return srcLen;
         }
     }
-    QuickCheckPerfFunction(QuickCheckFn func, ULine* srcLines,int32_t srcNumLines, UNormalizationMode _mode, int32_t opts, UBool _uselen) : options(opts) {
+    QuickCheckPerfFunction(QuickCheckFn func, ULine* srcLines,int32_t srcNumLines, UNormalizationMode _mode, UBool _uselen){
         fn = func;
         lines = srcLines;
         numLines = srcNumLines;
@@ -82,7 +80,7 @@ public:
         srcLen = 0;
         line_mode = TRUE;
     }
-    QuickCheckPerfFunction(QuickCheckFn func, const UChar* source,int32_t sourceLen, UNormalizationMode _mode, int32_t opts, UBool _uselen) : options(opts) {
+    QuickCheckPerfFunction(QuickCheckFn func, const UChar* source,int32_t sourceLen, UNormalizationMode _mode, UBool _uselen){
         fn = func;
         lines = NULL;
         numLines = 0;
@@ -108,25 +106,24 @@ private:
     const UChar* src;
     int32_t srcLen;
     UBool line_mode;
-    int32_t options;
 
 public:
     virtual void call(UErrorCode* status){
         if(line_mode==TRUE){
             if(uselen){
                 for(int32_t i = 0; i< numLines; i++){
-                    retVal =  (*fn)(lines[i].name,lines[i].len,pDest,destLen, options, status);
+                    retVal =  (*fn)(lines[i].name,lines[i].len,pDest,destLen,status);
                 }
             }else{
                 for(int32_t i = 0; i< numLines; i++){
-                    retVal =  (*fn)(lines[i].name,-1,pDest,destLen, options, status);
+                    retVal =  (*fn)(lines[i].name,-1,pDest,destLen,status);
                 }
             }
         }else{
             if(uselen){
-                retVal =  (*fn)(src,srcLen,pDest,destLen, options, status);
+                retVal =  (*fn)(src,srcLen,pDest,destLen,status);
             }else{
-                retVal =  (*fn)(src,-1,pDest,destLen, options, status);
+                retVal =  (*fn)(src,-1,pDest,destLen,status);
             }
         }
     }
@@ -141,7 +138,7 @@ public:
             return srcLen;
         }
     }
-    NormPerfFunction(NormFn func, int32_t opts, ULine* srcLines,int32_t srcNumLines,UBool _uselen) : options(opts) {
+    NormPerfFunction(NormFn func,ULine* srcLines,int32_t srcNumLines,UBool _uselen){
         fn = func;
         lines = srcLines;
         numLines = srcNumLines;
@@ -152,7 +149,7 @@ public:
         srcLen = 0;
         line_mode = TRUE;
     }
-    NormPerfFunction(NormFn func, int32_t opts, const UChar* source,int32_t sourceLen,UBool _uselen) : options(opts) {
+    NormPerfFunction(NormFn func,const UChar* source,int32_t sourceLen,UBool _uselen){
         fn = func;
         lines = NULL;
         numLines = 0;
@@ -182,10 +179,9 @@ private:
     int32_t origBufferLen;
     int32_t NFDBufferLen;
     int32_t NFCBufferLen;
-    int32_t options;
 
-    void normalizeInput(ULine* dest,const UChar* src ,int32_t srcLen,UNormalizationMode mode, int32_t options);
-    UChar* normalizeInput(int32_t& len, const UChar* src ,int32_t srcLen,UNormalizationMode mode, int32_t options);
+    void normalizeInput(ULine* dest,const UChar* src ,int32_t srcLen,UNormalizationMode mode);
+    UChar* normalizeInput(int32_t& len, const UChar* src ,int32_t srcLen,UNormalizationMode mode);
 
 public:
 
@@ -252,96 +248,92 @@ public:
 
 #if (U_ICU_VERSION_MAJOR_NUM > 1 ) || ((U_ICU_VERSION_MAJOR_NUM == 1 )&&(U_ICU_VERSION_MINOR_NUM > 8) && (U_ICU_VERSION_PATCHLEVEL_NUM >=1))
 
-int32_t ICUNormNFD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UNORM_NFD, options,dest,dstLen,status);
+int32_t ICUNormNFD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UNORM_NFD,0,dest,dstLen,status);
 }
 
-int32_t ICUNormNFC(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UNORM_NFC, options,dest,dstLen,status);
+int32_t ICUNormNFC(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UNORM_NFC,0,dest,dstLen,status);
 }
 
-int32_t ICUNormNFKD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UNORM_NFKD, options,dest,dstLen,status);
+int32_t ICUNormNFKD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UNORM_NFKD,0,dest,dstLen,status);
 }
-int32_t ICUNormNFKC(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UNORM_NFKC, options,dest,dstLen,status);
-}
-
-int32_t ICUNormFCD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UNORM_FCD, options,dest,dstLen,status);
+int32_t ICUNormNFKC(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UNORM_NFKC,0,dest,dstLen,status);
 }
 
-int32_t ICUQuickCheck(const UChar* src,int32_t srcLen, UNormalizationMode mode, int32_t options, UErrorCode* status){
-#if (U_ICU_VERSION_MAJOR_NUM > 2 ) || ((U_ICU_VERSION_MAJOR_NUM == 2 )&&(U_ICU_VERSION_MINOR_NUM >= 6))
-    return unorm_quickCheckWithOptions(src,srcLen,mode, options, status);
-#else
+int32_t ICUNormFCD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UNORM_FCD,0,dest,dstLen,status);
+}
+
+int32_t ICUQuickCheck(const UChar* src,int32_t srcLen, UNormalizationMode mode, UErrorCode* status){
     return unorm_quickCheck(src,srcLen,mode,status);
-#endif
 }
-int32_t ICUIsNormalized(const UChar* src,int32_t srcLen, UNormalizationMode mode, int32_t options, UErrorCode* status){
+int32_t ICUIsNormalized(const UChar* src,int32_t srcLen, UNormalizationMode mode, UErrorCode* status){
     return unorm_isNormalized(src,srcLen,mode,status);
 }
 
 
 #else
 
-int32_t ICUNormNFD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UCOL_DECOMP_CAN, options,dest,dstLen,status);
+int32_t ICUNormNFD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UCOL_DECOMP_CAN,0,dest,dstLen,status);
 }
 
-int32_t ICUNormNFC(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UCOL_COMPOSE_CAN, options,dest,dstLen,status);
+int32_t ICUNormNFC(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UCOL_COMPOSE_CAN,0,dest,dstLen,status);
 }
 
-int32_t ICUNormNFKD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UCOL_DECOMP_COMPAT, options,dest,dstLen,status);
+int32_t ICUNormNFKD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UCOL_DECOMP_COMPAT,0,dest,dstLen,status);
 }
-int32_t ICUNormNFKC(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UCOL_COMPOSE_COMPAT, options,dest,dstLen,status);
-}
-
-int32_t ICUNormFCD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
-    return unorm_normalize(src,srcLen,UNORM_FCD, options,dest,dstLen,status);
+int32_t ICUNormNFKC(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UCOL_COMPOSE_COMPAT,0,dest,dstLen,status);
 }
 
-int32_t ICUQuickCheck(const UChar* src,int32_t srcLen, UNormalizationMode mode, int32_t options, UErrorCode* status){
+int32_t ICUNormFCD(const UChar* src, int32_t srcLen,UChar* dest, int32_t dstLen,UErrorCode* status) {
+    return unorm_normalize(src,srcLen,UNORM_FCD,0,dest,dstLen,status);
+}
+
+int32_t ICUQuickCheck(const UChar* src,int32_t srcLen, UNormalizationMode mode, UErrorCode* status){
     return unorm_quickCheck(src,srcLen,mode,status);
 }
 
-int32_t ICUIsNormalized(const UChar* src,int32_t srcLen, UNormalizationMode mode, int32_t options, UErrorCode* status){
+int32_t ICUIsNormalized(const UChar* src,int32_t srcLen, UNormalizationMode mode, UErrorCode* status){
     return 0;
 }
 #endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
 
-int32_t WinNormNFD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
+int32_t WinNormNFD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, UErrorCode* status) {
     return FoldStringW(MAP_COMPOSITE,src,srcLen,dest,dstLen);
 }
 
-int32_t WinNormNFC(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
+int32_t WinNormNFC(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, UErrorCode* status) {
     return FoldStringW(MAP_PRECOMPOSED,src,srcLen,dest,dstLen);
 }
 
-int32_t WinNormNFKD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
+int32_t WinNormNFKD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, UErrorCode* status) {
     return FoldStringW(MAP_COMPOSITE+MAP_FOLDCZONE,src,srcLen,dest,dstLen);
 }
-int32_t WinNormNFKC(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
+int32_t WinNormNFKC(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, UErrorCode* status) {
     return FoldStringW(MAP_FOLDCZONE,src,srcLen,dest,dstLen);
 }
 #else
-int32_t WinNormNFD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
+int32_t WinNormNFD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, UErrorCode* status) {
     return 0 ;
 }
 
-int32_t WinNormNFC(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
+int32_t WinNormNFC(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, UErrorCode* status) {
     return 0;
 }
 
-int32_t WinNormNFKD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
+int32_t WinNormNFKD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, UErrorCode* status) {
     return 0;
 }
-int32_t WinNormNFKC(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
+int32_t WinNormNFKC(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, UErrorCode* status) {
     return 0;
 }
 #endif

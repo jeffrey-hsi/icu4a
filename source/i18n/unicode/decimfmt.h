@@ -998,7 +998,7 @@ public:
                                        UParseError& parseError,
                                        UErrorCode& status);
 
-    /**
+    /*
      * Apply the given pattern to this Format object.
      *
      * @param pattern   The localized pattern to be applied.
@@ -1101,7 +1101,7 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static inline UClassID getStaticClassID(void);
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
      * Returns a unique class ID POLYMORPHICALLY.  Pure virtual override.
@@ -1114,7 +1114,7 @@ public:
      *                  other classes have different class IDs.
      * @stable ICU 2.0
      */
-    virtual UClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
 
 private:
     static const char fgClassID;
@@ -1298,14 +1298,6 @@ protected:
    */  
     static const int32_t  kDoubleFractionDigits;
 };
-
-inline UClassID
-DecimalFormat::getStaticClassID(void)
-{ return (UClassID)&fgClassID; }
-
-inline UClassID
-DecimalFormat::getDynamicClassID(void) const
-{ return DecimalFormat::getStaticClassID(); }
 
 inline UnicodeString&
 DecimalFormat::format(const Formattable& obj,

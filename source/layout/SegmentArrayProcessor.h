@@ -8,11 +8,6 @@
 #ifndef __SEGMENTARRAYPROCESSOR_H
 #define __SEGMENTARRAYPROCESSOR_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "MorphTables.h"
 #include "SubtableProcessor.h"

@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2003, International Business Machines
+*   Copyright (C) 1999-2002, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -74,9 +74,8 @@ Formally, the file contains the following structures:
     i6 reservedItemIndex; -- 32-bit unit index to the top of the properties vectors table
     i7..i9 reservedIndexes; -- reserved values; 0 for now
 
-    i10 maxValues; -- maximum code values for vector word 0, see uprops.h (format version 3.1+)
-    i11 maxValues2; -- maximum code values for vector word 2, see uprops.h (format version 3.2)
-    i12..i15 reservedIndexes; -- reserved values; 0 for now
+    i10 maxValues; -- maximum block and script code values, see uprops.h (format version 3.1)
+    i11..i15 reservedIndexes; -- reserved values; 0 for now
 
     PT serialized properties trie, see utrie.h (byte size: 4*(i0-16))
 
@@ -261,22 +260,6 @@ with the formatVersion, it is stored in i5.
 
 Current properties: see icu/source/common/uprops.h
 
---- Changes in format version 3.1 ---
-
-See i10 maxValues above, contains only UBLOCK_COUNT and USCRIPT_CODE_LIMIT.
-
---- Changes in format version 3.2 ---
-
-- The tries use linear Latin-1 ranges.
-- The additional properties bits store full properties XYZ instead
-  of partial Other_XYZ, so that changes in the derivation formulas
-  need not be tracked in runtime library code.
-- Joining Type and Line Break are also stored completely, so that uprops.c
-  needs no runtime formulas for enumerated properties either.
-- Store the case-sensitive flag in the main properties word.
-- i10 also contains U_LB_COUNT and U_EA_COUNT.
-- i11 contains maxValues2 for vector word 2.
-
 ----------------------------------------------------------------------------- */
 
 /* UDataInfo cf. udata.h */
@@ -290,8 +273,8 @@ static UDataInfo dataInfo={
     0,
 
     { 0x55, 0x50, 0x72, 0x6f },                 /* dataFormat="UPro" */
-    { 3, 2, UTRIE_SHIFT, UTRIE_INDEX_SHIFT },   /* formatVersion */
-    { 4, 0, 0, 0 }                              /* dataVersion */
+    { 3, 1, UTRIE_SHIFT, UTRIE_INDEX_SHIFT },   /* formatVersion */
+    { 3, 2, 0, 0 }                              /* dataVersion */
 };
 
 /* definitions of expected data size limits */
@@ -341,7 +324,7 @@ setUnicodeVersion(const char *v) {
 
 extern void
 initStore() {
-    pTrie=utrie_open(NULL, NULL, MAX_PROPS_COUNT, 0, TRUE);
+    pTrie=utrie_open(NULL, NULL, MAX_PROPS_COUNT, 0, FALSE);
     if(pTrie==NULL) {
         fprintf(stderr, "error: unable to create a UNewTrie\n");
         exit(U_MEMORY_ALLOCATION_ERROR);
@@ -457,10 +440,10 @@ makeProps(Props *p) {
                 printf("*** code 0x%06x needs an exception because it is irregular\n", p->code);
                 */
             } else if(value<UPROPS_MIN_VALUE || UPROPS_MAX_VALUE<value) {
-                printf("*** U+%04x needs an exception because its value is out-of-bounds at %ld (not [%ld..%ld]\n",
+                printf("*** code 0x%06x needs an exception because its value is out-of-bounds at %ld (not [%ld..%ld]\n",
                     p->code, (long)value, (long)UPROPS_MIN_VALUE, (long)UPROPS_MAX_VALUE);
             } else {
-                printf("*** U+%04x needs an exception because it has %u values\n", p->code, count);
+                printf("*** code 0x%06x needs an exception because it has %u values\n", p->code, count);
             }
         }
 
@@ -608,26 +591,6 @@ addProps(uint32_t c, uint32_t x) {
         fprintf(stderr, "error: too many entries for the properties trie\n");
         exit(U_BUFFER_OVERFLOW_ERROR);
     }
-}
-
-extern void
-addCaseSensitive(UChar32 first, UChar32 last) {
-    uint32_t x, cs;
-
-    cs=U_MASK(UPROPS_CASE_SENSITIVE_SHIFT);
-    while(first<=last) {
-        x=utrie_get32(pTrie, first, NULL);
-        if(!utrie_set32(pTrie, first, x|cs)) {
-            fprintf(stderr, "error: too many entries for the properties trie\n");
-            exit(U_BUFFER_OVERFLOW_ERROR);
-        }
-        ++first;
-    }
-}
-
-extern uint32_t
-getProps(uint32_t c) {
-    return utrie_get32(pTrie, (UChar32)c, NULL);
 }
 
 /* areas of same properties ------------------------------------------------- */

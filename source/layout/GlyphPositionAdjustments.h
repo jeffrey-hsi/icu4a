@@ -8,11 +8,6 @@
 #ifndef __GLYPHPOSITIONADJUSTMENTS_H
 #define __GLYPHPOSITIONADJUSTMENTS_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "OpenTypeTables.h"
 

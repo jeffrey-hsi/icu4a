@@ -14,7 +14,7 @@
 #include "unicode/uniset.h"
 #include "unicode/uchar.h"
 #include "unicode/usetiter.h"
-#include "unicode/ustring.h"
+
 
 UnicodeString operator+(const UnicodeString& left, const UnicodeSet& set) {
     UnicodeString pat;
@@ -51,8 +51,6 @@ UnicodeSetTest::runIndexedTest(int32_t index, UBool exec,
         CASE(12,TestStrings);
         CASE(13,TestStringPatterns);
         CASE(14,Testj2268);
-        CASE(15,TestCloseOver);
-        CASE(16,TestEscapePattern);
         default: name = ""; break;
     }
 }
@@ -688,12 +686,19 @@ void UnicodeSetTest::TestStringPatterns() {
  * Test the [:Latin:] syntax.
  */
 void UnicodeSetTest::TestScriptSet() {
-    expectContainment("[:Latin:]", "aA", CharsToUnicodeString("\\u0391\\u03B1"));
+    UErrorCode status = U_ZERO_ERROR;
+    UnicodeSet set("[:Latin:]", status);
+    if (U_FAILURE(status)) { errln("FAIL"); return; }
+    expectContainment(set, "[:Latin:]", "aA", CharsToUnicodeString("\\u0391\\u03B1"));
 
-    expectContainment("[:Greek:]", CharsToUnicodeString("\\u0391\\u03B1"), "aA");
+    UnicodeSet set2("[:Greek:]", status);
+    if (U_FAILURE(status)) { errln("FAIL"); return; }
+    expectContainment(set2, "[:Greek:]", CharsToUnicodeString("\\u0391\\u03B1"), "aA");
     
     /* Jitterbug 1423 */
-    expectContainment("[[:Common:][:Inherited:]]", CharsToUnicodeString("\\U00003099\\U0001D169\\u0000"), "aA");
+    UnicodeSet set3("[[:Common:][:Inherited:]]",status);
+    if (U_FAILURE(status)) { errln("FAIL"); return; }
+    expectContainment(set3, "[[:Common:][:Inherited:]]", CharsToUnicodeString("\\U00003099\\U0001D169\\u0000"), "aA");
 
 }
 
@@ -761,26 +766,19 @@ void UnicodeSetTest::TestPropertySet() {
         "[:nv=0.5:]",
         "\\u00BD\\u0F2A",
         "\\u00BC",
-
-        // JB#2653: Age
-        "[:Age=1.1:]",
-        "\\u03D6", // 1.1
-        "\\u03D8\\u03D9", // 3.2
-        
-        "[:Age=3.1:]",
-        "\\u1800\\u3400\\U0002f800",
-        "\\u0220\\u034f\\u30ff\\u33ff\\ufe73\\U00010000\\U00050000",
-
-        // JB#2350: Case_Sensitive
-        "[:Case Sensitive:]",
-        "A\\u1FFC\\U00010410",
-        ";\\u00B4\\U00010500",
     };
 
     static const int32_t DATA_LEN = sizeof(DATA)/sizeof(DATA[0]);
 
-    for (int32_t i=0; i<DATA_LEN; i+=3) {  
-        expectContainment(DATA[i], CharsToUnicodeString(DATA[i+1]),
+    for (int32_t i=0; i<DATA_LEN; i+=3) {
+        UErrorCode ec = U_ZERO_ERROR;
+        UnicodeSet set(DATA[i], ec);
+        if (U_FAILURE(ec)) {
+            errln((UnicodeString)"FAIL: pattern \"" +
+                  DATA[i] + "\" => " + u_errorName(ec));
+            continue;
+        }
+        expectContainment(set, CharsToUnicodeString(DATA[i+1]),
                           CharsToUnicodeString(DATA[i+2]));
     }
 }
@@ -819,140 +817,6 @@ void UnicodeSetTest::TestIndexOf() {
     int32_t j = set.indexOf((UChar32)0x71/*'q'*/);
     if (j != -1) {
         errln((UnicodeString)"FAIL: indexOf('q') = " + j);
-    }
-}
-
-/**
- * Test closure API.
- */
-void UnicodeSetTest::TestCloseOver() {
-    UErrorCode ec = U_ZERO_ERROR;
-
-    char CASE[] = {(char)USET_CASE};
-    const char* DATA[] = {
-        // selector, input, output
-        CASE,
-        "[aq\\u00DF{Bc}{bC}{Fi}]",
-        "[aAqQ\\u00DF\\uFB01{ss}{bc}{fi}]",
-
-        CASE,
-        "[\\u01F1]", // 'DZ'
-        "[\\u01F1\\u01F2\\u01F3]",
-
-        CASE,
-        "[\\u1FB4]",
-        "[\\u1FB4{\\u03AC\\u03B9}]",
-
-        CASE,
-        "[{F\\uFB01}]",
-        "[\\uFB03{ffi}]",            
-
-        CASE, // make sure binary search finds limits
-        "[a\\uFF3A]",
-        "[aA\\uFF3A\\uFF5A]",
-
-        CASE,
-        "[a-z]","[A-Za-z\\u017F\\u212A]",
-        CASE,
-        "[abc]","[A-Ca-c]",
-        CASE,
-        "[ABC]","[A-Ca-c]",
-
-        NULL
-    };
-
-    UnicodeSet s;
-    UnicodeSet t;
-    for (int32_t i=0; DATA[i]!=NULL; i+=3) {
-        int32_t selector = DATA[i][0];
-        UnicodeString pat(DATA[i+1]);
-        UnicodeString exp(DATA[i+2]);
-        s.applyPattern(pat, ec);
-        s.closeOver(selector);
-        t.applyPattern(exp, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: applyPattern failed");
-            continue;
-        }
-        if (s == t) {
-            logln((UnicodeString)"Ok: " + pat + ".closeOver(" + selector + ") => " + exp);
-        } else {
-            UnicodeString buf;
-            errln((UnicodeString)"FAIL: " + pat + ".closeOver(" + selector + ") => " +
-                  s.toPattern(buf, TRUE) + ", expected " + exp);
-        }
-    }
-
-    // Test the pattern API
-    s.applyPattern("[abc]", USET_CASE_INSENSITIVE, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: applyPattern failed");
-    } else {
-        expectContainment(s, "abcABC", "defDEF");
-    }
-    UnicodeSet v("[^abc]", USET_CASE_INSENSITIVE, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: constructor failed");
-    } else {
-        expectContainment(v, "defDEF", "abcABC");
-    }
-}
-
-void UnicodeSetTest::TestEscapePattern() {
-    const char pattern[] =
-        "[\\uFEFF \\uFFF9-\\uFFFC \\U0001D173-\\U0001D17A \\U000F0000-\\U000FFFFD ]";
-    const char exp[] =
-        "[\\uFEFF\\uFFF9-\\uFFFC\\U0001D173-\\U0001D17A\\U000F0000-\\U000FFFFD]";
-    // We test this with two passes; in the second pass we
-    // pre-unescape the pattern.  Since U+FEFF and several other code
-    // points are rule whitespace, this fails -- which is what we
-    // expect.
-    for (int32_t pass=1; pass<=2; ++pass) {
-        UErrorCode ec = U_ZERO_ERROR;
-        UnicodeString pat(pattern);
-        if (pass==2) {
-            pat = pat.unescape();
-        }
-        // Pattern is only good for pass 1
-        UBool isPatternValid = (pass==1);
-
-        UnicodeSet set(pat, ec);
-        if (U_SUCCESS(ec) != isPatternValid){
-            errln((UnicodeString)"FAIL: applyPattern(" +
-                  escape(pat) + ") => " +
-                  u_errorName(ec));
-            continue;
-        }
-        if (U_FAILURE(ec)) {
-            continue;
-        }
-        if (set.contains((UChar)0x0644)){
-            errln((UnicodeString)"FAIL: " + escape(pat) + " contains(U+0664)");
-        }
-
-        UnicodeString newpat;
-        set.toPattern(newpat, TRUE);
-        if (newpat == exp) {
-            logln(escape(pat) + " => " + newpat);
-        } else {
-            errln((UnicodeString)"FAIL: " + escape(pat) + " => " + newpat);
-        }
-
-        for (int32_t i=0; i<set.getRangeCount(); ++i) {
-            UnicodeString str("Range ");
-            str.append((UChar)(0x30 + i))
-                .append(": ")
-                .append((UChar32)set.getRangeStart(i))
-                .append(" - ")
-                .append((UChar32)set.getRangeEnd(i));
-            str = str + " (" + set.getRangeStart(i) + " - " +
-                set.getRangeEnd(i) + ")";
-            if (set.getRangeStart(i) < 0) {
-                errln((UnicodeString)"FAIL: " + escape(str));
-            } else {
-                logln(escape(str));
-            }
-        }
     }
 }
 
@@ -1203,20 +1067,6 @@ UBool UnicodeSetTest::checkEqual(const UnicodeSet& s, const UnicodeSet& t, const
 }
 
 void
-UnicodeSetTest::expectContainment(const UnicodeString& pat,
-                                  const UnicodeString& charsIn,
-                                  const UnicodeString& charsOut) {
-    UErrorCode ec = U_ZERO_ERROR;
-    UnicodeSet set(pat, ec);
-    if (U_FAILURE(ec)) {
-        errln((UnicodeString)"FAIL: pattern \"" +
-              pat + "\" => " + u_errorName(ec));
-        return;
-    }
-    expectContainment(set, pat, charsIn, charsOut);
-}
-
-void
 UnicodeSetTest::expectContainment(const UnicodeSet& set,
                                   const UnicodeString& charsIn,
                                   const UnicodeString& charsOut) {
@@ -1231,11 +1081,11 @@ UnicodeSetTest::expectContainment(const UnicodeSet& set,
                                   const UnicodeString& charsIn,
                                   const UnicodeString& charsOut) {
     UnicodeString bad;
-    UChar32 c;
     int32_t i;
+    for (i=0; i<charsIn.length(); ++i) {
+        UChar32 c = charsIn.char32At(i);
+        if(c>0xFFFF) i++;
 
-    for (i=0; i<charsIn.length(); i+=U16_LENGTH(c)) {
-        c = charsIn.char32At(i);
         if (!set.contains(c)) {
             bad.append(c);
         }
@@ -1248,14 +1098,14 @@ UnicodeSetTest::expectContainment(const UnicodeSet& set,
     }
 
     bad.truncate(0);
-    for (i=0; i<charsOut.length(); i+=U16_LENGTH(c)) {
-        c = charsOut.char32At(i);
+    for (i=0; i<charsOut.length(); ++i) {
+        UChar c = charsOut.charAt(i);
         if (set.contains(c)) {
             bad.append(c);
         }
     }
     if (bad.length() > 0) {
-        errln((UnicodeString)"Fail: set " + setName + " contains " + prettify(bad) +
+        logln((UnicodeString)"Fail: set " + setName + " contains " + prettify(bad) +
               ", expected non-containment of " + prettify(charsOut));
     } else {
         logln((UnicodeString)"Ok: set " + setName + " does not contain " + prettify(charsOut));
@@ -1358,27 +1208,18 @@ UnicodeSetTest::doAssert(UBool condition, const char *message)
 UnicodeString
 UnicodeSetTest::escape(const UnicodeString& s) {
     UnicodeString buf;
-    for (int32_t i=0; i<s.length(); )
+    for (int32_t i=0; i<s.length(); ++i)
     {
-        UChar32 c = s.char32At(i);
+        UChar c = s[(int32_t)i];
         if (0x0020 <= c && c <= 0x007F) {
             buf += c;
         } else {
-            if (c <= 0xFFFF) {
-                buf += (UChar)0x5c; buf += (UChar)0x75;
-            } else {
-                buf += (UChar)0x5c; buf += (UChar)0x55;
-                buf += toHexString((c & 0xF0000000) >> 28);
-                buf += toHexString((c & 0x0F000000) >> 24);
-                buf += toHexString((c & 0x00F00000) >> 20);
-                buf += toHexString((c & 0x000F0000) >> 16);
-            }
+            buf += (UChar)0x5c; buf += (UChar)0x55;
             buf += toHexString((c & 0xF000) >> 12);
             buf += toHexString((c & 0x0F00) >> 8);
             buf += toHexString((c & 0x00F0) >> 4);
             buf += toHexString(c & 0x000F);
         }
-        i += U16_LENGTH(c);
     }
     return buf;
 }

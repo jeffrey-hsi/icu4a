@@ -8,11 +8,6 @@
 #ifndef __OPENTYPETABLES_H
 #define __OPENTYPETABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 
 U_NAMESPACE_BEGIN
@@ -33,8 +28,8 @@ struct TagAndOffsetRecord
 
 struct GlyphRangeRecord
 {
-    TTGlyphID firstGlyph;
-    TTGlyphID lastGlyph;
+    LEGlyphID firstGlyph;
+    LEGlyphID lastGlyph;
     le_int16  rangeValue;
 };
 

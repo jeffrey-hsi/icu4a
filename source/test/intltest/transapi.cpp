@@ -12,14 +12,18 @@
 
 #if !UCONFIG_NO_TRANSLITERATION
 
+/* These APIs are becoming private */
+#define ICU_NULLTRANSLITERATOR_USE_DEPRECATES 1
+#define ICU_RULEBASEDTRANSLITERATOR_USE_DEPRECATES 1
+
 #include "ittrans.h"
 #include "transapi.h"
 #include "unicode/utypes.h"
 #include "unicode/translit.h"
-#include "rbt.h"
+#include "unicode/rbt.h"
 #include "unicode/unifilt.h"
-#include "cpdtrans.h"
-#include "nultrans.h"
+#include "unicode/cpdtrans.h"
+#include "unicode/nultrans.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -24,14 +24,12 @@ CLEANFILES = *~ $(DEPS)
 
 ## Target information
 
-TARGET_STUBNAME=uc
-
 ifneq ($(ENABLE_STATIC),)
-TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).a
+TARGET = $(LIBICU)uc$(ICULIBSUFFIX).a
 endif
 
 ifneq ($(ENABLE_SHARED),)
-SO_TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(SO)
+SO_TARGET = $(LIBICU)uc$(ICULIBSUFFIX).$(SO)
 ALL_SO_TARGETS = $(SO_TARGET) $(MIDDLE_SO_TARGET) $(FINAL_SO_TARGET)
 
 ifeq ($(OS390BATCH),1)
@@ -61,15 +59,14 @@ ucnv_u7.o ucnv_u8.o ucnv_u16.o ucnv_u32.o \
 ucnvmbcs.o ucnv2022.o ucnvhz.o ucnv_lmb.o ucnvscsu.o \
 ucnvbocu.o ucnvisci.o \
 unistr.o utf_impl.o ustring.o ustrcase.o cstring.o ustrfmt.o ustrtrns.o \
-normlzr.o unorm.o unorm_it.o chariter.o schriter.o uchriter.o uiter.o \
-uchar.o uprops.o propname.o ubidi.o ubidiwrt.o ubidiln.o ushape.o unames.o \
-ucln_cmn.o uscript.o usc_impl.o umemstrm.o ucmp8.o uvector.o uvectr32.o digitlst.o \
+normlzr.o unorm.o chariter.o schriter.o uchriter.o uiter.o \
+uchar.o uprops.o propname.o bidi.o ubidi.o ubidiwrt.o ubidiln.o ushape.o unames.o \
+ucln_cmn.o uscript.o usc_impl.o umemstrm.o ucmp8.o uvector.o digitlst.o \
 brkiter.o brkdict.o ubrk.o dbbi.o dbbi_tbl.o \
 rbbi.o rbbidata.o rbbinode.o rbbirb.o rbbiscan.o rbbisetb.o rbbistbl.o rbbitblb.o \
-utrie.o uset.o cmemory.o caniter.o \
+unicode.o convert.o utrie.o uset.o cmemory.o caniter.o \
 unifilt.o unifunct.o uniset.o usetiter.o util.o uenum.o \
-icuserv.o iculserv.o icunotif.o ustrenum.o \
-uidna.o strprep.o nameprep.o punycode.o ucat.o
+icuserv.o iculserv.o icunotif.o ustrenum.o unorm_it.o
 
 STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
 
@@ -112,10 +109,6 @@ ifneq ($(FINAL_SO_TARGET),$(SO_TARGET))
 	cd $(DESTDIR)$(libdir) && $(RM) $(SO_TARGET) && ln -s $(FINAL_SO_TARGET) $(SO_TARGET)
 endif
 endif
-ifneq ($(IMPORT_LIB_EXT),)
-	$(INSTALL-L) $(FINAL_IMPORT_LIB) $(DESTDIR)$(libdir)/$(FINAL_IMPORT_LIB)
-	cd $(DESTDIR)$(libdir) && $(RM) $(IMPORT_LIB) && ln -s $(FINAL_IMPORT_LIB) $(IMPORT_LIB)
-endif
 
 install-headers:
 	$(MKINSTALLDIRS) $(DESTDIR)$(includedir)/unicode
@@ -150,11 +143,11 @@ endif
 
 ifneq ($(ENABLE_SHARED),)
 $(FINAL_SO_TARGET): $(OBJECTS)
-	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(LIBS)
+	$(SHLIB.cc) $(LD_SONAME) -o $@ $^ $(LIBS)
 
 ifeq ($(OS390BATCH),1)
 $(BATCH_TARGET): $(OBJECTS)
-	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(BATCH_LIBS)
+	$(SHLIB.cc) $(LD_SONAME) -o $@ $^ $(BATCH_LIBS)
 endif   # OS390BATCH
 
 endif   # ENABLE_SHARED

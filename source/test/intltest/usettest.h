@@ -64,10 +64,6 @@ private:
 
     void TestExhaustive(void);
 
-    void TestCloseOver(void);
-
-    void TestEscapePattern(void);
-
 private:
 
     UBool toPatternAux(UChar32 start, UChar32 end);
@@ -122,9 +118,6 @@ private:
     
     UBool checkEqual(const UnicodeSet& s, const UnicodeSet& t, const char* message);
 
-    void expectContainment(const UnicodeString& pat,
-                           const UnicodeString& charsIn,
-                           const UnicodeString& charsOut);
     void expectContainment(const UnicodeSet& set,
                            const UnicodeString& charsIn,
                            const UnicodeString& charsOut);

@@ -61,11 +61,6 @@ const UChar SimpleDateFormat::fgDefaultPattern[] =
     0x79, 0x79, 0x79, 0x79, 0x4D, 0x4D, 0x64, 0x64, 0x20, 0x68, 0x68, 0x3A, 0x6D, 0x6D, 0x20, 0x61, 0
 };  /* "yyyyMMdd hh:mm a" */
 
-// This prefix is designed to NEVER MATCH real text, in order to
-// suppress the parsing of negative numbers.  Adjust as needed (if
-// this becomes valid Unicode).
-static const UChar SUPPRESS_NEGATIVE_PREFIX[] = {0xAB00, 0};
-
 /**
  * These are the tags we expect to see in normal resource bundle files associated
  * with a locale.
@@ -83,8 +78,6 @@ const int32_t   SimpleDateFormat::fgSystemDefaultCenturyYear    = -1;
 
 UDate           SimpleDateFormat::fgSystemDefaultCenturyStart       = DBL_MIN;
 int32_t         SimpleDateFormat::fgSystemDefaultCenturyStartYear   = -1;
-
-static const UChar QUOTE = 0x27; // Single quote
 
 //----------------------------------------------------------------------
 
@@ -403,7 +396,7 @@ void SimpleDateFormat::parseAmbiguousDatesAsAfter(UDate startDate, UErrorCode& s
     fCalendar->setTime(startDate, status);
     if(U_SUCCESS(status)) {
         fDefaultCenturyStart = startDate;
-        fDefaultCenturyStartYear = fCalendar->get(UCAL_YEAR, status);
+        fDefaultCenturyStartYear = fCalendar->get(Calendar::YEAR, status);
     }
 }
     
@@ -430,11 +423,11 @@ SimpleDateFormat::format(Calendar& cal, UnicodeString& appendTo, FieldPosition& 
             subFormat(appendTo, prevCh, count, pos, cal, status);
             count = 0;
         }
-        if (ch == QUOTE) {
+        if (ch == 0x0027 /*'\''*/) {
             // Consecutive single quotes are a single quote literal,
             // either outside of quotes or between quotes
-            if ((i+1) < fPattern.length() && fPattern[i+1] == QUOTE) {
-                appendTo += (UChar)QUOTE;
+            if ((i+1) < fPattern.length() && fPattern[i+1] == 0x0027 /*'\''*/) {
+                appendTo += (UChar)0x0027 /*'\''*/;
                 ++i;
             } else {
                 inQuote = ! inQuote;
@@ -485,16 +478,16 @@ SimpleDateFormat::format(const Formattable& obj,
 //----------------------------------------------------------------------
 
 // Map index into pattern character string to Calendar field number.
-const UCalendarDateFields
+const Calendar::EDateFields
 SimpleDateFormat::fgPatternIndexToCalendarField[] =
 {
-    UCAL_ERA, UCAL_YEAR, UCAL_MONTH, UCAL_DATE, 
-    UCAL_HOUR_OF_DAY, UCAL_HOUR_OF_DAY, UCAL_MINUTE, 
-    UCAL_SECOND, UCAL_MILLISECOND, UCAL_DAY_OF_WEEK,
-    UCAL_DAY_OF_YEAR, UCAL_DAY_OF_WEEK_IN_MONTH, 
-    UCAL_WEEK_OF_YEAR, UCAL_WEEK_OF_MONTH, 
-    UCAL_AM_PM, UCAL_HOUR, UCAL_HOUR, UCAL_ZONE_OFFSET,
-    UCAL_YEAR_WOY, UCAL_DOW_LOCAL
+    Calendar::ERA, Calendar::YEAR, Calendar::MONTH, Calendar::DATE, 
+    Calendar::HOUR_OF_DAY, Calendar::HOUR_OF_DAY, Calendar::MINUTE, 
+    Calendar::SECOND, Calendar::MILLISECOND, Calendar::DAY_OF_WEEK,
+    Calendar::DAY_OF_YEAR, Calendar::DAY_OF_WEEK_IN_MONTH, 
+    Calendar::WEEK_OF_YEAR, Calendar::WEEK_OF_MONTH, 
+    Calendar::AM_PM, Calendar::HOUR, Calendar::HOUR, Calendar::ZONE_OFFSET,
+    Calendar::YEAR_WOY, Calendar::DOW_LOCAL
 };
 
 // Map index into pattern character string to DateFormat field number
@@ -538,7 +531,7 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
     }
 
     patternCharIndex = (EField)(patternCharPtr - DateFormatSymbols::getPatternUChars());
-    UCalendarDateFields field = fgPatternIndexToCalendarField[patternCharIndex];
+    Calendar::EDateFields field = fgPatternIndexToCalendarField[patternCharIndex];
     int32_t value = cal.get(field, status);
     if (U_FAILURE(status)) {
         return;
@@ -575,7 +568,7 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
     // for "k" and "kk", write out the hour, adjusting midnight to appear as "24"
     case kHourOfDay1Field:
         if (value == 0) 
-            zeroPaddingNumber(appendTo, cal.getMaximum(UCAL_HOUR_OF_DAY) + 1, count, maxIntCount);
+            zeroPaddingNumber(appendTo, cal.getMaximum(Calendar::HOUR_OF_DAY) + 1, count, maxIntCount);
         else 
             zeroPaddingNumber(appendTo, value, count, maxIntCount);
         break;
@@ -609,7 +602,7 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
     // as "12"
     case kHour1Field:
         if (value == 0) 
-            zeroPaddingNumber(appendTo, cal.getLeastMaximum(UCAL_HOUR) + 1, count, maxIntCount);
+            zeroPaddingNumber(appendTo, cal.getLeastMaximum(Calendar::HOUR) + 1, count, maxIntCount);
         else 
             zeroPaddingNumber(appendTo, value, count, maxIntCount);
         break;
@@ -624,8 +617,8 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
         UnicodeString str;
         int32_t zoneIndex = fSymbols->getZoneIndex(cal.getTimeZone().getID(str));
         if (zoneIndex == -1) {
-            value = cal.get(UCAL_ZONE_OFFSET, status) +
-                    cal.get(UCAL_DST_OFFSET, status);
+            value = cal.get(Calendar::ZONE_OFFSET, status) +
+                    cal.get(Calendar::DST_OFFSET, status);
 
             if (value < 0) {
                 appendTo += fgGmtMinus;
@@ -638,7 +631,7 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
             appendTo += (UChar)0x003A /*':'*/;
             zeroPaddingNumber(appendTo, (int32_t)((value%U_MILLIS_PER_HOUR)/U_MILLIS_PER_MINUTE), 2, 2);
         }
-        else if (cal.get(UCAL_DST_OFFSET, status) != 0) {
+        else if (cal.get(Calendar::DST_OFFSET, status) != 0) {
             if (count >= 4) 
                 appendTo += fSymbols->fZoneStrings[zoneIndex][3];
             else 
@@ -694,21 +687,40 @@ SimpleDateFormat::zeroPaddingNumber(UnicodeString &appendTo, int32_t value, int3
 
 //----------------------------------------------------------------------
 
-/**
- * Format characters that indicate numeric fields.  The character
- * at index 0 is treated specially.
- */
-static const UChar NUMERIC_FORMAT_CHARS[] = {0x4D, 0x79, 0x75, 0x64, 0x68, 0x48, 0x6D, 0x73, 0x53, 0x44, 0x46, 0x77, 0x57, 0x6B, 0x4B, 0x00}; /* "MyudhHmsSDFwWkK" */
-
-/**
- * Return true if the given format character, occuring count
- * times, represents a numeric field.
- */
-UBool SimpleDateFormat::isNumeric(UChar formatChar, int32_t count) {
-    UnicodeString s(NUMERIC_FORMAT_CHARS);
-    int32_t i = s.indexOf(formatChar);
-    return (i > 0 || (i == 0 && count < 3));
+// {sfb} removed
+/*
+// this function will dump output to the console on a debug build when there's a parse error
+#ifdef _DEBUG
+void chk(ParsePosition& val, UChar ch, ParsePosition& start, int32_t count)
+{
+    if (val.getIndex() < 0)
+    {
+        cout << "[Parse failure on '" << (char)ch << "' x " << dec << count << " @ " << start.getIndex() << ']';
+    }
 }
+#else
+inline void chk(ParsePosition& val, UChar ch, ParsePosition& start, int32_t count)
+{
+}
+#endif
+
+inline Date
+parseFailureResult(ParsePosition& pos, ParsePosition& oldStart, ParsePosition& failurePos)
+{
+    // Note: The C++ version currently supports the notion of returning zero
+    // with a non-zero parse position, but only if this format is lenient.
+    // The returned position in this case is the first un-parseable character.
+    // This is useful, but is not present in the Java version, and causes a
+    // DateFormat test to fail.
+    
+    // For now, I am removing this function.  It can be restored later.
+
+    // if (!isLenient()) pos = oldStart;
+    // else { pos = failurePos.getIndex(); if (pos.getIndex() < 0) pos = -pos.getIndex(); };
+    pos = oldStart;
+    return 0;
+}
+*/
 
 void
 SimpleDateFormat::parse(const UnicodeString& text, Calendar& cal, ParsePosition& pos) const
@@ -716,167 +728,180 @@ SimpleDateFormat::parse(const UnicodeString& text, Calendar& cal, ParsePosition&
     int32_t start = pos.getIndex();
     int32_t oldStart = start;
     UBool ambiguousYear[] = { FALSE };
+
+    UBool inQuote = FALSE;
+    UChar prevCh = 0;
     int32_t count = 0;
+    int32_t interQuoteCount = 1; // Number of chars between quotes
 
-    // For parsing abutting numeric fields. 'abutPat' is the
-    // offset into 'pattern' of the first of 2 or more abutting
-    // numeric fields.  'abutStart' is the offset into 'text'
-    // where parsing the fields begins. 'abutPass' starts off as 0
-    // and increments each time we try to parse the fields.
-    int32_t abutPat = -1; // If >=0, we are in a run of abutting numeric fields
-    int32_t abutStart = 0;
-    int32_t abutPass = 0;
-
-    const UnicodeString numericFormatChars(NUMERIC_FORMAT_CHARS);
-
-    for (int32_t i=0; i<fPattern.length(); ++i) {
-        UChar ch = fPattern.charAt(i);
-
-        // Handle quoted strings.  Two consecutive quotes is a
-        // quote literal, inside or outside of quotes.
-        if (ch == QUOTE) {
-            abutPat = -1; // End of any abutting fields
-
-            // Match a quote literal '' outside of quotes
-            if ((i+1)<fPattern.length() && fPattern.charAt(i+1)==ch) {
-                if (start==text.length() || text.charAt(start) != ch) {
-                    pos.setIndex(oldStart);
-                    pos.setErrorIndex(start);
-                    return;
-                }
-                ++start;
-                ++i; // Skip over doubled quote
-                continue;
-            }
-
-            // Match a quoted string, including any embedded ''
-            // quote literals.  Note that we allow an unclosed
-            // quote for backward compatibility.
-            while (++i<fPattern.length()) {
-                ch = fPattern.charAt(i);
-                if (ch == QUOTE) {
-                    if ((i+1)<fPattern.length() && fPattern.charAt(i+1)==ch) {
-                        ++i;
-                        // Fall through and match literal quote
-                    } else {
-                        break; // Closing quote seen
-                    }
-                }
-                if (start==text.length() || text.charAt(start) != ch) {
-                    pos.setIndex(oldStart);
-                    pos.setErrorIndex(start);
-                    return;
-                }
-                ++start;
-            }
-            continue;
-        }
-
-        // Handle alphabetic field characters.
-        if ((ch >= 0x41 && ch <= 0x5A) || (ch >= 0x61 && ch <= 0x7A)) { // [A-Za-z]
-            int32_t fieldPat = i;
-
-            // Count the length of this field specifier
-            count = 1;
-            while ((i+1)<fPattern.length() &&
-                   fPattern.charAt(i+1) == ch) {
-                ++count;
-                ++i;
-            }
-
-            if (isNumeric(ch, count)) {
-                if (abutPat < 0) {
-                    // Determine if there is an abutting numeric field.  For
-                    // most fields we can just look at the next characters,
-                    // but the 'm' field is either numeric or text,
-                    // depending on the count, so we have to look ahead for
-                    // that field.
-                    if ((i+1)<fPattern.length()) {
-                        UBool abutting;
-                        UChar nextCh = fPattern.charAt(i+1);
-                        int32_t k = numericFormatChars.indexOf(nextCh);
-                        if (k == 0) {
-                            int32_t j = i+2;
-                            while (j<fPattern.length() &&
-                                   fPattern.charAt(j) == nextCh) {
-                                ++j;
-                            }
-                            abutting = (j-i) < 4; // nextCount < 3
-                        } else {
-                            abutting = k > 0;
+    // loop through the pattern string character by character, using it to control how
+    // we match characters in the input
+    for (int32_t i = 0; i < fPattern.length();++i) {
+        UChar ch = fPattern[i];
+        
+        // if we're inside a quoted string, match characters exactly until we hit
+        // another single quote (two single quotes in a row match one single quote
+        // in the input)
+        if (inQuote)
+        {
+            if (ch == 0x0027 /*'\''*/)
+            {
+                // ends with 2nd single quote
+                inQuote = FALSE;
+                // two consecutive quotes outside a quote means we have
+                // a quote literal we need to match.
+                if (count == 0)
+                {
+                    if(start > text.length() || ch != text[start])
+                        {
+                            pos.setIndex(oldStart);
+                            pos.setErrorIndex(start);
+                            return;
                         }
-
-                        // Record the start of a set of abutting numeric
-                        // fields.
-                        if (abutting) {
-                            abutPat = fieldPat;
-                            abutStart = start;
-                            abutPass = 0;
-                        }
-                    }
+                        ++start;
                 }
-            } else {
-                abutPat = -1; // End of any abutting fields
+                count = 0;
+                interQuoteCount = 0;
             }
-
-            // Handle fields within a run of abutting numeric fields.  Take
-            // the pattern "HHmmss" as an example. We will try to parse
-            // 2/2/2 characters of the input text, then if that fails,
-            // 1/2/2.  We only adjust the width of the leftmost field; the
-            // others remain fixed.  This allows "123456" => 12:34:56, but
-            // "12345" => 1:23:45.  Likewise, for the pattern "yyyyMMdd" we
-            // try 4/2/2, 3/2/2, 2/2/2, and finally 1/2/2.
-            if (abutPat >= 0) {
-                // If we are at the start of a run of abutting fields, then
-                // shorten this field in each pass.  If we can't shorten
-                // this field any more, then the parse of this set of
-                // abutting numeric fields has failed.
-                if (fieldPat == abutPat) {
-                    count -= abutPass++;
-                    if (count == 0) {
-                        pos.setIndex(oldStart);
+            else
+                {
+                    // pattern uses text following from 1st single quote.
+                    if (start >= text.length() || ch != text[start]) {
+                        // Check for cases like: 'at' in pattern vs "xt"
+                        // in time text, where 'a' doesn't match with 'x'.
+                        // If fail to match, return null.
+                        pos.setIndex(oldStart); // left unchanged
                         pos.setErrorIndex(start);
                         return;
                     }
+                    ++count;
+                    ++start;
+                }
+        }
+
+        // if we're not inside a quoted string...
+        else {
+            
+            // ...a quote mark puts us into a quoted string (and we parse any pending
+            // pattern symbols)
+            if (ch == 0x0027 /*'\''*/) {
+                inQuote = TRUE;
+                if (count > 0) 
+                {
+                    int32_t startOffset = start;
+                    start = subParse(text, start, prevCh, count, FALSE, ambiguousYear, cal);
+                    if ( start < 0 ) {
+                        pos.setErrorIndex(startOffset);
+                        pos.setIndex(oldStart);
+                        // {sfb} correct Date
+                        return;
+                    }
+                    count = 0;
                 }
 
-                start = subParse(text, start, ch, count,
-                                 TRUE, FALSE, ambiguousYear, cal);
-
-                // If the parse fails anywhere in the run, back up to the
-                // start of the run and retry.
-                if (start < 0) {
-                    i = abutPat - 1;
-                    start = abutStart;
-                    continue;
+                    if (interQuoteCount == 0)
+                    {
+                        // This indicates two consecutive quotes inside a quote,
+                        // for example, 'o''clock'.  We need to parse this as
+                        // representing a single quote within the quote.
+                        int32_t startOffset = start;
+                        if (start >= text.length() ||  ch != text[start])
+                        {
+                            pos.setErrorIndex(startOffset);
+                            pos.setIndex(oldStart);
+                            // {sfb} correct Date
+                            return;
+                        }
+                        ++start;
+                        count = 1; // Make it look like we never left
+                    }
+            }
+            
+            // if we're on a letter, collect copies of the same letter to determine
+            // the whole parse symbol.  when we hit a different character, parse the
+            // input based on the resulting symbol
+        else if ((ch >= 0x0061 /*'a'*/ && ch <= 0x007A /*'z'*/) 
+             || (ch >= 0x0041 /*'A'*/ && ch <= 0x005A /*'Z'*/))
+          {
+                // ch is a date-time pattern
+                if (ch != prevCh && count > 0) // e.g., yyyyMMdd
+                {
+                    int32_t startOffset = start;
+                    // This is the only case where we pass in 'true' for
+                    // obeyCount.  That's because the next field directly
+                    // abuts this one, so we have to use the count to know when
+                    // to stop parsing. [LIU]
+                    start = subParse(text, start, prevCh, count, TRUE, ambiguousYear, cal);
+                    if (start < 0) {
+                        pos.setErrorIndex(startOffset);
+                        pos.setIndex(oldStart);
+                        // {sfb} correct Date
+                        return;
+                    }
+                    prevCh = ch;
+                    count = 1;
+                }
+                else {
+                    if (ch != prevCh) 
+                        prevCh = ch;
+                    count++;
                 }
             }
 
-            // Handle non-numeric fields and non-abutting numeric
-            // fields.
-            else {
-                int32_t k = start;
-                start=subParse(text, start, ch, count,
-                               FALSE, TRUE, ambiguousYear, cal);
-
-                if (start < 0) {
-                    pos.setErrorIndex(k);
+            // if we're on a non-letter, parse based on any pending pattern symbols
+            else if (count > 0) 
+            {
+                // handle cases like: MM-dd-yy, HH:mm:ss, or yyyy MM dd,
+                // where ch = '-', ':', or ' ', repectively.
+                int32_t startOffset = start;
+                start = subParse( text, start, prevCh, count, FALSE, ambiguousYear, cal);
+                if ( start < 0 ) {
+                    pos.setErrorIndex(startOffset);
                     pos.setIndex(oldStart);
                     return;
                 }
+                if (start >= text.length() || ch != text[start]) {
+                    // handle cases like: 'MMMM dd' in pattern vs. "janx20"
+                    // in time text, where ' ' doesn't match with 'x'.
+                    pos.setErrorIndex(start);
+                    pos.setIndex(oldStart);
+                    return;
+                }
+                start++;
+                count = 0;
+                prevCh = 0;
             }
-        }
 
-        // Handle unquoted non-alphabetic characters.  These are
-        // treated as literals.
-        else {
-            abutPat = -1; // End of any abutting fields
-            if (start==text.length() || text.charAt(start) != ch) {
-                pos.setIndex(oldStart);
-                pos.setErrorIndex(start);
-                return;
+            // otherwise, match characters exactly
+            else 
+            {
+                if (start >= text.length() || ch != text[start]) {
+                    // handle cases like: 'MMMM   dd' in pattern vs.
+                    // "jan,,,20" in time text, where "   " doesn't
+                    // match with ",,,".
+
+                    pos.setErrorIndex(start);
+                    pos.setIndex(oldStart);
+                    return;
+                }
+                start++;
             }
-            ++start;
+
+            ++interQuoteCount;
+        }
+    }
+
+    // if we still have a pending pattern symbol after we're done looping through
+    // characters in the pattern string, parse the input based on the final pending
+    // pattern symbol
+    if (count > 0) 
+    {
+        int32_t startOffset = start;
+        start = subParse(text, start, prevCh, count, FALSE, ambiguousYear, cal);
+        if ( start < 0 ) {
+            pos.setIndex(oldStart);
+            pos.setErrorIndex(startOffset);
+            return;
         }
     }
 
@@ -921,7 +946,7 @@ SimpleDateFormat::parse(const UnicodeString& text, Calendar& cal, ParsePosition&
         if (parsedDate < internalGetDefaultCenturyStart())
         {
             // We can't use add here because that does a complete() first.
-            cal.set(UCAL_YEAR, internalGetDefaultCenturyStartYear() + 100);
+            cal.set(Calendar::YEAR, internalGetDefaultCenturyStartYear() + 100);
         }
         delete copy;
     }
@@ -954,7 +979,7 @@ SimpleDateFormat::parse(const UnicodeString& text, UErrorCode& status) const
 
 int32_t SimpleDateFormat::matchString(const UnicodeString& text,
                               int32_t start,
-                              UCalendarDateFields field,
+                              Calendar::EDateFields field,
                               const UnicodeString* data,
                               int32_t dataCount,
                               Calendar& cal) const
@@ -962,7 +987,7 @@ int32_t SimpleDateFormat::matchString(const UnicodeString& text,
     int32_t i = 0;
     int32_t count = dataCount;
 
-    if (field == UCAL_DAY_OF_WEEK) i = 1;
+    if (field == Calendar::DAY_OF_WEEK) i = 1;
 
     // There may be multiple strings in the data[] array which begin with
     // the same prefix (e.g., Cerven and Cervenec (June and July) in Czech).
@@ -1009,6 +1034,31 @@ SimpleDateFormat::set2DigitYearStart(UDate d, UErrorCode& status)
 }
 
 /**
+ * Parse the given text, at the given position, as a numeric value, using
+ * this objects fNumberFormat. Return the corresponding long value in the
+ * fill-in parameter 'value'. If the parse fails, this method leaves pos
+ * unchanged and returns FALSE; otherwise it advances pos and
+ * returns TRUE.
+ */
+// {sfb} removed
+/*
+UBool
+SimpleDateFormat::subParseLong(const UnicodeString& text, ParsePosition& pos, int32_t& value) const
+{
+    Formattable parseResult;
+    ParsePosition posSave = pos;
+    fNumberFormat->parse(text, parseResult, pos);
+    if (pos != posSave && parseResult.getType() == Formattable::kLong)
+    {
+        value = parseResult.getLong();
+        return TRUE;
+    }
+    pos = posSave;
+    return FALSE;
+}
+*/
+
+/**
  * Private member function that converts the parsed date strings into
  * timeFields. Returns -start (for ParsePosition) if failed.
  * @param text the time text to be parsed.
@@ -1019,14 +1069,13 @@ SimpleDateFormat::set2DigitYearStart(UDate d, UErrorCode& status)
  * indicating matching failure, otherwise.
  */
 int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UChar ch, int32_t count,
-                           UBool obeyCount, UBool allowNegative, UBool ambiguousYear[], Calendar& cal) const
+                           UBool obeyCount, UBool ambiguousYear[], Calendar& cal) const
 {
     Formattable number;
     int32_t value = 0;
     int32_t i;
     ParsePosition pos(0);
     int32_t patternCharIndex;
-    UnicodeString temp;
     UChar *patternCharPtr = u_strchr(DateFormatSymbols::getPatternUChars(), ch);
 
     if (patternCharPtr == NULL) {
@@ -1035,7 +1084,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
 
     patternCharIndex = (EField)(patternCharPtr - DateFormatSymbols::getPatternUChars());
 
-    UCalendarDateFields field = fgPatternIndexToCalendarField[patternCharIndex];
+    Calendar::EDateFields field = fgPatternIndexToCalendarField[patternCharIndex];
 
     // If there are any spaces here, skip over them.  If we hit the end
     // of the string, then fail.
@@ -1064,17 +1113,16 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
         int32_t parseStart = pos.getIndex(); // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
         // It would be good to unify this with the obeyCount logic below,
         // but that's going to be difficult.
-        const UnicodeString* src;
-        if (obeyCount) {
-            if ((start+count) > text.length()) {
+        if (obeyCount)
+        {
+            if ((start+count) > text.length()) 
                 return -start;
-            }
+            UnicodeString temp;
             text.extractBetween(0, start + count, temp);
-            src = &temp;
-        } else {
-            src = &text;
+            fNumberFormat->parse(temp, number, pos);
         }
-        parseInt(*src, number, pos, allowNegative);
+        else 
+            fNumberFormat->parse(text, number, pos);
         if (pos.getIndex() == parseStart)
             // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
             return -start;
@@ -1083,7 +1131,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
 
     switch (patternCharIndex) {
     case kEraField:
-        return matchString(text, start, UCAL_ERA, fSymbols->fEras, fSymbols->fErasCount, cal);
+        return matchString(text, start, Calendar::ERA, fSymbols->fEras, fSymbols->fErasCount, cal);
     case kYearField:
         // If there are 3 or more YEAR pattern characters, this indicates
         // that the year value is to be treated literally, without any
@@ -1108,7 +1156,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
             value += (fDefaultCenturyStartYear/100)*100 +
                 (value < ambiguousTwoDigitYear ? 100 : 0);
         }
-        cal.set(UCAL_YEAR, value);
+        cal.set(Calendar::YEAR, value);
         return pos.getIndex();
     case kYearWOYField:
         // Comment is the same as for kYearFiels - look above
@@ -1121,7 +1169,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
             value += (fDefaultCenturyStartYear/100)*100 +
                 (value < ambiguousTwoDigitYear ? 100 : 0);
         }
-        cal.set(UCAL_YEAR_WOY, value);
+        cal.set(Calendar::YEAR_WOY, value);
         return pos.getIndex();
     case kMonthField:
         if (count <= 2) // i.e., M or MM.
@@ -1129,7 +1177,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
             // Don't want to parse the month if it is a string
             // while pattern uses numeric style: M or MM.
             // [We computed 'value' above.]
-            cal.set(UCAL_MONTH, value - 1);
+            cal.set(Calendar::MONTH, value - 1);
             return pos.getIndex();
         }
         else
@@ -1138,38 +1186,38 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
             // Want to be able to parse both short and long forms.
             // Try count == 4 first:
             int32_t newStart = 0;
-            if ((newStart = matchString(text, start, UCAL_MONTH,
+            if ((newStart = matchString(text, start, Calendar::MONTH,
                                       fSymbols->fMonths, fSymbols->fMonthsCount, cal)) > 0)
                 return newStart;
             else // count == 4 failed, now try count == 3
-                return matchString(text, start, UCAL_MONTH,
+                return matchString(text, start, Calendar::MONTH,
                                    fSymbols->fShortMonths, fSymbols->fShortMonthsCount, cal);
         }
     case kHourOfDay1Field:
         // [We computed 'value' above.]
-        if (value == cal.getMaximum(UCAL_HOUR_OF_DAY) + 1) 
+        if (value == cal.getMaximum(Calendar::HOUR_OF_DAY) + 1) 
             value = 0;
-        cal.set(UCAL_HOUR_OF_DAY, value);
+        cal.set(Calendar::HOUR_OF_DAY, value);
         return pos.getIndex();
     case kDayOfWeekField:
         {
             // Want to be able to parse both short and long forms.
             // Try count == 4 (DDDD) first:
             int32_t newStart = 0;
-            if ((newStart = matchString(text, start, UCAL_DAY_OF_WEEK,
+            if ((newStart = matchString(text, start, Calendar::DAY_OF_WEEK,
                                       fSymbols->fWeekdays, fSymbols->fWeekdaysCount, cal)) > 0)
                 return newStart;
             else // DDDD failed, now try DDD
-                return matchString(text, start, UCAL_DAY_OF_WEEK,
+                return matchString(text, start, Calendar::DAY_OF_WEEK,
                                    fSymbols->fShortWeekdays, fSymbols->fShortWeekdaysCount, cal);
         }
     case kAmPmField:
-        return matchString(text, start, UCAL_AM_PM, fSymbols->fAmPms, fSymbols->fAmPmsCount, cal);
+        return matchString(text, start, Calendar::AM_PM, fSymbols->fAmPms, fSymbols->fAmPmsCount, cal);
     case kHour1Field:
         // [We computed 'value' above.]
-        if (value == cal.getLeastMaximum(UCAL_HOUR)+1) 
+        if (value == cal.getLeastMaximum(Calendar::HOUR)+1) 
             value = 0;
-        cal.set(UCAL_HOUR, value);
+        cal.set(Calendar::HOUR, value);
         return pos.getIndex();
     case kTimezoneField:
         {
@@ -1197,7 +1245,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
         if ((text.length() - start) > gmtLen &&
             (lcaseText.compare(start, gmtLen, lcaseGMT, 0, gmtLen)) == 0)
         {
-            cal.set(UCAL_DST_OFFSET, 0);
+            cal.set(Calendar::DST_OFFSET, 0);
 
             pos.setIndex(start + gmtLen);
 
@@ -1206,7 +1254,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
             else if( text[pos.getIndex()] == 0x002D /*'-'*/ )
                 sign = -1;
             else {
-                cal.set(UCAL_ZONE_OFFSET, 0 );
+                cal.set(Calendar::ZONE_OFFSET, 0 );
                 return pos.getIndex();
             }
 
@@ -1265,11 +1313,11 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
                     // There are similar cases of such caseCompare() uses elsewhere in ICU.
                     if (0 == (text.caseCompare(start, zs->length(), *zs, 0))) {
                         TimeZone *tz = TimeZone::createTimeZone(fSymbols->fZoneStrings[i][0]);
-                        cal.set(UCAL_ZONE_OFFSET, tz->getRawOffset());
+                        cal.set(Calendar::ZONE_OFFSET, tz->getRawOffset());
                         // Must call set() with something -- TODO -- Fix this to
                         // use the correct DST SAVINGS for the zone.
                         delete tz;
-                        cal.set(UCAL_DST_OFFSET, j >= 3 ? U_MILLIS_PER_HOUR : 0);
+                        cal.set(Calendar::DST_OFFSET, j >= 3 ? U_MILLIS_PER_HOUR : 0);
                         return (start + fSymbols->fZoneStrings[i][j].length());
                     }
                 }
@@ -1314,10 +1362,10 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
 
             if (cal.getTimeZone().useDaylightTime())
             {
-                cal.set(UCAL_DST_OFFSET, U_MILLIS_PER_HOUR);
+                cal.set(Calendar::DST_OFFSET, U_MILLIS_PER_HOUR);
                 offset -= U_MILLIS_PER_HOUR;
             }
-            cal.set(UCAL_ZONE_OFFSET, offset);
+            cal.set(Calendar::ZONE_OFFSET, offset);
 
             return pos.getIndex();
         }
@@ -1341,45 +1389,23 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
         // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
         int32_t parseStart = pos.getIndex();
         // Handle "generic" fields
-        const UnicodeString* src;
-        if (obeyCount) {
-            if ((start+count) > text.length()) {
+        if (obeyCount)
+        {
+            if ((start+count) > text.length()) 
                 return -start;
-            }
-            text.extractBetween(0, start + count, temp);
-            src = &temp;
-        } else {
-            src = &text;
+            UnicodeString s;
+            // {sfb} old code had extract, make sure it works
+            text.extractBetween(0, start + count, s);
+            fNumberFormat->parse(s, number, pos);
         }
-        parseInt(*src, number, pos, allowNegative);
+        else 
+            fNumberFormat->parse(text, number, pos);
         if (pos.getIndex() != parseStart) {
             // WORK AROUND BUG IN NUMBER FORMAT IN 1.2B3
             cal.set(field, number.getLong());
             return pos.getIndex();
         }
         return -start;
-    }
-}
-
-/**
- * Parse an integer using fNumberFormat.  This method is semantically
- * const, but actually may modify fNumberFormat.
- */
-void SimpleDateFormat::parseInt(const UnicodeString& text,
-                                Formattable& number,
-                                ParsePosition& pos,
-                                UBool allowNegative) const {
-    UnicodeString oldPrefix;
-    DecimalFormat* df = NULL;
-    if (!allowNegative &&
-        fNumberFormat->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
-        df = (DecimalFormat*)fNumberFormat;
-        df->getNegativePrefix(oldPrefix);
-        df->setNegativePrefix(SUPPRESS_NEGATIVE_PREFIX);
-    }
-    fNumberFormat->parse(text, number, pos);
-    if (df != NULL) {
-        df->setNegativePrefix(oldPrefix);
     }
 }
 
@@ -1405,11 +1431,11 @@ void SimpleDateFormat::translatePattern(const UnicodeString& originalPattern,
   for (int32_t i = 0; i < originalPattern.length(); ++i) {
     UChar c = originalPattern[i];
     if (inQuote) {
-      if (c == QUOTE) 
+      if (c == 0x0027 /*'\''*/) 
     inQuote = FALSE;
     }
     else {
-      if (c == QUOTE) 
+      if (c == 0x0027 /*'\''*/) 
     inQuote = TRUE;
       else if ((c >= 0x0061 /*'a'*/ && c <= 0x007A) /*'z'*/ 
            || (c >= 0x0041 /*'A'*/ && c <= 0x005A /*'Z'*/)) {
@@ -1493,6 +1519,28 @@ SimpleDateFormat::setDateFormatSymbols(const DateFormatSymbols& newFormatSymbols
 
 //----------------------------------------------------------------------
 
+// {sfb} removed
+/*int32_t
+SimpleDateFormat::getZoneIndex(const UnicodeString& ID) const
+{
+    // this function searches a time zone list for a time zone with the specified
+    // ID.  It'll either return an apprpriate row number or -1 if the ID wasn't
+    // found.
+    int32_t index, col;
+
+    for (col=0; col<=4 && col<fSymbols->fZoneStringsColCount; col+=2)
+    {
+        for (index = 0; index < fSymbols->fZoneStringsRowCount; index++)
+        {
+            if (fSymbols->fZoneStrings[index][col] == ID) return index;
+        }
+    }
+
+    return - 1;
+}*/
+
+//----------------------------------------------------------------------
+
 UDate
 SimpleDateFormat::internalGetDefaultCenturyStart() const
 {
@@ -1534,9 +1582,9 @@ SimpleDateFormat::initializeSystemDefaultCentury()
         if (calendar != NULL && U_SUCCESS(status))
         {
             calendar->setTime(Calendar::getNow(), status);
-            calendar->add(UCAL_YEAR, -80, status);
+            calendar->add(Calendar::YEAR, -80, status);
             fgSystemDefaultCenturyStart = calendar->getTime(status);
-            fgSystemDefaultCenturyStartYear = calendar->get(UCAL_YEAR, status);
+            fgSystemDefaultCenturyStartYear = calendar->get(Calendar::YEAR, status);
             delete calendar;
         }
         // We have no recourse upon failure unless we want to propagate the failure

@@ -410,19 +410,9 @@ ucbuf_getcx32(UCHARBUF* buf,UErrorCode* error) {
      * to c32 or not
      */
     if(c32==0xFFFFFFFF){
-		if(buf->showWarning) {
-			char context[20];
-			int32_t len = 20;
-			if(length  < len) {
-			  len = length; 
-			}
-			context[len]= 0 ; /* null terminate the buffer */
-			u_UCharsToChars( buf->currentPos, context, len);
-			fprintf(stderr,"Bad escape: [%c%s]...\n", c1,context);
-		}
         *error= U_ILLEGAL_ESCAPE_SEQUENCE;
         return c1;
-    }else if(c32!=c2 || (c32==0x0075 && c2==0x0075 && c1==0x005C) /* for \u0075 c2=0x0075 and c32==0x0075*/){
+    }else if(c32!=c2){
         /* Update the current buffer position */
         buf->currentPos += offset;
     }else{
@@ -530,9 +520,9 @@ ucbuf_ungetc(int32_t c,UCHARBUF* buf){
     UChar escaped[8] ={'\0'};
     int32_t len =0;
     if(c > 0xFFFF){
-        len = uprv_itou(escaped,8,c,16,8);
+        len = uprv_itou(escaped,c,16,8);
     }else{
-        len=uprv_itou(escaped,8,c,16,4);
+        len=uprv_itou(escaped,c,16,4);
     }
     if(buf->currentPos!=buf->buffer){
         if(*(buf->currentPos-1)==c){
@@ -741,7 +731,6 @@ ucbuf_readline(UCHARBUF* buf,int32_t* len,UErrorCode* err){
                 return savePos;
             }
             /* else */
-
             if (temp>=buf->bufLimit|| ucbuf_isCharNewLine(c)){  /* Unipad inserts 2028 line separators! */
                 *len = temp - buf->currentPos;
                 savePos = buf->currentPos;

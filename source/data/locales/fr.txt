@@ -203,8 +203,7 @@ fr {
         ga { "irlandais" }
         it { "italien" }
         ja { "japonais" }
-        jv { "javanais" }
-        //jw { "javanais" } // Use jv instead
+        jw { "javanais" }
         kn { "kannada" }
         ks { "kashmiri" }
         kk { "kazakh" }
@@ -374,7 +373,7 @@ fr {
         "#E0",
     }
 //    ShortLanguage { "fra" }
-    localPatternChars { "GaMjkHmsSEDFwWxhKzAe" }
+    localPatternChars { "GanjkHmsSEDFwWxhKzAe" }
     zoneStrings { 
         {
             "Africa/Casablanca",

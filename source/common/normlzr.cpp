@@ -18,6 +18,12 @@
 
 U_NAMESPACE_BEGIN
 
+#ifndef ICU_UNORM_USE_DEPRECATES
+enum {
+    IGNORE_HANGUL=1
+};
+#endif /* ICU_UNORM_USE_DEPRECATES */
+
 const char Normalizer::fgClassID=0;
 
 //-------------------------------------------------------------------------
@@ -191,7 +197,7 @@ Normalizer::normalize(const UnicodeString& source,
         UChar *buffer=dest->getBuffer(source.length());
         int32_t length=unorm_internalNormalize(buffer, dest->getCapacity(),
                                                source.getBuffer(), source.length(),
-                                               mode, options,
+                                               mode, (options&IGNORE_HANGUL)!=0,
                                                &status);
         dest->releaseBuffer(length);
         if(status==U_BUFFER_OVERFLOW_ERROR) {
@@ -199,7 +205,7 @@ Normalizer::normalize(const UnicodeString& source,
             buffer=dest->getBuffer(length);
             length=unorm_internalNormalize(buffer, dest->getCapacity(),
                                            source.getBuffer(), source.length(),
-                                           mode, options,
+                                           mode, (options&IGNORE_HANGUL)!=0,
                                            &status);
             dest->releaseBuffer(length);
         }
@@ -237,7 +243,7 @@ Normalizer::compose(const UnicodeString& source,
         UChar *buffer=dest->getBuffer(source.length());
         int32_t length=unorm_compose(buffer, dest->getCapacity(),
                                      source.getBuffer(), source.length(),
-                                     compat, options,
+                                     compat, (options&IGNORE_HANGUL)!=0,
                                      &status);
         dest->releaseBuffer(length);
         if(status==U_BUFFER_OVERFLOW_ERROR) {
@@ -245,7 +251,7 @@ Normalizer::compose(const UnicodeString& source,
             buffer=dest->getBuffer(length);
             length=unorm_compose(buffer, dest->getCapacity(),
                                  source.getBuffer(), source.length(),
-                                 compat, options,
+                                 compat, (options&IGNORE_HANGUL)!=0,
                                  &status);
             dest->releaseBuffer(length);
         }
@@ -283,7 +289,7 @@ Normalizer::decompose(const UnicodeString& source,
         UChar *buffer=dest->getBuffer(source.length());
         int32_t length=unorm_decompose(buffer, dest->getCapacity(),
                                      source.getBuffer(), source.length(),
-                                     compat, options,
+                                     compat, (options&IGNORE_HANGUL)!=0,
                                      &status);
         dest->releaseBuffer(length);
         if(status==U_BUFFER_OVERFLOW_ERROR) {
@@ -291,7 +297,7 @@ Normalizer::decompose(const UnicodeString& source,
             buffer=dest->getBuffer(length);
             length=unorm_decompose(buffer, dest->getCapacity(),
                                    source.getBuffer(), source.length(),
-                                   compat, options,
+                                   compat, (options&IGNORE_HANGUL)!=0,
                                    &status);
             dest->releaseBuffer(length);
         }
@@ -624,7 +630,7 @@ Normalizer::nextNormalize() {
     errorCode=U_ZERO_ERROR;
     p=buffer.getBuffer(-1);
     length=unorm_next(text, p, buffer.getCapacity(),
-                      fUMode, fOptions,
+                      fUMode, fOptions!=0,
                       TRUE, 0,
                       &errorCode);
     buffer.releaseBuffer(length);
@@ -633,7 +639,7 @@ Normalizer::nextNormalize() {
         text->move(text, nextIndex, UITER_ZERO);
         p=buffer.getBuffer(length);
         length=unorm_next(text, p, buffer.getCapacity(),
-                          fUMode, fOptions,
+                          fUMode, fOptions!=0,
                           TRUE, 0,
                           &errorCode);
         buffer.releaseBuffer(length);

@@ -27,7 +27,7 @@ U_NAMESPACE_BEGIN
  * StringSearch ensures that language eccentricity can be 
  * handled, e.g. for the German collator, characters ß and SS will be matched 
  * if case is chosen to be ignored.
- * See the <a href="http://oss.software.ibm.com/cvs/icu/~checkout~/icuhtml/design/collation/ICU_collation_design.htm">
+ * See the <a href=http://oss.software.ibm.com/icu/develop/collation/ICU_collation_design.htm>
  * "ICU Collation Design Document"</a> for more information.
  * <p> 
  * The algorithm implemented is a modified form of the Boyer Moore's search.
@@ -405,14 +405,14 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual inline UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static inline UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 protected:
 
@@ -497,14 +497,6 @@ private :
      */
     static const char fgClassID;
 };
-
-inline UClassID
-StringSearch::getStaticClassID()
-{ return (UClassID)&fgClassID; }
-
-inline UClassID
-StringSearch::getDynamicClassID() const
-{ return StringSearch::getStaticClassID(); }
 
 U_NAMESPACE_END
 

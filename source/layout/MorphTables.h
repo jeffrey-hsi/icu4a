@@ -8,11 +8,6 @@
 #ifndef __MORPHTABLES_H
 #define __MORPHTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LayoutTables.h"
 

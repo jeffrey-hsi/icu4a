@@ -100,7 +100,7 @@ LocaleUtility::getAvailableLocaleNames(const UnicodeString& bundleID)
             UErrorCode status = U_ZERO_ERROR;
             int32_t count = uloc_countAvailable();
             for (int32_t i = 0; i < count; ++i) {
-                UnicodeString temp(uloc_getAvailable(i), "");
+                UnicodeString temp(uloc_getAvailable(i));
                 result->put(temp, (void*)result, status);
                 if (U_FAILURE(status)) {
                     delete result;
@@ -191,7 +191,7 @@ UnicodeString&
 LocaleKey::prefix(UnicodeString& result) const {
     if (_kind != KIND_ANY) {
         UChar buffer[64];
-        uprv_itou(buffer, 64, _kind, 10, 0);
+        uprv_itou(buffer, _kind, 10, 0);
         UnicodeString temp(buffer);
         result.append(temp);
     }
@@ -577,7 +577,7 @@ ICULocaleService::get(const Locale& locale, int32_t kind, Locale* actualReturn, 
         return result;
     }
 
-    UnicodeString locName(locale.getName(), "");
+    UnicodeString locName(locale.getName());
     if (locName.isBogus()) {
         status = U_MEMORY_ALLOCATION_ERROR;
     } else {
@@ -767,9 +767,6 @@ public:
     }
 
     void reset(UErrorCode& status) {
-		if (status == U_ENUM_OUT_OF_SYNC_ERROR) {
-			status = U_ZERO_ERROR;
-		}
         if (U_SUCCESS(status)) {
             _timestamp = _service->getTimestamp();
             _pos = 0;

@@ -8,11 +8,6 @@
 #ifndef __GLYPHSUBSTITUTIONLOOKUPPROCESSOR_H
 #define __GLYPHSUBSTITUTIONLOOKUPPROCESSOR_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEGlyphFilter.h"
 #include "LEFontInstance.h"

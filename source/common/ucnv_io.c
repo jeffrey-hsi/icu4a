@@ -638,10 +638,10 @@ static const UEnumeration gEnumAliases = {
     ucnv_io_resetStandardAliases
 };
 
-U_CAPI UEnumeration * U_EXPORT2
+U_CAPI UEnumeration *
 ucnv_openStandardNames(const char *convName,
-                       const char *standard,
-                       UErrorCode *pErrorCode)
+                            const char *standard,
+                            UErrorCode *pErrorCode)
 {
     UEnumeration *myEnum = NULL;
     if (haveAliasData(pErrorCode) && isAlias(convName, pErrorCode)) {
@@ -932,6 +932,18 @@ ucnv_openAllNames(UErrorCode *pErrorCode) {
     }
     return myEnum;
 }
+
+#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
+U_CFUNC void
+ucnv_io_fillAvailableConverters(const char **aliases, UErrorCode *pErrorCode) {
+    if (haveAvailableConverterList(pErrorCode)) {
+        uint16_t count = 0;
+        while (count < gAvailableConverterCount) {
+            *aliases++=gAvailableConverters[count++];
+        }
+    }
+}
+#endif
 
 U_CFUNC uint16_t
 ucnv_io_countAvailableAliases(UErrorCode *pErrorCode) {

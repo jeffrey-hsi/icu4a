@@ -12,10 +12,13 @@
 
 #if !UCONFIG_NO_TRANSLITERATION
 
+/* These APIs are becoming private */
+#define ICU_HEXTOUNICODETRANSLITERATOR_USE_DEPRECATES 1
+
+#include "unicode/hextouni.h"
 #include "unicode/rep.h"
 #include "unicode/unifilt.h"
 #include "unicode/uchar.h"
-#include "hextouni.h"
 
 
 U_NAMESPACE_BEGIN

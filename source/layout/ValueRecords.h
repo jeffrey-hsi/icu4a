@@ -8,11 +8,6 @@
 #ifndef __VALUERECORDS_H
 #define __VALUERECORDS_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEFontInstance.h"
 #include "OpenTypeTables.h"

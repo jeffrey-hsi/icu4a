@@ -18,10 +18,10 @@
 //#include "LEFontInstance.h"
 //#include "LayoutEngine.h"
 //#include "unicode/loengine.h"
-//#include "unicode/uscript.h"
+#include "unicode/uscript.h"
 //#include "LEScripts.h"
 
-//#include "GDIFontInstance.h"
+#include "GDIFontInstance.h"
 
 #include "paragraph.h"
 
@@ -81,7 +81,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR szCmdLine,
     HACCEL hAccel;
     MSG msg;
     WNDCLASS wndclass;
-    LEErrorCode status = LE_NO_ERROR;
+    RFIErrorCode status = RFI_NO_ERROR;
 
     wndclass.style         = CS_HREDRAW | CS_VREDRAW;
     wndclass.lpfnWndProc   = WndProc;
@@ -133,7 +133,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     switch (message) {
     case WM_CREATE:
     {
-        LEErrorCode fontStatus = LE_NO_ERROR;
+        RFIErrorCode fontStatus = RFI_NO_ERROR;
 
         hdc = GetDC(hwnd);
         surface = new GDISurface(hdc);

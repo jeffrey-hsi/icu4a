@@ -140,9 +140,29 @@ LINK32=link.exe
 # Name "cintltst - Win32 Debug"
 # Name "cintltst - Win64 Release"
 # Name "cintltst - Win64 Debug"
-# Begin Group "bidi"
+# Begin Group "Source Files"
 
-# PROP Default_Filter ""
+# PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
+# Begin Source File
+
+SOURCE=.\bocu1tst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\callcoll.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\calltest.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\capitst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cbiapts.c
+# End Source File
 # Begin Source File
 
 SOURCE=.\cbididat.c
@@ -153,252 +173,7 @@ SOURCE=.\cbiditst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cbiditst.h
-# End Source File
-# End Group
-# Begin Group "break iteration"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\cbiapts.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cbiapts.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\cbkittst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cregrtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cregrtst.h
-# End Source File
-# End Group
-# Begin Group "collation"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\callcoll.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\callcoll.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\capitst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\capitst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ccolltst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ccolltst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ccurrtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ccurrtst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cdantst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cdantst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cdetst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cdetst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cestst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cestst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cfintst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cfintst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cfrtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cfrtst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cg7coll.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cg7coll.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\citertst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\citertst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cjaptst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cjaptst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cmsccoll.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cturtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cturtst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\encoll.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\encoll.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\usrchdat.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\usrchtst.c
-# End Source File
-# End Group
-# Begin Group "collections"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\chashtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\trietest.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ucmptst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\uenumtst.c
-# End Source File
-# End Group
-# Begin Group "conversion"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\bocu1tst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ccapitst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ccapitst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cconvtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\eurocreg.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\nccbtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\nccbtst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ncnvfbts.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\ncnvfbts.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ncnvtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\nucnvtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\nucnvtst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\stdnmtst.c
-# End Source File
-# End Group
-# Begin Group "data & memory"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\udatatst.c
-# ADD CPP /Ze
-# End Source File
-# End Group
-# Begin Group "formatting"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\calltest.c
 # End Source File
 # Begin Source File
 
@@ -406,7 +181,23 @@ SOURCE=.\ccaltst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\ccaltst.h
+SOURCE=.\ccapitst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ccolltst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cconvtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ccurrtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cdantst.c
 # End Source File
 # Begin Source File
 
@@ -414,7 +205,7 @@ SOURCE=.\cdattst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cdattst.h
+SOURCE=.\cdetst.c
 # End Source File
 # Begin Source File
 
@@ -422,15 +213,15 @@ SOURCE=.\cdtdptst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cdtdptst.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\cdtrgtst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cdtrgtst.h
+SOURCE=.\cestst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cfintst.c
 # End Source File
 # Begin Source File
 
@@ -438,7 +229,35 @@ SOURCE=.\cformtst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cformtst.h
+SOURCE=.\cfrtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cg7coll.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\chashtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cintltst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\citertst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cjaptst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cloctst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cmsccoll.c
 # End Source File
 # Begin Source File
 
@@ -446,15 +265,11 @@ SOURCE=.\cmsgtst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cmsgtst.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\cnmdptst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cnmdptst.h
+SOURCE=.\cnormtst.c
 # End Source File
 # Begin Source File
 
@@ -462,23 +277,7 @@ SOURCE=.\cnumtst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cnumtst.h
-# End Source File
-# End Group
-# Begin Group "locales & resources"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\cloctst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cloctst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\cposxtst.c
+SOURCE=.\cregrtst.c
 # End Source File
 # Begin Source File
 
@@ -486,80 +285,8 @@ SOURCE=.\crestst.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\crestst.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\creststn.c
 # End Source File
-# Begin Source File
-
-SOURCE=.\creststn.h
-# End Source File
-# End Group
-# Begin Group "misc"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\cintltst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cintltst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\ctstdep.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cutiltst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\mstrmtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\putiltst.c
-# End Source File
-# End Group
-# Begin Group "normalization"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\cnormtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cnormtst.h
-# End Source File
-# End Group
-# Begin Group "properties & sets"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\cucdtst.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\cucdtst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\usettest.c
-# End Source File
-# End Group
-# Begin Group "regex"
-
-# PROP Default_Filter ""
-# End Group
-# Begin Group "strings"
-
-# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=.\cstrcase.c
@@ -567,6 +294,18 @@ SOURCE=.\cstrcase.c
 # Begin Source File
 
 SOURCE=.\cstrtest.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ctstdep.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cturtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\cucdtst.c
 # End Source File
 # Begin Source File
 
@@ -578,20 +317,233 @@ SOURCE=.\custrtst.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\cutiltst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\encoll.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\eurocreg.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\mstrmtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\nccbtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ncnvfbts.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ncnvtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\nucnvtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\putiltst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\stdnmtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\trietest.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ucmptst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\udatatst.c
+# ADD CPP /Ze
+# End Source File
+# Begin Source File
+
+SOURCE=.\uenumtst.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\usettest.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\usrchdat.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\usrchtst.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\utf16tst.c
 # End Source File
 # Begin Source File
 
 SOURCE=.\utf8tst.c
 # End Source File
-# End Group
-# Begin Group "transforms"
-
-# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=.\utransts.c
 # End Source File
+# End Group
+# Begin Group "Header Files"
+
+# PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=.\callcoll.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\capitst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cbiapts.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cbiditst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ccaltst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ccapitst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ccolltst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ccurrtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cdantst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cdattst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cdetst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cdtdptst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cdtrgtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cestst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cfintst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cformtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cfrtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cg7coll.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cintltst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\citertst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cjaptst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cloctst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cmsgtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cnmdptst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cnormtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cnumtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cregrtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\crestst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\creststn.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cturtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\cucdtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\encoll.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\nccbtst.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ncnvfbts.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\nucnvtst.h
+# End Source File
+# End Group
+# Begin Group "Resource Files"
+
+# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
 # End Target
 # End Project

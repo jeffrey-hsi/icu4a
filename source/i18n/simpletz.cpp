@@ -398,6 +398,16 @@ SimpleTimeZone::setEndRule(int32_t month, int32_t dayOfMonth, int32_t dayOfWeek,
 }
 
 // -------------------------------------
+#ifdef ICU_TIMEZONE_USE_DEPRECATES
+// deprecated version
+int32_t
+SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
+                          uint8_t dayOfWeek, int32_t millis) const
+{
+    UErrorCode status = U_ZERO_ERROR;
+    return getOffset(era, year, month, day, dayOfWeek, millis, status);
+}
+#endif
 
 int32_t
 SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
@@ -410,7 +420,7 @@ SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
     // 7-argument getOffset(), and outside code should use Calendar.get(int
     // field) with fields ZONE_OFFSET and DST_OFFSET. We can't get rid of
     // this method because it's public API. - liu 8/10/98
-    if(month < UCAL_JANUARY || month > UCAL_DECEMBER) {
+    if(month < Calendar::JANUARY || month > Calendar::DECEMBER) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
     }
@@ -429,8 +439,8 @@ SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
     // 9-argument getOffset(), and outside code should use Calendar.get(int
     // field) with fields ZONE_OFFSET and DST_OFFSET. We can't get rid of
     // this method because it's public API. - liu 8/10/98
-    if (month < UCAL_JANUARY
-        || month > UCAL_DECEMBER) {
+    if (month < Calendar::JANUARY
+        || month > Calendar::DECEMBER) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
         return -1;
     }
@@ -451,12 +461,12 @@ SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
     if(U_FAILURE(status)) return 0;
 
     if ((era != GregorianCalendar::AD && era != GregorianCalendar::BC)
-        || month < UCAL_JANUARY
-        || month > UCAL_DECEMBER
+        || month < Calendar::JANUARY
+        || month > Calendar::DECEMBER
         || day < 1
         || day > monthLength
-        || dayOfWeek < UCAL_SUNDAY
-        || dayOfWeek > UCAL_SATURDAY
+        || dayOfWeek < Calendar::SUNDAY
+        || dayOfWeek > Calendar::SATURDAY
         || millis < 0
         || millis >= U_MILLIS_PER_DAY
         || monthLength < 28
@@ -822,7 +832,7 @@ SimpleTimeZone::decodeStartRule(UErrorCode& status)
         dstSavings = U_MILLIS_PER_HOUR;
     }
     if (startDay != 0) {
-        if (startMonth < UCAL_JANUARY || startMonth > UCAL_DECEMBER) {
+        if (startMonth < Calendar::JANUARY || startMonth > Calendar::DECEMBER) {
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return;
         }
@@ -845,7 +855,7 @@ SimpleTimeZone::decodeStartRule(UErrorCode& status)
                     startMode = DOW_LE_DOM_MODE;
                 }
             }
-            if (startDayOfWeek > UCAL_SATURDAY) {
+            if (startDayOfWeek > Calendar::SATURDAY) {
                 status = U_ILLEGAL_ARGUMENT_ERROR;
                 return;
             }
@@ -877,7 +887,7 @@ SimpleTimeZone::decodeEndRule(UErrorCode& status)
         dstSavings = U_MILLIS_PER_HOUR;
     }
     if (endDay != 0) {
-        if (endMonth < UCAL_JANUARY || endMonth > UCAL_DECEMBER) {
+        if (endMonth < Calendar::JANUARY || endMonth > Calendar::DECEMBER) {
             status = U_ILLEGAL_ARGUMENT_ERROR;
             return;
         }
@@ -900,7 +910,7 @@ SimpleTimeZone::decodeEndRule(UErrorCode& status)
                     endMode = DOW_LE_DOM_MODE;
                 }
             }
-            if (endDayOfWeek > UCAL_SATURDAY) {
+            if (endDayOfWeek > Calendar::SATURDAY) {
                 status = U_ILLEGAL_ARGUMENT_ERROR;
                 return;
             }

@@ -35,24 +35,21 @@ enum {
 
     UPROPS_RESERVED_INDEX, /* 6 */
 
-    /* maximum values for code values in vector word 0 */
+    /* maximum values for block and script codes, bits used as in vector word 0 */
     UPROPS_MAX_VALUES_INDEX=10,
-    /* maximum values for code values in vector word 2 */
-    UPROPS_MAX_VALUES_2_INDEX,
 
     UPROPS_INDEX_COUNT=16
 };
 
 /* definitions for the main properties words */
 enum {
-    /* general category shift==0                                0 (5 bits) */
-    UPROPS_EXCEPTION_SHIFT=5,                               /*  5 (1 bit)  */
-    UPROPS_BIDI_SHIFT,                                      /*  6 (5 bits) */
-    UPROPS_MIRROR_SHIFT=UPROPS_BIDI_SHIFT+5,                /* 11 (1 bit)  */
-    UPROPS_NUMERIC_TYPE_SHIFT,                              /* 12 (3 bits) */
-    UPROPS_CASE_SENSITIVE_SHIFT=UPROPS_NUMERIC_TYPE_SHIFT+3,/* 15 (1 bit) format version 3.2 */
-    UPROPS_RESERVED_SHIFT,                                  /* 16 (4 bits) */
-    UPROPS_VALUE_SHIFT=20,                                  /* 20 */
+    /* general category shift==0                            0 (5 bits) */
+    UPROPS_EXCEPTION_SHIFT=5,                           /*  5 (1 bit)  */
+    UPROPS_BIDI_SHIFT,                                  /*  6 (5 bits) */
+    UPROPS_MIRROR_SHIFT=UPROPS_BIDI_SHIFT+5,            /* 11 (1 bit)  */
+    UPROPS_NUMERIC_TYPE_SHIFT,                          /* 12 (3 bits) */
+    UPROPS_RESERVED_SHIFT=UPROPS_NUMERIC_TYPE_SHIFT+3,  /* 15 (5 bits) */
+    UPROPS_VALUE_SHIFT=20,                              /* 20 */
 
     UPROPS_EXCEPTION_BIT=1UL<<UPROPS_EXCEPTION_SHIFT,
     UPROPS_VALUE_BITS=32-UPROPS_VALUE_SHIFT,
@@ -68,8 +65,6 @@ enum {
 #define GET_UNSIGNED_VALUE(props) ((props)>>UPROPS_VALUE_SHIFT)
 #define GET_SIGNED_VALUE(props) ((int32_t)(props)>>UPROPS_VALUE_SHIFT)
 #define GET_EXCEPTIONS(props) (exceptionsTable+GET_UNSIGNED_VALUE(props))
-
-#define CAT_MASK(props) U_MASK(GET_CATEGORY(props))
 
 enum {
     EXC_UPPERCASE,
@@ -120,8 +115,6 @@ enum {
  *
  * Keep this list of property enums in sync with
  * propListNames[] in icu/source/tools/genprops/props2.c!
- *
- * ICU 2.6/uprops format version 3.2 stores full properties instead of "Other_".
  */
 enum {
     UPROPS_WHITE_SPACE,
@@ -131,32 +124,32 @@ enum {
     UPROPS_HYPHEN,
     UPROPS_QUOTATION_MARK,
     UPROPS_TERMINAL_PUNCTUATION,
-    UPROPS_MATH,
+    UPROPS_OTHER_MATH,
     UPROPS_HEX_DIGIT,
     UPROPS_ASCII_HEX_DIGIT,
-    UPROPS_ALPHABETIC,
+    UPROPS_OTHER_ALPHABETIC,
     UPROPS_IDEOGRAPHIC,
     UPROPS_DIACRITIC,
     UPROPS_EXTENDER,
-    UPROPS_LOWERCASE,
-    UPROPS_UPPERCASE,
+    UPROPS_OTHER_LOWERCASE,
+    UPROPS_OTHER_UPPERCASE,
     UPROPS_NONCHARACTER_CODE_POINT,
-    UPROPS_GRAPHEME_EXTEND,
+    UPROPS_OTHER_GRAPHEME_EXTEND,
     UPROPS_GRAPHEME_LINK,
     UPROPS_IDS_BINARY_OPERATOR,
     UPROPS_IDS_TRINARY_OPERATOR,
     UPROPS_RADICAL,
     UPROPS_UNIFIED_IDEOGRAPH,
-    UPROPS_DEFAULT_IGNORABLE_CODE_POINT,
+    UPROPS_OTHER_DEFAULT_IGNORABLE_CODE_POINT,
     UPROPS_DEPRECATED,
     UPROPS_SOFT_DOTTED,
     UPROPS_LOGICAL_ORDER_EXCEPTION,
+
+    /* derivedPropListNames[] in genprops/props2.c, not easily derivable */
     UPROPS_XID_START,
     UPROPS_XID_CONTINUE,
-    UPROPS_ID_START,                            /* ICU 2.6, uprops format version 3.2 */
-    UPROPS_ID_CONTINUE,
-    UPROPS_GRAPHEME_BASE,
-    UPROPS_BINARY_1_TOP                         /* ==32 - full! */
+
+    UPROPS_BINARY_1_TOP
 };
 
 /*
@@ -188,7 +181,7 @@ u_getUnicodeProperties(UChar32 c, int32_t column);
  * @internal
  */
 U_CFUNC int32_t
-uprv_getMaxValues(int32_t column);
+uprv_getMaxValues(void);
 
 /**
  * Unicode property names and property value names are compared
@@ -254,7 +247,6 @@ enum {
     NL      =0x0085,
     NBSP    =0x00a0,
     CGJ     =0x034f,
-    FIGURESP=0x2007,
     HAIRSP  =0x200a,
     ZWNJ    =0x200c,
     ZWJ     =0x200d,

@@ -24,36 +24,7 @@ class TransliterationRule;
 class Transliterator;
 class TransliteratorParser;
 class UVector;
-class CaseEquivClass;
 
-/**
- * Bitmask values to be passed to the UnicodeSet constructor or
- * applyPattern() taking an option parameter.
- * @internal
- */
-enum {
-    /**
-     * Ignore white space within patterns unless quoted or escaped.
-     * @internal
-     */
-    USET_IGNORE_SPACE = 1,  
-
-    /**
-     * Enable case insensitive matching.  E.g., "[ab]" with this flag
-     * will match 'a', 'A', 'b', and 'B'.  "[^ab]" with this flag will
-     * match all except 'a', 'A', 'b', and 'B'.
-     * @internal
-     */
-    USET_CASE_INSENSITIVE = 2,  
-
-    /**
-     * Bitmask for UnicodeSet::closeOver() indicating letter case.
-     * This may be ORed together with other selectors.
-     * @internal
-     */
-    USET_CASE = 2
-};
-    
 /**
  * A mutable set of Unicode characters and multicharacter strings.  Objects of this class
  * represent <em>character classes</em> used in regular expressions.
@@ -140,8 +111,8 @@ enum {
  * "[:Lu:]" and the Perl-like syntax "\p{Lu}" are recognized.  For a
  * complete list of supported property patterns, see the User's Guide
  * for UnicodeSet at
- * <a href="http://oss.software.ibm.com/icu/userguide/unicodeSet.html">
- * http://oss.software.ibm.com/icu/userguide/unicodeSet.html</a>.
+ * <a href="http://oss.software.ibm.com/icu/userguide/unicodeset.html">
+ * http://oss.software.ibm.com/icu/userguide/unicodeset.html</a>.
  * Actual determination of property data is defined by the underlying
  * Unicode database as implemented by UCharacter.
  *
@@ -241,7 +212,7 @@ enum {
  *     </tr>
  *     <tr>
  *       <td nowrap valign="top" align="right"><code>property :=&nbsp; </code></td>
- *       <td valign="top"><em>a Unicode property set pattern</em></td>
+ *       <td valign="top"><em>a Unicode property set pattern</td>
  *     </tr>
  *   </table>
  *   <br>
@@ -354,18 +325,6 @@ public:
                UErrorCode& status);
 
     /**
-     * Constructs a set from the given pattern.  See the class
-     * description for the syntax of the pattern language.
-     * @param pattern a string specifying what characters are in the set
-     * @param options bitmask for options to apply to the pattern.
-     * Valid options are USET_IGNORE_SPACE and USET_CASE_INSENSITIVE.
-     * @internal
-     */
-    UnicodeSet(const UnicodeString& pattern,
-               uint32_t options,
-               UErrorCode& status);
-
-    /**
      * Obsolete: Constructs a set from the given Unicode character category.
      * @param category an integer indicating the character category as
      * defined in uchar.h.
@@ -462,19 +421,6 @@ public:
      */
     virtual UnicodeSet& applyPattern(const UnicodeString& pattern,
                                      UErrorCode& status);
-
-    /**
-     * Modifies this set to represent the set specified by the given
-     * pattern, optionally ignoring white space.  See the class
-     * description for the syntax of the pattern language.
-     * @param pattern a string specifying what characters are in the set
-     * @param options bitmask for options to apply to the pattern.
-     * Valid options are USET_IGNORE_SPACE and USET_CASE_INSENSITIVE.
-     * @internal
-     */
-    UnicodeSet& applyPattern(const UnicodeString& pattern,
-                             uint32_t options,
-                             UErrorCode& status);
 
     /**
      * Returns a string representation of this set.  If the result of
@@ -994,31 +940,6 @@ public:
     virtual UnicodeSet& clear(void);
 
     /**
-     * Close this set over the given attribute.  For the attribute
-     * USET_CASE, the result is to modify this set so that:
-     *
-     * 1. For each character or string 'a' in this set, all strings or
-     * characters 'b' such that foldCase(a) == foldCase(b) are added
-     * to this set.
-     *
-     * 2. For each string 'e' in the resulting set, if e !=
-     * foldCase(e), 'e' will be removed.
-     *
-     * Example: [aq\u00DF{Bc}{bC}{Fi}] => [aAqQ\u00DF\uFB01{ss}{bc}{fi}]
-     *
-     * (Here foldCase(x) refers to the operation u_strFoldCase, and a
-     * == b denotes that the contents are the same, not pointer
-     * comparison.)
-     *
-     * @param attribute bitmask for attributes to close over.
-     * Currently only the USET_CASE bit is supported.  Any undefined bits
-     * are ignored.
-     * @return a reference to this set.
-     * @internal
-     */
-    UnicodeSet& closeOver(int32_t attribute);
-
-    /**
      * Iteration method that returns the number of ranges contained in
      * this set.
      * @see #getRangeStart
@@ -1113,7 +1034,7 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static UClassID getStaticClassID(void);
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
      * Implement UnicodeFunctor API.
@@ -1123,7 +1044,7 @@ public:
      * different class IDs.
      * @draft ICU 2.4
      */
-    virtual UClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
 
 private:
 
@@ -1179,7 +1100,7 @@ private:
      * SymbolTable, and does not recognize embedded variables.
      */
     UnicodeSet(const UnicodeString& pattern, ParsePosition& pos,
-               uint32_t options, UErrorCode& status);
+               UErrorCode& status);
 
     /**
      * Returns <tt>true</tt> if this set contains any character whose low byte
@@ -1220,7 +1141,6 @@ private:
      */
     void applyPattern(const UnicodeString& pattern,
                       ParsePosition& pos,
-                      uint32_t options,
                       const SymbolTable* symbols,
                       UErrorCode& status);
 
@@ -1238,7 +1158,6 @@ private:
 
     void _applyPattern(const UnicodeString& pattern,
                        ParsePosition& pos,
-                       uint32_t options,
                        const SymbolTable* symbols,
                        UnicodeString& rebuiltPat,
                        UErrorCode& status);
@@ -1338,29 +1257,7 @@ private:
     static const UnicodeSet* getInclusions();
 
     friend class UnicodeSetIterator;
-
-    //----------------------------------------------------------------
-    // Implementation: closeOver
-    //----------------------------------------------------------------
-
-    void caseCloseOne(const UnicodeString& folded);
-
-    void caseCloseOne(const CaseEquivClass& c);
-
-    void caseCloseOne(UChar folded);
-
-    static const CaseEquivClass* getCaseMapOf(const UnicodeString& folded);
-
-    static const CaseEquivClass* getCaseMapOf(UChar folded);
 };
-
-inline UClassID
-UnicodeSet::getStaticClassID(void)
-{ return (UClassID)&fgClassID; }
-
-inline UClassID
-UnicodeSet::getDynamicClassID(void) const
-{ return UnicodeSet::getStaticClassID(); }
 
 inline UBool UnicodeSet::operator!=(const UnicodeSet& o) const {
     return !operator==(o);

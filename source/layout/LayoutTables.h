@@ -8,12 +8,8 @@
 #ifndef __LAYOUTTABLES_H
 #define __LAYOUTTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
+#include "cmemory.h"
 
 U_NAMESPACE_BEGIN
 

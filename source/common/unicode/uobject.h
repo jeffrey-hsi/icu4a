@@ -40,15 +40,6 @@ U_NAMESPACE_BEGIN
 #define U_OVERRIDE_CXX_ALLOCATION 1
 #endif
 
-/**  U_HAVE_PLACEMENT_NEW - Define this to define the placement new and
- *                          delete in UMemory for STL.
- *
- * @draft ICU 2.6
- */                              
-#ifndef U_HAVE_PLACEMENT_NEW
-#define U_HAVE_PLACEMENT_NEW 1
-#endif
-
 /**
  * UMemory is the common ICU base class.
  * All other ICU C++ classes are derived from UMemory (starting with ICU 2.4).
@@ -76,14 +67,14 @@ public:
      * for ICU4C C++ classes
      * @draft ICU 2.4
      */
-    static void *operator new(size_t size);
+    void *operator new(size_t size);
 
     /**
      * Override for ICU4C C++ memory management.
      * See new().
      * @draft ICU 2.4
      */
-    static void *operator new[](size_t size);
+    void *operator new[](size_t size);
 
     /**
      * Override for ICU4C C++ memory management.
@@ -93,31 +84,15 @@ public:
      * for ICU4C C++ classes
      * @draft ICU 2.4
      */
-    static void operator delete(void *p);
+    void operator delete(void *p);
 
     /**
      * Override for ICU4C C++ memory management.
      * See delete().
      * @draft ICU 2.4
      */
-    static void operator delete[](void *p);
-
-#if U_HAVE_PLACEMENT_NEW
-    /**
-     * Override for ICU4C C++ memory management for STL.
-     * See new().
-     * @draft ICU 2.6
-     */
-    static inline void * operator new(size_t, void *ptr) { return ptr; }
-
-    /**
-     * Override for ICU4C C++ memory management for STL.
-     * See delete().
-     * @draft ICU 2.6
-     */
-    static inline void operator delete(void *, void *) {}
-#endif /* U_HAVE_PLACEMENT_NEW */
-#endif /* U_OVERRIDE_CXX_ALLOCATION */
+    void operator delete[](void *p);
+#endif
 };
 
 /**
@@ -161,7 +136,7 @@ protected:
     // commented out because UObject is abstract (see getDynamicClassID)
     // inline UObject(const UObject &other) {}
 
-#if U_ICU_VERSION_MAJOR_NUM>2 || (U_ICU_VERSION_MAJOR_NUM==2 && U_ICU_VERSION_MINOR_NUM>6)
+#if U_ICU_VERSION_MAJOR_NUM>2 || (U_ICU_VERSION_MAJOR_NUM==2 && U_ICU_VERSION_MINOR_NUM>4)
     // TODO post ICU 2.4  (This comment inserted in 2.2)
     // some or all of the following "boilerplate" functions may be made public
     // in a future ICU4C release when all subclasses implement them

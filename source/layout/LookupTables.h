@@ -8,11 +8,6 @@
 #ifndef __LOOKUPTABLES_H
 #define __LOOKUPTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LayoutTables.h"
 
@@ -36,14 +31,14 @@ struct LookupTable
 
 struct LookupSegment
 {
-    TTGlyphID   lastGlyph;
-    TTGlyphID   firstGlyph;
+    le_int16 lastGlyph;
+    le_int16 firstGlyph;
     LookupValue value;
 };
 
 struct LookupSingle
 {
-    TTGlyphID   glyph;
+    le_int16 glyph;
     LookupValue value;
 };
 
@@ -55,9 +50,9 @@ struct BinarySearchLookupTable : LookupTable
     le_int16 entrySelector;
     le_int16 rangeShift;
 
-    const LookupSegment *lookupSegment(const LookupSegment *segments, LEGlyphID glyph) const;
+    const LookupSegment *lookupSegment(const LookupSegment *segments, le_uint32 glyph) const;
 
-    const LookupSingle *lookupSingle(const LookupSingle *entries, LEGlyphID glyph) const;
+    const LookupSingle *lookupSingle(const LookupSingle *entries, le_uint32 glyph) const;
 };
 
 struct SimpleArrayLookupTable : LookupTable
@@ -82,8 +77,8 @@ struct SingleTableLookupTable : BinarySearchLookupTable
 
 struct TrimmedArrayLookupTable : LookupTable
 {
-    TTGlyphID   firstGlyph;
-    TTGlyphID   glyphCount;
+    le_int16 firstGlyph;
+    le_int16 glyphCount;
     LookupValue valueArray[ANY_NUMBER];
 };
 

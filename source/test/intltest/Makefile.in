@@ -17,19 +17,17 @@ subdir = test/intltest
 CLEANFILES = *~ $(DEPS)
 
 ## Target information
-TARGET = intltest$(EXEEXT)
+TARGET = intltest
 
 BUILDDIR := $(shell pwd)/../../
-BUILDDIR := $(BUILDDIR:test/intltest/../../=)
-
 CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/toolutil
 DEFS += -D'U_TOPSRCDIR="$(top_srcdir)/"' -D'U_TOPBUILDDIR="$(BUILDDIR)"'
 LIBS = $(LIBICUI18N) $(LIBICUUC) $(LIBICUTOOLUTIL) $(DEFAULT_LIBS) $(LIB_M)
 
 OBJECTS = allcoll.o apicoll.o callimts.o calregts.o caltest.o		\
-caltztst.o canittst.o citrtest.o cntabcol.o cputilst.o currcoll.o dacoll.o	\
+caltztst.o canittst.o citrtest.o cntabcol.o cppcnvt.o cputilst.o currcoll.o dacoll.o	\
 dadrcoll.o dcfmapts.o decoll.o dtfmapts.o dtfmrgts.o dtfmtrtts.o dtfmttst.o	\
-encoll.o escoll.o ficoll.o frcoll.o g7coll.o intltest.o	\
+encoll.o escoll.o ficoll.o frcoll.o g7coll.o intltest.o itconv.o	\
 itercoll.o itformat.o itmajor.o itutil.o jacoll.o lcukocol.o	\
 loctest.o miscdtfm.o mnkytst.o msfmrgts.o nmfmapts.o nmfmtrt.o		\
 numfmtst.o numrgts.o pptest.o regcoll.o restest.o restsnew.o sdtfmtts.o tchcfmt.o	\
@@ -38,9 +36,9 @@ tsmthred.o tsmutex.o tsnmfmt.o tsputil.o tstnorm.o tzbdtest.o		\
 tzregts.o tztest.o ucdtest.o usettest.o ustrtest.o strcase.o transtst.o strtest.o thcoll.o \
 itrbbi.o rbbiapts.o rbbitst.o ittrans.o transapi.o cpdtrtst.o unhxtrts.o hxuntrts.o \
 ufltlgts.o testutil.o transrt.o trnserr.o normconf.o sfwdchit.o \
-jamotest.o srchtest.o reptest.o regextst.o \
+jamotest.o srchtest.o reptest.o biditst.o regextst.o \
 itrbnf.o itrbnfrt.o tstdtmod.o testdata.o datamap.o ucaconf.o icusvtst.o \
-uobjtest.o idnaref.o nptrans.o punyref.o testidn.o testidna.o
+uobjtest.o
 
 
 DEPS = $(OBJECTS:.o=.d)
@@ -83,7 +81,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 $(TARGET) : $(OBJECTS)
-	$(LINK.cc) $(OUTOPT)$@ $^ $(LIBS)
+	$(LINK.cc) -o $@ $^ $(LIBS)
 
 invoke:
 	ICU_DATA=$${ICU_DATA:-$(top_builddir)/data/} TZ=PST8PDT $(INVOKE) $(INVOCATION)

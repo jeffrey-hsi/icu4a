@@ -8,11 +8,6 @@
 #ifndef __GLYPHSUBSTITUTIONTABLES_H
 #define __GLYPHSUBSTITUTIONTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LEGlyphFilter.h"
 #include "OpenTypeTables.h"
@@ -44,9 +39,7 @@ enum GlyphSubstitutionSubtableTypes
     gsstAlternate       = 3,
     gsstLigature        = 4,
     gsstContext         = 5,
-    gsstChainingContext = 6,
-    gsstExtension       = 7,
-    gsstReverseChaining = 8
+    gsstChainingContext = 6
 };
 
 typedef LookupSubtable GlyphSubstitutionSubtable;

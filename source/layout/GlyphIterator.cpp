@@ -58,25 +58,6 @@ GlyphIterator::GlyphIterator(GlyphIterator &that)
     markAttachClassDefinitionTable = that.markAttachClassDefinitionTable;
 }
 
-GlyphIterator::GlyphIterator(GlyphIterator &that, LETag newFeatureTag)
-{
-    direction    = that.direction;
-    position     = that.position;
-    nextLimit    = that.nextLimit;
-    prevLimit    = that.prevLimit;
-
-    cursiveFirstPosition = that.cursiveFirstPosition;
-    cursiveLastPosition  = that.cursiveLastPosition;
-
-    glyphs = that.glyphs;
-    glyphPositionAdjustments = that.glyphPositionAdjustments;
-    lookupFlags = that.lookupFlags;
-    featureTag = newFeatureTag;
-    glyphTags = that.glyphTags;
-    glyphClassDefinitionTable = that.glyphClassDefinitionTable;
-    markAttachClassDefinitionTable = that.markAttachClassDefinitionTable;
-}
-
 GlyphIterator::GlyphIterator(GlyphIterator &that, le_uint16 newLookupFlags)
 {
     direction    = that.direction;
@@ -211,9 +192,9 @@ void GlyphIterator::getCursiveLastPositionAdjustment(GlyphPositionAdjustment &ad
     adjustment = glyphPositionAdjustments[cursiveLastPosition];
 }
 
-void GlyphIterator::setCurrGlyphID(TTGlyphID glyphID)
+void GlyphIterator::setCurrGlyphID(LEGlyphID glyphID)
 {
-    glyphs[position] = LE_SET_GLYPH(glyphs[position], glyphID);
+    glyphs[position] = glyphID;
 }
 
 void GlyphIterator::setCurrStreamPosition(le_int32 newPosition)
@@ -383,11 +364,11 @@ void GlyphIterator::adjustCursiveLastGlyphPositionAdjustment(float xPlacementAdj
 
 le_bool GlyphIterator::filterGlyph(le_uint32 index) const
 {
-    LEGlyphID glyphID = glyphs[index];
+    LEGlyphID glyphID = (LEGlyphID) glyphs[index];
     le_int32 glyphClass = gcdNoGlyphClass;
 
     // FIXME: is this test really safe?
-    if (LE_GET_GLYPH(glyphID) >= 0xFFFE) {
+    if (glyphID >= 0xFFFE) {
         return true;
     }
 

@@ -138,12 +138,12 @@ th {
         // Tonal marks are primary ignorables but are treated as secondary
         // differences
         "&\u0301"                    // acute accent
-        "<<\u0E47"                    //  MAITAIKHU
-        "<<\u0E48"                    //  MAI EK
-        "<<\u0E49"                    //  MAI THO
-        "<<\u0E4A"                    //  MAI TRI
-        "<<\u0E4B"                    //  MAI CHATTAWA
-        "<<\u0E4C"                    //  THANTHAKHAT
+        ";\u0E47"                    //  MAITAIKHU
+        ";\u0E48"                    //  MAI EK
+        ";\u0E49"                    //  MAI THO
+        ";\u0E4A"                    //  MAI TRI
+        ";\u0E4B"                    //  MAI CHATTAWA
+        ";\u0E4C"                    //  THANTHAKHAT
 
 
         // These are supposed to be ignored, so I'm treating them as controls
@@ -450,8 +450,7 @@ th {
         ga { "\u0e44\u0e2d\u0e23\u0e34\u0e0a" }
         it { "\u0e2d\u0e34\u0e15\u0e32\u0e25\u0e35" }
         ja { "\u0e0d\u0e35\u0e48\u0e1b\u0e38\u0e48\u0e19" }
-        jv { "\u0e0a\u0e27\u0e32" }
-        //jw { "\u0e0a\u0e27\u0e32" } // Use jv instead
+        jw { "\u0e0a\u0e27\u0e32" }
         kn { "\u0e01\u0e32\u0e19\u0e32\u0e14\u0e32" }
         ks { "\u0e04\u0e31\u0e0a\u0e21\u0e35\u0e23\u0e35" }
         kk { "\u0e04\u0e32\u0e0b\u0e31\u0e04" }

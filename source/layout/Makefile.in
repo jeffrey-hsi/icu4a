@@ -43,7 +43,6 @@ DEFS += -DU_LAYOUT_IMPLEMENTATION
 LIBS = $(LIBICUUC) $(DEFAULT_LIBS)
 
 OBJECTS =  loengine.o \
-LEFontInstance.o \
 OpenTypeLayoutEngine.o \
 ThaiLayoutEngine.o \
 ThaiShaping.o \
@@ -74,7 +73,6 @@ ContextualSubstSubtables.o \
 CoverageTables.o \
 CursiveAttachmentSubtables.o \
 DeviceTables.o \
-ExtensionSubtables.o \
 Features.o \
 GDEFMarkFilter.o \
 GlyphDefinitionTables.o \
@@ -94,7 +92,6 @@ MarkArrays.o \
 MarkToBasePosnSubtables.o \
 MarkToLigaturePosnSubtables.o \
 MarkToMarkPosnSubtables.o \
-MPreFixups.o \
 MultipleSubstSubtables.o \
 OpenTypeUtilities.o \
 PairPositioningSubtables.o \
@@ -145,11 +142,6 @@ ifneq ($(FINAL_SO_TARGET),$(SO_TARGET))
 	cd $(DESTDIR)$(libdir) && $(RM) $(SO_TARGET) && ln -s $(FINAL_SO_TARGET) $(SO_TARGET)
 endif
 endif
-ifneq ($(IMPORT_LIB_EXT),)
-	$(INSTALL-L) $(FINAL_IMPORT_LIB) $(DESTDIR)$(libdir)/$(FINAL_IMPORT_LIB)
-	cd $(DESTDIR)$(libdir) && $(RM) $(IMPORT_LIB) && ln -s $(FINAL_IMPORT_LIB) $(IMPORT_LIB)
-endif
-
 
 install-headers:
 	$(MKINSTALLDIRS) $(DESTDIR)$(includedir)/layout
@@ -185,7 +177,7 @@ endif
 
 ifneq ($(ENABLE_SHARED),)
 $(FINAL_SO_TARGET): $(OBJECTS)
-	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(LIBS)
+	$(SHLIB.cc) $(LD_SONAME) -o $@ $^ $(LIBS)
 endif
 
 ifeq (,$(MAKECMDGOALS))

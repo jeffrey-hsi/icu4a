@@ -755,7 +755,6 @@ private:
   * Converts C's UCollationResult to EComparisonResult
   * @param result member of the enum UComparisonResult
   * @return EComparisonResult equivalent of UCollationResult
-  * @deprecated ICU 2.6. We will not need it.
   */
   Collator::EComparisonResult getEComparisonResult(
                                           const UCollationResult &result) const;

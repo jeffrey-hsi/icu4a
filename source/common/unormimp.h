@@ -60,7 +60,7 @@ enum {
     _NORM_EXTRA_SURROGATE_TOP=0x3f0,    /* hangul etc. */
 
     _NORM_EXTRA_HANGUL=_NORM_EXTRA_SURROGATE_TOP,
-    _NORM_EXTRA_JAMO_L,
+    _NORM_EXTRA_JAMO_L,                 /* ### not used */
     _NORM_EXTRA_JAMO_V,
     _NORM_EXTRA_JAMO_T
 };
@@ -147,29 +147,6 @@ enum {
     _NORM_DECOMP_LENGTH_MASK=0x7f
 };
 
-/* Korean Hangul and Jamo constants */
-enum {
-    JAMO_L_BASE=0x1100,     /* "lead" jamo */
-    JAMO_V_BASE=0x1161,     /* "vowel" jamo */
-    JAMO_T_BASE=0x11a7,     /* "trail" jamo */
-
-    HANGUL_BASE=0xac00,
-
-    JAMO_L_COUNT=19,
-    JAMO_V_COUNT=21,
-    JAMO_T_COUNT=28,
-
-    HANGUL_COUNT=JAMO_L_COUNT*JAMO_V_COUNT*JAMO_T_COUNT
-};
-
-/* Constants for options flags for normalization. @draft ICU 2.6 */
-enum {
-    /** Options bit 0, do not decompose Hangul syllables. @draft ICU 2.6 */
-    UNORM_NX_HANGUL=1,
-    /** Options bit 1, do not decompose CJK compatibility characters. @draft ICU 2.6 */
-    UNORM_NX_CJK_COMPAT=2
-};
-
 /**
  * Is the normalizer data loaded?
  * This is used internally before other internal normalizer functions
@@ -193,7 +170,7 @@ unorm_haveData(UErrorCode *pErrorCode);
 U_CAPI int32_t U_EXPORT2
 unorm_internalNormalize(UChar *dest, int32_t destCapacity,
                         const UChar *src, int32_t srcLength,
-                        UNormalizationMode mode, int32_t options,
+                        UNormalizationMode mode, UBool ignoreHangul,
                         UErrorCode *pErrorCode);
 
 /**
@@ -203,7 +180,7 @@ unorm_internalNormalize(UChar *dest, int32_t destCapacity,
 U_CAPI int32_t U_EXPORT2
 unorm_decompose(UChar *dest, int32_t destCapacity,
                 const UChar *src, int32_t srcLength,
-                UBool compat, int32_t options,
+                UBool compat, UBool ignoreHangul,
                 UErrorCode *pErrorCode);
 
 /**
@@ -213,7 +190,7 @@ unorm_decompose(UChar *dest, int32_t destCapacity,
 U_CAPI int32_t U_EXPORT2
 unorm_compose(UChar *dest, int32_t destCapacity,
               const UChar *src, int32_t srcLength,
-              UBool compat, int32_t options,
+              UBool compat, UBool ignoreHangul,
               UErrorCode *pErrorCode);
 
 /**

@@ -36,6 +36,8 @@
 #include "uassert.h"
 
 
+U_NAMESPACE_BEGIN
+
 //----------------------------------------------------------------------------------------
 //
 // Unicode Set init strings for each of the character classes needed for parsing a rule file.
@@ -79,7 +81,6 @@ static void  U_EXPORT2 U_CALLCONV RBBISetTable_deleter(void *p) {
 }
 U_CDECL_END
 
-U_NAMESPACE_BEGIN
 
 //----------------------------------------------------------------------------------------
 //
@@ -696,33 +697,6 @@ static const UChar      chPound     = 0x23;      // '#', introduces a comment.
 static const UChar      chBackSlash = 0x5c;      // '\'  introduces a char escape
 static const UChar      chLParen    = 0x28;
 static const UChar      chRParen    = 0x29;
-
-
-//----------------------------------------------------------------------------------------
-//
-//  stripRules    Return a rules string without unnecessary
-//                characters.
-//
-//----------------------------------------------------------------------------------------
-UnicodeString RBBIRuleScanner::stripRules(const UnicodeString &rules) {
-    UnicodeString strippedRules;
-    int rulesLength = rules.length();
-    for (int idx = 0; idx < rulesLength; ) {
-        UChar ch = rules[idx++];
-        if (ch == chPound) {
-            while (idx < rulesLength
-                && ch != chCR && ch != chLF && ch != chNEL)
-            {
-                ch = rules[idx++];
-            }
-        }
-        if (!u_isWhitespace(ch)) {
-            strippedRules.append(ch);
-        }
-    }
-    // strippedRules = strippedRules.unescape();
-    return strippedRules;
-}
 
 
 //----------------------------------------------------------------------------------------

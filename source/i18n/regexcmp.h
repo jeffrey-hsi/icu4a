@@ -1,7 +1,7 @@
 //
 //  regexcmp.h
 //
-//  Copyright (C) 2002-2003, International Business Machines Corporation and others.
+//  Copyright (C) 2002, International Business Machines Corporation and others.
 //  All Rights Reserved.
 //
 //  This file contains declarations for the class RegexCompile
@@ -53,9 +53,9 @@ public:
         UBool               fQuoted;
     };
 
-    RegexCompile(RegexPattern *rp, UErrorCode &e);
+    RegexCompile(UErrorCode &e);
     
-    void       compile(const UnicodeString &pat, UParseError &pp, UErrorCode &e);
+    void       compile(RegexPattern &rxp, const UnicodeString &pat, UParseError &pp, UErrorCode &e);
 
 
     virtual    ~RegexCompile();
@@ -65,23 +65,7 @@ public:
     static void cleanup();                       // Memory cleanup
 
 
-
-    // Categories of parentheses in pattern.
-    //   The category is saved in the compile-time parentheses stack frame, and
-    //   determines the code to be generated when the matching close ) is encountered.
-    enum EParenClass {
-        plain        = -1,               // No special handling
-        capturing    = -2, 
-        atomic       = -3,
-        lookAhead    = -4,
-        negLookAhead = -5,
-        flags        = -6,
-        lookBehind   = -7,
-        lookBehindN  = -8
-    };
-
 private:
-
 
     UBool       doParseActions(EParseAction a);
     void        error(UErrorCode e);                   // error reporting convenience function.
@@ -97,22 +81,8 @@ private:
                                                      //  there is space to add an opcode there.
     void        compileSet(UnicodeSet *theSet);      // Generate the compiled pattern for
                                                      //   a reference to a UnicodeSet.
-    void        compileInterval(int32_t InitOp,      // Generate the code for a {min,max} quantifier.
-                               int32_t LoopOp);
-    void        literalChar(UChar32 c);              // Compile a literal char
+    void        literalChar();                       // Compile a literal char
     void        fixLiterals(UBool split=FALSE);      // Fix literal strings.
-    void        insertOp(int32_t where);             // Open up a slot for a new op in the
-                                                     //   generated code at the specified location.
-    void        emitONE_CHAR(UChar32 c);             // EMit a ONE_CHAR op into the compiled code,
-                                                     //   taking case mode into account.
-    int32_t     minMatchLength(int32_t start,
-                               int32_t end);
-    int32_t     maxMatchLength(int32_t start,
-                               int32_t end);
-    void        matchStartType();
-    void        stripNOPs();
-    void        OptEndingLoop();
-    void        OptDotStar();
 
 
     UErrorCode                    *fStatus;
@@ -126,10 +96,8 @@ private:
                                                      //   in the rule input string.
     int32_t                       fNextIndex;        // Index of the next character, which
                                                      //   is the first character not yet scanned.
-    UBool                         fQuoteMode;        // Scan is in a \Q...\E quoted region
-    UBool                         fInBackslashQuote; // Scan is between a '\' and the following char.
-    UBool                         fEOLComments;      // When scan is just after '(?',  inhibit #... to 
-                                                     //   end of line comments, in favor of (?#...) comments.
+    UBool                         fQuoteMode;        // Scan is in a quoted region
+    UBool                         fFreeForm;         // Scan mode is free-form, ignore spaces.
     int                           fLineNum;          // Line number in input file.
     int                           fCharNum;          // Char position within the line.
     UChar32                       fLastChar;         // Previous char, needed to count CR-LF
@@ -140,9 +108,10 @@ private:
     RegexPatternChar              fC;                // Current char for parse state machine
                                                      //   processing.
 
-    //
-    //   Data for the state machine that parses the regular expression.
-    //
+    int32_t                       fStringOpStart;    // While a literal string is being scanned
+                                                     //   holds the start index within RegexPattern.
+                                                     //   fLiteralText where the string is being stored.
+
     RegexTableEl                  **fStateTable;     // State Transition Table for regex Rule
                                                      //   parsing.  index by p[state][char-class]
 
@@ -150,24 +119,11 @@ private:
     int                           fStackPtr;           //  and pops as specified in the state
                                                        //  transition rules.
 
-    //
-    //  Data associated with the generation of the pcode for the match engine
-    //
-    int32_t                       fModeFlags;        // Match Flags.  (Case Insensitive, etc.)
-    int32_t                       fNewModeFlags;     // New flags, while compiling (?i, holds state
-                                                     //   until last flag is scanned.
-    UBool                         fSetModeFlag;      // true for (?ismx, false for (?-ismx
-
-
-    int32_t                       fStringOpStart;    // While a literal string is being scanned
-                                                     //   holds the start index within RegexPattern.
-                                                     //   fLiteralText where the string is being stored.
-
     int32_t                       fPatternLength;    // Length of the input pattern string.
 
-    UVector32                     fParenStack;       // parentheses stack.  Each frame consists of
+    UStack                        fParenStack;       // parentheses stack.  Each frame consists of
                                                      //   the positions of compiled pattern operations
-                                                     //   needing fixup, followed by negative value.  The  
+                                                     //   needing fixup, followed by negative vallue.  The  
                                                      //   first entry in each frame is the position of the
                                                      //   spot reserved for use when a quantifier
                                                      //   needs to add a SAVE at the start of a (block)
@@ -184,16 +140,6 @@ private:
                                                      //   location after the most recently processed
                                                      //   parenthesized block.
 
-    int32_t                       fIntervalLow;      // {lower, upper} interval quantifier values.
-    int32_t                       fIntervalUpper;    // Placed here temporarily, when pattern is
-                                                     //   initially scanned.  Each new interval
-                                                     //   encountered overwrites these values.
-                                                     //   -1 for the upper interval value means none
-                                                     //   was specified (unlimited occurences.)
-
-    int32_t                       fNameStartPos;     // Starting position of a \N{NAME} name in a
-                                                     //   pattern, valid while remainder of name is
-                                                     //   scanned.
 };
 
 U_NAMESPACE_END

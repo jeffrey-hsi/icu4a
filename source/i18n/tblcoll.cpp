@@ -356,7 +356,7 @@ Collator::EComparisonResult RuleBasedCollator::compare(const UChar* source,
                                                        int32_t targetLength)
                                                        const
 {
-  return  getEComparisonResult(ucol_strcoll(ucollator, source, sourceLength,
+  return getEComparisonResult(ucol_strcoll(ucollator, source, sourceLength,
                                                      target, targetLength));
 }
 

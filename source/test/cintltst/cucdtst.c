@@ -24,13 +24,10 @@
 #include "unicode/uscript.h"
 #include "usc_impl.h"
 #include "uprops.h"
-#include "unormimp.h"
 #include "cstring.h"
 #include <string.h>
 #include <math.h>
 #include <stdlib.h>
-
-#define LENGTHOF(array) (sizeof(array)/sizeof((array)[0]))
 
 /* prototypes --------------------------------------------------------------- */
 
@@ -54,7 +51,6 @@ static void TestAdditionalProperties(void);
 static void TestNumericProperties(void);
 static void TestPropertyNames(void);
 static void TestPropertyValues(void);
-static void TestConsistency(void);
 
 /* internal methods used */
 static int32_t MakeProp(char* str);
@@ -141,7 +137,6 @@ void addUnicodeTest(TestNode** root)
     addTest(root, &TestUScriptRunAPI, "tsutil/cucdtst/TestUScriptRunAPI");
     addTest(root, &TestPropertyNames, "tsutil/cucdtst/TestPropertyNames");
     addTest(root, &TestPropertyValues, "tsutil/cucdtst/TestPropertyValues");
-    addTest(root, &TestConsistency, "tsutil/cucdtst/TestConsistency");
 }
 
 /*==================================================== */
@@ -167,9 +162,9 @@ Checks LetterLike Symbols which were previously a source of confusion
         if(i!=0x2126 && i!=0x212a && i!=0x212b)
         {
             if (i != (int)u_tolower(i)) /* itself */
-                log_err("Failed case conversion with itself: U+%04x\n", i);
+                log_err("Failed case conversion with itself: \\u%4X\n", i);
             if (i != (int)u_toupper(i))
-                log_err("Failed case conversion with itself: U+%04x\n", i);
+                log_err("Failed case conversion with itself: \\u%4X\n", i);
         }
     }
 
@@ -178,10 +173,10 @@ Checks LetterLike Symbols which were previously a source of confusion
             log_err("FAILED u_tolower() for %lx Expected %lx Got %lx\n", upper[i], lower[i], u_tolower(upper[i]));
         }
     }
-
     log_verbose("testing upper lower\n");
     for (i = 0; i < 21; i++) {
 
+        log_verbose("testing to upper to lower\n");
         if (u_isalpha(upperTest[i]) && !u_islower(upperTest[i]))
         {
             log_err("Failed isLowerCase test at  %c\n", upperTest[i]);
@@ -207,7 +202,7 @@ Checks LetterLike Symbols which were previously a source of confusion
             log_err("Failed case conversion with itself: %c\n", lowerTest[i]);
         }
     }
-    log_verbose("done testing upper lower\n");
+    log_verbose("done testing upper Lower\n");
 	
 	log_verbose("testing u_istitle\n");
 	{
@@ -278,172 +273,48 @@ Checks LetterLike Symbols which were previously a source of confusion
 	}
 }
 
-/* compare two sets, which is not easy with the current (ICU 2.4) C API... */
-
-static UBool
-showADiffB(const USet *a, const USet *b,
-           const char *a_name, const char *b_name,
-           UBool expect, UBool diffIsError) {
-    int32_t i, start, end, length;
-    UBool equal;
-    UErrorCode errorCode;
-
-    errorCode=U_ZERO_ERROR;
-    equal=TRUE;
-    i=0;
-    for(;;) {
-        length=uset_getItem(a, i, &start, &end, NULL, 0, &errorCode);
-        if(errorCode==U_INDEX_OUTOFBOUNDS_ERROR) {
-            return equal; /* done */
-        }
-        if(U_FAILURE(errorCode)) {
-            log_err("error comparing %s with %s at item %d: %s\n",
-                a_name, b_name, i, u_errorName(errorCode));
-            return FALSE;
-        }
-        if(length!=0) {
-            return equal; /* done with code points, got a string or -1 */
-        }
-
-        if(expect!=uset_containsRange(b, start, end)) {
-            equal=FALSE;
-            while(start<=end) {
-                if(expect!=uset_contains(b, start)) {
-                    if(diffIsError) {
-                        if(expect) {
-                            log_err("error: %s contains U+%04x but %s does not\n", a_name, start, b_name);
-                        } else {
-                            log_err("error: %s and %s both contain U+%04x but should not intersect\n", a_name, b_name, start);
-                        }
-                    } else {
-                        if(expect) {
-                            log_verbose("info: %s contains U+%04x but %s does not\n", a_name, start, b_name);
-                        } else {
-                            log_verbose("info: %s and %s both contain U+%04x but should not intersect\n", a_name, b_name, start);
-                        }
-                    }
-                }
-                ++start;
-            }
-        }
-
-        ++i;
-    }
-}
-
-static UBool
-showAMinusB(const USet *a, const USet *b,
-            const char *a_name, const char *b_name,
-            UBool diffIsError) {
-    return showADiffB(a, b, a_name, b_name, TRUE, diffIsError);
-}
-
-static UBool
-showAIntersectB(const USet *a, const USet *b,
-                const char *a_name, const char *b_name,
-                UBool diffIsError) {
-    return showADiffB(a, b, a_name, b_name, FALSE, diffIsError);
-}
-
-static UBool
-compareUSets(const USet *a, const USet *b,
-             const char *a_name, const char *b_name,
-             UBool diffIsError) {
-    return
-        showAMinusB(a, b, a_name, b_name, diffIsError) &&
-        showAMinusB(b, a, b_name, a_name, diffIsError);
-}
 
 /* test isLetter(u_isapha()) and isDigit(u_isdigit()) */
 static void TestLetterNumber()
 {
     UChar i = 0x0000;
 
-    log_verbose("Testing for isalpha\n");
     for (i = 0x0041; i < 0x005B; i++) {
+        log_verbose("Testing for isalpha\n");
         if (!u_isalpha(i))
         {
             log_err("Failed isLetter test at  %.4X\n", i);
         }
     }
     for (i = 0x0660; i < 0x066A; i++) {
+        log_verbose("Testing for isalpha\n");
         if (u_isalpha(i))
         {
             log_err("Failed isLetter test with numbers at %.4X\n", i);
         }
     }
-
-    log_verbose("Testing for isdigit\n");
     for (i = 0x0660; i < 0x066A; i++) {
+        log_verbose("Testing for isdigit\n");
         if (!u_isdigit(i))
         {
             log_verbose("Failed isNumber test at %.4X\n", i);
         }
     }
-
-    log_verbose("Testing for isalnum\n");
     for (i = 0x0041; i < 0x005B; i++) {
+        log_verbose("Testing for isalnum\n");
         if (!u_isalnum(i))
         {
             log_err("Failed isAlNum test at  %.4X\n", i);
         }
     }
     for (i = 0x0660; i < 0x066A; i++) {
+        log_verbose("Testing for isalnum\n");
         if (!u_isalnum(i))
         {
             log_err("Failed isAlNum test at  %.4X\n", i);
         }
     }
 
-    {
-        /*
-         * The following checks work only starting from Unicode 4.0.
-         * Check the version number here.
-         */
-        UVersionInfo version;
-        u_getUnicodeVersion(version);
-        if(version[0]<4) {
-            return;
-        }
-    }
-
-    {
-        /*
-         * Sanity check:
-         * Verify that exactly the digit characters have decimal digit values.
-         * This assumption is used in the implementation of u_digit()
-         * (which checks nt=de)
-         * compared with the parallel java.lang.Character.digit()
-         * (which checks Nd).
-         *
-         * This was not true in Unicode 3.2 and earlier.
-         * The following characters had decimal digit values but were No not Nd.
-         * (from DerivedNumericType-3.2.0.txt)
-00B2..00B3    ; decimal # No   [2] SUPERSCRIPT TWO..SUPERSCRIPT THREE
-00B9          ; decimal # No       SUPERSCRIPT ONE
-2070          ; decimal # No       SUPERSCRIPT ZERO
-2074..2079    ; decimal # No   [6] SUPERSCRIPT FOUR..SUPERSCRIPT NINE
-2080..2089    ; decimal # No  [10] SUBSCRIPT ZERO..SUBSCRIPT NINE
-         */
-        U_STRING_DECL(digitsPattern, "[:Nd:]", 6);
-        U_STRING_DECL(decimalValuesPattern, "[:Numeric_Type=Decimal:]", 24);
-
-        USet *digits, *decimalValues;
-        UErrorCode errorCode;
-
-        U_STRING_INIT(digitsPattern, "[:Nd:]", 6);
-        U_STRING_INIT(decimalValuesPattern, "[:Numeric_Type=Decimal:]", 24);
-        errorCode=U_ZERO_ERROR;
-        digits=uset_openPattern(digitsPattern, 6, &errorCode);
-        decimalValues=uset_openPattern(decimalValuesPattern, 24, &errorCode);
-
-        if(U_SUCCESS(errorCode)) {
-            compareUSets(digits, decimalValues, "[:Nd:]", "[:Numeric_Type=Decimal:]", TRUE);
-        }
-
-        uset_close(digits);
-        uset_close(decimalValues);
-    }
 }
 
 /* Tests for isDefined(u_isdefined)(, isBaseForm(u_isbase()), isSpaceChar(u_isspace()), isWhiteSpace(), u_CharDigitValue(),u_CharCellWidth() */
@@ -487,67 +358,55 @@ static void TestMisc()
     UVersionInfo realVersion;
 
     memset(icuVersion, 0, U_MAX_VERSION_STRING_LENGTH);
-
-    log_verbose("Testing for isspace and nonspaces\n");
     for (i = 0; i < 5; i++) {
+      log_verbose("Testing for isspace and nonspaces\n");
         if (!(u_isspace(sampleSpaces[i])) ||
                 (u_isspace(sampleNonSpaces[i])))
         {
             log_err("Space char test error : %d or %d \n", (int32_t)sampleSpaces[i], (int32_t)sampleNonSpaces[i]);
         }
-        if (!(u_isJavaSpaceChar(sampleSpaces[i])) ||
-                (u_isJavaSpaceChar(sampleNonSpaces[i])))
-        {
-            log_err("u_isJavaSpaceChar() test error : %d or %d \n", (int32_t)sampleSpaces[i], (int32_t)sampleNonSpaces[i]);
-        }
     }
-
-    log_verbose("Testing for isspace and nonspaces\n");
     for (i = 0; i < 5; i++) {
+      log_verbose("Testing for isspace and nonspaces\n");
         if (!(u_isWhitespace(sampleWhiteSpaces[i])) ||
                 (u_isWhitespace(sampleNonWhiteSpaces[i])))
         {
             log_err("White Space char test error : %lx or %lx \n", sampleWhiteSpaces[i], sampleNonWhiteSpaces[i]);
         }
     }
-
-    log_verbose("Testing for isdefined\n");
     for (i = 0; i < 3; i++) {
+      log_verbose("Testing for isdefined\n");
         if ((u_isdefined(sampleUndefined[i])) ||
                 !(u_isdefined(sampleDefined[i])))
         {
             log_err("Undefined char test error : U+%04x or U+%04x\n", (int32_t)sampleUndefined[i], (int32_t)sampleDefined[i]);
         }
     }
-
-    log_verbose("Testing for isbase\n");
     for (i = 0; i < 3; i++) {
+      log_verbose("Testing for isbase\n");
         if ((u_isbase(sampleNonBase[i])) ||
                 !(u_isbase(sampleBase[i])))
         {
-            log_err("Non-baseform char test error : U+%04x or U+%04x",(int32_t)sampleNonBase[i], (int32_t)sampleBase[i]);
+            log_err("Non-baseform char test error : %d or %d",(int32_t)sampleNonBase[i], (int32_t)sampleBase[i]);
         }
     }
-
-    log_verbose("Testing for charcellwidth\n");
     for (i = 0; i < 5; i++) {
+      log_verbose("Testing for charcellwidth\n");
         if (u_charCellWidth(sampleChars[i]) != sampleCellWidth[i])
         {
-            log_err("Cell width char test error : U+%04x  \n", (int32_t)sampleChars[i]);
+            log_err("Cell width char test error : %d  \n", (int32_t)sampleChars[i]);
         }
     }
-
-    log_verbose("Testing for isdigit \n");
     for (i = 0; i < 4; i++) {
+       log_verbose("Testing for isdigit \n");
         if ((u_isdigit(sampleDigits[i]) && 
             (u_charDigitValue(sampleDigits[i])!= sampleDigitValues[i])) ||
             (u_isdigit(sampleNonDigits[i]))) {
             log_err("Digit char test error : %lx   or   %lx\n", sampleDigits[i], sampleNonDigits[i]);
         }
     }
-
-    log_verbose("Testing for u_charDigitValue for special values not existing in prop table\n");
     for (i = 0; i < 10; i++) {
+       log_verbose("Testing for u_charDigitValue for special values not existing in prop table %lx \n",  sample2Digits[i]);
         if (u_charDigitValue(sample2Digits[i])!= sample2DigitValues[i]) 
         {
             log_err("Digit char test error : %lx\n", sample2Digits[i]);
@@ -650,38 +509,33 @@ static void TestMisc()
 /* Tests for isControl(u_iscntrl()) and isPrintable(u_isprint()) */
 static void TestControlPrint()
 {
-    const UChar sampleControl[] = {0x1b, 0x97, 0x82, 0x2028, 0x2029, 0x200c, 0x202b};
+    const UChar sampleControl[] = {0x001b, 0x0097, 0x0082};
     const UChar sampleNonControl[] = {0x61, 0x0031, 0x00e2};
     const UChar samplePrintable[] = {0x0042, 0x005f, 0x2014};
     const UChar sampleNonPrintable[] = {0x200c, 0x009f, 0x001b};
     UChar32 c;
     int i;
 
-    log_verbose("Testing for iscontrol\n");
-    for (i = 0; i < LENGTHOF(sampleControl); i++) {
+    for (i = 0; i < 3; i++) {
+        log_verbose("Testing for iscontrol\n");
         if (!u_iscntrl(sampleControl[i]))
         {
-            log_err("Control char test error : U+%04x should be control but is not\n", (int32_t)sampleControl[i]);
+            log_err("Control char test error : %d should be control but is not\n", (int32_t)sampleControl[i]);
         }
-    }
-
-    log_verbose("Testing for !iscontrol\n");
-    for (i = 0; i < LENGTHOF(sampleNonControl); i++) {
         if (u_iscntrl(sampleNonControl[i]))
         {
-            log_err("Control char test error : U+%04x should not be control but is\n", (int32_t)sampleNonControl[i]);
+            log_err("Control char test error : %d should not be control but is\n", (int32_t)sampleNonControl[i]);
         }
     }
-
-    log_verbose("testing for isprintable\n");
     for (i = 0; i < 3; i++) {
+        log_verbose("testing for isprintable\n");
         if (!u_isprint(samplePrintable[i]))
         {
-            log_err("Printable char test error : U+%04x should be printable but is not\n", (int32_t)samplePrintable[i]);
+            log_err("Printable char test error : %d should be printable but is not\n", (int32_t)samplePrintable[i]);
         }
         if (u_isprint(sampleNonPrintable[i]))
         {
-            log_err("Printable char test error : U+%04x should not be printable but is\n", (int32_t)sampleNonPrintable[i]);
+            log_err("Printable char test error : %d should not be printable but is\n", (int32_t)sampleNonPrintable[i]);
         }
     }
 
@@ -694,9 +548,6 @@ static void TestControlPrint()
         if(!u_iscntrl(c)) {
             log_err("error: u_iscntrl(ISO 8 control U+%04x)=FALSE\n", c);
         }
-        if(!u_isISOControl(c)) {
-            log_err("error: u_isISOControl(ISO 8 control U+%04x)=FALSE\n", c);
-        }
         if(u_isprint(c)) {
             log_err("error: u_isprint(ISO 8 control U+%04x)=TRUE\n", c);
         }
@@ -706,9 +557,6 @@ static void TestControlPrint()
     for(c=0x20; c<=0xff; ++c) {
         if(c==0x7f) {
             c=0xa0;
-        } else if(c==0xad) {
-            /* Unicode 4 changes 00AD Soft Hyphen to Cf (and it is in fact not printable) */
-            ++c;
         }
         if(!u_isprint(c)) {
             log_err("error: u_isprint(Latin-1 graphic character U+%04x)=FALSE\n", c);
@@ -731,25 +579,22 @@ static void TestIdentifier()
     const UChar sampleNonIDIgnore[] = {0x0075, 0x00a3, 0x0061};
 
     int i;
-
-    log_verbose("Testing sampleJavaID start \n");
     for (i = 0; i < 3; i++) {
+        log_verbose("Testing sampleJavaID start \n");
         if (!(u_isJavaIDStart(sampleJavaIDStart[i])) ||
                 (u_isJavaIDStart(sampleNonJavaIDStart[i])))
             log_err("Java ID Start char test error : %lx or %lx\n",
             sampleJavaIDStart[i], sampleNonJavaIDStart[i]);
     }
-
-    log_verbose("Testing sampleJavaID part \n");
     for (i = 0; i < 3; i++) {
+        log_verbose("Testing sampleJavaID part \n");
         if (!(u_isJavaIDPart(sampleJavaIDPart[i])) ||
                 (u_isJavaIDPart(sampleNonJavaIDPart[i])))
             log_err("Java ID Part char test error : %lx or %lx\n",
              sampleJavaIDPart[i], sampleNonJavaIDPart[i]);
     }
-
-    log_verbose("Testing sampleUnicodeID start \n");
     for (i = 0; i < 3; i++) {
+        log_verbose("Testing sampleUnicodeID start \n");
         /* T_test_logln_ustr((int32_t)i); */
         if (!(u_isIDStart(sampleUnicodeIDStart[i])) ||
                 (u_isIDStart(sampleNonUnicodeIDStart[i])))
@@ -758,9 +603,8 @@ static void TestIdentifier()
                                     sampleNonUnicodeIDStart[i]);
         }
     }
-
-    log_verbose("Testing sample unicode ID part \n");
     for (i = 2; i < 3; i++) {   /* nos *** starts with 2 instead of 0, until clarified */
+        log_verbose("Testing sample unicode ID part \n");
         /* T_test_logln_ustr((int32_t)i); */
         if (!(u_isIDPart(sampleUnicodeIDPart[i])) ||
                 (u_isIDPart(sampleNonUnicodeIDPart[i])))
@@ -768,14 +612,13 @@ static void TestIdentifier()
             log_err("Unicode ID Part char test error : %lx  or  %lx", sampleUnicodeIDPart[i], sampleNonUnicodeIDPart[i]);
             }
     }
-
-    log_verbose("Testing  sampleId ignore\n");
     for (i = 0; i < 3; i++) {
+        log_verbose("Testing  sampleId ignore\n");
         /*T_test_logln_ustr((int32_t)i); */
         if (!(u_isIDIgnorable(sampleIDIgnore[i])) ||
                 (u_isIDIgnorable(sampleNonIDIgnore[i])))
         {
-            log_err("ID ignorable char test error : U+%04x  or  U+%04x\n", sampleIDIgnore[i], sampleNonIDIgnore[i]);
+            log_verbose("ID ignorable char test error : %d  or  %d\n", sampleIDIgnore[i], sampleNonIDIgnore[i]);
         }
     }
 }
@@ -1112,20 +955,21 @@ static void TestCodeUnit(){
 
     for(i=0; i<(int32_t)(sizeof(codeunit)/sizeof(codeunit[0])); i++){
         UChar c=codeunit[i];
+        log_verbose("Testing code unit value of \\u%4X\n", c);
         if(i<4){
             if(!(UTF_IS_SINGLE(c)) || (UTF_IS_LEAD(c)) || (UTF_IS_TRAIL(c)) ||(UTF_IS_SURROGATE(c))){
-                log_err("ERROR: U+%04x is a single", c);
+                log_err("ERROR: \\u%4X is a single", c);
             }
 
         }
         if(i >= 4 && i< 8){
             if(!(UTF_IS_LEAD(c)) || UTF_IS_SINGLE(c) || UTF_IS_TRAIL(c) || !(UTF_IS_SURROGATE(c))){
-                log_err("ERROR: U+%04x is a first surrogate", c);
+                log_err("ERROR: \\u%4X is a first surrogate", c);
             }
         }
         if(i >= 8 && i< 12){
             if(!(UTF_IS_TRAIL(c)) || UTF_IS_SINGLE(c) || UTF_IS_LEAD(c) || !(UTF_IS_SURROGATE(c))){
-                log_err("ERROR: U+%04x is a second surrogate", c);
+                log_err("ERROR: \\u%4X is a second surrogate", c);
             }
         }
     }
@@ -1164,58 +1008,59 @@ static void TestCodePoint(){
     int32_t i;
     for(i=0; i<(int32_t)(sizeof(codePoint)/sizeof(codePoint[0])); i++){
         UChar32 c=codePoint[i];
+        log_verbose("Testing code unit value of \\u%4X\n", c);
         if(i<6){
             if(!UTF_IS_SURROGATE(c) || !U_IS_SURROGATE(c) || !U16_IS_SURROGATE(c)){
-                log_err("ERROR: isSurrogate() failed for U+%04x\n", c);
+                log_err("ERROR: isSurrogate() failed for \\u%4X\n", c);
             }
             if(UTF_IS_VALID(c)){
-                log_err("ERROR: isValid() failed for U+%04x\n", c);
+                log_err("ERROR: isValid() failed for \\u%4X\n", c);
             }
             if(UTF_IS_UNICODE_CHAR(c) || U_IS_UNICODE_CHAR(c)){
-                log_err("ERROR: isUnicodeChar() failed for U+%04x\n", c);
+                log_err("ERROR: isUnicodeChar() failed for \\u%4X\n", c);
             }
             if(UTF_IS_ERROR(c)){
-                log_err("ERROR: isError() failed for U+%04x\n", c);
+                log_err("ERROR: isError() failed for \\u%4X\n", c);
             }
         }else if(i >=6 && i<18){
             if(UTF_IS_SURROGATE(c) || U_IS_SURROGATE(c) || U16_IS_SURROGATE(c)){
-                log_err("ERROR: isSurrogate() failed for U+%04x\n", c);
+                log_err("ERROR: isSurrogate() failed for \\u%4X\n", c);
             }
             if(!UTF_IS_VALID(c)){
-                log_err("ERROR: isValid() failed for U+%04x\n", c);
+                log_err("ERROR: isValid() failed for \\u%4X\n", c);
             }
             if(!UTF_IS_UNICODE_CHAR(c) || !U_IS_UNICODE_CHAR(c)){
-                log_err("ERROR: isUnicodeChar() failed for U+%04x\n", c);
+                log_err("ERROR: isUnicodeChar() failed for \\u%4X\n", c);
             }
             if(UTF_IS_ERROR(c)){
-                log_err("ERROR: isError() failed for U+%04x\n", c);
+                log_err("ERROR: isError() failed for \\u%4X\n", c);
             }
         }else if(i >=18 && i<20){
             if(UTF_IS_SURROGATE(c) || U_IS_SURROGATE(c) || U16_IS_SURROGATE(c)){
-                log_err("ERROR: isSurrogate() failed for U+%04x\n", c);
+                log_err("ERROR: isSurrogate() failed for \\u%4X\n", c);
             }
             if(UTF_IS_VALID(c)){
-                log_err("ERROR: isValid() failed for U+%04x\n", c);
+                log_err("ERROR: isValid() failed for \\u%4X\n", c);
             }
             if(!UTF_IS_UNICODE_CHAR(c) || !U_IS_UNICODE_CHAR(c)){
-                log_err("ERROR: isUnicodeChar() failed for U+%04x\n", c);
+                log_err("ERROR: isUnicodeChar() failed for \\u%4X\n", c);
             }
             if(!UTF_IS_ERROR(c)){
-                log_err("ERROR: isError() failed for U+%04x\n", c);
+                log_err("ERROR: isError() failed for \\u%4X\n", c);
             }
         }
         else if(i >=18 && i<(int32_t)(sizeof(codePoint)/sizeof(codePoint[0]))){
             if(UTF_IS_SURROGATE(c) || U_IS_SURROGATE(c) || U16_IS_SURROGATE(c)){
-                log_err("ERROR: isSurrogate() failed for U+%04x\n", c);
+                log_err("ERROR: isSurrogate() failed for \\u%4X\n", c);
             }
             if(UTF_IS_VALID(c)){
-                log_err("ERROR: isValid() failed for U+%04x\n", c);
+                log_err("ERROR: isValid() failed for \\u%4X\n", c);
             }
             if(UTF_IS_UNICODE_CHAR(c) || U_IS_UNICODE_CHAR(c)){
-                log_err("ERROR: isUnicodeChar() failed for U+%04x\n", c);
+                log_err("ERROR: isUnicodeChar() failed for \\u%4X\n", c);
             }
             if(!UTF_IS_ERROR(c)){
-                log_err("ERROR: isError() failed for U+%04x\n", c);
+                log_err("ERROR: isError() failed for \\u%4X\n", c);
             }
         }
     }
@@ -1242,11 +1087,13 @@ static void TestCharLength()
     for(i=0; i<(int32_t)(sizeof(codepoint)/sizeof(codepoint[0])); i=(int16_t)(i+2)){
         UChar32 c=codepoint[i+1];
         if(UTF_CHAR_LENGTH(c) != codepoint[i] || U16_LENGTH(c) != codepoint[i]){
-            log_err("The no: of code units for U+%04x:- Expected: %d Got: %d\n", c, codepoint[i], UTF_CHAR_LENGTH(c));
+            log_err("The no: of code units for \\u%4X:- Expected: %d Got: %d", c, codepoint[i], UTF_CHAR_LENGTH(c));
+        }else{
+            log_verbose("The no: of code units for \\u%4X is %d", c, UTF_CHAR_LENGTH(c));
         }
         multiple=(UBool)(codepoint[i] == 1 ? FALSE : TRUE);
         if(UTF_NEED_MULTIPLE_UCHAR(c) != multiple){
-            log_err("ERROR: Unicode::needMultipleUChar() failed for U+%04x\n", c);
+            log_err("ERROR: Unicode::needMultipleUChar() failed for \\u%4X\n", c);
         }
     }
 }
@@ -1563,7 +1410,8 @@ TestCharNames() {
             char c1[256];
             u_UCharsToChars(pat, c1, l1);
             c1[l1] = 0;
-            log_verbose("Ok: uprv_getCharNameCharacters() returned %s\n", c1);
+            log_verbose("Ok: uprv_getCharNameCharacters() returned %s\n",
+                        c1);
         }
 
         uset_close(set);
@@ -1654,7 +1502,7 @@ static void TestUScriptCodeAPI(){
             UScriptCode script[10]={USCRIPT_INVALID_CODE};
             uscript_getCode(testNames[i],script,capacity, &err);
             if( script[0] != expected[i]){
-                   log_err("Error getting script code Got: %i  Expected: %i for name %s\n",
+                   log_verbose("Error getting script code Got: %i  Expected: %i for name %s\n",
                        script[0],expected[i],testNames[i]);
                    numErrors++;
             }
@@ -1704,7 +1552,7 @@ static void TestUScriptCodeAPI(){
             const char* name = uscript_getName(testAbbr[i]);
             numErrors=0;
             if(strcmp(expectedNames[i],name)!=0){
-                log_err("Error getting abbreviations Got: %s Expected: %s\n",name,expectedNames[i]);
+                log_verbose("Error getting abbreviations Got: %s Expected: %s\n",name,expectedNames[i]);
                 numErrors++;
             }
             if(numErrors > 0){
@@ -1738,7 +1586,7 @@ static void TestUScriptCodeAPI(){
             const char* name = uscript_getShortName(testAbbr[i]);
             numErrors=0;
             if(strcmp(expectedAbbr[i],name)!=0){
-                log_err("Error getting abbreviations Got: %s Expected: %s\n",name,expectedAbbr[i]);
+                log_verbose("Error getting abbreviations Got: %s Expected: %s\n",name,expectedAbbr[i]);
                 numErrors++;
             }
             if(numErrors > 0){
@@ -1817,7 +1665,7 @@ static void TestUScriptCodeAPI(){
                 if( code != expected[i] ||
                     code != (UScriptCode)u_getIntPropertyValue(codepoints[i], UCHAR_SCRIPT)
                 ) {
-                    log_err("uscript_getScript for codepoint \\U%08X failed\n",codepoints[i]);
+                    log_verbose("uscript_getScript for codepoint \\U%08X failed\n",codepoints[i]);
                     passed = FALSE;
                 }
             }else{
@@ -1849,7 +1697,7 @@ static void TestUScriptCodeAPI(){
             code =  uscript_getScript(i,&status);
             if(code == USCRIPT_INVALID_CODE){
                 err++;
-                log_err("uscript_getScript for codepoint \\U%08X failed.\n", i);
+                log_verbose("uscript_getScript for codepoint \\U%08X failed.\n", i);
             }
         }
         if(err>0){
@@ -2185,11 +2033,11 @@ TestAdditionalProperties() {
 
         { 0x00a0, UCHAR_GRAPHEME_BASE, TRUE },
         { 0x0a4d, UCHAR_GRAPHEME_BASE, FALSE },
-        { 0xff9f, UCHAR_GRAPHEME_BASE, TRUE },      /* changed from Unicode 3.2 to 4 */
+        { 0xff9f, UCHAR_GRAPHEME_BASE, FALSE },
 
         { 0x0300, UCHAR_GRAPHEME_EXTEND, TRUE },
-        { 0xff9f, UCHAR_GRAPHEME_EXTEND, FALSE },   /* changed from Unicode 3.2 to 4 */
-        { 0x0603, UCHAR_GRAPHEME_EXTEND, FALSE },
+        { 0xff9f, UCHAR_GRAPHEME_EXTEND, TRUE },
+        { 0x0a4d, UCHAR_GRAPHEME_EXTEND, FALSE },
 
         { 0x0a4d, UCHAR_GRAPHEME_LINK, TRUE },
         { 0xff9f, UCHAR_GRAPHEME_LINK, FALSE },
@@ -2226,11 +2074,11 @@ TestAdditionalProperties() {
         { 0x0C4E, UCHAR_BLOCK, UBLOCK_TELUGU },
         { 0x155A, UCHAR_BLOCK, UBLOCK_UNIFIED_CANADIAN_ABORIGINAL_SYLLABICS },
         { 0x1717, UCHAR_BLOCK, UBLOCK_TAGALOG },
-        { 0x1AFF, UCHAR_BLOCK, UBLOCK_NO_BLOCK },
+        { 0x1AFF, UCHAR_BLOCK, UBLOCK_INVALID_CODE },
         { 0x3040, UCHAR_BLOCK, UBLOCK_HIRAGANA },
         { 0x1D0FF, UCHAR_BLOCK, UBLOCK_BYZANTINE_MUSICAL_SYMBOLS },
         { 0x10D0FF, UCHAR_BLOCK, UBLOCK_SUPPLEMENTARY_PRIVATE_USE_AREA_B },
-        { 0xEFFFF, UCHAR_BLOCK, UBLOCK_NO_BLOCK },
+        { 0xEFFFF, UCHAR_BLOCK, UBLOCK_INVALID_CODE },
 
         /* UCHAR_CANONICAL_COMBINING_CLASS tested for assigned characters in TestUnicodeData() */
         { 0xd7d7, UCHAR_CANONICAL_COMBINING_CLASS, 0 },
@@ -2303,41 +2151,6 @@ TestAdditionalProperties() {
 
         /* UCHAR_SCRIPT tested in TestUScriptCodeAPI() */
 
-        { 0x1100, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LEADING_JAMO },
-        { 0x1111, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LEADING_JAMO },
-        { 0x1159, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LEADING_JAMO },
-        { 0x115f, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LEADING_JAMO },
-
-        { 0x1160, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_VOWEL_JAMO },
-        { 0x1161, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_VOWEL_JAMO },
-        { 0x1172, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_VOWEL_JAMO },
-        { 0x11a2, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_VOWEL_JAMO },
-
-        { 0x11a8, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_TRAILING_JAMO },
-        { 0x11b8, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_TRAILING_JAMO },
-        { 0x11c8, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_TRAILING_JAMO },
-        { 0x11f9, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_TRAILING_JAMO },
-
-        { 0x115a, UCHAR_HANGUL_SYLLABLE_TYPE, 0 },
-        { 0x115e, UCHAR_HANGUL_SYLLABLE_TYPE, 0 },
-        { 0x11a3, UCHAR_HANGUL_SYLLABLE_TYPE, 0 },
-        { 0x11a7, UCHAR_HANGUL_SYLLABLE_TYPE, 0 },
-        { 0x11fa, UCHAR_HANGUL_SYLLABLE_TYPE, 0 },
-        { 0x11ff, UCHAR_HANGUL_SYLLABLE_TYPE, 0 },
-
-        { 0xac00, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LV_SYLLABLE },
-        { 0xac1c, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LV_SYLLABLE },
-        { 0xc5ec, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LV_SYLLABLE },
-        { 0xd788, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LV_SYLLABLE },
-
-        { 0xac01, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LVT_SYLLABLE },
-        { 0xac1b, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LVT_SYLLABLE },
-        { 0xac1d, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LVT_SYLLABLE },
-        { 0xc5ee, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LVT_SYLLABLE },
-        { 0xd7a3, UCHAR_HANGUL_SYLLABLE_TYPE, U_HST_LVT_SYLLABLE },
-
-        { 0xd7a4, UCHAR_HANGUL_SYLLABLE_TYPE, 0 },
-
         /* undefined UProperty values */
         { 0x61, 0x4a7, 0 },
         { 0x234bc, 0x15ed, 0 }
@@ -2372,7 +2185,7 @@ TestAdditionalProperties() {
 
     if( u_getIntPropertyMinValue(UCHAR_DASH)!=0 ||
         u_getIntPropertyMinValue(UCHAR_BIDI_CLASS)!=0 ||
-        u_getIntPropertyMinValue(UCHAR_BLOCK)!=0 ||   /* j2478 */
+        u_getIntPropertyMinValue(UCHAR_BLOCK)!=(int32_t)UBLOCK_INVALID_CODE ||
         u_getIntPropertyMinValue(UCHAR_SCRIPT)!=0 || /*JB#2410*/
         u_getIntPropertyMinValue(0x2345)!=0
     ) {
@@ -2461,43 +2274,30 @@ TestNumericProperties(void) {
     } values[]={
         { 0x0F33, U_NT_NUMERIC, -1./2. },
         { 0x0C66, U_NT_DECIMAL, 0 },
-        { 0x96f6, U_NT_NUMERIC, 0 },
         { 0x2159, U_NT_NUMERIC, 1./6. },
         { 0x00BD, U_NT_NUMERIC, 1./2. },
         { 0x0031, U_NT_DECIMAL, 1. },
-        { 0x4e00, U_NT_NUMERIC, 1. },
-        { 0x58f1, U_NT_NUMERIC, 1. },
         { 0x10320, U_NT_NUMERIC, 1. },
         { 0x0F2B, U_NT_NUMERIC, 3./2. },
-        { 0x00B2, U_NT_DIGIT, 2. },
-        { 0x5f10, U_NT_NUMERIC, 2. },
+        { 0x00B2, U_NT_DECIMAL, 2. },
         { 0x1813, U_NT_DECIMAL, 3. },
-        { 0x5f0e, U_NT_NUMERIC, 3. },
         { 0x2173, U_NT_NUMERIC, 4. },
-        { 0x8086, U_NT_NUMERIC, 4. },
         { 0x278E, U_NT_DIGIT, 5. },
         { 0x1D7F2, U_NT_DECIMAL, 6. },
         { 0x247A, U_NT_DIGIT, 7. },
-        { 0x7396, U_NT_NUMERIC, 9. },
         { 0x1372, U_NT_NUMERIC, 10. },
         { 0x216B, U_NT_NUMERIC, 12. },
         { 0x16EE, U_NT_NUMERIC, 17. },
         { 0x249A, U_NT_NUMERIC, 19. },
         { 0x303A, U_NT_NUMERIC, 30. },
-        { 0x5345, U_NT_NUMERIC, 30. },
         { 0x32B2, U_NT_NUMERIC, 37. },
         { 0x1375, U_NT_NUMERIC, 40. },
         { 0x10323, U_NT_NUMERIC, 50. },
         { 0x0BF1, U_NT_NUMERIC, 100. },
-        { 0x964c, U_NT_NUMERIC, 100. },
         { 0x217E, U_NT_NUMERIC, 500. },
         { 0x2180, U_NT_NUMERIC, 1000. },
-        { 0x4edf, U_NT_NUMERIC, 1000. },
         { 0x2181, U_NT_NUMERIC, 5000. },
         { 0x137C, U_NT_NUMERIC, 10000. },
-        { 0x4e07, U_NT_NUMERIC, 10000. },
-        { 0x4ebf, U_NT_NUMERIC, 100000000. },
-        { 0x5146, U_NT_NUMERIC, 1000000000000. },
         { 0x61, U_NT_NONE, U_NO_NUMERIC_VALUE },
         { 0x3000, U_NT_NONE, U_NO_NUMERIC_VALUE },
         { 0xfffe, U_NT_NONE, U_NO_NUMERIC_VALUE },
@@ -2536,7 +2336,7 @@ TestPropertyNames(void) {
         for (choice=0; ; ++choice) {
             const char* name = u_getPropertyName(p, choice);
             if (name) {
-                if (!sawProp) log_verbose("prop 0x%04x+%2d:", p&~0xfff, p&0xfff);
+                if (!sawProp) log_verbose("prop %d:", p);
                 log_verbose("%d=\"%s\"", choice, name);
                 sawProp = TRUE;
 
@@ -2666,152 +2466,3 @@ TestPropertyValues(void) {
     }
 }
 
-/* add characters from a serialized set to a normal one */
-static void
-_setAddSerialized(USet *set, const USerializedSet *sset) {
-    UChar32 start, end;
-    int32_t i, count;
-
-    count=uset_getSerializedRangeCount(sset);
-    for(i=0; i<count; ++i) {
-        uset_getSerializedRange(sset, i, &start, &end);
-        uset_addRange(set, start, end);
-    }
-}
-
-/* various tests for consistency of UCD data and API behavior */
-static void
-TestConsistency() {
-    UChar buffer16[300];
-    char buffer[300];
-    USet *set1, *set2, *set3, *set4;
-    UErrorCode errorCode;
-
-    USerializedSet sset;
-    UChar32 start, end;
-    int32_t i, length;
-
-    U_STRING_DECL(hyphenPattern, "[:Hyphen:]", 10);
-    U_STRING_DECL(dashPattern, "[:Dash:]", 8);
-    U_STRING_DECL(lowerPattern, "[:Lowercase:]", 13);
-    U_STRING_DECL(formatPattern, "[:Cf:]", 6);
-    U_STRING_DECL(alphaPattern, "[:Alphabetic:]", 14);
-
-    U_STRING_INIT(hyphenPattern, "[:Hyphen:]", 10);
-    U_STRING_INIT(dashPattern, "[:Dash:]", 8);
-    U_STRING_INIT(lowerPattern, "[:Lowercase:]", 13);
-    U_STRING_INIT(formatPattern, "[:Cf:]", 6);
-    U_STRING_INIT(alphaPattern, "[:Alphabetic:]", 14);
-
-    /*
-     * It used to be that UCD.html and its precursors said
-     * "Those dashes used to mark connections between pieces of words,
-     *  plus the Katakana middle dot."
-     *
-     * Unicode 4 changed 00AD Soft Hyphen to Cf and removed it from Dash
-     * but not from Hyphen.
-     * UTC 94 (2003mar) decided to leave it that way and to changed UCD.html.
-     * Therefore, do not show errors when testing the Hyphen property.
-     */
-    log_verbose("Starting with Unicode 4, inconsistencies with [:Hyphen:] are\n"
-                "known to the UTC and not considered errors.\n");
-
-    errorCode=U_ZERO_ERROR;
-    set1=uset_openPattern(hyphenPattern, 10, &errorCode);
-    set2=uset_openPattern(dashPattern, 8, &errorCode);
-    if(U_SUCCESS(errorCode)) {
-        /* remove the Katakana middle dot(s) from set1 */
-        uset_remove(set1, 0x30fb);
-        uset_remove(set1, 0xff65); /* halfwidth variant */
-        showAMinusB(set1, set2, "[:Hyphen:]", "[:Dash:]", FALSE);
-    } else {
-        log_err("error opening [:Hyphen:] or [:Dash:] - %s\n", u_errorName(errorCode));
-    }
-
-    /* check that Cf is neither Hyphen nor Dash nor Alphabetic */
-    set3=uset_openPattern(formatPattern, 6, &errorCode);
-    set4=uset_openPattern(alphaPattern, 14, &errorCode);
-    if(U_SUCCESS(errorCode)) {
-        showAIntersectB(set3, set1, "[:Cf:]", "[:Hyphen:]", FALSE);
-        showAIntersectB(set3, set2, "[:Cf:]", "[:Dash:]", TRUE);
-        showAIntersectB(set3, set4, "[:Cf:]", "[:Alphabetic:]", TRUE);
-    } else {
-        log_err("error opening [:Cf:] or [:Alpbabetic:] - %s\n", u_errorName(errorCode));
-    }
-
-    uset_close(set1);
-    uset_close(set2);
-    uset_close(set3);
-    uset_close(set4);
-
-    /*
-     * Check that each lowercase character has "small" in its name
-     * and not "capital".
-     * There are some such characters, some of which seem odd.
-     * Use the verbose flag to see these notices.
-     */
-    errorCode=U_ZERO_ERROR;
-    set1=uset_openPattern(lowerPattern, 13, &errorCode);
-    if(U_SUCCESS(errorCode)) {
-        for(i=0;; ++i) {
-            length=uset_getItem(set1, i, &start, &end, NULL, 0, &errorCode);
-            if(errorCode==U_INDEX_OUTOFBOUNDS_ERROR) {
-                break; /* done */
-            }
-            if(U_FAILURE(errorCode)) {
-                log_err("error iterating over [:Lowercase:] at item %d: %s\n",
-                        i, u_errorName(errorCode));
-                break;
-            }
-            if(length!=0) {
-                break; /* done with code points, got a string or -1 */
-            }
-
-            while(start<=end) {
-                length=u_charName(start, U_UNICODE_CHAR_NAME, buffer, sizeof(buffer), &errorCode);
-                if(U_FAILURE(errorCode)) {
-                    log_err("error getting the name of U+%04x - %s\n", start, u_errorName(errorCode));
-                    errorCode=U_ZERO_ERROR;
-                    continue;
-                }
-                if( (strstr(buffer, "SMALL")==NULL || strstr(buffer, "CAPITAL")!=NULL) &&
-                    strstr(buffer, "SMALL CAPITAL")==NULL
-                ) {
-                    log_verbose("info: [:Lowercase:] contains U+%04x whose name does not suggest lowercase: %s\n", start, buffer);
-                }
-                ++start;
-            }
-        }
-    } else {
-        log_err("error opening [:Lowercase:] - %s\n", u_errorName(errorCode));
-    }
-    uset_close(set1);
-
-    /*
-     * Test for an example that unorm_getCanonStartSet() delivers
-     * all characters that compose from the input one,
-     * even in multiple steps.
-     * For example, the set for "I" (0049) should contain both
-     * I-diaeresis (00CF) and I-diaeresis-acute (1E2E).
-     * In general, the set for the middle such character should be a subset
-     * of the set for the first.
-     */
-    set1=uset_open(1, 0);
-    set2=uset_open(1, 0);
-
-    unorm_getCanonStartSet(0x49, &sset);
-    _setAddSerialized(set1, &sset);
-
-    /* enumerate all characters that are plausible to be latin letters */
-    for(start=0xa0; start<0x2000; ++start) {
-        if(unorm_getDecomposition(start, FALSE, buffer16, LENGTHOF(buffer16))>1 && buffer16[0]==0x49) {
-            uset_add(set2, start);
-        }
-    }
-
-    compareUSets(set1, set2,
-                 "[canon start set of 0049]", "[all c with canon decomp with 0049]",
-                 TRUE);
-    uset_close(set1);
-    uset_close(set2);
-}

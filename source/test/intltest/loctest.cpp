@@ -168,31 +168,33 @@ void LocaleTest::runIndexedTest( int32_t index, UBool exec, const char* &name, c
 
         CASE(7, TestISO3Fallback)
         CASE(8, TestGetLangsAndCountries)
-        CASE(9, TestSimpleDisplayNames)
-        CASE(10, TestUninstalledISO3Names)
-        CASE(11, TestAtypicalLocales)
+        CASE(9, Test4126880)
+        CASE(10, TestBug4135316)
+        CASE(11, TestSimpleDisplayNames)
+        CASE(12, TestUninstalledISO3Names)
+        CASE(13, TestAtypicalLocales)
 #if !UCONFIG_NO_FORMATTING
-        CASE(12, TestThaiCurrencyFormat)
-        CASE(13, TestEuroSupport)
+        CASE(14, TestThaiCurrencyFormat)
+        CASE(15, TestEuroSupport)
 #endif
-        CASE(14, TestToString)
+        CASE(16, TestToString)
 #if !UCONFIG_NO_FORMATTING
-        CASE(15, Test4139940)
-        CASE(16, Test4143951)
+        CASE(17, Test4139940)
+        CASE(18, Test4143951)
 #endif
-        CASE(17, Test4147315)
-        CASE(18, Test4147317)
-        CASE(19, Test4147552)
-        CASE(20, TestVariantParsing)
+        CASE(19, Test4147315)
+        CASE(20, Test4147317)
+        CASE(21, Test4147552)
+        CASE(22, TestVariantParsing)
 #if !UCONFIG_NO_FORMATTING
-        CASE(21, Test4105828)
+        CASE(23, Test4105828)
 #endif
-        CASE(22, TestSetIsBogus)
-        CASE(23, TestParallelAPIValues)
+        CASE(24, TestSetIsBogus)
+        CASE(25, TestParallelAPIValues)
         // keep the last index in sync with the condition in default:
 
         default:
-            if(index <= 23) { // keep this in sync with the last index!
+            if(index <= 25) { // keep this in sync with the last index!
                 name = "switched off"; // UCONFIG_NO_FORMATTING
             } else {
                 name = "";
@@ -237,6 +239,42 @@ void LocaleTest::TestBasicGetters() {
         if (testLocale.getVariant()[0] != 0)
             errln("  Variant code mismatch: something versus \"\"");
     }
+
+    /*tests for the depracted API*/
+#ifdef ICU_LOCID_USE_DEPRECATES
+    for (i = 0; i <= MAX_LOCALES; i++) {
+        Locale testLocale((UnicodeString)rawData[LANG][i], (UnicodeString)rawData[CTRY][i], (UnicodeString)rawData[VAR][i]);
+        logln("Testing " + (UnicodeString)testLocale.getName() + "...");
+
+        if ( testLocale.getLanguage(temp) != (UnicodeString)(dataTable[LANG][i]))
+            errln("  Language code mismatch: " + temp + " versus "
+                        + dataTable[LANG][i]);
+        if ( testLocale.getCountry(temp) != (UnicodeString)(dataTable[CTRY][i]))
+            errln("  Country code mismatch: " + temp + " versus "
+                        + dataTable[CTRY][i]);
+        if ( testLocale.getVariant(temp) != (UnicodeString)(dataTable[VAR][i]))
+            errln("  Variant code mismatch: " + temp + " versus "
+                        + dataTable[VAR][i]);
+        if ( testLocale.getName(temp) != (UnicodeString)(dataTable[NAME][i]))
+            errln("  Locale name mismatch: " + temp + " versus "
+                        + dataTable[NAME][i]);
+    }
+    logln("Same thing without variant codes...");
+    for (i = 0; i <= MAX_LOCALES; i++) {
+        Locale testLocale((UnicodeString)rawData[LANG][i], (UnicodeString)rawData[CTRY][i]);
+        logln("Testing " + (testLocale.getName(temp)) + "...");
+
+        if ( testLocale.getLanguage(temp) != (UnicodeString)(dataTable[LANG][i]))
+            errln("  Language code mismatch: " + temp + " versus "
+                        + dataTable[LANG][i]);
+        if ( testLocale.getCountry(temp) != (UnicodeString)(dataTable[CTRY][i]))
+            errln("  Country code mismatch: " + temp + " versus "
+                        + dataTable[CTRY][i]);
+        if (testLocale.getVariant(temp).length() != 0 )
+            errln("  Variant code mismatch: something versus \"\"");
+    }
+
+#endif
 
     logln("Testing long language names and getters");
     Locale  test8 = Locale::createFromName("x-klingon-zx.utf32be@special");
@@ -361,6 +399,27 @@ void LocaleTest::TestSimpleResourceInfo() {
       }
     err = U_ZERO_ERROR;
   }
+
+  /*tests for the deprecated API*/
+#ifdef ICU_LOCID_USE_DEPRECATES
+  for (i = 0; i <= MAX_LOCALES; i++) {
+    Locale testLocale((UnicodeString)rawData[LANG][i], (UnicodeString)rawData[CTRY][i], (UnicodeString)rawData[VAR][i]);
+    logln("Testing " + (testLocale.getName(temp)) + "...");
+    
+    if ( testLocale.getISO3Language(temp, err) != (UnicodeString)(dataTable[LANG3][i]))
+      errln("  ISO-3 language code mismatch: " + temp
+        + " versus " + dataTable[LANG3][i]);
+    if ( testLocale.getISO3Country(temp, err) != (UnicodeString)(dataTable[CTRY3][i]))
+      errln("  ISO-3 country code mismatch: " + temp
+        + " versus " + dataTable[CTRY3][i]);
+    
+    if(U_FAILURE(err))
+      {
+        errln((UnicodeString)"Some error on number " + i + u_errorName(err));
+      }
+    err = U_ZERO_ERROR;
+   }
+#endif
 
    Locale locale("en");
    if(strcmp(locale.getName(), "en") != 0||
@@ -805,8 +864,8 @@ LocaleTest::TestGetLangsAndCountries()
     for(testCount = 0;test[testCount];testCount++)
       ;
 
-    if (testCount != 450)
-        errln("Expected getISOLanguages() to return 450 languages; it returned %d", testCount);
+    if (testCount != 437)
+        errln("Expected getISOLanguages() to return 437 languages; it returned %d", testCount);
     else {
         for (i = 0; i < 15; i++) {
             int32_t j;
@@ -864,6 +923,129 @@ LocaleTest::TestGetLangsAndCountries()
             errln(testee + " appears in an out-of-order position in the list.");
     }
 }
+
+/**
+ * @bug 4126880
+ */
+// since this returns const UnicodeString* in C++, is this test applicable?
+void 
+LocaleTest::Test4126880() 
+{
+#ifdef ICU_LOCID_USE_DEPRECATES
+    
+    const UnicodeString *test;
+    int32_t testCount=0;
+
+    /*test = Locale::getISOCountries(testCount);
+    test[0] = "SUCKER!!!";
+    test = Locale::getISOCountries(testCount);
+    if (test[0] == "SUCKER!!!")
+        errln("Changed internal country code list!");
+
+    test = Locale::getISOLanguages(testCount);
+    test[0] = "HAHAHAHA!!!";
+    test = Locale::getISOLanguages(testCount);
+    if (test[0] == "HAHAHAHA!!!") // Fixed typo
+        errln("Changes internal language code list!");
+     */   
+    /*tests for deprecated API*/
+    test=Locale::getISOCountries(testCount);
+    if(testCount != 239){
+        errln((UnicodeString)"There is an error in getISOCountries " + testCount);
+    }
+    test=Locale::getISOLanguages(testCount);
+    if(testCount != 437){
+        errln((UnicodeString)"There is an error in getISOLanguages " + testCount);
+    }
+/*----------*/
+#else
+    logln("Skipping Test4126880 for deprecated API");
+#endif        
+}
+
+/**
+ * @bug 4135316
+ */
+// not applicable in C++ - const Locale*
+void 
+LocaleTest::TestBug4135316() 
+{
+/*
+    Locale[] locales1 = Locale.getAvailableLocales();
+    Locale[] locales2 = Locale.getAvailableLocales();
+    if (locales1 == locales2)
+        errln("Locale.getAvailableLocales() doesn't clone its internal storage!");
+*/
+}
+
+/**
+ * @bug 4107953
+ */
+/*
+test commented out pending API-change approval
+public void TestGetLanguagesForCountry() {
+    UnicodeString[] languages = Locale.getLanguagesForCountry("US");
+
+    if (!searchStringArrayFor("en", languages))
+        errln("Didn't get en as a language for US");
+
+    languages = Locale.getLanguagesForCountry("FR");
+    if (!searchStringArrayFor("fr", languages))
+        errln("Didn't get fr as a language for FR");
+
+    languages = Locale.getLanguagesForCountry("CH");
+    if (!searchStringArrayFor("fr", languages))
+        errln("Didn't get fr as a language for CH");
+    if (!searchStringArrayFor("it", languages))
+        errln("Didn't get it as a language for CH");
+    if (!searchStringArrayFor("de", languages))
+        errln("Didn't get de as a language for CH");
+
+    languages = Locale.getLanguagesForCountry("JP");
+    if (!searchStringArrayFor("ja", languages))
+        errln("Didn't get ja as a language for JP");
+}
+*/
+
+/*
+private UBool searchStringArrayFor(UnicodeString s, UnicodeString[] array) {
+    for (int32_t i = 0; i < array.length; i++)
+        if (s.equals(array[i]))
+            return TRUE;
+    return FALSE;
+}
+*/
+
+/**
+ * @bug 4110613
+ */
+// not applicable in C++
+ /*
+void 
+LocaleTest::TestSerialization() throws ClassNotFoundException, OptionalDataException,
+                IOException, StreamCorruptedException
+{
+    ObjectOutputStream ostream;
+    ByteArrayOutputStream obstream;
+    byte[] bytes = null;
+
+    obstream = new ByteArrayOutputStream();
+    ostream = new ObjectOutputStream(obstream);
+
+    Locale test1 = new Locale("zh", "TW", "");
+    int32_t dummy = test1.hashCode();   // fill in the cached hash-code value
+    ostream.writeObject(test1);
+
+    bytes = obstream.toByteArray();
+
+    ObjectInputStream istream = new ObjectInputStream(new ByteArrayInputStream(bytes));
+
+    Locale test2 = (Locale)(istream.readObject());
+
+    if (!test1.equals(test2) || test1.hashCode() != test2.hashCode())
+        errln("Locale failed to deserialize correctly.");
+}
+*/
 
 /**
  * @bug 4118587
@@ -1238,7 +1420,7 @@ LocaleTest::Test4143951()
 {
     UErrorCode status = U_ZERO_ERROR;
     Calendar *cal = Calendar::createInstance(Locale("ru", "", ""), status);
-    if (cal->getFirstDayOfWeek() != UCAL_MONDAY) {
+    if (cal->getFirstDayOfWeek() != Calendar::MONDAY) {
         errln("Fail: First day of week in Russia should be Monday");
     }
     delete cal;

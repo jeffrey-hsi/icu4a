@@ -8,11 +8,6 @@
 #ifndef __CLASSDEFINITIONTABLES_H
 #define __CLASSDEFINITIONTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "OpenTypeTables.h"
 
@@ -28,7 +23,7 @@ struct ClassDefinitionTable
 
 struct ClassDefFormat1Table : ClassDefinitionTable
 {
-    TTGlyphID  startGlyph;
+    LEGlyphID  startGlyph;
     le_uint16  glyphCount;
     le_uint16  classValueArray[ANY_NUMBER];
 
@@ -38,8 +33,8 @@ struct ClassDefFormat1Table : ClassDefinitionTable
 
 struct ClassRangeRecord
 {
-    TTGlyphID start;
-    TTGlyphID end;
+    LEGlyphID start;
+    LEGlyphID end;
     le_uint16 classValue;
 };
 

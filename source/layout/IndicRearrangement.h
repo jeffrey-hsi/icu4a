@@ -8,11 +8,6 @@
 #ifndef __INDICREARRANGEMENT_H
 #define __INDICREARRANGEMENT_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LayoutTables.h"
 #include "StateTables.h"

@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-*   Copyright (C) 1996-2003, International Business Machines
+*   Copyright (C) 1996-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -24,15 +24,12 @@
 #include "unicode/udata.h"
 #include "unicode/uloc.h"
 #include "unicode/uiter.h"
-#include "unicode/uset.h"
 #include "umutex.h"
 #include "cmemory.h"
 #include "ucln_cmn.h"
 #include "utrie.h"
 #include "ustr_imp.h"
 #include "uprops.h"
-
-#define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
 /* dynamically loaded Unicode character properties -------------------------- */
 
@@ -108,7 +105,6 @@ uchar_cleanup()
     countPropsVectors=0;
     dataErrorCode=U_ZERO_ERROR;
     havePropsData=FALSE;
-
     return TRUE;
 }
 
@@ -320,7 +316,10 @@ U_CAPI UBool U_EXPORT2
 u_isdigit(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)(GET_CATEGORY(props)==U_DECIMAL_DIGIT_NUMBER);
+    return (UBool)(((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_DECIMAL_DIGIT_NUMBER|1UL<<U_OTHER_NUMBER|1UL<<U_LETTER_NUMBER)
+           )!=0);
+    /* ### TODO: should this not check only U_DECIMAL_DIGIT_NUMBER?! */
 }
 
 /* Checks if the Unicode character is a letter.*/
@@ -328,7 +327,9 @@ U_CAPI UBool U_EXPORT2
 u_isalpha(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)((CAT_MASK(props)&U_GC_L_MASK)!=0);
+    return (UBool)(((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_UPPERCASE_LETTER|1UL<<U_LOWERCASE_LETTER|1UL<<U_TITLECASE_LETTER|1UL<<U_MODIFIER_LETTER|1UL<<U_OTHER_LETTER)
+           )!=0);
 }
 
 /* Checks if ch is a letter or a decimal digit */
@@ -336,7 +337,10 @@ U_CAPI UBool U_EXPORT2
 u_isalnum(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)((CAT_MASK(props)&(U_GC_L_MASK|U_GC_ND_MASK))!=0);
+    return (UBool)(((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_DECIMAL_DIGIT_NUMBER|1UL<<U_OTHER_NUMBER|1UL<<U_LETTER_NUMBER|
+             1UL<<U_UPPERCASE_LETTER|1UL<<U_LOWERCASE_LETTER|1UL<<U_TITLECASE_LETTER|1UL<<U_MODIFIER_LETTER|1UL<<U_OTHER_LETTER)
+           )!=0);
 }
 
 /* Checks if ch is a unicode character with assigned character type.*/
@@ -352,7 +356,11 @@ U_CAPI UBool U_EXPORT2
 u_isbase(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)((CAT_MASK(props)&(U_GC_L_MASK|U_GC_N_MASK|U_GC_MC_MASK|U_GC_ME_MASK))!=0);
+    return (UBool)(((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_DECIMAL_DIGIT_NUMBER|1UL<<U_OTHER_NUMBER|1UL<<U_LETTER_NUMBER|
+             1UL<<U_UPPERCASE_LETTER|1UL<<U_LOWERCASE_LETTER|1UL<<U_TITLECASE_LETTER|1UL<<U_MODIFIER_LETTER|1UL<<U_OTHER_LETTER|
+             1UL<<U_NON_SPACING_MARK|1UL<<U_ENCLOSING_MARK|1UL<<U_COMBINING_SPACING_MARK)
+           )!=0);
 }
 
 /* Checks if the Unicode character is a control character.*/
@@ -360,31 +368,24 @@ U_CAPI UBool U_EXPORT2
 u_iscntrl(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)((CAT_MASK(props)&(U_GC_CC_MASK|U_GC_CF_MASK|U_GC_ZL_MASK|U_GC_ZP_MASK))!=0);
-}
-
-U_CAPI UBool U_EXPORT2
-u_isISOControl(UChar32 c) {
-    return (uint32_t)c<=0x9f && (c<=0x1f || c>=0x7f);
+    return (UBool)(
+           ((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_CONTROL_CHAR|1UL<<U_FORMAT_CHAR|1UL<<U_LINE_SEPARATOR|1UL<<U_PARAGRAPH_SEPARATOR)
+           )!=0);
 }
 
 /* Some control characters that are used as space. */
 #define IS_THAT_CONTROL_SPACE(c) \
-    (c<=0x9f && ((c>=TAB && c<=CR) || (c>=0x1c && c <=0x1f) || c==NL))
+    ((c>=TAB && c<=CR) || (c>=0x1c && c <=0x1f) || c==NL)
 
 /* Checks if the Unicode character is a space character.*/
 U_CAPI UBool U_EXPORT2
 u_isspace(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)((CAT_MASK(props)&U_GC_Z_MASK)!=0 || IS_THAT_CONTROL_SPACE(c));
-}
-
-U_CAPI UBool U_EXPORT2
-u_isJavaSpaceChar(UChar32 c) {
-    uint32_t props;
-    GET_PROPS(c, props);
-    return (UBool)((CAT_MASK(props)&U_GC_Z_MASK)!=0);
+    return (UBool)((((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_SPACE_SEPARATOR|1UL<<U_LINE_SEPARATOR|1UL<<U_PARAGRAPH_SEPARATOR)
+           )!=0) || IS_THAT_CONTROL_SPACE(c));
 }
 
 /* Checks if the Unicode character is a whitespace character.*/
@@ -392,11 +393,11 @@ U_CAPI UBool U_EXPORT2
 u_isWhitespace(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)(
-                ((CAT_MASK(props)&U_GC_Z_MASK)!=0 &&
-                    c!=NBSP && c!=FIGURESP && c!=NNBSP) || /* exclude no-break spaces */
-                IS_THAT_CONTROL_SPACE(c)
-           );
+    return (UBool)((((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_SPACE_SEPARATOR|1UL<<U_LINE_SEPARATOR|1UL<<U_PARAGRAPH_SEPARATOR)
+           )!=0 &&
+           c!=NBSP && c!=NNBSP && c!=ZWNBSP) || /* exclude no-break spaces */
+           IS_THAT_CONTROL_SPACE(c));
 }
 
 /* Checks if the Unicode character is printable.*/
@@ -404,8 +405,12 @@ U_CAPI UBool U_EXPORT2
 u_isprint(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    /* comparing ==0 returns FALSE for the categories mentioned */
-    return (UBool)((CAT_MASK(props)&U_GC_C_MASK)==0);
+    return (UBool)(
+            ((1UL<<GET_CATEGORY(props))&
+            ~(1UL<<U_UNASSIGNED|
+              1UL<<U_CONTROL_CHAR|1UL<<U_FORMAT_CHAR|1UL<<U_PRIVATE_USE_CHAR|1UL<<U_SURROGATE|
+              1UL<<U_GENERAL_OTHER_TYPES|1UL<<31)
+           )!=0);
 }
 
 /* Checks if the Unicode character can start a Unicode identifier.*/
@@ -414,7 +419,9 @@ u_isIDStart(UChar32 c) {
     /* same as u_isalpha() */
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)((CAT_MASK(props)&(U_GC_L_MASK|U_GC_NL_MASK))!=0);
+    return (UBool)(((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_UPPERCASE_LETTER|1UL<<U_LOWERCASE_LETTER|1UL<<U_TITLECASE_LETTER|1UL<<U_MODIFIER_LETTER|1UL<<U_OTHER_LETTER)
+           )!=0);
 }
 
 /* Checks if the Unicode character can be a Unicode identifier part other than starting the
@@ -424,10 +431,10 @@ u_isIDPart(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
     return (UBool)(
-           (CAT_MASK(props)&
-            (U_GC_ND_MASK|U_GC_NL_MASK|
-             U_GC_L_MASK|
-             U_GC_PC_MASK|U_GC_MC_MASK|U_GC_MN_MASK)
+           ((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_DECIMAL_DIGIT_NUMBER|1UL<<U_LETTER_NUMBER|
+             1UL<<U_UPPERCASE_LETTER|1UL<<U_LOWERCASE_LETTER|1UL<<U_TITLECASE_LETTER|1UL<<U_MODIFIER_LETTER|1UL<<U_OTHER_LETTER|
+             1UL<<U_CONNECTOR_PUNCTUATION|1UL<<U_COMBINING_SPACING_MARK|1UL<<U_NON_SPACING_MARK)
            )!=0 ||
            u_isIDIgnorable(c));
 }
@@ -435,13 +442,12 @@ u_isIDPart(UChar32 c) {
 /*Checks if the Unicode character can be ignorable in a Java or Unicode identifier.*/
 U_CAPI UBool U_EXPORT2
 u_isIDIgnorable(UChar32 c) {
-    if(c<=0x9f) {
-        return u_isISOControl(c) && !IS_THAT_CONTROL_SPACE(c);
-    } else {
-        uint32_t props;
-        GET_PROPS(c, props);
-        return (UBool)(GET_CATEGORY(props)==U_FORMAT_CHAR);
-    }
+    return (UBool)((uint32_t)c<=8 ||
+           (uint32_t)(c-0xe)<=(0x1b-0xe) ||
+           (uint32_t)(c-0x7f)<=(0x9f-0x7f) ||
+           (uint32_t)(c-0x200a)<=(0x200f-0x200a) ||
+           (uint32_t)(c-0x206a)<=(0x206f-0x206a) ||
+           c==0xfeff);
 }
 
 /*Checks if the Unicode character can start a Java identifier.*/
@@ -449,7 +455,11 @@ U_CAPI UBool U_EXPORT2
 u_isJavaIDStart(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
-    return (UBool)((CAT_MASK(props)&(U_GC_L_MASK|U_GC_SC_MASK|U_GC_PC_MASK))!=0);
+    return (UBool)(
+           ((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_UPPERCASE_LETTER|1UL<<U_LOWERCASE_LETTER|1UL<<U_TITLECASE_LETTER|1UL<<U_MODIFIER_LETTER|1UL<<U_OTHER_LETTER|
+             1UL<<U_CURRENCY_SYMBOL|1UL<<U_CONNECTOR_PUNCTUATION)
+           )!=0);
 }
 
 /*Checks if the Unicode character can be a Java identifier part other than starting the
@@ -460,11 +470,11 @@ u_isJavaIDPart(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
     return (UBool)(
-           (CAT_MASK(props)&
-            (U_GC_ND_MASK|U_GC_NL_MASK|
-             U_GC_L_MASK|
-             U_GC_SC_MASK|U_GC_PC_MASK|
-             U_GC_MC_MASK|U_GC_MN_MASK)
+           ((1UL<<GET_CATEGORY(props))&
+            (1UL<<U_DECIMAL_DIGIT_NUMBER|1UL<<U_LETTER_NUMBER|
+             1UL<<U_UPPERCASE_LETTER|1UL<<U_LOWERCASE_LETTER|1UL<<U_TITLECASE_LETTER|1UL<<U_MODIFIER_LETTER|1UL<<U_OTHER_LETTER|
+             1UL<<U_CURRENCY_SYMBOL|1UL<<U_CONNECTOR_PUNCTUATION|
+             1UL<<U_COMBINING_SPACING_MARK|1UL<<U_NON_SPACING_MARK)
            )!=0 ||
            u_isIDIgnorable(c));
 }
@@ -475,7 +485,7 @@ u_tolower(UChar32 c) {
     uint32_t props;
     GET_PROPS(c, props);
     if(!PROPS_VALUE_IS_EXCEPTION(props)) {
-        if(CAT_MASK(props)&(U_GC_LU_MASK|U_GC_LT_MASK)) {
+        if((1UL<<GET_CATEGORY(props))&(1UL<<U_UPPERCASE_LETTER|1UL<<U_TITLECASE_LETTER)) {
             return c+GET_SIGNED_VALUE(props);
         }
     } else {
@@ -860,16 +870,9 @@ u_getUnicodeProperties(UChar32 c, int32_t column) {
 }
 
 U_CFUNC int32_t
-uprv_getMaxValues(int32_t column) {
+uprv_getMaxValues() {
     if(HAVE_DATA) {
-        switch(column) {
-        case 0:
-            return indexes[UPROPS_MAX_VALUES_INDEX];
-        case 2:
-            return indexes[UPROPS_MAX_VALUES_2_INDEX];
-        default:
-            return 0;
-        }
+        return indexes[UPROPS_MAX_VALUES_INDEX];
     } else {
         return 0;
     }
@@ -886,9 +889,6 @@ _enumPropertyStartsRange(const void *context, UChar32 start, UChar32 limit, uint
 
 U_CAPI void U_EXPORT2
 uchar_addPropertyStarts(USet *set) {
-    UChar32 c;
-    int32_t value, value2;
-
     if(!HAVE_DATA) {
         return;
     }
@@ -916,7 +916,6 @@ uchar_addPropertyStarts(USet *set) {
 
     /* add no-break spaces for u_isWhitespace() what was not added above */
     USET_ADD_CP_AND_NEXT(set, NBSP);
-    USET_ADD_CP_AND_NEXT(set, FIGURESP);
     USET_ADD_CP_AND_NEXT(set, NNBSP);
 
     /* add for u_charDigitValue() */
@@ -950,38 +949,6 @@ uchar_addPropertyStarts(USet *set) {
     /* add for UCHAR_JOINING_TYPE */
     uset_add(set, ZWNJ); /* range ZWNJ..ZWJ */
     uset_add(set, ZWJ+1);
-
-    /* add Jamo type boundaries for UCHAR_HANGUL_SYLLABLE_TYPE */
-    uset_add(set, 0x1100);
-    value=U_HST_LEADING_JAMO;
-    for(c=0x115a; c<=0x115f; ++c) {
-        value2=u_getIntPropertyValue(c, UCHAR_HANGUL_SYLLABLE_TYPE);
-        if(value!=value2) {
-            value=value2;
-            uset_add(set, c);
-        }
-    }
-
-    uset_add(set, 0x1160);
-    value=U_HST_VOWEL_JAMO;
-    for(c=0x11a3; c<=0x11a7; ++c) {
-        value2=u_getIntPropertyValue(c, UCHAR_HANGUL_SYLLABLE_TYPE);
-        if(value!=value2) {
-            value=value2;
-            uset_add(set, c);
-        }
-    }
-
-    uset_add(set, 0x11a8);
-    value=U_HST_TRAILING_JAMO;
-    for(c=0x11fa; c<=0x11ff; ++c) {
-        value2=u_getIntPropertyValue(c, UCHAR_HANGUL_SYLLABLE_TYPE);
-        if(value!=value2) {
-            value=value2;
-            uset_add(set, c);
-        }
-    }
-
 
     /*
      * Omit code points for u_charCellWidth() because
@@ -1035,14 +1002,6 @@ uchar_addPropertyStarts(USet *set) {
  *   C is followed by combining dot above (U+0307).
  *   Any sequence of characters with a combining class that is neither 0 nor 230
  *   may intervene between the current character and the combining dot above.
- *
- * The erratum from 2002-10-31 adds the condition
- *
- * After_I
- *   The last preceding base character was an uppercase I, and there is no
- *   intervening combining character class 230 (ABOVE).
- *
- *   (See Jitterbug 2344 and the comments on After_I below.)
  *
  * Helper definitions in Unicode 3.2 UAX 21:
  *
@@ -1113,7 +1072,7 @@ static U_INLINE UBool
 isCased(UChar32 c, uint32_t category) {
     /* Lt+Uppercase+Lowercase = Lt+Lu+Ll+Other_Uppercase+Other_Lowercase */
     return (FLAG(category)&(_Lt|_Lu|_Ll))!=0 ||
-            (u_getUnicodeProperties(c, 1)&(FLAG(UPROPS_UPPERCASE)|FLAG(UPROPS_LOWERCASE)))!=0;
+            (u_getUnicodeProperties(c, 1)&(FLAG(UPROPS_OTHER_UPPERCASE)|FLAG(UPROPS_OTHER_LOWERCASE)))!=0;
 }
 
 /* Is Soft_Dotted? */
@@ -1217,43 +1176,33 @@ isPrecededBySoftDotted(UCharIterator *iter, int32_t index) {
     return FALSE; /* not preceded by TYPE_i */
 }
 
+#if 0
 /*
- * See Jitterbug 2344:
- * The condition After_I for Turkic-lowercasing of U+0307 combining dot above
- * is checked in ICU 2.0, 2.1, 2.6 but was not in 2.2 & 2.4 because
- * we made those releases compatible with Unicode 3.2 which had not fixed
- * a related but in SpecialCasing.txt.
+ * ### TODO write a bug doc for the UTC and re-enable this with a newer version
+ * of Unicode.
  *
- * From the Jitterbug 2344 text:
- * ... this bug is listed as a Unicode erratum
- * from 2002-10-31 at http://www.unicode.org/uni2errata/UnicodeErrata.html
- * <quote>
- * There are two errors in SpecialCasing.txt.
- * 1. Missing semicolons on two lines. ... [irrelevant for ICU]
- * 2. An incorrect context definition. Correct as follows:
- * < 0307; ; 0307; 0307; tr After_Soft_Dotted; # COMBINING DOT ABOVE
- * < 0307; ; 0307; 0307; az After_Soft_Dotted; # COMBINING DOT ABOVE
- * ---
- * > 0307; ; 0307; 0307; tr After_I; # COMBINING DOT ABOVE
- * > 0307; ; 0307; 0307; az After_I; # COMBINING DOT ABOVE
- * where the context After_I is defined as:
- * The last preceding base character was an uppercase I, and there is no
- * intervening combining character class 230 (ABOVE).
- * </quote>
+ * ICU 2.0/2.1 used to check for After_I for the Turkic-conditional removal
+ * of U+0307 instead of checking for After_i (now After_Soft_Dotted).
  *
- * Note that SpecialCasing.txt even in Unicode 3.2 described the condition as:
+ * I believe that After_Soft_Dotted is a mistake because it results in different
+ * lowercase mappings for the canonically equivalent I-dot and I+dot
+ * (should both map to i).
+ * The comment in SpecialCasing.txt appears to agree.
+
+# When lowercasing, remove dot_above in the sequence I + dot_above, which will turn into i.
+# This matches the behavior of the canonically equivalent I-dot_above
+
+0307; ; 0307; 0307; tr After_Soft_Dotted; # COMBINING DOT ABOVE
+0307; ; 0307; 0307; az After_Soft_Dotted; # COMBINING DOT ABOVE
+
+ * For ICU 2.2 I am withdrawing this "fix" to make ICU conform to Unicode 3.2.
  *
- * # When lowercasing, remove dot_above in the sequence I + dot_above, which will turn into i.
- * # This matches the behavior of the canonically equivalent I-dot_above
- *
- * See also the description in this place in older versions of uchar.c (revision 1.100).
- *
- * Markus W. Scherer 2003-feb-15
+ * Markus W. Scherer 2002-jun-07
  */
 
 /* Is preceded by base character 'I' with no intervening cc=230 ? */
 static UBool
-isPrecededBy_I(UCharIterator *iter, int32_t index) {
+isAfter_I(UCharIterator *iter, int32_t index) {
     int32_t c;
     uint8_t cc;
 
@@ -1279,6 +1228,7 @@ isPrecededBy_I(UCharIterator *iter, int32_t index) {
 
     return FALSE; /* not preceded by I */
 }
+#endif
 
 /* Is followed by one or more cc==230 ? */
 static UBool
@@ -1351,7 +1301,7 @@ u_internalToLower(UChar32 c, UCharIterator *iter,
     result=c;
     GET_PROPS(c, props);
     if(!PROPS_VALUE_IS_EXCEPTION(props)) {
-        if(CAT_MASK(props)&(U_GC_LU_MASK|U_GC_LT_MASK)) {
+        if((1UL<<GET_CATEGORY(props))&(1UL<<U_UPPERCASE_LETTER|1UL<<U_TITLECASE_LETTER)) {
             result=c+GET_SIGNED_VALUE(props);
         }
     } else {
@@ -1444,13 +1394,14 @@ u_internalToLower(UChar32 c, UCharIterator *iter,
                      */
                     result=0x69;
                     goto single;
-                } else if(loc==LOC_TURKISH && c==0x307 && isPrecededBy_I(iter, srcIndex-1)) {
+                } else if(loc==LOC_TURKISH && c==0x307 && isPrecededBySoftDotted(iter, srcIndex-1)) {
+                    /* ### TODO see comment above about isAfter_I() */
                     /*
                         # When lowercasing, remove dot_above in the sequence I + dot_above, which will turn into i.
                         # This matches the behavior of the canonically equivalent I-dot_above
 
-                        0307; ; 0307; 0307; tr After_I; # COMBINING DOT ABOVE
-                        0307; ; 0307; 0307; az After_I; # COMBINING DOT ABOVE
+                        0307; ; 0307; 0307; tr After_Soft_Dotted; # COMBINING DOT ABOVE
+                        0307; ; 0307; 0307; az After_Soft_Dotted; # COMBINING DOT ABOVE
                      */
                     return 0; /* remove the dot (continue without output) */
                 } else if(loc==LOC_TURKISH && c==0x49 && !isFollowedByDotAbove(iter, srcIndex)) {
@@ -1554,7 +1505,7 @@ u_internalStrToLower(UChar *dest, int32_t destCapacity,
         UTF_NEXT_CHAR(src, srcIndex, srcLimit, c);
         GET_PROPS_UNSAFE(c, props);
         if(!PROPS_VALUE_IS_EXCEPTION(props)) {
-            if(CAT_MASK(props)&(U_GC_LU_MASK|U_GC_LT_MASK)) {
+            if((1UL<<GET_CATEGORY(props))&(1UL<<U_UPPERCASE_LETTER|1UL<<U_TITLECASE_LETTER)) {
                 c+=GET_SIGNED_VALUE(props);
             }
 
@@ -1865,7 +1816,7 @@ u_foldCase(UChar32 c, uint32_t options) {
     uint32_t props;
     GET_PROPS(c, props);
     if(!PROPS_VALUE_IS_EXCEPTION(props)) {
-        if(CAT_MASK(props)&(U_GC_LU_MASK|U_GC_LT_MASK)) {
+        if((1UL<<GET_CATEGORY(props))&(1UL<<U_UPPERCASE_LETTER|1UL<<U_TITLECASE_LETTER)) {
             return c+GET_SIGNED_VALUE(props);
         }
     } else {
@@ -1924,21 +1875,6 @@ u_foldCase(UChar32 c, uint32_t options) {
     return c; /* no mapping - return c itself */
 }
 
-/*
- * Issue for canonical caseless match (UAX #21):
- * Turkic casefolding (using "T" mappings in CaseFolding.txt) does not preserve
- * canonical equivalence, unlike default-option casefolding.
- * For example, I-grave and I + grave fold to strings that are not canonically
- * equivalent.
- * For more details, see the comment in unorm_compare() in unorm.cpp
- * and the intermediate prototype changes for Jitterbug 2021.
- * (For example, revision 1.104 of uchar.c and 1.4 of CaseFolding.txt.)
- *
- * This did not get fixed because it appears that it is not possible to fix
- * it for uppercase and lowercase characters (I-grave vs. i-grave)
- * together in a way that they still fold to common result strings.
- */
-
 /* internal, see ustr_imp.h */
 U_CAPI int32_t U_EXPORT2
 u_internalFoldCase(UChar32 c,
@@ -1951,7 +1887,7 @@ u_internalFoldCase(UChar32 c,
     result=c;
     GET_PROPS_UNSAFE(c, props);
     if(!PROPS_VALUE_IS_EXCEPTION(props)) {
-        if(CAT_MASK(props)&(U_GC_LU_MASK|U_GC_LT_MASK)) {
+        if((1UL<<GET_CATEGORY(props))&(1UL<<U_UPPERCASE_LETTER|1UL<<U_TITLECASE_LETTER)) {
             /* same as lowercase */
             result=c+GET_SIGNED_VALUE(props);
         }
@@ -2047,7 +1983,7 @@ u_internalStrFoldCase(UChar *dest, int32_t destCapacity,
         UTF_NEXT_CHAR(src, srcIndex, srcLength, c);
         GET_PROPS_UNSAFE(c, props);
         if(!PROPS_VALUE_IS_EXCEPTION(props)) {
-            if(CAT_MASK(props)&(U_GC_LU_MASK|U_GC_LT_MASK)) {
+            if((1UL<<GET_CATEGORY(props))&(1UL<<U_UPPERCASE_LETTER|1UL<<U_TITLECASE_LETTER)) {
                 c+=GET_SIGNED_VALUE(props);
             }
 

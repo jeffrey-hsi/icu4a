@@ -8,11 +8,6 @@
 #ifndef __ATTACHMENTPOSITIONINGSUBTABLES_H
 #define __ATTACHMENTPOSITIONINGSUBTABLES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "OpenTypeTables.h"
 #include "GlyphPositioningTables.h"

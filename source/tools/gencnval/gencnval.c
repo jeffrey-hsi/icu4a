@@ -622,7 +622,7 @@ addToKnownAliases(const char *alias) {
 }
 
 /*
-@param standard When standard is 0, then it's the "empty" tag.
+@param When standard is 0, then it's the default tag.
 */
 static uint16_t
 addAlias(const char *alias, uint16_t standard, uint16_t converter, UBool defaultName) {
@@ -650,23 +650,6 @@ addAlias(const char *alias, uint16_t standard, uint16_t converter, UBool default
         fprintf(stderr, "error(line %d): too many aliases for alias %s and converter %s\n",
             lineNum, alias, GET_ALIAS_STR(converters[converter].converter));
         exit(U_BUFFER_OVERFLOW_ERROR);
-    }
-
-    /* Show this warning only once. All aliases are added to the "ALL" tag. */
-    if (standard == ALL_TAG_NUM && GET_ALIAS_STR(converters[converter].converter) != alias) {
-        /* Normally these option values are parsed at runtime, and they can
-           be discarded when the alias is a default converter. Options should
-           only be on a converter and not an alias. */
-        if (uprv_strchr(alias, UCNV_OPTION_SEP_CHAR) != 0)
-        {
-            fprintf(stderr, "warning(line %d): alias %s contains a \""UCNV_OPTION_SEP_STRING"\". Options are parsed at run-time and do not need to be in the alias table.\n",
-                lineNum, alias);
-        }
-        if (uprv_strchr(alias, UCNV_VALUE_SEP_CHAR) != 0)
-        {
-            fprintf(stderr, "warning(line %d): alias %s contains an \""UCNV_VALUE_SEP_STRING"\". Options are parsed at run-time and do not need to be in the alias table.\n",
-                lineNum, alias);
-        }
     }
 
     /* Check for duplicates in a tag/converter combination */
@@ -1007,12 +990,7 @@ allocString(StringBlock *block, uint32_t length) {
 static int
 compareAliases(const void *alias1, const void *alias2) {
     /* Names like IBM850 and ibm-850 need to be sorted together */
-    int result = ucnv_compareNames(GET_ALIAS_STR(*(uint16_t*)alias1), GET_ALIAS_STR(*(uint16_t*)alias2));
-    if (!result) {
-        /* Sort the shortest first */
-        return uprv_strlen(GET_ALIAS_STR(*(uint16_t*)alias1)) - uprv_strlen(GET_ALIAS_STR(*(uint16_t*)alias2));
-    }
-    return result;
+    return ucnv_compareNames(GET_ALIAS_STR(*(uint16_t*)alias1), GET_ALIAS_STR(*(uint16_t*)alias2));
 }
 
 /*

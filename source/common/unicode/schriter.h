@@ -146,14 +146,16 @@ public:
    * @return a class ID for this object.
    * @stable ICU 2.0
    */
-  virtual UClassID         getDynamicClassID(void) const;
+  virtual UClassID         getDynamicClassID(void) const 
+    { return getStaticClassID(); }
 
   /**
    * Return a class ID for this class (not really public) 
    * @return a class ID for this class
    * @stable ICU 2.0
    */
-  static inline UClassID   getStaticClassID(void);
+  static UClassID          getStaticClassID(void) 
+    { return (UClassID)(&fgClassID); }
 
 protected:
   /**
@@ -179,14 +181,6 @@ protected:
 private:
   static const char        fgClassID;
 };
-
-inline UClassID
-StringCharacterIterator::getStaticClassID(void) 
-{ return (UClassID)(&fgClassID); }
-
-inline UClassID
-StringCharacterIterator::getDynamicClassID(void) const 
-{ return StringCharacterIterator::getStaticClassID(); }
 
 U_NAMESPACE_END
 #endif

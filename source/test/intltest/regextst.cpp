@@ -14,13 +14,10 @@
 #if !UCONFIG_NO_REGULAR_EXPRESSIONS
 
 #include "unicode/uchar.h"
-#include "unicode/ucnv.h"
 #include "intltest.h"
 #include "regextst.h"
 #include "uvector.h"
 #include "stdlib.h"
-#include "charstr.h"
-#include "util.h"
 
 
 //---------------------------------------------------------------------------
@@ -62,10 +59,6 @@ void RegexTest::runIndexedTest( int32_t index, UBool exec, const char* &name, ch
         case 5: name = "Errors";
             if (exec) Errors(); 
             break;
-        case 6: name = "PerlTests";
-            if (exec) PerlTests();
-            break;
-
 
         default: name = ""; 
             break; //needed to end loop
@@ -123,26 +116,23 @@ UBool RegexTest::doRegexLMTest(const char *pat, const char *text, UBool looking,
     UnicodeString patString(pat);
     REPattern = RegexPattern::compile(patString, 0, pe, status);
     if (U_FAILURE(status)) {
-        errln("RegexTest failure in RegexPattern::compile() at line %d.  Status = %s\n",
-            line, u_errorName(status));
+        errln("RegexTest failure in RegexPattern::compile() at line %d.  Status = %d\n", line, status);
         return FALSE;
     }
-    if (line==376) { REPattern->dump();}
+    // REPattern->dump();
 
     UnicodeString inputString(inputText);
     UnicodeString unEscapedInput = inputString.unescape();
     REMatcher = REPattern->matcher(unEscapedInput, status);
     if (U_FAILURE(status)) {
-        errln("RegexTest failure in REPattern::matcher() at line %d.  Status = %s\n",
-            line, u_errorName(status));
+        errln("RegexTest failure in REPattern::matcher() at line %d.  Status = %d\n", line, status);
         return FALSE;
     }
   
     UBool actualmatch;
     actualmatch = REMatcher->lookingAt(status);
     if (U_FAILURE(status)) {
-        errln("RegexTest failure in lookingAt() at line %d.  Status = %s\n",
-            line, u_errorName(status));
+        errln("RegexTest failure in lookingAt() at line %d.  Status = %d\n", line, status);
         retVal =  FALSE;
     }
     if (actualmatch != looking) {
@@ -153,8 +143,7 @@ UBool RegexTest::doRegexLMTest(const char *pat, const char *text, UBool looking,
     status = U_ZERO_ERROR;
     actualmatch = REMatcher->matches(status);
     if (U_FAILURE(status)) {
-        errln("RegexTest failure in matches() at line %d.  Status = %s\n",
-            line, u_errorName(status));
+        errln("RegexTest failure in matches() at line %d.  Status = %d\n", line, status);
         retVal = FALSE;
     }
     if (actualmatch != match) {
@@ -176,9 +165,12 @@ UBool RegexTest::doRegexLMTest(const char *pat, const char *text, UBool looking,
 
 //---------------------------------------------------------------------------
 //
-//    regex_find(pattern, inputString, lineNumber)
+//    REGEX_FIND       Macro + invocation function to simplify writing tests
+//                       regex tests.
 //
-//         function to simplify writing tests regex tests.
+//       usage:
+//          REGEX_FIND("pattern",  "input text");
+//          REGEX_ERR("pattern",   expected status);
 //
 //          The input text is unescaped.  The pattern is not.
 //          The input text is marked with the expected match positions
@@ -189,11 +181,15 @@ UBool RegexTest::doRegexLMTest(const char *pat, const char *text, UBool looking,
 //
 //---------------------------------------------------------------------------
 
+// REGEX_FIND is invoked via a macro, which allows capturing the source file line
+//            number for use in error messages.
+#define REGEX_FIND(pat, text) regex_find(pat, text, U_ZERO_ERROR, __LINE__);
+
 
 //  Set a value into a UVector at position specified by a decimal number in
 //   a UnicodeString.   This is a utility function needed by the actual test function,
 //   which follows.
-static void set(UVector &vec, int val, UnicodeString index) {
+void set(UVector &vec, int val, UnicodeString index) {
     UErrorCode  status=U_ZERO_ERROR;
     int  idx = 0;
     for (int i=0; i<index.length(); i++) {
@@ -205,10 +201,9 @@ static void set(UVector &vec, int val, UnicodeString index) {
     vec.setElementAt(val, idx);
 }
         
-void RegexTest::regex_find(const UnicodeString &pattern, 
-                           const UnicodeString &flags,
-                           const UnicodeString &inputString,
-                           int line) {
+void RegexTest::regex_find(const char *pat, const char *input, UErrorCode expectedStatus, int line) {
+    UnicodeString       pattern(pat);
+    UnicodeString       inputString(input);
     UnicodeString       unEscapedInput;
     UnicodeString       deTaggedInput;
 
@@ -226,30 +221,13 @@ void RegexTest::regex_find(const UnicodeString &pattern,
     //
     //  Compile the caller's pattern
     //
-    uint32_t bflags = 0;
-    if (flags.indexOf((UChar)0x69) >= 0)  { // 'i' flag 
-        bflags |= UREGEX_CASE_INSENSITIVE;
-    }
-    if (flags.indexOf((UChar)0x78) >= 0)  { // 'x' flag 
-        bflags |= UREGEX_COMMENTS;
-    }
-    if (flags.indexOf((UChar)0x73) >= 0)  { // 's' flag 
-        bflags |= UREGEX_DOTALL;
-    }
-    if (flags.indexOf((UChar)0x6d) >= 0)  { // 'm' flag 
-        bflags |= UREGEX_MULTILINE;
-    }
-
-
-    callerPattern = RegexPattern::compile(pattern, bflags, pe, status);
-    if (status != U_ZERO_ERROR) {
-        errln("Line %d: error %s compiling pattern.", line, u_errorName(status));
+    UnicodeString patString(pat);
+    callerPattern = RegexPattern::compile(patString, 0, pe, status);
+    if (status != expectedStatus) {
+        errln("Line %d: error %x compiling pattern.", line, status);
         goto cleanupAndReturn;
     }
-
-    if (flags.indexOf((UChar)'d') >= 0) {
-        callerPattern->dump();
-    }
+    // callerPattern->dump();
 
     //
     //  Find the tags in the input data, remove them, and record the group boundary
@@ -281,12 +259,7 @@ void RegexTest::regex_find(const UnicodeString &pattern,
     //
     matcher = callerPattern->matcher(deTaggedInput, status);
     REGEX_CHECK_STATUS_L(line);
-    if (flags.indexOf((UChar)'t') >= 0) {
-        matcher->setTrace(TRUE);
-    }
-
     isMatch = matcher->find();
-    matcher->setTrace(FALSE);
 
     //
     // Match up the groups from the find() with the groups from the tags
@@ -294,23 +267,11 @@ void RegexTest::regex_find(const UnicodeString &pattern,
 
     // number of tags should match number of groups from find operation.
     // matcher->groupCount does not include group 0, the entire match, hence the +1.
-    //   G option in test means that capture group data is not available in the
-    //     expected results, so the check needs to be suppressed.
     if (isMatch == FALSE && groupStarts.size() != 0) {
         errln("Error at line %d:  Match expected, but none found.\n", line);
         failed = TRUE;
         goto cleanupAndReturn;
     }
-
-    if (flags.indexOf((UChar)'G') >= 0) {
-        // Only check for match / no match.  Don't check capture groups.
-        if (isMatch && groupStarts.size() == 0) {
-            errln("Error at line %d:  No match expected, but one found.\n", line);
-            failed = TRUE;
-        }
-        goto cleanupAndReturn;   
-    }
-    
     int i;
     for (i=0; i<=matcher->groupCount(); i++) {
         int32_t  expectedStart = (i >= groupStarts.size()? -1 : groupStarts.elementAti(i));
@@ -332,15 +293,12 @@ void RegexTest::regex_find(const UnicodeString &pattern,
     if ( matcher->groupCount()+1 < groupStarts.size()) {
         errln("Error at line %d: Expected %d capture groups, found %d.", 
             line, groupStarts.size()-1, matcher->groupCount());
-        failed = TRUE;
-        }
-        
+            failed = TRUE;
+    }
+
 cleanupAndReturn:
     if (failed) {
-        errln("\"%s\"  %s  \"%s\"", (const char *)CharString(pattern),
-                                    (const char *)CharString(flags),
-                                    (const char *)CharString(inputString));
-        // callerPattern->dump();
+        callerPattern->dump();
     }
     delete parseMatcher;
     delete parsePat;
@@ -410,12 +368,8 @@ void RegexTest::Basic() {
 //
 #if 0
     {
-        // REGEX_TESTLM("a\N{LATIN SMALL LETTER B}c", "abc", FALSE, FALSE);
-        UParseError pe;
-        UErrorCode  status = U_ZERO_ERROR;
-        RegexPattern::compile("^(?:a?b?)*$", 0, pe, status);
-        // REGEX_FIND("(?>(abc{2,4}?))(c*)", "<0>ab<1>cc</1><2>ccc</2></0>ddd");
-        // REGEX_FIND("(X([abc=X]+)+X)|(y[abc=]+)", "=XX====================");
+    //REGEX_TESTLM("X(.+)+X", "nomatch", TRUE,  TRUE);
+    REGEX_FIND("(X([abc=X]+)+X)|(y[abc=]+)", "=XX====================");
     }
     exit(1);
 #endif
@@ -482,6 +436,9 @@ void RegexTest::Basic() {
     REGEX_TESTLM("[\\p{Nd}]*", "123456", TRUE, TRUE);
     REGEX_TESTLM("[\\p{Nd}]*", "a123456", TRUE, FALSE);   // note that * matches 0 occurences.
     REGEX_TESTLM("[a][b][[:Zs:]]*", "ab   ", TRUE, TRUE);
+
+    // Set contains only a string, no individual chars.
+    REGEX_TESTLM("[{ab}]", "a", FALSE, FALSE);
 
     //
     //   OR operator in patterns
@@ -1100,126 +1057,143 @@ void RegexTest::API_Pattern() {
 
 }
 
+
+
 //---------------------------------------------------------------------------
 //
 //      Extended       A more thorough check for features of regex patterns
-//                     The test cases are in a separate data file,
-//                       source/tests/testdata/regextst.txt
-//                     A description of the test data format is included in that file.
 //
 //---------------------------------------------------------------------------
 void RegexTest::Extended() {
-    UErrorCode  status  = U_ZERO_ERROR;
-    int32_t     lineNum = 0;
+    // Capturing parens
+    REGEX_FIND(".(..).", "<0>a<1>bc</1>d</0>"); 
+    REGEX_FIND(".*\\A( +hello)", "<0><1>      hello</1></0>"); 
+    REGEX_FIND("(hello)|(goodbye)", "<0><1>hello</1></0>");
+    REGEX_FIND("(hello)|(goodbye)", "<0><2>goodbye</2></0>");
+    REGEX_FIND("abc( +(  inner(X?) +)  xyz)", "leading cruft <0>abc<1>     <2>  inner<3></3>    </2>  xyz</1></0> cruft");
 
-    //
-    //  Open and read the test data file.
-    //
-    const char *testDataDirectory = loadTestData(status);
-    UnicodeString tdd(testDataDirectory);
-    tdd = RegexMatcher("([/\\\\])out[/\\\\]testdata", tdd, 0, status).
-        replaceFirst("$1regextst.txt", status);
+    // Non-capturing parens (?: stuff).   Groups, but does not capture.
+    REGEX_FIND("(?:abc)*(tail)", "<0>abcabcabc<1>tail</1></0>");
 
-    int    len;
-    UChar *testData = ReadAndConvertFile((const char *)CharString(tdd), len, status);
+    // Non-greedy  *? quantifier
+    REGEX_FIND(".*?(abc)", "<0>    abx    <1>abc</1></0> abc abc abc");
+    REGEX_FIND(".*(abc)",  "<0>    abx     abc abc abc <1>abc</1></0>");
 
-    //
-    //  Put the test data into a UnicodeString
-    //
-    UnicodeString testString(FALSE, testData, len);
+    REGEX_FIND(  "((?:abc |xyz )*?)abc ",  "<0><1>xyz </1>abc </0>abc abc ");
+    REGEX_FIND(  "((?:abc |xyz )*)abc ",   "<0><1>xyz abc abc </1>abc </0>");
 
-    RegexMatcher    quotedStuffMat("\\s*([\\'\\\"/])(.+?)\\1", 0, status);
-    RegexMatcher    commentMat    ("\\s*(#.*)?$", 0, status); 
-    RegexMatcher    flagsMat      ("\\s*([ixsmdtG]*)([:letter:]*)", 0, status);
+    // Non-greedy  +? quantifier
+    REGEX_FIND( "(a+?)(a*)", "<0><1>a</1><2>aaaaaaaaaaaa</2></0>");
+    REGEX_FIND( "(a+)(a*)", "<0><1>aaaaaaaaaaaaa</1><2></2></0>");
 
-    RegexMatcher    lineMat("(.*?)\\r?\\n", testString, 0, status);
-    UnicodeString   testPattern;   // The pattern for test from the test file.
-    UnicodeString   testFlags;     // the flags   for a test.
-    UnicodeString   matchString;   // The marked up string to be used as input
+    REGEX_FIND( "((ab)+?)((ab)*)", "<0><1><2>ab</2></1><3>ababababab<4>ab</4></3></0>");
+    REGEX_FIND( "((ab)+)((ab)*)", "<0><1>abababababab<2>ab</2></1><3></3></0>");
 
+    // Non-greedy ?? quantifier
+    REGEX_FIND( "(ab)(ab)\?\?(ab)\?\?(ab)\?\?(ab)\?\?c", 
+                "<0><1>ab</1><4>ab</4><5>ab</5>c</0>");
 
+    // Unicode Properties as naked elements in a pattern
+    REGEX_FIND( "\\p{Lu}+", "here we go ... <0>ABC</0> and no more.");
+    REGEX_FIND( "(\\p{L}+)(\\P{L}*?) (\\p{Zs}*)",  "7999<0><1>letters</1><2>4949%^&*(</2> <3>   </3></0>");
 
-    //
-    //  Loop over the test data file, once per line.
-    //
-    while (lineMat.find()) {
-        lineNum++;
-        if (U_FAILURE(status)) {
-            errln("line %d: ICU Error \"%s\"", lineNum, u_errorName(status));
-        }
+    // \w and \W
+    REGEX_FIND( "\\w+", "  $%^&*( <0>hello123</0>%^&*(");
+    REGEX_FIND( "\\W+", "<0>  $%^&*( </0>hello123%^&*(");
 
-        status = U_ZERO_ERROR;
-        UnicodeString testLine = lineMat.group(1, status);
-        if (testLine.length() == 0) {
-            continue;
-        }
+    // \A   match at beginning of input only.
+    REGEX_FIND (".*\\Ahello", "<0>hello</0> hello");
+    REGEX_FIND (".*hello", "<0>hello hello</0>");
+    REGEX_FIND(".*\\Ahello", "stuff\nhello");   // don't match after embedded new-line.
 
-        //
-        // Parse the test line.  Skip blank and comment only lines.
-        // Separate out the three main fields - pattern, flags, target.
-        //
+    // \b \B
+    REGEX_FIND( ".*?\\b(.).*", "<0>  $%^&*( <1>h</1>ello123%^&*()gxx</0>");
 
-        commentMat.reset(testLine);
-        if (commentMat.lookingAt(status)) {
-            // This line is a comment, or blank.
-            continue;
-        }
+                 // Finds first chars of up to 5 words
+    REGEX_FIND( "(?:.*?\\b(\\w))?(?:.*?\\b(\\w))?(?:.*?\\b(\\w))?(?:.*?\\b(\\w))?(?:.*?\\b(\\w))?",
+        "<0><1>T</1>the <2>q</2>ick <3>b</3>rown <4>f</4></0>ox");
+    REGEX_FIND( "H.*?((?:\\B.)+)", "<0>H<1>ello</1></0> ");
+    REGEX_FIND( ".*?((?:\\B.)+).*?((?:\\B.)+).*?((?:\\B.)+)",
+        "<0>H<1>ello</1> <2>    </2>g<3>oodbye</3></0> ");
 
-        //
-        //  Pull out the pattern field, remove it from the test file line.
-        //
-        quotedStuffMat.reset(testLine);
-        if (quotedStuffMat.lookingAt(status)) {
-            testPattern = quotedStuffMat.group(2, status);
-            testLine.remove(0, quotedStuffMat.end(0, status));
-        } else {
-            errln("Bad pattern (missing quotes?) at test file line %d", lineNum);
-            continue;
-        }
+    REGEX_FIND("(?:.*?\\b(.))?(?:.*?\\b(.))?(?:.*?\\b(.))?(?:.*?\\b(.))?(?:.*?\\b(.))?.*",
+        "<0>   \\u0301 \\u0301<1>A</1>\\u0302BC\\u0303\\u0304<2> </2>\\u0305 \\u0306"
+        "<3>X</3>\\u0307Y\\u0308</0>");
 
+    // . does not match new-lines
+    REGEX_FIND(".", "\\u000a\\u000d\\u0085\\u000c\\u2028\\u2029<0>X</0>\\u000aY");
+    REGEX_FIND("A.", "A\\u000a ");  // no match
 
-        //
-        //  Pull out the flags from the test file line.
-        //
-        flagsMat.reset(testLine);
-        flagsMat.lookingAt(status);                  // Will always match, possibly an empty string.
-        testFlags = flagsMat.group(1, status);
-        if (flagsMat.group(2, status).length() > 0) {
-            errln("Bad Match flag at line %d. Scanning %c\n",
-                lineNum, flagsMat.group(2, status).charAt(0));
-            continue;
-        }
-        testLine.remove(0, flagsMat.end(0, status));
+    // \d for decimal digits
+    REGEX_FIND("\\d*", "<0>0123456789\\u0660\\u06F9\\u0969\\u0A66\\u1369"
+        "\\u17E2\\uFF10\\U0001D7CE\\U0001D7FF</0>non-digits");  
+    REGEX_FIND("\\D+", "<0>non digits</0>");
+    REGEX_FIND("\\D*(\\d*)(\\D*)", "<0>non-digits<1>3456666</1><2>more non digits</2></0>");
 
-        //
-        //  Pull out the match string, as a whole.
-        //    We'll process the <tags> later.
-        //
-        quotedStuffMat.reset(testLine);
-        if (quotedStuffMat.lookingAt(status)) {
-            matchString = quotedStuffMat.group(2, status);
-            testLine.remove(0, quotedStuffMat.end(0, status));
-        } else {
-            errln("Bad match string at test file line %d", lineNum);
-            continue;
-        }
+    // \Q...\E quote mode
+    REGEX_FIND("hel\\Qlo, worl\\Ed", "<0>hello, world</0>");
+    REGEX_FIND("\\Q$*^^(*)?\\A\\E(a*)", "<0>$*^^(*)?\\\\A<1>aaaaaaaaaaaaaaa</1></0>");
 
-        //
-        //  The only thing left from the input line should be an optional trailing comment.
-        //
-        commentMat.reset(testLine);
-        if (commentMat.lookingAt(status) == FALSE) {
-            errln("Line %d: unexpected characters at end of test line.", lineNum);
-            continue;
-        }
+    // \S and \s  space characters
+    REGEX_FIND("\\s+", "not_space<0> \\t \\r \\n \\u3000 \\u2004 \\u2028 \\u2029</0>xyz");
+    REGEX_FIND("(\\S+).*?(\\S+).*", "<0><1>Not-spaces</1>   <2>more-non-spaces</2>  </0>");
 
-        //
-        //  Run the test
-        //
-        regex_find(testPattern, testFlags, matchString, lineNum);
-    }
+    // \X  consume one combining char sequence.
+    REGEX_FIND("(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?",
+        "<0><1>A</1><2>B</2><3> </3><4>\\r\\n</4></0>");
+    REGEX_FIND("(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?(\\X)?",
+        "<0><1>A\\u0301</1><2>\n</2><3>\\u0305</3><4>a\\u0302\\u0303\\u0304</4></0>");
 
-    delete [] testData;
+    // ^ matches only at beginning of line
+    REGEX_FIND(".*^(Hello)", "<0><1>Hello</1></0> Hello Hello Hello Goodbye");
+    REGEX_FIND(".*(Hello)",  "<0>Hello Hello Hello <1>Hello</1></0> Goodbye");
+    REGEX_FIND(".*^(Hello)", " Hello Hello Hello Hello Goodbye");   // No Match
+
+    // $ matches only at end of line, or before a newline preceding the end of line
+    REGEX_FIND(".*?(Goodbye)$", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>");
+    REGEX_FIND(".*?(Goodbye)", "<0>Hello <1>Goodbye</1></0> Goodbye Goodbye");
+    REGEX_FIND(".*?(Goodbye)$", "Hello Goodbye> Goodbye Goodbye ");  // No Match
+
+    REGEX_FIND(".*?(Goodbye)$", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>\\n");
+    REGEX_FIND(".*?(Goodbye)$", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>\\n");
+    REGEX_FIND(".*?(Goodbye)$", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>\\r\\n");
+    REGEX_FIND(".*?(Goodbye)$", "Hello Goodbye Goodbye Goodbye\\n\\n");  // No Match
+    
+    // \Z matches at end of input, like $ with default flags.
+    REGEX_FIND(".*?(Goodbye)\\Z", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>");
+    REGEX_FIND(".*?(Goodbye)", "<0>Hello <1>Goodbye</1></0> Goodbye Goodbye");
+    REGEX_FIND(".*?(Goodbye)\\Z", "Hello Goodbye> Goodbye Goodbye ");  // No Match
+    REGEX_FIND("here$", "here\\nthe end");   // No Match
+
+    REGEX_FIND(".*?(Goodbye)\\Z", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>\\n");
+    REGEX_FIND(".*?(Goodbye)\\Z", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>\\n");
+    REGEX_FIND(".*?(Goodbye)\\Z", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>\\r\\n");
+    REGEX_FIND(".*?(Goodbye)\\Z", "Hello Goodbye Goodbye Goodbye\\n\\n");  // No Match
+    
+    // \z matches only at the end of string.
+    //    no special treatment of new lines.
+    //    no dependencies on flag settings.
+    REGEX_FIND(".*?(Goodbye)\\z", "<0>Hello Goodbye Goodbye <1>Goodbye</1></0>");
+    REGEX_FIND(".*?(Goodbye)\\z", "Hello Goodbye Goodbye Goodbye ");  // No Match
+    REGEX_FIND("here$", "here\\nthe end");   // No Match
+
+    REGEX_FIND(".*?(Goodbye)\\z", "Hello Goodbye Goodbye Goodbye\\n");   // No Match
+    REGEX_FIND(".*?(Goodbye)\\n\\z", "<0>Hello Goodbye Goodbye <1>Goodbye</1>\\n</0>");
+    
+    // (?# comment) doesn't muck up pattern
+    REGEX_FIND("Hello (?# this is a comment) world", "  <0>Hello  world</0>...");
+
+    // Check some implementation corner cases base on the way literal strings are compiled.
+    REGEX_FIND("A", "<0>A</0>");
+    REGEX_FIND("AB", "<0>AB</0>ABABAB");
+    REGEX_FIND("AB+", "<0>ABBB</0>A");
+    REGEX_FIND("AB+", "<0>AB</0>ABAB");
+    REGEX_FIND("ABC+", "<0>ABC</0>ABC");
+    REGEX_FIND("ABC+", "<0>ABCCCC</0>ABC");
+    REGEX_FIND("(?:ABC)+", "<0>ABCABCABC</0>D");
+    REGEX_FIND("(?:ABC)DEF+", "<0>ABCDEFFF</0>D");
+    REGEX_FIND("AB\\.C\\eD\\u0666E", "<0>AB.C\\u001BD\\u0666E</0>F");
+
 
 }
 
@@ -1232,6 +1206,8 @@ void RegexTest::Extended() {
 //---------------------------------------------------------------------------
 void RegexTest::Errors() {
     // \escape sequences that aren't implemented yet.
+    REGEX_ERR("No (support) for \\1 BackReferences yet.", 1, 19,  U_REGEX_UNIMPLEMENTED);
+    REGEX_ERR("named chars \\N{GREEK CAPITAL LETTER ALPHA} not implementd", 1, 14, U_REGEX_UNIMPLEMENTED);
     REGEX_ERR("hex format \\x{abcd} not implemented", 1, 13, U_REGEX_UNIMPLEMENTED);
 
     // Missing close parentheses
@@ -1241,21 +1217,39 @@ void RegexTest::Errors() {
 
     // Extra close paren
     REGEX_ERR("Grouping only parens (?: blah)) blah", 1, 31, U_REGEX_MISMATCHED_PAREN);
-    REGEX_ERR(")))))))", 1, 1, U_REGEX_MISMATCHED_PAREN);
+    REGEX_ERR(")))))))", 1, 1, U_REGEX_RULE_SYNTAX);
     REGEX_ERR("(((((((", 1, 7, U_REGEX_MISMATCHED_PAREN);
 
+    // Flag settings not yet implemented
+    REGEX_ERR("(?i:stuff*)", 1, 3, U_REGEX_UNIMPLEMENTED);
+    REGEX_ERR("(?-si) stuff", 1, 3, U_REGEX_UNIMPLEMENTED);
+
     // Look-ahead, Look-behind
-    //  TODO:  add tests for unbounded length look-behinds.
+    REGEX_ERR("abc(?=xyz).*", 1, 6, U_REGEX_UNIMPLEMENTED);    // look-ahead
+    REGEX_ERR("abc(?!xyz).*", 1, 6, U_REGEX_UNIMPLEMENTED);    // negated look-ahead
+    REGEX_ERR("abc(?<=xyz).*", 1, 7, U_REGEX_UNIMPLEMENTED);   // look-behind
+    REGEX_ERR("abc(?<!xyz).*", 1, 7, U_REGEX_UNIMPLEMENTED);   // negated look-behind
     REGEX_ERR("abc(?<@xyz).*", 1, 7, U_REGEX_RULE_SYNTAX);       // illegal construct
+
+    // Atomic Grouping
+    REGEX_ERR("abc(?>xyz)", 1, 6, U_REGEX_UNIMPLEMENTED);
+
+    // {Numeric Quantifiers}
+    REGEX_ERR("abc{4}", 1, 5, U_REGEX_UNIMPLEMENTED);
+
+    // Possessive Quantifiers
+    REGEX_ERR("abc++d", 1, 5, U_REGEX_UNIMPLEMENTED);
+    REGEX_ERR("abc*+d", 1, 5, U_REGEX_UNIMPLEMENTED);
+    REGEX_ERR("abc?+d", 1, 5, U_REGEX_UNIMPLEMENTED);
 
     // Attempt to use non-default flags 
     {
         UParseError   pe;
         UErrorCode    status = U_ZERO_ERROR;
-        int32_t       flags  = UREGEX_CANON_EQ |
+        int32_t       flags  = UREGEX_CASE_INSENSITIVE | UREGEX_CANON_EQ |
                                UREGEX_COMMENTS         | UREGEX_DOTALL   |
                                UREGEX_MULTILINE;
-        RegexPattern *pat1= RegexPattern::compile(".*", flags, pe, status);
+        RegexPattern *pat1= RegexPattern::compile(".*", UREGEX_CASE_INSENSITIVE, pe, status);
         REGEX_ASSERT(status == U_REGEX_UNIMPLEMENTED);
         delete pat1;
     }
@@ -1265,491 +1259,7 @@ void RegexTest::Errors() {
     REGEX_ERR("+", 1, 1, U_REGEX_RULE_SYNTAX);
     REGEX_ERR("abc\ndef(*2)", 2, 5, U_REGEX_RULE_SYNTAX);
     REGEX_ERR("abc**", 1, 5, U_REGEX_RULE_SYNTAX);
-
-    // Mal-formed {min,max} quantifiers
-    REGEX_ERR("abc{a,2}",1,5, U_REGEX_BAD_INTERVAL);
-    REGEX_ERR("abc{4,2}",1,8, U_REGEX_MAX_LT_MIN);
-    REGEX_ERR("abc{1,b}",1,7, U_REGEX_BAD_INTERVAL);
-    REGEX_ERR("abc{1,,2}",1,7, U_REGEX_BAD_INTERVAL);
-    REGEX_ERR("abc{1,2a}",1,8, U_REGEX_BAD_INTERVAL);
-    REGEX_ERR("abc{222222222222222222222}",1,14, U_REGEX_NUMBER_TOO_BIG);
-
-    // UnicodeSet containing a string
-    REGEX_ERR("abc[{def}]xyz", 1, 10, U_REGEX_SET_CONTAINS_STRING);
-
 }
-
-
-//-------------------------------------------------------------------------------
-//
-//  Read a text data file, convert it to UChars, and return the data
-//    in one big UChar * buffer, which the caller must delete.
-//
-//--------------------------------------------------------------------------------
-UChar *RegexTest::ReadAndConvertFile(const char *fileName, int &ulen, UErrorCode &status) {
-    UChar       *retPtr  = NULL;
-    char        *fileBuf = NULL;
-    UConverter* conv     = NULL;
-    FILE        *f       = NULL;
- 
-    ulen = 0;
-    if (U_FAILURE(status)) {
-        return retPtr;
-    }
-    
-    //
-    //  Open the file.
-    //
-    f = fopen(fileName, "rb");
-    if (f == 0) {
-        errln("Error opening test data file %s\n", fileName);
-        goto cleanUpAndReturn;
-    }
-    //
-    //  Read it in
-    //
-    int   fileSize;
-    int   amt_read;
-    
-    fseek( f, 0, SEEK_END);
-    fileSize = ftell(f);
-    fileBuf = new char[fileSize];
-    fseek(f, 0, SEEK_SET);
-    amt_read = fread(fileBuf, 1, fileSize, f);
-    if (amt_read != fileSize || fileSize <= 0) {
-        errln("Error reading test data file.");
-        goto cleanUpAndReturn;
-    }
-    
-    //
-    // Look for a Unicode Signature (BOM) on the data just read
-    //
-    int32_t        signatureLength;
-    const char *   fileBufC;
-    const char*    encoding;
-    
-    fileBufC = fileBuf;
-    encoding = ucnv_detectUnicodeSignature(
-        fileBuf, fileSize, &signatureLength, &status);
-    if(encoding!=NULL ){
-        fileBufC  += signatureLength;
-        fileSize  -= signatureLength;
-    }
-    
-    //
-    // Open a converter to take the rule file to UTF-16
-    //
-    conv = ucnv_open(encoding, &status);
-    if (U_FAILURE(status)) {
-        goto cleanUpAndReturn;
-    }
-    
-    //
-    // Convert the rules to UChar.
-    //  Preflight first to determine required buffer size.
-    //
-    ulen = ucnv_toUChars(conv,
-        NULL,           //  dest,
-        0,              //  destCapacity,
-        fileBufC,
-        fileSize,
-        &status);
-    if (status == U_BUFFER_OVERFLOW_ERROR) {
-        // Buffer Overflow is expected from the preflight operation.
-        status = U_ZERO_ERROR;
-        
-        retPtr = new UChar[ulen+1];
-        ucnv_toUChars(conv,
-            retPtr,       //  dest,
-            ulen+1,
-            fileBufC,
-            fileSize,
-            &status);
-    }
-
-cleanUpAndReturn:
-    fclose(f);
-    delete fileBuf;
-    ucnv_close(conv);
-    if (U_FAILURE(status)) {
-        errln("ucnv_toUChars: ICU Error \"%s\"\n", u_errorName(status));
-        delete retPtr;
-        retPtr = 0;
-        ulen   = 0;
-    };
-    return retPtr;
-}
-
-
-//-------------------------------------------------------------------------------
-//
-//   PerlTests  - Run Perl's regular expression tests
-//                The input file for this test is re_tests, the standard regular
-//                expression test data distributed with the Perl source code.
-//
-//                Here is Perl's description of the test data file:
-//
-//        # The tests are in a separate file 't/op/re_tests'.
-//        # Each line in that file is a separate test.
-//        # There are five columns, separated by tabs.
-//        #
-//        # Column 1 contains the pattern, optionally enclosed in C<''>.
-//        # Modifiers can be put after the closing C<'>.
-//        #
-//        # Column 2 contains the string to be matched.
-//        #
-//        # Column 3 contains the expected result:
-//        # 	y	expect a match
-//        # 	n	expect no match
-//        # 	c	expect an error
-//        #	B	test exposes a known bug in Perl, should be skipped
-//        #	b	test exposes a known bug in Perl, should be skipped if noamp
-//        #
-//        # Columns 4 and 5 are used only if column 3 contains C<y> or C<c>.
-//        #
-//        # Column 4 contains a string, usually C<$&>.
-//        #
-//        # Column 5 contains the expected result of double-quote
-//        # interpolating that string after the match, or start of error message.
-//        #
-//        # Column 6, if present, contains a reason why the test is skipped.
-//        # This is printed with "skipped", for harness to pick up.
-//        #
-//        # \n in the tests are interpolated, as are variables of the form ${\w+}.
-//        #
-//        # If you want to add a regular expression test that can't be expressed
-//        # in this format, don't add it here: put it in op/pat.t instead.
-//
-//        For ICU, if field 3 contains an 'i', the test will be skipped.
-//        The test exposes is some known incompatibility between ICU and Perl regexps.
-//        (The i is in addition to whatever was there before.)
-//
-//-------------------------------------------------------------------------------
-void RegexTest::PerlTests() {
-    UErrorCode  status = U_ZERO_ERROR;
-    UParseError pe;
-
-    //
-    //  Open and read the test data file.
-    //
-    const char *testDataDirectory = loadTestData(status);
-    UnicodeString tdd(testDataDirectory);
-    tdd = RegexMatcher("([/\\\\])out[/\\\\]testdata", tdd, 0, status).
-        replaceFirst("$1re_tests.txt", status);
-
-    int    len;
-    UChar *testData = ReadAndConvertFile((const char *)CharString(tdd), len, status);
-
-    //
-    //  Put the test data into a UnicodeString
-    //
-    UnicodeString testDataString(FALSE, testData, len);
-
-    //
-    //  Regex to break the input file into lines, and strip the new lines.
-    //     One line per match, capture group one is the desired data.
-    //
-    RegexPattern* linePat = RegexPattern::compile("(.+?)[\\r\\n]+", 0, pe, status);
-    RegexMatcher* lineMat = linePat->matcher(testDataString, status);
-
-    //
-    //  Regex to split a test file line into fields.
-    //    There are six fields, separated by tabs.
-    //
-    RegexPattern* fieldPat = RegexPattern::compile("\\t", 0, pe, status);
-
-    //
-    //  Regex to identify test patterns with flag settings, and to separate them.
-    //    Test patterns with flags look like 'pattern'i
-    //    Test patterns without flags are not quoted:   pattern
-    //   Coming out, capture group 2 is the pattern, capture group 3 is the flags.
-    //
-    RegexPattern *flagPat = RegexPattern::compile("('?)(.*)\\1(.*)", 0, pe, status);
-    RegexMatcher* flagMat = flagPat->matcher("", status);
-
-    //
-    // The Perl tests reference several perl-isms, which are evaluated/substituted
-    //   in the test data.  Not being perl, this must be done explicitly.  Here
-    //   are string constants and REs for these constructs.
-    //
-    UnicodeString nulnulSrc("${nulnul}");
-    UnicodeString nulnul("\\u0000\\u0000");
-    nulnul = nulnul.unescape();
-
-    UnicodeString ffffSrc("${ffff}");
-    UnicodeString ffff("\\uffff");
-    ffff = ffff.unescape();
-
-    //  regexp for $-[0], $+[2], etc.
-    RegexPattern *groupsPat = RegexPattern::compile("\\$([+\\-])\\[(\\d+)\\]", 0, pe, status);
-    RegexMatcher *groupsMat = groupsPat->matcher("", status);
-    
-    //  regexp for $0, $1, $2, etc.
-    RegexPattern *cgPat = RegexPattern::compile("\\$(\\d+)", 0, pe, status);
-    RegexMatcher *cgMat = cgPat->matcher("", status);
-
-
-    //
-    // Main Loop for the Perl Tests, runs once per line from the
-    //   test data file.
-    //
-    int32_t  lineNum = 0;
-    int32_t  skippedUnimplementedCount = 0;
-    while (lineMat->find()) {
-        lineNum++;
-
-        //
-        //  Get a line, break it into its fields, do the Perl
-        //    variable substitutions.
-        //
-        UnicodeString line = lineMat->group(1, status);
-        UnicodeString fields[7];
-        fieldPat->split(line, fields, 7, status);
-
-        flagMat->reset(fields[0]);
-        flagMat->matches(status);
-        UnicodeString pattern  = flagMat->group(2, status);
-        pattern.findAndReplace("${bang}", "!");
-        pattern.findAndReplace(nulnulSrc, "\\u0000\\u0000");
-        pattern.findAndReplace(ffffSrc, ffff);
-
-        //
-        //  Identify patterns that include match flag settings,
-        //    split off the flags, remove the extra quotes.
-        //
-        UnicodeString flagStr = flagMat->group(3, status);
-        if (U_FAILURE(status)) {
-            errln("ucnv_toUChars: ICU Error \"%s\"\n", u_errorName(status));
-            return;
-        }
-        int32_t flags = 0;
-        const UChar UChar_c = 0x63;  // Char constants for the flag letters.
-        const UChar UChar_i = 0x69;  //   (Damn the lack of Unicode support in C)
-        const UChar UChar_m = 0x6d;
-        const UChar UChar_x = 0x78;
-        const UChar UChar_y = 0x79;
-        if (flagStr.indexOf(UChar_i) != -1) {
-            flags |= UREGEX_CASE_INSENSITIVE;
-        }
-        if (flagStr.indexOf(UChar_m) != -1) {
-            flags |= UREGEX_MULTILINE;
-        }
-        if (flagStr.indexOf(UChar_x) != -1) {
-            flags |= UREGEX_COMMENTS;
-        }
-
-        //
-        // Compile the test pattern.
-        //
-        status = U_ZERO_ERROR;
-        RegexPattern *testPat = RegexPattern::compile(pattern, flags, pe, status);
-        if (status == U_REGEX_UNIMPLEMENTED) {
-            //
-            // Test of a feature that is planned for ICU, but not yet implemented.
-            //   skip the test.
-            skippedUnimplementedCount++;
-            delete testPat;
-            status = U_ZERO_ERROR;
-            continue;
-        }
-
-        if (U_FAILURE(status)) {
-            // Some tests are supposed to generate errors.
-            //   Only report an error for tests that are supposed to succeed.
-            if (fields[2].indexOf(UChar_c) == -1  &&  // Compilation is not supposed to fail AND
-                fields[2].indexOf(UChar_i) == -1)     //   it's not an accepted ICU incompatibility
-            {
-                errln("line %d: ICU Error \"%s\"\n", lineNum, u_errorName(status));
-            }
-            status = U_ZERO_ERROR;
-            delete testPat;
-            continue;
-        }
-
-        if (fields[2].indexOf(UChar_i) >= 0) {
-            // ICU should skip this test.
-            delete testPat;
-            continue;
-        }
-
-        if (fields[2].indexOf(UChar_c) >= 0) {
-            // This pattern should have caused a compilation error, but didn't/
-            errln("line %d: Expected a pattern compile error, got success.", lineNum);
-            delete testPat;
-            continue;
-        }
-
-        //
-        // replace the Perl variables that appear in some of the
-        //   match data strings.  
-        //
-        UnicodeString matchString = fields[1];
-        matchString.findAndReplace(nulnulSrc, nulnul);
-        matchString.findAndReplace(ffffSrc,   ffff);
-
-        // Replace any \n in the match string with an actual new-line char.
-        //  Don't do full unescape, as this unescapes more than Perl does, which
-        //  causes other spurious failures in the tests.
-        matchString.findAndReplace("\\n", "\n");
-        
-
-
-        //
-        // Run the test, check for expected match/don't match result.
-        //
-        RegexMatcher *testMat = testPat->matcher(matchString, status);
-        UBool found = testMat->find();
-        UBool expected = FALSE;
-        if (fields[2].indexOf(UChar_y) >=0) {
-            expected = TRUE;
-        }
-        if (expected != found) {
-            errln("line %d: Expected %smatch, got %smatch", 
-                lineNum, expected?"":"no ", found?"":"no " );
-            continue;
-        }
-
-        //
-        // Interpret the Perl expression from the fourth field of the data file,
-        // building up an ICU string from the results of the ICU match.
-        //   The Perl expression will contain references to the results of 
-        //     a regex match, including the matched string, capture group strings,
-        //     group starting and ending indicies, etc.
-        //
-        UnicodeString resultString;
-        UnicodeString perlExpr = fields[3];
-        groupsMat->reset(perlExpr);
-        cgMat->reset(perlExpr);
-
-        while (perlExpr.length() > 0) {
-            if (perlExpr.startsWith("$&")) {
-                resultString.append(testMat->group(status));
-                perlExpr.remove(0, 2);
-            }
-
-            else if (groupsMat->lookingAt(status)) {
-                // $-[0]   $+[2]  etc.
-                UnicodeString digitString = groupsMat->group(2, status);
-                int32_t t = 0;
-                int32_t groupNum = ICU_Utility::parseNumber(digitString, t, 10);
-                UnicodeString plusOrMinus = groupsMat->group(1, status);
-                int32_t matchPosition;
-                if (plusOrMinus.compare("+") == 0) {
-                    matchPosition = testMat->end(groupNum, status);
-                } else {
-                    matchPosition = testMat->start(groupNum, status);
-                }
-                if (matchPosition != -1) {
-                    ICU_Utility::appendNumber(resultString, matchPosition);
-                }
-                perlExpr.remove(0, groupsMat->end(status));
-            }
-
-            else if (cgMat->lookingAt(status)) {
-                // $1, $2, $3, etc.
-                UnicodeString digitString = cgMat->group(1, status);
-                int32_t t = 0;
-                int32_t groupNum = ICU_Utility::parseNumber(digitString, t, 10);
-                if (U_SUCCESS(status)) {
-                    resultString.append(testMat->group(groupNum, status));
-                    status = U_ZERO_ERROR;
-                }
-                perlExpr.remove(0, cgMat->end(status));
-            }
-
-            else if (perlExpr.startsWith("@-")) {
-                int i;
-                for (i=0; i<=testMat->groupCount(); i++) {
-                    if (i>0) {
-                        resultString.append(" ");
-                    }
-                    ICU_Utility::appendNumber(resultString, testMat->start(i, status));
-                }
-                perlExpr.remove(0, 2);
-            }
-
-            else if (perlExpr.startsWith("@+")) {
-                int i;
-                for (i=0; i<=testMat->groupCount(); i++) {
-                    if (i>0) {
-                        resultString.append(" ");
-                    }
-                    ICU_Utility::appendNumber(resultString, testMat->end(i, status));
-                }
-                perlExpr.remove(0, 2);
-            }
-
-            else if (perlExpr.startsWith("\\")) {    // \Escape.  Take following char as a literal.
-                                                     //           or as an escaped sequence (e.g. \n)
-                if (perlExpr.length() > 1) {
-                    perlExpr.remove(0, 1);  // Remove the '\', but only if not last char.
-                }
-                UChar c = perlExpr.charAt(0);
-                switch (c) {
-                case 'n':   c = '\n'; break;
-                // add any other escape sequences that show up in the test expected results.
-                }
-                resultString.append(c); 
-                perlExpr.remove(0, 1);
-            }
-
-            else  {
-                // Any characters from the perl expression that we don't explicitly
-                //  recognize before here are assumed to be literals and copied
-                //  as-is to the expected results.
-                resultString.append(perlExpr.charAt(0));
-                perlExpr.remove(0, 1);
-            }
-
-            if (U_FAILURE(status)) {
-                errln("Line %d: ICU Error \"%s\"", lineNum, u_errorName(status));
-                break;
-            }
-        }
-        
-        //
-        // Expected Results Compare
-        //
-        UnicodeString expectedS(fields[4]);
-        expectedS.findAndReplace(nulnulSrc, nulnul);
-        expectedS.findAndReplace(ffffSrc,   ffff);
-        expectedS.findAndReplace("\\n", "\n");
-
-
-        if (expectedS.compare(resultString) != 0) {
-            errln("Line %d: Incorrect perl expression results.  Expected \"%s\"; got \"%s\"",
-                lineNum, (const char *)CharString(expectedS),
-                (const char *)CharString(resultString));
-        }
-
-        delete testMat;
-        delete testPat;
-    }
-
-    //
-    // All done.  Clean up allocated stuff.
-    //
-    delete cgMat;
-    delete cgPat;
-    
-    delete groupsMat;
-    delete groupsPat;
-    
-    delete flagMat;
-    delete flagPat;
-
-    delete lineMat;
-    delete linePat;
-    
-    delete fieldPat;
-    delete [] testData;
-    
-
-    logln("%d tests skipped because of unimplemented regexp features.", skippedUnimplementedCount);
-
-}
-
-
 
 #endif  /* !UCONFIG_NO_REGULAR_EXPRESSIONS  */
 

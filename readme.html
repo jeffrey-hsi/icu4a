@@ -29,11 +29,11 @@
 
   <body>
     <h1>International Components for Unicode<br>
-     <abbr title="International Components for Unicode">ICU</abbr> 2.6
+     <abbr title="International Components for Unicode">ICU</abbr> 2.4
     ReadMe</h1>
 
-    <p>Version: 2003-Feb-11<br>
-     Copyright &copy; 1997-2003 International Business Machines Corporation and
+    <p>Version: 2002-Dec-20<br>
+     Copyright &copy; 1997-2002 International Business Machines Corporation and
     others. All Rights Reserved.</p>
     <!-- Remember that there is a copyright at the end too -->
     <hr>
@@ -69,8 +69,6 @@
         </ul>
       </li>
 
-      <li><a href="#HowToPackage">How To Package ICU</a></li>
-
       <li>
         <a href="#ImportantNotes">Important Notes About Using ICU</a> 
 
@@ -80,12 +78,15 @@
 
           <li><a href="#MakeICUSmaller">How to Make ICU Smaller</a></li>
 
-          <li><a href="#ImportantNotesDefaultCP">Using the Default
-          Codepage</a></li>
+          <li><a href="#ImportantNotesBinaryCompat">Binary
+          Compatibility</a></li>
 
           <li><a href="#ImportantNotesWindows">Windows Platform</a></li>
 
           <li><a href="#ImportantNotesUnix">Unix Type Platforms</a></li>
+
+          <li><a href="#ImportantNotesDefaultCP">Using the Default
+          Codepage</a></li>
         </ul>
       </li>
 
@@ -144,7 +145,7 @@
      The ICU homepage also links to related information about writing
     internationalized software.</p>
 
-    <table border="1" cellpadding="3" width="100%">
+    <table border="1" cellpadding="3" width="100%" summary="">
       <caption>
         Here are some useful links regarding ICU and internationalization in
         general.
@@ -215,8 +216,38 @@
     <p>The following list concentrates on <em>changes that affect existing
     applications migrating from previous ICU releases</em>. For more news about
     this release, see the <a href=
-    "http://oss.software.ibm.com/icu/download/2.6/">ICU 2.6 download
+    "http://oss.software.ibm.com/icu/download/2.4/">ICU 2.4 download
     page</a>.</p>
+
+    <h3>UnicodeString assignments</h3>
+
+    <p>ICU 2.4 changes the behavior of the <code>UnicodeString</code>
+    assignment operator and copy constructor for where the source string is a
+    readonly alias. For such strings, the copy used to also be a readonly alias
+    to the same buffer, but that was seen as too dangerous (see <a href=
+    "http://www.jtcsv.com/cgibin/icu-bugs?findid=2296">Jitterbug 2296</a>). The
+    new <code>fastCopyFrom()</code> member function provides the old assignment
+    behavior. It can be used explicitly when it is known to be safe to maintain
+    readonly aliases instead of cloning the buffer. For more information about
+    string aliasing and other <code>UnicodeString</code> storage models see the
+    <a href="http://oss.software.ibm.com/icu/userguide/strings.html">User Guide
+    Strings chapter</a>.</p>
+
+    <h3>Unicode-handling macros (utf*.h)</h3>
+
+    <p>The macros in <code>source/common/unicode/utf*.h</code> have been
+    revamped, improved, simplified, and renamed. The old macros continue to be
+    available. They are in <code>utf_old.h</code>, together with an explanation
+    of the change. <code>utf.h</code>, <code>utf8.h</code> and
+    <code>utf16.h</code> contain the new macros instead. The new macros are
+    intended to be more consistent, more useful, and less confusing. Some
+    macros were simply renamed for consistency with a new naming scheme.</p>
+
+    <p>A related change is that <code>UChar32</code> is not a
+    platform-dependent type any more, but is now always defined to be the same
+    as <code>int32_t</code>. This allows for consistent, more portable code and
+    C++ function overloading as well as negative values as sentinels on all
+    platforms. See the definition in <code>utf.h</code>.</p>
 
     <h3>ICU code library size</h3>
 
@@ -234,6 +265,29 @@
     for those in Unihan.txt) are now <a href=
     "http://oss.software.ibm.com/cvs/icu/~checkout~/icuhtml/design/ucd_icu.html">
     available via direct APIs, and most via UnicodeSet</a>.</p>
+
+    <h3>Additional and modified converters</h3>
+
+    <p>New converter implementations are added for:</p>
+
+    <ul>
+      <li>UTF-16 and UTF-32 (detect/emit BOM according to IANA
+      registration)<br>
+       These and related names used to be aliases for UTF16_PlatformEndian and
+      UTF32_PlatformEndian but are now separate, IANA-registration-compliant
+      converters that detect and emit the respective Byte Order Mark. The
+      "platform endian" converters (without automatic BOM handling) are now
+      only available via their specific names.</li>
+
+      <li><a href="http://www.unicode.org/reports/tr26/">CESU-8</a> (while the
+      <a href="http://www.unicode.org/reports/tr28/#3_1_conformance">UTF-8 code
+      is tightened according to Unicode 3.2</a>)</li>
+
+      <li><a href=
+      "http://oss.software.ibm.com/cvs/icu/~checkout~/icuhtml/design/conversion/bocu1/bocu1.html">
+      BOCU-1</a> (MIME-compatible compression of Unicode text that preserves
+      binary order)</li>
+    </ul>
 
     <h3>Flexible data loading</h3>
 
@@ -286,6 +340,21 @@
       <li>If you have a shared library file, you'll need to somehow get
       individual files and repackage them.</li>
     </ul>
+
+    <h3>Customizable memory management</h3>
+
+    <p>ICU 2.2 libraries do not use the global operators new and delete.
+    Instead, all C++ classes are derived from a common base class UObject which
+    implements new and delete operators for all of ICU's C++ classes. Users can
+    customize the ICU memory allocation by changing the functions in
+    source/common/cmemory.c that are used for non-class types and in UObject's
+    new and delete operators.</p>
+
+    <p>This also means that ICU libraries may safely use a different heap than
+    the application because all memory is consistently allocated and released
+    from within the libraries. On Windows it is now possible to link the
+    application with, for example, the static C runtime library even though ICU
+    libraries use the DLL-based runtime.</p>
 
     <h3>Experimental locales moved to new repository</h3>
 
@@ -342,7 +411,7 @@
     the data (<code>[lib]icudt</code>) and the common (<code>[lib]icuuc</code>)
     libraries in order to use ICU.</p>
 
-    <table border="1" cellpadding="0" width="100%">
+    <table border="1" cellpadding="0" width="100%" summary="">
       <caption>
         The following files describe the code drop.
       </caption>
@@ -369,7 +438,7 @@
     <p><br>
     </p>
 
-    <table border="1" cellpadding="0" width="100%">
+    <table border="1" cellpadding="0" width="100%" summary="">
       <caption>
         The following directories contain source code and data files.
       </caption>
@@ -551,7 +620,7 @@
     <h3><a name="HowToBuildSupported" href="#HowToBuildSupported">Supported
     Platforms</a></h3>
 
-    <table border="1" cellpadding="3">
+    <table border="1" cellpadding="3" summary="">
       <caption>
         Here is a status of functionality of ICU on several different
         platforms.
@@ -566,7 +635,7 @@
       </tr>
 
       <tr>
-        <td>Windows 2000/XP</td>
+        <td>Windows NT/2000/XP</td>
 
         <td>Microsoft Visual C++ 6.0</td>
 
@@ -592,7 +661,7 @@
       <tr>
         <td>Solaris 7 (SunOS 5.7)</td>
 
-        <td>Workshop Pro (Forte) CC 6.0</td>
+        <td>Workshop Pro CC 6.0</td>
 
         <td>Reference platform</td>
       </tr>
@@ -600,14 +669,13 @@
       <tr>
         <td>HP/UX 11.01</td>
 
-        <td>aCC A.12.10<br>
-         cc A.11.01.00</td>
+        <td>aCC A.12.10</td>
 
         <td>Reference platform</td>
       </tr>
 
       <tr>
-        <td>Windows NT/98</td>
+        <td>Windows 98</td>
 
         <td>Microsoft Visual C++ 6.0</td>
 
@@ -615,10 +683,9 @@
       </tr>
 
       <tr>
-        <td>Mac OS X (10.2)</td>
+        <td>AIX 4.3.3</td>
 
-        <td>gcc 3.1<br>
-         (Developer Tools, July 2002)</td>
+        <td>xlC_r 3.6.6</td>
 
         <td>Regularly tested</td>
       </tr>
@@ -649,18 +716,10 @@
       </tr>
 
       <tr>
-        <td>Red Hat Alpha Linux 7.2</td>
+        <td>Mac OS X (10.1)</td>
 
-        <td>gcc 2.96</td>
-
-        <td>Regularly tested</td>
-      </tr>
-
-      <tr>
-        <td>Red Hat Alpha Linux 7.2</td>
-
-        <td>Compaq C++ Compiler 3.2<br>
-         Compaq C Compiler 6.5.6</td>
+        <td>gcc-932.1, based on gcc version 2.95.2<br>
+         (Developer Tools December 2001)</td>
 
         <td>Regularly tested</td>
       </tr>
@@ -674,9 +733,9 @@
       </tr>
 
       <tr>
-        <td>AIX 4.3.3</td>
+        <td>HP/UX 11.01</td>
 
-        <td>xlC_r 4.0.2.1</td>
+        <td>CC A.03.10</td>
 
         <td>Rarely tested</td>
       </tr>
@@ -690,25 +749,9 @@
       </tr>
 
       <tr>
-        <td>CygWin</td>
-
-        <td>gcc 2.95.3</td>
-        
-        <td>Rarely tested</td>
-      </tr>
-
-      <tr>
-        <td>HP/UX 11.01</td>
-
-        <td>CC A.03.10</td>
-
-        <td>Rarely tested</td>
-      </tr>
-
-      <tr>
         <td>NetBSD, OpenBSD</td>
 
-        <td>gcc</td>
+        <td>&nbsp;</td>
 
         <td>Rarely tested</td>
       </tr>
@@ -733,7 +776,7 @@
     <p><br>
     </p>
 
-    <h4>Key to testing frequency</h4>
+    <p><strong>Key to testing frequency</strong></p>
 
     <dl>
       <dt><i>Reference platform</i></dt>
@@ -1278,117 +1321,6 @@ del common/libicuuc.o
     </ol>
     <!-- end build environment -->
 
-    <h2><a name="HowToPackage" href="#HowToPackage">How To Package ICU</a></h2>
-
-    <p>There are many ways that a person can package ICU with their software
-    products. Usually only the libraries need to be considered for
-    packaging.</p>
-
-    <p>On Unix, you should have used "<tt>gmake install</tt>" to make it easier to
-    develop and package ICU. The bin, lib and include directories are needed to
-    develop applications that use ICU.  These directories will be created relative to the 
-    "<tt>--prefix=</tt><i>dir</i>" configure option (See <a href="#HowToBuildUnix">above</a>).
-     When ICU is built on Windows, a similar directory structure is built.</p>
-
-    <p>When changes have been made to the standard ICU distribution, it is
-    recommended that at least one of the following guidelines be followed for
-    special packaging.</p>
-
-    <ol>
-      <li>Add a suffix name to the library names. This can be done with the
-      --with-library-suffix configure option.</li>
-
-      <li>The installation script should install the ICU libraries into the
-      application's directory.</li>
-    </ol>
-
-    <p>Following these guidelines prevents other applications that use a
-    standard ICU distribution from conflicting any libraries that you need. On
-    operating systems that do not have a standard C++ ABI (name mangling) for
-    compilers, it is recommended to do this special packaging anyway. More
-    details on customizing ICU are available in the <a href=
-    "http://oss.software.ibm.com/icu/userguide/">User's Guide</a>. The <a href=
-    "#SourceCode">ICU Source Code Organization</a> section of this readme.html
-    gives a more complete description of the libraries.</p>
-
-    <table border="1" cellpadding="3">
-      <caption>
-        Here is an example of libraries that are frequently packaged.
-      </caption>
-
-      <tr>
-        <th scope="col">Library Name</th>
-
-        <th scope="col">Windows Filename</th>
-
-        <th scope="col">Linux Filename</th>
-
-        <th scope="col">Comment</th>
-      </tr>
-
-      <tr>
-        <td>Data Library</td>
-
-        <td>icudt<i>XY</i>l.dll</td>
-
-        <td>libicudata.so.<i>XY</i>.<i>Z</i></td>
-
-        <td>Data required by the Common and I18n libraries. There are many ways
-        to package and <a href=
-        "http://oss.software.ibm.com/icu/userguide/icudata.html">customize this
-        data</a>, but by default this is all you need.</td>
-      </tr>
-
-      <tr>
-        <td>Common Library</td>
-
-        <td>icuuc<i>XY</i>.dll</td>
-
-        <td>libicuuc.so.<i>XY</i>.<i>Z</i></td>
-
-        <td>Base library required by all other ICU libraries.</td>
-      </tr>
-
-      <tr>
-        <td>Internationalization (i18n) Library</td>
-
-        <td>icuin<i>XY</i>.dll</td>
-
-        <td>libicui18n.so.<i>XY</i>.<i>Z</i></td>
-
-        <td>Contains many locale based i18n functions.</td>
-      </tr>
-
-      <tr>
-        <td>Layout Engine</td>
-
-        <td>icule<i>XY</i>.dll</td>
-
-        <td>libicule.so.<i>XY</i>.<i>Z</i></td>
-
-        <td>Contains an optional engine for doing font layout.</td>
-      </tr>
-
-      <tr>
-        <td>Unicode stdio Library</td>
-
-        <td>icuio<i>XY</i>.dll</td>
-
-        <td>libustdio.so.<i>XY</i>.<i>Z</i></td>
-
-        <td>An unsupported optional library that provides a stdio like API with
-        Unicode support.</td>
-      </tr>
-    </table>
-
-    <p>Normally only the above ICU libraries need to be considered for
-    packaging. The versionless symbolic links to these libraries are only
-    needed for easier development. The <i>X</i>, <i>Y</i> and <i>Z</i> parts of
-    the name are the version numbers of ICU. For example, ICU 2.0.2 would have
-    the name libicuuc.so.20.2 for the common library. The exact format of the
-    library names can vary between platforms due to how each platform can
-    handles library versioning.</p>
-
     <h2><a name="ImportantNotes" href="#ImportantNotes">Important Notes About
     Using ICU</a></h2>
 
@@ -1400,7 +1332,7 @@ del common/libicuuc.o
     ICU global mutex is initialized during C++ static initialization, but there
     are some compilers and linkers that do not properly perform C++ static
     initialization in a library (this sometimes happens on HP/UX and on MacOS
-    10.1).</p>
+    X).</p>
 
     <p>Upon the first usage of most ICU APIs, the global mutex will get
     initialized. For example, you could call uloc_countAvailable() or
@@ -1421,7 +1353,7 @@ del common/libicuuc.o
     <p>For some environments, ICU "is too large". There are two ways to remove
     parts and make it smaller: Remove some of its library code modules from the
     build (reducing functionality), or remove some of its data (possibly
-    reducing only codepage/locale/etc. coverage without sacrificing overall
+    reducing only codepage/locale/etc. coverage without sacrifycing overall
     functionality). For details about reducing the data size see the <a href=
     "http://oss.software.ibm.com/icu/userguide/">User Guide</a> "ICU Data"
     chapter.</p>
@@ -1449,47 +1381,15 @@ del common/libicuuc.o
     href="http://oss.software.ibm.com/icu/userguide/">User Guide</a> "ICU Data"
     chapter.</p>
 
-    <h3><a name="ImportantNotesDefaultCP" href="#ImportantNotesDefaultCP">Using
-    the default codepage</a></h3>
+    <h3><a name="ImportantNotesBinaryCompat" href=
+    "#ImportantNotesBinaryCompat">Binary Compatibility</a></h3>
 
-    <p>ICU has code to determine the default codepage of the system or process.
-    This default codepage can be used to convert <code>char *</code> strings to
-    and from Unicode.</p>
-
-    <p>Depending on system design, setup and APIs, it may not always be
-    possible to find a default codepage that fully works as expected. For
-    example,</p>
-
-    <ul>
-      <li>On Windows there are three encodings in use at the same time. Unicode
-      (UTF-16) is always used inside of Windows, while for <code>char *</code>
-      encodings there are two classes, called "ANSI" and "OEM" codepages. ICU
-      will use the ANSI codepage. Note that the OEM codepage is used by default
-      for console window output.</li>
-
-      <li>On some Unix-type systems, non-standard names are used for encodings,
-      or non-standard encodings are used altogether. Although ICU supports 200
-      encodings in its standard build and many more aliases for them, it will
-      not be able to recognize such non-standard names.</li>
-
-      <li>Some systems do not have a notion of a system or process codepage,
-      and may not have APIs for that.</li>
-    </ul>
-
-    <p>If you have means of detecting a default codepage name that are more
-    appropriate for your application, then you should set that name with
-    <code>ucnv_setDefaultName()</code> as the first ICU function call. This
-    makes sure that the internally cached default converter will be
-    instantiated from your preferred name.</p>
-
-    <p>Starting in ICU 2.0, when a converter for the default codepage cannot be
-    opened, a fallback default codepage name and converter will be used. On
-    most platforms, this will be US-ASCII. For z/OS (OS/390), ibm-1047-s390 is
-    the default fallback codepage. For AS/400 (iSeries), ibm-37 is the default
-    fallback codepage. This default fallback codepage is used when the
-    operating system is using a non-standard name for a default codepage, or
-    the converter was not packaged with ICU. The feature allows ICU to run in
-    unusual computing environments without completely failing.</p>
+    <p>Even though the ICU development team tries to make a stable API, some
+    breaking changes are required from time to time. ICU does not guarentee
+    binary compatibility of its functions or its data between releases. Please
+    view the <a href=
+    "http://oss.software.ibm.com/icu/userguide/design.html">ICU Design</a>
+    chapter of the User's Guide for details.</p>
 
     <h3><a name="ImportantNotesWindows" href="#ImportantNotesWindows">Windows
     Platform</a></h3>
@@ -1533,10 +1433,10 @@ del common/libicuuc.o
     <p>Note: When packaging a Windows application for distribution and
     installation on user systems, copies of the ICU DLLs should be included
     with the application, and installed for exclusive use by the application.
-    This is the only way to insure that your application is running with the
-    same version of ICU, built with exactly the same options, that you
-    developed and tested with. Refer to Microsoft's guidelines on the usage of
-    DLLs, or search for the phrase "DLL hell" on <a href=
+    This is the only way to insure that your application is running with the same
+    version of ICU, built with exactly the same options, that you developed and
+    tested with. Refer to Microsoft's guidelines on the usage of DLLs, or
+    search for the phrase "DLL hell" on <a href=
     "http://msdn.microsoft.com/">msdn.microsoft.com</a>.</p>
 
     <h3><a name="ImportantNotesUnix" href="#ImportantNotesUnix">Unix Type
@@ -1561,6 +1461,48 @@ del common/libicuuc.o
     instead of the new ones, likely leading to an incorrectly build ICU. (This
     is the proper behavior of rpath.)</p>
 
+    <h3><a name="ImportantNotesDefaultCP" href="#ImportantNotesDefaultCP">Using
+    the default codepage</a></h3>
+
+    <p>ICU has code to determine the default codepage of the system or process.
+    This default codepage can be used to convert <code>char *</code> strings to
+    and from Unicode.</p>
+
+    <p>Depending on system design, setup and APIs, it may not always be
+    possible to find a default codepage that fully works as expected. For
+    example,</p>
+
+    <ul>
+      <li>On Windows there are three encodings in use at the same time. Unicode
+      (UTF-16) is always used inside of Windows, while for <code>char *</code>
+      encodings there are two classes, called "ANSI" and "OEM" codepages. ICU
+      will use the ANSI codepage. Note that the OEM codepage is used by default
+      for console window output.</li>
+
+      <li>On some Unix-type systems, non-standard names are used for encodings,
+      or non-standard encodings are used altogether. Although ICU supports 200
+      encodings in its standard build and many more aliases for them, it will
+      not be able to recognize such non-standard names.</li>
+
+      <li>Some systems do not have a notion of a system or process codepage,
+      and may not have APIs for that.</li>
+    </ul>
+
+    <p>If you have means of detecting a default codepage name that are more
+    appropriate for your application, then you should set that name with
+    <code>ucnv_setDefaultName()</code> as the first ICU function call. This
+    makes sure that the internally cached default converter will be
+    instantiated from your preferred name.</p>
+
+    <p>Starting in ICU 2.0, when a converter for the default codepage cannot be
+    opened, a fallback default codepage name and converter will be used. On
+    most platforms, this will be US-ASCII. For z/OS (OS/390), ibm-1047-s390 is
+    the default fallback codepage. For AS/400 (iSeries), ibm-37 is the default
+    fallback codepage. This default fallback codepage is used when the
+    operating system is using a non-standard name for a default codepage, or
+    the converter was not packaged with ICU. The feature allows ICU to run in
+    unusual computing environments without completely failing.</p>
+
     <h2><a name="PlatformDependencies" href="#PlatformDependencies">Platform
     Dependencies</a></h2>
 
@@ -1583,10 +1525,6 @@ del common/libicuuc.o
 
           <li>U_EXPORT and U_IMPORT for specifying dynamic library import and
           export</li>
-
-          <li>int64_t and uint64_t. If the platform does not support 64 bit values, the macro
-          <tt>U_INT64_T_UNAVAILABLE</tt> must be defined.  For example, this will disable
-          Rule-based number formatting.</li>
         </ul>
         <br>
       </li>
@@ -1695,12 +1633,11 @@ del common/libicuuc.o
     </ol>
     <hr>
 
-    <p>Copyright &copy; 1997-2003 International Business Machines Corporation
+    <p>Copyright &copy; 1997-2002 International Business Machines Corporation
     and others. All Rights Reserved.<br>
-     IBM Globalization Center of Competency - San Jos&eacute;<br>
-     5600 Cottle Road<br>
-     San Jos&eacute;, CA 95193<br>
-     USA</p>
+     IBM Globalization Center of Competency - San Jose,<br>
+     5600 Cottle Road, San Jos&eacute;, CA 95193<br>
+     All rights reserved.</p>
   </body>
 </html>
 

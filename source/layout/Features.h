@@ -8,11 +8,6 @@
 #ifndef __FEATURES_H
 #define __FEATURES_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "OpenTypeTables.h"
 

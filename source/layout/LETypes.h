@@ -2,7 +2,7 @@
 /*
  * @(#)LETypes.h	1.2 00/03/15
  *
- * (C) Copyright IBM Corp. 1998-2003 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2002 - All Rights Reserved
  *
  */
 
@@ -11,7 +11,6 @@
 
 #include "unicode/utypes.h"
 #include "unicode/uobject.h"
-#include "cmemory.h"
 
 U_NAMESPACE_BEGIN
 
@@ -100,127 +99,13 @@ typedef UBool le_bool;
 typedef le_uint32 LETag;
 
 /**
- * Used for 16-bit glyph indices as they're represented
- * in TrueType font tables.
+ * Used for glyph indices.
  *
- * @draft ICU 2.6
- */
-typedef le_uint16 TTGlyphID;
-
-/**
- * Used for glyph indices. The low-order 16 bits are
- * the glyph ID within the font. The next 8 bits are
- * the sub-font ID within a compound font. The high-
- * order 8 bits are client defined. The LayoutEngine
- * will never change or look at these bits.
+ * (NOTE: this will likely change to le_uint32)
  *
- * @draft ICU 2.6
+ * @draft ICU 2.4
  */
-typedef le_uint32 LEGlyphID;
-
-/**
- * Used to mask off the glyph ID part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_GLYPH_MASK     0x0000FFFF
-
-/**
- * Used to shift the glyph ID part of an LEGlyphID
- * into the low-order bits.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_GLYPH_SHIFT    0
-
-
-/**
- * Used to mask off the sub-font ID part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_SUB_FONT_MASK  0x00FF0000
-
-/**
- * Used to shift the sub-font ID part of an LEGlyphID
- * into the low-order bits.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_SUB_FONT_SHIFT 16
-
-
-/**
- * Used to mask off the client-defined part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_CLIENT_MASK    0xFF000000
-
-/**
- * Used to shift the sub-font ID part of an LEGlyphID
- * into the low-order bits.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_CLIENT_SHIFT   24
-
-
-/**
- * A convenience macro to get the Glyph ID part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_GET_GLYPH(gid) ((gid & LE_GLYPH_MASK) >> LE_GLYPH_SHIFT)
-
-/**
- * A convenience macro to get the sub-font ID part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_GET_SUB_FONT(gid) ((gid & LE_SUB_FONT_MASK) >> LE_SUB_FONT_SHIFT)
-
-/**
- * A convenience macro to get the client-defined part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_GET_CLIENT(gid) ((gid & LE_CLIENT_MASK) >> LE_CLIENT_SHIFT)
-
-
-/**
- * A convenience macro to set the Glyph ID part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_SET_GLYPH(gid, glyph) ((gid & ~LE_GLYPH_MASK) | ((glyph << LE_GLYPH_SHIFT) & LE_GLYPH_MASK))
-
-/**
- * A convenience macro to set the sub-font ID part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_SET_SUB_FONT(gid, font) ((gid & ~LE_SUB_FONT_MASK) | ((font << LE_SUB_FONT_SHIFT) & LE_SUB_FONT_MASK))
-
-/**
- * A convenience macro to set the client-defined part of an LEGlyphID.
- *
- * @see LEGlyphID
- * @draft ICU 2.6
- */
-#define LE_SET_CLIENT(gid, client) ((gid & ~LE_CLIENT_MASK) | ((client << LE_CLIENT_SHIFT) & LE_CLIENT_MASK))
-
+typedef le_uint16 LEGlyphID;
 
 /**
  * Used to represent 16-bit Unicode code points.
@@ -279,31 +164,7 @@ typedef struct LEPoint LEPoint;
  *
  * @stable ICU 2.4
  */
-#define LE_ARRAY_COPY(dst, src, count) uprv_memcpy((void *) (dst), (void *) (src), (count) * sizeof (src)[0])
-
-/**
- * Allocate an array of basic types. This is used to isolate the rest of
- * the LayoutEngine code from cmemory.h.
- *
- * @draft ICU 2.6
- */
-#define LE_NEW_ARRAY(type, count) (type *) uprv_malloc((count) * sizeof(type))
-
-/**
- * Re-allocate an array of basic types. This is used to isolate the rest of
- * the LayoutEngine code from cmemory.h.
- *
- * @draft ICU 2.6
- */
-#define LE_GROW_ARRAY(array, newSize) uprv_realloc((void *) (array), newSize * sizeof (array)[0])
-
- /**
- * Free an array of basic types. This is used to isolate the rest of
- * the LayoutEngine code from cmemory.h.
- *
- * @draft ICU 2.6
- */
-#define LE_DELETE_ARRAY(array) uprv_free((void *) (array))
+#define LE_ARRAY_COPY(dst, src, count) memcpy(dst, src, (count) * sizeof (src)[0])
 
 /**
  * Error codes returned by the LayoutEngine.
@@ -322,9 +183,7 @@ enum LEErrorCode {
     LE_MEMORY_ALLOCATION_ERROR      = U_MEMORY_ALLOCATION_ERROR,
     LE_INDEX_OUT_OF_BOUNDS_ERROR    = U_INDEX_OUTOFBOUNDS_ERROR,
     LE_NO_LAYOUT_ERROR              = U_UNSUPPORTED_ERROR,
-    LE_INTERNAL_ERROR               = U_INTERNAL_PROGRAM_ERROR,
-    LE_FONT_FILE_NOT_FOUND_ERROR    = U_FILE_ACCESS_ERROR,
-    LE_MISSING_FONT_TABLE_ERROR     = U_MISSING_RESOURCE_ERROR
+    LE_INTERNAL_ERROR               = U_INTERNAL_PROGRAM_ERROR
 };
 
 #ifndef XP_CPLUSPLUS

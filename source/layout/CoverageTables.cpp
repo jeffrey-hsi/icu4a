@@ -41,7 +41,6 @@ le_int32 CoverageTable::getGlyphCoverage(LEGlyphID glyphID) const
 
 le_int32 CoverageFormat1Table::getGlyphCoverage(LEGlyphID glyphID) const
 {
-    TTGlyphID ttGlyphID = (TTGlyphID) LE_GET_GLYPH(glyphID);
     le_uint16 count = SWAPW(glyphCount);
     le_uint8 bit = OpenTypeUtilities::highBit(count);
     le_uint16 power = 1 << bit;
@@ -49,19 +48,19 @@ le_int32 CoverageFormat1Table::getGlyphCoverage(LEGlyphID glyphID) const
     le_uint16 probe = power;
     le_uint16 index = 0;
 
-    if (SWAPW(glyphArray[extra]) <= ttGlyphID) {
+    if (SWAPW(glyphArray[extra]) <= glyphID) {
         index = extra;
     }
 
     while (probe > (1 << 0)) {
         probe >>= 1;
 
-        if (SWAPW(glyphArray[index + probe]) <= ttGlyphID) {
+        if (SWAPW(glyphArray[index + probe]) <= glyphID) {
             index += probe;
         }
     }
 
-    if (SWAPW(glyphArray[index]) == ttGlyphID) {
+    if (SWAPW(glyphArray[index]) == glyphID) {
         return index;
     }
 
@@ -70,19 +69,18 @@ le_int32 CoverageFormat1Table::getGlyphCoverage(LEGlyphID glyphID) const
 
 le_int32 CoverageFormat2Table::getGlyphCoverage(LEGlyphID glyphID) const
 {
-    TTGlyphID ttGlyphID = (TTGlyphID) LE_GET_GLYPH(glyphID);
     le_uint16 count = SWAPW(rangeCount);
     le_int32 rangeIndex =
-        OpenTypeUtilities::getGlyphRangeIndex(ttGlyphID, rangeRecordArray, count);
+        OpenTypeUtilities::getGlyphRangeIndex(glyphID, rangeRecordArray, count);
 
     if (rangeIndex < 0) {
         return -1;
     }
 
-    TTGlyphID firstInRange = SWAPW(rangeRecordArray[rangeIndex].firstGlyph);
+    LEGlyphID firstInRange = SWAPW(rangeRecordArray[rangeIndex].firstGlyph);
     le_uint16  startCoverageIndex = SWAPW(rangeRecordArray[rangeIndex].rangeValue);
 
-    return startCoverageIndex + (ttGlyphID - firstInRange);
+    return startCoverageIndex + (glyphID - firstInRange);
 }
 
 U_NAMESPACE_END

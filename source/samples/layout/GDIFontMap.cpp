@@ -7,15 +7,14 @@
 
 #include <windows.h>
 
-#include "layout/LEFontInstance.h"
-
+#include "RenderingFontInstance.h"
 #include "GDIFontInstance.h"
 
 #include "GUISupport.h"
 #include "FontMap.h"
 #include "GDIFontMap.h"
 
-GDIFontMap::GDIFontMap(GDISurface *surface, const char *fileName, le_int16 pointSize, GUISupport *guiSupport, LEErrorCode &status)
+GDIFontMap::GDIFontMap(GDISurface *surface, const char *fileName, le_int16 pointSize, GUISupport *guiSupport, RFIErrorCode &status)
     : FontMap(fileName, pointSize, guiSupport, status), fSurface(surface)
 {
     // nothing to do?
@@ -26,7 +25,7 @@ GDIFontMap::~GDIFontMap()
     // anything?
 }
 
-const LEFontInstance *GDIFontMap::openFont(const char *fontName, le_int16 pointSize, LEErrorCode &status)
+const RenderingFontInstance *GDIFontMap::openFont(const char *fontName, le_int16 pointSize, RFIErrorCode &status)
 {
     return new GDIFontInstance(fSurface, fontName, pointSize, status);
 }

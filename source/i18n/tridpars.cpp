@@ -251,7 +251,7 @@ UnicodeSet* TransliteratorIDParser::parseGlobalFilter(const UnicodeString& id, i
     if (UnicodeSet::resemblesPattern(id, pos)) {
         ParsePosition ppos(pos);
         UErrorCode ec = U_ZERO_ERROR;
-        filter = new UnicodeSet(id, ppos, USET_IGNORE_SPACE, ec);
+        filter = new UnicodeSet(id, ppos, ec);
         /* test for NULL */
         if (filter == 0) {
             pos = start;
@@ -487,7 +487,6 @@ int32_t TransliteratorIDParser::instantiateList(UVector& list,
             }
             tlist.addElement(t, ec);
             if (U_FAILURE(ec)) {
-                delete t;
                 goto RETURN;
             }
         }
@@ -501,27 +500,21 @@ int32_t TransliteratorIDParser::instantiateList(UVector& list,
             ec = U_INTERNAL_TRANSLITERATOR_ERROR;
         }
         tlist.addElement(t, ec);
-        if (U_FAILURE(ec)) {
-            delete t;
-        }
     }
 
  RETURN:
 
     UObjectDeleter *save = list.setDeleter(_deleteSingleID);
     list.removeAllElements();
+    list.setDeleter(_deleteTransliterator);
 
-    if (U_SUCCESS(ec)) {
-        list.setDeleter(_deleteTransliterator);
-
-        while (tlist.size() > 0) {
-            t = (Transliterator*) tlist.orphanElementAt(0);
-            list.addElement(t, ec);
-            if (U_FAILURE(ec)) {
-                delete t;
-                list.removeAllElements();
-                break;
-            }
+    while (tlist.size() > 0) {
+        t = (Transliterator*) tlist.orphanElementAt(0);
+        list.addElement(t, ec);
+        if (U_FAILURE(ec)) {
+            delete t;
+            list.removeAllElements();
+            break;
         }
     }
 
@@ -704,7 +697,7 @@ TransliteratorIDParser::parseFilterID(const UnicodeString& id, int32_t& pos,
 
             ParsePosition ppos(pos);
             UErrorCode ec = U_ZERO_ERROR;
-            UnicodeSet set(id, ppos, USET_IGNORE_SPACE, ec);
+            UnicodeSet set(id, ppos, ec);
             if (U_FAILURE(ec)) {
                 pos = start;
                 return NULL;

@@ -318,28 +318,19 @@ u_vfscanf(UFILE        *f,
 {
     int32_t converted;
     UChar *pattern;
-    UChar buffer[UFMT_DEFAULT_BUFFER_SIZE];
-    int32_t size = (int32_t)strlen(patternSpecification) + 1;
 
     /* convert from the default codepage to Unicode */
-    if (size >= MAX_UCHAR_BUFFER_SIZE(buffer)) {
-        pattern = (UChar *)uprv_malloc(size * sizeof(UChar));
-        if(pattern == 0) {
-            return 0;
-        }
+    pattern = ufmt_defaultCPToUnicode(patternSpecification,
+        strlen(patternSpecification)+1);
+    if(pattern == 0) {
+        return 0;
     }
-    else {
-        pattern = buffer;
-    }
-    ufmt_defaultCPToUnicode(patternSpecification, size, pattern, size);
 
     /* do the work */
     converted = u_vfscanf_u(f, pattern, ap);
 
     /* clean up */
-    if (pattern != buffer) {
-        uprv_free(pattern);
-    }
+    uprv_free(pattern);
 
     return converted;
 }

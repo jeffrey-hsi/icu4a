@@ -8,11 +8,6 @@
 #ifndef __CONTEXTUALGLYPHSUBSTITUTION_H
 #define __CONTEXTUALGLYPHSUBSTITUTION_H
 
-/**
- * \file
- * \internal
- */
-
 #include "LETypes.h"
 #include "LayoutTables.h"
 #include "StateTables.h"

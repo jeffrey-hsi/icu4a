@@ -168,9 +168,9 @@ Calendar::operator=(const Calendar &right)
 {
     if (this != &right)
     {
-        uprv_arrayCopy(right.fFields, fFields, UCAL_FIELD_COUNT);
-        uprv_arrayCopy(right.fIsSet, fIsSet, UCAL_FIELD_COUNT);
-        uprv_arrayCopy(right.fStamp, fStamp, UCAL_FIELD_COUNT);
+        uprv_arrayCopy(right.fFields, fFields, FIELD_COUNT);
+        uprv_arrayCopy(right.fIsSet, fIsSet, FIELD_COUNT);
+        uprv_arrayCopy(right.fStamp, fStamp, FIELD_COUNT);
         fTime                     = right.fTime;
         fIsTimeSet                 = right.fIsTimeSet;
         fAreAllFieldsSet         = right.fAreAllFieldsSet;
@@ -389,7 +389,7 @@ Calendar::setTimeInMillis( double millis, UErrorCode& status ) {
 // -------------------------------------
 
 int32_t
-Calendar::get(UCalendarDateFields field, UErrorCode& status) const
+Calendar::get(EDateFields field, UErrorCode& status) const
 {
     // field values are only computed when actually requested; for more on when computation
     // of various things happens, see the "data flow in Calendar" description at the top
@@ -401,7 +401,7 @@ Calendar::get(UCalendarDateFields field, UErrorCode& status) const
 // -------------------------------------
 
 void
-Calendar::set(UCalendarDateFields field, int32_t value)
+Calendar::set(EDateFields field, int32_t value)
 {
     fIsTimeSet         = FALSE;
     fFields[field]     = value;
@@ -415,9 +415,9 @@ Calendar::set(UCalendarDateFields field, int32_t value)
 void
 Calendar::set(int32_t year, int32_t month, int32_t date)
 {
-    set(UCAL_YEAR, year);
-    set(UCAL_MONTH, month);
-    set(UCAL_DATE, date);
+    set(YEAR, year);
+    set(MONTH, month);
+    set(DATE, date);
 }
 
 // -------------------------------------
@@ -425,11 +425,11 @@ Calendar::set(int32_t year, int32_t month, int32_t date)
 void
 Calendar::set(int32_t year, int32_t month, int32_t date, int32_t hour, int32_t minute)
 {
-    set(UCAL_YEAR, year);
-    set(UCAL_MONTH, month);
-    set(UCAL_DATE, date);
-    set(UCAL_HOUR_OF_DAY, hour);
-    set(UCAL_MINUTE, minute);
+    set(YEAR, year);
+    set(MONTH, month);
+    set(DATE, date);
+    set(HOUR_OF_DAY, hour);
+    set(MINUTE, minute);
 }
 
 // -------------------------------------
@@ -437,12 +437,12 @@ Calendar::set(int32_t year, int32_t month, int32_t date, int32_t hour, int32_t m
 void
 Calendar::set(int32_t year, int32_t month, int32_t date, int32_t hour, int32_t minute, int32_t second)
 {
-    set(UCAL_YEAR, year);
-    set(UCAL_MONTH, month);
-    set(UCAL_DATE, date);
-    set(UCAL_HOUR_OF_DAY, hour);
-    set(UCAL_MINUTE, minute);
-    set(UCAL_SECOND, second);
+    set(YEAR, year);
+    set(MONTH, month);
+    set(DATE, date);
+    set(HOUR_OF_DAY, hour);
+    set(MINUTE, minute);
+    set(SECOND, second);
 }
 
 // -------------------------------------
@@ -450,7 +450,7 @@ Calendar::set(int32_t year, int32_t month, int32_t date, int32_t hour, int32_t m
 void
 Calendar::clear()
 {
-    for (int32_t i=0; i<UCAL_FIELD_COUNT; ++i) {
+    for (int32_t i=0; i<FIELD_COUNT; ++i) {
         fFields[i]     = 0; // Must do this; other code depends on it
         fIsSet[i]     = FALSE;
         fStamp[i]     = kUnset;
@@ -464,7 +464,7 @@ Calendar::clear()
 // -------------------------------------
 
 void
-Calendar::clear(UCalendarDateFields field)
+Calendar::clear(EDateFields field)
 {
     fFields[field]         = 0;
     fStamp[field]         = kUnset;
@@ -477,7 +477,7 @@ Calendar::clear(UCalendarDateFields field)
 // -------------------------------------
 
 UBool
-Calendar::isSet(UCalendarDateFields field) const
+Calendar::isSet(EDateFields field) const
 {
     return fStamp[field] != kUnset;
 }
@@ -506,14 +506,8 @@ Calendar::complete(UErrorCode& status)
 }
 
 // -------------------------------------
-int32_t Calendar::fieldDifference(UDate when, EDateFields field, UErrorCode& status) {
 
-	return fieldDifference(when, (UCalendarDateFields) field, status);
-
-}
-
-
-int32_t Calendar::fieldDifference(UDate targetMs, UCalendarDateFields field, UErrorCode& ec) {
+int32_t Calendar::fieldDifference(UDate targetMs, EDateFields field, UErrorCode& ec) {
     if (U_FAILURE(ec)) return 0;
     int32_t min = 0;
     double startMs = getTimeInMillis(ec);
@@ -662,13 +656,9 @@ Calendar::isLenient() const
 // -------------------------------------
 
 void
-Calendar::setFirstDayOfWeek(UCalendarDaysOfWeek value)
+Calendar::setFirstDayOfWeek(EDaysOfWeek value)
 {
-    if (fFirstDayOfWeek != value &&
-        value >= UCAL_SUNDAY && value <= SATURDAY) {
-        fFirstDayOfWeek = value;
-        fAreFieldsSet = FALSE;
-    }
+    fFirstDayOfWeek = value;
 }
 
 // -------------------------------------
@@ -676,7 +666,7 @@ Calendar::setFirstDayOfWeek(UCalendarDaysOfWeek value)
 Calendar::EDaysOfWeek
 Calendar::getFirstDayOfWeek() const
 {
-    return (Calendar::EDaysOfWeek)fFirstDayOfWeek;
+    return fFirstDayOfWeek;
 }
 
 // -------------------------------------
@@ -684,18 +674,7 @@ Calendar::getFirstDayOfWeek() const
 void
 Calendar::setMinimalDaysInFirstWeek(uint8_t value)
 {
-    // Values less than 1 have the same effect as 1; values greater
-    // than 7 have the same effect as 7. However, we normalize values
-    // so operator== and so forth work.
-    if (value < 1) {
-        value = 1;
-    } else if (value > 7) {
-        value = 7;
-    }
-    if (fMinimalDaysInFirstWeek != value) {
-        fMinimalDaysInFirstWeek = value;
-        fAreFieldsSet = FALSE;
-    }
+    fMinimalDaysInFirstWeek = value;
 }
 
 // -------------------------------------
@@ -709,7 +688,7 @@ Calendar::getMinimalDaysInFirstWeek() const
 // -------------------------------------
 
 int32_t
-Calendar::getActualMinimum(UCalendarDateFields field, UErrorCode& status) const
+Calendar::getActualMinimum(EDateFields field, UErrorCode& status) const
 {
     int32_t fieldValue = getGreatestMinimum(field);
     int32_t endValue = getMinimum(field);
@@ -752,7 +731,7 @@ Calendar::getActualMinimum(UCalendarDateFields field, UErrorCode& status) const
 // -------------------------------------
 
 int32_t
-Calendar::getActualMaximum(UCalendarDateFields field, UErrorCode& status) const
+Calendar::getActualMaximum(EDateFields field, UErrorCode& status) const
 {
     int32_t fieldValue = getLeastMaximum(field);
     int32_t endValue = getMaximum(field);
@@ -769,8 +748,8 @@ Calendar::getActualMaximum(UCalendarDateFields field, UErrorCode& status) const
 
     // if we're counting weeks, set the day of the week to Sunday.  We know the
     // last week of a month or year will contain the first day of the week.
-    if (field == UCAL_WEEK_OF_YEAR || field == UCAL_WEEK_OF_MONTH)
-        work->set(UCAL_DAY_OF_WEEK, fFirstDayOfWeek);
+    if (field == WEEK_OF_YEAR || field == WEEK_OF_MONTH)
+        work->set(DAY_OF_WEEK, fFirstDayOfWeek);
 
     // now try each value from getLeastMaximum() to getMaximum() one by one until
     // we get a value that normalizes to another value.  The last value that
@@ -815,7 +794,7 @@ Calendar::setWeekCountData(const Locale& desiredLocale, UErrorCode& status)
 
     if (U_FAILURE(status)) return;
 
-    fFirstDayOfWeek = UCAL_SUNDAY;
+    fFirstDayOfWeek = Calendar::SUNDAY;
     fMinimalDaysInFirstWeek = 1;
 
     UResourceBundle *resource = ures_open(NULL, desiredLocale.getName(), &status);
@@ -839,7 +818,7 @@ Calendar::setWeekCountData(const Locale& desiredLocale, UErrorCode& status)
             && 1 <= dateTimeElementsArr[0] && dateTimeElementsArr[0] <= 7
             && 1 <= dateTimeElementsArr[1] && dateTimeElementsArr[1] <= 7)
         {
-            fFirstDayOfWeek = (UCalendarDaysOfWeek)dateTimeElementsArr[0];
+            fFirstDayOfWeek = (Calendar::EDaysOfWeek)dateTimeElementsArr[0];
             fMinimalDaysInFirstWeek = (uint8_t)dateTimeElementsArr[1];
         }
         else {

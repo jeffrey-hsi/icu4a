@@ -20,7 +20,7 @@
 #include "itutil.h"
 #include "tscoll.h"
 #include "itformat.h"
-//%#include "itconv.h"
+#include "itconv.h"
 #include "ittrans.h"
 #include "itrbbi.h"
 #include "itrbnf.h"
@@ -30,7 +30,7 @@
 #include "tstnorm.h"
 #include "canittst.h"
 #include "icusvtst.h"
-#include "testidna.h"
+
 #define CASE_SUITE(id, suite) case id:                  \
                           name = #suite;                \
                           if(exec) {                    \
@@ -127,7 +127,18 @@ void MajorTestLevel::runIndexedTest( int32_t index, UBool exec, const char* &nam
 #endif
                 break;
 
-        case 9: name = "icuserv";
+        case 9: name = "convert";
+/* Only the C API exists */
+#ifdef ICU_UNICODECONVERTER_USE_DEPRECATES
+                if (exec) {
+                    logln("TestSuite Convert---"); logln();
+                    IntlTestConvert test;
+                    callTest( test, par );
+                }
+#endif /* ICU_UNICODECONVERTER_USE_DEPRECATES */
+                break;
+
+        case 10: name = "icuserv";
 #if !UCONFIG_NO_SERVICE
                 if (exec) {
                     logln("TestSuite ICUService---"); logln();
@@ -136,13 +147,6 @@ void MajorTestLevel::runIndexedTest( int32_t index, UBool exec, const char* &nam
                 }
 #endif
                 break;
-        case 10: name = "idna";
-            if(exec){
-                logln("TestSuite IDNA----"); logln();
-                TestIDNA test;
-                callTest(test,par);
-            }
-            break;
         default: name = ""; break;
     }
 }

@@ -9,7 +9,6 @@
 #include "unicode/uchar.h"
 #include "unicode/normlzr.h"
 #include "unicode/uniset.h"
-#include "unormimp.h"
 #include "cstring.h"
 #include "filestrm.h"
 #include "normconf.h"
@@ -28,9 +27,8 @@
 
 void NormalizerConformanceTest::runIndexedTest(int32_t index, UBool exec, const char* &name, char* /*par*/) {
     switch (index) {
-        CASE(0, TestConformance);
-        CASE(1, TestConformance32);
-        // CASE(2, TestCase6);
+        CASE(0,TestConformance);
+        // CASE(1,TestCase6);
         default: name = ""; break;
     }
 }
@@ -59,103 +57,46 @@ void NormalizerConformanceTest::compare(const UnicodeString& s1, const UnicodeSt
         errln("Normalizer::compare() failed for s1: " + prettify(s1) + " s2: " +prettify(s2));
     }
 }
-
-FileStream *
-NormalizerConformanceTest::openNormalizationTestFile(const char *filename) {
-    char path[2000];
-    const char *folder;
-    FileStream *input;
-    UErrorCode errorCode;
-
-    // look inside ICU_DATA first
-    folder=u_getDataDirectory();
-    if(folder!=NULL) {
-        strcpy(path, folder);
-        strcat(path, "unidata" U_FILE_SEP_STRING);
-        strcat(path, filename);
-        input=T_FileStream_open(path, "rb");
-        if(input!=NULL) {
-            return input;
-        }
-    }
-
-    // find icu/source/data/unidata relative to the test data
-    errorCode=U_ZERO_ERROR;
-    folder=loadTestData(errorCode);
-    if(U_SUCCESS(errorCode)) {
-        strcpy(path, folder);
-        strcat(path, U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".."
-                     U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".."
-                     U_FILE_SEP_STRING "data" U_FILE_SEP_STRING "unidata" U_FILE_SEP_STRING);
-        strcat(path, filename);
-        input=T_FileStream_open(path, "rb");
-        if(input!=NULL) {
-            return input;
-        }
-    }
-
-    // look in icu/source/test/testdata/out/build
-    errorCode=U_ZERO_ERROR;
-    folder=loadTestData(errorCode);
-    if(U_SUCCESS(errorCode)) {
-        strcpy(path, folder);
-        strcat(path, U_FILE_SEP_STRING);
-        strcat(path, filename);
-        input=T_FileStream_open(path, "rb");
-        if(input!=NULL) {
-            return input;
-        }
-    }
-
-    // look in icu/source/test/testdata
-    errorCode=U_ZERO_ERROR;
-    folder=loadTestData(errorCode);
-    if(U_SUCCESS(errorCode)) {
-        strcpy(path, folder);
-        strcat(path, U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING);
-        strcat(path, filename);
-        input=T_FileStream_open(path, "rb");
-        if(input!=NULL) {
-            return input;
-        }
-    }
-
-    // find icu/source/data/unidata relative to U_TOPSRCDIR
-#if defined(U_TOPSRCDIR)
-    strcpy(path, U_TOPSRCDIR U_FILE_SEP_STRING "data" U_FILE_SEP_STRING "unidata" U_FILE_SEP_STRING);
-    strcat(path, filename);
-    input=T_FileStream_open(path, "rb");
-    if(input!=NULL) {
-        return input;
-    }
-#endif
-
-    errln("Failed to open %s", filename);
-    return NULL;
-}
-
 /**
  * Test the conformance of Normalizer to
- * http://www.unicode.org/Public/UNIDATA/NormalizationTest.txt
+ * http://www.unicode.org/unicode/reports/tr15/conformance/Draft-TestSuite.txt.
+ * This file must be located at the path specified as TEST_SUITE_FILE.
  */
-void NormalizerConformanceTest::TestConformance() {
-    TestConformance(openNormalizationTestFile("NormalizationTest.txt"), 0);
-}
-
-void NormalizerConformanceTest::TestConformance32() {
-    TestConformance(openNormalizationTestFile("NormalizationTest-3.2.0.txt"), UNORM_UNICODE_3_2);
-}
-
-void NormalizerConformanceTest::TestConformance(FileStream *input, int32_t options) {
+void NormalizerConformanceTest::TestConformance(void) {
     enum { BUF_SIZE = 1024 };
     char lineBuf[BUF_SIZE];
     UnicodeString fields[FIELD_COUNT];
     int32_t passCount = 0;
     int32_t failCount = 0;
+    char newPath[256];
+    char backupPath[256];
+    FileStream *input = NULL;
     UChar32 c;
 
-    if(input==NULL) {
+    /* Look inside ICU_DATA first */
+    strcpy(newPath, u_getDataDirectory());
+    strcat(newPath, "unidata" U_FILE_SEP_STRING );
+    strcat(newPath, TEST_SUITE_FILE);
+
+    // As a fallback, try to guess where the source data was located
+    //   at the time ICU was built, and look there.
+#if defined (U_TOPSRCDIR)
+    strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING "data");
+#else
+    UErrorCode   err = U_ZERO_ERROR;
+    strcpy(backupPath, loadTestData(err));
+    strcat(backupPath, U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
+#endif
+    strcat(backupPath, U_FILE_SEP_STRING "unidata" U_FILE_SEP_STRING TEST_SUITE_FILE);
+
+    input = T_FileStream_open(newPath, "rb");
+
+    if (input == 0) {
+      input = T_FileStream_open(backupPath, "rb");
+      if (input == 0) {
+        errln("Failed to open either " + UnicodeString(newPath) + " or " + UnicodeString(backupPath) );
         return;
+      }
     }
 
     // UnicodeSet for all code points that are not mentioned in NormalizationTest.txt
@@ -208,13 +149,13 @@ void NormalizerConformanceTest::TestConformance(FileStream *input, int32_t optio
             other.remove(c);
         }
 
-        if (checkConformance(fields, lineBuf, options)) {
+        if (checkConformance(fields, UnicodeString(lineBuf, ""))) {
             ++passCount;
         } else {
             ++failCount;
         }
         if ((count % 1000) == 0) {
-            logln("Line %d", count);
+            logln((UnicodeString)"Line " + count);
         }
     }
 
@@ -240,7 +181,7 @@ void NormalizerConformanceTest::TestConformance(FileStream *input, int32_t optio
         fields[0]=fields[1]=fields[2]=fields[3]=fields[4].setTo(c);
         sprintf(lineBuf, "not mentioned code point U+%04lx", (long)c);
 
-        if (checkConformance(fields, lineBuf, options)) {
+        if (checkConformance(fields, UnicodeString(lineBuf, ""))) {
             ++passCount;
         } else {
             ++failCount;
@@ -274,8 +215,7 @@ void NormalizerConformanceTest::TestConformance(FileStream *input, int32_t optio
  * @return true if the test passes
  */
 UBool NormalizerConformanceTest::checkConformance(const UnicodeString* field,
-                                                  const char *line,
-                                                  int32_t options) {
+                                                  const UnicodeString& line) {
     UBool pass = TRUE;
     UErrorCode status = U_ZERO_ERROR;
     UnicodeString out, fcd;
@@ -284,87 +224,87 @@ UBool NormalizerConformanceTest::checkConformance(const UnicodeString* field,
     for (int32_t i=0; i<FIELD_COUNT; ++i) {
         fieldNum = i+1;
         if (i<3) {
-            Normalizer::normalize(field[i], UNORM_NFC, options, out, status);
+            Normalizer::normalize(field[i], UNORM_NFC, 0, out, status);
             pass &= assertEqual("C", field[i], out, field[1], "c2!=C(c", fieldNum);
-            iterativeNorm(field[i], UNORM_NFC, options, out, +1);
+            iterativeNorm(field[i], UNORM_NFC, out, +1);
             pass &= assertEqual("C(+1)", field[i], out, field[1], "c2!=C(c", fieldNum);
-            iterativeNorm(field[i], UNORM_NFC, options, out, -1);
+            iterativeNorm(field[i], UNORM_NFC, out, -1);
             pass &= assertEqual("C(-1)", field[i], out, field[1], "c2!=C(c", fieldNum);
 
-            Normalizer::normalize(field[i], UNORM_NFD, options, out, status);
+            Normalizer::normalize(field[i], UNORM_NFD, 0, out, status);
             pass &= assertEqual("D", field[i], out, field[2], "c3!=D(c", fieldNum);
-            iterativeNorm(field[i], UNORM_NFD, options, out, +1);
+            iterativeNorm(field[i], UNORM_NFD, out, +1);
             pass &= assertEqual("D(+1)", field[i], out, field[2], "c3!=D(c", fieldNum);
-            iterativeNorm(field[i], UNORM_NFD, options, out, -1);
+            iterativeNorm(field[i], UNORM_NFD, out, -1);
             pass &= assertEqual("D(-1)", field[i], out, field[2], "c3!=D(c", fieldNum);
         }
-        Normalizer::normalize(field[i], UNORM_NFKC, options, out, status);
+        Normalizer::normalize(field[i], UNORM_NFKC, 0, out, status);
         pass &= assertEqual("KC", field[i], out, field[3], "c4!=KC(c", fieldNum);
-        iterativeNorm(field[i], UNORM_NFKC, options, out, +1);
+        iterativeNorm(field[i], UNORM_NFKC, out, +1);
         pass &= assertEqual("KC(+1)", field[i], out, field[3], "c4!=KC(c", fieldNum);
-        iterativeNorm(field[i], UNORM_NFKC, options, out, -1);
+        iterativeNorm(field[i], UNORM_NFKC, out, -1);
         pass &= assertEqual("KC(-1)", field[i], out, field[3], "c4!=KC(c", fieldNum);
 
-        Normalizer::normalize(field[i], UNORM_NFKD, options, out, status);
+        Normalizer::normalize(field[i], UNORM_NFKD, 0, out, status);
         pass &= assertEqual("KD", field[i], out, field[4], "c5!=KD(c", fieldNum);
-        iterativeNorm(field[i], UNORM_NFKD, options, out, +1);
+        iterativeNorm(field[i], UNORM_NFKD, out, +1);
         pass &= assertEqual("KD(+1)", field[i], out, field[4], "c5!=KD(c", fieldNum);
-        iterativeNorm(field[i], UNORM_NFKD, options, out, -1);
+        iterativeNorm(field[i], UNORM_NFKD, out, -1);
         pass &= assertEqual("KD(-1)", field[i], out, field[4], "c5!=KD(c", fieldNum);
     }
     compare(field[1],field[2]);
     compare(field[0],field[1]);
     // test quick checks
-    if(UNORM_NO == Normalizer::quickCheck(field[1], UNORM_NFC, options, status)) {
+    if(UNORM_NO == Normalizer::quickCheck(field[1], UNORM_NFC, status)) {
         errln("Normalizer error: quickCheck(NFC(s), UNORM_NFC) is UNORM_NO");
         pass = FALSE;
     }
-    if(UNORM_NO == Normalizer::quickCheck(field[2], UNORM_NFD, options, status)) {
+    if(UNORM_NO == Normalizer::quickCheck(field[2], UNORM_NFD, status)) {
         errln("Normalizer error: quickCheck(NFD(s), UNORM_NFD) is UNORM_NO");
         pass = FALSE;
     }
-    if(UNORM_NO == Normalizer::quickCheck(field[3], UNORM_NFKC, options, status)) {
+    if(UNORM_NO == Normalizer::quickCheck(field[3], UNORM_NFKC, status)) {
         errln("Normalizer error: quickCheck(NFKC(s), UNORM_NFKC) is UNORM_NO");
         pass = FALSE;
     }
-    if(UNORM_NO == Normalizer::quickCheck(field[4], UNORM_NFKD, options, status)) {
+    if(UNORM_NO == Normalizer::quickCheck(field[4], UNORM_NFKD, status)) {
         errln("Normalizer error: quickCheck(NFKD(s), UNORM_NFKD) is UNORM_NO");
         pass = FALSE;
     }
 
-    if(!Normalizer::isNormalized(field[1], UNORM_NFC, options, status)) {
+    if(!Normalizer::isNormalized(field[1], UNORM_NFC, status)) {
         errln("Normalizer error: isNormalized(NFC(s), UNORM_NFC) is FALSE");
         pass = FALSE;
     }
-    if(field[0]!=field[1] && Normalizer::isNormalized(field[0], UNORM_NFC, options, status)) {
+    if(field[0]!=field[1] && Normalizer::isNormalized(field[0], UNORM_NFC, status)) {
         errln("Normalizer error: isNormalized(s, UNORM_NFC) is TRUE");
         pass = FALSE;
     }
-    if(!Normalizer::isNormalized(field[3], UNORM_NFKC, options, status)) {
+    if(!Normalizer::isNormalized(field[3], UNORM_NFKC, status)) {
         errln("Normalizer error: isNormalized(NFKC(s), UNORM_NFKC) is FALSE");
         pass = FALSE;
     }
-    if(field[0]!=field[3] && Normalizer::isNormalized(field[0], UNORM_NFKC, options, status)) {
+    if(field[0]!=field[3] && Normalizer::isNormalized(field[0], UNORM_NFKC, status)) {
         errln("Normalizer error: isNormalized(s, UNORM_NFKC) is TRUE");
         pass = FALSE;
     }
 
     // test FCD quick check and "makeFCD"
-    Normalizer::normalize(field[0], UNORM_FCD, options, fcd, status);
-    if(UNORM_NO == Normalizer::quickCheck(fcd, UNORM_FCD, options, status)) {
+    Normalizer::normalize(field[0], UNORM_FCD, 0, fcd, status);
+    if(UNORM_NO == Normalizer::quickCheck(fcd, UNORM_FCD, status)) {
         errln("Normalizer error: quickCheck(FCD(s), UNORM_FCD) is UNORM_NO");
         pass = FALSE;
     }
-    if(UNORM_NO == Normalizer::quickCheck(field[2], UNORM_FCD, options, status)) {
+    if(UNORM_NO == Normalizer::quickCheck(field[2], UNORM_FCD, status)) {
         errln("Normalizer error: quickCheck(NFD(s), UNORM_FCD) is UNORM_NO");
         pass = FALSE;
     }
-    if(UNORM_NO == Normalizer::quickCheck(field[4], UNORM_FCD, options, status)) {
+    if(UNORM_NO == Normalizer::quickCheck(field[4], UNORM_FCD, status)) {
         errln("Normalizer error: quickCheck(NFKD(s), UNORM_FCD) is UNORM_NO");
         pass = FALSE;
     }
 
-    Normalizer::normalize(fcd, UNORM_NFD, options, out, status);
+    Normalizer::normalize(fcd, UNORM_NFD, 0, out, status);
     if(out != field[2]) {
         errln("Normalizer error: NFD(FCD(s))!=NFD(s)");
         pass = FALSE;
@@ -372,29 +312,10 @@ UBool NormalizerConformanceTest::checkConformance(const UnicodeString* field,
 
     if (U_FAILURE(status)) {
         errln("Normalizer::normalize returned error status");
-        pass = FALSE;
+        return FALSE;
     }
-
-    if(field[0]!=field[2]) {
-        // two strings that are canonically equivalent must test
-        // equal under a canonical caseless match
-        // see UAX #21 Case Mappings and Jitterbug 2021 and
-        // Unicode Technical Committee meeting consensus 92-C31
-        int32_t rc;
-
-        status=U_ZERO_ERROR;
-        rc=Normalizer::compare(field[0], field[2], (options<<UNORM_COMPARE_NORM_OPTIONS_SHIFT)|U_COMPARE_IGNORE_CASE, status);
-        if(U_FAILURE(status)) {
-            errln("Normalizer::compare(case-insensitive) sets %s", u_errorName(status));
-            pass=FALSE;
-        } else if(rc!=0) {
-            errln("Normalizer::compare(original, NFD, case-insensitive) returned %d instead of 0 for equal", rc);
-            pass=FALSE;
-        }
-    }
-
     if (!pass) {
-        errln("FAIL: %s", line);
+        errln((UnicodeString)"FAIL: " + line);
     }
     return pass;
 }
@@ -404,14 +325,12 @@ UBool NormalizerConformanceTest::checkConformance(const UnicodeString* field,
  * @param dir either +1 or -1
  */
 void NormalizerConformanceTest::iterativeNorm(const UnicodeString& str,
-                                              UNormalizationMode mode, int32_t options,
+                                              UNormalizationMode mode,
                                               UnicodeString& result,
                                               int8_t dir) {
     UErrorCode status = U_ZERO_ERROR;
     normalizer.setText(str, status);
     normalizer.setMode(mode);
-    normalizer.setOption(-1, 0);        // reset all options
-    normalizer.setOption(options, 1);   // set desired options
     result.truncate(0);
     if (U_FAILURE(status)) {
         return;
@@ -546,6 +465,6 @@ void NormalizerConformanceTest::_testOneLine(const char *line) {
     if (!hexsplit(line, ';', fields, FIELD_COUNT)) {
         errln((UnicodeString)"Unable to parse line " + line);
     } else {
-        checkConformance(fields, line, 0);
+        checkConformance(fields, line);
     }
 }

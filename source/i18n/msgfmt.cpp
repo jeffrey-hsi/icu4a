@@ -33,8 +33,6 @@
 #include "unicode/uchar.h"
 #include "ustrfmt.h"
 #include "cmemory.h"
-#include "uprops.h"
-#include "uassert.h"
 
 // *****************************************************************************
 // class MessageFormat
@@ -48,121 +46,70 @@
 //---------------------------------------
 // static data
 
-static const UChar ID_NUMBER[]    = {
+static const UChar g_umsg_number[]    = {
     0x6E, 0x75, 0x6D, 0x62, 0x65, 0x72, 0  /* "number" */
 };
-static const UChar ID_DATE[]      = {
-    0x64, 0x61, 0x74, 0x65, 0              /* "date" */
+static const UChar g_umsg_date[]      = {
+    0x64, 0x61, 0x74, 0x65, 0  /* "date" */
 };
-static const UChar ID_TIME[]      = {
-    0x74, 0x69, 0x6D, 0x65, 0              /* "time" */
+static const UChar g_umsg_time[]      = {
+    0x74, 0x69, 0x6D, 0x65, 0  /* "time" */
 };
-static const UChar ID_CHOICE[]    = {
+static const UChar g_umsg_choice[]    = {
     0x63, 0x68, 0x6F, 0x69, 0x63, 0x65, 0  /* "choice" */
 };
 
 // MessageFormat Type List  Number, Date, Time or Choice
-static const UChar * const TYPE_IDS[] = {
-    NULL,
-    ID_NUMBER,
-    ID_DATE,    
-    ID_TIME,
-    ID_CHOICE
+static const UChar * const g_umsgTypeList[] = {
+    NULL,           NULL,           g_umsg_number,
+    NULL,           g_umsg_date,    NULL,
+    g_umsg_time,    NULL,           g_umsg_choice
 };
  
-static const UChar ID_CURRENCY[]  = {
+static const UChar g_umsg_currency[]  = {
     0x63, 0x75, 0x72, 0x72, 0x65, 0x6E, 0x63, 0x79, 0  /* "currency" */
 };
-static const UChar ID_PERCENT[]   = {
-    0x70, 0x65, 0x72, 0x63, 0x65, 0x6E, 0x74, 0        /* "percent" */
+static const UChar g_umsg_percent[]   = {
+    0x70, 0x65, 0x72, 0x63, 0x65, 0x6E, 0x74, 0    /* "percent" */
 };
-static const UChar ID_INTEGER[]   = {
-    0x69, 0x6E, 0x74, 0x65, 0x67, 0x65, 0x72, 0        /* "integer" */
+static const UChar g_umsg_integer[]   = {
+    0x69, 0x6E, 0x74, 0x65, 0x67, 0x65, 0x72, 0    /* "integer" */
 };
 
 // NumberFormat modifier list, default, currency, percent or integer
-static const UChar * const NUMBER_STYLE_IDS[] = {
-    NULL,
-    ID_CURRENCY,
-    ID_PERCENT,
-    ID_INTEGER,
-    NULL,
+static const UChar * const g_umsgModifierList[] = {
+    NULL,           NULL,           g_umsg_currency,
+    NULL,           g_umsg_percent, NULL,
+    g_umsg_integer, NULL,           NULL
 };
  
-static const UChar ID_SHORT[]     = {
-    0x73, 0x68, 0x6F, 0x72, 0x74, 0        /* "short" */
+static const UChar g_umsg_short[]     = {
+    0x73, 0x68, 0x6F, 0x72, 0x74, 0    /* "short" */
 };
-static const UChar ID_MEDIUM[]    = {
+static const UChar g_umsg_medium[]    = {
     0x6D, 0x65, 0x64, 0x69, 0x75, 0x6D, 0  /* "medium" */
 };
-static const UChar ID_LONG[]      = {
-    0x6C, 0x6F, 0x6E, 0x67, 0              /* "long" */
+static const UChar g_umsg_long[]      = {
+    0x6C, 0x6F, 0x6E, 0x67, 0  /* "long" */
 };
-static const UChar ID_FULL[]      = {
-    0x66, 0x75, 0x6C, 0x6C, 0              /* "full" */
+static const UChar g_umsg_full[]      = {
+    0x66, 0x75, 0x6C, 0x6C, 0  /* "full" */
 };
 
 // DateFormat modifier list, default, short, medium, long or full
-static const UChar * const DATE_STYLE_IDS[] = {
-    NULL,
-    ID_SHORT,
-    ID_MEDIUM,
-    ID_LONG,
-    ID_FULL
+static const UChar * const g_umsgDateModifierList[] = {
+    NULL,           NULL,           g_umsg_short,
+    NULL,           g_umsg_medium,  NULL,
+    g_umsg_long,    NULL,           g_umsg_full
 };
  
-static const DateFormat::EStyle DATE_STYLES[] = {
-    DateFormat::kDefault,
-    DateFormat::kShort,
-    DateFormat::kMedium,
-    DateFormat::kLong,
-    DateFormat::kFull,
-};
+static const int32_t g_umsgListLength = 9;
 
-static const int32_t ID_LIST_LENGTH = 5;
-
-static const int32_t DEFAULT_INITIAL_CAPACITY = 10;
 
 U_NAMESPACE_BEGIN
 
 // -------------------------------------
 const char MessageFormat::fgClassID = 0; // Value is irrelevant
-
-//--------------------------------------------------------------------
-
-/**
- * Convert a string to an unsigned decimal, ignoring rule whitespace.
- * @return a non-negative number if successful, or a negative number
- *         upon failure.
- */
-static int32_t stou(const UnicodeString& string) {
-    int32_t n = 0;
-    int32_t count = 0;
-    UChar32 c;
-    for (int32_t i=0; i<string.length(); i+=U16_LENGTH(c)) {
-        c = string.char32At(i);
-        if (uprv_isRuleWhiteSpace(c)) {
-            continue;
-        }
-        int32_t d = u_digit(c, 10);
-        if (d < 0 || ++count > 10) {
-            return -1;
-        }
-        n = 10*n + d;
-    }
-    return n;
-}
-
-/**
- * Convert an integer value to a string and append the result to
- * the given UnicodeString.
- */
-static UnicodeString& itos(int32_t i, UnicodeString& appendTo) {
-    UChar temp[16];
-    uprv_itou(temp,16,i,10,0); // 10 == radix
-    appendTo.append(temp);
-    return appendTo;
-}
 
 // -------------------------------------
 // Creates a MessageFormat instance based on the pattern.
@@ -170,21 +117,27 @@ static UnicodeString& itos(int32_t i, UnicodeString& appendTo) {
 MessageFormat::MessageFormat(const UnicodeString& pattern,
                              UErrorCode& success)
 : fLocale(Locale::getDefault()),  // Uses the default locale
-  formatAliases(NULL),
-  formatAliasesCapacity(0),
-  subformats(NULL),
-  subformatCount(0),
-  subformatCapacity(0),
-  argTypes(NULL),
-  argTypeCount(0),
-  argTypeCapacity(0),
-  defaultNumberFormat(NULL),
-  defaultDateFormat(NULL)
+  fOffsets(NULL),
+  fCount(kMaxFormat),
+  fArgumentNumbers(NULL)
 {
-    if (!allocateSubformats(DEFAULT_INITIAL_CAPACITY) ||
-        !allocateArgTypes(DEFAULT_INITIAL_CAPACITY)) {
+    fOffsets = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    /* test for NULL */
+    if (fOffsets == 0) {
         success = U_MEMORY_ALLOCATION_ERROR;
         return;
+    }
+    fArgumentNumbers = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    /* test for NULL */
+    if (fArgumentNumbers == 0) {
+        success = U_MEMORY_ALLOCATION_ERROR;
+        fOffsets = NULL;
+        return;
+    }
+    for (int32_t i = 0; i < fCount; i++) {
+        fFormats[i] = NULL;       // Format instances
+        fOffsets[i] = 0;          // Starting offset
+        fArgumentNumbers[i] = 0;  // Argument numbers.
     }
     applyPattern(pattern, success);
 }
@@ -192,22 +145,29 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
 MessageFormat::MessageFormat(const UnicodeString& pattern,
                              const Locale& newLocale,
                              UErrorCode& success)
-: fLocale(newLocale),
-  formatAliases(NULL),
-  formatAliasesCapacity(0),
-  subformats(NULL),
-  subformatCount(0),
-  subformatCapacity(0),
-  argTypes(NULL),
-  argTypeCount(0),
-  argTypeCapacity(0),
-  defaultNumberFormat(NULL),
-  defaultDateFormat(NULL)
+: fLocale(newLocale),  // Uses the default locale
+  fOffsets(NULL),
+  fCount(kMaxFormat),
+  fArgumentNumbers(NULL)
 {
-    if (!allocateSubformats(DEFAULT_INITIAL_CAPACITY) ||
-        !allocateArgTypes(DEFAULT_INITIAL_CAPACITY)) {
+    fOffsets = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    /* test for NULL */
+    if (fOffsets == 0) {
         success = U_MEMORY_ALLOCATION_ERROR;
         return;
+    }
+    fArgumentNumbers = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    /* test for NULL */
+    if (fArgumentNumbers == 0) {
+        success = U_MEMORY_ALLOCATION_ERROR;
+        // leave cleaning up to the destructor
+        fOffsets = NULL;
+        return;
+    }
+    for (int32_t i = 0; i < fCount; i++) {
+        fFormats[i] = NULL;       // Format instances
+        fOffsets[i] = 0;          // Starting offset
+        fArgumentNumbers[i] = 0;  // Argument numbers.
     }
     applyPattern(pattern, success);
 }
@@ -216,131 +176,66 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
                              const Locale& newLocale,
                              UParseError& parseError,
                              UErrorCode& success)
-: fLocale(newLocale),
-  formatAliases(NULL),
-  formatAliasesCapacity(0),
-  subformats(NULL),
-  subformatCount(0),
-  subformatCapacity(0),
-  argTypes(NULL),
-  argTypeCount(0),
-  argTypeCapacity(0),
-  defaultNumberFormat(NULL),
-  defaultDateFormat(NULL)
+: fLocale(newLocale),  // Uses the default locale
+  fOffsets(NULL),
+  fCount(kMaxFormat),
+  fArgumentNumbers(NULL)
 {
-    if (!allocateSubformats(DEFAULT_INITIAL_CAPACITY) ||
-        !allocateArgTypes(DEFAULT_INITIAL_CAPACITY)) {
+    fOffsets = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    /* test for NULL */
+    if (fOffsets == 0) {
         success = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
-    applyPattern(pattern, parseError, success);
-}
-
-MessageFormat::MessageFormat(const MessageFormat& that)
-: Format(that),
-  formatAliases(NULL),
-  formatAliasesCapacity(0),
-  subformats(NULL),
-  subformatCount(0),
-  subformatCapacity(0),
-  argTypes(NULL),
-  argTypeCount(0),
-  argTypeCapacity(0),
-  defaultNumberFormat(NULL),
-  defaultDateFormat(NULL)
-{
-    *this = that;
+    fArgumentNumbers = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    /* test for NULL */
+    if (fArgumentNumbers == 0) {
+        success = U_MEMORY_ALLOCATION_ERROR;
+        uprv_free(fOffsets);
+        fOffsets = NULL;
+        return;
+    }
+    for (int32_t i = 0; i < fCount; i++) {
+        fFormats[i] = NULL;       // Format instances
+        fOffsets[i] = 0;          // Starting offset
+        fArgumentNumbers[i] = 0;  // Argument numbers.
+    }
+    applyPattern(pattern,parseError, success);
 }
 
 MessageFormat::~MessageFormat()
 {
-    int32_t idx;
-    for (idx = 0; idx < subformatCount; idx++) {
-        delete subformats[idx].format;
+    for (int32_t i = 0; i < fCount; i++) {
+        if (fFormats[i]) {
+            delete fFormats[i];
+        }
     }
-    uprv_free(subformats);
-    subformats = NULL;
-    subformatCount = subformatCapacity = 0;
-
-    uprv_free(argTypes);
-    argTypes = NULL;
-    argTypeCount = argTypeCapacity = 0;
-
-    uprv_free(formatAliases);
-
-    delete defaultNumberFormat;
-    delete defaultDateFormat;
+    uprv_free(fOffsets);
+    uprv_free(fArgumentNumbers);
+    fCount = 0;
 }
 
-//--------------------------------------------------------------------
-// Variable-size array management
+// -------------------------------------
+// copy constructor
 
-/**
- * Allocate subformats[] to at least the given capacity and return
- * TRUE if successful.  If not, leave subformats[] unchanged.
- *
- * If subformats is NULL, allocate it.  If it is not NULL, enlarge it
- * if necessary to be at least as large as specified.
- */
-UBool MessageFormat::allocateSubformats(int32_t capacity) {
-    if (subformats == NULL) {
-        subformats = (Subformat*) uprv_malloc(sizeof(*subformats) * capacity);
-        subformatCapacity = capacity;
-        subformatCount = 0;
-        if (subformats == NULL) {
-            subformatCapacity = 0;
-            return FALSE;
+MessageFormat::MessageFormat(const MessageFormat& that)
+: Format(that),
+  fLocale(that.fLocale),
+  fPattern(that.fPattern),
+  fOffsets((int32_t *)uprv_malloc(that.fCount * sizeof(int32_t))),
+  fCount(that.fCount),
+  fArgumentNumbers((int32_t *)uprv_malloc(that.fCount * sizeof(int32_t))),
+  fMaxOffset(that.fMaxOffset)
+{
+    // Sets up the format instance array, offsets and argument numbers.
+    for (int32_t i = 0; i < fCount; i++) {
+        fFormats[i] = NULL; // init since delete may be called
+        if (that.fFormats[i] != NULL) {
+            setFormat(i, *(that.fFormats[i]) );  // setFormat clones the format
         }
-    } else if (subformatCapacity < capacity) {
-        if (capacity < 2*subformatCapacity) {
-            capacity = 2*subformatCapacity;
-        }
-        Subformat* a = (Subformat*)
-            uprv_realloc(subformats, sizeof(*subformats) * capacity);
-        if (a == NULL) {
-            return FALSE; // request failed
-        }
-        subformats = a;
-        subformatCapacity = capacity;
+        fOffsets[i] = that.fOffsets[i];
+        fArgumentNumbers[i] = that.fArgumentNumbers[i];
     }
-    return TRUE;
-}
-
-/**
- * Allocate argTypes[] to at least the given capacity and return
- * TRUE if successful.  If not, leave argTypes[] unchanged.
- *
- * If argTypes is NULL, allocate it.  If it is not NULL, enlarge it
- * if necessary to be at least as large as specified.
- */
-UBool MessageFormat::allocateArgTypes(int32_t capacity) {
-    if (argTypes == NULL) {
-        argTypes = (Formattable::Type*) uprv_malloc(sizeof(*argTypes) * capacity);
-        argTypeCount = 0;
-        argTypeCapacity = capacity;
-        if (argTypes == NULL) {
-            argTypeCapacity = 0;
-            return FALSE;
-        }
-        for (int32_t i=0; i<capacity; ++i) {
-            argTypes[i] = Formattable::kString;
-        }
-    } else if (argTypeCapacity < capacity) {
-        if (capacity < 2*argTypeCapacity) {
-            capacity = 2*argTypeCapacity;
-        }
-        Formattable::Type* a = (Formattable::Type*)
-            uprv_realloc(argTypes, sizeof(*argTypes) * capacity);
-        if (a == NULL) {
-            return FALSE; // request failed
-        }
-        for (int32_t i=argTypeCapacity; i<capacity; ++i) {
-            a[i] = Formattable::kString;
-        }
-        argTypes = a;
-        argTypeCapacity = capacity;
-    }
-    return TRUE;
 }
 
 // -------------------------------------
@@ -349,59 +244,59 @@ UBool MessageFormat::allocateArgTypes(int32_t capacity) {
 const MessageFormat&
 MessageFormat::operator=(const MessageFormat& that)
 {
-    // Reallocate the arrays BEFORE changing this object
-    if (this != &that &&
-        allocateSubformats(that.subformatCount) &&
-        allocateArgTypes(that.argTypeCount)) {
-
+    if (this != &that) {
         // Calls the super class for assignment first.
         Format::operator=(that);
-
+        // Cleans up the format array and the offsets, argument numbers.
+        for (int32_t j = 0; j < fCount; j++) {
+            delete fFormats[j];
+            fFormats[j] = NULL;
+        }
+        uprv_free(fOffsets);
+        fOffsets = NULL;
+        uprv_free(fArgumentNumbers);
+        fArgumentNumbers = NULL;
         fPattern = that.fPattern;
-        setLocale(that.fLocale);
-        
-        int32_t j;
-        for (j=0; j<subformatCount; ++j) {
-            delete subformats[j].format;
+        fLocale = that.fLocale;
+        fCount = that.fCount;
+        fMaxOffset = that.fMaxOffset;
+        fOffsets = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+        fArgumentNumbers = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+        // Sets up the format instance array, offsets and argument numbers.
+        for (int32_t i = 0; i < fCount; i++) {
+            if (that.fFormats[i] == NULL) {
+                fFormats[i] = NULL;
+            }else{
+                adoptFormat(i, that.fFormats[i]->clone());
+            }
+            fOffsets[i] = that.fOffsets[i];
+            fArgumentNumbers[i] = that.fArgumentNumbers[i];
         }
-        subformatCount = 0;
-        
-        for (j=0; j<that.subformatCount; ++j) {
-            // Subformat::operator= does NOT delete this.format
-            subformats[j] = that.subformats[j];
-        }
-        subformatCount = that.subformatCount;
-        
-        for (j=0; j<that.argTypeCount; ++j) {
-            argTypes[j] = that.argTypes[j];
-        }
-        argTypeCount = that.argTypeCount;
     }
     return *this;
 }
 
 UBool
-MessageFormat::operator==(const Format& rhs) const 
+MessageFormat::operator==(const Format& that) const 
 {
-    if (this == &rhs) return TRUE;
-    
-    MessageFormat& that = (MessageFormat&)rhs;
-
-    // Check class ID before checking MessageFormat members
-    if (!Format::operator==(rhs) ||
-        getDynamicClassID() != that.getDynamicClassID() ||
-        fPattern != that.fPattern ||
-        fLocale != that.fLocale) {
-        return FALSE;
-    }
-
-    int32_t j;
-    for (j=0; j<subformatCount; ++j) {
-        if (subformats[j] != that.subformats[j]) {
+    if (this == &that) return TRUE;
+    // Are the instances derived from the same Format class?
+    if (getStaticClassID() != that.getDynamicClassID()) return FALSE;  // not the same class
+    // Calls the super class for equality check first.
+    if (!Format::operator==(that)) return FALSE;
+    MessageFormat& thatAlias = (MessageFormat&)that;
+    // Checks the pattern, locale and array count of this MessageFormat object.
+    if (fMaxOffset != thatAlias.fMaxOffset) return FALSE;
+    if (fPattern != thatAlias.fPattern) return FALSE;
+    if (fLocale != thatAlias.fLocale) return FALSE;
+    if (fCount != thatAlias.fCount) return FALSE;
+    // Checks each element in the arrays for equality last.
+    for (int32_t i = 0; i < fCount; i++) {
+        if ((fFormats[i] != thatAlias.fFormats[i]) ||
+            (fOffsets[i] != thatAlias.fOffsets[i]) ||
+            (fArgumentNumbers[i] != thatAlias.fArgumentNumbers[i]))
             return FALSE;
-        }
     }
-
     return TRUE;
 }
 
@@ -411,7 +306,8 @@ MessageFormat::operator==(const Format& rhs) const
 Format*
 MessageFormat::clone() const
 {
-    return new MessageFormat(*this);
+    MessageFormat *aCopy = new MessageFormat(*this);
+    return aCopy;
 }
  
 // -------------------------------------
@@ -420,12 +316,6 @@ MessageFormat::clone() const
 void
 MessageFormat::setLocale(const Locale& theLocale)
 {
-    if (fLocale != theLocale) {
-        delete defaultNumberFormat;
-        defaultNumberFormat = NULL;
-        delete defaultDateFormat;
-        defaultDateFormat = NULL;
-    }
     fLocale = theLocale;
 }
  
@@ -439,6 +329,91 @@ MessageFormat::getLocale() const
 }
 
 
+#if 0 
+// -------------------------------------
+// Applies the new pattern and returns an error if the pattern
+// is not correct.
+// For example, consider the pattern, 
+// "There {0,choice,0#are no files|1#is one file|1<are {0,number,integer} files}"
+// The segments would look like the following,
+// segments[0] == "There "
+// segments[1] == "0"
+// segments[2] == "{0,choice,0#are no files|1#is one file|1<are {0,number,integer}"
+// segments[3] == " files"
+ 
+void
+MessageFormat::applyPattern(const UnicodeString& newPattern, 
+                            UErrorCode& success)
+{
+    UnicodeString segments[4];
+    int32_t part = 0;
+    int32_t formatNumber = 0;
+    UBool inQuote = FALSE;
+    int32_t braceStack = 0;
+    fMaxOffset = -1;
+    for (int i = 0; i < newPattern.length(); ++i) {
+        UChar ch = newPattern[i];
+        if (part == 0) {
+            if (ch == SINGLE_QUOTE) {
+                if (i + 1 < newPattern.length()
+                    && newPattern[i+1] == SINGLE_QUOTE) {
+                    segments[part] += ch;  // handle doubles
+                    ++i;
+                } else {
+                    inQuote = !inQuote;
+                }
+            } else if (ch == LEFT_CURLY_BRACE && !inQuote) {
+                part = 1;
+            } else {
+                segments[part] += ch;
+            }
+        } else  if (inQuote) {              // just copy quotes in parts
+            segments[part] += ch;
+            if (ch == SINGLE_QUOTE) {
+                inQuote = FALSE;
+            }
+        } else {
+            switch (ch) {
+            case COMMA:
+                if (part < 3)
+                    part += 1;
+                else
+                    segments[part] += ch;
+                break;
+            case LEFT_CURLY_BRACE:
+                ++braceStack;
+                segments[part] += ch;
+                break;
+            case RIGHT_CURLY_BRACE:
+                if (braceStack == 0) {
+                    part = 0;
+                    makeFormat(/*i,*/ formatNumber, segments, success);
+                    if(U_FAILURE(success))
+                        return;
+                    formatNumber++;
+                } else {
+                    --braceStack;
+                    segments[part] += ch;
+                }
+                break;
+            case SINGLE_QUOTE:
+                inQuote = TRUE;
+                // fall through, so we keep quotes in other parts
+            default:
+                segments[part] += ch;
+                break;
+            }
+        }
+    }
+    if (braceStack == 0 && part != 0) {
+        fMaxOffset = -1;
+        success = U_INVALID_FORMAT_ERROR;
+        return;
+        //throw new IllegalArgumentException("Unmatched braces in the pattern.");
+    }
+    fPattern = segments[0];
+}
+#endif 
 
 
 void
@@ -450,117 +425,73 @@ MessageFormat::applyPattern(const UnicodeString& newPattern,
 }
 
 
-// -------------------------------------
-// Applies the new pattern and returns an error if the pattern
-// is not correct.
 void
-MessageFormat::applyPattern(const UnicodeString& pattern, 
+MessageFormat::applyPattern(const UnicodeString& newPattern, 
                             UParseError& parseError,
-                            UErrorCode& ec)
-{    
-    if(U_FAILURE(ec)) {
+                            UErrorCode& success)
+{
+    
+    if(U_FAILURE(success))
+    {
         return;
     }
-    // The pattern is broken up into segments.  Each time a subformat
-    // is encountered, 4 segments are recorded.  For example, consider
-    // the pattern:
-    //  "There {0,choice,0.0#are no files|1.0#is one file|1.0<are {0, number} files} on disk {1}."
-    // The first set of segments is:
-    //  segments[0] = "There "
-    //  segments[1] = "0"
-    //  segments[2] = "choice"
-    //  segments[3] = "0.0#are no files|1.0#is one file|1.0<are {0, number} files"
-
-    // During parsing, the plain text is accumulated into segments[0].
-    // Segments 1..3 are used to parse each subpattern.  Each time a
-    // subpattern is parsed, it creates a format object that is stored
-    // in the subformats array, together with an offset and argument
-    // number.  The offset into the plain text stored in
-    // segments[0].
-
-    // Quotes in segment 0 are handled normally.  They are removed.
-    // Quotes may not occur in segments 1 or 2.
-    // Quotes in segment 3 are parsed and _copied_.  This makes
-    //  subformat patterns work, e.g., {1,number,'#'.##} passes
-    //  the pattern "'#'.##" to DecimalFormat.
-
     UnicodeString segments[4];
-    int32_t part = 0; // segment we are in, 0..3
-    // Record the highest argument number in the pattern.  (In the
-    // subpattern {3,number} the argument number is 3.)
+    int32_t part = 0;
+    int32_t maxFormatNumber = 0;
     int32_t formatNumber = 0;
     UBool inQuote = FALSE;
     int32_t braceStack = 0;
+    int32_t i = 0;
+    fMaxOffset = -1;
     // Clear error struct
     parseError.offset = -1;
     parseError.preContext[0] = parseError.postContext[0] = (UChar)0;
-    int32_t patLen = pattern.length();
-    int32_t i;
-
-    for (i=0; i<subformatCount; ++i) {
-        delete subformats[i].format;
-    }
-    subformatCount = 0;
-    argTypeCount = 0;
-
-    for (i=0; i<patLen; ++i) {
-        UChar ch = pattern[i];
+    int32_t patLen = newPattern.length();
+    for (; i < patLen; ++i) {
+        int32_t currFormatNumber;
+        UChar ch = newPattern[i];
         if (part == 0) {
-            // In segment 0, recognize and remove quotes
             if (ch == SINGLE_QUOTE) {
-                if (i+1 < patLen && pattern[i+1] == SINGLE_QUOTE) {
-                    segments[0] += ch;
+                if (i + 1 < patLen && newPattern[i+1] == SINGLE_QUOTE) {
+                    segments[part] += ch;  // handle doubles
                     ++i;
                 } else {
                     inQuote = !inQuote;
                 }
             } else if (ch == LEFT_CURLY_BRACE && !inQuote) {
-                // The only way we get from segment 0 to 1 is via an
-                // unquoted '{'.
                 part = 1;
             } else {
-                segments[0] += ch;
+                segments[part] += ch;
             }
-        } else if (inQuote) {
-            // In segments 1..3, recognize quoted matter, and copy it
-            // into the segment, together with the quotes.  This takes
-            // care of '' as well.
+        } else  if (inQuote) {              // just copy quotes in parts
             segments[part] += ch;
             if (ch == SINGLE_QUOTE) {
                 inQuote = FALSE;
             }
         } else {
-            // We have an unquoted character in segment 1..3
             switch (ch) {
             case COMMA:
-                // Commas bump us to the next segment, except for segment 3,
-                // which can contain commas.  See example above.
                 if (part < 3)
                     part += 1;
                 else
-                    segments[3] += ch;
+                    segments[part] += ch;
                 break;
             case LEFT_CURLY_BRACE:
-                // Handle '{' within segment 3.  The initial '{'
-                // before segment 1 is handled above.
-                if (part != 3) {
-                    ec = U_PATTERN_SYNTAX_ERROR;
-                    goto SYNTAX_ERROR;
-                }
                 ++braceStack;
                 segments[part] += ch;
                 break;
             case RIGHT_CURLY_BRACE:
                 if (braceStack == 0) {
-                    makeFormat(formatNumber, segments, parseError,ec);
-                    if (U_FAILURE(ec)){
-                        goto SYNTAX_ERROR;
+                    part = 0;
+                    currFormatNumber = makeFormat(/*i,*/ formatNumber, segments, parseError,success);
+                    if(U_FAILURE(success)){
+                        syntaxError(newPattern,i,parseError);
+                        return;
                     }
                     formatNumber++;
-                    segments[1].remove();
-                    segments[2].remove();
-                    segments[3].remove();
-                    part = 0;
+                    if (currFormatNumber > maxFormatNumber) {
+                        maxFormatNumber = currFormatNumber;
+                    }
                 } else {
                     --braceStack;
                     segments[part] += ch;
@@ -568,80 +499,75 @@ MessageFormat::applyPattern(const UnicodeString& pattern,
                 break;
             case SINGLE_QUOTE:
                 inQuote = TRUE;
-                // fall through (copy quote chars in segments 1..3)
+                // fall through, so we keep quotes in other parts
             default:
                 segments[part] += ch;
                 break;
             }
         }
     }
-    if (braceStack != 0 || part != 0) {
-        // Unmatched braces in the pattern
-        ec = U_UNMATCHED_BRACES;
-        goto SYNTAX_ERROR;
+    if (braceStack == 0 && part != 0) {
+        fMaxOffset = -1;
+        success = U_UNMATCHED_BRACES;
+        syntaxError(newPattern,i,parseError);
+        return;
+        //throw new IllegalArgumentException("Unmatched braces in the pattern.");
     }
     fPattern = segments[0];
-    return;
-
- SYNTAX_ERROR:
-    syntaxError(pattern, i, parseError);
-    for (i=0; i<subformatCount; ++i) {
-        delete subformats[i].format;
-    }
-    argTypeCount = subformatCount = 0;
+    fListCount = maxFormatNumber + 1;
 }
 // -------------------------------------
 // Converts this MessageFormat instance to a pattern. 
-
 UnicodeString&
-MessageFormat::toPattern(UnicodeString& appendTo) const {
+MessageFormat::toPattern(UnicodeString& appendTo) const
+{
     // later, make this more extensible
     int32_t lastOffset = 0;
-    int32_t i;
-    for (i=0; i<subformatCount; ++i) {
-        copyAndFixQuotes(fPattern, lastOffset, subformats[i].offset, appendTo);
-        lastOffset = subformats[i].offset;
+    for (int i = 0; i <= fMaxOffset; ++i) {
+        copyAndFixQuotes(fPattern, lastOffset, fOffsets[i], appendTo);
+        lastOffset = fOffsets[i];
         appendTo += LEFT_CURLY_BRACE;
-        itos(subformats[i].arg, appendTo);
-        Format* fmt = subformats[i].format;
-        if (fmt == NULL) {
+        // {sfb} check this later
+        //appendTo += (UChar) (fArgumentNumbers[i] + '0');
+        itos(fArgumentNumbers[i], appendTo);
+        if (fFormats[i] == NULL) {
             // do nothing, string format
         } 
-        else if (fmt->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+        else if (fFormats[i]->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
             
-            UErrorCode ec = U_ZERO_ERROR;
-            NumberFormat& formatAlias = *(NumberFormat*)fmt;
-            NumberFormat *defaultTemplate = NumberFormat::createInstance(fLocale, ec);
-            NumberFormat *currencyTemplate = NumberFormat::createCurrencyInstance(fLocale, ec);
-            NumberFormat *percentTemplate = NumberFormat::createPercentInstance(fLocale, ec);
-            NumberFormat *integerTemplate = createIntegerFormat(fLocale, ec);
+            UErrorCode status = U_ZERO_ERROR;
+            NumberFormat& formatAlias = *(NumberFormat*)fFormats[i];
+            NumberFormat *numberTemplate = NumberFormat::createInstance(fLocale, status);
+            NumberFormat *currencyTemplate = NumberFormat::createCurrencyInstance(fLocale, status);
+            NumberFormat *percentTemplate = NumberFormat::createPercentInstance(fLocale, status);
+            NumberFormat *integerTemplate = createIntegerFormat(fLocale, status);
  
             appendTo += COMMA;
-            appendTo += ID_NUMBER;
-            if (formatAlias != *defaultTemplate) {
+            appendTo += g_umsg_number;
+            if (formatAlias != *numberTemplate) {
                 appendTo += COMMA;
                 if (formatAlias == *currencyTemplate) {
-                    appendTo += ID_CURRENCY;
+                    appendTo += g_umsg_currency;
                 } 
                 else if (formatAlias == *percentTemplate) {
-                    appendTo += ID_PERCENT;
+                    appendTo += g_umsg_percent;
                 } 
                 else if (formatAlias == *integerTemplate) {
-                    appendTo += ID_INTEGER;
+                    appendTo += g_umsg_integer;
                 } 
                 else {
                     UnicodeString buffer;
-                    appendTo += ((DecimalFormat*)fmt)->toPattern(buffer);
+                    appendTo += ((DecimalFormat*)fFormats[i])->toPattern(buffer);
                 }
             }
             
-            delete defaultTemplate;
+            delete numberTemplate;
             delete currencyTemplate;
             delete percentTemplate;
             delete integerTemplate;
         } 
-        else if (fmt->getDynamicClassID() == SimpleDateFormat::getStaticClassID()) {
-            DateFormat& formatAlias = *(DateFormat*)fmt;
+        else if (fFormats[i]->getDynamicClassID() == SimpleDateFormat::getStaticClassID()) {
+            DateFormat& formatAlias = *(DateFormat*)fFormats[i];
             DateFormat *defaultDateTemplate = DateFormat::createDateInstance(DateFormat::kDefault, fLocale);
             DateFormat *shortDateTemplate = DateFormat::createDateInstance(DateFormat::kShort, fLocale);
             DateFormat *longDateTemplate = DateFormat::createDateInstance(DateFormat::kLong, fLocale);
@@ -654,56 +580,56 @@ MessageFormat::toPattern(UnicodeString& appendTo) const {
             
             appendTo += COMMA;
             if (formatAlias == *defaultDateTemplate) {
-                appendTo += ID_DATE;
+                appendTo += g_umsg_date;
             } 
             else if (formatAlias == *shortDateTemplate) {
-                appendTo += ID_DATE;
+                appendTo += g_umsg_date;
                 appendTo += COMMA;
-                appendTo += ID_SHORT;
+                appendTo += g_umsg_short;
             } 
             else if (formatAlias == *defaultDateTemplate) {
-                appendTo += ID_DATE;
+                appendTo += g_umsg_date;
                 appendTo += COMMA;
-                appendTo += ID_MEDIUM;
+                appendTo += g_umsg_medium;
             } 
             else if (formatAlias == *longDateTemplate) {
-                appendTo += ID_DATE;
+                appendTo += g_umsg_date;
                 appendTo += COMMA;
-                appendTo += ID_LONG;
+                appendTo += g_umsg_long;
             } 
             else if (formatAlias == *fullDateTemplate) {
-                appendTo += ID_DATE;
+                appendTo += g_umsg_date;
                 appendTo += COMMA;
-                appendTo += ID_FULL;
+                appendTo += g_umsg_full;
             } 
             else if (formatAlias == *defaultTimeTemplate) {
-                appendTo += ID_TIME;
+                appendTo += g_umsg_time;
             } 
             else if (formatAlias == *shortTimeTemplate) {
-                appendTo += ID_TIME;
+                appendTo += g_umsg_time;
                 appendTo += COMMA;
-                appendTo += ID_SHORT;
+                appendTo += g_umsg_short;
             } 
             else if (formatAlias == *defaultTimeTemplate) {
-                appendTo += ID_TIME;
+                appendTo += g_umsg_time;
                 appendTo += COMMA;
-                appendTo += ID_MEDIUM;
+                appendTo += g_umsg_medium;
             } 
             else if (formatAlias == *longTimeTemplate) {
-                appendTo += ID_TIME;
+                appendTo += g_umsg_time;
                 appendTo += COMMA;
-                appendTo += ID_LONG;
+                appendTo += g_umsg_long;
             } 
             else if (formatAlias == *fullTimeTemplate) {
-                appendTo += ID_TIME;
+                appendTo += g_umsg_time;
                 appendTo += COMMA;
-                appendTo += ID_FULL;
+                appendTo += g_umsg_full;
             } 
             else {
                 UnicodeString buffer;
-                appendTo += ID_DATE;
+                appendTo += g_umsg_date;
                 appendTo += COMMA;
-                appendTo += ((SimpleDateFormat*)fmt)->toPattern(buffer);
+                appendTo += ((SimpleDateFormat*)fFormats[i])->toPattern(buffer);
             }
             
             delete defaultDateTemplate;
@@ -716,20 +642,20 @@ MessageFormat::toPattern(UnicodeString& appendTo) const {
             delete fullTimeTemplate;
             // {sfb} there should be a more efficient way to do this!
         } 
-        else if (fmt->getDynamicClassID() == ChoiceFormat::getStaticClassID()) {
+        else if (fFormats[i]->getDynamicClassID() == ChoiceFormat::getStaticClassID()) {
             UnicodeString buffer;
             appendTo += COMMA;
-            appendTo += ID_CHOICE;
+            appendTo += g_umsg_choice;
             appendTo += COMMA;
-            appendTo += ((ChoiceFormat*)fmt)->toPattern(buffer);
+            appendTo += ((ChoiceFormat*)fFormats[i])->toPattern(buffer);
         } 
         else {
             //appendTo += ", unknown";
         }
         appendTo += RIGHT_CURLY_BRACE;
-    }
-    copyAndFixQuotes(fPattern, lastOffset, fPattern.length(), appendTo);
-    return appendTo;
+  }
+  copyAndFixQuotes(fPattern, lastOffset, fPattern.length(), appendTo);
+  return appendTo;
 }
  
 // -------------------------------------
@@ -738,85 +664,81 @@ MessageFormat::toPattern(UnicodeString& appendTo) const {
  
 void
 MessageFormat::adoptFormats(Format** newFormats,
-                            int32_t count) {
-    if (newFormats == NULL || count < 0) {
+                            int32_t cnt)
+{
+    if(newFormats == NULL || cnt < 0)
         return;
-    }
     
     int32_t i;
-    if (allocateSubformats(count)) {
-        for (i=0; i<subformatCount; ++i) {
-            delete subformats[i].format;
-        }
-        for (i=0; i<count; ++i) {
-            subformats[i].format = newFormats[i];
-        }
-        subformatCount = count;
-    } else {
-        // An adopt method must always take ownership.  Delete
-        // the incoming format objects and return unchanged.
-        for (i=0; i<count; ++i) {
-            delete newFormats[i];
-        }
-    }
-
-    // TODO: What about the .offset and .arg fields?
+    // Cleans up first.
+    for (i = 0; i < fCount; i++)
+        delete fFormats[i];
+    fCount = (cnt > kMaxFormat) ? kMaxFormat : cnt;
+    for (i = 0; i < fCount; i++)
+        fFormats[i] = newFormats[i];
+    for (i = kMaxFormat; i < cnt; i++) 
+        delete newFormats[i];
 }   
-
 // -------------------------------------
 // Sets the new formats array and updates the array count.
 // This MessageFormat instance maks a copy of the new formats.
  
 void
 MessageFormat::setFormats(const Format** newFormats,
-                          int32_t count) {
-    if (newFormats == NULL || count < 0) {
+                            int32_t cnt)
+{
+    if(newFormats == NULL || cnt < 0)
         return;
+
+    int32_t i;
+    // Cleans up first.
+    for (i = 0; i < fCount; i++) {
+        delete fFormats[i];
     }
-
-    if (allocateSubformats(count)) {
-        int32_t i; 
-        for (i=0; i<subformatCount; ++i) {
-            delete subformats[i].format;
+    fCount = (cnt > kMaxFormat) ? kMaxFormat : cnt;
+    for (i = 0; i < fCount; i++) {
+        if (newFormats[i] == NULL) {
+            fFormats[i] = NULL;
         }
-        subformatCount = 0;
-
-        for (i=0; i<count; ++i) {
-            subformats[i].format = newFormats[i] ? newFormats[i]->clone() : NULL;
+        else{
+            fFormats[i] = newFormats[i]->clone();
         }
-        subformatCount = count;
     }
-
-    // TODO: What about the .offset and .arg fields?
 }   
  
 // -------------------------------------
-// Adopt a single format.
-// Do nothing is the format number is not less than the array count.
+// Adopts the first *variable* formats in the format array.
+// This MessageFormat instance owns the new formats.
+// Do nothing is the variable is not less than the array count.
  
 void
-MessageFormat::adoptFormat(int32_t n, Format *newFormat) {
-    if (n < 0 || n >= subformatCount) {
-        delete newFormat;
-    } else {
-        delete subformats[n].format;
-        subformats[n].format = newFormat;
+MessageFormat::adoptFormat(int32_t variable, Format *newFormat)
+{
+    if(variable < 0)
+        return;
+        
+    if (variable < fCount) {
+        // Deletes the old formats.
+        delete fFormats[variable];
+        fFormats[variable] = newFormat;
     }
 }
 
 // -------------------------------------
-// Set a single format.
+// Sets the first *variable* formats in the format array, this
+// MessageFormat instance makes copies of the new formats.
 // Do nothing is the variable is not less than the array count.
  
 void
-MessageFormat::setFormat(int32_t n, const Format& newFormat) {
-    if (n >= 0 && n < subformatCount) {
-        delete subformats[n].format;
-        if (&newFormat == NULL) {
-            // This should never happen -- but we'll be nice if it does
-            subformats[n].format = NULL;
-        } else {
-            subformats[n].format = newFormat.clone();
+MessageFormat::setFormat(int32_t variable, const Format& newFormat)
+{
+    if (variable < fCount) {
+        delete fFormats[variable];
+        if (&(newFormat) == NULL) {
+            fFormats[variable] = NULL;
+        }
+        else{
+            fFormats[variable] = newFormat.clone();
         }
     }
 }
@@ -827,35 +749,8 @@ MessageFormat::setFormat(int32_t n, const Format& newFormat) {
 const Format**
 MessageFormat::getFormats(int32_t& cnt) const
 {
-    // This old API returns an array (which we hold) of Format*
-    // pointers.  The array is valid up to the next call to any
-    // method on this object.  We construct and resize an array
-    // on demand that contains aliases to the subformats[i].format
-    // pointers.
-    MessageFormat* t = (MessageFormat*) this;
-    cnt = 0;
-    if (formatAliases == NULL) {
-        t->formatAliasesCapacity = (subformatCount<10) ? 10 : subformatCount;
-        Format** a = (Format**)
-            uprv_malloc(sizeof(Format*) * formatAliasesCapacity);
-        if (a == NULL) {
-            return NULL;
-        }
-        t->formatAliases = a;        
-    } else if (subformatCount > formatAliasesCapacity) {
-        Format** a = (Format**)
-            uprv_realloc(formatAliases, sizeof(Format*) * subformatCount);
-        if (a == NULL) {
-            return NULL;
-        }
-        t->formatAliases = a;
-        t->formatAliasesCapacity = subformatCount;
-    }
-    for (int32_t i=0; i<subformatCount; ++i) {
-        t->formatAliases[i] = subformats[i].format;
-    }
-    cnt = subformatCount;
-    return (const Format**)formatAliases;
+    cnt = fCount;
+    return (const Format**)fFormats;
 }
  
 // -------------------------------------
@@ -887,9 +782,18 @@ MessageFormat::format(  const UnicodeString& pattern,
                         UnicodeString& appendTo, 
                         UErrorCode& success)
 {
-    MessageFormat temp(pattern, success);
+    // {sfb} why does this use a local when so many other places use a static?
+    MessageFormat *temp = new MessageFormat(pattern, success);
+    /* test for NULL */
+    if (temp == 0) {
+        success = U_MEMORY_ALLOCATION_ERROR;
+        return appendTo;
+    }
+    if (U_FAILURE(success)) 
+        return appendTo;
     FieldPosition ignore(0);
-    temp.format(arguments, cnt, appendTo, ignore, success);
+    temp->format(arguments, cnt, appendTo, ignore, success);
+    delete temp;
     return appendTo;
 }
  
@@ -929,20 +833,21 @@ MessageFormat::format(const Formattable* arguments,
                       int32_t recursionProtection,
                       UErrorCode& success) const 
 {
-    // Allow NULL array only if cnt == 0
-    if (cnt < 0 || (cnt && arguments == NULL)) {
+    if(/*arguments == NULL ||*/ cnt < 0) {
         success = U_ILLEGAL_ARGUMENT_ERROR;
         return appendTo;
     }
     
     int32_t lastOffset = 0;
-    for (int32_t i=0; i<subformatCount; ++i) {
+    for (int32_t i = 0; i <= fMaxOffset;++i) {
         // Append the prefix of current format element.
-        appendTo.append(fPattern, lastOffset, subformats[i].offset - lastOffset);
-        lastOffset = subformats[i].offset;
-        int32_t argumentNumber = subformats[i].arg;
+        appendTo.append(fPattern, lastOffset, fOffsets[i] - lastOffset);
+        lastOffset = fOffsets[i];
+        int32_t argumentNumber = fArgumentNumbers[i];
         // Checks the scope of the argument number.
         if (argumentNumber >= cnt) {
+            /*success = U_ILLEGAL_ARGUMENT_ERROR;
+            return appendTo;*/
             appendTo += LEFT_CURLY_BRACE;
             itos(argumentNumber, appendTo);
             appendTo += RIGHT_CURLY_BRACE;
@@ -952,19 +857,18 @@ MessageFormat::format(const Formattable* arguments,
         const Formattable *obj = arguments + argumentNumber;
         Formattable::Type type = obj->getType();
 
-        // Recursively calling the format process only if the current
-        // format argument refers to a ChoiceFormat object.
-        Format* fmt = subformats[i].format;
-        if (fmt != NULL) {
+        // Recursively calling the format process only if the current format argument
+        // refers to a ChoiceFormat object.
+        if (fFormats[i] != NULL) {
             UnicodeString arg;
-            fmt->format(*obj, arg, success);
+            fFormats[i]->format(*obj, arg, success);
 
-            // Needs to reprocess the ChoiceFormat option by using the
-            // MessageFormat pattern application.
-            if (fmt->getDynamicClassID() == ChoiceFormat::getStaticClassID() &&
-                arg.indexOf(LEFT_CURLY_BRACE) >= 0) {
+            // Needs to reprocess the ChoiceFormat option by using the MessageFormat
+            // pattern application.
+            if (fFormats[i]->getDynamicClassID() == ChoiceFormat::getStaticClassID() &&
+                arg.indexOf(LEFT_CURLY_BRACE) >= 0
+            ) {
                 MessageFormat temp(arg, fLocale, success);
-                // TODO: Implement recursion protection
                 temp.format(arguments, cnt, appendTo, status, recursionProtection, success);
                 if (U_FAILURE(success)) { 
                     return appendTo; 
@@ -976,28 +880,38 @@ MessageFormat::format(const Formattable* arguments,
         }
         // If the obj data type is a number, use a NumberFormat instance.
         else if ((type == Formattable::kDouble) || (type == Formattable::kLong)) {
-            const NumberFormat* nf = getDefaultNumberFormat(success);
-            if (nf == NULL) { 
+            NumberFormat *numTemplate = NULL;
+            numTemplate = NumberFormat::createInstance(fLocale, success);
+            if (numTemplate == NULL || U_FAILURE(success)) { 
+                delete numTemplate; 
                 return appendTo; 
             }
             if (type == Formattable::kDouble) {
-                nf->format(obj->getDouble(), appendTo);
+                numTemplate->format(obj->getDouble(), appendTo);
             } else {
-                nf->format(obj->getLong(), appendTo);
+                numTemplate->format(obj->getLong(), appendTo);
             }
+            delete numTemplate;
+            if (U_FAILURE(success)) 
+                return appendTo;
         }
         // If the obj data type is a Date instance, use a DateFormat instance.
         else if (type == Formattable::kDate) {
-            const DateFormat* df = getDefaultDateFormat(success);
-            if (df == NULL) { 
+            DateFormat *dateTemplate = NULL;
+            dateTemplate = DateFormat::createDateTimeInstance(DateFormat::kShort, DateFormat::kShort, fLocale);
+            if (dateTemplate == NULL) { 
                 return appendTo; 
             }
-            df->format(obj->getDate(), appendTo);
+            dateTemplate->format(obj->getDate(), appendTo);
+            delete dateTemplate;
         }
         else if (type == Formattable::kString) {
             appendTo += obj->getString();
         }
         else {
+#ifdef LIUDEBUG  
+            cerr << "Unknown object of type:" << type << endl;
+#endif
             success = U_ILLEGAL_ARGUMENT_ERROR;
             return appendTo;
         }
@@ -1015,38 +929,35 @@ MessageFormat::format(const Formattable* arguments,
  
 Formattable*
 MessageFormat::parse(const UnicodeString& source, 
-                     ParsePosition& pos,
+                     ParsePosition& status,
                      int32_t& count) const
 {
-    // Allocate at least one element.  Allocating an array of length
-    // zero causes problems on some platforms (e.g. Win32).
-    Formattable *resultArray = new Formattable[argTypeCount ? argTypeCount : 1];
+    Formattable *resultArray = new Formattable[(size_t)kMaxFormat];
     int32_t patternOffset = 0;
-    int32_t sourceOffset = pos.getIndex();
-    ParsePosition tempPos(0);
+    int32_t sourceOffset = status.getIndex();
+    ParsePosition tempStatus(0);
     count = 0; // {sfb} reset to zero
-    int32_t len;
-    for (int32_t i = 0; i < subformatCount; ++i) {
+    for (int32_t i = 0; i <= fMaxOffset; ++i) {
         // match up to format
-        len = subformats[i].offset - patternOffset;
+        int32_t len = fOffsets[i] - patternOffset;
         if (len == 0 || 
             fPattern.compare(patternOffset, len, source, sourceOffset, len) == 0) {
             sourceOffset += len;
             patternOffset += len;
         } 
         else {
-            goto PARSE_ERROR;
+            status.setErrorIndex(sourceOffset);
+            delete [] resultArray;
+            count = 0;
+            return NULL; // leave index as is to signal error
         }
         
         // now use format
-        Format* fmt = subformats[i].format;
-        int32_t arg = subformats[i].arg;
-        if (fmt == NULL) {   // string format
+        if (fFormats[i] == NULL) {   // string format
             // if at end, use longest possible match
             // otherwise uses first match to intervening string
             // does NOT recursively try all possibilities
-            int32_t tempLength = (i+1<subformatCount) ?
-                subformats[i+1].offset : fPattern.length();
+            int32_t tempLength = (i != fMaxOffset) ? fOffsets[i+1] : fPattern.length();
             
             int32_t next;
             if (patternOffset >= tempLength) {
@@ -1059,7 +970,10 @@ MessageFormat::parse(const UnicodeString& source,
             }
             
             if (next < 0) {
-                goto PARSE_ERROR;
+                status.setErrorIndex(sourceOffset);
+                delete [] resultArray;
+                count = 0;
+                return NULL; // leave index as is to signal error
             } 
             else {
                 UnicodeString buffer;
@@ -1067,45 +981,48 @@ MessageFormat::parse(const UnicodeString& source,
                 UnicodeString strValue = buffer;
                 UnicodeString temp(LEFT_CURLY_BRACE);
                 // {sfb} check this later
-                itos(arg, temp);
+                itos(fArgumentNumbers[i], temp);
                 temp += RIGHT_CURLY_BRACE;
                 if (strValue != temp) {
                     source.extract(sourceOffset,next - sourceOffset, buffer);
-                    resultArray[arg].setString(buffer);
+                    resultArray[fArgumentNumbers[i]].setString(buffer);
                     // {sfb} not sure about this
-                    if ((arg + 1) > count) {
-                        count = arg + 1;
+                    if ((fArgumentNumbers[i] + 1) > count) {
+                        count = (fArgumentNumbers[i] + 1);
                     }
                 }
                 sourceOffset = next;
             }
         } 
         else {
-            tempPos.setIndex(sourceOffset);
-            fmt->parseObject(source, resultArray[arg], tempPos);
-            if (tempPos.getIndex() == sourceOffset) {
-                goto PARSE_ERROR;
+            tempStatus.setIndex(sourceOffset);
+            fFormats[i]->parseObject(source, resultArray[fArgumentNumbers[i]], tempStatus);
+            if (tempStatus.getIndex() == sourceOffset) {
+                status.setErrorIndex(sourceOffset);
+                delete [] resultArray;
+                count = 0;
+                return NULL; // leave index as is to signal error
             }
             
-            if ((arg + 1) > count) {
-                count = arg + 1;
-            }
-            sourceOffset = tempPos.getIndex(); // update
+            if ((fArgumentNumbers[i] + 1) > count)
+                count = (fArgumentNumbers[i] + 1);
+            
+            sourceOffset = tempStatus.getIndex(); // update
         }
     }
-    len = fPattern.length() - patternOffset;
+    int32_t len = fPattern.length() - patternOffset;
     if (len == 0 || 
         fPattern.compare(patternOffset, len, source, sourceOffset, len) == 0) {
-        pos.setIndex(sourceOffset + len);
-        return resultArray;
+        status.setIndex(sourceOffset + len);
+    } 
+    else {
+        status.setErrorIndex(sourceOffset);
+        delete [] resultArray;
+        count = 0;
+        return NULL; // leave index as is to signal error
     }
-    // else fall through...
-
- PARSE_ERROR:
-    pos.setErrorIndex(sourceOffset);
-    delete [] resultArray;
-    count = 0;
-    return NULL; // leave index as is to signal error
+    
+    return resultArray;
 }
  
 // -------------------------------------
@@ -1124,7 +1041,6 @@ MessageFormat::parse(const UnicodeString& source,
     Formattable* result = parse(source, status, cnt);
     if (status.getIndex() == 0) {
         success = U_MESSAGE_PARSE_ERROR;
-        delete[] result;
         return NULL;
     }
     return result;
@@ -1145,137 +1061,294 @@ MessageFormat::parseObject( const UnicodeString& source,
 }
   
 // -------------------------------------
- 
+// NumberFormat cache management
+
+/*
+NumberFormat* 
+MessageFormat::getNumberFormat(UErrorCode &status)
+{
+    NumberFormat *theFormat = 0;
+
+    if (fgNumberFormat != 0) // if there's something in the cache
+    {
+        Mutex lock;
+
+        if (fgNumberFormat != 0) // Someone might have grabbed it.
+        {
+            theFormat = fgNumberFormat;
+            fgNumberFormat = 0; // We have exclusive right to this formatter.
+        }
+    }
+
+    if(theFormat == 0) // If we weren't able to pull it out of the cache, then we have to create it.
+    {
+        theFormat = NumberFormat::createInstance(Locale::US, status);
+        if(U_FAILURE(status))
+            return 0;
+        theFormat->setParseIntegerOnly(TRUE);
+    }
+
+    return theFormat;
+}
+
+void          
+MessageFormat::releaseNumberFormat(NumberFormat *adopt)
+{
+    if(fgNumberFormat == 0) // If the cache is empty we must add it back.
+    {
+        Mutex lock;
+
+        if(fgNumberFormat == 0)
+        {
+            fgNumberFormat = adopt;
+            adopt = 0;
+        }
+    }
+
+    delete adopt;
+}
+*/
+
 /**
- * Reads the segments[] array (see applyPattern()) and parses the
- * segments[1..3] into a Format* object.  Stores the format object in
- * the subformats[] array.  Updates the argTypes[] array type
- * information for the corresponding argument.
- *
- * @param formatNumber index into subformats[] for this format
- * @param segments array of strings with the parsed pattern segments
- * @param parseError parse error data (output param)
- * @param ec error code
+ * Converts a string to an integer value using a default NumberFormat object
+ * which is static (shared by all MessageFormat instances).  This replaces
+ * a call to wtoi().
  */
-void
-MessageFormat::makeFormat(int32_t formatNumber, 
+int32_t
+MessageFormat::stoi(const UnicodeString& string)
+{
+    /*
+    NumberFormat *myFormat = getNumberFormat(status);
+
+    if(U_FAILURE(status))
+        return -1; // OK?
+
+    Formattable result;
+    // Uses the global number formatter to parse the string.
+    // Note: We assume here that parse() is thread-safe.
+    myFormat->parse(string, result, status);
+    releaseNumberFormat(myFormat);
+
+    int32_t value = 0;
+    if (U_SUCCESS(status) && result.getType() == Formattable::kLong)
+        value = result.getLong();
+
+
+    return value;
+    */
+    
+    /* this ignores any white spaces between '{' and digit char
+     * so now we can have {  0, date} {0 , date }
+     */
+    for(int i=0;i<string.length();i++){
+        UChar32 ch = string.char32At(i);
+        if(u_isdigit(ch)){
+            return u_charDigitValue(ch);
+        }else if(!u_isspace(ch)){
+            break;
+        }
+
+    }
+    return -1;
+}
+
+// -------------------------------------
+
+/**
+ * Converts an integer value to a string using a default NumberFormat object
+ * which is static (shared by all MessageFormat instances).  This replaces
+ * a call to wtoi().
+ */
+UnicodeString&
+MessageFormat::itos(int32_t i,
+                    UnicodeString& appendTo)
+{
+    /*
+    UErrorCode status = U_ZERO_ERROR;
+    NumberFormat *myFormat = getNumberFormat(status);
+
+    if(U_FAILURE(status)) {
+        // "<ERROR>" 
+        static const UChar ERROR[] = {0x3C, 0x45, 0x52, 0x52, 0x4F, 0x52, 0x3E, 0};
+
+        return string = ERROR; // TODO: maybe toPattern should take an errorcode.
+    }
+
+    UnicodeString &retval = myFormat->format(i, string);
+
+    releaseNumberFormat(myFormat);
+    return retval;
+    */
+    UChar temp[10] = { '\0' };
+    uprv_itou(temp,i,16,0);
+    appendTo.append(temp);
+    return appendTo;
+}
+
+// -------------------------------------
+// Checks which format instance we are really using based on the segments.
+ 
+int32_t
+MessageFormat::makeFormat(/*int32_t position, */
+                          int32_t offsetNumber, 
                           UnicodeString* segments,
                           UParseError& parseError,
-                          UErrorCode& ec) {
-    if (U_FAILURE(ec)) {
-        return;
+                          UErrorCode& success)
+{
+    if(U_FAILURE(success))
+        return -1;
+
+    // get the number
+    int32_t argumentNumber = stoi(segments[1]); // always unlocalized!
+    int32_t oldMaxOffset = fMaxOffset;
+    if (argumentNumber < 0 || argumentNumber > 9) {
+        success = U_INVALID_FORMAT_ERROR;
+        return argumentNumber;
     }
-
-    // Parse the argument number
-    int32_t argumentNumber = stou(segments[1]); // always unlocalized!
-    if (argumentNumber < 0) {
-        ec = U_INVALID_FORMAT_ERROR;
-        return;
-    }
-
-    // Parse the format, recording the argument type and creating a
-    // new Format object (except for string arguments).
-    Formattable::Type argType;
-    Format *fmt = NULL;
-    int32_t typeID, styleID;
-    DateFormat::EStyle style;
-
-    switch (typeID = findKeyword(segments[2], TYPE_IDS)) {
-
-    case 0: // string
-        argType = Formattable::kString;
+    fMaxOffset = offsetNumber;
+    fOffsets[offsetNumber] = segments[0].length();
+    fArgumentNumbers[offsetNumber] = argumentNumber;
+    int test = 0;
+    // now get the format
+    Format *newFormat = NULL;
+    switch (findKeyword(segments[2], g_umsgTypeList)) {
+    case 0:
+        fFormatTypeList[argumentNumber] = Formattable::kString;
         break;
+    case 1: case 2:// number
+        test=findKeyword(segments[3], g_umsgModifierList);
+        fFormatTypeList[argumentNumber] = Formattable::kDouble;
 
-    case 1: // number
-        argType = Formattable::kDouble;
-
-        switch (findKeyword(segments[3], NUMBER_STYLE_IDS)) {
-        case 0: // default
-            fmt = NumberFormat::createInstance(fLocale, ec);
+        switch (test) {
+        case 0: // default;
+            newFormat = NumberFormat::createInstance(fLocale, success);
             break;
-        case 1: // currency
-            fmt = NumberFormat::createCurrencyInstance(fLocale, ec);
+        case 1: case 2:// currency
+            newFormat = NumberFormat::createCurrencyInstance(fLocale, success);
             break;
-        case 2: // percent
-            fmt = NumberFormat::createPercentInstance(fLocale, ec);
+        case 3: case 4:// percent
+            newFormat = NumberFormat::createPercentInstance(fLocale, success);
             break;
-        case 3: // integer
-            argType = Formattable::kLong;
-            fmt = createIntegerFormat(fLocale, ec);
+        case 5: case 6:// integer
+            fFormatTypeList[argumentNumber] = Formattable::kLong;
+            newFormat = createIntegerFormat(fLocale, success);
             break;
         default: // pattern
-            fmt = NumberFormat::createInstance(fLocale, ec);
-            if (fmt &&
-                fmt->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
-                ((DecimalFormat*)fmt)->applyPattern(segments[3],parseError,ec);
+            newFormat = NumberFormat::createInstance(fLocale, success);
+            if(U_FAILURE(success)) {
+                newFormat = NULL;
+                return argumentNumber;
+            }
+            if(newFormat->getDynamicClassID() == DecimalFormat::getStaticClassID()){
+                ((DecimalFormat*)newFormat)->applyPattern(segments[3],parseError,success);
+            }
+            if(U_FAILURE(success)) {
+                fMaxOffset = oldMaxOffset;
+                return argumentNumber;
             }
             break;
         }
         break;
 
-    case 2: // date
-    case 3: // time
-        argType = Formattable::kDate;
-        styleID = findKeyword(segments[3], DATE_STYLE_IDS);
-        style = (styleID >= 0) ? DATE_STYLES[styleID] : DateFormat::kDefault;
+    case 3: case 4: // date
+        fFormatTypeList[argumentNumber] = Formattable::kDate;
 
-        if (typeID == 2) {
-            fmt = DateFormat::createDateInstance(style, fLocale);
-        } else {
-            fmt = DateFormat::createTimeInstance(style, fLocale);
+        switch (findKeyword(segments[3], g_umsgDateModifierList)) {
+        case 0: // default
+            newFormat = DateFormat::createDateInstance(DateFormat::kDefault, fLocale);
+            break;
+        case 1: case 2: // short
+            newFormat = DateFormat::createDateInstance(DateFormat::kShort, fLocale);
+            break;
+        case 3: case 4: // medium
+            newFormat = DateFormat::createDateInstance(DateFormat::kDefault, fLocale);
+            break;
+        case 5: case 6: // long
+            newFormat = DateFormat::createDateInstance(DateFormat::kLong, fLocale);
+            break;
+        case 7: case 8: // full
+            newFormat = DateFormat::createDateInstance(DateFormat::kFull, fLocale);
+            break;
+        default:
+            newFormat = DateFormat::createDateInstance(DateFormat::kDefault, fLocale);
+            if(newFormat && newFormat->getDynamicClassID() == SimpleDateFormat::getStaticClassID()){
+                    ((SimpleDateFormat*)newFormat)->applyPattern(segments[3]);
+            }
+            break;
         }
-
-        if (styleID < 0 &&
-            fmt != NULL &&
-            fmt->getDynamicClassID() == SimpleDateFormat::getStaticClassID()) {
-            ((SimpleDateFormat*)fmt)->applyPattern(segments[3]);
+        if (!newFormat) {
+            /* TODO: get the real error from createDateInstance */
+            success = U_MEMORY_ALLOCATION_ERROR;
         }
         break;
+    case 5: case 6:// time
 
-    case 4: // choice
-        argType = Formattable::kDouble;
-
-        fmt = new ChoiceFormat(segments[3], parseError, ec);
+        fFormatTypeList[argumentNumber]= Formattable::kDate;
+        
+        switch (findKeyword(segments[3], g_umsgDateModifierList)) {
+        case 0: // default
+            newFormat = DateFormat::createTimeInstance(DateFormat::kDefault, fLocale);
+            break;
+        case 1: case 2: // short
+            newFormat = DateFormat::createTimeInstance(DateFormat::kShort, fLocale);
+            break;
+        case 3: case 4: // medium
+            newFormat = DateFormat::createTimeInstance(DateFormat::kDefault, fLocale);
+            break;
+        case 5: case 6: // long
+            newFormat = DateFormat::createTimeInstance(DateFormat::kLong, fLocale);
+            break;
+        case 7: case 8: // full
+            newFormat = DateFormat::createTimeInstance(DateFormat::kFull, fLocale);
+            break;
+        default:
+            newFormat = DateFormat::createTimeInstance(DateFormat::kDefault, fLocale);
+            if(newFormat && newFormat->getDynamicClassID() == SimpleDateFormat::getStaticClassID()){
+                    ((SimpleDateFormat*)newFormat)->applyPattern(segments[3]);
+            }
+            break;
+        }
+        if (!newFormat) {
+            /* TODO: get the real error from createTimeInstance */
+            success = U_MEMORY_ALLOCATION_ERROR;
+        }
         break;
+    case 7: case 8:// choice
+        fFormatTypeList[argumentNumber] = Formattable::kDouble;
 
+        newFormat = new ChoiceFormat(segments[3], parseError, success);
+        /* test for NULL */
+        if (newFormat == 0) {
+            success = U_MEMORY_ALLOCATION_ERROR;
+            fMaxOffset = oldMaxOffset;
+            return argumentNumber;
+        }
+        if(U_FAILURE(success)) {
+            fMaxOffset = oldMaxOffset;
+            return argumentNumber;
+        }
+        break;
     default:
-        argType = Formattable::kString;
-        ec = U_ILLEGAL_ARGUMENT_ERROR;
-        break;
+        fMaxOffset = oldMaxOffset;
+        success = U_ILLEGAL_ARGUMENT_ERROR;
+        return argumentNumber;
     }
 
-    if (fmt==NULL && argType!=Formattable::kString && U_SUCCESS(ec)) {
-        ec = U_MEMORY_ALLOCATION_ERROR;
+    if(newFormat != NULL) {
+        delete fFormats[offsetNumber];
+        fFormats[offsetNumber] = newFormat;
     }
-    
-    if (!allocateSubformats(formatNumber+1) ||
-        !allocateArgTypes(argumentNumber+1)) {
-        ec = U_MEMORY_ALLOCATION_ERROR;
-    }
+    segments[1].remove();   // throw away other segments
+    segments[2].remove();
+    segments[3].remove();
 
-    if (U_FAILURE(ec)) {
-        delete fmt;
-        return;
-    }
-
-    // Parse succeeded; record results in our arrays
-    subformats[formatNumber].format = fmt;
-    subformats[formatNumber].offset = segments[0].length();
-    subformats[formatNumber].arg = argumentNumber;
-    subformatCount = formatNumber+1;
-
-    // Careful here: argumentNumber may in general arrive out of
-    // sequence, e.g., "There was {2} on {0,date} (see {1,number})."
-    argTypes[argumentNumber] = argType;
-    if (argumentNumber+1 > argTypeCount) {
-        argTypeCount = argumentNumber+1;
-    }
+    return argumentNumber;
 }
  
 // -------------------------------------
 // Finds the string, s, in the string array, list. 
 int32_t MessageFormat::findKeyword(const UnicodeString& s, 
-                                   const UChar * const *list)
+                           const UChar * const *list)
 {
     if (s.length() == 0)
         return 0;
@@ -1284,7 +1357,7 @@ int32_t MessageFormat::findKeyword(const UnicodeString& s,
     // Trims the space characters and turns all characters
     // in s to lower case.
     buffer.trim().toLower();
-    for (int32_t i = 0; i < ID_LIST_LENGTH; ++i) {
+    for (int32_t i = 0; i < g_umsgListLength; ++i) {
         if (list[i] && !buffer.compare(list[i], u_strlen(list[i]))) 
             return i;
     }
@@ -1347,45 +1420,6 @@ MessageFormat::createIntegerFormat(const Locale& locale, UErrorCode& status) con
     }
 
     return temp;
-}
-
-/**
- * Return the default number format.  Used to format a numeric
- * argument when subformats[i].format is NULL.  Returns NULL
- * on failure.
- *
- * Semantically const but may modify *this.
- */
-const NumberFormat* MessageFormat::getDefaultNumberFormat(UErrorCode& ec) const {
-    if (defaultNumberFormat == NULL) {
-        MessageFormat* t = (MessageFormat*) this;
-        t->defaultNumberFormat = NumberFormat::createInstance(fLocale, ec);
-        if (U_FAILURE(ec)) { 
-            delete t->defaultNumberFormat;
-            t->defaultNumberFormat = NULL;
-        } else if (t->defaultNumberFormat == NULL) {
-            ec = U_MEMORY_ALLOCATION_ERROR;
-        }
-    }
-    return defaultNumberFormat;
-}
-
-/**
- * Return the default date format.  Used to format a date
- * argument when subformats[i].format is NULL.  Returns NULL
- * on failure.
- *
- * Semantically const but may modify *this.
- */
-const DateFormat* MessageFormat::getDefaultDateFormat(UErrorCode& ec) const {
-    if (defaultDateFormat == NULL) {
-        MessageFormat* t = (MessageFormat*) this;
-        t->defaultDateFormat = DateFormat::createDateTimeInstance(DateFormat::kShort, DateFormat::kShort, fLocale);
-        if (t->defaultDateFormat == NULL) {
-            ec = U_MEMORY_ALLOCATION_ERROR;
-        }
-    }
-    return defaultDateFormat;
 }
 
 U_NAMESPACE_END
