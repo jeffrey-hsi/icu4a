@@ -24,6 +24,8 @@
 /* Define whether inttypes.h is available */
 #define U_HAVE_INTTYPES_H 0
 
+/* Define whether namespace is supported */
+#define U_HAVE_NAMESPACE 1
 /*
  * Define what support for C++ streams is available.
  *     If U_IOSTREAM_SOURCE is set to 199711, then <iostream> is available
@@ -43,17 +45,13 @@
 #endif
 
 /* Determines whether specific types are available */
-#define U_HAVE_INT8_T 0
-#define U_HAVE_UINT8_T 0
-#define U_HAVE_INT16_T 0
-#define U_HAVE_UINT16_T 0
-#define U_HAVE_INT32_T 0
-#define U_HAVE_UINT32_T 0
-#define U_HAVE_INT64_T 0
-#define U_HAVE_UINT64_T 0
-
-/* Define whether namespace is supported */
-#define U_HAVE_NAMESPACE 1
+#define HAVE_INT8_T 0
+#define HAVE_UINT8_T 0
+#define HAVE_INT16_T 0
+#define HAVE_UINT16_T 0
+#define HAVE_INT32_T 0
+#define HAVE_UINT32_T 0
+#define HAVE_BOOL_T 0
 
 /* Determines the endianness of the platform */
 #define U_IS_BIG_ENDIAN 0
@@ -68,23 +66,23 @@
 #include <inttypes.h>
 #else
 
-#if ! U_HAVE_INT8_T
+#if ! HAVE_INT8_T
 typedef signed char int8_t;
 #endif
 
-#if ! U_HAVE_UINT8_T
+#if ! HAVE_UINT8_T
 typedef unsigned char uint8_t;
 #endif
 
-#if ! U_HAVE_INT16_T
+#if ! HAVE_INT16_T
 typedef signed short int16_t;
 #endif
 
-#if ! U_HAVE_UINT16_T
+#if ! HAVE_UINT16_T
 typedef unsigned short uint16_t;
 #endif
 
-#if ! U_HAVE_INT32_T
+#if ! HAVE_INT32_T
 #   if defined(_LP64)
       typedef signed int  int32_t;
 #   else
@@ -92,7 +90,7 @@ typedef unsigned short uint16_t;
 #   endif
 #endif
 
-#if ! U_HAVE_UINT32_T
+#if ! HAVE_UINT32_T
 #   if defined(_LP64)
       typedef unsigned int  uint32_t;
 #   else
@@ -125,8 +123,6 @@ typedef unsigned short uint16_t;
 #endif
 #define U_TZNAME        _tzname
 
-#define U_HAVE_MMAP     0
-
 /*===========================================================================*/
 /* Symbol import-export control                                              */
 /*===========================================================================*/
@@ -153,4 +149,3 @@ typedef unsigned short uint16_t;
 /*===========================================================================*/
 
 #define U_MAKE  "nmake"
-

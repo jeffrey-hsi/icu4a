@@ -236,7 +236,6 @@ index {
         zh__PINYIN,
         zh_CN,
         zh_HK,
-	zh_MO,
         zh_SG,
         zh_TW,
         zh_TW_STROKE,

@@ -820,6 +820,12 @@ u_setDataDirectory(const char *directory) {
     }
 }
 
+#if HAVE_DLOPEN
+#define LIB_PREFIX "lib"
+#else
+#define LIB_PREFIX
+#endif
+
 U_CAPI const char * U_EXPORT2
 u_getDataDirectory(void) {
     const char *path = NULL;
@@ -1437,13 +1443,13 @@ const char* uprv_getDefaultCodepage()
         }
         else
         {
-            /* if the table lookup failed, return US ASCII (ISO 646). */
-            uprv_strcpy(codesetName, "US-ASCII");
+            /* if the table lookup failed, return latin1. */
+            uprv_strcpy(codesetName, "LATIN_1");
         }
     }
     return codesetName;
 #else
-    return "US-ASCII";
+    return "LATIN_1";
 #endif
 }
 
@@ -1722,11 +1728,7 @@ _uTransErrorName[U_PARSE_ERROR_LIMIT - U_PARSE_ERROR_START]={
     "U_MULTIPLE_COMPOUND_FILTERS",
     "U_INVALID_RBT_SYNTAX",
     "U_INVALID_PROPERTY_PATTERN",
-    "U_MALFORMED_PRAGMA",
-    "U_UNCLOSED_SEGMENT",
-    "U_ILLEGAL_CHAR_IN_SEGMENT",
-    "U_VARIABLE_RANGE_EXHAUSTED",
-    "U_VARIABLE_RANGE_OVERLAP"
+    "U_MALFORMED_PRAGMA"
 };
 
 static const char * const

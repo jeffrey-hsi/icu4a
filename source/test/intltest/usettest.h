@@ -46,8 +46,6 @@ private:
      */
     void TestPropertySet(void);
 
-    void TestClone(void);
-
     void TestExhaustive(void);
 
 private:

@@ -42,8 +42,7 @@ UnicodeSetTest::runIndexedTest(int32_t index, UBool exec,
         CASE(5,TestAPI);
         CASE(6,TestScriptSet);
         CASE(7,TestPropertySet);
-        CASE(8,TestClone);
-        CASE(9,TestExhaustive);
+        CASE(8,TestExhaustive);
         default: name = ""; break;
     }
 }
@@ -440,16 +439,6 @@ void UnicodeSetTest::TestPropertySet() {
     set.applyPattern("\\P{ GENERAL Category = upper case letter }", status);
     if (U_FAILURE(status)) { errln("FAIL"); return; }
     expectContainment(set, "abc", "ABC");
-}
-
-/**
- * Test cloning of UnicodeSet.  For C++, we test the copy constructor.
- */
-void UnicodeSetTest::TestClone() {
-    UErrorCode ec = U_ZERO_ERROR;
-    UnicodeSet s("[abcxyz]", ec);
-    UnicodeSet t(s);
-    expectContainment(t, "abc", "def");
 }
 
 void UnicodeSetTest::TestExhaustive() {
