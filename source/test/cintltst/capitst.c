@@ -32,8 +32,6 @@ static void TestAttribute(void);
         int TestBufferSize();	/* defined in "colutil.c" */
 
 
-    
-
 /* next two function is modified from "i18n/ucol.cpp" to avoid include "ucol_imp.h" */
 static void uprv_appendByteToHexString(char *dst, uint8_t val) {
   uint32_t len = (uint32_t)strlen(dst);
@@ -430,7 +428,6 @@ void TestRuleBasedColl()
     u_uastrcpy(ruleset1, "&9 < a, A < b, B < c, C; ch, cH, Ch, CH < d, D, e, E");
     u_uastrcpy(ruleset2, "&9 < a, A < b, B < c, C < d, D, e, E");
     
-
     col1 = ucol_openRules(ruleset1, u_strlen(ruleset1), UCOL_DEFAULT, UCOL_DEFAULT_STRENGTH, NULL,&status);
     if (U_FAILURE(status)) {
         log_err("RuleBased Collator creation failed.: %s\n", myErrorName(status));

@@ -135,13 +135,10 @@ void RBBISetBuilder::build() {
     //  Initialize the process by creating a single range encompassing all characters
     //  that is in no sets.
     //
-    fRangeList                = new RangeDescriptor(*fStatus); // will check for status here
+    fRangeList                = new RangeDescriptor(*fStatus);
     fRangeList->fStartChar    = 0;
     fRangeList->fEndChar      = 0x10ffff;
 
-    if (U_FAILURE(*fStatus)) {
-        return;
-    }
 
     //
     //  Find the set of non-overlapping ranges of characters
@@ -179,9 +176,6 @@ void RBBISetBuilder::build() {
             //     over
             if (rlRange->fStartChar < inputSetRangeBegin) {
                 rlRange->split(inputSetRangeBegin, *fStatus);
-                if (U_FAILURE(*fStatus)) {
-                    return;
-                }
                 continue;
             }
 
@@ -192,18 +186,12 @@ void RBBISetBuilder::build() {
             //   wholly inside the Unicode set.
             if (rlRange->fEndChar > inputSetRangeEnd) {
                 rlRange->split(inputSetRangeEnd+1, *fStatus);
-                if (U_FAILURE(*fStatus)) {
-                    return;
-                }
             }
 
             // The current rlRange is now entirely within the UnicodeSet range.
             // Add this unicode set to the list of sets for this rlRange
             if (rlRange->fIncludesSets->indexOf(usetNode) == -1) {
                 rlRange->fIncludesSets->addElement(usetNode, *fStatus);
-                if (U_FAILURE(*fStatus)) {
-                    return;
-                }
             }
 
             // Advance over ranges that we are finished with.
@@ -249,7 +237,6 @@ void RBBISetBuilder::build() {
                       NULL,    //  Data array  (utrie will allocate one)
                       100000,  //  Max Data Length
                       0,       //  Initial value for all code points
-                      0,       //  Lead surrogate unit value
                       TRUE);   //  Keep Latin 1 in separately
 
 
@@ -487,14 +474,7 @@ RangeDescriptor::RangeDescriptor(const RangeDescriptor &other, UErrorCode &statu
     this->fEndChar      = other.fEndChar;
     this->fNum          = other.fNum;
     this->fNext         = NULL;
-    UErrorCode oldstatus = status;
     this->fIncludesSets = new UVector(status);
-    if (U_FAILURE(oldstatus)) {
-        status = oldstatus;
-    }
-    if (U_FAILURE(status)) {
-        return;
-    }
     /* test for NULL */
     if (this->fIncludesSets == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -517,14 +497,7 @@ RangeDescriptor::RangeDescriptor(UErrorCode &status) {
     this->fEndChar      = 0;
     this->fNum          = 0;
     this->fNext         = NULL;
-    UErrorCode oldstatus = status;
     this->fIncludesSets = new UVector(status);
-    if (U_FAILURE(oldstatus)) {
-        status = oldstatus;
-    }
-    if (U_FAILURE(status)) {
-        return;
-    }
     /* test for NULL */
     if(this->fIncludesSets == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -552,9 +525,6 @@ RangeDescriptor::~RangeDescriptor() {
 void RangeDescriptor::split(UChar32 where, UErrorCode &status) {
     U_ASSERT(where>fStartChar && where<=fEndChar);
     RangeDescriptor *nr = new RangeDescriptor(*this, status);
-    if (U_FAILURE(status)) {
-        return;
-    }
     /* test for NULL */
     if(nr == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;

@@ -26,7 +26,7 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(Formattable)
+const char Formattable::fgClassID=0;
 
 // -------------------------------------
 // default constructor.

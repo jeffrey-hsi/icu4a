@@ -20,7 +20,7 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(LowercaseTransliterator)
+const char LowercaseTransliterator::fgClassID=0;
 
 const char LowercaseTransliterator::_ID[] = "Any-Lower";
 

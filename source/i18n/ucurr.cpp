@@ -13,7 +13,6 @@
 #include "unicode/locid.h"
 #include "unicode/resbund.h"
 #include "unicode/ustring.h"
-#include "unicode/choicfmt.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "uassert.h"
@@ -57,13 +56,6 @@ static const char VAR_EURO[] = "EURO";
 
 // Variant delimiter
 static const char VAR_DELIM[] = "_";
-
-// Variant for legacy euro mapping in CurrencyMap
-static const char VAR_DELIM_EURO[] = "_EURO";
-
-#define VARIANT_IS_EMPTY    0
-#define VARIANT_IS_EURO     0x1
-#define VARIANT_IS_PREEURO  0x2
 
 // Tag for localized display names (symbols) of currencies
 static const char CURRENCIES[] = "Currencies";
@@ -230,30 +222,21 @@ struct CReg : public UMemory {
 
 // -------------------------------------
 
-/**
- * @see VARIANT_IS_EURO
- * @see VARIANT_IS_PREEURO
- */
-static uint32_t
+static void
 idForLocale(const char* locale, char* buffer, int capacity, UErrorCode* ec)
 {
-    uint32_t variantType = 0;
     // !!! this is internal only, assumes buffer is not null and capacity is sufficient
     // Extract the country name and variant name.  We only
     // recognize two variant names, EURO and PREEURO.
     char variant[ULOC_FULLNAME_CAPACITY];
     uloc_getCountry(locale, buffer, capacity, ec);
     uloc_getVariant(locale, variant, sizeof(variant), ec);
-    if (variant[0] != 0) {
-        variantType = (0 == uprv_strcmp(variant, VAR_EURO))
-                   | ((0 == uprv_strcmp(variant, VAR_PRE_EURO)) << 1);
-        if (variantType)
-        {
-            uprv_strcat(buffer, VAR_DELIM);
-            uprv_strcat(buffer, variant);
-        }
+    if (0 == uprv_strcmp(variant, VAR_PRE_EURO) ||
+        0 == uprv_strcmp(variant, VAR_EURO))
+    {
+        uprv_strcat(buffer, VAR_DELIM);
+        uprv_strcat(buffer, variant);
     }
-    return variantType;
 }
 
 // -------------------------------------
@@ -285,10 +268,8 @@ ucurr_unregister(UCurrRegistryKey key, UErrorCode* status)
 U_CAPI const UChar* U_EXPORT2
 ucurr_forLocale(const char* locale, UErrorCode* ec) {
     if (ec != NULL && U_SUCCESS(*ec)) {
-        UErrorCode localStatus = U_ZERO_ERROR;
         char id[ULOC_FULLNAME_CAPACITY];
-        uint32_t variantType = idForLocale(locale, id, sizeof(id), ec);
-
+        idForLocale(locale, id, sizeof(id), ec);
         if (U_FAILURE(*ec)) {
             return NULL;
         }
@@ -299,28 +280,10 @@ ucurr_forLocale(const char* locale, UErrorCode* ec) {
         }
         
         // Look up the CurrencyMap element in the root bundle.
-        UResourceBundle* rb = ures_open(NULL, "", &localStatus);
-        UResourceBundle* cm = ures_getByKey(rb, CURRENCY_MAP, NULL, &localStatus);
-        const UChar* s = ures_getStringByKey(cm, id, NULL, &localStatus);
-
-        if ((s == NULL || U_FAILURE(localStatus)) && variantType != VARIANT_IS_EMPTY
-            && (id[0] != 0))
-        {
-            // We don't know about it.  Check to see if we support the variant.
-            if (variantType & VARIANT_IS_EURO) {
-                s = ures_getStringByKey(cm, VAR_DELIM_EURO, NULL, ec);
-            }
-            else {
-                uloc_getParent(locale, id, sizeof(id), ec);
-                *ec = U_USING_FALLBACK_WARNING;
-                s = ucurr_forLocale(id, ec);
-            }
-        }
-        else if (*ec == U_ZERO_ERROR || localStatus != U_ZERO_ERROR) {
-            // There is nothing to fallback to. Report the failure/warning if possible.
-            *ec = localStatus;
-        }
-
+        UResourceBundle* rb = ures_open(NULL, "", ec);
+        UResourceBundle* cm = ures_getByKey(rb, CURRENCY_MAP, NULL, ec);
+        int32_t len;
+        const UChar* s = ures_getStringByKey(cm, id, &len, ec);
         ures_close(cm);
         ures_close(rb);
         
@@ -451,40 +414,23 @@ ucurr_getName(const UChar* currency,
     return currency;
 }
 
-/**
- * Internal method.  Given a currency ISO code and a locale, return
- * the "static" currency name.  This is usually the same as the
- * UCURR_SYMBOL_NAME, but if the latter is a choice format, then the
- * format is applied to the number 2.0 (to yield the more common
- * plural) to return a static name.
- *
- * This is used for backward compatibility with old currency logic in
- * DecimalFormat and DecimalFormatSymbols.
- */
-U_CAPI void
-uprv_getStaticCurrencyName(const UChar* iso, const char* loc,
-                           UnicodeString& result, UErrorCode& ec)
-{
-    UBool isChoiceFormat;
-    int32_t len;
-    const UChar* currname = ucurr_getName(iso, loc, UCURR_SYMBOL_NAME,
-                                          &isChoiceFormat, &len, &ec);
-    if (U_SUCCESS(ec)) {
-        // If this is a ChoiceFormat currency, then format an
-        // arbitrary value; pick something != 1; more common.
-        result.truncate(0);
-        if (isChoiceFormat) {
-            ChoiceFormat f(currname, ec);
-            if (U_SUCCESS(ec)) {
-                f.format(2.0, result);
-            } else {
-                result = iso;
-            }
-        } else {
-            result = currname;
-        }
-    }
-}
+//!// This API is now redundant.  It predates ucurr_getName, which
+//!// replaces and extends it.
+//!U_CAPI const UChar* U_EXPORT2
+//!ucurr_getSymbol(const UChar* currency,
+//!                const char* locale,
+//!    int32_t* len, // fillin
+//!                UErrorCode* ec) {
+//!    UBool isChoiceFormat;
+//!    const UChar* s = ucurr_getName(currency, locale, UCURR_SYMBOL_NAME,
+//!                                   &isChoiceFormat, len, ec);
+//!    if (isChoiceFormat) {
+//!        // Don't let ChoiceFormat patterns out through this API
+//!        *len = u_strlen(currency); // Should == 3, but maybe not...?
+//!        return currency;
+//!    }
+//!    return s;
+//!}
 
 U_CAPI int32_t U_EXPORT2
 ucurr_getDefaultFractionDigits(const UChar* currency) {

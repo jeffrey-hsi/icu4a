@@ -19,8 +19,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "unicode/utypes.h"
-
-#ifndef WIN32
 #include "cmemory.h"
 #include "cstring.h"
 #include "filestrm.h"
@@ -245,5 +243,5 @@ void pkg_mode_dll(UPKGOptions *o, FileStream *makefile, UErrorCode *status)
     
 }
 
-#endif  /* #ifndef WIN32 */
+
 

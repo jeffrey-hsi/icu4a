@@ -101,11 +101,7 @@ U_CDECL_END
 
 U_NAMESPACE_BEGIN
 
-/* The Replaceable virtual destructor can't be defined in the header
-   due to how AIX works with multiple definitions of virtual functions.
-*/
-Replaceable::~Replaceable() {}
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(UnicodeString)
+const char UnicodeString::fgClassID=0;
 
 //========================================
 // Reference Counting functions, put at top of file so that optimizing compilers

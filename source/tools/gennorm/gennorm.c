@@ -26,7 +26,6 @@
 #include "unicode/putil.h"
 #include "cmemory.h"
 #include "cstring.h"
-#include "unicode/uclean.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
 #include "uoptions.h"

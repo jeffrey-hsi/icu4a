@@ -1478,9 +1478,6 @@ u_unescapeAt(UNESCAPE_CHAR_AT charAt,
             }
             ++(*offset);
         }
-        if (result < 0 || result >= 0x110000) {
-            goto err;
-        }
         return result;
     }
 

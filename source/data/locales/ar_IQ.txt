@@ -13,4 +13,7 @@ ar_IQ {
         "#,##0%",
         "#E0",
     }
+//    LocaleString { "ar_IQ" }
+//    ShortCountry { "IRQ" }
+    LocaleID:int { 0x0801 }
 }

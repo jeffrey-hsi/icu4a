@@ -51,5 +51,3 @@ clean-$(RESDIR):
 
 install-$(RESDIR):
 	$(MAKE) -C $(RESDIR) install
-
-install: install-$(RESDIR)

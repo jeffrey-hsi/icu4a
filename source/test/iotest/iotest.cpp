@@ -50,6 +50,10 @@ static const UChar NEW_LINE[] = {0x0a,0};
 static void TestFileFromICU(UFILE *myFile) {
     int32_t n[1];
     float myFloat = -1234.0;
+    UDate myDate = 0.0;
+    UDate dec_31_1969 = -57600000.000000; /* TODO: These are not correct */
+    UDate midnight = 86400000.000000; /* TODO: These are not correct */
+    UDate myNewDate = -1.0;
     int32_t newValuePtr[1];
     double newDoubleValuePtr[1];
     UChar myUString[256];
@@ -83,12 +87,15 @@ static void TestFileFromICU(UFILE *myFile) {
     u_fprintf(myFile, "Uppercase float %%G: %G\n", myFloat);
 //    u_fprintf(myFile, "Pointer %%p: %p\n", myFile);
     u_fprintf(myFile, "Char %%c: %c\n", 'A');
-    u_fprintf(myFile, "UChar %%C: %C\n", L'A');
+    u_fprintf(myFile, "UChar %%K (non-ANSI, should be %%C for Microsoft?): %K\n", L'A');
     u_fprintf(myFile, "String %%s: %s\n", "My-String");
     u_fprintf(myFile, "NULL String %%s: %s\n", NULL);
-    u_fprintf(myFile, "Unicode String %%S: %S\n", L"My-String");
-    u_fprintf(myFile, "NULL Unicode String %%S: %S\n", NULL);
+    u_fprintf(myFile, "Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U\n", L"My-String");
+    u_fprintf(myFile, "NULL Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U\n", NULL);
+    u_fprintf(myFile, "Date %%D (non-ANSI): %D\n", myDate);
+    u_fprintf(myFile, "Time %%T (non-ANSI): %T\n", myDate);
     u_fprintf(myFile, "Percent %%P (non-ANSI): %P\n", myFloat);
+    u_fprintf(myFile, "Currency %%M (non-ANSI): %M\n", myFloat);
     u_fprintf(myFile, "Spell Out %%V (non-ANSI): %V\n", myFloat);
 
     *n = 1;
@@ -109,21 +116,21 @@ static void TestFileFromICU(UFILE *myFile) {
 
     *n = -1234;
 
-    myUString[0] = u_fgetc(myFile);
-    if (myUString[0] != 0x53 /* S */) {
+    myString[0] = u_fgetc(myFile);
+    if (myString[0] != 0x53 /* S */) {
         log_err("u_fgetc 1 returned %X. Expected 'S'.", myString[0]);
     }
-    u_fungetc(myUString[0], myFile);
-    myUString[0] = u_fgetc(myFile);
-    if (myUString[0] != 0x53 /* S */) {
+    u_fungetc(myString[0], myFile);
+    myString[0] = u_fgetc(myFile);
+    if (myString[0] != 0x53 /* S */) {
         log_err("u_fgetc 2 returned %X. Expected 'S'.", myString[0]);
     }
-    u_fungetc(myUString[0], myFile);
-    myUString[0] = u_fgetc(myFile);
-    if (myUString[0] != 0x53 /* S */) {
+    u_fungetc(myString[0], myFile);
+    myString[0] = u_fgetc(myFile);
+    if (myString[0] != 0x53 /* S */) {
         log_err("u_fgetc 3 returned %X. Expected 'S'.", myString[0]);
     }
-    u_fungetc(myUString[0], myFile);
+    u_fungetc(myString[0], myFile);
 
     *newValuePtr = 1;
     u_fscanf(myFile, "Signed decimal integer %%d: %d\n", newValuePtr);
@@ -185,7 +192,7 @@ static void TestFileFromICU(UFILE *myFile) {
     if (*myString != 'A') {
         log_err("%%c Got: %c, Expected: A\n", *myString);
     }
-    u_fscanf(myFile, "UChar %%C: %C\n", myUString);
+    u_fscanf(myFile, "UChar %%K (non-ANSI, should be %%C for Microsoft?): %K\n", myUString);
     if (*myUString != L'A') {
         log_err("%%C Got: %C, Expected: A\n", *myUString);
     }
@@ -197,18 +204,33 @@ static void TestFileFromICU(UFILE *myFile) {
     if (strcmp(myString, "(null)")) {
         log_err("%%s Got: %s, Expected: My String\n", myString);
     }
-    u_fscanf(myFile, "Unicode String %%S: %S\n", myUString);
+    u_fscanf(myFile, "Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U\n", myUString);
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
     if (strcmp(myString, "My-String")) {
         log_err("%%S Got: %S, Expected: My String\n", myUString);
     }
-    u_fscanf(myFile, "NULL Unicode String %%S: %S\n", myUString);
+    u_fscanf(myFile, "NULL Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U\n", myUString);
     u_austrncpy(myString, myUString, sizeof(myUString)/sizeof(*myUString));
     if (strcmp(myString, "(null)")) {
         log_err("%%S Got: %S, Expected: My String\n", myUString);
     }
+    myNewDate = -1.0;
+    u_fscanf(myFile, "Date %%D (non-ANSI): %D\n", &myNewDate);
+    if (myNewDate != dec_31_1969) {
+        log_err("%%D Got: %f, Expected: %f\n", myNewDate, dec_31_1969);
+    }
+    myNewDate = -1.0;
+    u_fscanf(myFile, "Time %%T (non-ANSI): %T\n", &myNewDate);
+    if (myNewDate != midnight) {
+        log_err("%%T Got: %f, Expected: %f\n", myNewDate, midnight);
+    }
     *newDoubleValuePtr = -1.0;
     u_fscanf(myFile, "Percent %%P (non-ANSI): %P\n", newDoubleValuePtr);
+    if (myFloat != *newDoubleValuePtr) {
+        log_err("%%P Got: %f, Expected: %f\n", *newDoubleValuePtr, myFloat);
+    }
+    *newDoubleValuePtr = -1.0;
+    u_fscanf(myFile, "Currency %%M (non-ANSI): %M\n", newDoubleValuePtr);
     if (myFloat != *newDoubleValuePtr) {
         log_err("%%P Got: %f, Expected: %f\n", *newDoubleValuePtr, myFloat);
     }
@@ -528,75 +550,6 @@ static void TestfgetsLineCount() {
     u_fclose(myFile);
 }
 
-static void TestfgetsNewLineHandling() {
-    UChar buffer[256];
-    static const UChar testUStr[][16] = {
-        {0x000D, 0},
-        {0x000D, 0x000A, 0},
-        {0x000D, 0},
-        {0x000D, 0},
-        {0x0085, 0},
-        {0x000A, 0},
-        {0x000D, 0},
-        {0x000B, 0},
-        {0x000C, 0},
-        {0x000C, 0},
-        {0x2028, 0},
-        {0x0085, 0},
-        {0x2029, 0},
-        {0x0085, 0},
-
-        {0x008B, 0x000D, 0},
-        {0x00A0, 0x000D, 0x000A, 0},
-        {0x3000, 0x000D, 0},
-        {0xd800, 0xdfff, 0x000D, 0},
-        {0x00AB, 0x0085, 0},
-        {0x00AC, 0x000A, 0},
-        {0x00AD, 0x000D, 0},
-        {0x00BA, 0x000B, 0},
-        {0x00AB, 0x000C, 0},
-        {0x00B1, 0x000C, 0},
-        {0x30BB, 0x2028, 0},
-        {0x00A5, 0x0085, 0},
-        {0x0080, 0x2029, 0},
-        {0x00AF, 0x0085, 0}
-
-    };
-    UFILE *myFile = NULL;
-    int32_t lineIdx;
-
-    myFile = u_fopen(STANDARD_TEST_FILE, "w", NULL, "UTF-8");
-    for (lineIdx = 0; lineIdx < (int32_t)(sizeof(testUStr)/sizeof(testUStr[0])); lineIdx++) {
-        u_file_write(testUStr[lineIdx], u_strlen(testUStr[lineIdx]), myFile);
-    }
-    u_fclose(myFile);
-
-    myFile = u_fopen(STANDARD_TEST_FILE, "r", NULL, "UTF-8");
-
-    for (lineIdx = 0; lineIdx < (int32_t)(sizeof(testUStr)/sizeof(testUStr[0])); lineIdx++) {
-        u_memset(buffer, 0xDEAD, sizeof(buffer)/sizeof(buffer[0]));
-        UChar *returnedUCharBuffer = u_fgets(myFile, sizeof(buffer)/sizeof(buffer[0]), buffer);
-
-        if (!returnedUCharBuffer) {
-            /* Returned NULL. stop. */
-            break;
-        }
-        if (u_strcmp(buffer, testUStr[lineIdx]) != 0) {
-            log_err("buffers are different at index = %d\n", lineIdx);
-        }
-        if (buffer[u_strlen(buffer)+1] != 0xDEAD) {
-            log_err("u_fgets wrote too much\n");
-        }
-    }
-    if (lineIdx != (int32_t)(sizeof(testUStr)/sizeof(testUStr[0]))) {
-        log_err("u_fgets read too much\n");
-    }
-    if (u_fgets(myFile, sizeof(buffer)/sizeof(buffer[0]), buffer) != NULL) {
-        log_err("u_file_write wrote too much\n");
-    }
-    u_fclose(myFile);
-}
-
 static void TestFilePrintCompatibility() {
     UFILE *myFile = u_fopen(STANDARD_TEST_FILE, "wb", "en_US_POSIX", NULL);
     FILE *myCFile;
@@ -892,27 +845,6 @@ static void TestFprintfFormat() {
     TestFPrintFormat("%3f", 1.234,       "%3f", 1.234);
     TestFPrintFormat("%3f", -1.234,      "%3f", -1.234);
 
-    myFile = u_fopen(STANDARD_TEST_FILE, "w", "en_US_POSIX", NULL);
-    /* Reinitialize the buffer to verify null termination works. */
-    u_memset(uBuffer, 0x2a, sizeof(uBuffer)/sizeof(*uBuffer));
-    memset(buffer, 0x2a, sizeof(buffer)/sizeof(*buffer));
-    
-    uNumPrinted = u_fprintf(myFile, "%d % d %d", -1234, 1234, 1234);
-    u_fclose(myFile);
-    myFile = u_fopen(STANDARD_TEST_FILE, "r", "en_US_POSIX", NULL);
-    u_fgets(myFile, sizeof(uBuffer)/sizeof(*uBuffer), uBuffer);
-    u_fclose(myFile);
-    u_austrncpy(compBuffer, uBuffer, sizeof(uBuffer)/sizeof(*uBuffer));
-    cNumPrinted = sprintf(buffer, "%d % d %d", -1234, 1234, 1234);
-    if (strcmp(buffer, compBuffer) != 0) {
-        log_err("%%d %% d %%d Got: \"%s\", Expected: \"%s\"\n", compBuffer, buffer);
-    }
-    if (cNumPrinted != uNumPrinted) {
-        log_err("%%d %% d %%d number printed Got: %d, Expected: %d\n", uNumPrinted, cNumPrinted);
-    }
-    if (buffer[uNumPrinted+1] != 0x2a) {
-        log_err("%%d %% d %%d too much stored\n");
-    }
 }
 
 #undef TestFPrintFormat
@@ -1021,8 +953,8 @@ static void TestString() {
         log_err("%%c Got: %c, Expected: A\n", *myString);
     }
 
-    u_sprintf(uStringBuf, NULL, "UChar %%C: %C", L'A');
-    u_sscanf(uStringBuf, NULL, "UChar %%C: %C", myUString);
+    u_sprintf(uStringBuf, NULL, "UChar %%K (non-ANSI, should be %%C for Microsoft?): %K", L'A');
+    u_sscanf(uStringBuf, NULL, "UChar %%K (non-ANSI, should be %%C for Microsoft?): %K", myUString);
     if (*myUString != L'A') {
         log_err("%%C Got: %C, Expected: A\n", *myUString);
     }
@@ -1041,23 +973,44 @@ static void TestString() {
         log_err("%%s Got: %s, Expected: My-String\n", myString);
     }
 
-    u_sprintf(uStringBuf, NULL, "Unicode String %%S: %S", L"My-String");
-    u_sscanf(uStringBuf, NULL, "Unicode String %%S: %S", myUString);
+    u_sprintf(uStringBuf, NULL, "Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U", L"My-String");
+    u_sscanf(uStringBuf, NULL, "Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U", myUString);
     u_austrncpy(myString, myUString, sizeof(myString)/sizeof(*myString));
     if (strcmp(myString, "My-String")) {
-        log_err("%%S Got: %s, Expected: My String\n", myString);
+        log_err("%%U Got: %s, Expected: My String\n", myString);
     }
 
-    u_sprintf(uStringBuf, NULL, "NULL Unicode String %%S: %S", NULL);
-    u_sscanf(uStringBuf, NULL, "NULL Unicode String %%S: %S", myUString);
+    u_sprintf(uStringBuf, NULL, "NULL Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U", NULL);
+    u_sscanf(uStringBuf, NULL, "NULL Unicode String %%U (non-ANSI, should be %%S for Microsoft?): %U", myUString);
     u_austrncpy(myString, myUString, sizeof(myString)/sizeof(*myString));
     if (strcmp(myString, "(null)")) {
-        log_err("%%S Got: %s, Expected: (null)\n", myString);
+        log_err("%%U Got: %s, Expected: (null)\n", myString);
+    }
+
+    u_sprintf(uStringBuf, NULL, "Date %%D (non-ANSI): %D", myDate);
+    myNewDate = -1.0;
+    u_sscanf(uStringBuf, NULL, "Date %%D (non-ANSI): %D", &myNewDate);
+    if (myNewDate != dec_31_1969) {
+        log_err("%%D Got: %f, Expected: %f\n", myNewDate, dec_31_1969);
+    }
+
+    u_sprintf(uStringBuf, NULL, "Time %%T (non-ANSI): %T", myDate);
+    myNewDate = -1.0;
+    u_sscanf(uStringBuf, NULL, "Time %%T (non-ANSI): %T", &myNewDate);
+    if (myNewDate != midnight) {
+        log_err("%%T Got: %f, Expected: %f\n", myNewDate, midnight);
     }
 
     u_sprintf(uStringBuf, NULL, "Percent %%P (non-ANSI): %P", myFloat);
     *newDoubleValuePtr = -1.0;
     u_sscanf(uStringBuf, NULL, "Percent %%P (non-ANSI): %P", newDoubleValuePtr);
+    if (myFloat != *newDoubleValuePtr) {
+        log_err("%%P Got: %P, Expected: %P\n", *newDoubleValuePtr, myFloat);
+    }
+
+    u_sprintf(uStringBuf, NULL, "Currency %%M (non-ANSI): %M", myFloat);
+    *newDoubleValuePtr = -1.0;
+    u_sscanf(uStringBuf, NULL, "Currency %%M (non-ANSI): %M", newDoubleValuePtr);
     if (myFloat != *newDoubleValuePtr) {
         log_err("%%P Got: %P, Expected: %P\n", *newDoubleValuePtr, myFloat);
     }
@@ -1075,10 +1028,10 @@ static void TestString() {
         log_err("%%V Got: %f, Expected: %f\n", *newDoubleValuePtr, myFloat);
     }
 
-    u_sprintf(myUString, NULL, "This is a long test1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
+    u_sprintf(myUString, NULL, "This is a long test123456789012345678901234567890123456789012345678901234567890");
     u_austrncpy(myString, myUString, sizeof(myString)/sizeof(*myString));
-    if (strcmp(myString, "This is a long test1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890")) {
-        log_err("%%S Got: %s, Expected: My String\n", myString);
+    if (strcmp(myString, "This is a long test123456789012345678901234567890123456789012345678901234567890")) {
+        log_err("%%U Got: %s, Expected: My String\n", myString);
     }
 
 
@@ -1405,11 +1358,11 @@ static void TestSScanf() {
     int32_t uNumScanned;
     int32_t cNumScanned;
 
-    TestSScanSetFormat("%[bc]S", abcUChars, abcChars);
-    TestSScanSetFormat("%[cb]S", abcUChars, abcChars);
+    TestSScanSetFormat("%[bc]U", abcUChars, abcChars);
+    TestSScanSetFormat("%[cb]U", abcUChars, abcChars);
 
-    TestSScanSetFormat("%[ab]S", abcUChars, abcChars);
-    TestSScanSetFormat("%[ba]S", abcUChars, abcChars);
+    TestSScanSetFormat("%[ab]U", abcUChars, abcChars);
+    TestSScanSetFormat("%[ba]U", abcUChars, abcChars);
 
     TestSScanSetFormat("%[ab]", abcUChars, abcChars);
     TestSScanSetFormat("%[ba]", abcUChars, abcChars);
@@ -1452,7 +1405,7 @@ static void TestSScanf() {
     u_memset(uBuffer, 0x2a, sizeof(uBuffer)/sizeof(*uBuffer));\
     memset(buffer, 0x2a, sizeof(buffer)/sizeof(*buffer));\
     \
-    u_fprintf(myFile, "%S", uValue);\
+    u_fprintf(myFile, "%U", uValue);\
     u_fclose(myFile);\
     myFile = u_fopen(STANDARD_TEST_FILE, "r", "en_US_POSIX", NULL);\
     uNumScanned = u_fscanf(myFile, format, uBuffer);\
@@ -1480,11 +1433,11 @@ static void TestFScanf() {
     int32_t uNumScanned;
     int32_t cNumScanned;
 
-    TestFScanSetFormat("%[bc]S", abcUChars, abcChars);
-    TestFScanSetFormat("%[cb]S", abcUChars, abcChars);
+    TestFScanSetFormat("%[bc]U", abcUChars, abcChars);
+    TestFScanSetFormat("%[cb]U", abcUChars, abcChars);
 
-    TestFScanSetFormat("%[ab]S", abcUChars, abcChars);
-    TestFScanSetFormat("%[ba]S", abcUChars, abcChars);
+    TestFScanSetFormat("%[ab]U", abcUChars, abcChars);
+    TestFScanSetFormat("%[ba]U", abcUChars, abcChars);
 
     TestFScanSetFormat("%[ab]", abcUChars, abcChars);
     TestFScanSetFormat("%[ba]", abcUChars, abcChars);
@@ -1737,7 +1690,6 @@ static void addAllTests(TestNode** root) {
     addTest(root, &TestCodepageAndLocale, "file/TestCodepageAndLocale");
     addTest(root, &TestfgetsBuffers, "file/TestfgetsBuffers");
     addTest(root, &TestfgetsLineCount, "file/TestfgetsLineCount");
-    addTest(root, &TestfgetsNewLineHandling, "file/TestfgetsNewLineHandling");
     addTest(root, &TestFprintfFormat, "file/TestFprintfFormat");
     addTest(root, &TestFScanf, "file/TestFScanf");
     addTest(root, &TestFilePrintCompatibility, "file/TestFilePrintCompatibility");

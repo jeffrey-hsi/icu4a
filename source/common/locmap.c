@@ -134,10 +134,16 @@ uprv_defaultCodePageForLocale(const char *locale)
     return NULL;
 }
 
+#ifdef WIN32
+
 /*
  * Note:
+ * This code is used only internally by putil.c/uprv_getDefaultLocaleID().
  * The mapping from Win32 locale ID numbers to POSIX locale strings should
- * be the faster one.
+ * be the faster one. It is more important to get the LCID to ICU locale
+ * mapping correct than to get a correct ICU locale to LCID mapping.
+ *
+ * In order to test this code, please use the lcid test program.
  *
  * The LCID values come from winnt.h
  */
@@ -258,13 +264,7 @@ ILCID_POSIX_ELEMENT_ARRAY(0x0423, be, be_BY)
 ILCID_POSIX_ELEMENT_ARRAY(0x0402, bg, bg_BG)
 ILCID_POSIX_ELEMENT_ARRAY(0x0445, bn, bn_IN)
 ILCID_POSIX_ELEMENT_ARRAY(0x0403, ca, ca_ES)
-
-/* Declared as cs_CZ to get around compiler errors on z/OS, which defines cs as a function */
-static const ILcidPosixElement cs_CZ[] = {
-    {0x05,   "cs"},
-    {0x0405, "cs_CZ"},
-};
-
+ILCID_POSIX_ELEMENT_ARRAY(0x0405, cs, cs_CZ)
 ILCID_POSIX_ELEMENT_ARRAY(0x0406, da, da_DK)
 
 static const ILcidPosixElement de[] = {
@@ -295,12 +295,7 @@ static const ILcidPosixElement en[] = {
     {0x007f, "en_US_POSIX"}, /* duplicate for roundtripping */
     {0x2409, "en_VI"},  /* Virgin Islands AKA Caribbean Islands (en_CB). */
     {0x1c09, "en_ZA"},
-    {0x3009, "en_ZW"},
-    {0x0409, "en_AS"},  /* Alias for en_US. Leave last. */
-    {0x0409, "en_GU"},  /* Alias for en_US. Leave last. */
-    {0x0409, "en_MH"},  /* Alias for en_US. Leave last. */
-    {0x0409, "en_MP"},  /* Alias for en_US. Leave last. */
-    {0x0409, "en_UM"}   /* Alias for en_US. Leave last. */
+    {0x3009, "en_ZW"}
 };
 
 static const ILcidPosixElement en_US_POSIX[] = {
@@ -420,12 +415,9 @@ static const ILcidPosixElement nl[] = {
 /* The "no" locale split into nb and nn.  By default in ICU, "no" is nb.*/
 static const ILcidPosixElement no[] = {
     {0x14,   "nb"},     /* really nb */
-    {0x0414, "nb_NO"},  /* really nb_NO. Keep first in the 414 list. */
-    {0x0414, "no"},     /* really nb_NO */
-    {0x0414, "no_NO"},  /* really nb_NO */
-    {0x0814, "nn_NO"},  /* really nn_NO. Keep first in the 814 list.  */
-    {0x0814, "nn"},     /* It's 0x14 or 0x814, pick one to make the test program happy. */
-    {0x0814, "no_NO_NY"}/* really nn_NO */
+    {0x0414, "nb_NO"},  /* really nb_NO */
+    {0x0814, "nn_NO"},  /* really nn_NO */
+    {0x0814, "nn"}      /* It's 0x14 or 0x814, pick one to make the test program happy. */
 };
 
 /* Declared as or_IN to get around compiler errors*/
@@ -506,7 +498,7 @@ static const ILcidPosixMap gPosixIDmap[] = {
     ILCID_POSIX_MAP(bg),    /*  bg  Bulgarian                 0x02 */
     ILCID_POSIX_MAP(bn),    /*  bn  Bengali; Bangla           0x45 */
     ILCID_POSIX_MAP(ca),    /*  ca  Catalan                   0x03 */
-    ILCID_POSIX_MAP(cs_CZ), /*  cs  Czech                     0x05 */
+    ILCID_POSIX_MAP(cs),    /*  cs  Czech                     0x05 */
     ILCID_POSIX_MAP(da),    /*  da  Danish                    0x06 */
     ILCID_POSIX_MAP(de),    /*  de  German                    0x07 */
     ILCID_POSIX_MAP(dv),    /*  dv Divehi                     0x65 */
@@ -528,6 +520,7 @@ static const ILcidPosixMap gPosixIDmap[] = {
     ILCID_POSIX_MAP(hu),    /*  hu  Hungarian                 0x0e */
     ILCID_POSIX_MAP(hy),    /*  hy  Armenian                  0x2b */
     ILCID_POSIX_MAP(id),    /*  id  Indonesian (formerly in)  0x21 */
+/*        ILCID_POSIX_MAP(in),    //  in  Indonesian                0x21 */
     ILCID_POSIX_MAP(is),    /*  is  Icelandic                 0x0f */
     ILCID_POSIX_MAP(it),    /*  it  Italian                   0x10 */
     ILCID_POSIX_MAP(iw),    /*  iw  Hebrew                    0x0d */
@@ -535,10 +528,10 @@ static const ILcidPosixMap gPosixIDmap[] = {
     ILCID_POSIX_MAP(ka),    /*  ka  Georgian                  0x37 */
     ILCID_POSIX_MAP(kk),    /*  kk  Kazakh                    0x3f */
     ILCID_POSIX_MAP(kn),    /*  kn  Kannada                   0x4b */
+    ILCID_POSIX_MAP(ky),    /*  ky  Kyrgyz                    0x40 */
     ILCID_POSIX_MAP(ko),    /*  ko  Korean                    0x12 */
     ILCID_POSIX_MAP(kok),   /*  kok Konkani                   0x57 */
     ILCID_POSIX_MAP(ks),    /*  ks  Kashmiri                  0x60 */
-    ILCID_POSIX_MAP(ky),    /*  ky  Kyrgyz                    0x40 */
     ILCID_POSIX_MAP(lt),    /*  lt  Lithuanian                0x27 */
     ILCID_POSIX_MAP(lv),    /*  lv  Latvian, Lettish          0x26 */
     ILCID_POSIX_MAP(mk),    /*  mk  Macedonian                0x2f */
@@ -674,7 +667,7 @@ uprv_convertToPosix(uint32_t hostid, UErrorCode* status)
 
     /* no match found */
     *status = U_ILLEGAL_ARGUMENT_ERROR;
-    return NULL;
+    return "??_??";
 }
 
 /*
@@ -690,9 +683,8 @@ uprv_convertToLCID(const char* posixID, UErrorCode* status)
 {
 
     uint32_t   low    = 0;
-    uint32_t   high   = gLocaleCount;
+    uint32_t   high   = gLocaleCount - 1;
     uint32_t   mid    = high;
-    uint32_t   oldmid =0;
     int32_t    compVal;
     char       langID[ULOC_FULLNAME_CAPACITY];
 
@@ -712,25 +704,19 @@ uprv_convertToLCID(const char* posixID, UErrorCode* status)
     }
 
     /*Binary search for the map entry for normal cases */
+    /* When mid == 0, it's not found */
+    while (low <= high && mid != 0) {
 
-    while (high > low)  /*binary search*/{
-
-        mid = (high+low) >> 1; /*Finds median*/
-
-        if (mid == oldmid) 
-            break;
+        mid = (low + high + 1) / 2;    /* +1 is to round properly */
 
         compVal = uprv_strcmp(langID, gPosixIDmap[mid].regionMaps->posixID);
-        if (compVal < 0){
-            high = mid;
-        }
-        else if (compVal > 0){
-            low = mid;
-        }
-        else /*we found it*/{
+
+        if (compVal < 0)
+            high = mid - 1;
+        else if (compVal > 0)
+            low = mid + 1;
+        else  /* found match! */
             return hostID(&gPosixIDmap[mid], posixID, status);
-        }
-        oldmid = mid;
     }
 
     /*
@@ -757,4 +743,6 @@ uprv_convertToLCID(const char* posixID, UErrorCode* status)
     *status = U_ILLEGAL_ARGUMENT_ERROR;
     return 0;   /* return international (root) */
 }
+
+#endif
 

@@ -11,9 +11,6 @@
 #endif
 
 #include <unicode/umachine.h>
-#include "unicode/utypes.h"
-#include "umutex.h"
-
 
 // Just turn off threads on cygwin, so that we can test
 // the other stuff. This needs to be investigated further.
@@ -69,7 +66,17 @@
 #undef sleep
 #endif
 
+#include "unicode/utypes.h"
 
+/* APP_NO_THREADS is an old symbol. We'll honour it if present. */
+#ifdef APP_NO_THREADS
+# define ICU_USE_THREADS 0
+#endif
+
+/* Default: use threads. */
+#ifndef ICU_USE_THREADS
+# define ICU_USE_THREADS 1
+#endif
 
 #include "tsmthred.h"
 
@@ -887,7 +894,6 @@ void MultithreadTest::TestThreadedIntl()
     }
     umtx_destroy(&ftMutex);
     return;
-
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
@@ -1040,8 +1046,8 @@ void MultithreadTest::TestCollators()
     }
   }
 
-  Line *lines = new Line[200000];
-  uprv_memset(lines, 0, sizeof(Line)*200000);
+  Line *lines = new Line[65000];
+  uprv_memset(lines, 0, sizeof(Line)*65000);
   int32_t lineNum = 0;
 
   UChar bufferU[1024];

@@ -7,6 +7,9 @@
 
 ar_SA {
     Version{"2.0"}
+//    LocaleString { "ar_SA" }
+//    ShortCountry { "SAU" }
+    LocaleID:int { 0x0401 }
     NumberElements {
         ",",
         ".",
@@ -19,8 +22,7 @@ ar_SA {
         "\u2030",
         "\u221e",
         "\ufffd",
-        ".",
-        "+",
+	"."
     }
     NumberPatterns { 
         "###0.###;###0.###-",

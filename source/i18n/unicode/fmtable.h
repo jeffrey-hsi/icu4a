@@ -265,14 +265,14 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID();
 
 private:
     /**
@@ -306,7 +306,19 @@ private:
     }                   fValue;
 
     Type                fType;
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+inline UClassID Formattable::getStaticClassID()
+{ return (UClassID)&fgClassID; }
+        
+inline UClassID Formattable::getDynamicClassID() const
+{ return Formattable::getStaticClassID(); }
 
 inline Formattable*
 Formattable::createArrayCopy(const Formattable* array, int32_t count)

@@ -1,14 +1,14 @@
+//
+//  file:  rbbi.c    Contains the implementation of the rule based break iterator
+//                   runtime engine and the API implementation for
+//                   class RuleBasedBreakIterator
+//
 /*
 ***************************************************************************
 *   Copyright (C) 1999-2003 International Business Machines Corporation   *
 *   and others. All rights reserved.                                      *
 ***************************************************************************
 */
-//
-//  file:  rbbi.c    Contains the implementation of the rule based break iterator
-//                   runtime engine and the API implementation for
-//                   class RuleBasedBreakIterator
-//
 
 #include "unicode/utypes.h"
 
@@ -17,7 +17,6 @@
 #include "unicode/rbbi.h"
 #include "unicode/schriter.h"
 #include "unicode/udata.h"
-#include "unicode/uclean.h"
 #include "rbbidata.h"
 #include "rbbirb.h"
 #include "cmemory.h"
@@ -31,8 +30,11 @@ U_NAMESPACE_BEGIN
 static const int16_t START_STATE = 1;     // The state number of the starting state
 static const int16_t STOP_STATE  = 0;     // The state-transition value indicating "stop"
 
-
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(RuleBasedBreakIterator)
+/**
+ * Class ID.  (value is irrelevant; address is important)
+ */
+const char
+RuleBasedBreakIterator::fgClassID = 0;
 
 
 //=======================================================================
@@ -46,8 +48,8 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(RuleBasedBreakIterator)
 RuleBasedBreakIterator::RuleBasedBreakIterator(RBBIDataHeader* data, UErrorCode &status)
 {
     init();
-    fData = new RBBIDataWrapper(data, status); // status checked in constructor
     if (U_FAILURE(status)) {return;}
+    fData = new RBBIDataWrapper(data, status);
     if(fData == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
@@ -63,8 +65,8 @@ RuleBasedBreakIterator::RuleBasedBreakIterator(RBBIDataHeader* data, UErrorCode 
 RuleBasedBreakIterator::RuleBasedBreakIterator(UDataMemory* udm, UErrorCode &status)
 {
     init();
-    fData = new RBBIDataWrapper(udm, status); // status checked in constructor
     if (U_FAILURE(status)) {return;}
+    fData = new RBBIDataWrapper(udm, status);
     if(fData == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
@@ -82,7 +84,6 @@ RuleBasedBreakIterator::RuleBasedBreakIterator( const UnicodeString  &rules,
                                                 UParseError          &parseError,
                                                 UErrorCode           &status)
 {
-    u_init(&status);      // Just in case ICU is not yet initialized
     init();
     if (U_FAILURE(status)) {return;}
     RuleBasedBreakIterator *bi = (RuleBasedBreakIterator *)

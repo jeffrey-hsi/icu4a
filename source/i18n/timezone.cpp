@@ -42,11 +42,6 @@
 #include "unicode/simpletz.h"
 #include "unicode/smpdtfmt.h"
 #include "unicode/calendar.h"
-#include "unicode/gregocal.h"
-#include "unicode/ures.h"
-#include "gregoimp.h"
-#include "uresimp.h" // struct UResourceBundle
-#include "olsontz.h"
 #include "mutex.h"
 #include "unicode/udata.h"
 #include "tzdat.h"
@@ -56,7 +51,25 @@
 #include "unicode/strenum.h"
 #include "uassert.h"
 
-#define ZONEINFO "zoneinfo"
+/**
+ * udata callback to verify the zone data.
+ */
+U_CDECL_BEGIN
+static UBool U_CALLCONV
+isTimeZoneDataAcceptable(void * /*context*/,
+                         const char * /*type*/, const char * /*name*/,
+                         const UDataInfo *pInfo) {
+    return
+        pInfo->size >= sizeof(UDataInfo) &&
+        pInfo->isBigEndian == U_IS_BIG_ENDIAN &&
+        pInfo->charsetFamily == U_CHARSET_FAMILY &&
+        pInfo->dataFormat[0] == TZ_SIG_0 &&
+        pInfo->dataFormat[1] == TZ_SIG_1 &&
+        pInfo->dataFormat[2] == TZ_SIG_2 &&
+        pInfo->dataFormat[3] == TZ_SIG_3 &&
+        pInfo->formatVersion[0] == TZ_FORMAT_VERSION;
+}
+U_CDECL_END
 
 // Static data and constants
 
@@ -67,27 +80,40 @@ static const UChar         CUSTOM_ID[] =
     0x43, 0x75, 0x73, 0x74, 0x6F, 0x6D, 0x00 /* "Custom" */
 };
 
+// See header file for documentation of the following
+static const TZHeader *    DATA = NULL;          // alias into UDATA_MEMORY
+static const uint32_t*     INDEX_BY_ID = 0;      // alias into UDATA_MEMORY
+static const OffsetIndex*  INDEX_BY_OFFSET = 0;  // alias into UDATA_MEMORY
+static const CountryIndex* INDEX_BY_COUNTRY = 0; // alias into UDATA_MEMORY
+
+static UDataMemory*        UDATA_MEMORY = 0;
 static UMTX                LOCK;
 static TimeZone*           DEFAULT_ZONE = NULL;
 static TimeZone*           _GMT = NULL; // cf. TimeZone::GMT
+static UnicodeString*      ZONE_IDS = 0;
 const char                 TimeZone::fgClassID = 0; // Value is irrelevant
-
-// #ifdef ICU_TIMEZONE_USE_DEPRECATES
-static UnicodeString* OLSON_IDS = 0;
-// #endif
 
 UBool timeZone_cleanup()
 {
-// #ifdef ICU_TIMEZONE_USE_DEPRECATES
-    delete []OLSON_IDS;
-    OLSON_IDS = 0;
-// #endif
+    // Aliases into UDATA_MEMORY; do NOT delete
+    DATA = NULL;
+    INDEX_BY_ID = NULL;
+    INDEX_BY_OFFSET = NULL;
+    INDEX_BY_COUNTRY = NULL;
+
+    delete []ZONE_IDS;
+    ZONE_IDS = NULL;
 
     delete DEFAULT_ZONE;
     DEFAULT_ZONE = NULL;
 
     delete _GMT;
     _GMT = NULL;
+
+    if (UDATA_MEMORY) {
+        udata_close(UDATA_MEMORY);
+        UDATA_MEMORY = NULL;
+    }
 
     if (LOCK) {
         umtx_destroy(&LOCK);
@@ -100,163 +126,111 @@ UBool timeZone_cleanup()
 U_NAMESPACE_BEGIN
 
 /**
- * The Olson data is stored the "zoneinfo" resource bundle.
- * Sub-resources are organized into three ranges of data: Zones, final
- * rules, and country tables.  There is also a meta-data resource
- * which has 3 integers: The number of zones, rules, and countries,
- * respectively.  The country count includes the non-country '%' and
- * the rule count includes the non-rule '_' (the metadata).
+ * Load the system time zone data from icudata.dll (or its
+ * equivalent).  If this call succeeds, it will return TRUE and
+ * UDATA_MEMORY will be non-null, and DATA and INDEX_BY_* will be set
+ * to point into it.  If this call fails, either because the data
+ * could not be opened, or because the ID array could not be
+ * allocated, then it will return FALSE.
+ *
+ * Must be called OUTSIDE mutex.
  */
-static int32_t OLSON_ZONE_START = -1; // starting index of zones
-static int32_t OLSON_ZONE_COUNT = 0;  // count of zones
+static UBool loadZoneData() {
 
-/* We could compute all of the following, but we don't need them
-static int32_t OLSON_RULE_START = 0;  // starting index of rules
-static int32_t OLSON_RULE_COUNT = 0;  // count of zones
-static int32_t OLSON_COUNTRY_START = 0; // starting index of countries
-static int32_t OLSON_COUNTRY_COUNT = 0; // count of zones
-*/
-
-/**
- * Given a pointer to an open "zoneinfo" resource, load up the Olson
- * meta-data. Return TRUE if successful.
- */
-static UBool getOlsonMeta(const UResourceBundle* top) {
-    if (OLSON_ZONE_START < 0) {
-        UErrorCode ec = U_ZERO_ERROR;
-        UResourceBundle res;
-        ures_initStackObject(&res);
-        ures_getByKey(top, "_", &res, &ec);
-        int32_t len;
-        const int32_t* v = ures_getIntVector(&res, &len, &ec);
-        if (U_SUCCESS(ec) && len == 3) {
-            OLSON_ZONE_COUNT = v[0];
-            // Note: Remove the following `int32_t' declarations if you
-            //       uncomment the declarations above!
-            int32_t OLSON_RULE_COUNT = v[1];
-            int32_t OLSON_COUNTRY_COUNT = v[2];
-
-            // Try to figure out how strcmp in genrb is going to sort
-            // things.  This has to be done here, dynamically, rather
-            // than at build time.
-            char zoneCh='A', ruleCh='_', countryCh='%'; // [sic]
-            OLSON_ZONE_START = ((ruleCh < zoneCh) ? OLSON_RULE_COUNT : 0) +
-                               ((countryCh < zoneCh) ? OLSON_COUNTRY_COUNT : 0);
-
-            /* We could compute the following, but we don't need them -- yet
-            OLSON_RULE_START = ((zoneCh < ruleCh) ? OLSON_ZONE_COUNT : 0) +
-                               ((countryCh < ruleCh) ? OLSON_COUNTRY_COUNT : 0);
-            OLSON_COUNTRY_START = ((ruleCh < countryCh) ? OLSON_RULE_COUNT : 0) +
-                                  ((zoneCh < countryCh) ? OLSON_ZONE_COUNT : 0);
-            */
-        }
-        ures_close(&res);
-    }
-    return (OLSON_ZONE_START >= 0);
-}
-
-/**
- * Load up the Olson meta-data. Return TRUE if successful.
- */
-static UBool getOlsonMeta() {
-    if (OLSON_ZONE_START < 0) {
-        UErrorCode ec = U_ZERO_ERROR;
-        UResourceBundle *top = ures_openDirect(0, ZONEINFO, &ec);
-        if (U_SUCCESS(ec)) {
-            getOlsonMeta(top);
-        }
-        ures_close(top);
-    }
-    return (OLSON_ZONE_START >= 0);
-}
-
-/**
- * Given an ID, open the appropriate resource for the given time zone.
- * Dereference aliases if necessary.
- * @param id zone id
- * @param res resource, which must be ready for use (initialized but not open)
- * @param ec input-output error code
- * @return top-level resource bundle
- */
-static UResourceBundle* openOlsonResource(const UnicodeString& id,
-                                          UResourceBundle& res,
-                                          UErrorCode& ec) {
-    char buf[128];
-    id.extract(0, sizeof(buf)-1, buf, sizeof(buf), "");
-    UResourceBundle *top = ures_openDirect(0, ZONEINFO, &ec);
-    ures_getByKey(top, buf, &res, &ec);
-    // Dereference if this is an alias.  Docs say result should be 1
-    // but it is 0 in 2.8 (?).
-    if (ures_getSize(&res) <= 1 && getOlsonMeta(top)) {
-        int32_t deref = ures_getInt(&res, &ec) + OLSON_ZONE_START;
-        ures_close(&res);
-        ures_getByIndex(top, deref, &res, &ec);
-    }
-    return top;
-}
-
-// TODO: #ifdef out this code after 8-Nov-2003
-// #ifdef ICU_TIMEZONE_USE_DEPRECATES
-
-/**
- * Load all the ids from the "zoneinfo" resource bundle into a static
- * array that we hang onto.  This is _only_ used to implement the
- * deprecated createAvailableIDs() API.
- */
-static UBool loadOlsonIDs() {
-    if (OLSON_IDS != 0) {
-        return TRUE;
-    }
-
-    UErrorCode ec = U_ZERO_ERROR;
-    UnicodeString* ids = 0;
-    int32_t count = 0;
-    UResourceBundle *top = ures_openDirect(0, ZONEINFO, &ec);
-    if (U_SUCCESS(ec)) {
-        getOlsonMeta(top);
-        int32_t start = OLSON_ZONE_START;
-        count = OLSON_ZONE_COUNT;
-        ids = new UnicodeString[(count > 0) ? count : 1];
-        UResourceBundle res;
-        ures_initStackObject(&res);
-        for (int32_t i=0; i<count; ++i) {
-            ures_getByIndex(top, start+i, &res, &ec);
-            if (U_FAILURE(ec)) {
-                ures_close(&res);
-                break;
-            }
-            const char* key = ures_getKey(&res);
-            U_ASSERT(*key != '_' && *key != '%');
-            int32_t len = uprv_strlen(key);
-            ids[i] = UnicodeString(key, len+1, "");
-            ids[i].truncate(len); // add a NUL but don't count it so that
-                                  // getBuffer() gets a terminated string
-            ures_close(&res);
-        }
-    }
-    ures_close(top);
-
-    if (U_FAILURE(ec)) {
-        delete[] ids;
+    // Open a data memory object, to be closed either later in this
+    // function or in timeZone_cleanup().  Purify (etc.) may
+    // mistakenly report this as a leak.
+    UErrorCode status = U_ZERO_ERROR;
+    UDataMemory* udata = udata_openChoice(0, TZ_DATA_TYPE, TZ_DATA_NAME,
+        (UDataMemoryIsAcceptable*)isTimeZoneDataAcceptable, 0, &status);
+    if (U_FAILURE(status)) {
+        U_ASSERT(udata==0);
         return FALSE;
+    }
+
+    U_ASSERT(udata!=0);
+    TZHeader* tzh = (TZHeader*)udata_getMemory(udata);
+    U_ASSERT(tzh!=0);
+
+    const uint32_t* index_by_id =
+        (const uint32_t*)((int8_t*)tzh + tzh->nameIndexDelta);
+    const OffsetIndex* index_by_offset =
+        (const OffsetIndex*)((int8_t*)tzh + tzh->offsetIndexDelta);
+    const CountryIndex* index_by_country =
+        (const CountryIndex*)((int8_t*)tzh + tzh->countryIndexDelta);
+
+    // Construct the available IDs array. The ordering
+    // of this array conforms to the ordering of the
+    // index by name table.
+    UnicodeString* zone_ids = new UnicodeString[tzh->count ? tzh->count : 1];
+    if (zone_ids == 0) {
+        udata_close(udata);
+        return FALSE;
+    }
+    // Find start of name table, and walk through it
+    // linearly.  If you're wondering why we don't use
+    // the INDEX_BY_ID, it's because that indexes the
+    // zone objects, not the name table.  The name
+    // table is unindexed.
+    const char* name = (const char*)tzh + tzh->nameTableDelta;
+    int32_t length;
+    for (uint32_t i=0; i<tzh->count; ++i) {
+        zone_ids[i] = UnicodeString(name, ""); // invariant converter
+        length = zone_ids[i].length();  // add a NUL but don't count it so that
+        zone_ids[i].append((UChar)0);   // getBuffer() gets a terminated string
+        zone_ids[i].truncate(length);
+        name += uprv_strlen(name) + 1;
     }
 
     // Keep mutexed operations as short as possible by doing all
     // computations first, then doing pointer copies within the mutex.
     umtx_lock(&LOCK);
-    if (OLSON_IDS == 0) {
-        OLSON_IDS = ids;
-        ids = 0;
+    if (UDATA_MEMORY == 0) {
+        UDATA_MEMORY = udata;
+        DATA = tzh;
+        INDEX_BY_ID = index_by_id;
+        INDEX_BY_OFFSET = index_by_offset;
+        INDEX_BY_COUNTRY = index_by_country;
+        ZONE_IDS = zone_ids;
+
+        udata = NULL;
+        zone_ids = NULL;
     }
     umtx_unlock(&LOCK);
 
     // If another thread initialized the statics first, then delete
     // our unused data.
-    delete[] ids;
+    if (udata != NULL) {
+        udata_close(udata);
+        delete[] zone_ids;
+    }
+
+    // Cleanup handles both _GMT and the UDataMemory-based statics
+    ucln_i18n_registerCleanup();
+
     return TRUE;
 }
 
-// #endif //ICU_TIMEZONE_USE_DEPRECATES
+/**
+ * Inline function that returns TRUE if we have zone data, loading it
+ * if necessary.  The only time this function will return false is if
+ * loadZoneData() fails, and UDATA_MEMORY and associated pointers are
+ * NULL (rare).
+ *
+ * The difference between this function and loadZoneData() is that
+ * this is an inline function that expands to code which avoids making
+ * a function call in the case where the data is already loaded (the
+ * common case).
+ *
+ * Must be called OUTSIDE mutex.
+ */
+static inline UBool haveZoneData() {
+    umtx_init(&LOCK);   /* This is here to prevent race conditions. */
+    umtx_lock(&LOCK);
+    UBool f = (UDATA_MEMORY != 0);
+    umtx_unlock(&LOCK);
+    return f || loadZoneData();
+}
 
 // -------------------------------------
 
@@ -329,12 +303,12 @@ TimeZone::createTimeZone(const UnicodeString& ID)
      * fails, we try to parse it as a custom string GMT[+-]hh:mm.  If
      * all else fails, we return GMT, which is probably not what the
      * user wants, but at least is a functioning TimeZone object.
-     *
-     * We cannot return NULL, because that would break compatibility
-     * with the JDK.
      */
-    TimeZone* result = createSystemTimeZone(ID);
+    TimeZone* result = 0;
 
+    if (haveZoneData()) {
+        result = createSystemTimeZone(ID);
+    }
     if (result == 0) {
         result = createCustomTimeZone(ID);
     }
@@ -345,28 +319,51 @@ TimeZone::createTimeZone(const UnicodeString& ID)
 }
 
 /**
+ * Lookup the given ID in the system time zone equivalency group table.
+ * Return a pointer to the equivalency group, or NULL if not found.
+ * DATA MUST BE INITIALIZED AND NON-NULL.
+ */
+static const TZEquivalencyGroup*
+lookupEquivalencyGroup(const UnicodeString& id) {
+    // Perform a binary search.  Possible optimization: Unroll the
+    // search.  Not worth it given the small number of zones (416 in
+    // 1999j).
+    uint32_t low = 0;
+    uint32_t high = DATA->count;
+    while (high > low) {
+        // Invariant: match, if present, must be in the range [low,
+        // high).
+        uint32_t i = (low + high) / 2;
+        int8_t c = id.compare(ZONE_IDS[i]);
+        if (c == 0) {
+            return (TZEquivalencyGroup*) ((int8_t*)DATA + INDEX_BY_ID[i]);
+        } else if (c < 0) {
+            high = i;
+        } else {
+            low = i + 1;
+        }
+    }
+    return 0;
+}
+
+/**
  * Lookup the given name in our system zone table.  If found,
  * instantiate a new zone of that name and return it.  If not
  * found, return 0.
+ *
+ * The caller must ensure that haveZoneData() returns TRUE before
+ * calling.
  */
 TimeZone*
-TimeZone::createSystemTimeZone(const UnicodeString& id) {
-    TimeZone* z = 0;
-    UErrorCode ec = U_ZERO_ERROR;
-    UResourceBundle res;
-    ures_initStackObject(&res);
-    UResourceBundle *top = openOlsonResource(id, res, ec);
-    if (U_SUCCESS(ec)) {
-        z = new OlsonTimeZone(top, &res, ec);
-        if (z) z->setID(id);
+TimeZone::createSystemTimeZone(const UnicodeString& name) {
+    U_ASSERT(UDATA_MEMORY != 0);
+    const TZEquivalencyGroup *eg = lookupEquivalencyGroup(name);
+    if (eg != NULL) {
+        return eg->isDST ?
+            new SimpleTimeZone(eg->u.d.zone, name) :
+            new SimpleTimeZone(eg->u.s.zone, name);                
     }
-    ures_close(&res);
-    ures_close(top);
-    if (U_FAILURE(ec)) {
-        delete z;
-        z = 0;
-    }
-    return z;
+    return NULL;
 }
 
 // -------------------------------------
@@ -410,56 +407,45 @@ TimeZone::initDefault()
 
     TimeZone* default_zone = NULL;
 
-    default_zone = createSystemTimeZone(hostID);
+    if (haveZoneData()) {
+        default_zone = createSystemTimeZone(hostID);
 
-#if 0
-    // NOTE: As of ICU 2.8, we no longer have an offsets table, since
-    // historical zones can change offset over time.  If we add
-    // build-time heuristics to infer the "most frequent" raw offset
-    // of a zone, we can build tables and institute defaults, as done
-    // in ICU <= 2.6.
+        // If we couldn't get the time zone ID from the host, use
+        // the default host timezone offset.  Further refinements
+        // to this include querying the host to determine if DST
+        // is in use or not and possibly using the host locale to
+        // select from multiple zones at a the same offset.  We
+        // don't do any of this now, but we could easily add this.
+        if (default_zone == NULL) {
+            // Use the designated default in the time zone list that has the
+            // appropriate GMT offset, if there is one.
 
-    // If we couldn't get the time zone ID from the host, use
-    // the default host timezone offset.  Further refinements
-    // to this include querying the host to determine if DST
-    // is in use or not and possibly using the host locale to
-    // select from multiple zones at a the same offset.  We
-    // don't do any of this now, but we could easily add this.
-    if (default_zone == NULL) {
-        // Use the designated default in the time zone list that has the
-        // appropriate GMT offset, if there is one.
+            const OffsetIndex* index = INDEX_BY_OFFSET;
 
-        const OffsetIndex* index = INDEX_BY_OFFSET;
-
-        for (;;) {
-            if (index->gmtOffset > rawOffset) {
-                // Went past our desired offset; no match found
-                break;
+            for (;;) {
+                if (index->gmtOffset > rawOffset) {
+                    // Went past our desired offset; no match found
+                    break;
+                }
+                if (index->gmtOffset == rawOffset) {
+                    // Found our desired offset
+                    default_zone = createSystemTimeZone(ZONE_IDS[index->defaultZone]);
+                    break;
+                }
+                // Compute the position of the next entry.  If the delta value
+                // in this entry is zero, then there is no next entry.
+                uint16_t delta = index->nextEntryDelta;
+                if (delta == 0) {
+                    break;
+                }
+                index = (const OffsetIndex*)((int8_t*)index + delta);
             }
-            if (index->gmtOffset == rawOffset) {
-                // Found our desired offset
-                default_zone = createSystemTimeZone(ZONE_IDS[index->defaultZone]);
-                break;
-            }
-            // Compute the position of the next entry.  If the delta value
-            // in this entry is zero, then there is no next entry.
-            uint16_t delta = index->nextEntryDelta;
-            if (delta == 0) {
-                break;
-            }
-            index = (const OffsetIndex*)((int8_t*)index + delta);
         }
     }
-#endif
 
-    // Construct a fixed standard zone with the host's ID
-    // and raw offset.
-    if (default_zone == NULL) {
-        default_zone =
-            new SimpleTimeZone(rawOffset, UnicodeString(hostID, (char*)0));
-    }
-
-    // If we _still_ don't have a time zone, use GMT.
+    // If we _still_ don't have a time zone, use GMT.  This
+    // can only happen if the raw offset returned by
+    // uprv_timezone() does not correspond to any system zone.
     if (default_zone == NULL) {
         default_zone = getGMT()->clone();
     }
@@ -518,151 +504,145 @@ TimeZone::setDefault(const TimeZone& zone)
     adoptDefault(zone.clone());
 }
 
-//----------------------------------------------------------------------
-
-/**
- * This is the default implementation for subclasses that do not
- * override this method.  This implementation calls through to the
- * 8-argument getOffset() method after suitable computations, and
- * correctly adjusts GMT millis to local millis when necessary.
- */
-void TimeZone::getOffset(UDate date, UBool local, int32_t& rawOffset,
-                         int32_t& dstOffset, UErrorCode& ec) const {
-    if (U_FAILURE(ec)) {
-        return;
-    }
-
-    rawOffset = getRawOffset();
-
-    // Convert to local wall millis if necessary
-    if (!local) {
-        date += rawOffset; // now in local standard millis
-    }
-
-    // When local==FALSE, we might have to recompute. This loop is
-    // executed once, unless a recomputation is required; then it is
-    // executed twice.
-    for (int32_t pass=0; ; ++pass) {
-        int32_t year, month, dom, dow;
-        double day = uprv_floor(date / U_MILLIS_PER_DAY);
-        int32_t millis = (int32_t) (date - day * U_MILLIS_PER_DAY);
-        
-        Grego::dayToFields(day, year, month, dom, dow);
-        
-        dstOffset = getOffset(GregorianCalendar::AD, year, month, dom,
-                              (uint8_t) dow, millis,
-                              Grego::monthLength(year, month),
-                              ec) - rawOffset;
-
-        // Recompute if local==FALSE, dstOffset!=0, and addition of
-        // the dstOffset puts us in a different day.
-        if (pass!=0 || local || dstOffset==0) {
-            break;
-        }
-        date += dstOffset;
-        if (uprv_floor(date / U_MILLIS_PER_DAY) == day) {
-            break;
-        }
-    }
-}
-
 // -------------------------------------
 
 // New available IDs API as of ICU 2.4.  Uses StringEnumeration API.
 
 class TZEnumeration : public StringEnumeration {
-    // Map into to zones.  Our results are zone[map[i]] for
-    // i=0..len-1, where zone[i] is the i-th Olson zone.  If map==NULL
-    // then our results are zone[i] for i=0..len-1.  Len will be zero
-    // iff the zone data could not be loaded.
+    // Map into to ZONE_IDS.  Our results are ZONE_IDS[map[i]] for
+    // i=0..len-1.  If map==NULL then our results are ZONE_IDS[i]
+    // for i=0..len-1.  Len will be zero iff the zone data could
+    // not be loaded.
     int32_t* map;
     int32_t  len;
     int32_t  pos;
     void*    _bufp;
     int32_t  _buflen;
-    UnicodeString id;
 
 public:
     TZEnumeration() {
         map = NULL;
         _bufp = NULL;
         len = pos = _buflen = 0;
-        if (getOlsonMeta()) {
-            len = OLSON_ZONE_COUNT;
+        if (haveZoneData()) {
+            len = DATA->count;
         }
     }
 
     TZEnumeration(int32_t rawOffset) {
         map = NULL;
-        _bufp = NULL;
+                _bufp = NULL;
         len = pos = _buflen = 0;
-        if (!getOlsonMeta()) {
+
+        if (!haveZoneData()) {
             return;
         }
 
-        // Allocate more space than we'll need.  The end of the array will
-        // be blank.
-        map = (int32_t*)uprv_malloc(OLSON_ZONE_COUNT * sizeof(int32_t));
-        if (map == 0) {
-            return;
-        }
-
-        uprv_memset(map, 0, sizeof(int32_t) * OLSON_ZONE_COUNT);
-
-        UnicodeString s;
-        for (int32_t i=0; i<OLSON_ZONE_COUNT; ++i) {
-            if (getID(i)) {
-                // This is VERY inefficient.
-                TimeZone* z = TimeZone::createTimeZone(id);
-                // Make sure we get back the ID we wanted (if the ID is
-                // invalid we get back GMT).
-                if (z != 0 && z->getID(s) == id &&
-                    z->getRawOffset() == rawOffset) {
-                    map[len++] = i;
-                }
-                delete z;
+        /* The offset index table is a table of variable-sized objects.
+         * Each entry has an offset to the next entry; the last entry has
+         * a next entry offset of zero.
+         *
+         * The entries are sorted in ascending numerical order of GMT
+         * offset.  Each entry lists all the system zones at that offset,
+         * in lexicographic order of ID.  Note that this ordering is
+         * somewhat significant in that the _first_ zone in each list is
+         * what will be chosen as the default under certain fallback
+         * conditions.  We currently just let that be the
+         * lexicographically first zone, but we could also adjust the list
+         * to pick which zone was first for this situation -- probably not
+         * worth the trouble.
+         *
+         * The list of zones is actually just a list of integers, from
+         * 0..n-1, where n is the total number of system zones.  The
+         * numbering corresponds exactly to the ordering of ZONE_IDS.
+         */
+        const OffsetIndex* index = INDEX_BY_OFFSET;
+        
+        for (;;) {
+            if (index->gmtOffset > rawOffset) {
+                // Went past our desired offset; no match found
+                break;
             }
+            if (index->gmtOffset == rawOffset) {
+                // Found our desired offset
+                map = (int32_t*)uprv_malloc(sizeof(int32_t) * index->count);
+                if (map != NULL) {
+                    len = index->count;
+                    const uint16_t* zoneNumberArray = &(index->zoneNumber);
+                    for (uint16_t i=0; i<len; ++i) {
+                        map[i] = zoneNumberArray[i];
+                    }
+                }
+            }
+            // Compute the position of the next entry.  If the delta value
+            // in this entry is zero, then there is no next entry.
+            uint16_t delta = index->nextEntryDelta;
+            if (delta == 0) {
+                break;
+            }
+            index = (const OffsetIndex*)((int8_t*)index + delta);
         }
     }
 
     TZEnumeration(const char* country) {
         map = NULL;
-        _bufp = NULL;
+                _bufp = NULL;
         len = pos = _buflen = 0;
-        if (!getOlsonMeta()) {
+
+        if (!haveZoneData()) {
             return;
         }
 
-        char key[4] = {'%', 0, 0, 0}; // e.g., "%US", or "%" for no country
-        if (country) uprv_strncat(key, country, 2);
+        /* The country index table is a table of variable-sized objects.
+         * Each entry has an offset to the next entry; the last entry has
+         * a next entry offset of zero.
+         *
+         * The entries are sorted in ascending numerical order of intcode.
+         * This is an integer representation of the 2-letter ISO 3166
+         * country code.  It is computed as (c1-'A')*32 + (c0-'A'), where
+         * the country code is c1 c0, with 'A' <= ci <= 'Z'.
+         *
+         * The list of zones is a list of integers, from 0..n-1, where n
+         * is the total number of system zones.  The numbering corresponds
+         * exactly to the ordering of ZONE_IDS.
+         */
+        const CountryIndex* index = INDEX_BY_COUNTRY;
 
-        UErrorCode ec = U_ZERO_ERROR;
-        UResourceBundle *top = ures_openDirect(0, ZONEINFO, &ec);
-        if (U_SUCCESS(ec)) {
-            UResourceBundle res;
-            ures_initStackObject(&res);
-            ures_getByKey(top, key, &res, &ec);
-            // The list of zones is a list of integers, from 0..n-1,
-            // where n is the total number of system zones.
-            const int32_t* v = ures_getIntVector(&res, &len, &ec);
-            if (U_SUCCESS(ec)) {
-                U_ASSERT(len > 0);
-                map = (int32_t*)uprv_malloc(sizeof(int32_t) * len);
-                if (map != 0) {
+        uint16_t intcode = 0;
+        if (country != NULL && *country != 0) {
+            intcode = (uint16_t)((U_UPPER_ORDINAL(country[0]) << 5)
+                + U_UPPER_ORDINAL(country[1]));
+        }
+
+        for (;;) {
+            if (index->intcode > intcode) {
+                // Went past our desired country; no match found
+                break;
+            }
+            if (index->intcode == intcode) {
+                // Found our desired country
+                map = (int32_t*)uprv_malloc(sizeof(int32_t) * index->count);
+                if (map != NULL) {
+                    len = index->count;
+                    const uint16_t* zoneNumberArray = &(index->zoneNumber);
                     for (uint16_t i=0; i<len; ++i) {
-                        U_ASSERT(v[i] >= 0 && v[i] < OLSON_ZONE_COUNT);
-                        map[i] = v[i];
+                        map[i] = zoneNumberArray[i];
                     }
                 }
             }
-            ures_close(&res);
+            // Compute the position of the next entry.  If the delta value
+            // in this entry is zero, then there is no next entry.
+            uint16_t delta = index->nextEntryDelta;
+            if (delta == 0) {
+                break;
+            }
+            index = (const CountryIndex*)((int8_t*)index + delta);
         }
-        ures_close(top);
     }
 
     virtual ~TZEnumeration() {
         uprv_free(map);
-        uprv_free(_bufp);
+                uprv_free(_bufp);
     }
 
     int32_t count(UErrorCode& status) const {
@@ -692,19 +672,18 @@ public:
           if (resultLength) {
             resultLength[0] = us->length();
           }
-          U_ASSERT(us == &id); // A little ugly...
-          return id.getTerminatedBuffer(); // ...but works
+          // TimeZone terminates the ID strings when it builds them
+          return us->getBuffer();
         }
         return NULL;
     }
 
     const UnicodeString* snext(UErrorCode& status) {
         if (U_SUCCESS(status) && pos < len) {
-            getID((map == 0) ? pos : map[pos]);
-            ++pos;
-            return &id;
+            return (map != NULL) ?
+                &ZONE_IDS[map[pos++]] : &ZONE_IDS[pos++];
         }
-        return 0;
+        return NULL;
     }
 
     void reset(UErrorCode& /*status*/) {
@@ -712,24 +691,6 @@ public:
     }
 
 private:
-
-    UBool getID(int32_t i) {
-        UErrorCode ec = U_ZERO_ERROR;
-        UResourceBundle *top = ures_openDirect(0, ZONEINFO, &ec);
-        UResourceBundle res;
-        ures_initStackObject(&res);
-        ures_getByIndex(top, OLSON_ZONE_START + i, &res, &ec);
-        if (U_SUCCESS(ec)) {
-            const char* key = ures_getKey(&res);
-            id = UnicodeString(key, "");
-        } else {
-            id.truncate(0);
-        }
-        ures_close(&res);
-        ures_close(top);
-        return U_SUCCESS(ec);
-    }
-
     static const char fgClassID;
 
 public:
@@ -780,36 +741,61 @@ TimeZone::createAvailableIDs(int32_t rawOffset, int32_t& numIDs)
     // We are creating a new array to existing UnicodeString pointers.
     // The caller will delete the array when done, but not the pointers
     // in the array.
+    
+    if (!haveZoneData()) {
+        numIDs = 0;
+        return 0;
+    }
+
+    /* The offset index table is a table of variable-sized objects.
+     * Each entry has an offset to the next entry; the last entry has
+     * a next entry offset of zero.
+     *
+     * The entries are sorted in ascending numerical order of GMT
+     * offset.  Each entry lists all the system zones at that offset,
+     * in lexicographic order of ID.  Note that this ordering is
+     * somewhat significant in that the _first_ zone in each list is
+     * what will be chosen as the default under certain fallback
+     * conditions.  We currently just let that be the
+     * lexicographically first zone, but we could also adjust the list
+     * to pick which zone was first for this situation -- probably not
+     * worth the trouble.
+     *
+     * The list of zones is actually just a list of integers, from
+     * 0..n-1, where n is the total number of system zones.  The
+     * numbering corresponds exactly to the ordering of ZONE_IDS.
+     */
+    const OffsetIndex* index = INDEX_BY_OFFSET;
+
+    for (;;) {
+        if (index->gmtOffset > rawOffset) {
+            // Went past our desired offset; no match found
+            break;
+        }
+        if (index->gmtOffset == rawOffset) {
+            // Found our desired offset
+            const UnicodeString** result =
+                (const UnicodeString**)uprv_malloc(index->count * sizeof(UnicodeString *));
+            const uint16_t* zoneNumberArray = &(index->zoneNumber);
+            for (uint16_t i=0; i<index->count; ++i) {
+                // Pointer assignment - use existing UnicodeString object!
+                // Don't create a new UnicodeString on the heap here!
+                result[i] = &ZONE_IDS[zoneNumberArray[i]];
+            }
+            numIDs = index->count;
+            return result;
+        }
+        // Compute the position of the next entry.  If the delta value
+        // in this entry is zero, then there is no next entry.
+        uint16_t delta = index->nextEntryDelta;
+        if (delta == 0) {
+            break;
+        }
+        index = (const OffsetIndex*)((int8_t*)index + delta);
+    }
 
     numIDs = 0;
-    if (!loadOlsonIDs()) {
-        return 0;
-    }
-
-    // Allocate more space than we'll need.  The end of the array will
-    // be blank.
-    const UnicodeString** ids =
-        (const UnicodeString** )uprv_malloc(OLSON_ZONE_COUNT * sizeof(UnicodeString *));
-    if (ids == 0) {
-        return 0;
-    }
-
-    uprv_memset(ids, 0, sizeof(UnicodeString*) * OLSON_ZONE_COUNT);
-
-    UnicodeString s;
-    for (int32_t i=0; i<OLSON_ZONE_COUNT; ++i) {
-        // This is VERY inefficient.
-        TimeZone* z = TimeZone::createTimeZone(OLSON_IDS[i]);
-        // Make sure we get back the ID we wanted (if the ID is
-        // invalid we get back GMT).
-        if (z != 0 && z->getID(s) == OLSON_IDS[i] &&
-            z->getRawOffset() == rawOffset) {
-            ids[numIDs++] = &OLSON_IDS[i]; // [sic]
-        }
-        delete z;
-    }
-
-    return ids;
+    return 0;
 }
 
 // -------------------------------------
@@ -820,46 +806,62 @@ TimeZone::createAvailableIDs(const char* country, int32_t& numIDs) {
     // We are creating a new array to existing UnicodeString pointers.
     // The caller will delete the array when done, but not the pointers
     // in the array.
-
-    numIDs = 0;
-    if (!loadOlsonIDs()) {
+    
+    if (!haveZoneData()) {
+        numIDs = 0;
         return 0;
     }
-    
-    char key[4] = {'%', 0, 0, 0}; // e.g., "%US", or "%" for non-country zones
-    if (country) uprv_strncat(key, country, 2);
 
-    const UnicodeString** ids = 0;
+    /* The country index table is a table of variable-sized objects.
+     * Each entry has an offset to the next entry; the last entry has
+     * a next entry offset of zero.
+     *
+     * The entries are sorted in ascending numerical order of intcode.
+     * This is an integer representation of the 2-letter ISO 3166
+     * country code.  It is computed as (c1-'A')*32 + (c0-'A'), where
+     * the country code is c1 c0, with 'A' <= ci <= 'Z'.
+     *
+     * The list of zones is a list of integers, from 0..n-1, where n
+     * is the total number of system zones.  The numbering corresponds
+     * exactly to the ordering of ZONE_IDS.
+     */
+    const CountryIndex* index = INDEX_BY_COUNTRY;
 
-    UErrorCode ec = U_ZERO_ERROR;
-    UResourceBundle *top = ures_openDirect(0, ZONEINFO, &ec);
-    if (U_SUCCESS(ec)) {
-        getOlsonMeta(top);
-        UResourceBundle res;
-        ures_initStackObject(&res);
-        ures_getByKey(top, key, &res, &ec);
-        if (U_SUCCESS(ec)) {
-            /* The list of zones is a list of integers, from 0..n-1,
-             * where n is the total number of system zones.  The
-             * numbering corresponds exactly to the ordering of
-             * OLSON_IDS.
-             */
-            const int32_t* v = ures_getIntVector(&res, &numIDs, &ec);
-            ids = (const UnicodeString**)
-                uprv_malloc(numIDs * sizeof(UnicodeString*));
-            if (ids == 0) {
-                numIDs = 0;
-            } else {
-                for (int32_t i=0; i<numIDs; ++i) {
-                    ids[i] = &OLSON_IDS[v[i]]; // [sic]
-                }
-            }
-        }
-        ures_close(&res);
+    uint16_t intcode = 0;
+    if (country != NULL && *country != 0) {
+        intcode = (uint16_t)((U_UPPER_ORDINAL(country[0]) << 5)
+            + U_UPPER_ORDINAL(country[1]));
     }
-    ures_close(top);
+    
+    for (;;) {
+        if (index->intcode > intcode) {
+            // Went past our desired country; no match found
+            break;
+        }
+        if (index->intcode == intcode) {
+            // Found our desired country
+            const UnicodeString** result =
+                (const UnicodeString**)uprv_malloc(index->count * sizeof(UnicodeString *));
+            const uint16_t* zoneNumberArray = &(index->zoneNumber);
+            for (uint16_t i=0; i<index->count; ++i) {
+                // Pointer assignment - use existing UnicodeString object!
+                // Don't create a new UnicodeString on the heap here!
+                result[i] = &ZONE_IDS[zoneNumberArray[i]];
+            }
+            numIDs = index->count;
+            return result;
+        }
+        // Compute the position of the next entry.  If the delta value
+        // in this entry is zero, then there is no next entry.
+        uint16_t delta = index->nextEntryDelta;
+        if (delta == 0) {
+            break;
+        }
+        index = (const CountryIndex*)((int8_t*)index + delta);
+    }
 
-    return ids;
+    numIDs = 0;
+    return 0;
 }
 
 // -------------------------------------
@@ -870,21 +872,29 @@ TimeZone::createAvailableIDs(int32_t& numIDs)
     // We are creating a new array to existing UnicodeString pointers.
     // The caller will delete the array when done, but not the pointers
     // in the array.
-    numIDs = 0;
-    if (!loadOlsonIDs()) {
+    //
+    // This is really unnecessary, given the fact that we have an
+    // array of the IDs already constructed, and we could just return
+    // that.  However, that would be a breaking API change, and some
+    // callers familiar with the original API might try to delete it.
+
+    if (!haveZoneData()) {
+        numIDs = 0;
         return 0;
     }
-    
-    const UnicodeString** ids =
-        (const UnicodeString** )uprv_malloc(OLSON_ZONE_COUNT * sizeof(UnicodeString *));
-    if (ids != 0) {
-        numIDs = OLSON_ZONE_COUNT;
-        for (int32_t i=0; i<numIDs; ++i) {
-            ids[i] = &OLSON_IDS[i];
-        }
+
+    const UnicodeString** result =
+        (const UnicodeString** )uprv_malloc(DATA->count * sizeof(UnicodeString *));
+
+    // Create a list of pointers to each and every zone ID
+    for (uint32_t i=0; i<DATA->count; ++i) {
+        // Pointer assignment - use existing UnicodeString object!
+        // Don't create a new UnicodeString on the heap here!
+        result[i] = &ZONE_IDS[i];
     }
 
-    return ids;
+    numIDs = DATA->count;
+    return result;
 }
 
 // ICU_TIMEZONE_USE_DEPRECATES
@@ -895,61 +905,27 @@ TimeZone::createAvailableIDs(int32_t& numIDs)
 
 int32_t
 TimeZone::countEquivalentIDs(const UnicodeString& id) {
-    int32_t result = 0;
-    UErrorCode ec = U_ZERO_ERROR;
-    UResourceBundle res;
-    ures_initStackObject(&res);
-    UResourceBundle *top = openOlsonResource(id, res, ec);
-    if (U_SUCCESS(ec)) {
-        int32_t size = ures_getSize(&res);
-        if (size == 4 || size == 6) {
-            UResourceBundle r;
-            ures_initStackObject(&r);
-            ures_getByIndex(&res, size-1, &r, &ec);
-            // result = ures_getSize(&r); // doesn't work
-            ures_getIntVector(&r, &result, &ec);
-            ures_close(&r);
-        }
+    if (!haveZoneData()) {
+        return 0;
     }
-    ures_close(&res);
-    ures_close(top);
-    return result;
+    const TZEquivalencyGroup *eg = lookupEquivalencyGroup(id);
+    return (eg != 0) ? (eg->isDST ? eg->u.d.count : eg->u.s.count) : 0;
 }
 
 // ---------------------------------------
 
 const UnicodeString
 TimeZone::getEquivalentID(const UnicodeString& id, int32_t index) {
-    UnicodeString result;
-    UErrorCode ec = U_ZERO_ERROR;
-    UResourceBundle res;
-    ures_initStackObject(&res);
-    UResourceBundle *top = openOlsonResource(id, res, ec);
-    int32_t zone = -1;
-    if (U_SUCCESS(ec)) {
-        int32_t size = ures_getSize(&res);
-        if (size == 4 || size == 6) {
-            UResourceBundle r;
-            ures_initStackObject(&r);
-            ures_getByIndex(&res, size-1, &r, &ec);
-            const int32_t* v = ures_getIntVector(&r, &size, &ec);
-            if (index >= 0 && index < size && getOlsonMeta()) {
-                zone = v[index] + OLSON_ZONE_START;
+    if (haveZoneData()) {
+        const TZEquivalencyGroup *eg = lookupEquivalencyGroup(id);
+        if (eg != 0) {
+            const uint16_t *p = eg->isDST ? &eg->u.d.count : &eg->u.s.count;
+            if (index >= 0 && index < *p) {
+                return ZONE_IDS[p[index+1]];
             }
-            ures_close(&r);
         }
     }
-    ures_close(&res);
-    if (zone >= 0) {
-        ures_getByIndex(top, zone, &res, &ec);
-        if (U_SUCCESS(ec)) {
-            const char* key = ures_getKey(&res);
-            result = UnicodeString(key, "");
-        }
-        ures_close(&res);
-    }
-    ures_close(top);
-    return result;
+    return UnicodeString();
 }
 
 // ---------------------------------------

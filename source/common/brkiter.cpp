@@ -80,17 +80,15 @@ BreakIterator::makeWordInstance(const Locale& key, UErrorCode& status)
     else {
         result = new RuleBasedBreakIterator(file, status);
     }
-    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
-        if (result != NULL) {
-            delete result;
-        }
-        return NULL;
-    }
     if (result == NULL) {
         udata_close(file);
         status = U_MEMORY_ALLOCATION_ERROR;
     }
-    
+    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
+        delete result;
+        result = NULL;
+    }
+
     return result;
 }
 
@@ -133,15 +131,13 @@ BreakIterator::makeLineInstance(const Locale& key, UErrorCode& status)
     else {
         result = new RuleBasedBreakIterator(file, status);
     }
-    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
-        if (result != NULL) {
-            delete result;
-        }
-        return NULL;
-    }
     if (result == NULL) {
         udata_close(file);
         status = U_MEMORY_ALLOCATION_ERROR;
+    }
+    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
+        delete result;
+        result = NULL;
     }
     return result;
 }
@@ -173,16 +169,13 @@ BreakIterator::makeCharacterInstance(const Locale& /* key */, UErrorCode& status
     // The UDataMemory is adopted by the break iterator.
 
     result = new RuleBasedBreakIterator(file, status);
-    
-    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
-        if (result != NULL) {
-            delete result;
-        }
-        return NULL;
-    }
     if (result == NULL) {
         udata_close(file);
         status = U_MEMORY_ALLOCATION_ERROR;
+    }
+    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
+        delete result;
+        result = NULL;
     }
     return result;
 }
@@ -214,15 +207,13 @@ BreakIterator::makeSentenceInstance(const Locale& /*key */, UErrorCode& status)
     // The UDataMemory is adopted by the break iterator.
 
     result = new RuleBasedBreakIterator(file, status);
-    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
-        if (result != NULL) {
-            delete result;
-        }
-        return NULL;
-    }
     if (result == NULL) {
         udata_close(file);
         status = U_MEMORY_ALLOCATION_ERROR;
+    }
+    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
+        delete result;
+        result = NULL;
     }
 
     return result;
@@ -255,15 +246,13 @@ BreakIterator::makeTitleInstance(const Locale& /* key */, UErrorCode& status)
     // The UDataMemory is adopted by the break iterator.
 
     result = new RuleBasedBreakIterator(file, status);
-    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
-        if (result != NULL) {
-            delete result;
-        }
-        return NULL;
-    }
     if (result == NULL) {
         udata_close(file);
         status = U_MEMORY_ALLOCATION_ERROR;
+    }
+    if (U_FAILURE(status)) {   // Sometimes redundant check, but simple.
+        delete result;
+        result = NULL;
     }
 
     return result;
@@ -398,7 +387,6 @@ BreakIterator::createInstance(const Locale& loc, UBreakIteratorType kind, UError
         return NULL;
     }
     
-    u_init(&status);
     if (hasService()) {
         return (BreakIterator*)gService->get(loc, kind, status);
     } else {
@@ -448,10 +436,8 @@ BreakIterator::makeInstance(const Locale& loc, int32_t kind, UErrorCode& status)
     case UBRK_SENTENCE: return BreakIterator::makeSentenceInstance(loc, status);
     case UBRK_TITLE: return BreakIterator::makeTitleInstance(loc, status);
     default:
-        if (U_SUCCESS(status)) {   
-            status = U_ILLEGAL_ARGUMENT_ERROR;
-        }
-        return NULL;
+      status = U_ILLEGAL_ARGUMENT_ERROR;
+      return NULL;
     }
 }
 

@@ -18,6 +18,8 @@ es_MX {
         "dd/MM/yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x080a }
+//    LocaleString { "es_MX" }
 //    NumberElements { 
 //        ".",
 //        ",",
@@ -31,6 +33,7 @@ es_MX {
 //        "\u221E",
 //        "\uFFFD",
 //    }
+//    ShortCountry { "MEX" }
 
     // Currency display names
     Currencies {

@@ -34,14 +34,11 @@ The following names can be supplied as the argument for platform:
     AIX4.3VA                Use IBM's Visual Age xlC_r compiler on AIX 4.3
     ALPHA/LINUXGCC          Use GCC on Alpha/Linux systems
     ALPHA/LINUXCCC          Use Compaq C compiler on Alpha/Linux systems
-    BeOS                    Use the GNU C++ compiler on BeOS
     CygWin                  Use the GNU C++ compiler on CygWin
     FreeBSD                 Use the GNU C++ compiler on Free BSD
-    HP-UX11ACC              Use the Advanced C++ compiler on HP-UX 11
     HP-UX11CC               Use HP's C++ compiler on HP-UX 11
+    HP-UX11ACC              Use the Advanced C++ compiler on HP-UX 11
     LinuxRedHat             Use the GNU C++ compiler on Linux
-    LINUX/ECC               Use the Intel ECC compiler on Linux
-    LINUX/ICC               Use the Intel ICC compiler on Linux
     MacOSX                  Use the GNU C++ compiler on MacOS X (Darwin)
     QNX                     Use QNX's QCC compiler on QNX/Neutrino
     SOLARISCC               Use Sun's CC compiler on Solaris
@@ -239,22 +236,6 @@ case $platform in
         CC=gcc; export CC
         CXX=g++; export CXX
         ;;
-    LINUX/ECC)
-        THE_OS="Linux"
-        THE_COMP="Intel ECC 7.1"
-        CC=ecc; export CC
-        CXX=ecpc; export CXX
-        RELEASE_CFLAGS='-O2'
-        RELEASE_CXXFLAGS='-O2'
-        ;;
-    LINUX/ICC)
-        THE_OS="Linux"
-        THE_COMP="Intel ICC 6.0"
-        CC=icc; export CC
-        CXX=icpc; export CXX
-        RELEASE_CFLAGS='-O0'
-        RELEASE_CXXFLAGS='-O0'
-        ;;
     CygWin)
         THE_OS="CygWin"
         THE_COMP="the GNU C++"
@@ -276,21 +257,6 @@ case $platform in
         THE_COMP="QNX cc"
         CC=qcc; export CC
         CXX=QCC; export CXX
-        ;;
-    BeOS)
-        THE_OS="BeOS"
-        THE_COMP="the GNU C++"
-        OPTIMIZATIONS="-fdefault-inline -fdefer-pop -fforce-mem -fforce-addr \
-            -finline -finline-functions \
-            -fkeep-inline-functions -fkeep-static-consts -fbranch-count-reg \
-            -ffunction-cse -fstrength-reduce -fthread-jumps -fcse-follow-jumps \
-            -fcse-skip-blocks -frerun-cse-after-loop -frerun-loop-opt \
-            -fexpensive-optimizations -foptimize-register-move -fregmove \
-            -fschedule-insns -fschedule-insns2 -ffloat-store -funroll-loops \
-            -fmove-all-movables -freduce-all-givs -fpeephole \
-            -funroll-all-loops -ffunction-sections -fdata-sections"
-        RELEASE_CFLAGS="$OPTIMIZATIONS"
-        RELEASE_CXXFLAGS="$OPTIMIZATIONS"
         ;;
     zOS)
         THE_OS="z/OS (OS/390)"
@@ -387,3 +353,4 @@ echo
 echo If the result of the above commands looks okay to you, go to the directory
 echo source in the ICU distribution to build ICU. Please remember that ICU needs
 echo GNU make to build properly...
+

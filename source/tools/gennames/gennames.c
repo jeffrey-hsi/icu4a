@@ -124,7 +124,6 @@
 #include "unicode/putil.h"
 #include "cmemory.h"
 #include "cstring.h"
-#include "unicode/uclean.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
 #include "uoptions.h"
@@ -283,21 +282,8 @@ extern int
 main(int argc, char* argv[]) {
     UVersionInfo version;
     UBool store10Names=FALSE;
-    UErrorCode errorCode = U_ZERO_ERROR;
 
     U_MAIN_INIT_ARGS(argc, argv);
-
-    /* Initialize ICU */
-    u_init(&errorCode);
-    if (U_FAILURE(errorCode) && errorCode != U_FILE_ACCESS_ERROR) {
-        /* Note: u_init() will try to open ICU property data.
-         *       failures here are expected when building ICU from scratch.
-         *       ignore them.
-         */
-        fprintf(stderr, "%s: can not initialize ICU.  errorCode = %s\n",
-            argv[0], u_errorName(errorCode));
-        exit(1);
-    }
 
     /* preset then read command line options */
     options[5].value=u_getDataDirectory();
@@ -354,7 +340,6 @@ main(int argc, char* argv[]) {
     compress();
     generateData(options[5].value);
 
-    u_cleanup();
     return 0;
 }
 

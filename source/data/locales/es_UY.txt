@@ -18,6 +18,8 @@ es_UY {
         "dd/MM/yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x380a }
+//    LocaleString { "es_UY" }
     NumberElements {
         ",",
         ".",
@@ -31,7 +33,6 @@ es_UY {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
     NumberPatterns { 
         "#,##0.###;-#,##0.###",
@@ -39,4 +40,5 @@ es_UY {
         "#,##0%",
         "#E0",
     }
+//    ShortCountry { "URY" }
 }

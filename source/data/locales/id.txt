@@ -66,7 +66,6 @@ id {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
     NumberPatterns {
         "#,##0.###;-#,##0.###",
@@ -74,12 +73,10 @@ id {
         "#,##0%",
         "#E0",
     }
-    LocaleScript:array{ 
-       "Latn",  // ISO 15924 Name 
-    }
-    ExemplarCharacters{
-       "[a-z]"
-    }
+    LocaleID:int { 0x21 }
+//    LocaleScript{ 
+//        "Latn",  // ISO 15924 Name 
+//    }
     // /**************** Info Below is needed ****************/
     // CollationElements{}
     // Countries{}

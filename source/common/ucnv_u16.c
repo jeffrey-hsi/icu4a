@@ -35,7 +35,7 @@ _UTF16PEToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
     int32_t count;
     int32_t sourceIndex     = 0;
 
-    if(length <= 0) {
+    if(length <= 0 && cnv->toUnicodeStatus == 0) {
         /* no input, nothing to do */
         return;
     }
@@ -46,14 +46,14 @@ _UTF16PEToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
     }
 
     /* complete a partial UChar from the last call */
-    if(length != 0 && cnv->toULength != 0) {
+    if(length != 0 && cnv->toUnicodeStatus != 0) {
         /*
          * copy the byte from the last call and the first one here into the target,
          * byte-wise to keep the platform endianness
          */
         uint8_t *p = (uint8_t *)target++;
-        *p++ = cnv->toUBytes[0];
-        cnv->toULength = 0;
+        *p++ = (uint8_t)cnv->toUnicodeStatus;
+        cnv->toUnicodeStatus = 0;
         *p = *source++;
         --length;
         --targetCapacity;
@@ -88,9 +88,16 @@ _UTF16PEToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
         /* it must be targetCapacity==0 because otherwise the above would have copied more */
         *pErrorCode = U_BUFFER_OVERFLOW_ERROR;
     } else if(length == 1) {
-        /* consume the last byte and store it */
-        cnv->toUBytes[0]=*source++;
-        cnv->toULength=1;
+        if(pArgs->flush) {
+            /* a UChar remains incomplete */
+            *pErrorCode = U_TRUNCATED_CHAR_FOUND;
+        } else {
+            /* consume the last byte and store it, making sure that it will never set the status to 0 */
+            cnv->toUnicodeStatus = *source++ | 0x100;
+        }
+    } else /* length==0 */ if(cnv->toUnicodeStatus!=0 && pArgs->flush) {
+        /* a UChar remains incomplete */
+        *pErrorCode = U_TRUNCATED_CHAR_FOUND;
     }
 
     /* write back the updated pointers */
@@ -192,7 +199,7 @@ _UTF16OEToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
     int32_t count;
     int32_t sourceIndex     = 0;
 
-    if(length <= 0) {
+    if(length <= 0 && cnv->toUnicodeStatus == 0) {
         /* no input, nothing to do */
         return;
     }
@@ -203,14 +210,14 @@ _UTF16OEToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
     }
 
     /* complete a partial UChar from the last call */
-    if(length != 0 && cnv->toULength != 0) {
+    if(length != 0 && cnv->toUnicodeStatus != 0) {
         /*
          * copy the byte from the last call and the first one here into the target,
          * byte-wise, reversing the platform endianness
          */
         *target8++ = *source++;
-        *target8++ = cnv->toUBytes[0];
-        cnv->toULength = 0;
+        *target8++ = (uint8_t)cnv->toUnicodeStatus;
+        cnv->toUnicodeStatus = 0;
         ++target;
         --length;
         --targetCapacity;
@@ -253,8 +260,16 @@ _UTF16OEToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
         /* it must be targetCapacity==0 because otherwise the above would have copied more */
         *pErrorCode = U_BUFFER_OVERFLOW_ERROR;
     } else if(length == 1) {
-        cnv->toUBytes[0]=*source++;
-        cnv->toULength=1;
+        if(pArgs->flush) {
+            /* a UChar remains incomplete */
+            *pErrorCode = U_TRUNCATED_CHAR_FOUND;
+        } else {
+            /* consume the last byte and store it, making sure that it will never set the status to 0 */
+            cnv->toUnicodeStatus = *source++ | 0x100;
+        }
+    } else /* length==0 */ if(cnv->toUnicodeStatus!=0 && pArgs->flush) {
+        /* a UChar remains incomplete */
+        *pErrorCode = U_TRUNCATED_CHAR_FOUND;
     }
 
     /* write back the updated pointers */
@@ -359,51 +374,52 @@ _UTF16OEFromUnicodeWithOffsets(UConverterFromUnicodeArgs *pArgs,
 #   define _UTF16LEFromUnicodeWithOffsets   _UTF16PEFromUnicodeWithOffsets
 #endif
 
-static UChar32
-_UTF16BEGetNextUChar(UConverterToUnicodeArgs *pArgs, UErrorCode *err) {
-    const uint8_t *s, *sourceLimit;
-    UChar32 c;
-
-    s=(const uint8_t *)pArgs->source;
-    sourceLimit=(const uint8_t *)pArgs->sourceLimit;
-
-    if(s>=sourceLimit) {
-        /* no input */
-        *err=U_INDEX_OUTOFBOUNDS_ERROR;
+static UChar32 T_UConverter_getNextUChar_UTF16_BE(UConverterToUnicodeArgs* args,
+                                                   UErrorCode* err)
+{
+    UChar32 myUChar;
+    uint16_t first;
+    /*Checks boundaries and set appropriate error codes*/
+    if (args->source+2 > args->sourceLimit) 
+    {
+        if (args->source >= args->sourceLimit)
+        {
+            /*Either caller has reached the end of the byte stream*/
+            *err = U_INDEX_OUTOFBOUNDS_ERROR;
+        }
+        else
+        {
+            /* a character was cut in half*/
+            *err = U_TRUNCATED_CHAR_FOUND;
+        }
         return 0xffff;
     }
 
-    if(s+2>sourceLimit) {
-        /* only one byte: truncated UChar */
-        pArgs->converter->toUBytes[0]=*s++;
-        pArgs->converter->toULength=1;
-        pArgs->source=(const char *)s;
-        *err = U_TRUNCATED_CHAR_FOUND;
-        return 0xffff;
-    }
+    /*Gets the corresponding codepoint*/
+    first = (uint16_t)(((uint16_t)(*(args->source)) << 8) |((uint8_t)*((args->source)+1)));
+    myUChar = first;
+    args->source += 2;
 
-    /* get one UChar */
-    c=((UChar32)*s<<8)|s[1];
-    s+=2;
+    if(UTF_IS_FIRST_SURROGATE(first)) {
+        uint16_t second;
 
-    /*
-     * check for surrogate pairs
-     * surrogate code points are not currently considered an error
-     * TODO see Jitterbug 1838
-     */
-    if(U16_IS_LEAD(c) && s+2<=sourceLimit) {
-        UChar trail;
+        if (args->source+2 > args->sourceLimit) {
+            *err = U_TRUNCATED_CHAR_FOUND;
+            return 0xffff;
+        }
 
-        /* get a second UChar and see if it is a trail surrogate */
-        trail=((UChar)*s<<8)|s[1];
-        if(U16_IS_TRAIL(trail)) {
-            c=U16_GET_SUPPLEMENTARY(c, trail);
-            s+=2;
+        /* get the second surrogate and assemble the code point */
+        second = (uint16_t)(((uint16_t)(*(args->source)) << 8) |((uint8_t)*(args->source+1)));
+
+        /* ignore unmatched surrogates and just deliver the first one in such a case */
+        if(UTF_IS_SECOND_SURROGATE(second)) {
+            /* matched pair, get pair value */
+            myUChar = UTF16_GET_PAIR_VALUE(first, second);
+            args->source += 2;
         }
     }
 
-    pArgs->source=(const char *)s;
-    return c;
+    return myUChar;
 } 
 
 static const UConverterImpl _UTF16BEImpl={
@@ -420,7 +436,7 @@ static const UConverterImpl _UTF16BEImpl={
     _UTF16BEToUnicodeWithOffsets,
     _UTF16BEFromUnicodeWithOffsets,
     _UTF16BEFromUnicodeWithOffsets,
-    _UTF16BEGetNextUChar,
+    T_UConverter_getNextUChar_UTF16_BE,
 
     NULL,
     NULL,
@@ -449,51 +465,57 @@ const UConverterSharedData _UTF16BEData={
 
 /* UTF-16LE ----------------------------------------------------------------- */
 
-static UChar32
-_UTF16LEGetNextUChar(UConverterToUnicodeArgs *pArgs, UErrorCode *err) {
-    const uint8_t *s, *sourceLimit;
-    UChar32 c;
+static UChar32 T_UConverter_getNextUChar_UTF16_LE(UConverterToUnicodeArgs* args,
+                                                   UErrorCode* err)
+{
+    UChar32 myUChar;
+    uint16_t first;
+    /*Checks boundaries and set appropriate error codes*/
+    if (args->source+2 > args->sourceLimit) 
+    {
+        if (args->source >= args->sourceLimit)
+        {
+            /*Either caller has reached the end of the byte stream*/
+            *err = U_INDEX_OUTOFBOUNDS_ERROR;
+        }
+        else
+        {
+            /* a character was cut in half*/
+            *err = U_TRUNCATED_CHAR_FOUND;
+        }
 
-    s=(const uint8_t *)pArgs->source;
-    sourceLimit=(const uint8_t *)pArgs->sourceLimit;
-
-    if(s>=sourceLimit) {
-        /* no input */
-        *err=U_INDEX_OUTOFBOUNDS_ERROR;
         return 0xffff;
     }
 
-    if(s+2>sourceLimit) {
-        /* only one byte: truncated UChar */
-        pArgs->converter->toUBytes[0]=*s++;
-        pArgs->converter->toULength=1;
-        pArgs->source=(const char *)s;
-        *err = U_TRUNCATED_CHAR_FOUND;
-        return 0xffff;
-    }
+    /*Gets the corresponding codepoint*/
+    first = (uint16_t)(((uint16_t)*((args->source)+1) << 8) | ((uint8_t)(*(args->source))));
+    myUChar=first;
+    /*updates the source*/
+    args->source += 2;  
 
-    /* get one UChar */
-    c=((UChar32)s[1]<<8)|*s;
-    s+=2;
+    if (UTF_IS_FIRST_SURROGATE(first))
+    {
+        uint16_t second;
 
-    /*
-     * check for surrogate pairs
-     * surrogate code points are not currently considered an error
-     * TODO see Jitterbug 1838
-     */
-    if(U16_IS_LEAD(c) && s+2<=sourceLimit) {
-        UChar trail;
+        if (args->source+2 > args->sourceLimit)
+        {
+           *err = U_TRUNCATED_CHAR_FOUND;
+            return 0xffff;
+        }
 
-        /* get a second UChar and see if it is a trail surrogate */
-        trail=((UChar)s[1]<<8)|*s;
-        if(U16_IS_TRAIL(trail)) {
-            c=U16_GET_SUPPLEMENTARY(c, trail);
-            s+=2;
+        /* get the second surrogate and assemble the code point */
+        second = (uint16_t)(((uint16_t)*(args->source+1) << 8) |((uint8_t)(*(args->source))));
+
+        /* ignore unmatched surrogates and just deliver the first one in such a case */
+        if(UTF_IS_SECOND_SURROGATE(second))
+        {
+            /* matched pair, get pair value */
+            myUChar = UTF16_GET_PAIR_VALUE(first, second);
+            args->source += 2;
         }
     }
 
-    pArgs->source=(const char *)s;
-    return c;
+    return myUChar;
 } 
 
 static const UConverterImpl _UTF16LEImpl={
@@ -510,7 +532,7 @@ static const UConverterImpl _UTF16LEImpl={
     _UTF16LEToUnicodeWithOffsets,
     _UTF16LEFromUnicodeWithOffsets,
     _UTF16LEFromUnicodeWithOffsets,
-    _UTF16LEGetNextUChar,
+    T_UConverter_getNextUChar_UTF16_LE,
 
     NULL,
     NULL,
@@ -705,12 +727,12 @@ _UTF16ToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
             _UTF16BEToUnicodeWithOffsets(pArgs, pErrorCode);
             pArgs->source=source;
             pArgs->sourceLimit=sourceLimit;
-            state=8;
             break;
         }
+        cnv->mode=0; /* reset */
+    } else {
+        cnv->mode=state;
     }
-
-    cnv->mode=state;
 }
 
 static UChar32
@@ -718,11 +740,11 @@ _UTF16GetNextUChar(UConverterToUnicodeArgs *pArgs,
                    UErrorCode *pErrorCode) {
     switch(pArgs->converter->mode) {
     case 8:
-        return _UTF16BEGetNextUChar(pArgs, pErrorCode);
+        return T_UConverter_getNextUChar_UTF16_BE(pArgs, pErrorCode);
     case 9:
-        return _UTF16LEGetNextUChar(pArgs, pErrorCode);
+        return T_UConverter_getNextUChar_UTF16_LE(pArgs, pErrorCode);
     default:
-        return UCNV_GET_NEXT_UCHAR_USE_TO_U;
+        return ucnv_getNextUCharFromToUImpl(pArgs, _UTF16ToUnicodeWithOffsets, TRUE, pErrorCode);
     }
 }
 

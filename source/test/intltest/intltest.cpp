@@ -27,9 +27,9 @@
 #include "intltest.h"
 #include "caltztst.h"
 #include "itmajor.h"
+#include "tsmutex.h"
 
 #include "umutex.h"
-#include "uassert.h"
 
 #ifdef XP_MAC_CONSOLE
 #include <console.h>
@@ -382,7 +382,7 @@ void IntlTest::setICU_DATA() {
     //              may not be the same as the source directory, depending on
     //              the configure options used.  At any rate,
     //              set the data path to the built data from this directory.
-    //              The value is complete with quotes, so it can be used
+    //              The value is complete with quotes, so it can be used 
     //              as-is as a string constant.
 
 #if defined (U_TOPBUILDDIR)
@@ -627,7 +627,7 @@ UBool IntlTest::runTest( char* name, char* par )
     }
 
     if (!name || (name[0] == 0) || (strcmp(name, "*") == 0)) {
-        rval = runTestLoop( NULL, par );
+        rval = runTestLoop( NULL, NULL );
 
     }else if (strcmp( name, "LIST" ) == 0) {
         this->usage();
@@ -670,7 +670,7 @@ UBool IntlTest::runTestLoop( char* testname, char* par )
     IntlTest* saveTest = gTest;
     gTest = this;
     do {
-        this->runIndexedTest( index, FALSE, name, par );
+        this->runIndexedTest( index, FALSE, name );
         if (!name || (name[0] == 0))
             break;
         if (!testname) {
@@ -791,7 +791,7 @@ void IntlTest::errln( const UnicodeString &message )
 /* convenience functions that include sprintf formatting */
 void IntlTest::log(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -805,7 +805,7 @@ void IntlTest::log(const char *fmt, ...)
 
 void IntlTest::logln(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -820,7 +820,7 @@ void IntlTest::logln(const char *fmt, ...)
 /* convenience functions that include sprintf formatting */
 void IntlTest::info(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -832,7 +832,7 @@ void IntlTest::info(const char *fmt, ...)
 
 void IntlTest::infoln(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -844,7 +844,7 @@ void IntlTest::infoln(const char *fmt, ...)
 
 void IntlTest::err(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -855,7 +855,7 @@ void IntlTest::err(const char *fmt, ...)
 
 void IntlTest::errln(const char *fmt, ...)
 {
-    char buffer[4000];
+    char buffer[512];
     va_list ap;
 
     va_start(ap, fmt);
@@ -969,47 +969,54 @@ main(int argc, char* argv[])
     UBool warnOnMissingData = FALSE;
     UErrorCode errorCode = U_ZERO_ERROR;
     UConverter *cnv = NULL;
-    const char *warnOrErr = "Failure";
-#if !UCONFIG_NO_FORMATTING
+    const char *warnOrErr = "Failure"; 
     const char* zone = "America/Los_Angeles";
     int argzone = -1;
-#endif
+
+    /* This must be tested before using anything! */
+    MutexTest::gMutexInitialized = umtx_isInitialized(NULL);
 
 #ifdef XP_MAC_CONSOLE
     argc = ccommand( &argv );
 #endif
 
-    /* Initialize ICU */
-	IntlTest::setICU_DATA();   // Must set data directory before u_init() is called.
-    u_init(&errorCode);
-    if (U_FAILURE(errorCode)) {
+    /* try opening the data from dll instead of the dat file */
+    cnv = ucnv_open(TRY_CNV_1, &errorCode);
+    if(cnv != 0) {
+        /* ok */
+        ucnv_close(cnv);
+    } else {
         fprintf(stderr,
-                "#### %s: u_init() failed, error is \"%s\".\n"
-				"#### Most commonly indicates that the ICU data is not accesible.\n"
-                "#### Check setting of ICU_DATA, or check that ICU data library is available\n"
-				"#### ICU_DATA is currently set to \"%s\"\n", argv[0], u_errorName(errorCode), u_getDataDirectory());
-		u_cleanup();
-	    return 1;
-    }
+                "#### WARNING! The converter for " TRY_CNV_1 " cannot be loaded from data dll/so."
+                "Proceeding to load data from dat file.\n");
+        errorCode = U_ZERO_ERROR;
 
+    }
+    // If user didn't set ICU_DATA, attempt to generate one.
+    IntlTest::setICU_DATA();
 
     for (int i = 1; i < argc; ++i) {
         if (argv[i][0] == '-') {
             const char* str = argv[i] + 1;
-            if (strcmp("verbose", str) == 0 ||
-                strcmp("v", str) == 0)
+            if (strcmp("verbose", str) == 0)
                 verbose = TRUE;
-            else if (strcmp("noerrormsg", str) == 0 ||
-                     strcmp("n", str) == 0)
+            else if (strcmp("v", str) == 0)
+                verbose = TRUE;
+            else if (strcmp("noerrormsg", str) == 0)
                 no_err_msg = TRUE;
-            else if (strcmp("exhaustive", str) == 0 ||
-                     strcmp("e", str) == 0)
+            else if (strcmp("n", str) == 0)
+                no_err_msg = TRUE;
+            else if (strcmp("exhaustive", str) == 0)
                 quick = FALSE;
-            else if (strcmp("all", str) == 0 ||
-                     strcmp("a", str) == 0)
+            else if (strcmp("e", str) == 0)
+                quick = FALSE;
+            else if (strcmp("all", str) == 0)
                 all = TRUE;
-            else if (strcmp("leaks", str) == 0 ||
-                     strcmp("l", str) == 0)
+            else if (strcmp("a", str) == 0)
+                all = TRUE;
+            else if (strcmp("leaks", str) == 0)
+                leaks = TRUE;
+            else if (strcmp("l", str) == 0)
                 leaks = TRUE;
             else if (strcmp("w", str) == 0) {
               warnOnMissingData = TRUE;
@@ -1196,11 +1203,9 @@ main(int argc, char* argv[])
         }
     }else{
         for (int i = 1; i < argc; ++i) {
-#if !UCONFIG_NO_FORMATTING
             if (i == argzone) {
                 continue;
             }
-#endif
             if (argv[i][0] != '-') {
                 char* name = argv[i];
                 fprintf(stdout, "\n=== Handling test: %s: ===\n", name);
@@ -1247,6 +1252,18 @@ main(int argc, char* argv[])
 
     fprintf(stdout, "--------------------------------------\n");
 
+    if (!MutexTest::gMutexInitialized) {
+        fprintf(stderr,
+            "#### WARNING!\n"
+            "  The global mutex was not initialized during C++ static initialization.\n"
+            "  You must use an ICU API in a single thread, like ucnv_open() or\n"
+            "  uloc_countAvailable(), before using ICU in multiple threads.\n"
+            "  Most ICU API functions will initialize the global mutex for you.\n"
+            "  If you are using ICU in a single threaded application, please ignore this\n"
+            "  warning.\n"
+            "#### WARNING!\n"
+            );
+    }
     if (execCount <= 0) {
         fprintf(stdout, "***** Not all called tests actually exist! *****\n");
     }
@@ -1371,50 +1388,6 @@ UnicodeString CharsToUnicodeString(const char* chars)
     return str.unescape();
 }
 
-#define RAND_M  (714025)
-#define RAND_IA (1366)
-#define RAND_IC (150889)
-
-static int32_t RAND_SEED;
-
-/**
- * Returns a uniform random value x, with 0.0 <= x < 1.0.  Use
- * with care: Does not return all possible values; returns one of
- * 714,025 values, uniformly spaced.  However, the period is
- * effectively infinite.  See: Numerical Recipes, section 7.1.
- *
- * @param seedp pointer to seed. Set *seedp to any negative value
- * to restart the sequence.
- */
-float IntlTest::random(int32_t* seedp) {
-    static int32_t iy, ir[98];
-    static UBool first=TRUE;
-    int32_t j;
-    if (*seedp < 0 || first) {
-        first = FALSE;
-        if ((*seedp=(RAND_IC-(*seedp)) % RAND_M) < 0) *seedp = -(*seedp);
-        for (j=1;j<=97;++j) {
-            *seedp=(RAND_IA*(*seedp)+RAND_IC) % RAND_M;
-            ir[j]=(*seedp);
-        }
-        *seedp=(RAND_IA*(*seedp)+RAND_IC) % RAND_M;
-        iy=(*seedp);
-    }
-    j=(int32_t)(1 + 97.0*iy/RAND_M);
-    U_ASSERT(j>=1 && j<=97);
-    iy=ir[j];
-    *seedp=(RAND_IA*(*seedp)+RAND_IC) % RAND_M;
-    ir[j]=(*seedp);
-    return (float) iy/RAND_M;
-}
-
-/**
- * Convenience method using a global seed.
- */
-float IntlTest::random() {
-    return random(&RAND_SEED);
-}
-
 /*
  * Hey, Emacs, please set the following:
  *
@@ -1423,3 +1396,4 @@ float IntlTest::random() {
  * End:
  *
  */
+

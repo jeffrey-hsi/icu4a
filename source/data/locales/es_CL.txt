@@ -18,6 +18,8 @@ es_CL {
         "dd-MM-yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x340a }
+//    LocaleString { "es_CL" }
     NumberElements {
         ",",
         ".",
@@ -31,7 +33,6 @@ es_CL {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
     NumberPatterns { 
         "#,##0.###;-#,##0.###",
@@ -39,6 +40,8 @@ es_CL {
         "#,##0%",
         "#E0",
     }
+//    ShortCountry { "CHL" }
+
     // Currency display names
     Currencies {
         CLP { "$", "Peso Chileno" }

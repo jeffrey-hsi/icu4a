@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include "unicode/utypes.h"
 #include "unicode/putil.h"
-#include "unicode/uclean.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
 #include "cmemory.h"
@@ -47,19 +46,15 @@ static const UDataInfo dataInfo={
 };
 
 static void createData(const char*);
-U_CAPI int genres32(const char *prog, const char *path);
 
 static UOption options[]={
-  /*0*/ UOPTION_HELP_H,
-  /*1*/ UOPTION_HELP_QUESTION_MARK,
-  /*2*/ UOPTION_DESTDIR,
-  /*3*/ UOPTION_DEF("genres", 'r', UOPT_NO_ARG)
+    UOPTION_HELP_H,
+    UOPTION_HELP_QUESTION_MARK,
+    UOPTION_DESTDIR
 };
 
 extern int
 main(int argc, char* argv[]) {
-    UErrorCode errorCode = U_ZERO_ERROR;
-
     /* preset then read command line options */
     options[2].value=u_getDataDirectory();
     argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
@@ -73,21 +68,16 @@ main(int argc, char* argv[]) {
     if(argc<0 || options[0].doesOccur || options[1].doesOccur) {
         fprintf(stderr,
             "usage: %s [-options]\n"
-            "\tcreate the test file " DATA_PKG "_" DATA_NAME "." DATA_TYPE " unless the -r option is given.\n"
+            "\tcreate the test file " DATA_PKG "_" DATA_NAME "." DATA_TYPE "\n"
             "\toptions:\n"
             "\t\t-h or -? or --help  this usage text\n"
-            "\t\t-d or --destdir     destination directory, followed by the path\n"
-            "\t\t-r or --genres      generate resource file testtable32.txt instead of UData test \n",
+            "\t\t-d or --destdir     destination directory, followed by the path\n",
             argv[0]);
         return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
-    if ( options[3].doesOccur ) {
-      return genres32( argv[0], options[2].value );
-    } else { 
-      /* printf("Generating the test memory mapped file\n"); */
-      createData(options[2].value);
-    }
+    /* printf("Generating the test memory mapped file\n"); */
+    createData(options[2].value);
     return 0;
 }
 

@@ -18,6 +18,7 @@
 #include "ucdtest.h"
 #include "restest.h"
 #include "restsnew.h"
+#include "tsmutex.h"
 #include "tsmthred.h"
 #include "tsputil.h"
 #include "uobjtest.h"
@@ -32,7 +33,12 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
     if (exec) logln("TestSuite Utilities: ");
     switch (index) {
         case 0:
-            name = "Reserved";   // Was MutexTest, test retired with removal of ICU static init.
+            name = "MutexTest"; 
+            if (exec) {
+                logln("MutexTest---"); logln("");
+                MutexTest test;
+                callTest( test, par );
+            }
             break;
 
         case 1:

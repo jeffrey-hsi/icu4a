@@ -11,4 +11,7 @@ fr_FR {
         2,
         1,
     }
+//    LocaleString { "fr_FR" }
+//    ShortCountry { "FRA" }
+    LocaleID:int { 0x040c }
 }

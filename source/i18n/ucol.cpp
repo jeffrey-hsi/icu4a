@@ -29,7 +29,6 @@
 #include "unicode/udata.h"
 #include "unicode/uchar.h"
 #include "unicode/caniter.h"
-#include "unicode/utrace.h"
 
 #include "ucol_bld.h"
 #include "ucol_imp.h"
@@ -61,11 +60,8 @@ U_NAMESPACE_USE
 
 #define ZERO_CC_LIMIT_            0xC0
 
-// static UCA. There is only one. Collators don't use it.
-// It is referenced only in ucol_initUCA and ucol_cleanup
-static UCollator* _staticUCA = NULL;
-// static pointer to udata memory. Inited in ucol_initUCA
-// used for cleanup in ucol_cleanup
+static UCollator* UCA = NULL;
+static UCAConstants *UCAconsts = NULL; 
 static UDataMemory* UCA_DATA_MEM = NULL;
 
 
@@ -345,18 +341,14 @@ U_CAPI UCollator*
 ucol_open(const char *loc,
 		  UErrorCode *status)
 {
-  UTRACE_ENTRY(UTRACE_UCOL_OPEN);
-  UTRACE_DATA1(UTRACE_INFO, "locale = \"%s\"", loc);
   UCollator *result = NULL;
-
-  u_init(status);
-  result = Collator::createUCollator(loc, status);
-  if (result == NULL) {
-    result = ucol_open_internal(loc, status);
+  if (status && U_SUCCESS(*status)) {
+	  result = Collator::createUCollator(loc, status);
+	if (result) {
+	  return result;
+	}	
   }
-  UTRACE_DATA1(UTRACE_INFO, "Returning %p", result);
-  UTRACE_EXIT_S(*status);
-  return result;
+  return ucol_open_internal(loc, status);
 }
 
 // API in ucol_imp.h
@@ -365,7 +357,7 @@ U_CFUNC UCollator*
 ucol_open_internal(const char *loc,
 		           UErrorCode *status)
 {
-  const UCollator* UCA = ucol_initUCA(status);
+  ucol_initUCA(status);
 
   /* New version */
   if(U_FAILURE(*status)) return 0;
@@ -378,7 +370,7 @@ ucol_open_internal(const char *loc,
 
   if(*status == U_MISSING_RESOURCE_ERROR) { /* We didn't find the tailoring data, we fallback to the UCA */
     *status = U_USING_DEFAULT_WARNING;
-    result = ucol_initCollator(UCA->image, result, UCA, status);
+    result = ucol_initCollator(UCA->image, result, status);
     // if we use UCA, real locale is root
     result->rb = ures_open(NULL, "", status);
     result->elements = ures_open(NULL, "", status);
@@ -410,13 +402,13 @@ ucol_open_internal(const char *loc,
           goto clean;
         }
         if((uint32_t)len > (paddedsize(sizeof(UCATableHeader)) + paddedsize(sizeof(UColOptionSet)))) {
-          result = ucol_initCollator((const UCATableHeader *)inData, result, UCA, status);
+          result = ucol_initCollator((const UCATableHeader *)inData, result, status);
           if(U_FAILURE(*status)){
             goto clean;
           }
           result->hasRealData = TRUE;
         } else {
-          result = ucol_initCollator(UCA->image, result, UCA, status);
+          result = ucol_initCollator(UCA->image, result, status);
           ucol_setOptionsFromHeader(result, (UColOptionSet *)(inData+((const UCATableHeader *)inData)->options), status);
           if(U_FAILURE(*status)){
             goto clean;
@@ -474,53 +466,49 @@ ucol_setReqValidLocales(UCollator *coll, char *requestedLocaleToAdopt, char *val
 U_CAPI void U_EXPORT2
 ucol_close(UCollator *coll)
 {
-  UTRACE_ENTRY(UTRACE_UCOL_CLOSE);
-  UTRACE_DATA1(UTRACE_INFO, "coll = %p", coll);
   if(coll != NULL) {
-      // these are always owned by each UCollator struct, 
-      // so we always free them
-      if(coll->validLocale != NULL) {
-          uprv_free(coll->validLocale);
+	// these are always owned by each UCollator struct, 
+	// so we always free them
+    if(coll->validLocale != NULL) {
+      uprv_free(coll->validLocale);
+    }
+    if(coll->requestedLocale != NULL) {
+      uprv_free(coll->requestedLocale);
+    }
+
+    /* Here, it would be advisable to close: */
+    /* - UData for UCA (unless we stuff it in the root resb */
+    /* Again, do we need additional housekeeping... HMMM! */
+    if(coll->freeOnClose == FALSE){
+      return; /* for safeClone, if freeOnClose is FALSE,
+              don't free the other instance data */
+    }
+    if(coll->freeOptionsOnClose != FALSE) {
+      if(coll->options != NULL) {
+        uprv_free(coll->options);
       }
-      if(coll->requestedLocale != NULL) {
-          uprv_free(coll->requestedLocale);
-      }
-      
-      /* Here, it would be advisable to close: */
-      /* - UData for UCA (unless we stuff it in the root resb */
-      /* Again, do we need additional housekeeping... HMMM! */
-      UTRACE_DATA1(UTRACE_INFO, "coll->freeOnClose: %d", coll->freeOnClose);
-      if(coll->freeOnClose){
-      /* for safeClone, if freeOnClose is FALSE,
-          don't free the other instance data */
-          if(coll->freeOptionsOnClose != FALSE) {
-              if(coll->options != NULL) {
-                  uprv_free(coll->options);
-              }
-          }
-          if(coll->mapping != NULL) {
-              /*ucmpe32_close(coll->mapping);*/
-              uprv_free(coll->mapping);
-          }
-          if(coll->rules != NULL && coll->freeRulesOnClose) {
-              uprv_free((UChar *)coll->rules);
-          }
-          if(coll->rb != NULL) { /* pointing to read-only memory */
-              ures_close(coll->rb);
-          } 
-          if(coll->freeImageOnClose == TRUE) {
-              uprv_free((UCATableHeader *)coll->image);
-          }
-          if(coll->elements != NULL) {
-              ures_close(coll->elements);
-          }
-          if(coll->latinOneCEs != NULL) {
-              uprv_free(coll->latinOneCEs);
-          }
-          uprv_free(coll);
-      }
+    }
+    if(coll->mapping != NULL) {
+        /*ucmpe32_close(coll->mapping);*/
+      uprv_free(coll->mapping);
+    }
+    if(coll->rules != NULL && coll->freeRulesOnClose) {
+      uprv_free((UChar *)coll->rules);
+    }
+    if(coll->rb != NULL) { /* pointing to read-only memory */
+      ures_close(coll->rb);
+    } 
+    if(coll->freeImageOnClose == TRUE) {
+      uprv_free((UCATableHeader *)coll->image);
+    }
+    if(coll->elements != NULL) {
+      ures_close(coll->elements);
+    }
+    if(coll->latinOneCEs != NULL) {
+      uprv_free(coll->latinOneCEs);
+    }
+    uprv_free(coll);
   }
-  UTRACE_EXIT();
 }
 
 U_CAPI UCollator* U_EXPORT2
@@ -538,11 +526,6 @@ ucol_openRules( const UChar        *rules,
   
   if(status == NULL || U_FAILURE(*status)){
     return 0;
-  }
-
-  u_init(status);
-  if (U_FAILURE(*status)) {
-      return NULL;
   }
 
   if(rulesLength < -1 || (rules == NULL && rulesLength != 0)) {
@@ -569,7 +552,7 @@ ucol_openRules( const UChar        *rules,
     return 0;
   }
 
-  UCollator *UCA = ucol_initUCA(status);
+  ucol_initUCA(status);
 
   if(U_FAILURE(*status)){
     return NULL;
@@ -607,14 +590,14 @@ ucol_openRules( const UChar        *rules,
       u_getUnicodeVersion(table->UCDVersion);
       // set UCA version
       uprv_memcpy(table->UCAVersion, UCA->image->UCAVersion, sizeof(UVersionInfo));
-      result = ucol_initCollator(table, 0, UCA, status);
+      result = ucol_initCollator(table,0,status);
       result->hasRealData = TRUE;
       result->freeImageOnClose = TRUE;
     }
   } else { /* no rules, but no error either */
     // must be only options
     // We will init the collator from UCA   
-    result = ucol_initCollator(UCA->image, 0, UCA, status);
+    result = ucol_initCollator(UCA->image,0,status);
     // And set only the options
     UColOptionSet *opts = (UColOptionSet *)uprv_malloc(sizeof(UColOptionSet));
     /* test for NULL */
@@ -694,37 +677,7 @@ ucol_cloneRuleData(const UCollator *coll, int32_t *length, UErrorCode *status)
         *status = U_MEMORY_ALLOCATION_ERROR;
         return NULL;
     }
-
-    /* build the UCATableHeader with minimal entries */
-    /* do not copy the header from the UCA file because its values are wrong! */
-    /* uprv_memcpy(result, UCA->image, sizeof(UCATableHeader)); */
-
-    /* reset everything */
-    uprv_memset(result, 0, *length);
-
-    /* set the tailoring-specific values */
-    UCATableHeader *myData = (UCATableHeader *)result;
-    myData->size = *length;
-
-    /* offset for the options, the only part of the data that is present after the header */
-    myData->options = sizeof(UCATableHeader);
-
-    /* need to always set the expansion value for an upper bound of the options */
-    myData->expansion = myData->options + sizeof(UColOptionSet);
-
-    myData->magic = UCOL_HEADER_MAGIC;
-    myData->isBigEndian = U_IS_BIG_ENDIAN;
-    myData->charSetFamily = U_CHARSET_FAMILY;
-
-    /* copy UCA's version; genrb will override all but the builder version with tailoring data */
-    uprv_memcpy(myData->version, coll->image->version, sizeof(UVersionInfo));
-
-    uprv_memcpy(myData->UCAVersion, coll->image->UCAVersion, sizeof(UVersionInfo));
-    uprv_memcpy(myData->UCDVersion, coll->image->UCDVersion, sizeof(UVersionInfo));
-    uprv_memcpy(myData->formatVersion, coll->image->formatVersion, sizeof(UVersionInfo));
-    myData->jamoSpecial = coll->image->jamoSpecial;
-
-    /* copy the collator options */
+    uprv_memcpy(result, UCA->image, sizeof(UCATableHeader));
     uprv_memcpy(result+paddedsize(sizeof(UCATableHeader)), coll->options, sizeof(UColOptionSet));
   }
   return result;
@@ -742,7 +695,6 @@ void ucol_setOptionsFromHeader(UCollator* result, UColOptionSet * opts, UErrorCo
     result->variableTopValue = opts->variableTopValue;
     result->alternateHandling = (UColAttributeValue)opts->alternateHandling;
     result->hiraganaQ = (UColAttributeValue)opts->hiraganaQ;
-    result->numericCollation = (UColAttributeValue)opts->numericCollation;
 
     result->caseFirstisDefault = TRUE;
     result->caseLevelisDefault = TRUE;
@@ -751,7 +703,6 @@ void ucol_setOptionsFromHeader(UCollator* result, UColOptionSet * opts, UErrorCo
     result->strengthisDefault = TRUE;
     result->variableTopValueisDefault = TRUE;
     result->hiraganaQisDefault = TRUE;
-    result->numericCollationisDefault = TRUE;
 
     ucol_updateInternalState(result, status);
 
@@ -771,8 +722,7 @@ void ucol_putOptionsToHeader(UCollator* result, UColOptionSet * opts, UErrorCode
     opts->strength = result->strength;
     opts->variableTopValue = result->variableTopValue;
     opts->alternateHandling = result->alternateHandling;
-    opts->hiraganaQ = result->hiraganaQ;
-    opts->numericCollation = result->numericCollation;
+    opts->hiraganaQ = opts->hiraganaQ;
 }
 #endif
 
@@ -823,7 +773,7 @@ inline uint8_t i_getCombiningClass(UChar c, const UCollator *coll) {
 }
 
 
-UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, const UCollator *UCA, UErrorCode *status) {
+UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, UErrorCode *status) {
     UChar c;
     UCollator *result = fillIn;
     if(U_FAILURE(*status) || image == NULL) {
@@ -884,7 +834,6 @@ UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, con
     result->variableTopValue = result->options->variableTopValue;
     result->alternateHandling = (UColAttributeValue)result->options->alternateHandling;
     result->hiraganaQ = (UColAttributeValue)result->options->hiraganaQ;
-    result->numericCollation = (UColAttributeValue)result->options->numericCollation;
 
     result->caseFirstisDefault = TRUE;
     result->caseLevelisDefault = TRUE;
@@ -894,7 +843,6 @@ UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, con
     result->variableTopValueisDefault = TRUE;
     result->alternateHandlingisDefault = TRUE;
     result->hiraganaQisDefault = TRUE;
-    result->numericCollationisDefault = TRUE;
 
     result->scriptOrder = NULL;
 
@@ -937,7 +885,6 @@ UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, con
 
     result->latinOneRegenTable = FALSE;
     result->latinOneFailed = FALSE;
-    result->UCA = UCA;
 
     ucol_updateInternalState(result, status);
 
@@ -952,9 +899,9 @@ ucol_cleanup(void)
         udata_close(UCA_DATA_MEM);
         UCA_DATA_MEM = NULL;
     }
-    if (_staticUCA) {
-        ucol_close(_staticUCA);
-        _staticUCA = NULL;
+    if (UCA) {
+        ucol_close(UCA);
+        UCA = NULL;
     }
     return TRUE;
 }
@@ -1123,7 +1070,7 @@ ucol_initUCA(UErrorCode *status) {
         return NULL;
     }
     umtx_lock(NULL);
-    UBool f = (_staticUCA == NULL);
+    UBool f = (UCA == NULL);
     umtx_unlock(NULL);
     
     if(f) {
@@ -1138,7 +1085,7 @@ ucol_initUCA(UErrorCode *status) {
         }
         
         if(result != NULL) { /* It looks like sometimes we can fail to find the data file */
-            newUCA = ucol_initCollator((const UCATableHeader *)udata_getMemory(result), newUCA, newUCA, status);
+            newUCA = ucol_initCollator((const UCATableHeader *)udata_getMemory(result), newUCA, status);
             if(U_SUCCESS(*status)){
                 newUCA->rb = NULL;
 				newUCA->elements = NULL;
@@ -1147,8 +1094,8 @@ ucol_initUCA(UErrorCode *status) {
 				newUCA->hasRealData = FALSE; // real data lives in .dat file...
                 newUCA->freeImageOnClose = FALSE;
                 umtx_lock(NULL);
-                if(_staticUCA == NULL) {
-                    _staticUCA = newUCA;
+                if(UCA == NULL) {
+                    UCA = newUCA;
                     UCA_DATA_MEM = result;
                     result = NULL;
                     newUCA = NULL;
@@ -1163,17 +1110,17 @@ ucol_initUCA(UErrorCode *status) {
                     ucln_i18n_registerCleanup();
                 }
                 // Initalize variables for implicit generation
-                const UCAConstants *UCAconsts = (UCAConstants *)((uint8_t *)_staticUCA->image + _staticUCA->image->UCAConsts);
+                UCAconsts = (UCAConstants *)((uint8_t *)UCA->image + UCA->image->UCAConsts);
                 uprv_uca_initImplicitConstants(UCAconsts->UCA_PRIMARY_IMPLICIT_MIN);
-                _staticUCA->mapping->getFoldingOffset = _getFoldingOffset;
+                UCA->mapping->getFoldingOffset = _getFoldingOffset;
             }else{
                 udata_close(result);
                 uprv_free(newUCA);
-                _staticUCA= NULL;
+                UCA= NULL;
             }
         }
     }
-    return _staticUCA;
+    return UCA;
 }
 
 
@@ -1512,10 +1459,10 @@ inline uint32_t ucol_IGetNextCE(const UCollator *coll, collIterate *collationSou
           }
           if(order == UCOL_NOT_FOUND) {   /* We couldn't find a good CE in the tailoring */
             /* if we got here, the codepoint MUST be over 0xFF - so we look directly in the trie */
-            order = UTRIE_GET32_FROM_LEAD(coll->UCA->mapping, ch);
+            order = UTRIE_GET32_FROM_LEAD(UCA->mapping, ch);
 
             if(order > UCOL_NOT_FOUND) { /* UCA also gives us a special CE */
-              order = ucol_prv_getSpecialCE(coll->UCA, ch, order, collationSource, status);
+              order = ucol_prv_getSpecialCE(UCA, ch, order, collationSource, status);
             }
           }
       }
@@ -1903,10 +1850,10 @@ inline uint32_t ucol_IGetPrevCE(const UCollator *coll, collIterate *data,
             else if (ch <= 0xFF) {
               result = coll->latinOneMapping[ch];
               if (result > UCOL_NOT_FOUND) {
-                result = ucol_prv_getSpecialPrevCE(coll, ch, result, data, status);
+                    result = ucol_prv_getSpecialPrevCE(coll, ch, result, data, status);
               }
             }
-                else {
+            else {
                     /*result = ucmpe32_get(coll->mapping, ch);*/
                     result = UTRIE_GET32_FROM_LEAD(coll->mapping, ch);
                 }
@@ -1920,11 +1867,11 @@ inline uint32_t ucol_IGetPrevCE(const UCollator *coll, collIterate *data,
                   }
                   else {
                         /*result = ucmpe32_get(UCA->mapping, ch);*/
-                        result = UTRIE_GET32_FROM_LEAD(coll->UCA->mapping, ch);
+                        result = UTRIE_GET32_FROM_LEAD(UCA->mapping, ch);
                   }
 
                   if (result > UCOL_NOT_FOUND) {
-                    result = ucol_prv_getSpecialPrevCE(coll->UCA, ch, result, data, status);
+                    result = ucol_prv_getSpecialPrevCE(UCA, ch, result, data, status);
                   }
                 }
             }
@@ -2686,8 +2633,8 @@ uint32_t ucol_prv_getSpecialCE(const UCollator *coll, UChar ch, uint32_t CE, col
         }
         else
         {
-          // Move the prevowel and the following base Consonant into the normalization buffer
-          //   with their order swapped
+            // Move the prevowel and the following base Consonant into the normalization buffer
+            //   with their order swapped
           // Note: this operation might activate the normalization buffer. We have to check for 
           // that and act accordingly.
           UChar thCh = getNextNormalizedChar(source); 
@@ -2732,12 +2679,12 @@ uint32_t ucol_prv_getSpecialCE(const UCollator *coll, UChar ch, uint32_t CE, col
               source->fcdPosition       = source->pos;   // Indicate where to continue in main input string
                                                            //   after exhausting the writableBuffer
             }
-            source->pos   = source->writableBuffer;
+        source->pos   = source->writableBuffer;
             source->origFlags         = source->flags;
             source->flags            |= UCOL_ITER_INNORMBUF;
             source->flags            &= ~(UCOL_ITER_NORM | UCOL_ITER_HASLEN | UCOL_USE_ITERATOR);
 
-            CE = UCOL_IGNORABLE;
+        CE = UCOL_IGNORABLE;
           } else { // stuff is already normalized... what to do here???
             int32_t decompLen = unorm_getDecomposition(cp, FALSE, &buffer[1], UCOL_MAX_BUFFER-1);
             if(decompLen < 0) {
@@ -3074,230 +3021,6 @@ uint32_t ucol_prv_getSpecialCE(const UCollator *coll, UChar ch, uint32_t CE, col
           *(source->CEpos++) = *CEOffset++;
         }
       }
-      return CE;
-      }
-    case DIGIT_TAG:      
-      {
-      /* 
-      	 We do a check to see if we want to collate digits as numbers; if so we generate
-         a custom collation key. Otherwise we pull out the value stored in the expansion table.
-      */
-      uint32_t size;
-      uint32_t i;    /* general counter */
-      collIterateState digitState;
-
-      if (coll->numericCollation == UCOL_ON){
-		UChar32 char32 = 0;		
-		
-		uint32_t digIndx = 0; 
-		uint32_t endIndex = 0;		
-		uint32_t trailingZeroIndex = 0;
-
-		uint32_t primWeight = 0;
-		
-		uint32_t digVal = 0;		
-		uint8_t	collateVal = 0;
-		
-		UBool nonZeroValReached = FALSE;
-
-		uint8_t *numTempBuf;
-		uint8_t stackNumTempBuf[UCOL_MAX_BUFFER]; // I just need a temporary place to store my generated CEs.
-		uint32_t numTempBufSize = UCOL_MAX_BUFFER;
-		
-		numTempBuf = stackNumTempBuf;
-		/*
-			 We parse the source string until we hit a char that's NOT a digit.
-      		Use this u_charDigitValue. This might be slow because we have to 
-      		handle surrogates...
-      	*/
-/*      	
-      	if (U16_IS_LEAD(ch)){
-          if (!collIter_eos(source)) {
-            backupState(source, &digitState);
-            UChar trail = getNextNormalizedChar(source);
-            if(U16_IS_TRAIL(trail)) {
-			  char32 = U16_GET_SUPPLEMENTARY(ch, trail);
-            } else {
-              loadState(source, &digitState, TRUE);
-              char32 = ch;
-            }
-          } else {
-		    char32 = ch;
-          }
-        } else {
-		  char32 = ch;
-        }
-		digVal = u_charDigitValue(char32);
-*/
-        digVal = u_charDigitValue(cp); // if we have arrived here, we have
-        // already processed possible supplementaries that trigered the digit tag -
-        // all supplementaries are marked in the UCA.
-		/* 
-			We  pad a zero in front of the first element anyways. This takes
-			care of the (probably) most common case where people are sorting things followed
-		 	by a single digit
-		*/
-		digIndx++;
-      	for(;;){
-      	// Make sure we have enough space.
-      	if (digIndx >= ((numTempBufSize - 2) * 2) + 1)
-      	{
-      		numTempBufSize *= 2;
-      		if (numTempBuf == stackNumTempBuf){
-      			numTempBuf = (uint8_t *)malloc(sizeof(uint8_t) * numTempBufSize);
-      			memcpy(numTempBuf, stackNumTempBuf, UCOL_MAX_BUFFER);
-      		}else
-      			realloc(numTempBuf, numTempBufSize);
-      	}
-      	
-			// Skipping over leading zeroes.      	
-      		if (digVal != 0 || nonZeroValReached){
-				if (digVal != 0 && !nonZeroValReached)
-					nonZeroValReached = TRUE;
-				
-				/*
-					We parse the digit string into base 100 numbers (this fits into a byte).
-				 	We only add to the buffer in twos, thus if we are parsing an odd character,
-					that serves as the 'tens' digit while the if we are parsing an even one, that 
-				 	is the 'ones' digit. We dumped the parsed base 100 value (collateVal) into 
-				 	a buffer. We multiply each collateVal by 2 (to give us room) and add 5 (to avoid
-				 	overlapping magic CE byte values). The last byte we subtract 1 to ensure it is less
-				 	than all the other bytes. 
-				 */
-
-				if (digIndx % 2 == 1){
-					collateVal += (uint8_t)digVal;	
-					 
-					// We don't enter the low-order-digit case unless we've already seen
-					// the high order, or for the first digit, which is always non-zero.
-					if (collateVal != 0)
-						trailingZeroIndex = 0;
-						
-					numTempBuf[(digIndx/2) + 2] = collateVal*2 + 6;
-					collateVal = 0;
-				}
-				else{
-					// We drop the collation value into the buffer so if we need to do
-					// a "front patch" we don't have to check to see if we're hitting the
-					// last element.
-					collateVal = (uint8_t)(digVal * 10);
-
-					// Check for trailing zeroes.
-					if (collateVal == 0)
-					{
-						if (!trailingZeroIndex)
-							trailingZeroIndex = (digIndx/2) + 2;
-					}
-					else
-						trailingZeroIndex = 0;
-
-					numTempBuf[(digIndx/2) + 2] = collateVal*2 + 6;
-				}
-				digIndx++;
-      		}
-      		
-      		// Get next character.
-      		if (!collIter_eos(source)){
-				ch = getNextNormalizedChar(source);
-				if (U16_IS_LEAD(ch)){
-                  if (!collIter_eos(source)) {
-                    backupState(source, &digitState);
-                    UChar trail = getNextNormalizedChar(source);
-                    if(U16_IS_TRAIL(trail)) {
-					  char32 = U16_GET_SUPPLEMENTARY(ch, trail);
-                    } else {
-                      loadState(source, &digitState, TRUE);
-                      char32 = ch;
-                    }
-                  }
-                } else {
-				  char32 = ch;
-                }
-					
-				if ((digVal = u_charDigitValue(char32)) == -1){
-					// Resetting position to point to the next unprocessed char. We
-					// overshot it when doing our test/set for numbers.
-                  if (char32 > 0xFFFF) { // For surrogates.
-                    loadState(source, &digitState, TRUE);
-					//goBackOne(source);
-                  }
-  				  goBackOne(source);
-				  break;
-				}
-            } else {
-			  break;
-            }
-		}
-		
-		if (nonZeroValReached == FALSE){
-			digIndx = 2;
-			numTempBuf[2] = 6;
-		}
-		
-		endIndex = trailingZeroIndex ? trailingZeroIndex : ((digIndx/2) + 2) ;				
-		if (digIndx % 2 != 0){
-			/* 
-				We missed a value. Since digIndx isn't even, stuck too many values into the buffer (this is what
-				we get for padding the first byte with a zero). "Front-patch" now by pushing all nybbles forward. 
-				Doing it this way ensures that at least 50% of the time (statistically speaking) we'll only be doing a
-				single pass and optimizes for strings with single digits. I'm just assuming that's the more common case.
-			*/
-
-			for(i = 2; i < endIndex; i++){
-				numTempBuf[i] = 	(((((numTempBuf[i] - 6)/2) % 10) * 10) + 
-									(((numTempBuf[i+1])-6)/2) / 10) * 2 + 6;
-			}
-			--digIndx;
-		}
-		
-		// Subtract one off of the last byte. 
-		numTempBuf[endIndex-1] -= 1;			
-				
-		/* 
-			We want to skip over the first two slots in the buffer. The first slot
-			is reserved for the header byte 0x1B. The second slot is for the 
-			sign/exponent byte: 0x80 + (decimalPos/2) & 7f.
-		*/ 
-		numTempBuf[0] = 0x1B;
-		numTempBuf[1] = (uint8_t)(0x80 + ((digIndx/2) & 0x7F));
-		
-		// Now transfer the collation key to our collIterate struct.
-		// The total size for our collation key is endIndx bumped up to the next largest even value divided by two.
-		  size = ((endIndex+1) & ~1)/2;
-		  CE = (((numTempBuf[0] << 8) | numTempBuf[1]) << UCOL_PRIMARYORDERSHIFT) | //Primary weight
-		  		(UCOL_BYTE_COMMON << UCOL_SECONDARYORDERSHIFT) | // Secondary weight
-		  		UCOL_BYTE_COMMON; // Tertiary weight.
-		  i = 2; // Reset the index into the buffer.
-		  while(i < endIndex)
-		  {
-			primWeight = numTempBuf[i++] << 8;
-			if ( i < endIndex)
-				primWeight |= numTempBuf[i++];
-			*(source->CEpos++) = (primWeight << UCOL_PRIMARYORDERSHIFT) | UCOL_CONTINUATION_MARKER;
-		  }
-		  
-		  if (numTempBuf != stackNumTempBuf)
-		  	free(numTempBuf);
-      } else {
-        // no numeric mode, we'll just switch to whatever we stashed and continue
-		  CEOffset = (uint32_t *)coll->image+getExpansionOffset(CE); /* find the offset to expansion table */
-		  CE = *CEOffset++;
-          break;
-#if 0
-		  CEOffset = (uint32_t *)coll->image+getExpansionOffset(CE); /* find the offset to expansion table */
-		  size = getExpansionCount(CE);
-		  CE = *CEOffset++;
-		  if(size != 0) { /* if there are less than 16 elements in expansion, we don't terminate */
-			for(i = 1; i<size; i++) {
-			  *(source->CEpos++) = *CEOffset++;
-			}
-		  } else { /* else, we do */
-			while(*CEOffset != 0) {
-			  *(source->CEpos++) = *CEOffset++;
-			}
-		  }
-#endif
-	  }
       return CE;
       }
     /* various implicits optimization */
@@ -3765,226 +3488,6 @@ uint32_t ucol_prv_getSpecialPrevCE(const UCollator *coll, UChar ch, uint32_t CE,
         source->CEpos = source->CEs;
       }
       return *(source->toReturn);
-     case DIGIT_TAG:      
-      {
-      /* 
-      	 We do a check to see if we want to collate digits as numbers; if so we generate
-         a custom collation key. Otherwise we pull out the value stored in the expansion table.
-      */
-      //uint32_t size;
-      uint32_t i;    /* general counter */
-      collIterateState state;
-
-      if (coll->numericCollation == UCOL_ON){
-		UChar32 char32 = 0;		
-		
-		uint32_t digIndx = 0; 
-		uint32_t endIndex = 0;		
-		uint32_t leadingZeroIndex = 0;
-
-		uint32_t primWeight = 0;
-		
-		uint32_t digVal = 0;		
-		uint8_t	collateVal = 0;
-		
-		UBool nonZeroValReached = FALSE;
-
-		uint8_t *numTempBuf;
-		uint8_t stackNumTempBuf[UCOL_MAX_BUFFER]; // I just need a temporary place to store my generated CEs.
-		uint32_t numTempBufSize = UCOL_MAX_BUFFER;
-		
-		numTempBuf = stackNumTempBuf;
-		/*
-			 We parse the source string until we hit a char that's NOT a digit.
-      		Use this u_charDigitValue. This might be slow because we have to 
-      		handle surrogates...
-      	*/
-      	
-      	if (U16_IS_TRAIL (ch)){
-      		if (!collIter_bos(source)){
-              UChar lead = getPrevNormalizedChar(source);
-              if(U16_IS_LEAD(lead)) {
-				char32 = U16_GET_SUPPLEMENTARY(lead,ch);
-				goBackOne(source);
-              } else {
-                char32 = ch;
-              }
-            } else {
-				char32 = ch;
-            }
-        } else {
-			char32 = ch;
-        }
-		digVal = u_charDigitValue(char32);
-		
-      	for(;;){
-      	// Make sure we have enough space.
-      	if (digIndx >= ((numTempBufSize - 2) * 2) + 1)
-      	{
-      		numTempBufSize *= 2;
-      		if (numTempBuf == stackNumTempBuf){
-      			numTempBuf = (uint8_t *)malloc(sizeof(uint8_t) * numTempBufSize);
-      			memcpy(numTempBuf, stackNumTempBuf, UCOL_MAX_BUFFER);
-      		}else
-      			realloc(numTempBuf, numTempBufSize);
-      	}
-      	
-			// Skipping over "trailing" zeroes but we still add to digIndx.
-      		if (digVal != 0 || nonZeroValReached){
-				if (digVal != 0 && !nonZeroValReached)
-					nonZeroValReached = TRUE;
-				
-				/*
-					We parse the digit string into base 100 numbers (this fits into a byte).
-				 	We only add to the buffer in twos, thus if we are parsing an odd character,
-					that serves as the 'tens' digit while the if we are parsing an even one, that 
-				 	is the 'ones' digit. We dumped the parsed base 100 value (collateVal) into 
-				 	a buffer. We multiply each collateVal by 2 (to give us room) and add 5 (to avoid
-				 	overlapping magic CE byte values). The last byte we subtract 1 to ensure it is less
-				 	than all the other bytes. 
-				 	
-				 	Since we're doing in this reverse we want to put the first digit encountered into the
-				 	ones place and the second digit encountered into the tens place.
-				 */
-				
-				if (digIndx % 2 == 1){
-					collateVal += (uint8_t)(digVal * 10);
-					
-					 // This removes leading zeroes.
-					if (collateVal == 0 && !leadingZeroIndex)
-						leadingZeroIndex = ((digIndx-1)/2) + 2;
-					else if (leadingZeroIndex)
-						leadingZeroIndex = 0;
-											
-					numTempBuf[((digIndx-1)/2) + 2] = collateVal*2 + 6;
-					collateVal = 0;
-				}
-				else{
-					collateVal = (uint8_t)digVal;	
-				}
-      		}
-      		digIndx++;
-      		
-      		if (!collIter_bos(source)){
-				ch = getPrevNormalizedChar(source);
-				//goBackOne(source);
-				if (U16_IS_TRAIL(ch)){
-                    backupState(source, &state);
-					if (!collIter_bos(source))
-					{
-						goBackOne(source);
-                        UChar lead = getPrevNormalizedChar(source);
-                        if(U16_IS_LEAD(lead)) {
-						  char32 = U16_GET_SUPPLEMENTARY(lead,ch);
-                        } else {
-                          loadState(source, &state, FALSE);
-                          char32 = ch;
-                        }
-					}
-				}
-				else
-					char32 = ch;
-					
-				if ((digVal = u_charDigitValue(char32)) == -1){
-                  if (char32 > 0xFFFF) {// For surrogates.
-                    loadState(source, &state, FALSE);
-                  }
-					// Don't need to "reverse" the goBackOne call,
-					// as this points to the next position to process..
-					//if (char32 > 0xFFFF) // For surrogates.
-						//getNextNormalizedChar(source);
-					break;
-				}
-                goBackOne(source);
-			}else
-				break;
-		}
-
-		if (nonZeroValReached == FALSE){
-			digIndx = 2;
-			numTempBuf[2] = 6;
-		}
-
-		if (digIndx % 2 != 0){
-            if (collateVal == 0 && leadingZeroIndex == 0) {
-                // This removes the leading 0 in a odd number sequence of 
-                // numbers e.g. avery001
-                leadingZeroIndex = ((digIndx - 1) >> 1) + 2;
-            }
-            else {
-                // this is not a leading 0, we add it in
-                numTempBuf[((digIndx)/2) + 2] = collateVal*2 + 6;
-                digIndx += 1;				
-            }
-        }
-		
-		endIndex = leadingZeroIndex ? leadingZeroIndex : ((digIndx/2) + 2) ;
-        digIndx = ((endIndex - 2) << 1) + 1; // removing initial zeros
-		
-		// Subtract one off of the last byte. Really the first byte here, but it's reversed...
-		numTempBuf[2] -= 1;			
-				
-		/* 
-			We want to skip over the first two slots in the buffer. The first slot
-			is reserved for the header byte 0x1B. The second slot is for the 
-			sign/exponent byte: 0x80 + (decimalPos/2) & 7f.
-		*/ 
-		numTempBuf[0] = 0x1B;
-		numTempBuf[1] = (uint8_t)(0x80 + ((digIndx/2) & 0x7F));
-		
-		// Now transfer the collation key to our collIterate struct.
-		// The total size for our collation key is endIndx bumped up to the next largest even value divided by two.
-		//size = ((endIndex+1) & ~1)/2;
-		  *(source->CEpos++) = (((numTempBuf[0] << 8) | numTempBuf[1]) << UCOL_PRIMARYORDERSHIFT) | //Primary weight
-		  		(UCOL_BYTE_COMMON << UCOL_SECONDARYORDERSHIFT) | // Secondary weight
-		  		UCOL_BYTE_COMMON; // Tertiary weight.
-		  i = endIndex - 1; // Reset the index into the buffer.
-		  while(i >= 2)
-		  {
-			primWeight = numTempBuf[i--] << 8;
-			if ( i >= 2)
-				primWeight |= numTempBuf[i--];
-			*(source->CEpos++) = (primWeight << UCOL_PRIMARYORDERSHIFT) | UCOL_CONTINUATION_MARKER;
-		  }
-		  if (numTempBuf != stackNumTempBuf)
-		  	free(numTempBuf);
-		  	
-		  source->toReturn = source->CEpos -1;
-		  return *(source->toReturn);
-      }
-      else {
-		  CEOffset = (uint32_t *)coll->image + getExpansionOffset(CE);
-          CE = *(CEOffset++);
-          break;
-#if 0
-		/* find the offset to expansion table */
-		  CEOffset = (uint32_t *)coll->image + getExpansionOffset(CE);
-		  size     = getExpansionCount(CE);
-		  if (size != 0) {
-			/*
-			if there are less than 16 elements in expansion, we don't terminate
-			*/
-			uint32_t count;
-			for (count = 0; count < size; count++) {
-			  *(source->CEpos ++) = *CEOffset++;
-			}
-		  }
-		  else {
-			/* else, we do */
-			while (*CEOffset != 0) {
-			  *(source->CEpos ++) = *CEOffset ++;
-			}
-		  }
-		  source->toReturn = source->CEpos - 1;
-          // in case of one element expansion, we 
-          // want to immediately return CEpos
-          if(source->toReturn == source->CEs) {
-            source->CEpos = source->CEs;
-          }
-		  return *(source->toReturn);
-#endif
-	  }
-      }  
     case HANGUL_SYLLABLE_TAG: /* AC00-D7AF*/
       {
         const uint32_t
@@ -4287,33 +3790,21 @@ ucol_getSortKey(const    UCollator    *coll,
         uint8_t        *result,
         int32_t        resultLength)
 {
-  UTRACE_ENTRY(UTRACE_UCOL_GET_SORTKEY);
-  if (UTRACE_LEVEL(UTRACE_VERBOSE)) {
-      int32_t actualSrcLen = sourceLength;
-      if (actualSrcLen==-1 && source!=NULL) {
-          actualSrcLen = u_strlen(source);
-      }
-      UTRACE_DATA3(UTRACE_VERBOSE, "coll=%p, source string = %vh ", coll, source, actualSrcLen);
-  }
-
   UErrorCode status = U_ZERO_ERROR;
-  int32_t keySize   = 0;
 
-  if(source != NULL) {
-      // source == NULL is actually an error situation, but we would need to 
-      // have an error code to return it. Until we introduce a new
-      // API, it stays like this
-      
-      /* this uses the function pointer that is set in updateinternalstate */
-      /* currently, there are two funcs: */
-      /*ucol_calcSortKey(...);*/
-      /*ucol_calcSortKeySimpleTertiary(...);*/
-      
-      keySize = coll->sortKeyGen(coll, source, sourceLength, &result, resultLength, FALSE, &status);
-      //((UCollator *)coll)->errorCode = status; /*semantically const */
+  if(source == NULL) {
+    // this is actually an error situation, but we would need to 
+    // have an error code to return it. Until we introduce a new
+    // API, it stays like this
+    return 0;
   }
-  UTRACE_DATA2(UTRACE_VERBOSE, "Sort Key = %vb", result, keySize);
-  UTRACE_EXIT_S(status);
+  /* this uses the function pointer that is set in updateinternalstate */
+  /* currently, there are two funcs: */
+  /*ucol_calcSortKey(...);*/
+  /*ucol_calcSortKeySimpleTertiary(...);*/
+
+  int32_t keySize = coll->sortKeyGen(coll, source, sourceLength, &result, resultLength, FALSE, &status);
+  //((UCollator *)coll)->errorCode = status; /*semantically const */
   return keySize;
 }
 
@@ -4333,7 +3824,6 @@ ucol_getSortKeyWithAllocation(const UCollator *coll,
 /* or if we run out of space while making a sortkey and want to return ASAP                                   */
 int32_t ucol_getSortKeySize(const UCollator *coll, collIterate *s, int32_t currentSize, UColAttributeValue strength, int32_t len) {
     UErrorCode status = U_ZERO_ERROR;
-    const UCAConstants *UCAconsts = (UCAConstants *)((uint8_t *)coll->UCA->image + coll->image->UCAConsts);
     uint8_t compareSec   = (uint8_t)((strength >= UCOL_SECONDARY)?0:0xFF);
     uint8_t compareTer   = (uint8_t)((strength >= UCOL_TERTIARY)?0:0xFF);
     uint8_t compareQuad  = (uint8_t)((strength >= UCOL_QUATERNARY)?0:0xFF);
@@ -4674,8 +4164,6 @@ ucol_calcSortKey(const    UCollator    *coll,
         UBool allocateSKBuffer,
         UErrorCode *status)
 {
-    const UCAConstants *UCAconsts = (UCAConstants *)((uint8_t *)coll->UCA->image + coll->image->UCAConsts);
-
     uint32_t i = 0; /* general purpose counter */
 
     /* Stack allocated buffers for buffers we use */
@@ -5279,8 +4767,6 @@ ucol_calcSortKeySimpleTertiary(const    UCollator    *coll,
         UErrorCode *status)
 {
     U_ALIGN_CODE(16);
-
-    const UCAConstants *UCAconsts = (UCAConstants *)((uint8_t *)coll->UCA->image + coll->image->UCAConsts);
     uint32_t i = 0; /* general purpose counter */
 
     /* Stack allocated buffers for buffers we use */
@@ -5758,7 +5244,6 @@ ucol_nextSortKeyPart(const UCollator *coll,
     if(status==NULL || U_FAILURE(*status)) {
         return 0;
     }
-    UTRACE_ENTRY(UTRACE_UCOL_NEXTSORTKEYPART);
     if( coll==NULL || iter==NULL ||
         state==NULL ||
         count<0 || (count>0 && dest==NULL)
@@ -5766,12 +5251,9 @@ ucol_nextSortKeyPart(const UCollator *coll,
         *status=U_ILLEGAL_ARGUMENT_ERROR;
     }
 
-    UTRACE_DATA6(UTRACE_VERBOSE, "coll=%p, iter=%p, state=%d %d, dest=%p, count=%d",
-                  coll, iter, state[0], state[1], dest, count);
 
     if(count==0) {
         /* nothing to do */
-        UTRACE_EXIT_D(0);
         return 0;
     }
 
@@ -5848,7 +5330,6 @@ ucol_nextSortKeyPart(const UCollator *coll,
       s.iterator = unorm_setIter(normIter, iter, UNORM_FCD, status);
       s.flags &= ~UCOL_ITER_NORM;
       if(U_FAILURE(*status)) {
-        UTRACE_EXIT_S(*status);
         return 0;
       }
     } else if(level == UCOL_PSK_IDENTICAL) {
@@ -5858,7 +5339,6 @@ ucol_nextSortKeyPart(const UCollator *coll,
       s.iterator = unorm_setIter(normIter, iter, UNORM_NFD, status);
       s.flags &= ~UCOL_ITER_NORM;
       if(U_FAILURE(*status)) {
-        UTRACE_EXIT_S(*status);
         return 0;
       }
       doingIdenticalFromStart = TRUE;
@@ -5883,7 +5363,6 @@ ucol_nextSortKeyPart(const UCollator *coll,
         /* reset to previous state */
       s.iterator->setState(s.iterator, iterState, status);
       if(U_FAILURE(*status)) {
-          UTRACE_EXIT_S(*status);
           return 0;
       }
     }
@@ -5928,7 +5407,6 @@ ucol_nextSortKeyPart(const UCollator *coll,
         if(CE==UCOL_NO_MORE_CES) {
           /* should not happen */
           *status=U_INTERNAL_PROGRAM_ERROR;
-          UTRACE_EXIT_S(*status);
           return 0;
         }
       }
@@ -6093,7 +5571,7 @@ ucol_nextSortKeyPart(const UCollator *coll,
               if(newState != UITER_NO_STATE) {
                 iterState = newState;
                 iterSkips = 0;
-              } else { 
+              } else {
                 if(!firstTimeOnLevel) {
                   iterSkips++;
                 }
@@ -6409,7 +5887,6 @@ ucol_nextSortKeyPart(const UCollator *coll,
         // At this point we have a NFD iterator that is positioned
         // in the right place
         if(U_FAILURE(*status)) {
-          UTRACE_EXIT_S(*status);
           return 0;
         }
         first = uiter_previous32(s.iterator);
@@ -6479,7 +5956,6 @@ ucol_nextSortKeyPart(const UCollator *coll,
       break;
     default:
       *status = U_INTERNAL_PROGRAM_ERROR;
-      UTRACE_EXIT_S(*status);
       return 0;
     }
 
@@ -6553,9 +6029,6 @@ saveState:
     }
 
     // Return number of meaningful sortkey bytes.
-    UTRACE_DATA4(UTRACE_VERBOSE, "dest = %vb, state=%d %d",
-                  dest,i, state[0], state[1]);
-    UTRACE_EXIT_D(i);
     return i;
 }
 
@@ -6782,7 +6255,7 @@ ucol_setUpLatinOne(UCollator *coll, UErrorCode *status) {
     } else {
       CE = UTRIE_GET32_FROM_LEAD(coll->mapping, ch);
       if(CE == UCOL_NOT_FOUND) {
-        CE = UTRIE_GET32_FROM_LEAD(coll->UCA->mapping, ch);
+        CE = UTRIE_GET32_FROM_LEAD(UCA->mapping, ch);
       }
     }
     if(CE < UCOL_NOT_FOUND) {
@@ -7008,20 +6481,6 @@ ucol_setAttribute(UCollator *coll, UColAttribute attr, UColAttributeValue value,
     UColAttributeValue oldFrench = coll->frenchCollation;
     UColAttributeValue oldCaseFirst = coll->caseFirst;
     switch(attr) {
-    case UCOL_NUMERIC_COLLATION: /* sort substrings of digits as numbers */
-      if(value == UCOL_ON) {
-        coll->numericCollation = UCOL_ON;
-        coll->numericCollationisDefault = FALSE;
-      } else if (value == UCOL_OFF) {
-        coll->numericCollation = UCOL_OFF;
-        coll->numericCollationisDefault = FALSE;
-      } else if (value == UCOL_DEFAULT) {
-        coll->numericCollationisDefault = TRUE;
-        coll->numericCollation = (UColAttributeValue)coll->options->numericCollation;
-      } else {
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-      }
-      break;
     case UCOL_HIRAGANA_QUATERNARY_MODE: /* special quaternary values for Hiragana */
       if(value == UCOL_ON) {
         coll->hiraganaQ = UCOL_ON;
@@ -7139,8 +6598,6 @@ ucol_getAttribute(const UCollator *coll, UColAttribute attr, UErrorCode *status)
       return UCOL_DEFAULT;
     }
     switch(attr) {
-    case UCOL_NUMERIC_COLLATION:
-      return coll->numericCollation;    
     case UCOL_HIRAGANA_QUATERNARY_MODE:
       return coll->hiraganaQ;
     case UCOL_FRENCH_COLLATION: /* attribute for direction of secondary weights*/
@@ -7343,7 +6800,7 @@ ucol_getVersion(const UCollator* coll,
     versionInfo[0] = (uint8_t)(cmbVersion>>8);
     versionInfo[1] = (uint8_t)cmbVersion;
     versionInfo[2] = coll->image->version[1];
-    versionInfo[3] = coll->UCA->image->UCAVersion[0];
+    versionInfo[3] = UCA->image->UCAVersion[0];
 }
 
 
@@ -7353,11 +6810,11 @@ ucol_isTailored(const UCollator *coll, const UChar u, UErrorCode *status) {
   uint32_t CE = UCOL_NOT_FOUND;
   const UChar *ContractionStart = NULL;
   if(U_SUCCESS(*status) && coll != NULL) {
-    if(coll == coll->UCA) {
+    if(coll == UCA) {
       return FALSE;
     } else if(u < 0x100) { /* latin-1 */
       CE = coll->latinOneMapping[u];
-      if(CE == coll->UCA->latinOneMapping[u]) {
+      if(CE == UCA->latinOneMapping[u]) {
         return FALSE;
       }
     } else { /* regular */
@@ -8491,7 +7948,7 @@ returnRegular:
     IInit_collIterate(coll, source, sLen, &sColl);
     IInit_collIterate(coll, target, tLen, &tColl);
     return ucol_strcollRegular(&sColl, &tColl, status);    
-} 
+}
 
 
 U_CAPI UCollationResult U_EXPORT2
@@ -8499,20 +7956,11 @@ ucol_strcollIter( const UCollator    *coll,
                  UCharIterator *sIter,
                  UCharIterator *tIter,
                  UErrorCode         *status) {
-  if(!status || U_FAILURE(*status)) {
-    return UCOL_EQUAL;
-  }
-
-  UTRACE_ENTRY(UTRACE_UCOL_STRCOLLITER);
-  UTRACE_DATA3(UTRACE_VERBOSE, "coll=%p, sIter=%p, tIter=%p", coll, sIter, tIter);
-
-  if (sIter == tIter) {
-    UTRACE_EXIT_DS(UCOL_EQUAL, *status)
+  if(!status || U_FAILURE(*status) || sIter == tIter) {
     return UCOL_EQUAL;
   }
   if(sIter == NULL || tIter == NULL || coll == NULL) {
     *status = U_ILLEGAL_ARGUMENT_ERROR;
-    UTRACE_EXIT_DS(UCOL_EQUAL, *status)
     return UCOL_EQUAL;
   }
 
@@ -8592,7 +8040,6 @@ end_compare:
     unorm_closeIter(tNormIter);
   }
 
-  UTRACE_EXIT_DS(result, *status)
   return result;
 }
 
@@ -8608,27 +8055,10 @@ ucol_strcoll( const UCollator    *coll,
               const UChar        *target,
               int32_t            targetLength) {
     U_ALIGN_CODE(16);
-
-    UTRACE_ENTRY(UTRACE_UCOL_STRCOLL);
-    if (UTRACE_LEVEL(UTRACE_VERBOSE)) {
-      UTRACE_DATA3(UTRACE_VERBOSE, "coll=%p, source=%p, target=%p", coll, source, target);
-      int32_t actualLen = sourceLength;
-      if (actualLen==-1 && source!=NULL) {
-          actualLen = u_strlen(source);
-      }
-      UTRACE_DATA2(UTRACE_VERBOSE, "source string = %vh ", source, actualLen);
-      actualLen = targetLength;
-      if (actualLen==-1 && target!=NULL) {
-          actualLen = u_strlen(target);
-      }
-      UTRACE_DATA2(UTRACE_VERBOSE, "target string = %vh ", target, actualLen);
-    }
-
     UErrorCode status = U_ZERO_ERROR;
     if(source == NULL || target == NULL) {
       // do not crash, but return. Should have 
       // status argument to return error.
-      UTRACE_EXIT_D(UTRACE_UCOL_STRCOLL);
       return UCOL_EQUAL;
     }
       collIterate sColl, tColl;
@@ -8645,7 +8075,6 @@ ucol_strcoll( const UCollator    *coll,
         //    Check for them being the same string, and scan through
         //    any leading equal portion.
         if (source==target) {
-            UTRACE_EXIT_D(UCOL_EQUAL);
             return UCOL_EQUAL;
         }
 
@@ -8660,7 +8089,6 @@ ucol_strcoll( const UCollator    *coll,
             pTarg++;
         }
         if (*pSrc == 0 && *pTarg == 0) {
-            UTRACE_EXIT_D(UCOL_EQUAL);
             return UCOL_EQUAL;
         }
         equalLength = pSrc - source;
@@ -8671,7 +8099,6 @@ ucol_strcoll( const UCollator    *coll,
         /* check if source and target are same strings */
 
         if (source==target  && sourceLength==targetLength) {
-            UTRACE_EXIT_D(UCOL_EQUAL);
             return UCOL_EQUAL;
         }
         const UChar    *pSrcEnd = source + sourceLength;
@@ -8700,7 +8127,6 @@ ucol_strcoll( const UCollator    *coll,
             // If we made it all the way through both strings, we are done.  They are ==
             if ((pSrc ==pSrcEnd  || (pSrcEnd <pSrc  && *pSrc==0))  &&   /* At end of src string, however it was specified. */
                 (pTarg==pTargEnd || (pTargEnd<pTarg && *pTarg==0)))  {  /* and also at end of dest string                  */
-                UTRACE_EXIT_D(UCOL_EQUAL);
                 return UCOL_EQUAL;
             }
     }
@@ -8734,17 +8160,14 @@ ucol_strcoll( const UCollator    *coll,
         }
     }
 
-    UCollationResult  returnVal;
     if(!coll->latinOneUse || (sourceLength > 0 && *source&0xff00) || (targetLength > 0 && *target&0xff00)) {
       // Preparing the context objects for iterating over strings
       IInit_collIterate(coll, source, sourceLength, &sColl);
       IInit_collIterate(coll, target, targetLength, &tColl);
-      returnVal = ucol_strcollRegular(&sColl, &tColl, &status);
+      return ucol_strcollRegular(&sColl, &tColl, &status);
     } else {
-      returnVal = ucol_strcollUseLatin1(coll, source, sourceLength, target, targetLength, &status);    
+      return ucol_strcollUseLatin1(coll, source, sourceLength, target, targetLength, &status);    
     }
-    UTRACE_EXIT_D(returnVal);
-    return returnVal;
 }
 
 /* convenience function for comparing strings */
@@ -8790,9 +8213,6 @@ ucol_getLocale(const UCollator *coll, ULocDataLocaleType type, UErrorCode *statu
   if(status == NULL || U_FAILURE(*status)) {
     return NULL;
   }
-  UTRACE_ENTRY(UTRACE_UCOL_GETLOCALE);
-  UTRACE_DATA1(UTRACE_INFO, "coll=%p", coll);
-
   switch(type) {
   case ULOC_ACTUAL_LOCALE:
     // validLocale is set only if service registration has explicitly set the
@@ -8817,8 +8237,6 @@ ucol_getLocale(const UCollator *coll, ULocDataLocaleType type, UErrorCode *statu
   default:
     *status = U_ILLEGAL_ARGUMENT_ERROR;
   }
-  UTRACE_DATA1(UTRACE_INFO, "result = %s", result);
-  UTRACE_EXIT_S(*status);
   return result;
 }
 
@@ -8848,7 +8266,7 @@ ucol_getTailoredSet(const UCollator *coll, UErrorCode *status)
 
   // The idea is to tokenize the rule set. For each non-reset token,
   // we add all the canonicaly equivalent FCD sequences 
-  ucol_tok_initTokenList(&src, rules, rulesLen, coll->UCA, status);
+  ucol_tok_initTokenList(&src, rules, rulesLen, UCA, status);
   while ((current = ucol_tok_parseNextToken(&src, startOfRules, &parseError, status)) != NULL) {
     startOfRules = FALSE;
     if(src.parsedToken.strength != UCOL_TOK_RESET) {
@@ -8895,8 +8313,8 @@ ucol_equals(const UCollator *source, const UCollator *target) {
   UParseError parseError;
   UColTokenParser sourceParser, targetParser;
   int32_t sourceListLen = 0, targetListLen = 0;
-  ucol_tok_initTokenList(&sourceParser, sourceRules, sourceRulesLen, source->UCA, &status);
-  ucol_tok_initTokenList(&targetParser, targetRules, targetRulesLen, target->UCA, &status);
+  ucol_tok_initTokenList(&sourceParser, sourceRules, sourceRulesLen, UCA, &status);
+  ucol_tok_initTokenList(&targetParser, targetRules, targetRulesLen, UCA, &status);
   sourceListLen = ucol_tok_assembleTokenList(&sourceParser, &parseError, &status);
   targetListLen = ucol_tok_assembleTokenList(&targetParser, &parseError, &status);
 
@@ -8977,4 +8395,3 @@ returnResult:
 
 }
 #endif /* #if !UCONFIG_NO_COLLATION */
-

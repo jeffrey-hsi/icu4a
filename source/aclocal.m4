@@ -51,11 +51,9 @@ alpha*-*-linux-gnu)
 *-*-os400*)	icu_cv_host_frag=mh-os400 ;;
 *-apple-rhapsody*)	icu_cv_host_frag=mh-darwin ;;
 *-apple-darwin*)	icu_cv_host_frag=mh-darwin ;;
-*-*-beos)	icu_cv_host_frag=mh-beos ;;
 *-*-irix*)	icu_cv_host_frag=mh-irix ;;
 *-dec-osf*) icu_cv_host_frag=mh-alpha-osf ;;
 *-*-nto*)	icu_cv_host_frag=mh-qnx ;;
-*-ncr-*)	icu_cv_host_frag=mh-mpras ;;
 *-sequent-*) 	icu_cv_host_frag=mh-ptx ;;
 *) 		icu_cv_host_frag=mh-unknown ;;
 esac
@@ -114,12 +112,12 @@ AC_DEFUN(AC_CHECK_64BIT_LIBS,
     if test "$ENABLE_64BIT_LIBS" = no; then
         case "${host}" in
         *-*-hpux*)
-#            case "${CXX}" in
-#            *CC)
-#                CFLAGS="${CFLAGS} +DAportable"
-#                CXXFLAGS="${CXXFLAGS} +DAportable"
-#                ;;
-#            esac;;
+            case "${CXX}" in
+            *CC)
+                CFLAGS="${CFLAGS} +DAportable"
+                CXXFLAGS="${CXXFLAGS} +DAportable"
+                ;;
+            esac;;
         esac
     else
         case "${host}" in

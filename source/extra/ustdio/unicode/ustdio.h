@@ -34,6 +34,7 @@
  The following is a small list as to what is currently wrong/suggestions for
  ustdio.
 
+ * %D and %T printf uses the current timezone, but the scanf version uses GMT.
  * %p should be deprecated. Pointers are 2-16 bytes big and scanf should
     really read them.
  * The format specification should use int32_t and ICU type variants instead of
@@ -100,8 +101,6 @@
     better testing. This prevents buffer overflows.
  * u_fgetc() and u_fungetc() should use UChar32 instead of UChar, or at
     least 32-bit versions should be available.
- * "%d % d %d" and "%d %+d %d" of a number doesn't work as expected.
-    The third %d will still have the sign attached.
  * More testing is needed.
 */
 
@@ -793,8 +792,6 @@ u_vsscanf_u(const UChar *buffer,
         const UChar     *patternSpecification,
         va_list         ap);
 
-
-U_CAPI int32_t u_strftime(UChar *s, int32_t maxsize, const char *locale, const char *patternSpecification, UDate time);
 
 #endif
 

@@ -25,13 +25,11 @@ void addMemoryStreamTest(TestNode** root);
 void addTrieTest(TestNode** root);
 void addEnumerationTest(TestNode** root);
 void addPosixTest(TestNode** root);
-void addSortTest(TestNode** root);
 
 void addUtility(TestNode** root);
 
 void addUtility(TestNode** root)
 {
-    addCStringTest(root);
     addTrieTest(root);
     addLocaleTest(root);
     addUnicodeTest(root);
@@ -39,8 +37,8 @@ void addUtility(TestNode** root)
     addResourceBundleTest(root);
     addNEWResourceBundleTest(root);
     addHashtableTest(root);
+    addCStringTest(root);
     addMemoryStreamTest(root);
     addEnumerationTest(root);
     addPosixTest(root);
-    addSortTest(root);
 }

@@ -9,13 +9,12 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "unicode/utypes.h"
 #include "unicode/putil.h"
-#include "unicode/uclean.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "filestrm.h"
-#include "uarrsort.h"
 #include "unewdata.h"
 #include "uoptions.h"
 #include "uprops.h"
@@ -215,12 +214,9 @@ public:
     NameToEnumEntry(int32_t a, int32_t b) { nameIndex=a; enumValue=b; }
 };
 
-// Sort function for NameToEnumEntry (sort by name)
-U_CAPI int32_t
-compareNameToEnumEntry(const void * /*context*/, const void* e1, const void* e2) {
-    return
-        STRING_TABLE[((NameToEnumEntry*)e1)->nameIndex].
-            compare(STRING_TABLE[((NameToEnumEntry*)e2)->nameIndex]);
+// Sort function for NameToEnumEntry (sort by name index)
+U_CAPI int compareNameToEnumEntry(const void* e1, const void* e2) {
+    return ((NameToEnumEntry*)e1)->nameIndex - ((NameToEnumEntry*)e2)->nameIndex;
 }
 
 //----------------------------------------------------------------------
@@ -249,8 +245,7 @@ public:
 };
 
 // Sort function for EnumToNameGroupEntry (sort by name index)
-U_CAPI int32_t
-compareEnumToNameGroupEntry(const void * /*context*/, const void* e1, const void* e2) {
+U_CAPI int compareEnumToNameGroupEntry(const void* e1, const void* e2) {
     return ((EnumToNameGroupEntry*)e1)->enumValue - ((EnumToNameGroupEntry*)e2)->enumValue;
 }
 
@@ -281,8 +276,7 @@ public:
 };
 
 // Sort function for EnumToValueEntry (sort by enum)
-U_CAPI int32_t
-compareEnumToValueEntry(const void * /*context*/, const void* e1, const void* e2) {
+U_CAPI int compareEnumToValueEntry(const void* e1, const void* e2) {
     return ((EnumToValueEntry*)e1)->enumValue - ((EnumToValueEntry*)e2)->enumValue;
 }
 
@@ -903,6 +897,11 @@ static UDataInfo dataInfo = {
     {VERSION_0, VERSION_1, VERSION_2, VERSION_3} /* Unicode version */
 };
 
+// Glue for C<->C++
+U_CAPI int compareAliasNames(const void* elem1, const void* elem2) {
+    return ((const AliasName*)elem1)->compare(*(const AliasName*)elem2);
+}
+
 class genpname {
 
     // command-line options
@@ -923,22 +922,9 @@ private:
 };
 
 int main(int argc, char *argv[]) {
-    UErrorCode status = U_ZERO_ERROR;
-    u_init(&status);
-    if (U_FAILURE(status) && status != U_FILE_ACCESS_ERROR) {
-        // Note: u_init() will try to open ICU property data.
-        //       failures here are expected when building ICU from scratch.
-        //       ignore them.
-        fprintf(stderr, "genpname: can not initialize ICU.  Status = %s\n",
-            u_errorName(status));
-        exit(1);
-    }
-
     genpname app;
     U_MAIN_INIT_ARGS(argc, argv);
-    int retVal = app.MMain(argc, argv);
-    u_cleanup();
-    return retVal;
+    return app.MMain(argc, argv);
 }
 
 static UOption options[]={
@@ -977,14 +963,8 @@ NameToEnumEntry* genpname::createNameIndex(const AliasList& list,
                 NameToEnumEntry(names[j], p.enumValue);
         }
     }
-
-    /*
-     * use a stable sort to ensure consistent results between
-     * genpname.cpp and the propname.cpp swapping code
-     */
-    UErrorCode errorCode = U_ZERO_ERROR;
-    uprv_sortArray(nameIndex, nameIndexCount, sizeof(nameIndex[0]),
-                   compareNameToEnumEntry, NULL, TRUE, &errorCode);
+    qsort((void*) nameIndex, nameIndexCount, sizeof(nameIndex[0]),
+          compareNameToEnumEntry);
     if (debug>1) {
         printf("Alias names: %d\n", nameIndexCount);
         for (i=0; i<nameIndexCount; ++i) {
@@ -1035,10 +1015,8 @@ EnumToNameGroupEntry* genpname::createEnumIndex(const AliasList& list) {
         const Alias& p = list[i];
         enumIndex[i] = EnumToNameGroupEntry(p.enumValue, p.nameGroupIndex);
     }
-
-    UErrorCode errorCode = U_ZERO_ERROR;
-    uprv_sortArray(enumIndex, count, sizeof(enumIndex[0]),
-                   compareEnumToNameGroupEntry, NULL, FALSE, &errorCode);
+    qsort((void*) enumIndex, count, sizeof(enumIndex[0]),
+          compareEnumToNameGroupEntry);
     if (debug>1) {
         printf("Property enums: %d\n", count);
         for (i=0; i<count; ++i) {
@@ -1062,17 +1040,9 @@ EnumToNameGroupEntry* genpname::createEnumIndex(const AliasList& list) {
     return enumIndex;
 }
 
-int genpname::MMain(int argc, char* argv[])
-{
+int genpname::MMain(int argc, char* argv[]) {
+
     int32_t i, j;
-    UErrorCode status = U_ZERO_ERROR;
-
-    u_init(&status);
-    if (U_FAILURE(status) && status != U_FILE_ACCESS_ERROR) {
-        fprintf(stderr, "Error: u_init returned %s\n", u_errorName(status));
-        status = U_ZERO_ERROR;
-    }
-
 
     /* preset then read command line options */
     options[3].value=u_getDataDirectory();
@@ -1107,20 +1077,33 @@ int genpname::MMain(int argc, char* argv[])
     verbose = options[4].doesOccur;
 
     // ------------------------------------------------------------
-    // Do not sort the string table, instead keep it in data.h order.
-    // This simplifies data swapping and testing thereof because the string
-    // table itself need not be sorted during swapping.
-    // The NameToEnum sorter sorts each such map's string offsets instead.
-
+    // Sort the string table.  This produces the proper sorting
+    // using the actual comparison function we will use.
+    qsort((void*) STRING_TABLE, STRING_COUNT, sizeof(STRING_TABLE[0]),
+          compareAliasNames);
     if (debug>1) {
         printf("String pool: %d\n", STRING_COUNT);
-        for (i=0; i<STRING_COUNT; ++i) {
-            if (i != 0) {
-                printf(", ");
-            }
+    }
+    for (i=0; i<STRING_COUNT; ++i) {
+        REMAP[STRING_TABLE[i].index] = i;
+        if (debug>1) {
+            if (i != 0) printf(", ");
             printf("%s (%d)", STRING_TABLE[i].str, STRING_TABLE[i].index);
         }
+    }
+    if (debug>1) {
         printf("\n\n");
+    }
+
+    // ------------------------------------------------------------
+    // Fixup the NAME_GROUP indices so they match the sorted order
+    for (i=0; i<NAME_GROUP_COUNT; ++i) {
+        // keep negative entries (end markers) negative
+        if (NAME_GROUP[i] < 0) {
+            NAME_GROUP[i] = -REMAP[-NAME_GROUP[i]];
+        } else {
+            NAME_GROUP[i] = REMAP[NAME_GROUP[i]];
+        }
     }
 
     // ------------------------------------------------------------
@@ -1149,9 +1132,8 @@ int genpname::MMain(int argc, char* argv[])
         ++j;
     }
     enumToValue_count = j;
-
-    uprv_sortArray(enumToValue, enumToValue_count, sizeof(enumToValue[0]),
-                   compareEnumToValueEntry, NULL, FALSE, &status);
+    qsort((void*) enumToValue, enumToValue_count, sizeof(enumToValue[0]),
+          compareEnumToValueEntry);
 
     // ------------------------------------------------------------
     // Build PropertyAliases layout in memory

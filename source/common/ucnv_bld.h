@@ -20,16 +20,12 @@
 #include "unicode/utypes.h"
 #include "unicode/ucnv.h"
 #include "unicode/ucnv_err.h"
-#include "udataswp.h"
+
 
 /* size of the overflow buffers in UConverter, enough for escaping callbacks */
 #define UCNV_ERROR_BUFFER_LENGTH 32
 
-/* at most 4 bytes per substitution character (part of .cnv file format! see UConverterStaticData) */
 #define UCNV_MAX_SUBCHAR_LEN 4
-
-/* at most 8 bytes per character in toUBytes[] (UTF-8 uses up to 6) */
-#define UCNV_MAX_CHAR_LEN 8
 
 /* converter options bits */
 #define UCNV_OPTION_VERSION     0xf
@@ -116,7 +112,7 @@ struct UConverter {
                                      UErrorCode *);
     /*
      * Error function pointer called when conversion issues
-     * occur during a ucnv_toUnicode call
+     * occur during a T_UConverter_toUnicode call
      */
     void (U_EXPORT2 *fromCharErrorBehaviour) (const void *context,
                                     UConverterToUnicodeArgs *args,
@@ -144,21 +140,11 @@ struct UConverter {
 
     UBool  useFallback;
     int8_t toULength;                   /* number of bytes in toUBytes */
-    uint8_t toUBytes[UCNV_MAX_CHAR_LEN-1];/* more "toU status"; keeps the bytes of the current character */
+    uint8_t toUBytes[7];                /* more "toU status"; keeps the bytes of the current character */
     uint32_t toUnicodeStatus;           /* Used to internalize stream status information */
     int32_t mode;
     uint32_t fromUnicodeStatus;
-
-    /*
-     * More fromUnicode() status. Serves 3 purposes:
-     * - keeps a lead surrogate between buffers (similar to toUBytes[])
-     * - keeps a lead surrogate at the end of the stream,
-     *   which the framework handles as truncated input
-     * - if the fromUnicode() implementation returns to the framework
-     *   (ucnv.c ucnv_fromUnicode()), then the framework calls the callback
-     *   for this code point
-     */
-    UChar32 fromUChar32;
+    UChar    fromUSurrogateLead;        /* similar to toUBytes; keeps the lead surrogate of the current character */
 
     int8_t subCharLen;                  /* length of the codepage specific character sequence */
     int8_t invalidCharLength;
@@ -169,11 +155,12 @@ struct UConverter {
 
     uint8_t subChar1;                                   /* single-byte substitution character if different from subChar */
     uint8_t subChar[UCNV_MAX_SUBCHAR_LEN];              /* codepage specific character sequence */
-    char invalidCharBuffer[UCNV_MAX_CHAR_LEN];          /* bytes from last error/callback situation */
+    char invalidCharBuffer[UCNV_MAX_SUBCHAR_LEN];       /* bytes from last error/callback situation */
     uint8_t charErrorBuffer[UCNV_ERROR_BUFFER_LENGTH];  /* codepage output from Error functions */
 
-    UChar invalidUCharBuffer[U16_MAX_LENGTH];           /* UChars from last error/callback situation */
+    UChar invalidUCharBuffer[3];                        /* UChars from last error/callback situation */
     UChar UCharErrorBuffer[UCNV_ERROR_BUFFER_LENGTH];   /* unicode output from Error functions */
+
 };
 
 U_CDECL_END /* end of UConverter */
@@ -188,14 +175,5 @@ typedef struct
 UConverterDataLMBCS;
 
 #define CONVERTER_FILE_EXTENSION ".cnv"
-
-/**
- * Swap ICU .cnv conversion tables. See udataswp.h.
- * @internal
- */
-U_CAPI int32_t U_EXPORT2
-ucnv_swap(const UDataSwapper *ds,
-          const void *inData, int32_t length, void *outData,
-          UErrorCode *pErrorCode);
 
 #endif /* _UCNV_BLD */

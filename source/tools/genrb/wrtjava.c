@@ -297,9 +297,12 @@ str_write_java( uint16_t* src, int32_t srcLen, UBool printEndLine, UErrorCode *s
     }
 }
 
+/* Writing Functions */
 static void 
-write_utf8_file(struct SResource *res, const char *file, UErrorCode *status){
+string_write_java(struct SResource *res,UErrorCode *status) {       
+    if(uprv_strcmp(srBundle->fKeys+res->fKey,"%%UCARULES")==0 ){
         char fileName[1024] ={0};
+        const char* file = "UCARules.utf8";
         FileStream* datFile = NULL;
         const char* type = "new ICUListResourceBundle.ResourceString(";
         char* dest  = (char*) uprv_malloc( 8 * res->u.fString.fLength);
@@ -333,28 +336,11 @@ write_utf8_file(struct SResource *res, const char *file, UErrorCode *status){
         T_FileStream_write(datFile,dest,len);
         T_FileStream_close(datFile);
         uprv_free(dest);
-}
-#define MAX_SEQUENCE_LENGTH 30000
-/* Writing Functions */
-static void 
-string_write_java(struct SResource *res,UErrorCode *status) {       
-    if(res->fKey > 0 && uprv_strcmp(srBundle->fKeys+res->fKey,"%%UCARULES")==0 ){
-
-        const char* file = "UCARules.utf8";
-        write_utf8_file(res, file, status);
-    }else if(res->fKey > 0 && uprv_strcmp(srBundle->fKeys+res->fKey,"Sequence")==0 
-             && res->fType == RES_STRING 
-             && res->u.fString.fLength > MAX_SEQUENCE_LENGTH){
-        char file[1024] = {0};
-        uprv_strcpy(file, "CollationSequence_");
-        uprv_strcat(file, srBundle->fLocale);
-        uprv_strcat(file, ".utf8");
-        write_utf8_file(res, file, status);
-
+           
     }else{
         str_write_java(res->u.fString.fChars,res->u.fString.fLength,TRUE,status);
 
-        if(res->fKey > 0 && uprv_strcmp(srBundle->fKeys+res->fKey,"Rule")==0){
+        if(uprv_strcmp(srBundle->fKeys+res->fKey,"Rule")==0){
             UChar* buf = (UChar*) uprv_malloc(sizeof(UChar)*res->u.fString.fLength);
             uprv_memcpy(buf,res->u.fString.fChars,res->u.fString.fLength);      
             uprv_free(buf);
@@ -466,7 +452,7 @@ intvector_write_java( struct SResource *res, UErrorCode *status) {
     buf[0]=0;
     write_tabs(out);
 
-    if(res->fKey > 0 && uprv_strcmp(srBundle->fKeys+res->fKey,"DateTimeElements")==0){
+    if(uprv_strcmp(srBundle->fKeys+res->fKey,"DateTimeElements")==0){
         T_FileStream_write(out, stringArr, (int32_t)uprv_strlen(stringArr));
         tabCount++;
         for(i = 0; i<res->u.fIntVector.fCount; i++) {
@@ -521,7 +507,7 @@ bin_write_java( struct SResource *res, UErrorCode *status) {
         uint16_t* saveTarget = NULL;
         int32_t tgtLen = 0;
 
-        if(res->fKey > 0 && (uprv_strcmp(srBundle->fKeys+res->fKey,"%%CollationBin")==0 || uprv_strcmp(srBundle->fKeys+res->fKey,"BreakDictionaryData")==0)){
+        if(uprv_strcmp(srBundle->fKeys+res->fKey,"%%CollationBin")==0 || uprv_strcmp(srBundle->fKeys+res->fKey,"BreakDictionaryData")==0){
             char fileName[1024] ={0};
             char fn[1024] =  {0};
             FileStream* datFile = NULL;
@@ -664,14 +650,14 @@ table_write_java(struct SResource *res, UErrorCode *status) {
             allStrings=FALSE;
 
             write_tabs(out);
-            if(res->fKey > 0){
-                T_FileStream_write(out, "\"", 1);
-                T_FileStream_write(out, srBundle->fKeys+current->fKey,
-                                   (int32_t)uprv_strlen(srBundle->fKeys+current->fKey));
-                T_FileStream_write(out, "\",\n", 2);
 
-                T_FileStream_write(out, "\n", 1);
-            }
+            T_FileStream_write(out, "\"", 1);
+            T_FileStream_write(out, srBundle->fKeys+current->fKey,
+                               (int32_t)uprv_strlen(srBundle->fKeys+current->fKey));
+            T_FileStream_write(out, "\",\n", 2);
+
+            T_FileStream_write(out, "\n", 1);
+           
             res_write_java(current, status);
             if(U_FAILURE(*status)){
                 return;
@@ -727,7 +713,6 @@ res_write_java(struct SResource *res,UErrorCode *status) {
              array_write_java     (res, status);
              return;
         case URES_TABLE:
-        case URES_TABLE32:
              table_write_java     (res, status);
              return;
 

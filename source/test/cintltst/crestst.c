@@ -20,7 +20,7 @@
 #include "unicode/ustring.h"
 #include "cstring.h"
 #include "filestrm.h"
-#include <stdlib.h>
+#include "cmemory.h"
 
 #define RESTEST_HEAP_CHECK 0
 
@@ -403,7 +403,6 @@ static void TestFallback()
 {
     UErrorCode status = U_ZERO_ERROR;
     UResourceBundle *fr_FR = NULL;
-    UResourceBundle *subResource = NULL;
     const UChar *junk; /* ignored */
     int32_t resultLen;
 
@@ -427,13 +426,13 @@ static void TestFallback()
     status = U_ZERO_ERROR;
 
     /* OK first one. This should be a Default value. */
-    subResource = ures_getByKey(fr_FR, "CurrencyMap", NULL, &status);
+    junk = ures_getStringByKey(fr_FR, "%%PREEURO", &resultLen, &status);
     if(status != U_USING_DEFAULT_WARNING)
     {
-        log_data_err("Expected U_USING_DEFAULT_ERROR when trying to get LocaleScript from fr_FR, got %s\n",
+        log_data_err("Expected U_USING_DEFAULT_ERROR when trying to get %%PREEURO from fr_FR, got %s\n",
             u_errorName(status));
     }
-    ures_close(subResource);
+
     status = U_ZERO_ERROR;
 
     /* and this is a Fallback, to fr */
@@ -518,7 +517,7 @@ static void TestFileStream(void){
     int32_t c1=0;
     UErrorCode status = U_ZERO_ERROR;
     const char* testdatapath = loadTestData(&status);
-    char* fileName = (char*) malloc(uprv_strlen(testdatapath) +10);
+    char* fileName = (char*) uprv_malloc(uprv_strlen(testdatapath) +10);
     FileStream* stream = NULL;
     /* these should not be closed */
     FileStream* pStdin  = T_FileStream_stdin();
@@ -527,7 +526,7 @@ static void TestFileStream(void){
 
     const char* testline = "This is a test line";
     int32_t bufLen =uprv_strlen(testline)+10;
-    char* buf = (char*) malloc(bufLen);
+    char* buf = (char*) uprv_malloc(bufLen);
     int32_t retLen = 0;
 
     if(pStdin==NULL){
@@ -630,7 +629,7 @@ static void TestFileStream(void){
     }
 
 
-    free(fileName);
-    free(buf);
+    uprv_free(fileName);
+    uprv_free(buf);
 
 }

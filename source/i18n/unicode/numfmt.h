@@ -590,6 +590,19 @@ public:
 public:
 
     /**
+     * Return the class ID for this class.  This is useful only for
+     * comparing to a return value from getDynamicClassID().  For example:
+     * <pre>
+     * .   Base* polymorphic_pointer = createPolymorphicObject();
+     * .   if (polymorphic_pointer->getDynamicClassID() ==
+     * .       Derived::getStaticClassID()) ...
+     * </pre>
+     * @return The class ID for all objects of this class.
+     * @stable ICU 2.0
+     */
+    static inline UClassID getStaticClassID(void);
+
+    /**
      * Returns a unique class ID POLYMORPHICALLY.  Pure virtual override.
      * This method is to implement a simple version of RTTI, since not all
      * C++ compilers support genuine RTTI.  Polymorphic operator==() and
@@ -627,6 +640,7 @@ private:
     static const int32_t fgMinIntegerDigits;
 
 private:
+    static const char fgClassID;
 
     enum EStyles {
         kNumberStyle,
@@ -668,8 +682,8 @@ private:
     // ISO currency code
     UChar      currency[4];
 
-    friend class ICUNumberFormatFactory; // access to makeInstance, EStyles
-    friend class ICUNumberFormatService;
+	friend class ICUNumberFormatFactory; // access to makeInstance, EStyles
+	friend class ICUNumberFormatService;
 };
 
 /**
@@ -696,7 +710,7 @@ public:
      * is returned in count;
      * @draft ICU 2.6
      */
-    virtual const UnicodeString * getSupportedIDs(int32_t &count, UErrorCode& status) const = 0;
+    virtual const UnicodeString * const getSupportedIDs(int32_t &count, UErrorCode& status) const = 0;
 
     /**
      * Return a number format of the appropriate type.  If the locale
@@ -746,7 +760,7 @@ public:
     /**
      * @draft ICU 2.6
      */
-    virtual const UnicodeString * getSupportedIDs(int32_t &count, UErrorCode& status) const 
+    virtual const UnicodeString * const getSupportedIDs(int32_t &count, UErrorCode& status) const 
       {
         if (U_SUCCESS(status)) {
           count = 1;
@@ -759,6 +773,10 @@ public:
 
 
 // -------------------------------------
+
+inline UClassID
+NumberFormat::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
 
 inline UBool
 NumberFormat::isParseIntegerOnly() const

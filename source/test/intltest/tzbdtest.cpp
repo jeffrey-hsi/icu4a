@@ -175,11 +175,7 @@ TimeZoneBoundaryTest::showDate(UDate d)
 UnicodeString
 TimeZoneBoundaryTest::showNN(int32_t n)
 {
-    UnicodeString nStr;
-    if (n < 10) {
-        nStr += UnicodeString("0", "");
-    }
-    return nStr + n;
+    return ((n < 10) ? UnicodeString("0"): UnicodeString("")) + n;
 }
  
 // -------------------------------------
@@ -405,7 +401,7 @@ TimeZoneBoundaryTest::findBoundariesStepwise(int32_t year, UDate interval, TimeZ
 void
 TimeZoneBoundaryTest::TestStepwise()
 {
-    TimeZone *zone =  TimeZone::createTimeZone("America/New_York");
+    TimeZone *zone =  TimeZone::createTimeZone("EST");
     findBoundariesStepwise(1997, ONE_DAY, zone, 2);
     delete zone;
     zone = TimeZone::createTimeZone("UTC"); // updated 12/3/99 aliu

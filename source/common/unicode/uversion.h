@@ -61,32 +61,32 @@
  *  This value will change in the subsequent releases of ICU
  *  @draft ICU 2.6
  */
-#define U_ICU_VERSION_MINOR_NUM 8
+#define U_ICU_VERSION_MINOR_NUM 6
 
 /** The current ICU patchlevel version as an integer.  
  *  This value will change in the subsequent releases of ICU
  *  @draft ICU 2.4
  */
-#define U_ICU_VERSION_PATCHLEVEL_NUM 0
+#define U_ICU_VERSION_PATCHLEVEL_NUM 1
 
 /** Glued version suffix for renamers 
  *  This value will change in the subsequent releases of ICU
  *  @draft ICU 2.6
  */
-#define U_ICU_VERSION_SUFFIX _2_8
+#define U_ICU_VERSION_SUFFIX _2_6
 
 /** The current ICU library version as a dotted-decimal string. The patchlevel
  *  only appears in this string if it non-zero. 
  *  This value will change in the subsequent releases of ICU
  *  @draft ICU 2.4
  */
-#define U_ICU_VERSION "2.8"
+#define U_ICU_VERSION "2.6.1"
 
 /** The current ICU library major/minor version as a string without dots, for library name suffixes. 
  *  This value will change in the subsequent releases of ICU
  *  @draft ICU 2.6
  */
-#define U_ICU_VERSION_SHORT "28"
+#define U_ICU_VERSION_SHORT "26"
 
 /** An ICU version consists of up to 4 numbers from 0..255.
  *  @draft ICU 2.4

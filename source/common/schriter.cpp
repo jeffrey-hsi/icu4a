@@ -18,7 +18,7 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(StringCharacterIterator)
+const char StringCharacterIterator::fgClassID = 0;
 
 StringCharacterIterator::StringCharacterIterator()
   : UCharCharacterIterator(),

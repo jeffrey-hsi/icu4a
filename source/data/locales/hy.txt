@@ -85,6 +85,8 @@ hy{
     Languages{
       hy { "\u0540\u0561\u0575\u0565\u0580\u0567\u0576" }
     }
+//    LocaleString{ "hy" }
+    LocaleID:int { 0x2b }
 
     // /**************** Info Below is needed ****************/
     // CollationElements{}    // To be supplied from Unicode
@@ -95,7 +97,7 @@ hy{
         "HH:mm:ss z",
         "HH:mm:ss",
         "HH:mm",
-        "EEEE, MMMM d, yyyy",
+        "EEEE,MMMM d, yyyy",
         "MMMM dd, yyyy",
         "MMM d, yyyy",
         "MM/dd/yy",
@@ -123,6 +125,5 @@ hy{
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
 }

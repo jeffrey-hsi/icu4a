@@ -54,6 +54,9 @@ Package=<4>
     Project_Dep_Name gentest
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name gentz
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name genuca
     End Project Dependency
     Begin Project Dependency
@@ -93,10 +96,10 @@ Package=<4>
     Project_Dep_Name genbrk
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name layoutex
+    Project_Dep_Name genidna
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gensprep
+    Project_Dep_Name layoutex
     End Project Dependency
 }}}
 
@@ -264,6 +267,24 @@ Package=<4>
 
 ###############################################################################
 
+Project: "genidna"=..\tools\genidna\genidna.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name common
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name toolutil
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "gennames"=..\tools\gennames\gennames.dsp - Package Owner=<4>
 
 Package=<5>
@@ -360,7 +381,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "gensprep"=..\tools\gensprep\gensprep.dsp - Package Owner=<4>
+Project: "gentest"=..\tools\gentest\gentest.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -368,11 +389,17 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name common
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name toolutil
+    End Project Dependency
 }}}
 
 ###############################################################################
 
-Project: "gentest"=..\tools\gentest\gentest.dsp - Package Owner=<4>
+Project: "gentz"=..\tools\gentz\gentz.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -421,27 +448,6 @@ Package=<4>
 {{{
     Begin Project Dependency
     Project_Dep_Name common
-    End Project Dependency
-}}}
-
-###############################################################################
-
-Project: "icuswap"=..\tools\icuswap\icuswap.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-    Begin Project Dependency
-    Project_Dep_Name common
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name i18n
-    End Project Dependency
-    Begin Project Dependency
-    Project_Dep_Name toolutil
     End Project Dependency
 }}}
 
@@ -576,6 +582,9 @@ Package=<4>
     Project_Dep_Name gentest
     End Project Dependency
     Begin Project Dependency
+    Project_Dep_Name gentz
+    End Project Dependency
+    Begin Project Dependency
     Project_Dep_Name genuca
     End Project Dependency
     Begin Project Dependency
@@ -597,7 +606,7 @@ Package=<4>
     Project_Dep_Name genbrk
     End Project Dependency
     Begin Project Dependency
-    Project_Dep_Name gensprep
+    Project_Dep_Name genidna
     End Project Dependency
 }}}
 

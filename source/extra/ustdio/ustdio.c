@@ -27,38 +27,22 @@
 
 #include <string.h>
 
-#define DELIM_LF 0x000A
-#define DELIM_VT 0x000B
-#define DELIM_FF 0x000C
 #define DELIM_CR 0x000D
-#define DELIM_NEL 0x0085
-#define DELIM_LS 0x2028
-#define DELIM_PS 0x2029
+#define DELIM_LF 0x000A
 
 /* Leave this copyright notice here! */
 static const char copyright[] = U_COPYRIGHT_STRING;
 
-/* TODO: is this correct for all codepages? Should we just use \n and let the converter handle it? */
 #ifdef WIN32
 static const UChar DELIMITERS [] = { DELIM_CR, DELIM_LF, 0x0000 };
 static const uint32_t DELIMITERS_LEN = 2;
-#elif (U_CHARSET_FAMILY == U_EBCDIC_FAMILY)
-static const UChar DELIMITERS [] = { DELIM_NEL, 0x0000 };
-static const uint32_t DELIMITERS_LEN = 1;
 #else
 static const UChar DELIMITERS [] = { DELIM_LF, 0x0000 };
 static const uint32_t DELIMITERS_LEN = 1;
 #endif
 
-#define IS_FIRST_STRING_DELIMITER(c1) \
- (UBool)((DELIM_LF <= (c1) && (c1) <= DELIM_CR) \
-        || (c1) == DELIM_NEL \
-        || (c1) == DELIM_LS \
-        || (c1) == DELIM_PS)
-#define CAN_HAVE_COMBINED_STRING_DELIMITER(c1) (UBool)((c1) == DELIM_CR)
-#define IS_COMBINED_STRING_DELIMITER(c1, c2) \
- (UBool)((c1) == DELIM_CR && (c2) == DELIM_LF)
-
+#define IS_STRING_DELIMITER(s)    (UBool)(    (s) == DELIM_CR || \
+(s) == DELIM_LF    )
 
 #if !UCONFIG_NO_TRANSLITERATION
 
@@ -444,7 +428,6 @@ u_fgets(UFILE        *f,
     UChar *alias;
     UChar *limit;
     UChar *sItr;
-    UChar currDelim = 0;
 
     if (n <= 0) {
         /* Caller screwed up. We need to write the null terminatior. */
@@ -469,7 +452,6 @@ u_fgets(UFILE        *f,
     /* otherwise, iteratively fill the buffer and copy */
     count = 0;
     sItr = s;
-    currDelim = 0;
     while (dataSize > 0 && count < n) {
         alias = f->fUCPos;
 
@@ -481,35 +463,22 @@ u_fgets(UFILE        *f,
             limit = alias + n;
         }
 
-        if (!currDelim) {
-            /* Copy UChars until we find the first occurrence of a delimiter character */
-            while (alias < limit && !IS_FIRST_STRING_DELIMITER(*alias)) {
-                count++;
-                *(sItr++) = *(alias++);
-            }
-            /* Preserve the newline */
-            if (alias < limit && IS_FIRST_STRING_DELIMITER(*alias)) {
-                if (CAN_HAVE_COMBINED_STRING_DELIMITER(*alias)) {
-                    currDelim = *alias;
-                }
-                count++;
-                *(sItr++) = *(alias++);
-            }
+        /* Copy UChars until we find the first occurrence of a delimiter character */
+        while (alias < limit && !IS_STRING_DELIMITER(*alias)) {
+            count++;
+            *(sItr++) = *(alias++);
         }
-        /* If we have a CRLF combination, preserve that too. */
-        if (alias < limit) {
-            if (currDelim && IS_COMBINED_STRING_DELIMITER(currDelim, *alias)) {
-                count++;
-                *(sItr++) = *(alias++);
-            }
-            currDelim = 0;
+        /* Preserve the newline */
+        if (alias < limit && IS_STRING_DELIMITER(*alias)) {
+            count++;
+            *(sItr++) = *(alias++);
         }
 
         /* update the current buffer position */
         f->fUCPos = alias;
 
         /* if we found a delimiter */
-        if (alias < f->fUCLimit && !currDelim) {
+        if (alias < f->fUCLimit) {
 
             /* break out */
             break;

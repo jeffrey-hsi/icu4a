@@ -21,7 +21,7 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(Normalizer)
+const char Normalizer::fgClassID=0;
 
 //-------------------------------------------------------------------------
 // Constructors and other boilerplate

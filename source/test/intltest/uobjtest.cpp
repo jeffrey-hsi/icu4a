@@ -226,7 +226,7 @@ void UObjectTest::testIDs()
 #if !UCONFIG_NO_FORMATTING
     /* TESTCLASSID_FACTORY(NFSubstitution,  NFSubstitution::makeSubstitution(8, */
     /* TESTCLASSID_DEFAULT(DigitList);  UMemory but not UObject*/
-    //TESTCLASSID_ABSTRACT(NumberFormat);
+    TESTCLASSID_ABSTRACT(NumberFormat);
     TESTCLASSID_CTOR(DateFormatSymbols, (status));
     TESTCLASSID_CTOR(DecimalFormatSymbols, (status));
 #if UOBJTEST_TEST_INTERNALS
@@ -301,7 +301,7 @@ void UObjectTest::testIDs()
 
 #if !UCONFIG_NO_TRANSLITERATION
     TESTCLASSID_FACTORY(TitlecaseTransliterator,  Transliterator::createInstance(UnicodeString("Any-Title"), UTRANS_FORWARD, parseError, status));
-    //TESTCLASSID_ABSTRACT(Transliterator);
+    TESTCLASSID_ABSTRACT(Transliterator);
 
 #if UOBJTEST_TEST_INTERNALS
     TESTCLASSID_CTOR(StringMatcher, (UnicodeString("x"), 0,0,0,TransliterationRuleData(status)));
@@ -311,8 +311,8 @@ void UObjectTest::testIDs()
     
     TESTCLASSID_DEFAULT(UnicodeString);
     TESTCLASSID_CTOR(UnicodeSet, (0, 1));
-    //TESTCLASSID_ABSTRACT(UnicodeFilter);
-    //TESTCLASSID_ABSTRACT(UnicodeFunctor);
+    TESTCLASSID_ABSTRACT(UnicodeFilter);
+    TESTCLASSID_ABSTRACT(UnicodeFunctor);
     TESTCLASSID_CTOR(UnicodeSetIterator,(UnicodeSet(0,1)));
     TESTCLASSID_CTOR(UStack, (status));
     TESTCLASSID_CTOR(UVector, (status));

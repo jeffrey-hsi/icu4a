@@ -18,6 +18,8 @@ es_CO {
         "d/MM/yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x240a }
+//    LocaleString { "es_CO" }
     NumberElements { 
         ",",
         ".",
@@ -31,8 +33,9 @@ es_CO {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
+//    ShortCountry { "COL" }
+
     // Currency display names
     Currencies {
         COP { "$", "Peso de Colombia" }

@@ -23,7 +23,7 @@
 #include "unicode/ucol.h"
 #include "cmemory.h"
 
-static void TestNextUChar(UConverter* cnv, const char* source, const char* limit, const int32_t results[], const char* message);
+static void TestNextUChar(UConverter* cnv, const char* source, const char* limit, const uint32_t results[], const char* message);
 static void TestNextUCharError(UConverter* cnv, const char* source, const char* limit, UErrorCode expected, const char* message);
 #if !UCONFIG_NO_COLLATION
 static void TestJitterbug981(void);
@@ -92,7 +92,7 @@ static char     gNuConvTestName[1024];
 static UConverter *my_ucnv_open(const char *cnv, UErrorCode *err)
 {
   if(cnv && cnv[0] == '@') {
-    return ucnv_openPackage(loadTestData(err), cnv+1, err);
+    return ucnv_openPackage("testdata", cnv+1, err);
   } else {
     return ucnv_open(cnv, err);
   }
@@ -134,13 +134,13 @@ static void printUSeqErr(const UChar* a, int len)
 }
 
 static void
-TestNextUChar(UConverter* cnv, const char* source, const char* limit, const int32_t results[], const char* message)
+TestNextUChar(UConverter* cnv, const char* source, const char* limit, const uint32_t results[], const char* message)
 {
      const char* s0;
      const char* s=(char*)source;
-     const int32_t *r=results;
+     const uint32_t *r=results;
      UErrorCode errorCode=U_ZERO_ERROR;
-     UChar32 c;
+     uint32_t c;
 
      while(s<limit) {
         s0=s;
@@ -150,11 +150,7 @@ TestNextUChar(UConverter* cnv, const char* source, const char* limit, const int3
         } else if(U_FAILURE(errorCode)) {
             log_err("%s ucnv_getNextUChar() failed: %s\n", message, u_errorName(errorCode));
             break;
-        } else if(
-            /* test the expected number of input bytes only if >=0 */
-            (*r>=0 && (int32_t)(s-s0)!=*r) ||
-            c!=*(r+1)
-        ) {
+        } else if((uint32_t)(s-s0)!=*r || c!=*(r+1)) {
             log_err("%s ucnv_getNextUChar() result %lx from %d bytes, should have been %lx from %d bytes.\n",
                 message, c, (s-s0), *(r+1), *r);
             break;
@@ -218,8 +214,6 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestUTF7, "tsconv/nucnvtst/TestUTF7");
    addTest(root, &TestIMAP, "tsconv/nucnvtst/TestIMAP");
    addTest(root, &TestUTF8, "tsconv/nucnvtst/TestUTF8");
-
-   /* test ucnv_getNextUChar() for charsets that encode single surrogates with complete byte sequences */
    addTest(root, &TestCESU8, "tsconv/nucnvtst/TestCESU8");
    addTest(root, &TestUTF16, "tsconv/nucnvtst/TestUTF16");
    addTest(root, &TestUTF16BE, "tsconv/nucnvtst/TestUTF16BE");
@@ -227,8 +221,6 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestUTF32, "tsconv/nucnvtst/TestUTF32");
    addTest(root, &TestUTF32BE, "tsconv/nucnvtst/TestUTF32BE");
    addTest(root, &TestUTF32LE, "tsconv/nucnvtst/TestUTF32LE");
-   addTest(root, &TestLMBCS, "tsconv/nucnvtst/TestLMBCS");
-
    addTest(root, &TestLATIN1, "tsconv/nucnvtst/TestLATIN1");
    addTest(root, &TestSBCS, "tsconv/nucnvtst/TestSBCS");
    addTest(root, &TestDBCS, "tsconv/nucnvtst/TestDBCS");
@@ -247,6 +239,7 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestSCSU, "tsconv/nucnvtst/TestSCSU");
    addTest(root, &TestEBCDIC_STATEFUL, "tsconv/nucnvtst/TestEBCDIC_STATEFUL");
    addTest(root, &TestGB18030, "tsconv/nucnvtst/TestGB18030");
+   addTest(root, &TestLMBCS, "tsconv/nucnvtst/TestLMBCS");
    addTest(root, &TestJitterbug255, "tsconv/nucnvtst/TestJitterbug255");
    addTest(root, &TestEBCDICUS4XML, "tsconv/nucnvtst/TestEBCDICUS4XML");
    addTest(root, &TestISCII, "tsconv/nucnvtst/TestISCII");
@@ -1142,9 +1135,18 @@ static void TestCoverageMBCS(){
         const uint8_t expectedtest1[] = { 0x00, 0x05, 0xff, 0x07, 0xff,};
         int32_t  totest1Offs[]        = { 0, 1, 2, 3, 5, };
 
+        const uint8_t test1input[]    = { 0x00, 0x05, 0x06, 0x07, 0x08, 0x09};
+        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0xfffd, 0xfffd};
+        int32_t fromtest1Offs[]       = { 0, 1, 2, 3, 3, 4, 5};
+
         /*from Unicode*/
         testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
             expectedtest1, sizeof(expectedtest1), "@test1", totest1Offs,FALSE );
+
+        /*to Unicode*/
+        testConvertToU(test1input, sizeof(test1input),
+            expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "@test1", fromtest1Offs ,FALSE);
+
     }
 
     /*some more test to increase the code coverage in MBCS.  Create an test converter from test3.ucm
@@ -1658,7 +1660,7 @@ static TestUTF7() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x48,
         1, 0x2d,
@@ -1702,7 +1704,7 @@ static TestIMAP() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x48,
         1, 0x2d,
@@ -1744,7 +1746,7 @@ static TestUTF8() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x61,
         2, 0x80,
@@ -1768,7 +1770,7 @@ static TestUTF8() {
     };
 
     /* expected error test results */
-    static const int32_t results2[]={
+    static const uint32_t results2[]={
         /* number of bytes read, code point */
         1, 0x61,
         22, 0x62
@@ -1811,15 +1813,15 @@ static TestCESU8() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x61,
         2, 0x80,
         3, 0x800,
         6, 0x10000,
         3, 0xdc01,
-        -1,0xd802,  /* may read 3 or 6 bytes */
-        -1,0x10ffff,/* may read 0 or 3 bytes */
+        3, 0xd802,
+        6, 0x10ffff,
         3, 0xfffc
     };
 
@@ -1840,7 +1842,7 @@ static TestCESU8() {
     };
 
     /* expected error test results */
-    static const int32_t results2[]={
+    static const uint32_t results2[]={
         /* number of bytes read, code point */
         1, 0x61,
         34, 0x62
@@ -1883,17 +1885,17 @@ static TestUTF16() {
     };
 
     /* expected test results */
-    static const int32_t results1[]={
+    static const uint32_t results1[]={
         /* number of bytes read, code point */
         4, 0x4e00,
         2, 0xfeff
     };
-    static const int32_t results2[]={
+    static const uint32_t results2[]={
         /* number of bytes read, code point */
         4, 0x004e,
         2, 0xfffe
     };
-    static const int32_t results3[]={
+    static const uint32_t results3[]={
         /* number of bytes read, code point */
         2, 0xfefe,
         2, 0x4e00,
@@ -1941,7 +1943,7 @@ static TestUTF16BE() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         2, 0x61,
         2, 0xc0,
@@ -1964,23 +1966,13 @@ static TestUTF16BE() {
     /*Test for the condition where there is an invalid character*/
     {
         static const uint8_t source2[]={0x61};
-        ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, NULL, NULL, &errorCode);
         TestNextUCharError(cnv, (const char*)source2, (const char*)source2+sizeof(source2), U_TRUNCATED_CHAR_FOUND, "an invalid character");
     }
-#if 0
-    /*
-     * Test disabled because currently the UTF-16BE/LE converters are supposed
-     * to not set errors for unpaired surrogates.
-     * This may change with
-     * Jitterbug 1838 - forbid converting surrogate code points in UTF-16/32
-     */
-
     /*Test for the condition where there is a surrogate pair*/
     {
         const uint8_t source2[]={0xd8, 0x01};
         TestNextUCharError(cnv, (const char*)source2, (const char*)source2+sizeof(source2), U_TRUNCATED_CHAR_FOUND, "an truncated surrogate character");
     }
-#endif
     ucnv_close(cnv);
 }
 
@@ -1996,7 +1988,7 @@ TestUTF16LE() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         2, 0x61,
         2, 0x31,
@@ -2018,23 +2010,13 @@ TestUTF16LE() {
     /*Test for the condition where there is an invalid character*/
     {
         static const uint8_t source2[]={0x61};
-        ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, NULL, NULL, &errorCode);
         TestNextUCharError(cnv, (const char*)source2, (const char*)source2+sizeof(source2), U_TRUNCATED_CHAR_FOUND, "an invalid character");
     }
-#if 0
-    /*
-     * Test disabled because currently the UTF-16BE/LE converters are supposed
-     * to not set errors for unpaired surrogates.
-     * This may change with
-     * Jitterbug 1838 - forbid converting surrogate code points in UTF-16/32
-     */
-
     /*Test for the condition where there is a surrogate character*/
     {
         static const uint8_t source2[]={0x01, 0xd8};
         TestNextUCharError(cnv, (const char*)source2, (const char*)source2+sizeof(source2), U_TRUNCATED_CHAR_FOUND, "an truncated surrogate character");
     }
-#endif
 
     ucnv_close(cnv);
 }
@@ -2053,17 +2035,17 @@ static TestUTF32() {
     };
 
     /* expected test results */
-    static const int32_t results1[]={
+    static const uint32_t results1[]={
         /* number of bytes read, code point */
         8, 0x100f00,
         4, 0xfeff
     };
-    static const int32_t results2[]={
+    static const uint32_t results2[]={
         /* number of bytes read, code point */
         8, 0x0f1000,
         4, 0xfffe
     };
-    static const int32_t results3[]={
+    static const uint32_t results3[]={
         /* number of bytes read, code point */
         4, 0xfefe,
         4, 0x100f00,
@@ -2112,7 +2094,7 @@ TestUTF32BE() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         4, 0x61,
         4, 0xdc00,
@@ -2135,7 +2117,7 @@ TestUTF32BE() {
     };
 
     /* expected error test results */
-    static const int32_t results2[]={
+    static const uint32_t results2[]={
         /* number of bytes read, code point */
         4,  0x61,
         8,  0x62,
@@ -2181,7 +2163,7 @@ TestUTF32LE() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         4, 0x61,
         4, 0xdc00,
@@ -2204,7 +2186,7 @@ TestUTF32LE() {
     };
 
     /* expected error test results */
-    static const int32_t results2[]={
+    static const uint32_t results2[]={
         /* number of bytes read, code point */
         4,  0x61,
         8,  0x62,
@@ -2249,7 +2231,7 @@ TestLATIN1() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x61,
         1, 0x31,
@@ -2369,7 +2351,7 @@ TestSBCS() {
     /* test input */
     static const uint8_t in[]={ 0x61, 0xc0, 0x80, 0xe0, 0xf0, 0xf4};
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x61,
         1, 0xbf,
@@ -2412,7 +2394,7 @@ TestDBCS() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         2, 0x00a7,
         2, 0xe1d2,
@@ -2432,16 +2414,15 @@ TestDBCS() {
     TestNextUChar(cnv, source, limit, results, "DBCS(@ibm9027)");
     /* Test the condition when source >= sourceLimit */
     TestNextUCharError(cnv, source, source, U_INDEX_OUTOFBOUNDS_ERROR, "sourceLimit <= source");
+    /*Test for the condition where we have a truncated char*/
+    {
+        static const uint8_t source1[]={0xc4};
+        TestNextUCharError(cnv, (const char*)source1, (const char*)source1+sizeof(source1), U_TRUNCATED_CHAR_FOUND, "a character is truncated");
+    }
     /*Test for the condition where there is an invalid character*/
     {
         static const uint8_t source2[]={0x1a, 0x1b};
         TestNextUCharError(cnv, (const char*)source2, (const char*)source2+sizeof(source2), U_ZERO_ERROR, "an invalid character");
-    }
-    /*Test for the condition where we have a truncated char*/
-    {
-        static const uint8_t source1[]={0xc4};
-        ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, NULL, NULL, &errorCode);
-        TestNextUCharError(cnv, (const char*)source1, (const char*)source1+sizeof(source1), U_TRUNCATED_CHAR_FOUND, "a character is truncated");
     }
     ucnv_close(cnv);
 }
@@ -2461,7 +2442,7 @@ TestMBCS() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x0001,
         2, 0x250c,
@@ -2483,16 +2464,15 @@ TestMBCS() {
     TestNextUChar(cnv, source, limit, results, "MBCS(ibm-1363)");
     /* Test the condition when source >= sourceLimit */
     TestNextUCharError(cnv, source, source, U_INDEX_OUTOFBOUNDS_ERROR, "sourceLimit <= source");
+    /*Test for the condition where we have a truncated char*/
+    {
+        static const uint8_t source1[]={0xc4};
+        TestNextUCharError(cnv, (const char*)source1, (const char*)source1+sizeof(source1), U_TRUNCATED_CHAR_FOUND, "a character is truncated");
+    }
     /*Test for the condition where there is an invalid character*/
     {
         static const uint8_t source2[]={0xa1, 0x01};
         TestNextUCharError(cnv, (const char*)source2, (const char*)source2+sizeof(source2), U_ZERO_ERROR, "an invalid character");
-    }
-    /*Test for the condition where we have a truncated char*/
-    {
-        static const uint8_t source1[]={0xc4};
-        ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, NULL, NULL, &errorCode);
-        TestNextUCharError(cnv, (const char*)source1, (const char*)source1+sizeof(source1), U_TRUNCATED_CHAR_FOUND, "a character is truncated");
     }
     ucnv_close(cnv);
 
@@ -2502,8 +2482,7 @@ static void
 TestISO_2022() {
     /* test input */
     static const uint8_t in[]={
-        0x1b, 0x25, 0x42,
-        0x31,
+        0x1b, 0x25, 0x42, 0x31,
         0x32,
         0x61,
         0xc2, 0x80,
@@ -2514,14 +2493,15 @@ TestISO_2022() {
 
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
-        4, 0x0031,  /* 4 bytes including the escape sequence */
+        4, 0x0031,
         1, 0x0032,
         1, 0x61,
         2, 0x80,
         3, 0x800,
-        4, 0x10000
+        4, 0x10000,
+
     };
 
     const char *source=(const char *)in, *limit=(const char *)in+sizeof(in);
@@ -2541,13 +2521,12 @@ TestISO_2022() {
     /*Test for the condition where we have a truncated char*/
     {
         static const uint8_t source1[]={0xc4};
-        ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, NULL, NULL, &errorCode);
         TestNextUCharError(cnv, (const char*)source1, (const char*)source1+sizeof(source1), U_TRUNCATED_CHAR_FOUND, "a character is truncated");
     }
     /*Test for the condition where there is an invalid character*/
     {
         static const uint8_t source2[]={0xa1, 0x01};
-        TestNextUCharError(cnv, (const char*)source2, (const char*)source2+sizeof(source2), U_ILLEGAL_CHAR_FOUND, "an invalid character");
+        TestNextUCharError(cnv, (const char*)source2, (const char*)source2+sizeof(source2), U_ZERO_ERROR, "an invalid character");
     }
     ucnv_close(cnv);
 }
@@ -4428,7 +4407,7 @@ TestEBCDIC_STATEFUL() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x002f,
         1, 0x0092,
@@ -4445,7 +4424,7 @@ TestEBCDIC_STATEFUL() {
     };
 
     /* expected test results */
-    static const int32_t results2[]={
+    static const uint32_t results2[]={
         /* number of bytes read, code point */
         2, 0x203E,
         1, 0x0001,
@@ -4509,7 +4488,7 @@ TestGB18030() {
     };
 
     /* expected test results */
-    static const int32_t results[]={
+    static const uint32_t results[]={
         /* number of bytes read, code point */
         1, 0x24,
         1, 0x7f,
@@ -4963,7 +4942,7 @@ TestLMBCS() {
          }
          /*0 byte source request - GetNextUChar : error & value == fffe or ffff */
          uniChar = ucnv_getNextUChar(cnv, (const char **)&pLIn, (const char *)pLIn, &errorCode);
-         if (errorCode != U_INDEX_OUTOFBOUNDS_ERROR)
+         if (errorCode != U_ILLEGAL_ARGUMENT_ERROR)
          {
             log_err("Unexpected Error on 0-byte source request to ucnv_getnextUChar: %s\n", u_errorName(errorCode));
          }
@@ -5003,7 +4982,6 @@ TestLMBCS() {
          errorCode = U_ZERO_ERROR;
          pUOut = UOut;
 
-         ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, NULL, NULL, &errorCode);
          ucnv_toUnicode(cnv, &pUOut,pUOut+sizeof(UOut)/sizeof(UChar),(const char **)&pLIn,(const char *)(pLIn+5),off,TRUE, &errorCode);
          if (UOut[0] != 0xD801 || errorCode != U_TRUNCATED_CHAR_FOUND || pUOut != UOut + 1 || pLIn != LIn + 5)
          {

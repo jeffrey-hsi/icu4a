@@ -3,7 +3,7 @@
 ## Copyright (c) 2001-2003, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-cygwin-msvc,v 1.15 2003/09/26 00:14:25 grhoten-oss Exp $
+## $Id: mh-cygwin-msvc,v 1.10 2003/08/08 23:53:43 grhoten-oss Exp $
 
 ## Commands to generate dependency files
 GEN_DEPS.c=	:
@@ -16,23 +16,15 @@ SHAREDLIBCPPFLAGS =
 
 ## Additional flags when building libraries and with threads
 LIBCPPFLAGS = 
-# /MDd means 'compiles and links a debugable multithreaded program with DLL'
-#THREADSCFLAGS += /MDd
-#THREADSCXXFLAGS += /MDd
-# /MD means 'compiles and links a multithreaded program with DLL'
-THREADSCFLAGS += /MD
-THREADSCXXFLAGS += /MD
+THREADSCPPFLAGS = 
 
-# /GF pools strings and places them into read-only memory
-CFLAGS += /GF
-CXXFLAGS += /GF
 CPPFLAGS+=/nologo
 DEFS+=/D"WIN32"
 LDFLAGS+=/nologo
 
 # Commands to compile
-COMPILE.c=	$(CC) $(CPPFLAGS) $(DEFS) $(CFLAGS) /c
-COMPILE.cc=	$(CXX) $(CPPFLAGS) $(DEFS) $(CXXFLAGS) /c
+COMPILE.c=	$(CC) $(CPPFLAGS) $(DEFS) $(CFLAGS) /GF /c
+COMPILE.cc=	$(CXX) $(CPPFLAGS) $(DEFS) $(CXXFLAGS) /GF /c
 
 # Commands to link
 LINK.c=		LINK.EXE /subsystem:console $(LDFLAGS)
@@ -60,7 +52,7 @@ OUTOPT = /out:
 IMPORT_LIB_EXT = .lib
 
 LIBICU = $(ICUPREFIX)
-DEFAULT_LIBS = advapi32.lib
+DEFAULT_LIBS =
 
 ## Link commands to link to ICU libs
 LIBICUDT=	$(top_builddir)/stubdata/$(LIBICU)data$(ICULIBSUFFIX)$(SO_TARGET_VERSION_MAJOR).lib
@@ -109,10 +101,10 @@ LIBUSTDIO=	$(top_builddir)/extra/ustdio/$(LIBICU)io$(ICULIBSUFFIX)$(SO_TARGET_VE
 
 ## Compile a Windows resource file
 %.res : $(srcdir)/%.rc
-	rc.exe /fo$@ $<
+	@rc.exe /fo$@ $<
 
 ## Versioned target for a shared library.
-FINAL_SO_TARGET= $(basename $(SO_TARGET))$(SO_TARGET_VERSION_MAJOR).$(SO)
+FINAL_SO_TARGET=  $(basename $(SO_TARGET))$(SO_TARGET_VERSION_MAJOR).$(SO)
 MIDDLE_SO_TARGET=$(SO_TARGET)
 
 ## Versioned import library names.
@@ -139,13 +131,6 @@ BIR_DEPS=
 
 # Environment variable to set a runtime search path
 LDLIBRARYPATH_ENVVAR = PATH
-
-# These are needed to allow the pkgdata nmake files to work
-PKGDATA_OPTS = -v
-PKGDATA_INVOKE_OPTS = MAKEFLAGS=
-
-# Include the version information in the shared library
-ENABLE_SO_VERSION_DATA=1
 
 ## End Cygwin-specific setup
 

@@ -544,7 +544,7 @@ public:
      * @return   The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static UClassID getStaticClassID(void);
+    static inline UClassID getStaticClassID(void);
 
     /**
      * Get the calendar type, "gregorian", for use in DateFormatSymbols.
@@ -568,7 +568,7 @@ protected:
      * taking year and era into account.  Defaults to 0 for Gregorian, which doesn't care.
      * @internal
      */
-    virtual int32_t getDefaultMonthInYear() const;
+    virtual inline int32_t getDefaultMonthInYear() const { return 0; }
 
 
     /**
@@ -576,7 +576,7 @@ protected:
      * taking currently-set year and era into account.  Defaults to 1 for Gregorian, which doesn't care. 
      * @internal
      */
-    virtual int32_t getDefaultDayInMonth(int32_t /*month*/) const;
+    virtual inline int32_t getDefaultDayInMonth(int32_t /*month*/) const { return 1; }
 
     /**
      * (Overrides Calendar) Converts GMT as milliseconds to time field values.
@@ -780,6 +780,8 @@ protected:
      */
     int32_t fGregorianCutoverYear;// = 1582;
 
+    static const char fgClassID;
+
     /**
      * Converts time as milliseconds to Julian date. The Julian date used here is not a
      * true Julian date, since it is measured from midnight, not noon.
@@ -807,6 +809,62 @@ protected:
      * @return   Day number from 1..7 (SUN..SAT).
      */
     static uint8_t julianDayToDayOfWeek(double julian);
+
+    /**
+     * Divide two long integers, returning the floor of the quotient.
+     * <p>
+     * Unlike the built-in division, this is mathematically well-behaved.
+     * E.g., <code>-1/4</code> => 0
+     * but <code>floorDivide(-1,4)</code> => -1.
+     * @param numerator the numerator
+     * @param denominator a divisor which must be > 0
+     * @return the floor of the quotient.
+     */
+    static double floorDivide(double numerator, double denominator);
+
+    /**
+     * Divide two integers, returning the floor of the quotient.
+     * <p>
+     * Unlike the built-in division, this is mathematically well-behaved.
+     * E.g., <code>-1/4</code> => 0
+     * but <code>floorDivide(-1,4)</code> => -1.
+     * @param numerator the numerator
+     * @param denominator a divisor which must be > 0
+     * @return the floor of the quotient.
+     */
+    static int32_t floorDivide(int32_t numerator, int32_t denominator);
+
+    /**
+     * Divide two integers, returning the floor of the quotient, and
+     * the modulus remainder.
+     * <p>
+     * Unlike the built-in division, this is mathematically well-behaved.
+     * E.g., <code>-1/4</code> => 0 and <code>-1%4</code> => -1,
+     * but <code>floorDivide(-1,4)</code> => -1 with <code>remainder[0]</code> => 3.
+     * @param numerator the numerator
+     * @param denominator a divisor which must be > 0
+     * @param remainder an array of at least one element in which the value
+     * <code>numerator mod denominator</code> is returned. Unlike <code>numerator
+     * % denominator</code>, this will always be non-negative.
+     * @return the floor of the quotient.
+     */
+    static int32_t floorDivide(int32_t numerator, int32_t denominator, int32_t remainder[]);
+
+    /**
+     * Divide two integers, returning the floor of the quotient, and
+     * the modulus remainder.
+     * <p>
+     * Unlike the built-in division, this is mathematically well-behaved.
+     * E.g., <code>-1/4</code> => 0 and <code>-1%4</code> => -1,
+     * but <code>floorDivide(-1,4)</code> => -1 with <code>remainder[0]</code> => 3.
+     * @param numerator the numerator
+     * @param denominator a divisor which must be > 0
+     * @param remainder an array of at least one element in which the value
+     * <code>numerator mod denominator</code> is returned. Unlike <code>numerator
+     * % denominator</code>, this will always be non-negative.
+     * @return the floor of the quotient.
+     */
+    static int32_t floorDivide(double numerator, int32_t denominator, int32_t remainder[]);
 
  public: // internal implementation
 
@@ -875,6 +933,14 @@ protected:
     static void  initializeSystemDefaultCentury(void);
 
 };
+
+inline UClassID
+GregorianCalendar::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+GregorianCalendar::getDynamicClassID(void) const
+{ return GregorianCalendar::getStaticClassID(); }
 
 inline uint8_t GregorianCalendar::julianDayToDayOfWeek(double julian)
 {

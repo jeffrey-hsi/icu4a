@@ -15,7 +15,7 @@ zh_MO {
         "ahh:mm:ss",
         "ah:mm",
         "yyyy'\u5E74'MM'\u6708'dd'\u65E5' EEEE",
-        "yyyy'\u5E74'MM'\u6708'dd'\u65E5'",
+        "yyyy'\u5E74'MM'\u6708'dd'\u65E5' EEEE",
         "yyyy'\u5E74'M'\u6708'd'\u65E5'",
         "yy'\u5E74'M'\u6708'd'\u65E5'",
         "{1} {0}",
@@ -29,6 +29,8 @@ zh_MO {
         "\u4E94",
         "\u516D",
     }
+    LocaleID:int { 0x1404 }
+//    LocaleString { "zh_MO" }
     MonthAbbreviations { 
         "1\u6708",
         "2\u6708",
@@ -49,6 +51,7 @@ zh_MO {
         "#,##0%",
         "#E0",
     }
+//    ShortCountry { "MAC" }
 //    zoneStrings { 
 //        {
 //                "CTT",

@@ -47,7 +47,7 @@ RBBIRuleBuilder::RBBIRuleBuilder(const UnicodeString   &rules,
                                        UErrorCode      &status)
  : fRules(rules)
 {
-    fStatus = &status; // status is checked below
+    fStatus     = &status;
     fParseError = &parseErr;
     fDebugEnv   = NULL;
 #ifdef RBBI_DEBUG
@@ -59,18 +59,9 @@ RBBIRuleBuilder::RBBIRuleBuilder(const UnicodeString   &rules,
     fReverseTree        = NULL;
     fForwardTables      = NULL;
     fReverseTables      = NULL;
-
-    UErrorCode oldstatus = status;   
-
-    fUSetNodes          = new UVector(status); // bcos status gets overwritten here
+    fUSetNodes          = new UVector(status);
     fScanner            = new RBBIRuleScanner(this);
     fSetBuilder         = new RBBISetBuilder(this);
-    if (U_FAILURE(oldstatus)) {
-        status = oldstatus;
-    }
-    if (U_FAILURE(status)) {
-        return;
-    }
     if(fSetBuilder == 0 || fScanner == 0 || fUSetNodes == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
     }
@@ -185,7 +176,9 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
                                     UParseError      &parseError,
                                     UErrorCode       &status)
 {
-    // status checked below
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
 
     //
     // Read the input rules, generate a parse tree, symbol table,
@@ -193,7 +186,7 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
     //
     RBBIRuleBuilder  builder(rules, parseError, status);
     builder.fScanner->parse();
-    if (U_FAILURE(status)) { // status checked here bcos build below doesn't
+    if (U_FAILURE(status)) {
         return NULL;
     }
 
@@ -211,9 +204,7 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
     //
     builder.fForwardTables = new RBBITableBuilder(&builder, &builder.fForwardTree);
     builder.fReverseTables = new RBBITableBuilder(&builder, &builder.fReverseTree);
-    if (U_SUCCESS(status)
-        && (builder.fForwardTables == NULL || builder.fReverseTables == NULL)) 
-    {
+    if(builder.fForwardTables == NULL || builder.fReverseTables == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return NULL;
     }
@@ -229,7 +220,8 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
     //   Package up the compiled data into a memory image
     //      in the run-time format.
     //
-    RBBIDataHeader *data = builder.flattenData(); // returns NULL if error
+    RBBIDataHeader   *data;
+    data = builder.flattenData();
 
 
     //
@@ -241,14 +233,16 @@ RBBIRuleBuilder::createRuleBasedBreakIterator( const UnicodeString    &rules,
     //  Create a break iterator from the compiled rules.
     //     (Identical to creation from stored pre-compiled rules)
     //
-    // status is checked after init in construction.
     RuleBasedBreakIterator *This = new RuleBasedBreakIterator(data, status);
+    /* test for NULL */
+    if(This == NULL) {
+        status = U_MEMORY_ALLOCATION_ERROR;
+        return NULL;
+    }
+
     if (U_FAILURE(status)) {
         delete This;
         This = NULL;
-    } 
-    else if(This == NULL) { // test for NULL
-        status = U_MEMORY_ALLOCATION_ERROR;
     }
     return This;
 }

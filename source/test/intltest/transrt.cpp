@@ -564,7 +564,7 @@ void RTTest::test2(UBool quickRt, int32_t density) {
     TransliteratorPointer sourceToTarget(
         Transliterator::createInstance(transliteratorID, UTRANS_FORWARD, parseError,
                                        status));
-    if ((const Transliterator *)sourceToTarget == NULL) {
+    if (sourceToTarget == NULL) {
         parent->errln("FAIL: createInstance(" + transliteratorID +
                    ") returned NULL. Error: " + u_errorName(status)
                    + "\n\tpreContext : " + prettify(parseError.preContext) 
@@ -573,7 +573,7 @@ void RTTest::test2(UBool quickRt, int32_t density) {
                 return;
     }
     TransliteratorPointer targetToSource(sourceToTarget->createInverse(status));
-    if ((const Transliterator *)targetToSource == NULL) {
+    if (targetToSource == NULL) {
         parent->errln("FAIL: " + transliteratorID +
                    ".createInverse() returned NULL. Error:" + u_errorName(status)          
                    + "\n\tpreContext : " + prettify(parseError.preContext) 
@@ -1174,7 +1174,7 @@ void TransliteratorRoundTripTest::TestDevanagariLatin() {
     {
         UErrorCode status = U_ZERO_ERROR;
         TransliteratorPointer t1(Transliterator::createInstance("[\\u0000-\\u00FE \\u0982\\u0983 [:Bengali:][:nonspacing mark:]];NFD;Bengali-InterIndic;InterIndic-Gujarati;NFC;( [ \\u0000-\\u00FE [:Gujarati:][[:nonspacing mark:]])",UTRANS_FORWARD, status));
-        if((const Transliterator *)t1 != NULL){
+        if(t1){
             TransliteratorPointer t2(t1->createInverse(status));
             if(U_FAILURE(status)){
                 errln("FAIL: could not create the Inverse:-( \n");
@@ -1184,17 +1184,15 @@ void TransliteratorRoundTripTest::TestDevanagariLatin() {
     RTTest test("Latin-Devanagari");
     Legal *legal = new LegalIndic();
 
-    if (isICUVersionAtLeast(ICU_30)) {
-        // We temporarily filter against Unicode 3.2, but we only do this
-        // before version 3.0.    
-        test.test(UnicodeString(latinForIndic, ""), 
+#if (U_ICU_VERSION_MAJOR_NUM==2 && U_ICU_VERSION_MINOR_NUM==6)
+    test.test(UnicodeString(latinForIndic, ""), 
               UnicodeString("[[:Devanagari:]&[:Age=3.2:]]", ""), NULL, this, quick, 
               legal, 50);
-        return;
-    } else {
-        logln("Warning: TestDevanagariLatin needs to be updated to remove Unicode 3.2 filter");
-    }
-
+#else
+    test.test(UnicodeString(latinForIndic, ""), 
+              UnicodeString("[:Devanagari:]", ""), NULL, this, quick, 
+              legal, 50);
+#endif
     delete legal;
 }
 
@@ -1461,26 +1459,22 @@ void TransliteratorRoundTripTest::TestInterIndic() {
     for(int i = 0; i < num;i++){
         RTTest test(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 0]);
         Legal *legal = new LegalIndic();
-
-        if (isICUVersionAtLeast(ICU_30)) {
-            // We temporarily filter against Unicode 3.2, but we only do this
-            // before version 3.0.    
-            UnicodeString temp1 = "[";
-            temp1.append(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 1]);
-            temp1.append("& [:Age=3.2:]]");
-            UnicodeString temp2 = "[";
-            temp2.append(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 2]);
-            temp2.append("& [:Age=3.2:]]");
-
-            test.test(temp1, 
-                      temp2, 
-                      interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 3], // roundtrip exclusions 
-                      this, quick, legal, 50);
-            return;
-        } else {
-            logln("Warning: TestDevanagariLatin needs to be updated to remove Unicode 3.2 filter");
-        }
-        delete legal;
+#if (U_ICU_VERSION_MAJOR_NUM==2 && U_ICU_VERSION_MINOR_NUM==6)
+        UnicodeString temp1 = "[";
+        temp1.append(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 1]);
+        temp1.append("& [:Age=3.2:]]");
+        UnicodeString temp2 = "[";
+        temp2.append(interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 2]);
+        temp2.append("& [:Age=3.2:]]");
+#else
+        UnicodeString temp1 = interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 1];
+        UnicodeString temp2 = interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 2];
+#endif
+        test.test(temp1, 
+                  temp2, 
+                  interIndicArray[i*INTER_INDIC_ARRAY_WIDTH + 3], // roundtrip exclusions 
+                  this, quick, legal, 50);
+       delete legal;
     }
     
 }

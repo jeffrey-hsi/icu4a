@@ -102,8 +102,6 @@ TransliteratorTest::TransliteratorTest()
 {
 }
 
-TransliteratorTest::~TransliteratorTest() {}
-
 void
 TransliteratorTest::runIndexedTest(int32_t index, UBool exec,
                                    const char* &name, char* /*par*/) {
@@ -1298,10 +1296,7 @@ void TransliteratorTest::TestCreateInstance(){
         UnicodeString expID(DATA[i+2]);
         Transliterator* t =
             Transliterator::createInstance(id,dir,err,ec);
-        UnicodeString newID;
-        if (t) {
-            newID = t->getID();
-        }
+        UnicodeString newID = t?t->getID():UnicodeString();
         UBool ok = (newID == expID);
         if (!t) {
             newID = u_errorName(ec);
@@ -2255,22 +2250,15 @@ void TransliteratorTest::TestCompoundFilterID(void) {
             t = Transliterator::createInstance(id, direction, pe, ec);
         }
         UBool ok = (t != NULL && U_SUCCESS(ec));
-        UnicodeString transID;
-        if (t!=0) {
-            transID = t->getID();
-        }
-        else {
-            transID = UnicodeString("NULL", "");
-        }
         if (ok == expOk) {
-            logln((UnicodeString)"Ok: " + id + " => " + transID + ", " +
+            logln((UnicodeString)"Ok: " + id + " => " + (t!=0?t->getID():(UnicodeString)"NULL") + ", " +
                   u_errorName(ec));
             if (source.length() != 0) {
                 expect(*t, source, exp);
             }
             delete t;
         } else {
-            errln((UnicodeString)"FAIL: " + id + " => " + transID + ", " +
+            errln((UnicodeString)"FAIL: " + id + " => " + (t!=0?t->getID():(UnicodeString)"NULL") + ", " +
                   u_errorName(ec));
         }
     }

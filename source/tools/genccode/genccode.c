@@ -49,7 +49,6 @@
 #include "cstring.h"
 #include "filestrm.h"
 #include "toolutil.h"
-#include "unicode/uclean.h"
 #include "uoptions.h"
 
 #define MAX_COLUMN ((uint32_t)(0xFFFFFFFFU))
@@ -82,28 +81,16 @@ write8str(FileStream *out, uint8_t byte);
 #endif
 /* -------------------------------------------------------------------------- */
 
-enum { 
-  kOptHelpH = 0,
-  kOptHelpQuestionMark,
-  kOptDestDir,
-  kOptName,
-  kOptEntryPoint,
-#ifdef CAN_GENERATE_OBJECTS
-  kOptObject,
-#endif
-  kOptFilename
-};
-
 static UOption options[]={
 /*0*/UOPTION_HELP_H,
      UOPTION_HELP_QUESTION_MARK,
      UOPTION_DESTDIR,
      UOPTION_DEF("name", 'n', UOPT_REQUIRES_ARG),
-     UOPTION_DEF( "entrypoint", 'e', UOPT_REQUIRES_ARG),
+     UOPTION_DEF( "entrypoint", 'e', UOPT_REQUIRES_ARG)
 #ifdef CAN_GENERATE_OBJECTS
-/*5*/UOPTION_DEF("object", 'o', UOPT_NO_ARG),
+/*5*/, UOPTION_DEF("object", 'o', UOPT_NO_ARG)
 #endif
-     UOPTION_DEF("filename", 'f', UOPT_REQUIRES_ARG)
+
 };
 
 char symPrefix[100];
@@ -114,7 +101,7 @@ main(int argc, char* argv[]) {
 
     U_MAIN_INIT_ARGS(argc, argv);
 
-    options[kOptDestDir].value = ".";
+    options[2].value = ".";
 
     /* read command line options */
     argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
@@ -127,7 +114,7 @@ main(int argc, char* argv[]) {
             "error in command line argument \"%s\"\n",
             argv[-argc]);
     }
-    if(argc<0 || options[kOptHelpH].doesOccur || options[kOptHelpQuestionMark].doesOccur) {
+    if(argc<0 || options[0].doesOccur || options[1].doesOccur) {
         fprintf(stderr,
             "usage: %s [-options] filename1 filename2 ...\n"
             "\tread each binary input file and \n"
@@ -141,13 +128,12 @@ main(int argc, char* argv[]) {
 #ifdef CAN_GENERATE_OBJECTS
             "\t-o or --object      write a .obj file instead of .c\n"
 #endif
-            "\t-f or --filename    Specify an alternate base filename. (default: symbolname_typ)\n"
             , argv[0]);
     } else {
         const char *message, *filename;
         void (*writeCode)(const char *, const char *);
 #ifdef CAN_GENERATE_OBJECTS
-        if(options[kOptObject].doesOccur) {
+        if(options[5].doesOccur) {
             message="generating object code for %s\n";
             writeCode=&writeObjectCode;
         } else
@@ -162,7 +148,7 @@ main(int argc, char* argv[]) {
                 fprintf(stdout, message, filename);
             }
             column=MAX_COLUMN;
-            writeCode(filename, options[kOptDestDir].value);
+            writeCode(filename, options[2].value);
         }
     }
 
@@ -299,8 +285,8 @@ writeObjectCode(const char *filename, const char *destdir) {
     entry[0]='_';
     getOutFilename(filename, destdir, buffer, entry+ICU_ENTRY_OFFSET, ".obj");
 
-    if(options[kOptEntryPoint].doesOccur) {
-        uprv_strcpy(entry+ICU_ENTRY_OFFSET, options[kOptEntryPoint].value);
+    if(options[4].doesOccur) {
+        uprv_strcpy(entry+ICU_ENTRY_OFFSET, options[4].value);
         uprv_strcat(entry, "_dat");
     }
     /* turn dashes in the entry name into underscores */
@@ -418,14 +404,9 @@ getOutFilename(const char *inFilename, const char *destdir, char *outFilename, c
     if(suffix==NULL) {
         /* the filename does not have a suffix */
         uprv_strcpy(entryName, inFilename);
-        if(options[kOptFilename].doesOccur) {
-          uprv_strcpy(outFilename, options[kOptFilename].value);
-        } else {
-          uprv_strcpy(outFilename, inFilename);
-        }
+        uprv_strcpy(outFilename, inFilename);
         uprv_strcat(outFilename, newSuffix);
     } else {
-        char *saveOutFilename = outFilename;
         /* copy basename */
         while(inFilename<suffix) {
             if(*inFilename=='-') {
@@ -449,13 +430,8 @@ getOutFilename(const char *inFilename, const char *destdir, char *outFilename, c
 
         *entryName=0;
 
-        if(options[kOptFilename].doesOccur) {
-          uprv_strcpy(saveOutFilename, options[kOptFilename].value);
-          uprv_strcat(saveOutFilename, newSuffix); 
-        } else {
-          /* add ".c" */
-          uprv_strcpy(outFilename, newSuffix);
-        }
+        /* add ".c" */
+        uprv_strcpy(outFilename, newSuffix);
     }
 }
 

@@ -30,7 +30,6 @@
 #include "unicode/ures.h"
 #include "unicode/uclean.h"
 #include "unicode/ucal.h"
-#include "uoptions.h"
 
 #ifdef XP_MAC_CONSOLE
 #   include <console.h>
@@ -49,7 +48,21 @@ static char* _testDataPath=NULL;
  */
 void ctest_setICU_DATA(void);
 
+static UBool gMutexInitialized = FALSE;
 
+static void TestMutex(void) {
+    if (!gMutexInitialized) {
+        log_verbose("*** Failure! The global mutex was not initialized.\n"
+                "*** Make sure the right linker was used.\n");
+    }
+}
+
+U_CFUNC void addSetup(TestNode** root);
+
+void addSetup(TestNode** root)
+{
+    addTest(root, &TestMutex,    "setup/TestMutex");
+}
 
 #if UCONFIG_NO_LEGACY_CONVERSION
 #   define TRY_CNV_1 "iso-8859-1"
@@ -58,35 +71,6 @@ void ctest_setICU_DATA(void);
 #   define TRY_CNV_1 "iso-8859-7"
 #   define TRY_CNV_2 "sjis"
 #endif
-
-
-/*
- * Tracing functions.
- */
-static int traceFnNestingDepth = 0;
-void U_CALLCONV TraceEntry(const void *context, int32_t fnNumber) {
-    fprintf(stdout, "%s() Enter \n", utrace_functionName(fnNumber));
-    traceFnNestingDepth++;
-}
-        
-void U_CALLCONV TraceExit(const void *context, int32_t fnNumber, UTraceExitVal type, va_list args) {
-    char buf[2000];
-    if (traceFnNestingDepth>0) {
-        traceFnNestingDepth--;
-    }
-    utrace_formatExit(buf, sizeof(buf), traceFnNestingDepth*3, fnNumber, type, args);
-    fprintf(stdout, "%s\n", buf);
-}
-
-void U_CALLCONV TraceData(const void *context, int32_t fnNumber, 
-                          int32_t level, const char *fmt, va_list args) {
-    char buf[2000];
-    utrace_format(buf, sizeof(buf), traceFnNestingDepth*3, fmt, args);
-    fprintf(stdout, "%s\n", buf); 
-}
-
-
-
 
 int main(int argc, const char* const argv[])
 {
@@ -105,115 +89,90 @@ int main(int argc, const char* const argv[])
     UResourceBundle *rb;
     UConverter *cnv;
 
-    U_MAIN_INIT_ARGS(argc, argv);
+    /* This must be tested before using anything! */
+    gMutexInitialized = umtx_isInitialized(NULL);
 
-    argv2 = (const char**) ctst_malloc(sizeof(char*) * argc);
+    argv2 = (const char**) malloc(sizeof(char*) * argc);
     if (argv2 == NULL) {
-        printf("*** Error: Out of memory (too many cmd line args?)\n");
-        return 1;
+      printf("*** Error: Out of memory (too many cmd line args?)\n");
+      return 1;
     }
     argv2[0] = argv[0];
 
-
     /* Checkargs */
-    /* TODO:  Test framework arg handling needs to be decoupled from test execution
-     *        so that the args being processed here don't need special handling,
-     *        separate from the other test args.
-     */
-    ICU_TRACE = UTRACE_OFF;
     for(i=1,j=1;i<argc;i++) {
         argv2[j++] = argv[i];
         if(!strcmp(argv[i],"-w")) {
             warnOnMissingData = 1;
             warnOrErr = "Warning";
         }
-        else if (strcmp( argv[i], "-t_info") == 0) {
-            ICU_TRACE = UTRACE_INFO;
-        }
-        else if (strcmp( argv[i], "-t_error") == 0) {
-            ICU_TRACE = UTRACE_ERROR;
-        }
-        else if (strcmp( argv[i], "-t_warn") == 0) {
-            ICU_TRACE = UTRACE_WARNING;
-        }
-        else if (strcmp( argv[i], "-t_verbose") == 0) {
-            ICU_TRACE = UTRACE_VERBOSE;
-        }
 #if !UCONFIG_NO_FORMATTING
         else if (strcmp( argv[i], "-tz") == 0) {
-            zone = 0;
-            if ((i+1) < argc) {
-                switch (argv[i+1][0]) {
-                case 0:
-                    ++i; /* consume empty string in {-tz ""} */
-                    break;
-                case '-':
-                case '/':
-                    break; /* don't process next arg if it is -x or /x */
-                default:
-                    zone = argv[++i]; /* next arg is zone */
-                    break;
-                }
+          zone = 0;
+          if ((i+1) < argc) {
+            switch (argv[i+1][0]) {
+            case 0:
+              ++i; /* consume empty string in {-tz ""} */
+              break;
+            case '-':
+            case '/':
+              break; /* don't process next arg if it is -x or /x */
+            default:
+              zone = argv[++i]; /* next arg is zone */
+              break;
             }
-            /* Consume args so processArgs doesn't see them (below).
-             * This is ugly but it will get fixed when we do the reorg
-             * of arg processing...later.  We can't do all this in
-             * processArgs because that library (ctestfw) doesn't link
-             * common nor i18n, by design. */
-            --j;
+          }
+          /* Consume args so processArgs doesn't see them (below).
+           * This is ugly but it will get fixed when we do the reorg
+           * of arg processing...later.  We can't do all this in
+           * processArgs because that library (ctestfw) doesn't link
+           * common nor i18n, by design. */
+          --j;
         }
 #endif
     }
     argc = j;
 
-    
-    utrace_setFunctions(NULL, TraceEntry, TraceExit, TraceData, ICU_TRACE, &errorCode);
-    if (U_FAILURE(errorCode)) {
-        log_err("utrace_setFunctions()  failed.: %s\n", myErrorName(errorCode));
-        return -1;
-    }
- 
-    
-    while (REPEAT_TESTS > 0) {   /* Loop runs once per complete execution of the tests 
-                                  *   used for -r  (repeat) test option.                */
+    while (REPEAT_TESTS > 0) {
 
 #ifdef CTST_LEAK_CHECK
         ctst_init();
 #endif
-
-        /* Check whether ICU will initialize without forcing the build data directory into
-         *  the ICU_DATA path.  Success here means either the data dll contains data, or that
-         *  this test program was run with ICU_DATA set externally.  Failure of this check
-         *  is normal when ICU data is not packaged into a shared library.
-         *
-         *  Whether or not this test succeeds, we want to cleanup and reinitialize
-         *  with a data path so that data loading from individual files can be tested.
-         */
-        u_init(&errorCode);
-        if (U_FAILURE(errorCode)) {
+        /* try opening the data from dll instead of the dat file */
+        cnv = ucnv_open(TRY_CNV_1, &errorCode);
+        if(cnv != 0) {
+            /* ok */
+            ucnv_close(cnv);
+        } else {
             fprintf(stderr,
-                "#### Note:  ICU Init without build-specific setDataDirectory() failed.\n");
+                    "#### WARNING! The converter for " TRY_CNV_1 " cannot be loaded from data dll/so."
+                    "Proceeding to load data from dat file.\n");
+            errorCode = U_ZERO_ERROR;
+
+            ctest_setICU_DATA();
         }
-        u_cleanup();
-        errorCode = U_ZERO_ERROR;
-        utrace_setFunctions(NULL, TraceEntry, TraceExit, TraceData, ICU_TRACE, &errorCode);
 
-        /* Initialize ICU */
-        ctest_setICU_DATA();    /* u_setDataDirectory() must happen Before u_init() */
-        u_init(&errorCode);
-        if (U_FAILURE(errorCode)) {
+        /* If no ICU_DATA environment was set, try to fake up one. */
+        /* fprintf(stderr, "u_getDataDirectory() = %s\n", u_getDataDirectory()); */
+
+#ifdef XP_MAC_CONSOLE
+        argc = ccommand((char***)&argv);
+#endif
+
+        cnv  = ucnv_open(NULL, &errorCode);
+        if(cnv != NULL) {
+            /* ok */
+            ucnv_close(cnv);
+        } else {
             fprintf(stderr,
-                "#### ERROR! %s: u_init() failed with status = \"%s\".\n" 
+                "*** %s! The default converter cannot be opened.\n"
                 "*** Check the ICU_DATA environment variable and \n"
-                "*** check that the data files are present.\n", argv[0], u_errorName(errorCode));
-                if(warnOnMissingData == 0) {
-                    fprintf(stderr, "*** Exiting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-                    u_cleanup();
-                    return 1;
-                }
+                "*** check that the data files are present.\n", warnOrErr);
+            if(warnOnMissingData == 0) {
+                fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
+                return 1;
+            }
         }
-        
-
 
         /* try more data */
         cnv = ucnv_open(TRY_CNV_2, &errorCode);
@@ -227,7 +186,6 @@ int main(int argc, const char* const argv[])
                     "*** check that the data files are present.\n", warnOrErr);
             if(warnOnMissingData == 0) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-                u_cleanup();
                 return 1;
             }
         }
@@ -243,52 +201,57 @@ int main(int argc, const char* const argv[])
                     "*** check that the data files are present.\n", warnOrErr);
             if(warnOnMissingData == 0) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
-                u_cleanup();
                 return 1;
             }
         }
 
         fprintf(stdout, "Default locale for this run is %s\n", uloc_getDefault());
-
 #if !UCONFIG_NO_FORMATTING
         /* Set the default time zone */
         if (zone != 0) {
-            UErrorCode ec = U_ZERO_ERROR;
-            UChar zoneID[256];
-            u_uastrncpy(zoneID, zone, 255);
-            zoneID[255] = 0;
-            ucal_setDefaultTimeZone(zoneID, &ec);
-            if (U_FAILURE(ec)) {
-                printf("*** Error: Failed to set default time zone to \"%s\": %s\n",
-                       zone, u_errorName(ec));
-                u_cleanup();
-                return 1;
-            }
+          UErrorCode ec = U_ZERO_ERROR;
+          UChar zoneID[256];
+          u_uastrncpy(zoneID, zone, 255);
+          zoneID[255] = 0;
+          ucal_setDefaultTimeZone(zoneID, &ec);
+          if (U_FAILURE(ec)) {
+            printf("*** Error: Failed to set default time zone to \"%s\": %s\n",
+                      zone, u_errorName(ec));
+            u_cleanup();
+            return 1;
+          }
         }
         fprintf(stdout, "Default time zone for this run is %s\n",
-                (zone!=0) ? zone : "UNSET");
+                  (zone!=0) ? zone : "UNSET");
 #endif
-
-        /* Build a tree of all tests.   
-         *   Subsequently will be used to find / iterate the tests to run */
+ 
         root = NULL;
         addAllTests(&root);
-
-        /*  Tests acutally run HERE.   TODO:  separate command line option parsing & setting from test execution!! */
         nerrors = processArgs(root, argc, argv2);
-
         if (--REPEAT_TESTS > 0) {
             printf("Repeating tests %d more time(s)\n", REPEAT_TESTS);
         }
         cleanUpTestTree(root);
-
+	free((char **)argv2); /* cast away const to silence the compiler */
 #ifdef CTST_LEAK_CHECK
         ctst_freeAll();
+
         /* To check for leaks */
+
         u_cleanup(); /* nuke the hashtable.. so that any still-open cnvs are leaked */
 #endif
+    }
 
-    }  /* End of loop that repeats the entire test, if requested.  (Normally doesn't loop)  */
+    if (!gMutexInitialized) {
+        fprintf(stderr,
+            "#### WARNING!\n"
+            "  The global mutex was not initialized during C++ static initialization.\n"
+            "  You must explicitly initialize ICU by calling u_init() before using ICU in multiple threads.\n"
+            "  If you are using ICU in a single threaded application, use of u_init() is recommended,\n"
+            "  but is not required.\n"
+            "#### WARNING!\n"
+            );
+    }
 
     return nerrors ? 1 : 0;
 }
@@ -465,7 +428,7 @@ const char *ctest_dataOutDir()
     */
 #if defined (U_TOPBUILDDIR)
     {
-        dataOutDir = U_TOPBUILDDIR "data"U_FILE_SEP_STRING"out"U_FILE_SEP_STRING;
+        dataOutDir = U_TOPBUILDDIR  U_FILE_SEP_STRING "data"U_FILE_SEP_STRING"out"U_FILE_SEP_STRING;
     }
 #else
 

@@ -18,6 +18,8 @@ es_CR {
         "dd/MM/yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x140a }
+//    LocaleString { "es_CR" }
     NumberElements { 
         ",",
         ".",
@@ -31,6 +33,6 @@ es_CR {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
+//    ShortCountry { "CRI" }
 }

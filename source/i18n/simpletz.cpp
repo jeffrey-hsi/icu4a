@@ -37,7 +37,7 @@ const char SimpleTimeZone::fgClassID = 0; // Value is irrelevant
 // since we don't handle leap years. Could handle assuming always
 // Gregorian, since we know they didn't have daylight time when
 // Gregorian calendar started.
-const int8_t SimpleTimeZone::staticMonthLength[] = {31,29,31,30,31,30,31,31,30,31,30,31};
+const int8_t SimpleTimeZone::staticMonthLength[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
 // *****************************************************************************
 // class SimpleTimeZone
@@ -460,9 +460,7 @@ SimpleTimeZone::getOffset(uint8_t era, int32_t year, int32_t month, int32_t day,
         || millis < 0
         || millis >= U_MILLIS_PER_DAY
         || monthLength < 28
-        || monthLength > 31
-        || prevMonthLength < 28
-        || prevMonthLength > 31) {
+        || monthLength > 31) {
         status = U_ILLEGAL_ARGUMENT_ERROR;
         return -1;
     }

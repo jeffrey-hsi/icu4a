@@ -101,6 +101,12 @@ static const UChar EMPTY[] = {0}; //""
 U_NAMESPACE_BEGIN
 
 /**
+ * Class identifier for subclasses of Transliterator that do not
+ * define their class (anonymous subclasses).
+ */
+const char Transliterator::fgClassID = 0; // Value is irrelevant
+
+/**
  * Return TRUE if the given UTransPosition is valid for text of
  * the given length.
  */
@@ -123,11 +129,7 @@ inline UBool positionIsValid(UTransPosition& index, int32_t len) {
 Transliterator::Transliterator(const UnicodeString& theID,
                                UnicodeFilter* adoptedFilter) :
     UObject(), ID(theID), filter(adoptedFilter),
-    maximumContextLength(0) {
-
-    // NUL-terminate the ID string
-    ID.getTerminatedBuffer();
-}
+    maximumContextLength(0) {}
 
 /**
  * Destructor.
@@ -142,10 +144,6 @@ Transliterator::~Transliterator() {
 Transliterator::Transliterator(const Transliterator& other) :
     UObject(other), ID(other.ID), filter(0),
     maximumContextLength(other.maximumContextLength) {
-
-    // NUL-terminate the ID string
-    ID.getTerminatedBuffer();
-
     if (other.filter != 0) {
         // We own the filter, so we must have our own copy
         filter = (UnicodeFilter*) other.filter->clone();
@@ -157,9 +155,6 @@ Transliterator::Transliterator(const Transliterator& other) :
  */
 Transliterator& Transliterator::operator=(const Transliterator& other) {
     ID = other.ID;
-    // NUL-terminate the ID string
-    ID.getTerminatedBuffer();
-
     maximumContextLength = other.maximumContextLength;
     adoptFilter((other.filter == 0) ? 0 : (UnicodeFilter*) other.filter->clone());
     return *this;

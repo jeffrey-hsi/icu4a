@@ -167,7 +167,7 @@ U_NAMESPACE_BEGIN
  */
 //-----------------------------------------------------------------------------
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ResourceBundle)
+const char ResourceBundle::fgClassID=0;
 
 ResourceBundle::ResourceBundle( const UnicodeString&    path,
                                 const Locale&           locale,

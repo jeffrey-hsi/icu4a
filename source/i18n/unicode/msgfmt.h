@@ -593,9 +593,10 @@ public:
      * @return          The class ID for all objects of this class.
      * @stable ICU 2.0
      */
-    static UClassID getStaticClassID(void);
+    static inline UClassID getStaticClassID(void);
     
 private:
+    static const char fgClassID;
 
     Locale              fLocale;
     UnicodeString       fPattern;
@@ -766,6 +767,15 @@ private:
 
     friend class MessageFormatAdapter; // getFormatTypeList() access
 };
+
+inline UClassID
+MessageFormat::getStaticClassID(void)
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+MessageFormat::getDynamicClassID() const
+{ return MessageFormat::getStaticClassID(); }
+
 
 inline UnicodeString&
 MessageFormat::format(const Formattable& obj,

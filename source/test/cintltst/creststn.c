@@ -537,14 +537,12 @@ static void TestNewTypes() {
         UChar* expectedEscaped = (UChar*)malloc(U_SIZEOF_UCHAR * patternLen);
         const UChar* got = ures_getStringByKey(theBundle,"test_unescaping",&len,&status);
         int32_t expectedLen = u_unescape(pattern,expectedEscaped,patternLen);
-        if(got==NULL || u_strncmp(expectedEscaped,got,expectedLen)!=0 || expectedLen != len){
+        if(u_strncmp(expectedEscaped,got,expectedLen)!=0 || expectedLen != len){
             log_err("genrb failed to unescape string\n");
         }
-        if(got != NULL){
-            for(i=0;i<expectedLen;i++){
-                if(expectedEscaped[i] != got[i]){
-                    log_verbose("Expected: 0x%04X Got: 0x%04X \n",expectedEscaped[i], got[i]);
-                }
+        for(i=0;i<expectedLen;i++){
+            if(expectedEscaped[i] != got[i]){
+                log_verbose("Expected: 0x%04X Got: 0x%04X \n",expectedEscaped[i], got[i]);
             }
         }
         free(expectedEscaped);
@@ -1817,7 +1815,6 @@ static void TestFallback()
 {
     UErrorCode status = U_ZERO_ERROR;
     UResourceBundle *fr_FR = NULL;
-    UResourceBundle *subResource = NULL;
     const UChar *junk; /* ignored */
     int32_t resultLen;
 
@@ -1841,15 +1838,14 @@ static void TestFallback()
     status = U_ZERO_ERROR;
 
     /* OK first one. This should be a Default value. */
-    subResource = ures_getByKey(fr_FR, "CurrencyMap", NULL, &status);
+    junk = ures_getStringByKey(fr_FR, "%%PREEURO", &resultLen, &status);
     if(status != U_USING_DEFAULT_WARNING)
     {
-        log_data_err("Expected U_USING_DEFAULT_ERROR when trying to get LocaleScript from fr_FR, got %s\n", 
+        log_data_err("Expected U_USING_DEFAULT_ERROR when trying to get %%PREEURO from fr_FR, got %s\n", 
             u_errorName(status));
     }
 
     status = U_ZERO_ERROR;
-    ures_close(subResource);
 
     /* and this is a Fallback, to fr */
     junk = ures_getStringByKey(fr_FR, "DayNames", &resultLen, &status);
@@ -1867,16 +1863,14 @@ static void TestFallback()
     {
         UErrorCode err =U_ZERO_ERROR;
         UResourceBundle* myResB = ures_open(NULL,"no_NO_NY",&err);
-        UResourceBundle* resLocID = ures_getByKey(myResB, "Version", NULL, &err);
+        UResourceBundle* resLocID = ures_getByKey(myResB, "LocaleID", NULL, &err);
         UResourceBundle* tResB;
-        static const UChar versionStr[] = { 0x0033, 0x002E, 0x0030, 0};
-
         if(err != U_ZERO_ERROR){
-            log_data_err("Expected U_ZERO_ERROR when trying to test no_NO_NY aliased to nn_NO for Version err=%s\n",u_errorName(err));
+            log_data_err("Expected U_ZERO_ERROR when trying to test no_NO_NY aliased to nn_NO for LocaleID err=%s\n",u_errorName(err));
             return;
         }
-        if(u_strcmp(ures_getString(resLocID, &resultLen, &err), versionStr) != 0){
-            log_data_err("ures_getString(resLocID, &resultLen, &err) returned an unexpected version value\n");
+        if(ures_getInt(resLocID, &err) != 0x814){
+            log_data_err("Expected LocaleID=814, but got 0x%X\n", ures_getInt(resLocID, &err));
         }
         tResB = ures_getByKey(myResB, "DayNames", NULL, &err);
         if(err != U_USING_FALLBACK_WARNING){

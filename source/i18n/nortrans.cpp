@@ -21,7 +21,7 @@
 
 U_NAMESPACE_BEGIN
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(NormalizationTransliterator)
+const char NormalizationTransliterator::fgClassID=0;
 
 /**
  * System registration hook.

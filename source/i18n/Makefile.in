@@ -34,10 +34,6 @@ ifneq ($(ENABLE_SHARED),)
 SO_TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(SO)
 ALL_SO_TARGETS = $(SO_TARGET) $(MIDDLE_SO_TARGET) $(FINAL_SO_TARGET)
 
-ifeq ($(ENABLE_SO_VERSION_DATA),1)
-SO_VERSION_DATA = i18n.res
-endif
-
 ifeq ($(OS390BATCH),1)
 BATCH_TARGET = $(BATCH_I18N_TARGET)
 BATCH_LIBS = $(BATCH_LIBICUUC) -lm
@@ -58,8 +54,8 @@ LIBS = $(LIBICUUC) $(DEFAULT_LIBS)
 OBJECTS = ucln_in.o \
 fmtable.o format.o msgfmt.o umsg.o numfmt.o unum.o decimfmt.o dcfmtsym.o \
 choicfmt.o datefmt.o smpdtfmt.o dtfmtsym.o udat.o \
-ucal.o calendar.o gregocal.o timezone.o simpletz.o olsontz.o \
-buddhcal.o japancal.o gregoimp.o \
+ucal.o calendar.o gregocal.o timezone.o simpletz.o \
+buddhcal.o japancal.o \
 sortkey.o bocsu.o coleitr.o coll.o ucoleitr.o \
 ucol.o ucol_bld.o ucol_cnt.o ucol_elm.o ucol_tok.o ucol_wgt.o tblcoll.o \
 strmatch.o usearch.o search.o stsearch.o \
@@ -133,7 +129,7 @@ dist-local:
 
 clean-local:
 	test -z "$(CLEANFILES)" || $(RMV) $(CLEANFILES)
-	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS) $(SO_VERSION_DATA)
+	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS)
 
 distclean-local: clean-local
 	$(RMV) Makefile
@@ -150,7 +146,7 @@ $(TARGET): $(TARGET)($(STATIC_OBJECTS))
 endif
 
 ifneq ($(ENABLE_SHARED),)
-$(FINAL_SO_TARGET): $(OBJECTS) $(SO_VERSION_DATA)
+$(FINAL_SO_TARGET): $(OBJECTS)
 	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(LIBS)
 
 ifeq ($(OS390BATCH),1)

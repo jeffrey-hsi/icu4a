@@ -137,9 +137,6 @@
 			<File
 				RelativePath=".\gentest.c">
 			</File>
-			<File
-				RelativePath=".\genres32.c">
-			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

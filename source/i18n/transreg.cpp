@@ -655,10 +655,7 @@ void TransliteratorRegistry::registerEntry(const UnicodeString& ID,
     if (visible) {
         registerSTV(source, target, variant);
         if (!availableIDs.contains((void*) &ID)) {
-            UnicodeString *newID = (UnicodeString *)ID.clone();
-            // NUL-terminate the ID string
-            newID->getTerminatedBuffer();
-            availableIDs.addElement(newID, status);
+            availableIDs.addElement(new UnicodeString(ID), status);
         }
     } else {
         removeSTV(source, target, variant);

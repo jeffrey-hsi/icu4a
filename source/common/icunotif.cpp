@@ -10,30 +10,11 @@
 #if !UCONFIG_NO_SERVICE
 
 #include "icunotif.h"
-#if DEBUG
 #include <stdio.h>
-#endif
 
 U_NAMESPACE_BEGIN
 
-EventListener::~EventListener() {}
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(EventListener)
-
-ICUNotifier::ICUNotifier(void) 
-    : notifyLock(0), listeners(NULL) 
-{
-    umtx_init(&notifyLock);
-}
-
-ICUNotifier::~ICUNotifier(void) {
-    {
-        Mutex lmx(&notifyLock);
-        delete listeners;
-        listeners = NULL;
-    }
-    umtx_destroy(&notifyLock);
-}
-
+const char EventListener::fgClassID = '\0';
 
 void 
 ICUNotifier::addListener(const EventListener* l, UErrorCode& status) 

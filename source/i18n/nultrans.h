@@ -69,16 +69,35 @@ public:
      *
      * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID();
 
+private:
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
+
+inline NullTransliterator::NullTransliterator() : Transliterator(ID, 0) {}
+
+inline NullTransliterator::~NullTransliterator() {}
+
+inline UClassID
+NullTransliterator::getStaticClassID()
+{ return (UClassID)&fgClassID; }
+
+inline UClassID
+NullTransliterator::getDynamicClassID() const
+{ return NullTransliterator::getStaticClassID(); }
 
 U_NAMESPACE_END
 

@@ -4,7 +4,7 @@ dnl Copyright (c) 1999-2003, International Business Machines Corporation and
 dnl others. All Rights Reserved.
 dnl Stephen F. Booth, heavily modified by Yves and others
 
-dnl $Id: configure.in,v 1.197 2003/09/15 22:30:28 grhoten-oss Exp $
+dnl $Id: configure.in,v 1.191 2003/06/11 01:01:02 srl Exp $
 
 dnl Process this file with autoconf to produce a configure script
 AC_INIT(common/unicode/utypes.h)
@@ -196,7 +196,7 @@ threads=true
 
 dnl Enable/disable threads
 AC_ARG_ENABLE(threads,
-	[  --enable-threads        build ICU with thread safety [default=yes]],
+	[  --enable-threads        build ICU with threads [default=yes]],
 	[case "${enableval}" in
 		yes) threads=true ;;
 		no)  threads=false ;;
@@ -250,14 +250,6 @@ if test $threads = true; then
    if test $ac_cv_func_pthread_mutex_lock = yes; then
      ICU_USE_THREADS=1
    fi
-   dnl Check to see if we are using CygWin with MSVC
-   case "${host}" in
-   *-pc-cygwin*|*-pc-mingw*)
-     if test "$ac_cv_prog_gcc" = no; then
-       dnl We're using normal windows compilers. Threading is available.
-       ICU_USE_THREADS=1
-     fi ;;
-   esac
   fi
  fi
 fi
@@ -833,9 +825,7 @@ case "${host}" in
 			ICUDATA_CHAR="e" ;;
 	*-*-nto*)	platform=U_QNX ;;
 	*-dec-osf*) 	platform=U_OSF ;;
-	*-*-beos)		platform=U_BEOS ;;
-	*-*-irix*)		platform=IRIX ;;
-	*-ncr-*)		platform=U_MPRAS ;;
+	*-*-irix*)      platform=IRIX ;;
 	*-sequent-*)	platform=PTX ;;
 	*) 		platform=U_UNKNOWN_PLATFORM ;;
 esac
@@ -875,7 +865,7 @@ case "${host}" in
 			  tools/gencnval/gencnval tools/gennorm/gennorm \
 			  tools/gennames/gennames tools/gentest/gentest \
 			  tools/pkgdata/pkgdata tools/genprops/genprops \
-			  tools/genprep/gensprep
+			  tools/genidna/genidna
 			do
 			  if test -f $file.c; then
 			    mv $file.c $file.cpp
@@ -939,21 +929,18 @@ AC_OUTPUT([README icudefs.mk \
 		extra/uconv/Makefile extra/scrptrun/Makefile
 		stubdata/Makefile \
 		tools/Makefile tools/ctestfw/Makefile tools/makeconv/Makefile \
-		tools/genrb/Makefile \
-		tools/genuca/Makefile \
-		tools/genccode/Makefile \
-		tools/gencmn/Makefile \
-		tools/gencnval/Makefile \
-		tools/gennames/Makefile \
+		tools/genrb/Makefile  \
+		tools/genuca/Makefile  \
+		tools/pkgdata/Makefile \
+		tools/genccode/Makefile tools/gencmn/Makefile \
+		tools/gencnval/Makefile tools/gentz/Makefile \
+		tools/gennames/Makefile tools/toolutil/Makefile \
 		tools/gentest/Makefile \
 		tools/gennorm/Makefile \
 		tools/genprops/Makefile \
 		tools/genpname/Makefile \
 		tools/genbrk/Makefile \
-		tools/gensprep/Makefile \
-		tools/icuswap/Makefile \
-		tools/pkgdata/Makefile \
-		tools/toolutil/Makefile \
+		tools/genidna/Makefile \
 		tools/dumpce/Makefile \
 		test/Makefile test/testdata/Makefile \
 		test/intltest/Makefile \

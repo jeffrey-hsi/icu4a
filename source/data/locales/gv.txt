@@ -66,12 +66,9 @@ gv {
 //        "\u221e",
 //        "\ufffd",
 //    }
-      LocaleScript:array{ 
-        "Latn",  // ISO 15924 Name 
-      }
-      ExemplarCharacters{
-	"[a-z]"
-      } 
+//    LocaleScript{ 
+//        "Latn",  // ISO 15924 Name 
+//    }
 
     // /**************** Info Below is needed ****************/
     // CollationElements{}

@@ -67,14 +67,14 @@ class U_I18N_API TitlecaseTransliterator : public Transliterator {
      *
      * @draft ICU 2.2
      */
-    virtual UClassID getDynamicClassID() const;
+    virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
      * @draft ICU 2.2
      */
-    static UClassID getStaticClassID();
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
  protected:
 
@@ -97,9 +97,15 @@ class U_I18N_API TitlecaseTransliterator : public Transliterator {
      * CALL.
      */
     static void cleanup();
-private:
+ private:
     Locale loc;
     UChar* buffer;
+
+    /**
+     * The address of this static class variable serves as this class's ID
+     * for ICU "poor man's RTTI".
+     */
+    static const char fgClassID;
 };
 
 U_NAMESPACE_END

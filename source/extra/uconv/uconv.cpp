@@ -18,10 +18,8 @@
 
 #include <unicode/utypes.h>
 #include <unicode/ucnv.h>
-#include <unicode/uenum.h>
 #include <unicode/unistr.h>
 #include <unicode/translit.h>
-#include <unicode/uclean.h>
 
 #include <stdio.h>
 #include <errno.h>
@@ -229,21 +227,12 @@ static int printConverters(const char *pname, const char *lookfor,
     } else {
         uint16_t s;
 
-        if (canon) {
-            printf("{ ");
-        }
         for (s = 0; s < num_stds; ++s) {
             stds[s] = ucnv_getStandard(s, &err);
-            if (canon) {
-                printf("%s ", stds[s]);
-            }
             if (U_FAILURE(err)) {
                 u_wmsg(stderr, "cantGetTag", u_wmsg_errorName(err));
                 return -1;
             }
-        }
-        if (canon) {
-            puts("}");
         }
     }
 
@@ -288,33 +277,21 @@ static int printConverters(const char *pname, const char *lookfor,
                     return -1;
                 }
 
-                /* Print the current alias so that it looks right. */
-                printf("%s%s%s", (canon ? (a == 0? "" : "\t" ) : "") ,
-                                 alias,
-                                 (canon ? "" : " "));
+                printf("%s", alias);
 
                 /* Look (slowly, linear searching) for a tag. */
 
                 if (canon) {
-                    /* -1 to skip the last standard */
-                    for (s = t = 0; s < num_stds-1; ++s) {
-                        UEnumeration *nameEnum = ucnv_openStandardNames(name, stds[s], &err);
-                        if (U_SUCCESS(err)) {
-                            /* List the standard tags */
-                            const char *standardName;
-                            UBool isFirst = TRUE;
-                            UErrorCode enumError = U_ZERO_ERROR;
-                            while ((standardName = uenum_next(nameEnum, NULL, &enumError))) {
-                                /* See if this alias is supported by this standard. */
-                                if (!strcmp(standardName, alias)) {
-                                    if (!t) {
-                                        printf(" {");
-                                        t = 1;
-                                    }
-                                    /* Print a * after the default standard name */
-                                    printf(" %s%s", stds[s], (isFirst ? "*" : ""));
+                    for (s = t = 0; s < num_stds; ++s) {
+                        const char *standard =
+                            ucnv_getStandardName(name, stds[s], &err);
+                        if (U_SUCCESS(err) && standard) {
+                            if (!strcmp(standard, alias)) {
+                                if (!t) {
+                                    printf(" {");
+                                    t = 1;
                                 }
-                                isFirst = FALSE;
+                                printf(" %s", stds[s]);
                             }
                         }
                     }
@@ -322,17 +299,21 @@ static int printConverters(const char *pname, const char *lookfor,
                         printf(" }");
                     }
                 }
-                /* Terminate this entry. */
-                if (canon) {
-                    puts("");
-                }
 
                 /* Move on. */
+
+                if (a < num_aliases - 1) {
+                    putchar(a || !canon ? ' ' : '\t');
+                }
             }
-            /* Terminate this entry. */
-            if (!canon) {
-                puts("");
-            }
+        }
+
+        /* Terminate this entry. */
+
+        if (canon) {
+            putchar('\n');
+        } else if (i < num - 1) {
+            putchar(' ');
         }
     }
 
@@ -815,15 +796,6 @@ int main(int argc, char **argv)
     int printTranslits = 0;
 
     int verbose = 0;
-    UErrorCode status = U_ZERO_ERROR;
-
-    /* Initialize ICU */
-    u_init(&status);
-    if (U_FAILURE(status)) {
-        fprintf(stderr, "%s: can not initialize ICU.  status = %s\n",
-            argv[0], u_errorName(status));
-        exit(1);
-    }
 
     // Get and prettify pname.
     pname = uprv_strrchr(*argv, U_FILE_SEP_CHAR);

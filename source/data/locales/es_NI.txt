@@ -18,6 +18,8 @@ es_NI {
         "dd/MM/yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x4c0a }
+//    LocaleString { "es_NI" }
 //    NumberElements {
 //        ".",
 //        ",",
@@ -31,4 +33,5 @@ es_NI {
 //        "\u221E",
 //        "\uFFFD",
 //    }
+//    ShortCountry { "NIC" }
 }

@@ -16,10 +16,9 @@
 *   (DLL, common data, etc.)
 */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "unicode/utypes.h"
-
-#ifdef WIN32
-
 #include "unicode/putil.h"
 #include "cmemory.h"
 #include "cstring.h"
@@ -29,11 +28,9 @@
 #include "uoptions.h"
 #include "pkgtypes.h"
 #include "makefile.h"
-#include <stdio.h>
-#include <stdlib.h>
 
-/*#define WINBUILDMODE (*(o->options)=='R'?"Release":"Debug")*/
-#define CONTAINS_REAL_PATH(o) (*(o->options)==PKGDATA_DERIVED_PATH)
+#ifdef WIN32
+#define WINBUILDMODE (*(o->options)=='R'?"Release":"Debug")
 
 void writeCmnRules(UPKGOptions *o,  FileStream *makefile)
 {
@@ -42,11 +39,8 @@ void writeCmnRules(UPKGOptions *o,  FileStream *makefile)
 
     infiles = o->filePaths;
 
-    sprintf(tmp, "\"$(TARGETDIR)\\$(CMNTARGET)\" : $(DATAFILEPATHS)\n"
-        "\t@\"$(GENCMN)\" %s%s%s-d \"$(TARGETDIR)\" -n \"$(NAME)\" 0 <<\n",
-        (o->comment ? "-C \"" : ""),
-        (o->comment ? o->comment : ""),
-        (o->comment ? "\" " : ""));
+    sprintf(tmp, "\"$(TARGETDIR)\\$(CMNTARGET)\" : $(DATAFILEPATHS)\n\t@\"$(GENCMN)\" -C \"%s\" -d \"%s\" -n \"$(NAME)\" 0 <<\n",
+        o->comment, o->targetDir);
     T_FileStream_writeLine(makefile, tmp);
 
     pkg_writeCharList(makefile, infiles, "\n", -1);
@@ -80,22 +74,13 @@ void pkg_mode_windows(UPKGOptions *o, FileStream *makefile, UErrorCode *status) 
     sprintf(tmp2, "ICUROOT=%s\n\n", o->icuroot);
     T_FileStream_writeLine(makefile, tmp2);
 
-    if (CONTAINS_REAL_PATH(o)) {
-        sprintf(tmp2,
-            "GENCMN = $(ICUROOT)%sgencmn.exe\n", separator);
-    }
-    else {
-        sprintf(tmp2,
-            "GENCMN = $(ICUROOT)%sbin\\gencmn.exe\n", separator);
-    }
+    sprintf(tmp2,
+        "GENCMN = $(ICUROOT)%sbin\\gencmn.exe\n", separator);
     T_FileStream_writeLine(makefile, tmp2);
 
     if(isDll) {
         uprv_strcpy(tmp, LIB_PREFIX);
         uprv_strcat(tmp, o->cShortName);
-        if (o->version) {
-            uprv_strcat(tmp, "$(TARGET_VERSION)");
-        }
         uprv_strcat(tmp, UDATA_SO_SUFFIX);
 
         if(o->nooutput || o->verbose) {
@@ -112,22 +97,13 @@ void pkg_mode_windows(UPKGOptions *o, FileStream *makefile, UErrorCode *status) 
 
         sprintf(tmp2,
             "LINK32 = link.exe\n"
-            "LINK32_FLAGS = /nologo /out:\"$(TARGETDIR)\\$(DLLTARGET)\" /DLL /NOENTRY /base:\"0x4ad00000\" /implib:\"$(TARGETDIR)\\$(ENTRYPOINT).lib\" %s%s%s\n",
-            (o->comment ? "/comment:\"" : ""),
-            (o->comment ? o->comment : ""),
-            (o->comment ? "\"" : ""),
+            "LINK32_FLAGS = /nologo /out:\"$(TARGETDIR)\\$(DLLTARGET)\" /DLL /NOENTRY /base:\"0x4ad00000\" /implib:\"$(TARGETDIR)\\$(ENTRYPOINT).lib\" /comment:\"%s\"\n",
             o->comment
             );
         T_FileStream_writeLine(makefile, tmp2);
 
-        if (CONTAINS_REAL_PATH(o)) {
-            sprintf(tmp2,
-                "GENCCODE = $(ICUROOT)%sgenccode.exe\n", separator);
-        }
-        else {
-            sprintf(tmp2,
-                "GENCCODE = $(ICUROOT)%sbin\\genccode.exe\n", separator);
-        }
+        sprintf(tmp2,
+            "GENCCODE = $(ICUROOT)%sbin\\genccode.exe\n",  separator);
         T_FileStream_writeLine(makefile, tmp2);
 
         T_FileStream_writeLine(makefile, "\n"
@@ -175,15 +151,8 @@ void pkg_mode_windows(UPKGOptions *o, FileStream *makefile, UErrorCode *status) 
             );
         T_FileStream_writeLine(makefile, tmp2);
 
-
-        if (CONTAINS_REAL_PATH(o)) {
-            sprintf(tmp2,
-                "GENCCODE = $(ICUROOT)%sgenccode.exe\n", separator);
-        }
-        else {
-            sprintf(tmp2,
-                "GENCCODE = $(ICUROOT)%sbin\\genccode.exe\n", separator);
-        }
+        sprintf(tmp2,
+            "GENCCODE = $(ICUROOT)%sbin\\genccode.exe\n",  separator);
         T_FileStream_writeLine(makefile, tmp2);
 
         T_FileStream_writeLine(makefile, "\n"
@@ -202,9 +171,6 @@ void pkg_mode_windows(UPKGOptions *o, FileStream *makefile, UErrorCode *status) 
     }
     uprv_strcpy(tmp, UDATA_CMN_PREFIX);
     uprv_strcat(tmp, o->cShortName);
-    if (o->version) {
-        uprv_strcat(tmp, "$(TARGET_VERSION)");
-    }
     uprv_strcat(tmp, UDATA_CMN_SUFFIX);
 
     if(o->nooutput || o->verbose) {

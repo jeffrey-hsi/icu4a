@@ -293,7 +293,7 @@ LocaleKey::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(LocaleKey)
+const char LocaleKey::fgClassID = 0;
 
 /*
  ******************************************************************
@@ -409,7 +409,7 @@ LocaleKeyFactory::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(LocaleKeyFactory)
+const char LocaleKeyFactory::fgClassID = 0;
 
 /*
  ******************************************************************
@@ -497,7 +497,7 @@ SimpleLocaleKeyFactory::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(SimpleLocaleKeyFactory)
+const char SimpleLocaleKeyFactory::fgClassID = 0;
 
 /*
  ******************************************************************
@@ -549,7 +549,7 @@ ICUResourceBundleFactory::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ICUResourceBundleFactory)
+const char ICUResourceBundleFactory::fgClassID = '\0';
 
 /*
  ******************************************************************
@@ -806,11 +806,13 @@ public:
     }
 
 public:
-    static UClassID getStaticClassID(void);
-    virtual UClassID getDynamicClassID(void) const;
+    virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
+    static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
+private:
+    static const char fgClassID;
 };
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ServiceEnumeration)
+const char ServiceEnumeration::fgClassID = '\0';
 
 StringEnumeration*
 ICULocaleService::getAvailableLocales(void) const

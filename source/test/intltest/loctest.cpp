@@ -10,97 +10,76 @@
 #include <cstring.h>
 
 #include "unicode/decimfmt.h"
-#include "unicode/ucurr.h"
+//#include "unicode/datefmt.h"
 #include "unicode/smpdtfmt.h"
 
 const char* rawData[27][7] = {
 
         // language code
-        {   "en",   "fr",   "ca",   "el",   "no",   "it",   "xx"    },
+        {   "en",   "fr",   "hr",   "el",   "no",   "it",   "xx"    },
         // country code
-        {   "US",   "FR",   "ES",   "GR",   "NO",   "",     "YY"    },
+        {   "US",   "FR",   "HR",   "GR",   "NO",   "",     "YY"    },
         // variant code
         {   "",     "",     "",     "",     "NY",   "",     ""    },
         // full name
-        {   "en_US",    "fr_FR",    "ca_ES",    "el_GR",    "no_NO_NY", "it",   "xx_YY"  },
+        {   "en_US",    "fr_FR",    "hr_HR",    "el_GR",    "no_NO_NY", "it",   "xx_YY"  },
         // ISO-3 language
-        {   "eng",  "fra",  "cat",  "ell",  "nor",  "ita",  ""   },
+        {   "eng",  "fra",  "hrv",  "ell",  "nor",  "ita",  ""   },
         // ISO-3 country
-        {   "USA",  "FRA",  "ESP",  "GRC",  "NOR",  "",     ""   },
-        // LCID
-        {   "409", "40c", "403", "408", "814", "",     ""  },
+        {   "USA",  "FRA",  "HRV",  "GRC",  "NOR",  "",     ""   },
+        // LCID (not currently public)
+        {   "409", "40c", "41a", "408", "814", "",     ""  },
 
         // display langage (English)
-        {   "English",  "French",   "Catalan", "Greek",    "Norwegian",    "Italian",  "xx" },
+        {   "English",  "French",   "Croatian", "Greek",    "Norwegian",    "Italian",  "xx" },
         // display country (English)
-        {   "United States",    "France",   "Spain",  "Greece",   "Norway",   "",     "YY" },
+        {   "United States",    "France",   "Croatia",  "Greece",   "Norway",   "",     "YY" },
         // display variant (English)
         {   "",     "",     "",     "",     "Nynorsk",   "",     ""},
         //{   "",     "",     "",     "",     "NY",   "",     ""},
         // display name (English)
         // Updated no_NO_NY English display name for new pattern-based algorithm
         // (part of Euro support).
-        {   "English (United States)", "French (France)", "Catalan (Spain)", "Greek (Greece)", "Norwegian (Norway, Nynorsk)", "Italian", "xx (YY)" },
-        //{   "English (United States)", "French (France)", "Catalan (Spain)", "Greek (Greece)", "Norwegian (Norway,NY)", "Italian", "xx (YY)" },
+        {   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway, Nynorsk)", "Italian", "xx (YY)" },
+        //{   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway,NY)", "Italian", "xx (YY)" },
 
         // display langage (French)
-        {   "anglais",  "fran\\u00E7ais",   "catalan", "grec",    "norv\\u00E9gien",    "italien", "xx" },
+        {   "anglais",  "fran\\u00E7ais",   "croate", "grec",    "norv\\u00E9gien",    "italien", "xx" },
         // display country (French)
-        {   "\\u00C9tats-Unis",    "France",   "Espagne",  "Gr\\u00E8ce",   "Norv\\u00E8ge", "",     "YY" },
+        {   "\\u00C9tats-Unis",    "France",   "Croatie",  "Gr\\u00E8ce",   "Norv\\u00E8ge", "",     "YY" },
         // display variant (French)
         {   "",     "",     "",     "",     "Nynorsk",     "",     "" },
         // display name (French)
-        //{   "anglais (États-Unis)", "français (France)", "catalan (Espagne)", "grec (Grèce)", "norvégien (Norvège,Nynorsk)", "italien", "xx (YY)" },
-        {   "anglais (\\u00C9tats-Unis)", "fran\\u00E7ais (France)", "catalan (Espagne)", "grec (Gr\\u00E8ce)", "norv\\u00E9gien (Norv\\u00E8ge, Nynorsk)", "italien", "xx (YY)" }, // STILL not right
+        //{   "anglais (États-Unis)", "français (France)", "croate (Croatie)", "grec (Grèce)", "norvégien (Norvège,Nynorsk)", "italien", "xx (YY)" },
+        {   "anglais (\\u00C9tats-Unis)", "fran\\u00E7ais (France)", "croate (Croatie)", "grec (Gr\\u00E8ce)", "norv\\u00E9gien (Norv\\u00E8ge, Nynorsk)", "italien", "xx (YY)" }, // STILL not right
 
-        // display langage (Catalan)
-        {   "",  "", "catal\\u00E0", "",    "", "", "xx" },
-        // display country (Catalan)
-        {   "",    "",   "Espanya",  "",   "", "", "YY" },
-        // display variant (Catalan)
+        // display langage (Croatian)
+        {   "",  "", "hrvatski", "",    "", "", "xx" },
+        // display country (Croatian)
+        {   "",    "",   "Hrvatska",  "",   "", "", "YY" },
+        // display variant (Croatian)
         {   "",     "",     "",     "",     "", "", ""},
-        // display name (Catalan)
-        {   "", "", "catal\\u00E0 (Espanya)", "", "",  "", "xx (YY)" },
+        // display name (Croatian)
+        {   "", "", "hrvatski (Hrvatska)", "", "",  "", "xx (YY)" },
 
         // display langage (Greek)[actual values listed below]
-        {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac",
-            "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac",
-            "\\u039a\\u03b1\\u03c4\\u03b1\\u03bb\\u03b1\\u03bd\\u03b9\\u03ba\\u03ac",
-            "\\u0395\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac",
-            "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac",
-            "",
-            ""
-        },
+        {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac", "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03b9\\u03ba\\u03ac", "",    "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac", "", "" },
         // display country (Greek)[actual values listed below]
-        {   "\\u0397\\u03BD\\u03C9\\u03BC\\u03AD\\u03BD\\u03B5\\u03C2 \\u03A0\\u03BF\\u03BB\\u03B9\\u03C4\\u03B5\\u03AF\\u03B5\\u03C2",
-            "\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1",
-            "\\u0399\\u03c3\\u03c0\\u03b1\\u03bd\\u03af\\u03b1",
-            "\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1",
-            "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1",
-            "",
-            ""
-        },
+        {   "\\u0397\\u03bd\\u03c9\\u03bc\\u03ad\\u03bd\\u03b5\\u03c2 \\u03a0\\u03bf\\u03bb\\u03b9\\u03c4\\u03b5\\u03af\\u03b5\\u03c2 \\u0391\\u03bc\\u03b5\\u03c1\\u03b9\\u03ba\\u03ae\\u03c2", "\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03af\\u03b1", "",    "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1", "", "" },
         // display variant (Greek)
-        {   "", "", "", "", "NY" }, /* TODO: currently there is no translation for NY in Greek fix this test when we have it */
+        {   "",     "",     "",     "",     "", "", "" },
         // display name (Greek)[actual values listed below]
-        {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac (\\u0397\\u03BD\\u03C9\\u03BC\\u03AD\\u03BD\\u03B5\\u03C2 \\u03A0\\u03BF\\u03BB\\u03B9\\u03C4\\u03B5\\u03AF\\u03B5\\u03C2)",
-            "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac (\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1)",
-            "\\u039a\\u03b1\\u03c4\\u03b1\\u03bb\\u03b1\\u03bd\\u03b9\\u03ba\\u03ac (\\u0399\\u03c3\\u03c0\\u03b1\\u03bd\\u03af\\u03b1)",
-            "\\u0395\\u03bb\\u03bb\\u03b7\\u03bd\\u03b9\\u03ba\\u03ac (\\u0395\\u03bb\\u03bb\\u03ac\\u03b4\\u03b1)",
-            "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac (\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1, NY)",
-            "",
-            ""
-        },
+        {   "\\u0391\\u03b3\\u03b3\\u03bb\\u03b9\\u03ba\\u03ac (\\u0397\\u03bd\\u03c9\\u03bc\\u03ad\\u03bd\\u03b5\\u03c2 \\u03a0\\u03bf\\u03bb\\u03b9\\u03c4\\u03b5\\u03af\\u03b5\\u03c2 \\u0391\\u03bc\\u03b5\\u03c1\\u03b9\\u03ba\\u03ae\\u03c2)", "\\u0393\\u03b1\\u03bb\\u03bb\\u03b9\\u03ba\\u03ac (\\u0393\\u03b1\\u03bb\\u03bb\\u03af\\u03b1)", "\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03b9\\u03ba\\u03ac (\\u039a\\u03c1\\u03bf\\u03b1\\u03c4\\u03af\\u03b1)", "",    "\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03b9\\u03ba\\u03ac (\\u039d\\u03bf\\u03c1\\u03b2\\u03b7\\u03b3\\u03af\\u03b1, Nynorsk)", "", "" },
 
         // display langage (<root>)
-        {   "English",  "French",   "Catalan", "Greek",    "Norwegian",    "Italian",  "xx" },
+        {   "English",  "French",   "Croatian", "Greek",    "Norwegian",    "Italian",  "xx" },
         // display country (<root>)
-        {   "United States",    "France",   "Spain",  "Greece",   "Norway",   "",     "YY" },
+        {   "United States",    "France",   "Croatia",  "Greece",   "Norway",   "",     "YY" },
         // display variant (<root>)
         {   "",     "",     "",     "",     "Nynorsk",   "",     ""},
         // display name (<root>)
-        //{   "English (United States)", "French (France)", "Catalan (Spain)", "Greek (Greece)", "Norwegian (Norway,Nynorsk)", "Italian", "xx (YY)" },
-        {   "English (United States)", "French (France)", "Catalan (Spain)", "Greek (Greece)", "Norwegian (Norway,NY)", "Italian", "xx (YY)" }
+        //{   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway,Nynorsk)", "Italian", "xx (YY)" },
+        {   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway,NY)", "Italian", "xx (YY)" }
 };
 
 // * test macros
@@ -418,15 +397,15 @@ LocaleTest::TestDisplayNames()
 {
     Locale  english("en", "US");
     Locale  french("fr", "FR");
-    Locale  croatian("ca", "ES");
+    Locale  croatian("hr", "HR");
     Locale  greek("el", "GR");
 
     logln("  In locale = en_US...");
     doTestDisplayNames(english, DLANG_EN);
     logln("  In locale = fr_FR...");
     doTestDisplayNames(french, DLANG_FR);
-    logln("  In locale = ca_ES...");
-    doTestDisplayNames(croatian, DLANG_CA);
+    logln("  In locale = hr_HR...");
+    doTestDisplayNames(croatian, DLANG_HR);
     logln("  In locale = el_GR...");
     doTestDisplayNames(greek, DLANG_EL);
 
@@ -724,13 +703,13 @@ void LocaleTest::doTestDisplayNames(Locale& displayLocale, int32_t compareIndex)
             expectedName = dataTable[DNAME_EN][i];
 
         if (testLang != expectedLang)
-            errln("Display language (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testLang + " expected " + expectedLang);
+            errln("Display language (" + UnicodeString(displayLocale.getName()) + ") got " + testLang + " expected " + expectedLang);
         if (testCtry != expectedCtry)
-            errln("Display country (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testCtry + " expected " + expectedCtry);
+            errln("Display country (" + UnicodeString(displayLocale.getName()) + ") got " + testCtry + " expected " + expectedCtry);
         if (testVar != expectedVar)
-            errln("Display variant (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testVar + " expected " + expectedVar);
+            errln("Display variant (" + UnicodeString(displayLocale.getName()) + ") got " + testVar + " expected " + expectedVar);
         if (testName != expectedName)
-            errln("Display name (" + UnicodeString(displayLocale.getName()) + ") of (" + UnicodeString(testLocale.getName()) + ") got " + testName + " expected " + expectedName);
+            errln("Display name (" + UnicodeString(displayLocale.getName()) + ") got " + testName + " expected " + expectedName);
     }
 }
 
@@ -739,6 +718,10 @@ void LocaleTest::doTestDisplayNames(Locale& displayLocale, int32_t compareIndex)
 //---------------------------------------------------
 
 
+UChar greekDisplayLanguage[] = { 0x03b5, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba, 0x03ac, 0 };
+UChar greekDisplayCountry[] = { 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, 0 };
+UChar greekDisplayName[] = { 0x03b5, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba,
+    0x03ac, 0x20, 0x28, 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, 0x29, 0 };
     
 void LocaleTest::setUpDataTable()
 {
@@ -751,6 +734,9 @@ void LocaleTest::setUpDataTable()
                 dataTable[i][j] = CharsToUnicodeString(rawData[i][j]);
             }
         }
+        dataTable[DLANG_EL][GREEK] = greekDisplayLanguage;
+        dataTable[DCTRY_EL][GREEK] = greekDisplayCountry;
+        dataTable[DNAME_EL][GREEK] = greekDisplayName;
     }
 }
 
@@ -876,7 +862,7 @@ LocaleTest::TestSimpleDisplayNames()
     // names, and other stuff like that.  This test just checks specific language
     // and country codes to make sure we have the correct names for them.
     char languageCodes[] [4] = { "he", "id", "iu", "ug", "yi", "za" };
-    UnicodeString languageNames [] = { "Hebrew", "Indonesian", "Inuktitut", "Uighur", "Yiddish",
+    UnicodeString languageNames [] = { "Hebrew", "Indonesian", "Inukitut", "Uighur", "Yiddish",
                                "Zhuang" };
 
     for (int32_t i = 0; i < 6; i++) {
@@ -977,18 +963,17 @@ LocaleTest::TestAtypicalLocales()
                                      "Suecia",
                                      CharsToUnicodeString("Rep\\u00FAblica Dominicana"),
                                      CharsToUnicodeString("B\\u00E9lgica") };
-    // De-Anglicizing root required the change from
-    // English display names to ISO Codes - ram 2003/09/26
-    UnicodeString arabicDisplayNames [] = { "de (CA)",
-                                     "ja (ZA)",
-                                     "ru (MX)",
-                                     "en (FR)",
-                                     "es (DE)",
-                                     "HR",
-                                     "SE",
-                                     "DO",
-                                     "BE" };
-  
+    UnicodeString arabicDisplayNames [] = { "German (Canada)",
+                                     "Japanese (South Africa)",
+                                     "Russian (Mexico)",
+                                     "English (France)",
+                                     "Spanish (Germany)",
+                                     "Croatia",
+                                     "Sweden",
+                                     "Dominican Republic",
+                                     "Belgium" };
+
+
     int32_t i;
     UErrorCode status = U_ZERO_ERROR;
     Locale::setDefault(Locale::getUS(), status);
@@ -1092,8 +1077,6 @@ LocaleTest::TestEuroSupport()
                             "el_GR",
                             "en_BE",
                             "en_IE",
-                            "en_GB_EURO",
-                            "en_US_EURO",
                             "es_ES",
                             "eu_ES",
                             "fi_FI",
@@ -1117,51 +1100,24 @@ LocaleTest::TestEuroSupport()
     for (;*locales!=NULL;locales++) {
         Locale loc (*locales);
         UnicodeString temp;
-        NumberFormat *nf = NumberFormat::createCurrencyInstance(loc, status);
-        UnicodeString pos;
-        nf->format(271828.182845, pos);
-        UnicodeString neg;
-        nf->format(-271828.182845, neg);
-        if (pos.indexOf(EURO_CURRENCY) >= 0 &&
-            neg.indexOf(EURO_CURRENCY) >= 0) {
-            logln("Ok: " + (temp=loc.getName()) +
-                ": " + pos + " / " + neg);
-        }
-        else {
-            errln("Fail: " + (temp=loc.getName()) +
-                " formats without " + EURO_CURRENCY +
-                ": " + pos + " / " + neg +
-                "\n*** THIS FAILURE MAY ONLY MEAN THAT LOCALE DATA HAS CHANGED ***");
-        }
+            NumberFormat *nf = NumberFormat::createCurrencyInstance(loc, status);
+            UnicodeString pos;
+            nf->format(271828.182845, pos);
+            UnicodeString neg;
+            nf->format(-271828.182845, neg);
+            if (pos.indexOf(EURO_CURRENCY) >= 0 &&
+                neg.indexOf(EURO_CURRENCY) >= 0) {
+                logln("Ok: " + (temp=loc.getName()) +
+                      ": " + pos + " / " + neg);
+            }
+            else {
+                errln("Fail: " + (temp=loc.getName()) +
+                      " formats without " + EURO_CURRENCY +
+                      ": " + pos + " / " + neg +
+                      "\n*** THIS FAILURE MAY ONLY MEAN THAT LOCALE DATA HAS CHANGED ***");
+            }
         
-        delete nf;
-    }
-
-    UnicodeString dollarStr("USD", ""), euroStr("EUR", ""), genericStr((UChar)0x00a4), resultStr;
-    status = U_ZERO_ERROR;
-
-    resultStr = ucurr_forLocale("en_US", &status);
-    if (dollarStr != resultStr) {
-        errln("Fail: en_US didn't return USD");
-    }
-    resultStr = ucurr_forLocale("en_US_EURO", &status);
-    if (euroStr != resultStr) {
-        errln("Fail: en_US_EURO didn't return EUR");
-    }
-    resultStr = ucurr_forLocale("en_GB_EURO", &status);
-    if (euroStr != resultStr) {
-        errln("Fail: en_GB_EURO didn't return EUR");
-    }
-    resultStr = ucurr_forLocale("en_US_PREEURO", &status);
-    if (dollarStr != resultStr) {
-        errln("Fail: en_US_PREEURO didn't fallback to en_US");
-    }
-    resultStr = ucurr_forLocale("en_US_Q", &status);
-    if (dollarStr != resultStr) {
-        errln("Fail: en_US_Q didn't fallback to en_US");
-    }
-    if (NULL != ucurr_forLocale("en_QQ", &status) || U_SUCCESS(status)) {
-        errln("Fail: en_QQ didn't return NULL");
+            delete nf;
     }
 }
 
@@ -1341,15 +1297,15 @@ LocaleTest::Test4147552()
                                                  //"Norwegian (Norway,NY)" 
                                                  "Norwegian (Norway, Nynorsk)" 
     };
-    UnicodeString ndn("Norsk (Norge, Bokm");
+    UnicodeString ndn("norsk (Norge, Bokm");
     ndn += (UChar32)0x00e5;
     ndn += "l)";
     UnicodeString norwegianDisplayNames [] = { 
-                                                "Norsk (Norge)",
+                                                "norsk (Norge)",
                                                 //"norsk (Norge,B)", 
                                                 ndn, 
                                                  //"norsk (Norge,NY)" 
-                                                 "Norsk (Noreg, Nynorsk)" 
+                                                 "norsk (Noreg, Nynorsk)" 
     };
 
     for (int32_t i = 0; i < 3; ++i) {

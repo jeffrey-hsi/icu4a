@@ -58,25 +58,21 @@ static UnicodeString fieldName(UCalendarDateFields f);
 
 static UnicodeString calToStr(const Calendar & cal)
 {
-    UnicodeString out;
-    UErrorCode status = U_ZERO_ERROR;
-    int i;
-    for(i = 0;i<UCAL_FIELD_COUNT;i++) {
-        out += (UnicodeString("+") + fieldName((UCalendarDateFields)i) + "=" +  cal.get((UCalendarDateFields)i, status) + UnicodeString(", "));
-    }
-    out += UnicodeString(cal.getType());
-    
-    if(cal.inDaylightTime(status)) {
-        out += UnicodeString("- DAYLIGHT");
-    }
-    else {
-        out += UnicodeString("- NORMAL");
-    }
-    
-    UnicodeString str2;
-    out += cal.getTimeZone().getDisplayName(str2);
-    
-    return out;
+
+  UnicodeString out;
+  UErrorCode status = U_ZERO_ERROR;
+  int i;
+  for(i = 0;i<UCAL_FIELD_COUNT;i++) {
+    out += (UnicodeString("+") + fieldName((UCalendarDateFields)i) + "=" +  cal.get((UCalendarDateFields)i, status) + UnicodeString(", "));
+  }
+  out += UnicodeString(cal.getType());
+
+  out += cal.inDaylightTime(status)?UnicodeString("- DAYLIGHT"):UnicodeString("- NORMAL");
+
+  UnicodeString str2;
+  out += cal.getTimeZone().getDisplayName(str2);
+
+  return out;
 }
 
 #define CASE(id,test) case id: name = #test; if (exec) { logln(#test "---"); logln((UnicodeString)""); test(); } break
@@ -503,7 +499,7 @@ void IntlCalendarTest::TestJapaneseFormat() {
     
     // Now, try in Japanese
     {
-        UnicodeString expect = CharsToUnicodeString("\\u5e73\\u621013\\u5e749\\u67088\\u65e5\\u571f\\u66dc\\u65e5");
+        UnicodeString expect = CharsToUnicodeString("\\u5e73\\u621013\\u5e749\\u67088\\u65e5");
         UDate         expectDate = 999932400000.0; // Testing a recent date
         Locale        loc("ja_JP_TRADITIONAL");
         
@@ -511,7 +507,7 @@ void IntlCalendarTest::TestJapaneseFormat() {
         simpleTest(loc, expect, expectDate, status);
     }
     {
-        UnicodeString expect = CharsToUnicodeString("\\u5b89\\u6c385\\u5e747\\u67084\\u65e5\\u6728\\u66dc\\u65e5");
+        UnicodeString expect = CharsToUnicodeString("\\u5b89\\u6c385\\u5e747\\u67084\\u65e5");
         UDate         expectDate = -6106035600000.0;
         Locale        loc("ja_JP_TRADITIONAL");
         
@@ -520,7 +516,7 @@ void IntlCalendarTest::TestJapaneseFormat() {
         
     }
     {   // Jitterbug 1869 - this is an ambiguous era. (Showa 64 = Jan 6 1989, but Showa could be 2 other eras) )
-        UnicodeString expect = CharsToUnicodeString("\\u662d\\u548c64\\u5e741\\u67086\\u65e5\\u91d1\\u66dc\\u65e5");
+        UnicodeString expect = CharsToUnicodeString("\\u662d\\u548c64\\u5e741\\u67086\\u65e5");
         UDate         expectDate = 600076800000.0;
         Locale        loc("ja_JP_TRADITIONAL");
         
@@ -529,9 +525,8 @@ void IntlCalendarTest::TestJapaneseFormat() {
         
     }
     {   // This Feb 29th falls on a leap year by gregorian year, but not by Japanese year.
-        UnicodeString expect = CharsToUnicodeString("\\u5EB7\\u6B632\\u5e742\\u670829\\u65e5\\u65e5\\u66dc\\u65e5");
-        // Add -1:00 to the following for historical TZ - aliu
-        UDate         expectDate =  -16214403600000.0;  // courtesy of date format round trip test
+        UnicodeString expect = CharsToUnicodeString("\\u5EB7\\u6B632\\u5e742\\u670829\\u65e5");
+        UDate         expectDate =  -16214400000000.0;  // courtesy of date format round trip test
         Locale        loc("ja_JP_TRADITIONAL");
         
         status = U_ZERO_ERROR;

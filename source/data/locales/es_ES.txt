@@ -7,6 +7,7 @@
 
 es_ES {
     Version { "2.0" }
+//    LocaleString { "es_ES" }
     NumberElements {
         ",",
         ".",
@@ -20,7 +21,6 @@ es_ES {
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
     DateTimePatterns { 
         "HH'H'mm''ss\" z",
@@ -39,4 +39,6 @@ es_ES {
         "#,##0%",
         "#E0",
     }
+//    ShortCountry { "ESP" }
+    LocaleID:int { 0x0c0a }
 }

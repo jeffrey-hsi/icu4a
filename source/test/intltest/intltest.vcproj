@@ -290,10 +290,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="collections"
-			Filter="">
-		</Filter>
-		<Filter
 			Name="configuration"
 			Filter="">
 			<File
@@ -331,16 +327,6 @@
 			</File>
 			<File
 				RelativePath=".\tsputil.h">
-			</File>
-		</Filter>
-		<Filter
-			Name="conversion"
-			Filter="">
-			<File
-				RelativePath=".\convtest.cpp">
-			</File>
-			<File
-				RelativePath=".\convtest.h">
 			</File>
 		</Filter>
 		<Filter
@@ -544,37 +530,6 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="idna"
-			Filter="*.c,*.h">
-			<File
-				RelativePath=".\idnaref.cpp">
-			</File>
-			<File
-				RelativePath=".\idnaref.h">
-			</File>
-			<File
-				RelativePath=".\nptrans.cpp">
-			</File>
-			<File
-				RelativePath=".\nptrans.h">
-			</File>
-			<File
-				RelativePath=".\punyref.c">
-			</File>
-			<File
-				RelativePath=".\punyref.h">
-			</File>
-			<File
-				RelativePath=".\testidn.cpp">
-			</File>
-			<File
-				RelativePath=".\testidna.cpp">
-			</File>
-			<File
-				RelativePath=".\testidna.h">
-			</File>
-		</Filter>
-		<Filter
 			Name="locales &amp; resources"
 			Filter="">
 			<File
@@ -729,18 +684,6 @@
 			</File>
 			<File
 				RelativePath=".\ustrtest.cpp">
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="FALSE"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCLCompilerTool"
-						DisableLanguageExtensions="FALSE"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\ustrtest.h">
@@ -809,6 +752,41 @@
 			<File
 				RelativePath=".\unhxtrts.h">
 			</File>
+		</Filter>
+		<Filter
+			Name="idna"
+			Filter="*.c,*.h">
+			<File
+				RelativePath=".\idnaref.cpp">
+			</File>
+			<File
+				RelativePath=".\idnaref.h">
+			</File>
+			<File
+				RelativePath=".\nptrans.cpp">
+			</File>
+			<File
+				RelativePath=".\nptrans.h">
+			</File>
+			<File
+				RelativePath=".\punyref.c">
+			</File>
+			<File
+				RelativePath=".\punyref.h">
+			</File>
+			<File
+				RelativePath=".\testidn.cpp">
+			</File>
+			<File
+				RelativePath=".\testidna.cpp">
+			</File>
+			<File
+				RelativePath=".\testidna.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="collections"
+			Filter="">
 		</Filter>
 	</Files>
 	<Globals>

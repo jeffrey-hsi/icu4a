@@ -21,21 +21,22 @@ nn{
         4,
     }
     DateTimePatterns {
-        "'kl. 'HH.mm.ss z",
-        "HH.mm.ss z",
-        "HH.mm.ss",
-        "HH.mm",
-        "EEEE d. MMMM yyyy",
+        "'kl 'HH.mm z",
+        "HH:mm:ss z",
+        "HH:mm:ss",
+        "HH:mm",
         "d. MMMM yyyy",
-        "d. MMM. yyyy",
+        "d. MMMM yyyy",
+        "dd.MMM.yy",
         "dd.MM.yy",
         "{1} {0}",
     }
     Languages {
-        nb { "Norsk bokm\u00E5l" }
-        nn { "Norsk nynorsk" }
-        no { "Norsk" }
+        nb { "bokm\u00E5l" }
+        nn { "nynorsk" }
+        no { "norsk" }
     }
+//    LocaleString { "nn" }
     MonthAbbreviations {
         "jan",
         "feb",
@@ -77,12 +78,13 @@ nn{
         "\u221E",
         "\uFFFD",
         ",",
-        "+",
     }
+//    ShortLanguage { "nor" }
     Eras {
         "f.Kr.",
         "e.Kr.",
     }
+
     zoneStrings {
         {
             "Europe/Oslo",
@@ -100,7 +102,7 @@ nn{
         "on",
         "to",
         "fr",
-        "la",
+        "lau",
     }
     DayNames {
         "sundag",
@@ -111,10 +113,11 @@ nn{
         "fredag",
         "laurdag",
     }
-    ExemplarCharacters { "[a-z\u00e6\u00e5\u00f8\u00e9\u00f3\u00f4\u00e0\u00fc\u01ce]" }
-    LocaleScript{ 
-        "Latn",  // ISO 15924 Name 
-    }
+    ExemplarCharacters { "[a-z \u00e6 \u00e5 \u00f8 \u00e9 \u00f3 \u00f4 \u00e0 \u00fc \u01ce]" }
+    LocaleID:int { 0x814 }
+//    LocaleScript{ 
+//        "Latn",  // ISO 15924 Name 
+//    }
 
     // Currency display names
     Currencies {

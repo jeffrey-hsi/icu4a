@@ -18,6 +18,8 @@ es_HN {
         "dd/MM/yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x480a }
+//    LocaleString { "es_HN" }
 //    NumberElements {
 //        ".",
 //        ",",
@@ -31,4 +33,5 @@ es_HN {
 //        "\u221E",
 //        "\uFFFD",
 //    }
+//    ShortCountry { "HND" }
 }

@@ -22,7 +22,7 @@
 
 #include "unicode/utypes.h"
 
-#define UFMT_DEFAULT_BUFFER_SIZE 128
+#define UFMT_DEFAULT_BUFFER_SIZE 64
 #define MAX_UCHAR_BUFFER_SIZE(buffer) (sizeof(buffer)/(UTF_MAX_CHAR_LENGTH*sizeof(UChar)))
 #define MAX_UCHAR_BUFFER_NEEDED(strLen) ((strLen+1)*UTF_MAX_CHAR_LENGTH*sizeof(UChar))
 
@@ -31,21 +31,21 @@
  */
 enum ufmt_type_info
 {
-    ufmt_empty = 0,
-    ufmt_simple_percent, /* %% do nothing */
-    ufmt_count,      /* special flag for count */
-    ufmt_int,        /* int */
-    ufmt_char,       /* int, cast to char */
-    ufmt_string,     /* char* */
-    ufmt_pointer,    /* void* */
-    ufmt_float,      /* float */
-    ufmt_double,     /* double */
-    ufmt_uchar,      /* int, cast to UChar */
-    ufmt_ustring,    /* UChar* */
-    /*ufmt_wchar,*/      /* wchar_t */
-    /*ufmt_wstring,*/    /* wchar_t* */
-    /*ufmt_date,*/       /* Date */
-    ufmt_last
+  ufmt_empty = 0,
+  ufmt_simple_percent, /* %% do nothing */
+  ufmt_count,      /* special flag for count */
+  ufmt_int,        /* int */
+  ufmt_char,       /* int, cast to char */
+  ufmt_wchar,      /* wchar_t */
+  ufmt_string,     /* char* */
+  ufmt_wstring,    /* wchar_t* */
+  ufmt_pointer,    /* void* */
+  ufmt_float,      /* float */
+  ufmt_double,     /* double */
+  ufmt_date,       /* Date */
+  ufmt_uchar,      /* int, cast to UChar */
+  ufmt_ustring,    /* UChar* */
+  ufmt_last
 };
 typedef enum ufmt_type_info ufmt_type_info;
 
@@ -53,12 +53,12 @@ typedef enum ufmt_type_info ufmt_type_info;
  * Union representing a uprintf/uscanf argument
  */
 union ufmt_args {
-    signed int    intValue;      /* int, UChar */     /* TODO: Should int32_t be used instead of int? */
-    float         floatValue;    /* float */
-    double        doubleValue;   /* double */
-    void          *ptrValue;     /* any pointer - void*, char*, wchar_t*, UChar* */
-    /*wchar_t       wcharValue;*/    /* wchar_t */    /* TODO: Should wchar_t be used? */
-    /*UDate         dateValue;*/     /* Date */
+  signed int    intValue;      /* int, UChar */     /* TODO: Should int32_t be used instead of int? */
+  float         floatValue;    /* float */
+  double        doubleValue;   /* double */
+  void          *ptrValue;     /* any pointer - void*, char*, wchar_t*, UChar* */
+  wchar_t       wcharValue;    /* wchar_t */    /* TODO: Should wchar_t be used? */
+  UDate         dateValue;     /* Date */
 };
 typedef union ufmt_args ufmt_args;
 

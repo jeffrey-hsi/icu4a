@@ -343,7 +343,7 @@ ICUServiceKey::debugClass(UnicodeString& result) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ICUServiceKey)
+const char ICUServiceKey::fgClassID = '\0';
 
 /*
  ******************************************************************
@@ -411,13 +411,13 @@ SimpleFactory::debugClass(UnicodeString& toAppendTo) const
 }
 #endif
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(SimpleFactory)
+const char SimpleFactory::fgClassID = '\0';
 
 /*
  ******************************************************************
  */
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ServiceListener)
+const char ServiceListener::fgClassID = '\0';
 
 /*
  ******************************************************************
@@ -480,8 +480,8 @@ public:
 };
 
 // UObjectDeleter for serviceCache
-U_CDECL_BEGIN
-static void U_CALLCONV
+
+U_CAPI void U_EXPORT2
 cacheDeleter(void* obj) {
   U_NAMESPACE_USE
     ((CacheEntry*)obj)->unref();
@@ -490,12 +490,11 @@ cacheDeleter(void* obj) {
 /**
  * Deleter for UObjects
  */
-static void U_CALLCONV
+U_CAPI void U_EXPORT2
 deleteUObject(void *obj) {
   U_NAMESPACE_USE
     delete (UObject*) obj;
 }
-U_CDECL_END
 
 /*
  ******************************************************************

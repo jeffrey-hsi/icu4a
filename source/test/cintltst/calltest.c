@@ -16,6 +16,7 @@
 
 #include "cintltst.h"
 
+void addSetup(TestNode** root);
 void addUtility(TestNode** root);
 void addBreakIter(TestNode** root);
 void addStandardNamesTest(TestNode **root);
@@ -32,12 +33,10 @@ void addCompactArrayTest(TestNode** root);
 void addTestDeprecatedAPI(TestNode** root);
 void addUCharTransformTest(TestNode** root);
 void addUSetTest(TestNode** root);
-void addUStringPrepTest(TestNode** root);
-void addIDNATest(TestNode** root);
-void addHeapMutexTest(TestNode **root);
 
 void addAllTests(TestNode** root)
 {
+    addSetup(root);  /* Leave this test first! */
     addUDataTest(root);
     addPUtilTest(root);
     addUTF16Test(root);
@@ -62,11 +61,5 @@ void addAllTests(TestNode** root)
 #endif
     addUSetTest(root);
     addTestDeprecatedAPI(root);
-#if !UCONFIG_NO_IDNA
-    addUStringPrepTest(root);
-    addIDNATest(root);
-#endif
-    addHeapMutexTest(root);
-
 }
 

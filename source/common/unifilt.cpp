@@ -1,7 +1,5 @@
 /*
-**********************************************************************
-* Copyright (c) 2001-2003, International Business Machines
-* Corporation and others.  All Rights Reserved.
+* Copyright (C) 2001, International Business Machines Corporation and others. All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
 *   07/18/01    aliu        Creation.
@@ -13,11 +11,7 @@
 
 U_NAMESPACE_BEGIN
 
-/* Define this here due to the lack of another file.
-   It can't be defined in the header */
-UnicodeMatcher::~UnicodeMatcher() {}
-
-UnicodeFilter::~UnicodeFilter() {}
+const char UnicodeFilter::fgClassID=0;
 
 /**
  * UnicodeFunctor API.  Cast 'this' to a UnicodeMatcher* pointer
@@ -26,8 +20,6 @@ UnicodeFilter::~UnicodeFilter() {}
 UnicodeMatcher* UnicodeFilter::toMatcher() const {
     return (UnicodeMatcher*) this;
 }
-
-void UnicodeFilter::setData(const TransliterationRuleData*) {}
 
 /**
  * Default implementation of UnicodeMatcher::matches() for Unicode

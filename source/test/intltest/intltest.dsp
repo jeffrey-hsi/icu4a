@@ -379,7 +379,6 @@ SOURCE=.\ucaconf.h
 # Begin Source File
 
 SOURCE=.\strtest.cpp
-# ADD CPP /Ze
 # End Source File
 # Begin Source File
 
@@ -396,23 +395,19 @@ SOURCE=.\tsmthred.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\tsmutex.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\tsmutex.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\tsputil.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\tsputil.h
-# End Source File
-# End Group
-# Begin Group "conversion"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=.\convtest.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\convtest.h
 # End Source File
 # End Group
 # Begin Group "data & memory"
@@ -707,46 +702,6 @@ SOURCE=.\restsnew.cpp
 SOURCE=.\restsnew.h
 # End Source File
 # End Group
-# Begin Group "idna"
-
-# PROP Default_Filter "*.c,*.h"
-# Begin Source File
-
-SOURCE=.\idnaref.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\idnaref.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\nptrans.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\nptrans.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\punyref.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\punyref.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\testidn.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\testidna.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\testidna.h
-# End Source File
-# End Group
 # Begin Group "misc"
 
 # PROP Default_Filter ""
@@ -1005,6 +960,46 @@ SOURCE=.\unhxtrts.cpp
 # Begin Source File
 
 SOURCE=.\unhxtrts.h
+# End Source File
+# End Group
+# Begin Group "idna"
+
+# PROP Default_Filter "*.c,*.h"
+# Begin Source File
+
+SOURCE=.\idnaref.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\idnaref.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\nptrans.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\nptrans.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\punyref.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\punyref.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\testidn.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\testidna.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\testidna.h
 # End Source File
 # End Group
 # End Target

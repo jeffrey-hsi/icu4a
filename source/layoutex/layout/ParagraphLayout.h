@@ -580,8 +580,7 @@ private:
           le_int32 fLeading;
 
           le_int32 *fGlyphToCharMap;
-          le_int32 *fCharToMinGlyphMap;
-		  le_int32 *fCharToMaxGlyphMap;
+          le_int32 *fCharToGlyphMap;
           float    *fGlyphWidths;
           le_int32  fGlyphCount;
 
@@ -698,6 +697,13 @@ inline ParagraphLayout::VisualRun::VisualRun(const LEFontInstance *font, UBiDiDi
       fGlyphs(glyphs), fPositions(positions), fGlyphToCharMap(glyphToCharMap)
 {
     // nothing else needs to be done!
+}
+
+inline ParagraphLayout::VisualRun::~VisualRun()
+{
+    LE_DELETE_ARRAY(fGlyphToCharMap);
+    LE_DELETE_ARRAY(fPositions);
+    LE_DELETE_ARRAY(fGlyphs);
 }
 
 U_NAMESPACE_END

@@ -27,7 +27,7 @@ static const UChar SEMI[] = {59,0}; // ";"
 static const UChar RBRACE[] = {125,0}; // "}"
 static const UChar EMPTY[] = {0}; // ""
 
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(EscapeTransliterator)
+const char EscapeTransliterator::fgClassID=0;
 
 /**
  * Factory methods

@@ -18,6 +18,8 @@ es_PA {
         "MM/dd/yy",
         "{1} {0}",
     }
+    LocaleID:int { 0x180a }
+//    LocaleString { "es_PA" }
 //    NumberElements { 
 //        ".",
 //        ",",
@@ -31,4 +33,5 @@ es_PA {
 //        "\u221E",
 //        "\uFFFD",
 //    }
+//    ShortCountry { "PAN" }
 }

@@ -1068,14 +1068,9 @@ void CalendarRegressionTest::test4103271()
         UDate got = testCal->getTime(status);
         str.remove();
         str2.remove();
-        UnicodeString opTypeStr;
-        if (ADDROLL_bool[i/2]) {
-            opTypeStr = UnicodeString("add(WOY,", "");
-        } else {
-            opTypeStr = UnicodeString("roll(WOY,", "");
-        }
-        log(opTypeStr + amount + ") " + sdf.format(before, str) + " => " +
-                    sdf.format(got, str2));
+        log((ADDROLL_bool[i/2]? UnicodeString("add(WOY,"):UnicodeString("roll(WOY,")) +
+                         amount + ") " + sdf.format(before, str) + " => " +
+                         sdf.format(got, str2));
         if (after != got) {
             str.remove();
             logln(UnicodeString("  exp:") + sdf.format(after, str) + "  FAIL");
@@ -1091,8 +1086,9 @@ void CalendarRegressionTest::test4103271()
         got = testCal->getTime(status);
         str.remove();
         str2.remove();
-        log(opTypeStr + (-amount) + ") " + sdf.format(after, str) + " => " +
-                sdf.format(got, str2));
+        log((ADDROLL_bool[i/2]?UnicodeString("add(WOY,"):UnicodeString("roll(WOY,")) +
+                         (-amount) + ") " + sdf.format(after, str) + " => " +
+                         sdf.format(got, str2));
         if (before != got) {
             str.remove();
             logln(UnicodeString("  exp:") + sdf.format(before, str) + "  FAIL");
