@@ -324,12 +324,12 @@ public:
     UBool operator!=(const UnicodeSet& o) const;
 
     /**
-     * Returns a copy of this object.  All UnicodeFunctor objects have
+     * Returns a copy of this object.  All UnicodeMatcher objects have
      * to support cloning in order to allow classes using
-     * UnicodeFunctors, such as Transliterator, to implement cloning.
+     * UnicodeMatchers, such as Transliterator, to implement cloning.
      * @draft ICU 2.0
      */
-    virtual UnicodeFunctor* clone() const;
+    virtual UnicodeMatcher* clone() const;
 
     /**
      * Returns the hash code value for this set.
@@ -431,25 +431,6 @@ public:
                          int32_t limit,
                          UBool incremental);
     
-    /**
-     * Returns the index of the given character within this set, where
-     * the set is ordered by ascending code point.  If the character
-     * is not in this set, return -1.  The inverse of this method is
-     * <code>charAt()</code>.
-     * @return an index from 0..size()-1, or -1
-     */
-    int32_t indexOf(UChar32 c) const;
-
-    /**
-     * Returns the character at the given index within this set, where
-     * the set is ordered by ascending code point.  If the index is
-     * out of range, return (UChar32)-1.  The inverse of this method is
-     * <code>indexOf()</code>.
-     * @param index an index from 0..size()-1
-     * @return the character at the given index, or (UChar32)-1.
-     */
-    UChar32 charAt(int32_t index) const;
-
     /**
      * Adds the specified range to this set if it is not already
      * present.  If this set already contains the specified range,
@@ -667,7 +648,7 @@ public:
     static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
     /**
-     * Implement UnicodeFunctor API.
+     * Implement UnicodeMatcher API.
      *
      * @return The class ID for this object. All objects of a given
      * class have the same class ID.  Objects of other classes have
@@ -687,7 +668,6 @@ private:
 
     friend class Transliterator;
     friend class TransliteratorParser;
-    friend class TransliteratorIDParser;
     friend class TransliterationRule;
 
     /**
@@ -710,14 +690,6 @@ private:
      */
     UnicodeSet(const UnicodeString& pattern, ParsePosition& pos,
                const SymbolTable& symbols,
-               UErrorCode& status);
-
-    /**
-     * Constructs a set from the given pattern.  Identical to the
-     * 4-parameter ParsePosition contstructor, but does not take a
-     * SymbolTable, and does not recognize embedded variables.
-     */
-    UnicodeSet(const UnicodeString& pattern, ParsePosition& pos,
                UErrorCode& status);
 
     /**

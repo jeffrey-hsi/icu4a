@@ -326,34 +326,6 @@ CollationAPITest::TestRuleBasedColl()
 }
 
 void 
-CollationAPITest::TestRules()
-{
-    RuleBasedCollator *coll;
-    UErrorCode status = U_ZERO_ERROR;
-    UnicodeString rules;
-
-    coll = (RuleBasedCollator *)Collator::createInstance(Locale::getEnglish(), status); 
-    if (U_FAILURE(status)) {
-        errln("English Collator creation failed.\n");
-        return;
-    }
-    else {
-        logln("PASS: RuleBased Collator creation passed\n");
-    }
-
-    coll->getRules(UCOL_TAILORING_ONLY, rules);
-    if (rules.length() != 0) {
-        errln("English tailored rules failed");
-    }
-    
-    coll->getRules(UCOL_FULL_RULES, rules);
-    if (rules.length() < 0) {
-        errln("English full rules failed");
-    }
-    delete coll;
-}
-
-void 
 CollationAPITest::TestDecomposition() {
   UErrorCode status = U_ZERO_ERROR;
   Collator *en_US = Collator::createInstance("en_US", status),
@@ -398,7 +370,7 @@ CollationAPITest::TestSafeClone() {
     UnicodeString test2("abcda");
 
     /* one default collator & two complex ones */
-    someCollators[0] = Collator::createInstance("en_US", err);
+    someCollators[0] = Collator::createInstance(err);
     someCollators[1] = Collator::createInstance("ko", err);
     someCollators[2] = Collator::createInstance("ja_JP", err);
 
@@ -1403,12 +1375,10 @@ void CollationAPITest::runIndexedTest( int32_t index, UBool exec, const char* &n
         case 9: name = "TestDecomposition"; if (exec)   TestDecomposition(/* par */); break;
         case 10: name = "TestSafeClone"; if (exec)   TestSafeClone(/* par */); break;
         case 11: name = "TestSortKey";   if (exec)   TestSortKey(); break;
-          /* broken by weiv 12/17/2001 */
-        case 12: name = "TestMaxExpansion";   /*if (exec)   TestMaxExpansion();*/ break;
+        case 12: name = "TestMaxExpansion";   if (exec)   TestMaxExpansion(); break;
         case 13: name = "TestDisplayName";   if (exec)   TestDisplayName(); break;
         case 14: name = "TestAttribute";   if (exec)   TestAttribute(); break;
         case 15: name = "TestVariableTopSetting"; if (exec) TestVariableTopSetting(); break;
-        case 16: name = "TestRules"; if (exec) TestRules(); break;
         default: name = ""; break;
     }
 }

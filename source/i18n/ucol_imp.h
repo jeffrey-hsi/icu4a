@@ -27,8 +27,7 @@
 #define UCOL_IMP_H
 
 #include "unicode/ucol.h"
-/*#include "ucmpe32.h"*/
-#include "utrie.h"
+#include "ucmpe32.h"
 #include "unicode/ures.h"
 #include "unicode/udata.h"
 
@@ -483,10 +482,6 @@ typedef enum {
     CJK_IMPLICIT_TAG = 9,    /* 0x3400-0x4DB5, 0x4E00-0x9FA5, 0xF900-0xFA2D*/
     IMPLICIT_TAG = 10,
     SPEC_PROC_TAG = 11,
-    /* ICU 2.1 */
-    LONG_PRIMARY_TAG = 12,   /* This is a three byte primary with starting secondaries and tertiaries */
-                             /* It fits in a single 32 bit CE and is used instead of expansion to save */
-                             /* space without affecting the performance (hopefully) */
     CE_TAGS_COUNT
 } UColCETags;
 
@@ -520,7 +515,7 @@ typedef struct {
       uint32_t contractionIndex; /* UChar *contractionIndex;        */
       uint32_t contractionCEs;   /* uint32_t *contractionCEs;       */
       uint32_t contractionSize;  /* needed for various closures */
-      /*int32_t latinOneMapping;*/ /* this is now handled in the trie itself *//* fast track to latin1 chars      */
+      uint32_t latinOneMapping;  /* fast track to latin1 chars      */
 
       uint32_t endExpansionCE;      /* array of last collation element in
                                        expansion */
@@ -634,8 +629,7 @@ struct UCollator {
     UBool freeOnClose;
     UResourceBundle *rb;
     const UCATableHeader *image;
-    /*CompactEIntArray *mapping;*/
-    UTrie *mapping;
+    CompactEIntArray *mapping;
     const uint32_t *latinOneMapping;
     const uint32_t *expansion;
     const UChar *contractionIndex;

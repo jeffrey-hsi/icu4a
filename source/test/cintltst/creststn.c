@@ -172,7 +172,7 @@ void addNEWResourceBundleTest(TestNode** root)
     addTest(root, &TestResourceBundles, "tsutil/creststn/TestResourceBundle");
     addTest(root, &TestFallback,        "tsutil/creststn/TestFallback");
     addTest(root, &TestGetVersion,      "tsutil/creststn/TestGetVersion");
-    addTest(root, &TestAliasConflict,   "tsutil/creststn/TestAliasConflict");
+    addTest(root, &TestAliasConflict,   "tsutil/creststn/TestAlias");
     addTest(root, &TestNewTypes,        "tsutil/creststn/TestNewTypes");
     addTest(root, &TestEmptyTypes,      "tsutil/creststn/TestEmptyTypes");
     addTest(root, &TestBinaryCollationData, "tsutil/creststn/TestBinaryCollationData");
@@ -217,29 +217,24 @@ static void TestAliasConflict(void) {
     he = ures_open(NULL, "he", &status);
     iw = ures_open(NULL, "iw", &status);
     if(U_FAILURE(status)) { 
-        log_err("Failed to get resource with %s\n", myErrorName(status));
+        log_err("Failed to get resource with %s", myErrorName(status));
     }
     ures_close(iw);
-    result = ures_getStringByKey(he, "localPatternChars", &resultLen, &status);
+    result = ures_getStringByKey(he, "ShortLanguage", &resultLen, &status);
     if(U_FAILURE(status) || result == NULL) { 
-        log_err("Failed to get resource localPatternChars with %s\n", myErrorName(status));
+        log_err("Failed to get resource with %s", myErrorName(status));
     }
     ures_close(he);
 
     size = sizeof(norwayNames)/sizeof(norwayNames[0]);
     for(i = 0; i < size; i++) {
-        status = U_ZERO_ERROR;
-        norway = ures_open(NULL, norwayNames[i], &status);
-        if(U_FAILURE(status)) { 
-            log_err("Failed to get resource with %s for %s\n", myErrorName(status), norwayNames[i]);
-            continue;
-        }
-        realName = ures_getLocale(norway, &status);
-        log_verbose("ures_getLocale(\"%s\")=%s\n", norwayNames[i], realName);
-        if(realName == NULL || strcmp(norwayLocales[i], realName) != 0) {
-            log_err("Wrong locale name for %s, expected %s, got %s\n", norwayNames[i], norwayLocales[i], realName);
-        }
-        ures_close(norway);
+      norway = ures_open(NULL, norwayNames[i], &status);
+      realName = ures_getLocale(norway, &status);
+      log_verbose("ures_getLocale(\"%s\")=%s\n", norwayNames[i], realName);
+      if(strcmp(norwayLocales[i], realName) != 0) {
+        log_err("Wrong locale name for %s, expected %s, got %s\n", norwayNames[i], norwayLocales[i], realName);
+      }
+      ures_close(norway);
     }
 }
 
@@ -250,7 +245,7 @@ static void TestDecodedBundle(){
     UResourceBundle* resB; 
     int32_t len =0;
     const UChar* srcFromRes;
-    static const UChar src[] = {
+    UChar src[] = {
               0x30a7,0x30a8,0x30c9,0x0061,0xFFFD,0x30f3,0x30c0,0x30b0,0x30b3,0x30c5,
               0x30d5,0x30d9,0x30ca,0x30eb,0x305a,0x304a,0x3049,0x3048,0x3046,
               0x3044,0x3053,0x3054,0x3064,0x3074,0x3084,0x3093,0x3062,0x3060,
@@ -282,7 +277,8 @@ static void TestDecodedBundle(){
 static void TestNewTypes() {
     UResourceBundle* theBundle = NULL;
     char action[256];
-    const char* testdatapath;
+    char testdatapath[256];
+    const char *directory= u_getDataDirectory();
     UErrorCode status = U_ZERO_ERROR;
     UResourceBundle* res = NULL;
     uint8_t *binResult = NULL;
@@ -295,18 +291,15 @@ static void TestNewTypes() {
     UChar expected[] = { 'a','b','c','\0','d','e','f' };
     const char* expect ="tab:\t cr:\r ff:\f newline:\n backslash:\\\\ quote=\\\' doubleQuote=\\\" singlequoutes=''";
     UChar uExpect[200];
+    u_charsToUChars(expect,uExpect,uprv_strlen(expect)+1);
+    strcpy(action, "Construction of testtypes bundle");
 
-    testdatapath=loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
-
+    strcpy(testdatapath, directory);
+    strcat(testdatapath, "testdata");
     theBundle = ures_open(testdatapath, "testtypes", &status);
 
     empty = ures_getStringByKey(theBundle, "emptystring", &len, &status);
-    if(empty && (*empty != 0 || len != 0)) {
+    if(*empty != 0 || len != 0) {
       log_err("Empty string returned invalid value\n");
     }
 
@@ -411,9 +404,8 @@ static void TestNewTypes() {
         const UChar* str = ures_getStringByKey(theBundle,"testescape",&len,&status);
         CONFIRM_ErrorCode(status, U_ZERO_ERROR);
         if(U_SUCCESS(status)){
-            u_charsToUChars(expect,uExpect,uprv_strlen(expect)+1);
             if(u_strcmp(uExpect,str)){
-                log_err("Did not get the expected string for testescape\n");
+                log_err("Did not get the expected string for testescape");
             }
         }
     }
@@ -424,7 +416,7 @@ static void TestNewTypes() {
         u_charsToUChars(expect,uExpect,uprv_strlen(expect)+1);
         CONFIRM_ErrorCode(status, U_ZERO_ERROR);
         if(u_strcmp(uExpect,str)){
-            log_err("Did not get the expected string for test_underscores.\n");
+            log_err("Did not get the expected string for test_underscores.");
         }
     }
     ures_close(res);
@@ -435,7 +427,8 @@ static void TestNewTypes() {
 static void TestEmptyTypes() {
     UResourceBundle* theBundle = NULL;
     char action[256];
-    const char* testdatapath;
+    char testdatapath[256];
+    const char *directory= u_getDataDirectory();
     UErrorCode status = U_ZERO_ERROR;
     UResourceBundle* res = NULL;
     UResourceBundle* resArray = NULL;
@@ -444,16 +437,10 @@ static void TestEmptyTypes() {
     int32_t intResult = 0;
     const UChar *zeroString;
     const int32_t *zeroIntVect;
-
     strcpy(action, "Construction of testtypes bundle");
-    
-    testdatapath=loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
-    
+
+    strcpy(testdatapath, directory);
+    strcat(testdatapath, "testdata");
     theBundle = ures_open(testdatapath, "testtypes", &status);
 
     CONFIRM_ErrorCode(status, U_ZERO_ERROR);
@@ -578,15 +565,11 @@ static void TestEmptyTypes() {
 
 static void TestEmptyBundle(){
     UErrorCode status = U_ZERO_ERROR;
-    const char* testdatapath=NULL;
+    char testdatapath[256];
+    const char *directory= u_getDataDirectory();
     UResourceBundle *resb=0, *dResB=0;
-    
-    testdatapath=loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
+    strcpy(testdatapath, directory);
+    strcat(testdatapath, "testdata");
     resb = ures_open(testdatapath, "testempty", &status);
 
     if(U_SUCCESS(status)){
@@ -602,24 +585,21 @@ static void TestEmptyBundle(){
 
 static void TestBinaryCollationData(){
     UErrorCode status=U_ZERO_ERROR;
+    const char*        directory=NULL;
     const char*      locale="te";
-    const char* testdatapath;
+    char testdatapath[256];
     UResourceBundle *teRes = NULL;
     UResourceBundle *coll=NULL;
     UResourceBundle *binColl = NULL;
     uint8_t *binResult = NULL;
     int32_t len=0;
     const char* action="testing the binary collaton data";
- 
+
+    directory= u_getDataDirectory();
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
+
     log_verbose("Testing binary collation data resource......\n");
-
-    testdatapath=loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
-
 
     teRes=ures_open(testdatapath, locale, &status);
     if(U_FAILURE(status)){
@@ -631,7 +611,7 @@ static void TestBinaryCollationData(){
     if(U_SUCCESS(status)){
         CONFIRM_ErrorCode(status, U_ZERO_ERROR);
         CONFIRM_INT_EQ(ures_getType(coll), RES_TABLE);
-        binColl=ures_getByKey(teRes, "%%CollationBin", binColl, &status);  
+        binColl=ures_getByKey(teRes, "%%CollationNew", binColl, &status);  
         if(U_SUCCESS(status)){
             CONFIRM_ErrorCode(status, U_ZERO_ERROR);
             CONFIRM_INT_EQ(ures_getType(binColl), RES_BINARY);
@@ -642,7 +622,7 @@ static void TestBinaryCollationData(){
             }
 
         }else{
-            log_err("ERROR: ures_getByKey(locale(te), %%CollationBin) failed\n");
+            log_err("ERROR: ures_getByKey(locale(te), %%CollationNew) failed\n");
         }
     }
     else{
@@ -657,32 +637,24 @@ static void TestBinaryCollationData(){
 
 static void TestAPI() {
     UErrorCode status=U_ZERO_ERROR;
+    const char*        directory=NULL;
     int32_t len=0;
     const char* key=NULL;
     const UChar* value=NULL;
-    const char* testdatapath;
-    UChar* utestdatapath=NULL;
+    char testdatapath[256];
+    UChar utestdatapath[256];
     char convOutput[256];
     UResourceBundle *teRes = NULL;
     UResourceBundle *teFillin=NULL;
     UResourceBundle *teFillin2=NULL;
-    
-    log_verbose("Testing ures_openU()......\n");
-    
-    testdatapath=loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
-    len =strlen(testdatapath);
-    utestdatapath = (UChar*) malloc((len+10)*sizeof(UChar));
-
+    directory= u_getDataDirectory();
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
     u_charsToUChars(testdatapath, utestdatapath, strlen(testdatapath)+1);
     /*u_uastrcpy(utestdatapath, testdatapath);*/
 
     /*Test ures_openU */
-
+    log_verbose("Testing ures_openU()......\n");
     teRes=ures_openU(utestdatapath, "te", &status);
     if(U_FAILURE(status)){
         log_err("ERROR: ures_openU() failed path =%s with %s", austrdup(utestdatapath), myErrorName(status));
@@ -711,7 +683,7 @@ static void TestAPI() {
         log_err("ERROR: ures_getNextResource() failed \n");
     }
     key=ures_getKey(teFillin);
-    if(strcmp(key, "%%CollationBin") != 0){
+    if(strcmp(key, "%%CollationNew") != 0){
         log_err("ERROR: ures_getNextResource() failed\n");
     }
 
@@ -777,15 +749,15 @@ static void TestAPI() {
         }
         ures_close(teRes);
     }
-    free(utestdatapath);
 }
 
 static void TestErrorConditions(){
-    UErrorCode status=U_ZERO_ERROR;
+    UErrorCode status;
+    const char*        directory=NULL;
     const char *key=NULL;
     const UChar *value=NULL;
-    const char* testdatapath;
-    UChar* utestdatapath;
+    char testdatapath[256];
+    UChar utestdatapath[256];
     int32_t len=0;
     UResourceBundle *teRes = NULL;
     UResourceBundle *coll=NULL;
@@ -794,16 +766,10 @@ static void TestErrorConditions(){
     UResourceBundle *teFillin2=NULL;
     uint8_t *binResult = NULL;
     int32_t resultLen;
-    
-    
-    testdatapath = loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
-    len = strlen(testdatapath);
-    utestdatapath = (UChar*) malloc(sizeof(UChar) *(len+10));
+
+    directory= u_getDataDirectory();
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
     u_uastrcpy(utestdatapath, testdatapath);
   
     /*Test ures_openU with status != U_ZERO_ERROR*/
@@ -811,9 +777,9 @@ static void TestErrorConditions(){
     status=U_ILLEGAL_ARGUMENT_ERROR;
     teRes=ures_openU(utestdatapath, "te", &status);
     if(U_FAILURE(status)){
-        log_verbose("ures_openU() failed as expected path =%s with status != U_ZERO_ERROR\n", testdatapath);
+        log_verbose("ERROR: ures_openU() failed as expected path =%s with status != U_ZERO_ERROR", testdatapath);
     }else{
-        log_err("ERROR: ures_openU() is supposed to fail path =%s with status != U_ZERO_ERROR\n", austrdup(utestdatapath));
+        log_err("ERROR: ures_openU() is supposed to fail path =%s with status != U_ZERO_ERROR", austrdup(utestdatapath));
         ures_close(teRes);
     }
     /*Test ures_openFillIn with UResourceBundle = NULL*/
@@ -910,7 +876,7 @@ static void TestErrorConditions(){
     /*Test ures_getBinary(0 status != U_ILLEGAL_ARGUMENT_ERROR*/
     status=U_ZERO_ERROR;
     coll = ures_getByKey(teRes, "CollationElements", coll, &status);
-    binColl=ures_getByKey(teRes, "%%CollationBin", binColl, &status);
+    binColl=ures_getByKey(teRes, "%%CollationNew", binColl, &status);
 
     status=U_ILLEGAL_ARGUMENT_ERROR;
     binResult=(uint8_t*)ures_getBinary(binColl,  &len, &status);
@@ -1001,7 +967,6 @@ static void TestErrorConditions(){
     ures_close(coll);
     ures_close(binColl);
     ures_close(teRes);
-    free(utestdatapath);
     
 
 }
@@ -1056,9 +1021,9 @@ static void TestConstruction1()
     const UChar *result1, *result2;
     UErrorCode status= U_ZERO_ERROR;
     UErrorCode   err = U_ZERO_ERROR;
+    const char*        directory=NULL;
     const char*      locale="te_IN";
-    const char* testdatapath;
-
+    char testdatapath[256];
     int32_t len1=0;
     int32_t len2=0;
     UVersionInfo versionInfo;
@@ -1071,13 +1036,9 @@ static void TestConstruction1()
     U_STRING_INIT(rootVal, "ROOT", 4);
     U_STRING_INIT(te_inVal, "TE_IN", 5);
 
-    testdatapath=loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
-    
+    directory= u_getDataDirectory();
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
     log_verbose("Testing ures_open()......\n");
 
     empty = ures_open(testdatapath, "testempty", &status);
@@ -1087,18 +1048,14 @@ static void TestConstruction1()
     ures_close(empty);
 
     test1=ures_open(testdatapath, NULL, &err);
+    test2=ures_open(testdatapath, locale, &err);
 
     if(U_FAILURE(err))
     {
-        log_err("construction of NULL did not succeed :  %s \n", myErrorName(status));
+        log_err("construction did not succeed :  %s \n", myErrorName(status));
         return;
     }
-    test2=ures_open(testdatapath, locale, &err);
-    if(U_FAILURE(err))
-    {
-        log_err("construction of %s did not succeed :  %s \n", locale, myErrorName(status));
-        return;
-    }
+
     result1= ures_getStringByKey(test1, "string_in_Root_te_te_IN", &len1, &err);
     result2= ures_getStringByKey(test2, "string_in_Root_te_te_IN", &len2, &err);
     if (U_FAILURE(err) || len1==0 || len2==0) {
@@ -1217,19 +1174,17 @@ static UBool testTag(const char* frag,
     int32_t column_count=0;
     int32_t index = 0;
     int32_t tag_count= 0;
-    const char* testdatapath;
+    char testdatapath[256];
     char verboseOutput[256];
     UResourceBundle* array=NULL;
     UResourceBundle* array2d=NULL;
     UResourceBundle* tags=NULL;
     UResourceBundle* arrayItem1=NULL;
 
-    testdatapath = loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return FALSE;
-    }
+    const char*    directory =  u_getDataDirectory();
+
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
 
     is_in[0] = in_Root;
     is_in[1] = in_te;
@@ -1652,20 +1607,20 @@ static void TestFallback()
     status = U_ZERO_ERROR;
 
     /* OK first one. This should be a Default value. */
-    junk = ures_getStringByKey(fr_FR, "%%PREEURO", &resultLen, &status);
+    junk = ures_getStringByKey(fr_FR, "%%EURO", &resultLen, &status);
     if(status != U_USING_DEFAULT_ERROR)
     {
-        log_err("Expected U_USING_DEFAULT_ERROR when trying to get %%PREEURO from fr_FR, got %s\n", 
+        log_err("Expected U_USING_DEFAULT_ERROR when trying to get %%EURO from fr_FR, got %s\n", 
             u_errorName(status));
     }
 
     status = U_ZERO_ERROR;
 
     /* and this is a Fallback, to fr */
-    junk = ures_getStringByKey(fr_FR, "DayNames", &resultLen, &status);
+    junk = ures_getStringByKey(fr_FR, "ShortLanguage", &resultLen, &status);
     if(status != U_USING_FALLBACK_ERROR)
     {
-        log_err("Expected U_USING_FALLBACK_ERROR when trying to get DayNames from fr_FR, got %d\n", 
+        log_err("Expected U_USING_FALLBACK_ERROR when trying to get ShortLanguage from fr_FR, got %d\n", 
             status);
     }
     
@@ -1675,22 +1630,22 @@ static void TestFallback()
     /* Temporary hack err actually should be U_USING_FALLBACK_ERROR */
     /* Test Jitterbug 552 fallback mechanism of aliased data */
     {
+        char tempChars[256];
         UErrorCode err =U_ZERO_ERROR;
         UResourceBundle* myResB = ures_open(NULL,"no_NO_NY",&err);
-        UResourceBundle* resLocID = ures_getByKey(myResB, "LocaleID", NULL, &err);
+        const UChar*  myLocID = ures_getStringByKey(myResB, "LocaleID", &resultLen, &err);
         UResourceBundle* tResB;
         if(err != U_ZERO_ERROR){
             log_err("Expected U_ZERO_ERROR when trying to test no_NO_NY aliased to nn_NO for LocaleID err=%s\n",u_errorName(err));
-            return;
         }
-        if(ures_getInt(resLocID, &err) != 0x814){
-            log_err("Expected LocaleID=814, but got 0x%X\n", ures_getInt(resLocID, &err));
+        u_UCharsToChars(myLocID, tempChars, u_strlen(myLocID) + 1);
+        if(uprv_strcmp(tempChars, "0814")){
+            log_err("Expected LocaleID=814, but got %s\n", tempChars);
         }
         tResB = ures_getByKey(myResB, "DayNames", NULL, &err);
         if(err != U_USING_FALLBACK_ERROR){
             log_err("Expected U_USING_FALLBACK_ERROR when trying to test no_NO_NY aliased with nn_NO_NY for DayNames err=%s\n",u_errorName(err));
         }
-        ures_close(resLocID);
         ures_close(myResB);
         ures_close(tResB);
 

@@ -23,6 +23,8 @@
 
 #include "unicode/utypes.h"
 #include "unicode/rep.h"
+/*#include "unicode/uchar.h"*/
+
 
 struct UConverter;          // unicode/ucnv.h
 
@@ -34,7 +36,6 @@ class UnicodeConverter;     // unicode/convert.h
 class StringCharacterIterator;
 class SearchIterator;
 class StringSearch;
-class BreakIterator;        // unicode/brkiter.h
 
 /* The <iostream> include has been moved to unicode/ustream.h */
 
@@ -56,35 +57,14 @@ class BreakIterator;        // unicode/brkiter.h
  * @stable
  */
 #if U_SIZEOF_WCHAR_T==U_SIZEOF_UCHAR && U_CHARSET_FAMILY==U_ASCII_FAMILY
-#   define UNICODE_STRING(cs, length) UnicodeString(TRUE, (const UChar *)L ## cs, length)
+#   define UNICODE_STRING(cs, length) UnicodeString(TRUE, (UChar *)L ## cs, length)
 #elif U_SIZEOF_UCHAR==1 && U_CHARSET_FAMILY==U_ASCII_FAMILY
-#   define UNICODE_STRING(cs, length) UnicodeString(TRUE, (const UChar *)cs, length)
+#   define UNICODE_STRING(cs, length) UnicodeString(TRUE, (UChar *)cs, length)
 #else
 #   define UNICODE_STRING(cs, length) UnicodeString(cs, length, "")
 #endif
 
 /**
- * Unicode String literals in C++.
- * Dependent on the platform properties, different UnicodeString
- * constructors should be used to create a UnicodeString object from
- * a string literal.
- * The macros are defined for improved performance.
- * They work only for strings that contain "invariant characters", i.e.,
- * only latin letters, digits, and some punctuation.
- * See utypes.h for details.
- *
- * The string parameter must be a C string literal.
- * @stable
- */
-#if U_SIZEOF_WCHAR_T==U_SIZEOF_UCHAR && U_CHARSET_FAMILY==U_ASCII_FAMILY
-#   define UNICODE_STRING_SIMPLE(cs) UnicodeString((const UChar *)L ## cs)
-#elif U_SIZEOF_UCHAR==1 && U_CHARSET_FAMILY==U_ASCII_FAMILY
-#   define UNICODE_STRING_SIMPLE(cs) UnicodeString((const UChar *)cs)
-#else
-#   define UNICODE_STRING_SIMPLE(cs) UnicodeString(cs, "")
-#endif
-
- /**
  * UnicodeString is a string class that stores Unicode characters directly and provides
  * similar functionality as the Java String class.
  * It is a concrete implementation of the abstract class Replaceable (for transliteration).
@@ -2193,61 +2173,6 @@ public:
   UnicodeString& toLower(const Locale& locale);
 
   /**
-   * Titlecase this string, convenience function using the default locale.
-   *
-   * Casing is locale-dependent and context-sensitive.
-   * Titlecasing uses a break iterator to find the first characters of words
-   * that are to be titlecased. It titlecases those characters and lowercases
-   * all others.
-   *
-   * The titlecase break iterator can be provided to customize for arbitrary
-   * styles, using rules and dictionaries beyond the standard iterators.
-   * It may be more efficient to always provide an iterator to avoid
-   * opening and closing one for each string.
-   * The standard titlecase iterator for the root locale implements the
-   * algorithm of Unicode TR 21.
-   *
-   * This function uses only the first() and next() methods of the
-   * provided break iterator.
-   *
-   * @param titleIter A break iterator to find the first characters of words
-   *                  that are to be titlecased.
-   *                  If none is provided (0), then a standard titlecase
-   *                  break iterator is opened.
-   * @return A reference to this.
-   * @draft ICU 2.1
-   */
-  UnicodeString &toTitle(BreakIterator *titleIter);
-
-  /**
-   * Titlecase this string.
-   *
-   * Casing is locale-dependent and context-sensitive.
-   * Titlecasing uses a break iterator to find the first characters of words
-   * that are to be titlecased. It titlecases those characters and lowercases
-   * all others.
-   *
-   * The titlecase break iterator can be provided to customize for arbitrary
-   * styles, using rules and dictionaries beyond the standard iterators.
-   * It may be more efficient to always provide an iterator to avoid
-   * opening and closing one for each string.
-   * The standard titlecase iterator for the root locale implements the
-   * algorithm of Unicode TR 21.
-   *
-   * This function uses only the first() and next() methods of the
-   * provided break iterator.
-   *
-   * @param titleIter A break iterator to find the first characters of words
-   *                  that are to be titlecased.
-   *                  If none is provided (0), then a standard titlecase
-   *                  break iterator is opened.
-   * @param locale    The locale to consider.
-   * @return A reference to this.
-   * @draft ICU 2.1
-   */
-  UnicodeString &toTitle(BreakIterator *titleIter, const Locale &locale);
-
-  /**
    * Case-fold the characters in this string.
    * Case-folding is locale-independent and not context-sensitive,
    * but there is an option for whether to include or exclude mappings for dotted I
@@ -2783,10 +2708,15 @@ private:
                             int32_t **pBufferToDelete = 0,
                             UBool forceClone = FALSE);
 
+  // UGrowBuffer function for string case mapping and similar
+  static UBool U_CALLCONV
+  growBuffer(void *context,
+             UChar **buffer, int32_t *pCapacity, int32_t reqCapacity,
+             int32_t length);
+
   // common function for case mappings
   UnicodeString &
-  caseMap(BreakIterator *titleIter,
-          const Locale& locale,
+  caseMap(const Locale& locale,
           uint32_t options,
           int32_t toWhichCase);
 

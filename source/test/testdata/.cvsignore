@@ -1,2 +1,6 @@
 Makefile
-out
+*.res
+*.c
+*.dat
+*.lst
+*.mak

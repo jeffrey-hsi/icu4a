@@ -24,10 +24,10 @@
 #include "cstring.h"
 #include "cmemory.h"
 #include "unicode/ustring.h"
+#include "mutex.h"
 #include "unicode/unistr.h"
 #include "unicode/unicode.h"
 #include "unicode/ucnv.h"
-#include "unicode/ubrk.h"
 #include "uhash.h"
 #include "ustr_imp.h"
 
@@ -1012,48 +1012,53 @@ UnicodeString::setCharAt(UTextOffset offset,
 enum {
     TO_LOWER,
     TO_UPPER,
-    TO_TITLE,
     FOLD_CASE
 };
 
 UnicodeString &
 UnicodeString::toLower() {
-  return caseMap(0, Locale::getDefault(), 0, TO_LOWER);
+  return caseMap(Locale::getDefault(), 0, TO_LOWER);
 }
 
 UnicodeString &
 UnicodeString::toLower(const Locale &locale) {
-  return caseMap(0, locale, 0, TO_LOWER);
+  return caseMap(locale, 0, TO_LOWER);
 }
 
 UnicodeString &
 UnicodeString::toUpper() {
-  return caseMap(0, Locale::getDefault(), 0, TO_UPPER);
+  return caseMap(Locale::getDefault(), 0, TO_UPPER);
 }
 
 UnicodeString &
 UnicodeString::toUpper(const Locale &locale) {
-  return caseMap(0, locale, 0, TO_UPPER);
-}
-
-UnicodeString &
-UnicodeString::toTitle(BreakIterator *titleIter) {
-  return caseMap(titleIter, Locale::getDefault(), 0, TO_TITLE);
-}
-
-UnicodeString &
-UnicodeString::toTitle(BreakIterator *titleIter, const Locale &locale) {
-  return caseMap(titleIter, locale, 0, TO_TITLE);
+  return caseMap(locale, 0, TO_UPPER);
 }
 
 UnicodeString &
 UnicodeString::foldCase(uint32_t options) {
-    return caseMap(0, Locale::getDefault(), options, FOLD_CASE);
+    return caseMap(Locale::getDefault(), options, FOLD_CASE);
+}
+
+// static helper function for string case mapping
+// called by u_internalStrToUpper/Lower()
+UBool U_CALLCONV
+UnicodeString::growBuffer(void *context,
+                          UChar **buffer, int32_t *pCapacity, int32_t reqCapacity,
+                          int32_t length) {
+  UnicodeString *me = (UnicodeString *)context;
+  me->fLength = length;
+  if(me->cloneArrayIfNeeded(reqCapacity)) {
+    *buffer = me->fArray;
+    *pCapacity = me->fCapacity;
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }
 
 UnicodeString &
-UnicodeString::caseMap(BreakIterator *titleIter,
-                       const Locale& locale,
+UnicodeString::caseMap(const Locale& locale,
                        uint32_t options,
                        int32_t toWhichCase) {
   if(fLength <= 0) {
@@ -1078,62 +1083,31 @@ UnicodeString::caseMap(BreakIterator *titleIter,
       capacity = US_STACKBUF_SIZE;
     }
   } else {
-    capacity = fLength + 20;
+    capacity = fLength + 2;
   }
   if(!cloneArrayIfNeeded(capacity, capacity, FALSE, &bufferToDelete, TRUE)) {
     return *this;
   }
 
-  // set up the titlecasing break iterator
-  UBreakIterator *cTitleIter = 0;
-  UErrorCode errorCode;
-
-  if(toWhichCase == TO_TITLE) {
-    if(titleIter != 0) {
-      cTitleIter = (UBreakIterator *)titleIter;
-    } else {
-      /* ### TODO UBRK_TITLECASE */
-      errorCode = U_ZERO_ERROR;
-      cTitleIter = ubrk_open(UBRK_WORD, locale.getName(),
-                             oldArray, oldLength,
-                             &errorCode);
-      if(U_FAILURE(errorCode)) {
-        delete [] bufferToDelete;
-        setToBogus();
-        return *this;
-      }
-    }
-  }
-
-  // Case-map, and if the result is too long, then reallocate and repeat.
-  do {
-    errorCode = U_ZERO_ERROR;
-    if(toWhichCase==TO_LOWER) {
-      fLength = u_internalStrToLower(fArray, fCapacity,
-                                     oldArray, oldLength,
-                                     0, oldLength,
-                                     locale.getName(),
-                                     &errorCode);
-    } else if(toWhichCase==TO_UPPER) {
-      fLength = u_internalStrToUpper(fArray, fCapacity,
-                                     oldArray, oldLength,
-                                     locale.getName(),
-                                     &errorCode);
-    } else if(toWhichCase==TO_TITLE) {
-      fLength = u_internalStrToTitle(fArray, fCapacity,
-                                     oldArray, oldLength,
-                                     cTitleIter, locale.getName(),
-                                     &errorCode);
-    } else {
-      fLength = u_internalStrFoldCase(fArray, fCapacity,
-                                      oldArray, oldLength,
-                                      options,
-                                      &errorCode);
-    }
-  } while(errorCode==U_BUFFER_OVERFLOW_ERROR && cloneArrayIfNeeded(fLength, fLength, FALSE));
-
-  if(cTitleIter != 0 && titleIter == 0) {
-    ubrk_close(cTitleIter);
+  UErrorCode errorCode = U_ZERO_ERROR;
+  if(toWhichCase==TO_LOWER) {
+    fLength = u_internalStrToLower(fArray, fCapacity,
+                                   oldArray, oldLength,
+                                   locale.getName(),
+                                   growBuffer, this,
+                                   &errorCode);
+  } else if(toWhichCase==TO_UPPER) {
+    fLength = u_internalStrToUpper(fArray, fCapacity,
+                                   oldArray, oldLength,
+                                   locale.getName(),
+                                   growBuffer, this,
+                                   &errorCode);
+  } else {
+    fLength = u_internalStrFoldCase(fArray, fCapacity,
+                                    oldArray, oldLength,
+                                    options,
+                                    growBuffer, this,
+                                    &errorCode);
   }
 
   delete [] bufferToDelete;

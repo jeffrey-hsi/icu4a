@@ -909,7 +909,7 @@ TimeZoneTest::TestDSTSavings()
         errln(UnicodeString("The offset for 10 AM, 6/1/98 should have been -4.5 hours, but we got ")
               + (offset / U_MILLIS_PER_HOUR) + " hours.");
 
-    tz->setDSTSavings(U_MILLIS_PER_HOUR, status);
+    tz->setDSTSavings(U_MILLIS_PER_HOUR);
     offset = tz->getOffset(GregorianCalendar::AD, 1998, Calendar::JANUARY, 1,
                           Calendar::THURSDAY, 10 * U_MILLIS_PER_HOUR);
     if (offset != -5 * U_MILLIS_PER_HOUR)

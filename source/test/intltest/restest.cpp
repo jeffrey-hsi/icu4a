@@ -255,15 +255,14 @@ ResourceBundleTest::TestConstruction()
 {
     {
         UErrorCode   err = U_ZERO_ERROR;
-        const char* testdatapath;
+        const char   *directory;
+        char testdatapath[256];
         Locale       locale("te", "IN");
 
-        testdatapath=loadTestData(err);
-        if(U_FAILURE(err))
-        {
-            errln("Could not load testdata.dat %s " + UnicodeString(u_errorName(err)));
-            return;
-        }
+        directory=u_getDataDirectory();
+        uprv_strcpy(testdatapath, directory);
+        uprv_strcat(testdatapath, "testdata");
+
         ResourceBundle  test1((UnicodeString)testdatapath, err);
         ResourceBundle  test2(testdatapath, locale, err);
         //ResourceBundle  test1("c:\\icu\\icu\\source\\test\\testdata\\testdata", err);
@@ -307,15 +306,13 @@ ResourceBundleTest::TestConstruction()
     }
     {
         UErrorCode   err = U_ZERO_ERROR;
-        const char* testdatapath;
+        const char   *directory;
+        char testdatapath[256];
         Locale       locale("te", "IN");
 
-        testdatapath=loadTestData(err);
-        if(U_FAILURE(err))
-        {
-            errln("Could not load testdata.dat %s " + UnicodeString(u_errorName(err)));
-            return;
-        }
+        directory=u_getDataDirectory();
+        uprv_strcpy(testdatapath, directory);
+        uprv_strcat(testdatapath, "testdata");
 
 
         wchar_t* wideDirectory = new wchar_t[256];
@@ -364,21 +361,19 @@ ResourceBundleTest::testTag(const char* frag,
     int32_t i,j,actual_bundle;
 //    int32_t row,col;
     int32_t index;
-    UErrorCode status = U_ZERO_ERROR;
-    const char* testdatapath;
-    testdatapath=loadTestData(status);
-    if(U_FAILURE(status))
-    {
-        errln("Could not load testdata.dat %s " + UnicodeString(u_errorName(status)));
-        return FALSE;
-    }
+    const char *directory;
+    char testdatapath[256];
+
+    directory=u_getDataDirectory();
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
 
     for (i=0; i<bundles_count; ++i)
     {
         action = "Constructor for ";
         action += param[i].name;
 
-        status = U_ZERO_ERROR;
+        UErrorCode status = U_ZERO_ERROR;
         ResourceBundle theBundle( testdatapath, *param[i].locale, status);
         //ResourceBundle theBundle( "c:\\icu\\icu\\source\\test\\testdata\\testdata", *param[i].locale, status);
         CONFIRM_UErrorCode(status, param[i].expected_constructor_status, action);

@@ -2682,11 +2682,11 @@ U_CAPI void U_EXPORT2 usearch_setCollator(      UStringSearch *strsrch,
             return;
         }
         if (strsrch) {
-            if (strsrch->ownCollator && (strsrch->collator != collator)) {
+            if (strsrch->ownCollator) {
                 ucol_close((UCollator *)strsrch->collator);
-                strsrch->ownCollator = FALSE;
             }
             strsrch->collator    = collator;
+            strsrch->ownCollator = FALSE;
             strsrch->strength    = ucol_getStrength(collator);
             strsrch->toNormalize = ucol_getAttribute(collator, 
                                                       UCOL_NORMALIZATION_MODE,
@@ -2987,52 +2987,13 @@ U_CAPI UTextOffset U_EXPORT2 usearch_previous(UStringSearch *strsrch,
     
 U_CAPI void U_EXPORT2 usearch_reset(UStringSearch *strsrch)
 {
-    /* 
-    reset is setting the attributes that are already in 
-    string search, hence all attributes in the collator should
-    be retrieved without any problems
-    */
     if (strsrch) {
-        UErrorCode status            = U_ZERO_ERROR;
-        UBool      sameCollAttribute = TRUE;
-        uint32_t   ceMask;
-        UBool      shift;
-        uint32_t   varTop;
-
-        strsrch->strength    = ucol_getStrength(strsrch->collator);
-        strsrch->toNormalize = ucol_getAttribute(strsrch->collator, 
-                                                 UCOL_NORMALIZATION_MODE,
-                                                 &status) == UCOL_ON;
-        ceMask = getMask(strsrch->strength);
-        if (strsrch->ceMask != ceMask) {
-            strsrch->ceMask = ceMask;
-            sameCollAttribute = FALSE;
-        }
-        // if status is a failure, ucol_getAttribute returns UCOL_DEFAULT
-        shift = ucol_getAttribute(strsrch->collator, UCOL_ALTERNATE_HANDLING, 
-                                  &status) == UCOL_SHIFTED;
-        if (strsrch->toShift != shift) {
-            strsrch->toShift  = shift;
-            sameCollAttribute = FALSE;
-        }
-
-        // if status is a failure, ucol_getVariableTop returns 0
-        varTop = ucol_getVariableTop(strsrch->collator, &status);
-        if (strsrch->variableTop != varTop) {
-            strsrch->variableTop = varTop;
-            sameCollAttribute    = FALSE;
-        }
-        if (!sameCollAttribute) {
-            initialize(strsrch, &status);
-        }
-        init_collIterate(strsrch->collator, strsrch->search->text, 
-                         strsrch->search->textLength, 
-                         &(strsrch->textIter->iteratordata_));
         strsrch->search->matchedLength      = 0;
         strsrch->search->matchedIndex       = USEARCH_DONE;
         strsrch->search->isOverlap          = FALSE;
         strsrch->search->isCanonicalMatch   = FALSE;
         strsrch->search->isForwardSearching = TRUE;
+        ucol_reset(strsrch->textIter);
         strsrch->search->reset              = TRUE;
     }
 }

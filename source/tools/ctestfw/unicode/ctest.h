@@ -55,36 +55,27 @@ typedef void (*TestFunctionPtr)();
 typedef struct TestNode TestNode;
 
 /**
- * Set this to zero to disable log_verbose() messages.
- * Otherwise nonzero to see log_verbose() messages.
- *
+ * Count of errors from all tests.
+ * May be reset.
  * @internal Internal APIs for testing purpose only
  */
-T_CTEST_EXPORT_API extern int REPEAT_TESTS;
+T_CTEST_EXPORT_API extern int ERROR_COUNT;
 
 /**
  * Set this to zero to disable log_verbose() messages.
  * Otherwise nonzero to see log_verbose() messages.
- *
  * @internal Internal APIs for testing purpose only
+ *
  */
 T_CTEST_EXPORT_API extern int VERBOSITY;
 
 /**
  * Set this to zero to disable log_verbose() messages.
  * Otherwise nonzero to see log_verbose() messages.
- *
  * @internal Internal APIs for testing purpose only
+ *
  */
 T_CTEST_EXPORT_API extern int ERR_MSG;
-
-/**
- * Set this to zero to disable some of the slower tests.
- * Otherwise nonzero to run the slower tests.
- *
- * @internal Internal APIs for testing purpose only
- */
-T_CTEST_EXPORT_API extern int QUICK;
 
 /**
  * Show the names of all nodes.

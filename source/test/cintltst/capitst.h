@@ -68,9 +68,4 @@
      **/    
     void TestSafeClone(void);
 
-    /**
-     * Test getting bounds for a sortkey
-     */
-    void TestBounds(void);
-
 #endif

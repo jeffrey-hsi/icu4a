@@ -98,13 +98,10 @@ typedef struct UPKGOptions_
   const char *srcDir;
   const char *options;     /* Options arg */
   const char *mode;        /* Mode of building */
-  const char *version;	   /* Library version */
-  const char *makeArgs;	   /* XXX Should be a CharList! */
   const char *comment;     /* comment string */
   const char *makeFile;    /* Makefile path */
   const char *install;     /* Where to install to (NULL = don't install) */
   const char *icuroot;     /* where does ICU lives */
-
   UBool      rebuild;
   UBool      clean;
   UBool      nooutput;

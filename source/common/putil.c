@@ -31,7 +31,7 @@
 *   06/28/99    stephen     Removed mutex locking in u_isBigEndian().
 *   08/04/99    jeffrey R.  Added OS/2 changes
 *   11/15/99    helena      Integrated S/390 IEEE support.
-*   04/26/01    Barry N.    OS/400 support for uprv_getDefaultLocaleIDM
+*   04/26/01    Barry N.    OS/400 support for uprv_getDefaultLocaleID
 *   08/15/01    Steven H.   OS/400 support for uprv_getDefaultCodepage
 ******************************************************************************
 */
@@ -770,13 +770,6 @@ uprv_timezone()
     return tdiff;
 #endif
 }
-
-/* Note that U_TZNAME does *not* have to be tzname, but if it does,
-   some platforms need to have it declared here. */ 
-
-#if defined(IRIX) || defined(U_DARWIN) /* For SGI/MacOSX.  */
-extern char *tzname[]; /* RS6000 and others reject char **tzname.  */ 
-#endif
 
 U_CAPI char* U_EXPORT2
 uprv_tzname(int n)
@@ -1759,11 +1752,7 @@ _uTransErrorName[U_PARSE_ERROR_LIMIT - U_PARSE_ERROR_START]={
     "U_UNCLOSED_SEGMENT",
     "U_ILLEGAL_CHAR_IN_SEGMENT",
     "U_VARIABLE_RANGE_EXHAUSTED",
-    "U_VARIABLE_RANGE_OVERLAP",
-    "U_ILLEGAL_CHARACTER",
-    "U_INTERNAL_TRANSLITERATOR_ERROR",
-    "U_INVALID_ID",
-    "U_INVALID_FUNCTION"
+    "U_VARIABLE_RANGE_OVERLAP"
 };
 
 static const char * const

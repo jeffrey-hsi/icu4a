@@ -24,9 +24,6 @@
 #define UCHAR_H
 
 #include "unicode/utypes.h"
-
-U_CDECL_BEGIN
-
 /*==========================================================================*/
 /* Unicode version number                                                   */
 /*==========================================================================*/
@@ -689,11 +686,10 @@ typedef enum UCellWidth UCellWidth;
 
 /**
  * Selector constants for u_charName().
- * <code>u_charName() returns the "modern" name of a
- * Unicode character; or the name that was defined in
+ * <code>u_charName() returns either the "modern" name of a
+ * Unicode character or the name that was defined in
  * Unicode version 1.0, before the Unicode standard merged
- * with ISO-10646; or an "extended" name that gives each
- * Unicode code point a unique name.
+ * with ISO-10646.
  *
  * @see u_charName
  * @stable
@@ -701,7 +697,6 @@ typedef enum UCellWidth UCellWidth;
 enum UCharNameChoice {
     U_UNICODE_CHAR_NAME,
     U_UNICODE_10_CHAR_NAME,
-    U_EXTENDED_CHAR_NAME,
     U_CHAR_NAME_CHOICE_COUNT
 };
 
@@ -990,11 +985,7 @@ U_CAPI uint16_t U_EXPORT2
 u_charCellWidth(UChar32 c);
 
 /**
- * Returns a value indicating a character category.
- * The categories are taken from the Unicode Character Database (UCD) in
- * UnicodeData.txt.
- * ICU changes the category of some of the ISO control characters to various
- * separators categories.
+ * Returns a value indicating a character category according to UnicodeData.txt.
  *
  * @param c            the character to be tested
  * @return a value of type int, the character category.
@@ -1003,48 +994,6 @@ u_charCellWidth(UChar32 c);
  */
 U_CAPI int8_t U_EXPORT2
 u_charType(UChar32 c);
-
-/**
- * Callback from u_enumCharTypes(), is called for each contiguous range
- * of code points c (where start<=c<limit)
- * with the same Unicode general category ("character type").
- *
- * The callback function can stop the enumeration by returning FALSE.
- *
- * @param context an opaque pointer, as passed into utrie_enum()
- * @param start the first code point in a contiguous range with value
- * @param limit one past the last code point in a contiguous range with value
- * @param type the general category for all code points in [start..limit[
- * @return FALSE to stop the enumeration
- *
- * @draft ICU 2.1
- * @see UCharCategory
- * @see u_enumCharTypes
- */
-typedef UBool U_CALLCONV
-UCharEnumTypeRange(const void *context, UChar32 start, UChar32 limit, UCharCategory type);
-
-/**
- * Enumerate efficiently all code points with their Unicode general categories.
- *
- * This is useful for building data structures (e.g., UnicodeSet's),
- * for enumerating all assigned code points (type!=U_UNASSIGNED), etc.
- *
- * For each contiguous range of code points with a given general category ("character type"),
- * the UCharEnumTypeRange function is called.
- * Adjacent ranges have different types.
- * The Unicode Standard guarantees that the numeric value of the type is 0..31.
- *
- * @param enumRange a pointer to a function that is called for each contiguous range
- *                  of code points with the same general category
- * @param context an opaque pointer that is passed on to the callback function
- *
- * @draft ICU 2.1
- * @see UCharCategory
- * @see UCharEnumTypeRange
- */
-U_CAPI void U_EXPORT2
-u_enumCharTypes(UCharEnumTypeRange *enumRange, const void *context);
 
 /**
  * Returns the combining class of the code point as specified in UnicodeData.txt.
@@ -1116,17 +1065,14 @@ u_charName(UChar32 code, UCharNameChoice nameChoice,
 /**
  * Find a Unicode character by its name and return its code point value.
  * The name is matched exactly and completely.
- * If the name does not correspond to a code point, <i>pErrorCode</i>
- * is set to <code>U_INVALID_CHAR_FOUND</code>.
  * A Unicode 1.0 name is matched only if it differs from the modern name.
- * Unicode names are all uppercase. Extended names are lowercase followed
- * by an uppercase hexadecimal number, and within angle brackets.
+ * Unicode names are all uppercase.
  *
  * @param nameChoice Selector for which name to match.
  * @param name The name to match.
  * @param pErrorCode Pointer to a UErrorCode variable
- * @return The Unicode value of the code point with the given name,
- *         or an undefined value if there is no such code point.
+ * @return The Unicode code point value of the character with the given name,
+ *         or 0xffff if there is no such character.
  *
  * @see UCharNameChoice
  * @see u_charName
@@ -1136,6 +1082,8 @@ U_CAPI UChar32 U_EXPORT2
 u_charFromName(UCharNameChoice nameChoice,
                const char *name,
                UErrorCode *pErrorCode);
+
+U_CDECL_BEGIN
 
 /**
  * Type of a callback function for u_enumCharNames() that gets called
@@ -1158,6 +1106,8 @@ typedef UBool UEnumCharNamesFn(void *context,
                                UCharNameChoice nameChoice,
                                const char *name,
                                UTextOffset length);
+
+U_CDECL_END
 
 /**
  * Enumerate all assigned Unicode characters between the start and limit
@@ -1478,8 +1428,6 @@ u_getUnicodeVersion(UVersionInfo info);
 #define u_charScript ublock_getCode
 /** @deprecated  Use the enum UCharBlock instead. Remove after Aug,2002*/
 typedef UBlockCode UCharScript;
-
-U_CDECL_END
 
 #endif /*_UCHAR*/
 /*eof*/

@@ -11,10 +11,61 @@
 #include "unicode/chariter.h"
 #include "unicode/schriter.h"
 #include "unicode/uchriter.h"
-#include "unicode/uiter.h"
 #include "unicode/normlzr.h"
 #include "cmemory.h"
 #include "unormimp.h"
+
+U_CDECL_BEGIN
+
+/*
+ * This is wrapper code around a C++ CharacterIterator to
+ * look like a C UCharIterator for the internal API
+ * for incremental normalization.
+ *
+ * The UCharIterator.context field holds a pointer to the CharacterIterator.
+ */
+
+static int32_t U_CALLCONV
+characterIteratorMove(UCharIterator *iter, int32_t delta, UCharIteratorOrigin origin) {
+    return ((CharacterIterator *)(iter->context))->move(delta, (CharacterIterator::EOrigin)origin);
+}
+
+static UBool U_CALLCONV
+characterIteratorHasNext(UCharIterator *iter) {
+    return ((CharacterIterator *)(iter->context))->hasNext();
+}
+
+static UBool U_CALLCONV
+characterIteratorHasPrevious(UCharIterator *iter) {
+    return ((CharacterIterator *)(iter->context))->hasPrevious();
+}
+
+static UChar U_CALLCONV
+characterIteratorCurrent(UCharIterator *iter) {
+    return ((CharacterIterator *)(iter->context))->current();
+}
+
+static UChar U_CALLCONV
+characterIteratorNext(UCharIterator *iter) {
+    return ((CharacterIterator *)(iter->context))->nextPostInc();
+}
+
+static UChar U_CALLCONV
+characterIteratorPrevious(UCharIterator *iter) {
+    return ((CharacterIterator *)(iter->context))->previous();
+}
+
+static const UCharIterator characterIteratorWrapper={
+    0, 0, 0, 0, 0,
+    characterIteratorMove,
+    characterIteratorHasNext,
+    characterIteratorHasPrevious,
+    characterIteratorCurrent,
+    characterIteratorNext,
+    characterIteratorPrevious
+};
+
+U_CDECL_END
 
 U_NAMESPACE_BEGIN
 
@@ -109,12 +160,13 @@ Normalizer::init(CharacterIterator *iter) {
     UErrorCode errorCode=U_ZERO_ERROR;
 
     text=new UCharIterator;
+    uprv_memcpy(text, &characterIteratorWrapper, sizeof(UCharIterator));
 
     if(unorm_haveData(&errorCode)) {
-        uiter_setCharacterIterator(text, iter);
+        text->context=iter;
     } else {
         delete iter;
-        uiter_setCharacterIterator(text, new UCharCharacterIterator(&_NUL, 0));
+        text->context=new UCharCharacterIterator(&_NUL, 0);
     }
 }
 
@@ -306,13 +358,13 @@ UChar32 Normalizer::previous() {
 }
 
 void Normalizer::reset() {
-    currentIndex=nextIndex=text->move(text, 0, UITER_START);
+    currentIndex=nextIndex=text->move(text, 0, UITERATOR_START);
     clearBuffer();
 }
 
 void
 Normalizer::setIndexOnly(UTextOffset index) {
-    currentIndex=nextIndex=text->move(text, index, UITER_START); // validates index
+    currentIndex=nextIndex=text->move(text, index, UITERATOR_START); // validates index
     clearBuffer();
 }
 
@@ -355,7 +407,7 @@ UChar32 Normalizer::first() {
  * the input text corresponding to that normalized character.
  */
 UChar32 Normalizer::last() {
-    currentIndex=nextIndex=text->move(text, 0, UITER_LIMIT);
+    currentIndex=nextIndex=text->move(text, 0, UITERATOR_END);
     clearBuffer();
     return previous();
 }
@@ -388,7 +440,7 @@ UTextOffset Normalizer::getIndex() const {
  * over which this <tt>Normalizer</tt> is iterating
  */
 UTextOffset Normalizer::startIndex() const {
-    return text->move(text, 0, UITER_START);
+    return text->move(text, 0, UITERATOR_START);
 }
 
 /**
@@ -397,7 +449,7 @@ UTextOffset Normalizer::startIndex() const {
  * over which this <tt>Normalizer</tt> is iterating
  */
 UTextOffset Normalizer::endIndex() const {
-    return text->move(text, 0, UITER_LIMIT);
+    return text->move(text, 0, UITERATOR_END);
 }
 
 //-------------------------------------------------------------------------
@@ -520,30 +572,28 @@ Normalizer::nextNormalize() {
 
     clearBuffer();
     currentIndex=nextIndex;
-    text->move(text, nextIndex, UITER_START);
+    text->move(text, nextIndex, UITERATOR_START);
     if(!text->hasNext(text)) {
         return FALSE;
     }
 
     errorCode=U_ZERO_ERROR;
     p=buffer.getBuffer(-1);
-    length=unorm_next(text, p, buffer.getCapacity(),
-                      fUMode, fOptions!=0,
-                      TRUE, 0,
-                      &errorCode);
+    length=unorm_nextNormalize(p, buffer.getCapacity(), text,
+                               fUMode, (fOptions&IGNORE_HANGUL)!=0,
+                               &errorCode);
     buffer.releaseBuffer(length);
     if(errorCode==U_BUFFER_OVERFLOW_ERROR) {
         errorCode=U_ZERO_ERROR;
-        text->move(text, nextIndex, UITER_START);
+        text->move(text, nextIndex, UITERATOR_START);
         p=buffer.getBuffer(length);
-        length=unorm_next(text, p, buffer.getCapacity(),
-                          fUMode, fOptions!=0,
-                          TRUE, 0,
-                          &errorCode);
+        length=unorm_nextNormalize(p, buffer.getCapacity(), text,
+                                   fUMode, (fOptions&IGNORE_HANGUL)!=0,
+                                   &errorCode);
         buffer.releaseBuffer(length);
     }
 
-    nextIndex=text->move(text, 0, UITER_CURRENT);
+    nextIndex=text->move(text, 0, UITERATOR_CURRENT);
     return U_SUCCESS(errorCode) && !buffer.isEmpty();
 }
 
@@ -555,31 +605,29 @@ Normalizer::previousNormalize() {
 
     clearBuffer();
     nextIndex=currentIndex;
-    text->move(text, currentIndex, UITER_START);
+    text->move(text, currentIndex, UITERATOR_START);
     if(!text->hasPrevious(text)) {
         return FALSE;
     }
 
     errorCode=U_ZERO_ERROR;
     p=buffer.getBuffer(-1);
-    length=unorm_previous(text, p, buffer.getCapacity(),
-                          fUMode, fOptions,
-                          TRUE, 0,
-                          &errorCode);
+    length=unorm_previousNormalize(p, buffer.getCapacity(), text,
+                                   fUMode, (fOptions&IGNORE_HANGUL)!=0,
+                                   &errorCode);
     buffer.releaseBuffer(length);
     if(errorCode==U_BUFFER_OVERFLOW_ERROR) {
         errorCode=U_ZERO_ERROR;
-        text->move(text, currentIndex, UITER_START);
+        text->move(text, currentIndex, UITERATOR_START);
         p=buffer.getBuffer(length);
-        length=unorm_previous(text, p, buffer.getCapacity(),
-                              fUMode, fOptions,
-                              TRUE, 0,
-                              &errorCode);
+        length=unorm_previousNormalize(p, buffer.getCapacity(), text,
+                                       fUMode, (fOptions&IGNORE_HANGUL)!=0,
+                                       &errorCode);
         buffer.releaseBuffer(length);
     }
 
     bufferPos=buffer.length();
-    currentIndex=text->move(text, 0, UITER_CURRENT);
+    currentIndex=text->move(text, 0, UITERATOR_CURRENT);
     return U_SUCCESS(errorCode) && !buffer.isEmpty();
 }
 

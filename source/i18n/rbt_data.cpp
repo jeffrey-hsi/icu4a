@@ -32,7 +32,8 @@ TransliterationRuleData::TransliterationRuleData(UErrorCode& status)
 TransliterationRuleData::TransliterationRuleData(const TransliterationRuleData& other) :
     ruleSet(other.ruleSet),
     variablesBase(other.variablesBase),
-    variablesLength(other.variablesLength)
+    variablesLength(other.variablesLength),
+    segmentBase(other.segmentBase)
 {
     ruleSet.setData(this); // ruleSet must already be frozen
 
@@ -51,7 +52,7 @@ TransliterationRuleData::TransliterationRuleData(const TransliterationRuleData& 
 
     variables = 0;
     if (other.variables != 0) {
-        variables = new UnicodeFunctor*[variablesLength];
+        variables = new UnicodeMatcher*[variablesLength];
         for (int32_t i=0; i<variablesLength; ++i) {
             variables[i] = other.variables[i]->clone();
         }
@@ -69,15 +70,15 @@ TransliterationRuleData::~TransliterationRuleData() {
 }
 
 UnicodeMatcher*
-TransliterationRuleData::lookupMatcher(UChar32 standIn) const {
+TransliterationRuleData::lookup(UChar32 standIn) const {
     int32_t i = standIn - variablesBase;
-    return (i >= 0 && i < variablesLength) ? variables[i]->toMatcher() : 0;
+    return (i >= 0 && i < variablesLength) ? variables[i] : 0;
 }
 
-UnicodeReplacer*
-TransliterationRuleData::lookupReplacer(UChar32 standIn) const {
-    int32_t i = standIn - variablesBase;
-    return (i >= 0 && i < variablesLength) ? variables[i]->toReplacer() : 0;
+int32_t
+TransliterationRuleData::lookupSegmentReference(UChar32 c) const {
+    int32_t i = segmentBase - c;
+    return (i >= 0 && i < segmentCount) ? i : -1;
 }
 
 U_NAMESPACE_END

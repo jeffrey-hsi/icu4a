@@ -21,7 +21,6 @@
 #include "unicode/utypes.h"
 #include "unicode/ustring.h"
 #include "unicode/ucol.h"
-#include "cmemory.h"
 
 static void TestNextUChar(UConverter* cnv, const char* source, const char* limit, const uint32_t results[], const char* message);
 static void TestNextUCharError(UConverter* cnv, const char* source, const char* limit, UErrorCode expected, const char* message);
@@ -30,7 +29,6 @@ static void TestJitterbug1293(void);
 static void TestNewConvertWithBufferSizes(int32_t osize, int32_t isize) ;
 static void TestConverterTypesAndStarters(void);
 static void TestAmbiguous(void);
-static void TestSignatureDetection(void);
 static void TestUTF7(void);
 static void TestUTF8(void);
 static void TestUTF16BE(void);
@@ -66,8 +64,6 @@ static void TestConv(const uint16_t in[],
                      const char* lang, 
                      char byteArr[],
                      int byteArrLen);
-
-static void TestCoverageMBCS(void);
 
 void addTestNewConvert(TestNode** root);
 
@@ -190,7 +186,6 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestOutBufSizes, "tsconv/nucnvtst/TestOutBufSizes");
    addTest(root, &TestConverterTypesAndStarters, "tsconv/nucnvtst/TestConverterTypesAndStarters");
    addTest(root, &TestAmbiguous, "tsconv/nucnvtst/TestAmbiguous");
-   addTest(root, &TestSignatureDetection, "tsconv/nucnvtst/TestSignatureDetection");
    addTest(root, &TestUTF7, "tsconv/nucnvtst/TestUTF7");
    addTest(root, &TestUTF8, "tsconv/nucnvtst/TestUTF8");
    addTest(root, &TestUTF16BE, "tsconv/nucnvtst/TestUTF16BE");
@@ -222,7 +217,6 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestISCII, "tsconv/nucnvtst/TestISCII");
    addTest(root, &TestJitterbug981, "tsconv/nucnvtst/TestJitterbug981");
    addTest(root, &TestJitterbug1293, "tsconv/nucnvtst/TestJitterbug1293");
-   addTest(root, &TestCoverageMBCS, "tsconv/nucnvtst/TestCoverageMBCS");
 
 }
 
@@ -846,6 +840,82 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
                LMBCSUChars, sizeof(LMBCSUChars)/sizeof(LMBCSUChars[0]), "LMBCS-1", fmLMBCSOffs,FALSE))
       log_err("LMBCS-1 -> u  did not match.\n");
 
+
+    /*some more test to increase the code coverage in MBCS.  Create an test converter from test1.ucm
+      which is test file for MBCS conversion with single-byte codepage data.*/
+    {
+
+        /* MBCS with single byte codepage data test1.ucm*/
+        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0x0003};
+        const uint8_t expectedtest1[] = { 0x00, 0x05, 0xff, 0x07, 0xff,};
+        int32_t  totest1Offs[]        = { 0, 1, 2, 3, 5, };
+
+        const uint8_t test1input[]    = { 0x00, 0x05, 0x06, 0x07, 0x08, 0x09};
+        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0xfffd, 0xfffd};
+        int32_t fromtest1Offs[]       = { 0, 1, 2, 3, 3, 4, 5};
+
+        /*from Unicode*/
+        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
+                expectedtest1, sizeof(expectedtest1), "test1", totest1Offs,FALSE ))
+            log_err("u-> test1(MBCS conversion with single-byte) did not match.\n");
+
+        /*to Unicode*/
+        if(!testConvertToU(test1input, sizeof(test1input),
+               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test1", fromtest1Offs ,FALSE))
+            log_err("test1(MBCS conversion with single-byte) -> u  did not match.\n");
+
+    }
+
+    /*some more test to increase the code coverage in MBCS.  Create an test converter from test3.ucm
+      which is test file for MBCS conversion with three-byte codepage data.*/
+    {
+
+        /* MBCS with three byte codepage data test3.ucm*/
+        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0x000e};
+        const uint8_t expectedtest3[] = { 0x00, 0x05, 0xff, 0x01, 0x02, 0x0b,  0x07,  0x01, 0x02, 0x0a,  0xff,};
+        int32_t  totest3Offs[]        = { 0, 1, 2, 3, 3, 3, 4, 6, 6, 6, 8};
+
+        const uint8_t test3input[]    = { 0x00, 0x05, 0x06, 0x01, 0x02, 0x0b,  0x07,  0x01, 0x02, 0x0a, 0x01, 0x02, 0x0c,};
+        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd};
+        int32_t fromtest3Offs[]       = { 0, 1, 2, 3, 6, 6, 7, 7, 10 };
+
+        /*from Unicode*/
+        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
+                expectedtest3, sizeof(expectedtest3), "test3", totest3Offs,FALSE ))
+            log_err("u-> test3(MBCS conversion with three-byte) did not match.\n");
+
+        /*to Unicode*/
+        if(!testConvertToU(test3input, sizeof(test3input),
+               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test3", fromtest3Offs ,FALSE))
+            log_err("test3(MBCS conversion with three-byte) -> u  did not match.\n");
+
+    }
+
+    /*some more test to increase the code coverage in MBCS.  Create an test converter from test4.ucm
+      which is test file for MBCS conversion with four-byte codepage data.*/
+    {
+
+        /* MBCS with three byte codepage data test4.ucm*/
+        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0x000e};
+        const uint8_t expectedtest4[] = { 0x00, 0x05, 0xff, 0x01, 0x02, 0x03, 0x0b,  0x07,  0x01, 0x02, 0x03, 0x0a,  0xff,};
+        int32_t  totest4Offs[]        = { 0, 1, 2, 3, 3, 3, 3, 4, 6, 6, 6, 6, 8,};
+
+        const uint8_t test4input[]    = { 0x00, 0x05, 0x06, 0x01, 0x02, 0x03, 0x0b,  0x07,  0x01, 0x02, 0x03, 0x0a, 0x01, 0x02, 0x03, 0x0c,};
+        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd};
+        int32_t fromtest4Offs[]       = { 0, 1, 2, 3, 7, 7, 8, 8, 12,};
+
+        /*from Unicode*/
+        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
+                expectedtest4, sizeof(expectedtest4), "test4", totest4Offs,FALSE ))
+            log_err("u-> test4(MBCS conversion with four-byte) did not match.\n");
+
+        /*to Unicode*/
+        if(!testConvertToU(test4input, sizeof(test4input),
+               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test4", fromtest4Offs,FALSE ))
+            log_err("test4(MBCS conversion with four-byte) -> u  did not match.\n");
+
+    }
+
     /* UTF-7 examples are mostly from http://www.imc.org/rfc2152 */
     {
         /* encode directly set D and set O */
@@ -1029,109 +1099,6 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
             log_err("u-> utf-32le did not match.\n");
 
     }
-}
-
-static void TestCoverageMBCS(){
-    char* saveDirectory = (char*)uprv_malloc(sizeof(char) *(strlen(u_getDataDirectory())+1));
-    const char *directory;
-    char* tdpath = NULL;
-    UErrorCode status = U_ZERO_ERROR;
-    int len = 0;
-    char* index=NULL;
-    directory = loadTestData(&status);
-    len = strlen(directory);
-    tdpath = (char*) uprv_malloc(sizeof(char) * (len * 2));
-    uprv_strcpy(saveDirectory,u_getDataDirectory());
-    log_verbose("Retrieved data directory %s \n",saveDirectory); 
-    uprv_strcpy(tdpath,directory); 
-    index=strrchr(tdpath,(char)U_FILE_SEP_CHAR); 
-    
-    if((unsigned int)(index-tdpath) != (strlen(tdpath)-1)){
-            *(index+1)=0;
-    }
-    u_setDataDirectory(tdpath);
-    log_verbose("ICU data directory is set to: %s \n" ,tdpath);
-
-    /*some more test to increase the code coverage in MBCS.  Create an test converter from test1.ucm
-      which is test file for MBCS conversion with single-byte codepage data.*/
-    {
-
-        /* MBCS with single byte codepage data test1.ucm*/
-        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0x0003};
-        const uint8_t expectedtest1[] = { 0x00, 0x05, 0xff, 0x07, 0xff,};
-        int32_t  totest1Offs[]        = { 0, 1, 2, 3, 5, };
-
-        const uint8_t test1input[]    = { 0x00, 0x05, 0x06, 0x07, 0x08, 0x09};
-        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0xdbc4, 0xde34, 0xfffd, 0xfffd};
-        int32_t fromtest1Offs[]       = { 0, 1, 2, 3, 3, 4, 5};
-
-        /*from Unicode*/
-        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
-                expectedtest1, sizeof(expectedtest1), "test1", totest1Offs,FALSE ))
-            log_err("u-> test1(MBCS conversion with single-byte) did not match.\n");
-
-        /*to Unicode*/
-        if(!testConvertToU(test1input, sizeof(test1input),
-               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test1", fromtest1Offs ,FALSE))
-            log_err("test1(MBCS conversion with single-byte) -> u  did not match.\n");
-
-    }
-
-    /*some more test to increase the code coverage in MBCS.  Create an test converter from test3.ucm
-      which is test file for MBCS conversion with three-byte codepage data.*/
-    {
-
-        /* MBCS with three byte codepage data test3.ucm*/
-        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0x000e};
-        const uint8_t expectedtest3[] = { 0x00, 0x05, 0xff, 0x01, 0x02, 0x0b,  0x07,  0x01, 0x02, 0x0a,  0xff,};
-        int32_t  totest3Offs[]        = { 0, 1, 2, 3, 3, 3, 4, 6, 6, 6, 8};
-
-        const uint8_t test3input[]    = { 0x00, 0x05, 0x06, 0x01, 0x02, 0x0b,  0x07,  0x01, 0x02, 0x0a, 0x01, 0x02, 0x0c,};
-        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd};
-        int32_t fromtest3Offs[]       = { 0, 1, 2, 3, 6, 6, 7, 7, 10 };
-
-        /*from Unicode*/
-        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
-                expectedtest3, sizeof(expectedtest3), "test3", totest3Offs,FALSE ))
-            log_err("u-> test3(MBCS conversion with three-byte) did not match.\n");
-
-        /*to Unicode*/
-        if(!testConvertToU(test3input, sizeof(test3input),
-               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test3", fromtest3Offs ,FALSE))
-            log_err("test3(MBCS conversion with three-byte) -> u  did not match.\n");
-
-    }
-
-    /*some more test to increase the code coverage in MBCS.  Create an test converter from test4.ucm
-      which is test file for MBCS conversion with four-byte codepage data.*/
-    {
-
-        /* MBCS with three byte codepage data test4.ucm*/
-        const UChar unicodeInput[]    = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0x000e};
-        const uint8_t expectedtest4[] = { 0x00, 0x05, 0xff, 0x01, 0x02, 0x03, 0x0b,  0x07,  0x01, 0x02, 0x03, 0x0a,  0xff,};
-        int32_t  totest4Offs[]        = { 0, 1, 2, 3, 3, 3, 3, 4, 6, 6, 6, 6, 8,};
-
-        const uint8_t test4input[]    = { 0x00, 0x05, 0x06, 0x01, 0x02, 0x03, 0x0b,  0x07,  0x01, 0x02, 0x03, 0x0a, 0x01, 0x02, 0x03, 0x0c,};
-        const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd};
-        int32_t fromtest4Offs[]       = { 0, 1, 2, 3, 7, 7, 8, 8, 12,};
-
-        /*from Unicode*/
-        if(!testConvertFromU(unicodeInput, sizeof(unicodeInput)/sizeof(unicodeInput[0]),
-                expectedtest4, sizeof(expectedtest4), "test4", totest4Offs,FALSE ))
-            log_err("u-> test4(MBCS conversion with four-byte) did not match.\n");
-
-        /*to Unicode*/
-        if(!testConvertToU(test4input, sizeof(test4input),
-               expectedUnicode, sizeof(expectedUnicode)/sizeof(expectedUnicode[0]), "test4", fromtest4Offs,FALSE ))
-            log_err("test4(MBCS conversion with four-byte) -> u  did not match.\n");
-
-    }
-    uprv_free(tdpath);
-    /* restore the original data directory */
-    log_verbose("Setting the data directory to %s \n", saveDirectory);
-    u_setDataDirectory(saveDirectory);
-    uprv_free(saveDirectory);
-
 }
 
 
@@ -1351,197 +1318,6 @@ static void TestAmbiguous()
     }
     ucnv_close(sjis_cnv);
     ucnv_close(ascii_cnv);
-}
-
-static void 
-TestSignatureDetection(){
-    /* with null terminated strings */
-    {
-        static const char* data[] = { 
-                "\xFE\xFF\x00\x00",     /* UTF-16BE */
-                "\xFF\xFE\x00\x00",     /* UTF-16LE */
-                "\xEF\xBB\xBF\x00",     /* UTF-8    */
-                "\x0E\xFE\xFF\x00",     /* SCSU     */
-               
-                "\xFE\xFF",             /* UTF-16BE */
-                "\xFF\xFE",             /* UTF-16LE */
-                "\xEF\xBB\xBF",         /* UTF-8    */
-                "\x0E\xFE\xFF",         /* SCSU     */
-                
-                "\xFE\xFF\x41\x42",     /* UTF-16BE */
-                "\xFF\xFE\x41\x41",     /* UTF-16LE */
-                "\xEF\xBB\xBF\x41",     /* UTF-8    */
-                "\x0E\xFE\xFF\x41",     /* SCSU     */
-
-        };
-        static const char* expected[] = {
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-
-        };
-        static const int32_t expectedLength[] ={
-            2,
-            2,
-            3,
-            3,
-
-            2,
-            2,
-            3,
-            3,
-
-            2,
-            2,
-            3,
-            3,
-
-        };
-        int i=0;
-        UErrorCode err;
-        int32_t signatureLength = -1;
-        const char* source = NULL;
-        const char* enc = NULL;
-        for( ; i<sizeof(data)/sizeof(char*); i++){
-            err = U_ZERO_ERROR;
-            source = data[i];
-            enc = ucnv_detectUnicodeSignature(source, -1 , &signatureLength, &err);
-            if(U_FAILURE(err)){
-                log_err("ucnv_detectUnicodeSignature failed for source : %s at index :%i. Error: %s\n", source,i,u_errorName(err));
-                continue;
-            }
-            if(enc == NULL || strcmp(enc,expected[i]) !=0){
-                log_err("ucnv_detectUnicodeSignature failed for source : %s at index :%i. Expected: %s. Got: %s\n",source,i,expected[i],enc);
-                continue;
-            }
-            if(signatureLength != expectedLength[i]){
-                log_err("ucnv_detectUnicodeSignature failed for source : %s at index :%i.Expected Length: %i. Got length: %i\n",source,i,signatureLength,expectedLength[i]);
-            }
-        }
-    }
-    {
-        static const char* data[] = { 
-                "\xFE\xFF\x00",         /* UTF-16BE */
-                "\xFF\xFE\x00",         /* UTF-16LE */
-                "\xEF\xBB\xBF\x00",     /* UTF-8    */
-                "\x0E\xFE\xFF\x00",     /* SCSU     */
-                "\x00\x00\xFE\xFF",     /* UTF-32BE */
-                "\xFF\xFE\x00\x00",     /* UTF-32LE */
-                "\xFE\xFF",             /* UTF-16BE */
-                "\xFF\xFE",             /* UTF-16LE */
-                "\xEF\xBB\xBF",         /* UTF-8    */
-                "\x0E\xFE\xFF",         /* SCSU     */
-                "\x00\x00\xFE\xFF",     /* UTF-32BE */
-                "\xFF\xFE\x00\x00",     /* UTF-32LE */
-                "\xFE\xFF\x41\x42",     /* UTF-16BE */
-                "\xFF\xFE\x41\x41",     /* UTF-16LE */
-                "\xEF\xBB\xBF\x41",     /* UTF-8    */
-                "\x0E\xFE\xFF\x41",     /* SCSU     */
-                "\x00\x00\xFE\xFF\x41", /* UTF-32BE */
-                "\xFF\xFE\x00\x00\x42", /* UTF-32LE */
-                "\xFF\x41\x42"          /* NULL     */
-        };
-        static const int len[] = {
-            3,
-            3,
-            4,
-            4,
-            4,
-            4,
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            4,
-            4,
-            4,
-            4,
-            5,
-            5,
-            3
-        };
-
-        static const char* expected[] = {
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-                "UTF-32BE",
-                "UTF-32LE",
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-                "UTF-32BE",
-                "UTF-32LE",
-                "UTF-16BE",
-                "UTF-16LE",
-                "UTF-8",
-                "SCSU",
-                "UTF-32BE",
-                "UTF-32LE",
-                NULL
-        };
-        static const int32_t expectedLength[] ={
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            2,
-            2,
-            3,
-            3,
-            4,
-            4,
-            0
-        };
-        int i=0;
-        UErrorCode err;
-        int32_t signatureLength = -1;
-        int32_t sourceLength=-1;
-        const char* source = NULL;
-        const char* enc = NULL;
-        for( ; i<sizeof(data)/sizeof(char*); i++){
-            err = U_ZERO_ERROR;
-            source = data[i];
-            sourceLength = len[i];
-            enc = ucnv_detectUnicodeSignature(source, sourceLength , &signatureLength, &err);
-            if(U_FAILURE(err)){
-                log_err("ucnv_detectUnicodeSignature test2 failed for source : %s at index :%i. Error: %s\n", source,i,u_errorName(err));
-                continue;
-            }
-            if(enc == NULL || strcmp(enc,expected[i]) !=0){
-                if(expected[i] !=NULL){
-                 log_err("ucnv_detectUnicodeSignature test2 failed for source : %s at index :%i. Expected: %s. Got: %s\n",source,i,expected[i],enc);
-                 continue;
-                }
-            }
-            if(signatureLength != expectedLength[i]){
-                log_err("ucnv_detectUnicodeSignature test2 failed for source : %s at index :%i.Expected Length: %i. Got length: %i\n",source,i,signatureLength,expectedLength[i]);
-            }
-        }
-    }
 }
 
 void

@@ -18,8 +18,6 @@
 
 #include "unicode/scsu.h"
 
-#ifdef ICU_SCSU_USE_DEPRECATES
-
 #include "cmemory.h"
 
 /* Generic window shift */
@@ -1399,5 +1397,3 @@ scsu_getLRDefinedWindow(const UnicodeCompressor *comp)
 
   return whichWindow;
 }
-
-#endif

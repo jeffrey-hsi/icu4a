@@ -1,5 +1,5 @@
 # Copyright (c) 2000 IBM, Inc. and others
-# conversion sample code $Revision: 1.4 $
+# conversion sample code $Revision: 1.3 $
 
 
 # Usage:
@@ -74,15 +74,15 @@ distclean clean:
 
 ## resources
 root.res : root.txt
-	#@echo "generating $@"
+	@echo "Generating $@"
 	$(GENRB) $(GENRBOPT) $?
 
 en.res : en.txt
-	#@echo "generating $@"
+	@echo "Generating $@"
 	$(GENRB) $(GENRBOPT) $?
 
 sr.res : sr.txt
-	#@echo "generating $@"
+	@echo "Generating $@"
 	$(GENRB) $(GENRBOPT) -e cp1251 $?
 
 

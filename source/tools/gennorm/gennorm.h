@@ -32,7 +32,6 @@ typedef struct Norm {
     uint8_t qcFlags, combiningFlags;
     uint16_t canonBothCCs, compatBothCCs, combiningIndex, specialTag;
     uint32_t *nfd, *nfkd;
-    uint32_t value32; /* temporary variable for generating runtime norm32 and fcd values */
 } Norm;
 
 /* global flags */

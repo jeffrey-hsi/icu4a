@@ -1,6 +1,6 @@
 ﻿// -*- Coding: utf-8; -*-  [all uconv resource files]
 // Copyright (c) 2000 IBM, Inc. and Others.
-// $Revision: 1.25 $
+// $Revision: 1.9 $
 //
 // Root translation file for uconv messages.
 // So you want to translate this file??? Great!
@@ -21,6 +21,8 @@
 //    the Windows side.
 //
 // 6. Send it in to srl@jtcsv.com or ask on the ICU mailing list! thanks!
+        
+
 
 root
 {
@@ -28,75 +30,49 @@ root
 
   lcUsageWord { "usage" }
   ucUsageWord { "Usage" }
-  usage { "{0}: {1} [ -h, -?, --help ] [ -V, --version ] [ -s, --silent ] [ -v, --verbose ] [ -l, --list | --list-code code | --default-code | -L, --list-transliterators ] [ --canon ] [ -x transliterator ] [ --to-callback callback | -c ] [ --from-callback callback | -i ] [ --callback callback ] [ --fallback | --no-fallback ] [ -b, --block-size size ] [ -f, --from-code code ] [ -t, --to-code code ] [ file ... ] [ -o, --output file ]\n" }
+  usage { "{0}: {1} [ -h, -?, --help ] [ -l, --list ] [ -c ] [ -L, --list-transliterators ] [ -x transliterator ] -f, --from-code code -t, --to-code code [ file ]\n" }
 
-  help {  "Options:  -h, --help                    print this message\n"
-          "          -V, --version                 print the program version\n"
-          "          -s, --silent                  suppress messages\n"
-          "          -v, --verbose                 display progress information\n"
+  help { "Options:  -h, --help                     print this message\n"
 	  "          -l, --list                    list all available encodings\n"
-	  "          --list-code code              list only the given encoding\n"
-	  "          --default-code                list only the default encoding\n"
+          "          -c                            print list compatible with cnvrtrs.txt(5)\n"
 	  "          -L, --list-transliterators    list all available transliterators\n"
-          "          --canon                       print list in cnvrtrs.txt(5) format\n"
-	  "          -x transliteration            run everything through transliteration\n" 
-	  "          --to-callback callback        use callback on destination encoding\n"
-	  "          -c                            omit invalid characters from the output\n"
-	  "          --from-callback callback      use callback on original encoding\n"
-	  "          -i                            ignore invalid sequences in the input\n"
-          "          --callback callback           use callback on both encodings\n"
-	  "          -b, --block-size size         read size bytes blocks (default: 4096)\n"
-	  "          --fallback                    use fallback mapping\n"
-	  "          --no-fallback                 do not use fallback mapping\n"
+	  "          -x transliterator             run everything through transliterator\n" 
 	  "          -f, --from-code code          set the original encoding\n"
 	  "          -t, --to-code code            set the destination encoding\n" 
-          "          -o, --output file             write output to file\n"
-	  "\n"
-	  "Callbacks:"
 }
 
   cantGetNames   { "Couldn''t get available converter names.\n" } // 0: err  cantGetNames   { "Couldn''t get available converter names.\n" } // 0: err
   cantGetTag   { "Couldn''t get standard tag name: {0}.\n" } // 0: err
+   
+  noFromCodeset  { "No conversion from encoding given (use -f)\n" }
+  noToCodeset    {  "No conversion to encoding given (use -t)\n"  }
 
-  noSuchCodeset  { "Couldn''t find encoding: {0}.\n" } // 0: name of the encoding
-  noFromCodeset  { "No conversion from encoding given (use -f).\n" }
-  noToCodeset    {  "No conversion to encoding given (use -t).\n"  }
+  cantOpenFromCodeset { "Couldn''t open the from encoding {0}: {1}\n" }  // 0:set, 1: err
+  cantOpenToCodeset { "Couldn''t open the to encoding {0}: {1}\n" } // 0: set, 1: err
 
-  badBlockSize	{ "Bad block size: {0}.\n" } // 0: size of the block
-
-  cantOpenFromCodeset { "Couldn''t open from encoding {0}.: {1}.\n" }  // 0:set, 1: err
-  cantOpenToCodeset { "Couldn''t open to encoding {0}: {1}.\n" } // 0: set, 1: err
-
-  cantCreateTranslit { "Couldn''t create transliteration \"{0}\": {1}{2}.\n" } // 0: set, 1: err, 2: parse err details
-
-  cantSetCallback { "Couldn''t set transcoding callback: {0}.\n" } // 0: err
-
-  unknownCallback { "Unknown callback: {0}.\n" } // 0: callback name
-
-  cantOpenInputF  { "Couldn''t open input file {0}: {1}.\n" } // 0: file, 1: strerror [OS error string]
-  cantCreateOutputF  { "Couldn''t create output file {0}: {1}.\n" } // 0: file, 1: strerror [OS error string]
+  cantOpenInputF  { "Couldn''t open the input file {0}: {1}.\n" } // 0: file, 1: strerror [OS error string]
 
   cantWrite       { "The converted text couldn't be written: {0}.\n" } // 0: OS error string
   cantRead        { "Error reading from input file {0}.\n" } // 0: OS error string
 
-  premEnd         { "Premature end of Unicode conversion to codepage at or near position {0}.\n" }
-  premEndInput    { "Premature end of input when converting from codepage to Unicode at or near position {0}.\n" }
+  premEnd         { "Premature end of Unicode conversion to codepage\n" }
+  premEndInput    { "Premature end of input, when converting from codepage to Unicode\n" }
 
-  problemCvtToU   { "Conversion to Unicode from codepage failed at or near position {0}: {1}.\n" } // 0: position, 1: err
-  problemCvtFromU { "Conversion from Unicode to codepage failed at or near position {0}: {1}.\n"} // 0: err
+  problemCvtToU   { "Conversion to Unicode from codepage failed: {0}.\n" } // 0: err
+  problemCvtFromU { "Problem converting from Unicode to codepage: {0}.\n"} // 0: err
 
 // ICU errors - used by u_wmsg_errorName()
 
-  U_USING_FALLBACK_ERROR       { "Using fallback data" }
-  U_USING_DEFAULT_ERROR        { "Using default data" }
-  U_ZERO_ERROR                 { "No error has occured" }
-  U_ILLEGAL_ARGUMENT_ERROR     { "Illegal argument" }
+  U_USING_FALLBACK_ERROR       { "Using fallback data." }
+  U_USING_DEFAULT_ERROR        { "Using default data." }
+  U_ZERO_ERROR                 { "No error has occured!" }
+  U_ILLEGAL_ARGUMENT_ERROR     { "Illegal argument!" }
   U_MISSING_RESOURCE_ERROR     { "A resource was missing" }
-  U_INVALID_FORMAT_ERROR       { "Invalid format" }
-  U_FILE_ACCESS_ERROR          { "Problem accessing that file/object" }
-  U_INTERNAL_PROGRAM_ERROR     { "Internal program error" }
+  U_INVALID_FORMAT_ERROR       { "Invalid format." }
+  U_FILE_ACCESS_ERROR          { "Problem accessing that file/object." }
+  U_INTERNAL_PROGRAM_ERROR     { "Internal program error!!" }
   U_MESSAGE_PARSE_ERROR        { "Parse error on message format" }
-  U_MEMORY_ALLOCATION_ERROR    { "Out of memory" }
+  U_MEMORY_ALLOCATION_ERROR    { "Out of memory!" }
   U_INDEX_OUTOFBOUNDS_ERROR    { "An index was out-of-bounds" }
   U_PARSE_ERROR                { "Parse error" }
   U_INVALID_CHAR_FOUND         { "Invalid character found" }

@@ -40,7 +40,7 @@ BUILDDIR := $(shell pwd)/../..
 
 # we define ICU_UNICODE_VERSION so we can test it
 CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/tools/ctestfw -I$(top_srcdir)/tools/toolutil \
- -DICU_UNICODE_VERSION=\"$(UNICODE_VERSION)\" -DICU_VERSION=\"@VERSION@\" -DICUDATA_NAME=\"$(ICUDATA_PLATFORM_NAME)\" -DU_TOPSRCDIR=\"$(top_srcdir)/\" -DU_TOPBUILDDIR=\"$(BUILDDIR)\"
+ -DICU_UNICODE_VERSION=\"$(UNICODE_VERSION)\" -DICU_VERSION=\"@VERSION@\" -DICUDATA_NAME=\"$(ICUDATA_NAME)\" -DU_TOPSRCDIR=\"$(top_srcdir)/\" -DU_TOPBUILDDIR=\"$(BUILDDIR)\"
 CFLAGS = @CFLAGS@
 CXXFLAGS = @CXXFLAGS@
 ENABLE_RPATH = @ENABLE_RPATH@
@@ -56,10 +56,10 @@ cdattst.o cdetst.o cdtdptst.o cdtrgtst.o cestst.o cfintst.o cformtst.o \
 cfrtst.o cg7coll.o chashtst.o cintltst.o citertst.o cjaptst.o cloctst.o \
 cmsccoll.o cmsgtst.o \
 cnmdptst.o cnormtst.o cnumtst.o cregrtst.o crestst.o creststn.o cturtst.o \
-cucdtst.o cstrcase.o cutiltst.o encoll.o nucnvtst.o susctest.o nccbtst.o \
+cucdtst.o cutiltst.o encoll.o nucnvtst.o susctest.o nccbtst.o \
 cbiditst.o cbididat.o eurocreg.o udatatst.o utf16tst.o utransts.o \
 ncnvfbts.o ncnvtst.o putiltst.o cstrtest.o mstrmtst.o utf8tst.o ucmptst.o \
-stdnmtst.o ctstdep.o usrchtst.o custrtrn.o trietest.o
+stdnmtst.o ctstdep.o usrchtst.o custrtrn.o
 
 DEPS = $(OBJECTS:.o=.d)
 
@@ -107,8 +107,6 @@ ifeq (,$(MAKECMDGOALS))
 -include $(DEPS)
 else
 ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
-ifneq ($(patsubst %install,,$(MAKECMDGOALS)),)
 -include $(DEPS)
-endif
 endif
 endif

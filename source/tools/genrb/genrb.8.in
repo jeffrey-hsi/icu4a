@@ -11,10 +11,10 @@
 .SH SYNOPSIS
 .B genrb
 [
-.BR "\-h\fP, \fB\-?\fP, \fB\-\-help"
+.BR "\-V\fP, \fB\-\-version"
 ]
 [
-.BR "\-V\fP, \fB\-\-version"
+.BR "\-h\fP, \fB\-?\fP, \fB\-\-help"
 ]
 [
 .BR "\-v\fP, \fB\-\-verbose"
@@ -29,7 +29,7 @@
 .BI "\-d\fP, \fB\-\-destdir" " destination"
 ]
 [
-.BI "\-i\fP, \fB\-\-icudatadir" " directory"
+.BI "\-i\fP, \fB\-\-icudatadir" " ICU data directory"
 ]
 .IR bundle " \.\.\."
 .SH DESCRIPTION
@@ -42,10 +42,9 @@ The resulting files have a
 extension while resource bundle source files typically have a 
 .B .txt
 extension.
-.PP
-For locale data to be useable by ICU, the
+The
 .I bundle
-file name should be a locale identifier, e.g.
+file name should be a local identifier, e.g.
 .B ja_JP.txt
 for Japanese (Japan) data, or
 .B root.txt
@@ -56,25 +55,26 @@ These binary files can then be read directly by ICU, or used by
 for incorporation into a larger archive or library.
 .SH OPTIONS
 .TP
-.BR "\-h\fP, \fB\-?\fP, \fB\-\-help"
-Print help about usage and exit.
-.TP
-.BR "\-V\fP, \fB\-\-version"
+.BR \-V\fP, \fB\-\-version
 Print the version of
 .B genrb
 and exit.
 .TP
-.BR "\-v\fP, \fB\-\-verbose"
+.BR \-h\fP, \fB\-?\fP, \fB\-\-help
+Print help about usage and exit.
+.TP
+.BR \-v\fP, \fB\-\-verbose
 Display extra informative messages during execution.
 .TP
 .BI "\-e\fP, \fB\-\-encoding" " encoding"
 Set the encoding used to read input files to
 .IR encoding .
 The default encoding is the invariant (subset of ASCII or EBCDIC)
-codepage for the system (see section
-.BR "INVARIANT CHARACTERS" ).
-The encodings UTF-8, UTF-16BE, and UTF-16LE are automatically detected
-if a byte order mark (BOM) is present.
+codepage for the system. See section
+.BR "INVARIANT CHARACTERS" .
+.B genrb
+does automatically detect UTF-8, UTF-16BE, and UTF-16LE if a byte order mark
+(BOM) is present.
 .TP
 .BI "\-s\fP, \fB\-\-sourcedir" " source"
 Set the source directory to
@@ -94,12 +94,10 @@ or is the location set when ICU was built if
 .B ICU_DATA
 is not set.
 .TP
-.BI "\-i\fP, \fB\-\-icudatadir" " directory"
-Look for any necessary ICU data files in
-.IR directory .
-For example, when processing collation overrides, the file
-.B ucadata.dat
-must be located.
+.BI "\-i\fP, \fB\-\-icudatadir" " ICU data directory"
+Set the directory used to locate any necessary ICU data files to
+.IR icudatadir .
+For example, when processing collation overrides, ucadata.dat must be located.
 The default ICU data directory is specified by the environment variable
 .BR ICU_DATA .
 .SH INVARIANT CHARACTERS
@@ -113,7 +111,7 @@ This is the set which is guaranteed to be available regardless of code page.
 .TP 10
 .B ICU_DATA
 Specifies the directory containing ICU data. Defaults to
-.BR @thepkgicudatadir@/@PACKAGE@/@VERSION@/ .
+.BR @thedatadir@/icu/@VERSION@/ .
 Some tools in ICU depend on the presence of the trailing slash. It is thus
 important to make sure that it is present if
 .B ICU_DATA

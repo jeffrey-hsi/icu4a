@@ -5,7 +5,7 @@
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
-*   file name:  ucol_bld.cpp
+*   file name:  ucol_tok.cpp
 *   encoding:   US-ASCII
 *   tab size:   8 (not used)
 *   indentation:4
@@ -20,7 +20,6 @@
 #include "ucol_bld.h" 
 #include "ucln_in.h" 
 #include "unicode/uchar.h"
-#include "umutex.h"
 
 
 static const InverseTableHeader* invUCA = NULL;
@@ -671,26 +670,25 @@ uint8_t ucol_uprv_getCaseBits(const UCollator *UCA, const UChar *src, uint32_t l
   }
 
   nLen = unorm_normalize(src, len, UNORM_NFKD, 0, n, 128, status);
-  if(U_SUCCESS(*status)) {
-    for(i = 0; i < nLen; i++) {
-      init_collIterate(UCA, &n[i], 1, &s);
-      order = ucol_getNextCE(UCA, &s, status);
-      if(isContinuation(order)) {
-        *status = U_INTERNAL_PROGRAM_ERROR;
-        return UCOL_LOWER_CASE;
-      }
-      if((order&UCOL_CASE_BIT_MASK)== UCOL_UPPER_CASE) {
-        uCount++;
+
+  for(i = 0; i < nLen; i++) {
+    init_collIterate(UCA, &n[i], 1, &s);
+    order = ucol_getNextCE(UCA, &s, status);
+    if(isContinuation(order)) {
+      *status = U_INTERNAL_PROGRAM_ERROR;
+      return UCOL_LOWER_CASE;
+    }
+    if((order&UCOL_CASE_BIT_MASK)== UCOL_UPPER_CASE) {
+      uCount++;
+    } else {
+      if(u_islower(n[i])) {
+        lCount++;
       } else {
-        if(u_islower(n[i])) {
+        UChar sk[1], lk[1];
+        u_toSmallKana(&n[i], 1, sk, 1, status);
+        u_toLargeKana(&n[i], 1, lk, 1, status);
+        if(sk[0] == n[i] && lk[0] != n[i]) {
           lCount++;
-        } else {
-          UChar sk[1], lk[1];
-          u_toSmallKana(&n[i], 1, sk, 1, status);
-          u_toLargeKana(&n[i], 1, lk, 1, status);
-          if(sk[0] == n[i] && lk[0] != n[i]) {
-            lCount++;
-          }
         }
       }
     }
@@ -711,7 +709,7 @@ U_CFUNC void ucol_createElements(UColTokenParser *src, tempUCATable *t, UColTokL
   UColToken *expt = NULL;
   uint32_t i = 0, j = 0;
 
-  while(tok != NULL && U_SUCCESS(*status)) {
+  while(tok != NULL) {
     /* first, check if there are any expansions */
     /* if there are expansions, we need to do a little bit more processing */
     /* since parts of expansion can be tailored, while others are not */
@@ -965,8 +963,7 @@ UCATableHeader *ucol_assembleTailoringTable(UColTokenParser *src, UErrorCode *st
     /* add latin-1 stuff */
     if(U_SUCCESS(*status)) {
       for(u = 0; u<0x100; u++) {
-        /*if((CE = ucmpe32_get(t->mapping, u)) == UCOL_NOT_FOUND */
-        if((CE = utrie_get32(t->mapping, u, NULL)) == UCOL_NOT_FOUND 
+        if((CE = ucmpe32_get(t->mapping, u)) == UCOL_NOT_FOUND 
           /* this test is for contractions that are missing the starting element. Looks like latin-1 should be done before assembling */
           /* the table, even if it results in more false closure elements */
            || ((isCntTableElement(CE)/*isContraction(CE)*/) &&
@@ -998,8 +995,7 @@ UCATableHeader *ucol_assembleTailoringTable(UColTokenParser *src, UErrorCode *st
       UChar *conts = (UChar *)((uint8_t *)src->UCA->image + src->UCA->image->contractionUCACombos);
       UCollationElements *ucaEl = ucol_openElements(src->UCA, NULL, 0, status);
       while(*conts != 0) {
-        /*tailoredCE = ucmpe32_get(t->mapping, *conts);*/
-        tailoredCE = utrie_get32(t->mapping, *conts, NULL);
+        tailoredCE = ucmpe32_get(t->mapping, *conts);
         if(tailoredCE != UCOL_NOT_FOUND) {         
           UBool needToAdd = TRUE;
           if(isCntTableElement(tailoredCE)) {

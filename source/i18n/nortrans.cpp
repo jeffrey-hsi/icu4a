@@ -10,7 +10,6 @@
 
 #include "unicode/utypes.h"
 #include "unicode/uniset.h"
-#include "unicode/uiter.h"
 #include "nortrans.h"
 #include "unormimp.h"
 #include "mutex.h"
@@ -30,6 +29,97 @@ static UnicodeSet* SKIPPABLES = NULL;
 
 static const int32_t D = 0, C = 1, KD= 2, KC = 3;
 
+U_CDECL_BEGIN
+
+/*
+ * This is an implementation of a code unit (UChar) iterator
+ * based on a Replaceable object.
+ * It is used with the internal API for incremental normalization.
+ *
+ * The UCharIterator.context field holds a pointer to the Replaceable.
+ * UCharIterator.length and UCharIterator.index hold Replaceable.length()
+ * and the iteration index.
+ */
+
+static int32_t U_CALLCONV
+replaceableIteratorMove(UCharIterator *iter, int32_t delta, UCharIteratorOrigin origin) {
+    int32_t pos;
+
+    switch(origin) {
+    case UITERATOR_START:
+        pos=iter->start+delta;
+        break;
+    case UITERATOR_CURRENT:
+        pos=iter->index+delta;
+        break;
+    case UITERATOR_END:
+        pos=iter->limit+delta;
+        break;
+    default:
+        /* not a valid origin, no move */
+        /* Should never get here! */
+        pos = iter->start;
+        break;
+    }
+
+    if(pos<iter->start) {
+        pos=iter->start;
+    } else if(pos>iter->limit) {
+        pos=iter->limit;
+    }
+
+    return iter->index=pos;
+}
+
+static UBool U_CALLCONV
+replaceableIteratorHasNext(UCharIterator *iter) {
+    return iter->index<iter->limit;
+}
+
+static UBool U_CALLCONV
+replaceableIteratorHasPrevious(UCharIterator *iter) {
+    return iter->index>iter->start;
+}
+
+static UChar U_CALLCONV
+replaceableIteratorCurrent(UCharIterator *iter) {
+    if(iter->index<iter->limit) {
+        return ((Replaceable *)(iter->context))->charAt(iter->index);
+    } else {
+        return 0xffff;
+    }
+}
+
+static UChar U_CALLCONV
+replaceableIteratorNext(UCharIterator *iter) {
+    if(iter->index<iter->limit) {
+        return ((Replaceable *)(iter->context))->charAt(iter->index++);
+    } else {
+        return 0xffff;
+    }
+}
+
+static UChar U_CALLCONV
+replaceableIteratorPrevious(UCharIterator *iter) {
+    if(iter->index>iter->start) {
+        return ((Replaceable *)(iter->context))->charAt(--iter->index);
+    } else {
+        return 0xffff;
+    }
+}
+
+static const UCharIterator replaceableIterator={
+    0, 0, 0, 0, 0,
+    replaceableIteratorMove,
+    replaceableIteratorHasNext,
+    replaceableIteratorHasPrevious,
+    replaceableIteratorCurrent,
+    replaceableIteratorNext,
+    replaceableIteratorPrevious
+};
+
+U_CDECL_END
+
 /**
  * System registration hook.
  */
@@ -39,18 +129,18 @@ void NormalizationTransliterator::registerIDs() {
         return;
     }
 
-    Transliterator::_registerFactory(UNICODE_STRING_SIMPLE("Any-NFC"),
+    Transliterator::_registerFactory(UnicodeString("Any-NFC", ""),
                                      _create, integerToken(UNORM_NFC));
-    Transliterator::_registerFactory(UNICODE_STRING_SIMPLE("Any-NFKC"),
+    Transliterator::_registerFactory(UnicodeString("Any-NFKC", ""),
                                      _create, integerToken(UNORM_NFKC));
-    Transliterator::_registerFactory(UNICODE_STRING_SIMPLE("Any-NFD"),
+    Transliterator::_registerFactory(UnicodeString("Any-NFD", ""),
                                      _create, integerToken(UNORM_NFD));
-    Transliterator::_registerFactory(UNICODE_STRING_SIMPLE("Any-NFKD"),
+    Transliterator::_registerFactory(UnicodeString("Any-NFKD", ""),
                                      _create, integerToken(UNORM_NFKD));
-    Transliterator::_registerSpecialInverse(UNICODE_STRING_SIMPLE("NFC"),
-                                            UNICODE_STRING_SIMPLE("NFD"), TRUE);
-    Transliterator::_registerSpecialInverse(UNICODE_STRING_SIMPLE("NFKC"),
-                                            UNICODE_STRING_SIMPLE("NFKD"), TRUE);
+    Transliterator::_registerSpecialInverse(UnicodeString("NFC", ""),
+                                            UnicodeString("NFD", ""), TRUE);
+    Transliterator::_registerSpecialInverse(UnicodeString("NFKC", ""),
+                                            UnicodeString("NFKD", ""), TRUE);
 }
 
 /**
@@ -137,13 +227,13 @@ void NormalizationTransliterator::handleTransliterate(Replaceable& text, UTransP
     }
 
     // a C code unit iterator, implemented around the Replaceable
-    UCharIterator iter;
-    uiter_setReplaceable(&iter, &text);
+    UCharIterator iter = replaceableIterator;
+    iter.context = &text;
+    // iter.length = text.length(); is not used
 
     // the output string and buffer pointer
     UnicodeString output;
     UChar *buffer;
-    UBool neededToNormalize;
 
     UErrorCode errorCode;
 
@@ -187,10 +277,8 @@ void NormalizationTransliterator::handleTransliterate(Replaceable& text, UTransP
         // incrementally normalize a small chunk of the input
         buffer = output.getBuffer(-1);
         errorCode = U_ZERO_ERROR;
-        length = unorm_next(&iter, buffer, output.getCapacity(),
-                            fMode, 0,
-                            TRUE, &neededToNormalize,
-                            &errorCode);
+        length = unorm_nextNormalize(buffer, output.getCapacity(), &iter,
+                                     fMode, FALSE, &errorCode);
         output.releaseBuffer(length);
 
         if(errorCode == U_BUFFER_OVERFLOW_ERROR) {
@@ -198,10 +286,8 @@ void NormalizationTransliterator::handleTransliterate(Replaceable& text, UTransP
             iter.index = start;
             buffer = output.getBuffer(length);
             errorCode = U_ZERO_ERROR;
-            length = unorm_next(&iter, buffer, output.getCapacity(),
-                                fMode, 0,
-                                TRUE, &neededToNormalize,
-                                &errorCode);
+            length = unorm_nextNormalize(buffer, output.getCapacity(), &iter,
+                                         fMode, FALSE, &errorCode);
             output.releaseBuffer(length);
         }
 
@@ -222,20 +308,14 @@ void NormalizationTransliterator::handleTransliterate(Replaceable& text, UTransP
             }
         }
 
-        if(neededToNormalize) {
-            // replace the input chunk with its normalized form
-            text.handleReplaceBetween(start, limit, output);
+        // replace the input chunk with its normalized form
+        text.handleReplaceBetween(start, limit, output);
 
-            // update all necessary indexes accordingly
-            delta = length - (limit - start);   // length change in the text object
-            start = limit += delta;             // the next chunk starts where this one ends, with adjustment
-            limit = offsets.limit += delta;     // set the iteration limit to the adjusted end of the input range
-            offsets.contextLimit += delta;
-        } else {
-            // delta == 0
-            start = limit;
-            limit = offsets.limit;
-        }
+        // update all necessary indexes accordingly
+        delta = length - (limit - start);   // length change in the text object
+        start = limit += delta;             // the next chunk starts where this one ends, with adjustment
+        limit = offsets.limit += delta;     // set the iteration limit to the adjusted end of the input range
+        offsets.contextLimit += delta;
     }
 
     offsets.start = start;
@@ -247,6 +327,9 @@ void NormalizationTransliterator::initStatics() {
         if (SKIPPABLES == NULL) {
             SKIPPABLES = new UnicodeSet[4];
             UErrorCode ec = U_ZERO_ERROR;
+           
+            // (Technically, the invariant converter is not guaranteed to
+            // convert the backslash correctly, but in practice it does.)
 
             SKIPPABLES[D].applyPattern(UnicodeString(
 	        "[^\\u00C0-\\u00C5\\u00C7-\\u00CF\\u00D1-\\u00D6\\u00D9-\\u00DD\\u00E0-"

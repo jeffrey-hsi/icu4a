@@ -54,7 +54,7 @@ enum
 {
     HELP1,
     HELP2,
-    VERBOSE,
+/*    VERBOSE, */
     QUIET,
     VERSION,
     SOURCEDIR,
@@ -67,7 +67,7 @@ enum
 UOption options[]={
                       UOPTION_HELP_H,
                       UOPTION_HELP_QUESTION_MARK,
-                      UOPTION_VERBOSE,
+/*                      UOPTION_VERBOSE, */
                       UOPTION_QUIET,
                       UOPTION_VERSION,
                       UOPTION_SOURCEDIR,
@@ -82,8 +82,6 @@ UOption options[]={
 #include <console.h>
 #endif
 
-static     UBool       verbose = FALSE;
-
 int
 main(int argc,
      char* argv[]) {
@@ -92,6 +90,7 @@ main(int argc,
     const char *outputDir = NULL; /* NULL = no output directory, use current */
     const char *inputDir  = NULL;
     const char *encoding  = "";
+/*    UBool       verbose; */
     int         i;
 
 #ifdef XP_MAC_CONSOLE
@@ -103,7 +102,7 @@ main(int argc,
 
     /* error handling, printing usage message */
     if(argc<0) {
-        fprintf(stderr, "%s: error in command line argument \"%s\"\n", argv[0], argv[-argc]);
+        fprintf(stderr, "error in command line argument \"%s\"\n", argv[-argc]);
     } else if(argc<2) {
         argc = -1;
     }
@@ -129,9 +128,8 @@ main(int argc,
         fprintf(stderr,
                 "Options:\n"
                 "\t-h or -? or --help   this usage text\n"
-                "\t-q or --quiet        do not display warnings\n"
-                "\t-v or --verbose      prints out extra information about processing the files\n"
                 "\t-V or --version      prints out version number and exits\n"
+                "\t-q or --quiet        do not display warnings\n"
                 "\t-c or --copyright    include copyright notice\n");
         fprintf(stderr,
                 "\t-e or --encoding     encoding of source files, leave empty for system default encoding\n"
@@ -144,9 +142,9 @@ main(int argc,
         return argc < 0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
-    if(options[VERBOSE].doesOccur) {
+/*    if(options[VERBOSE].doesOccur) {
         verbose = TRUE;
-    }
+    }*/
 
     if(options[QUIET].doesOccur) {
         setShowWarning(FALSE);
@@ -179,9 +177,8 @@ main(int argc,
         status = U_ZERO_ERROR;
         arg    = getLongPathname(argv[i]);
 
-    if (verbose) {
-        printf("processing file \"%s\"\n",  arg);
-    }
+        printf("genrb: processing file \"%s\"\n", arg);
+
         processFile(arg, encoding, inputDir, outputDir, &status);
     }
 
@@ -254,16 +251,16 @@ processFile(const char *filename, const char *cp, const char *inputDir, const ch
 
     if(in == 0) {
         *status = U_FILE_ACCESS_ERROR;
-        fprintf(stderr, "couldn't open file %s\n", openFileName == NULL ? filename : openFileName);
+        fprintf(stderr, "Couldn't open file %s\n", openFileName == NULL ? filename : openFileName);
         goto finish;
     } else {
         /* auto detect popular encodings */
-        if (*cp=='\0' && ucbuf_autodetect(in, &cp) && verbose) {
-            printf("autodetected encoding %s\n", cp);
+        if (*cp=='\0' &&ucbuf_autodetect(in, &cp)) {
+            printf("Autodetected encoding %s\n", cp);
         }
     }
 
-    ucbuf = ucbuf_open(in, cp, verbose, status);
+    ucbuf = ucbuf_open(in, cp,getShowWarning(), status);
 
     if (ucbuf == NULL || U_FAILURE(*status)) {
         goto finish;

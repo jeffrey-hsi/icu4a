@@ -480,7 +480,7 @@ void UnicodeTest::TestUnicodeData()
 	// As a fallback, try to guess where the source data was located
 	//   at the time ICU was built, and look there.
 	#if defined (U_TOPSRCDIR)
-	    strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING "data");
+	    strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
 	#else
         strcpy(backupPath, u_getDataDirectory());
         strcat(backupPath, ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
@@ -488,13 +488,11 @@ void UnicodeTest::TestUnicodeData()
     strcat(backupPath, U_FILE_SEP_STRING);
     strcat(backupPath, "unidata" U_FILE_SEP_STRING "UnicodeData.txt");
 
-    u_parseDelimitedFile(newPath, ';', fields, 15, unicodeDataLineFn, this, &errorCode);
-
     errorCode=U_ZERO_ERROR;
+    u_parseDelimitedFile(backupPath, ';', fields, 15, unicodeDataLineFn, this, &errorCode);
     if(errorCode==U_FILE_ACCESS_ERROR) {
         errorCode=U_ZERO_ERROR;
-        u_parseDelimitedFile(backupPath, ';', fields, 15, unicodeDataLineFn, this, &errorCode);
-
+        u_parseDelimitedFile(newPath, ';', fields, 15, unicodeDataLineFn, this, &errorCode);
     }
     if(U_FAILURE(errorCode)) {
         errln("error parsing UnicodeData.txt: %s\n" + UnicodeString(u_errorName(errorCode), ""));

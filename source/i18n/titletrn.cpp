@@ -96,8 +96,8 @@ void TitlecaseTransliterator::handleTransliterate(
         Mutex lock(&MUTEX);
         if (SKIP == NULL) {
             UErrorCode ec = U_ZERO_ERROR;
-            SKIP = new UnicodeSet(UNICODE_STRING_SIMPLE("[\\u00AD \\u2019 \\' [:Mn:] [:Me:] [:Cf:] [:Lm:] [:Sk:]]"), ec);
-            CASED = new UnicodeSet(UNICODE_STRING_SIMPLE("[[:Lu:] [:Ll:] [:Lt:]]"), ec);
+            SKIP = new UnicodeSet(UnicodeString("[\\u00AD \\u2019 \\' [:Mn:] [:Me:] [:Cf:] [:Lm:]]", ""), ec);
+            CASED = new UnicodeSet(UnicodeString("[[:Lu:] [:Ll:] [:Lt:]]", ""), ec);
             ucln_i18n_registerCleanup();
         }
     }
@@ -142,7 +142,7 @@ void TitlecaseTransliterator::handleTransliterate(
 
     int32_t i = textPos - offsets.contextStart;
     int32_t limit = offsets.limit - offsets.contextStart;
-    UChar32 cp;
+    UChar32 cp, bufferCH;
     int32_t oldLen;
     int32_t newLen;
 
@@ -155,9 +155,11 @@ void TitlecaseTransliterator::handleTransliterate(
         i += oldLen;
         if (!SKIP->contains(cp)) {
             if (doTitle) {
-                newLen = u_internalToTitle(cp, /* ### TODO: pass in UCharIterator */ 0, buffer, u_getMaxCaseExpansion(), loc.getName());
+                newLen = u_internalTitleCase(cp, buffer, u_getMaxCaseExpansion(), loc.getName());
             } else {
-                newLen = u_internalToLower(cp, /* ### TODO: pass in UCharIterator */ 0, buffer, u_getMaxCaseExpansion(), loc.getName());
+                int32_t len = u_strToLower(buffer, u_getMaxCaseExpansion(), original.getBuffer()+s, i-s, loc.getName(), &status);
+                UTF_GET_CHAR(buffer, 0, 0, len, bufferCH);
+                newLen = (bufferCH == original.char32At(s) ? -1 : len);
             }
             doTitle = !CASED->contains(cp);
             if (newLen >= 0) {

@@ -38,12 +38,6 @@ public:
     void TestRuleBasedColl(/* char* par */);
 
     /**
-    * This tests the RuleBasedCollator
-    * - getRules
-    */
-    void TestRules(/* char* par */);
-
-    /**
     * Tests decomposition setting
     */
     void TestDecomposition();

@@ -10,7 +10,6 @@
 
 #include "tscoll.h"
 #include "ucol_cnt.h"
-#include "utrie.h"
 
 class ContractionTableTest: public IntlTestCollator {
 public:
@@ -27,8 +26,7 @@ public:
     void TestChangeLastCE();
 private:
     CntTable *testTable, *testClone;
-    /*CompactEIntArray *testMapping;*/
-    UNewTrie *testMapping;
+    CompactEIntArray *testMapping;
     UErrorCode status;
 };
 #endif

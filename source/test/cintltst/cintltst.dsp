@@ -228,10 +228,6 @@ SOURCE=.\creststn.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\cstrcase.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\cstrtest.c
 # End Source File
 # Begin Source File
@@ -293,10 +289,6 @@ SOURCE=.\stdnmtst.c
 # Begin Source File
 
 SOURCE=.\susctest.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\trietest.c
 # End Source File
 # Begin Source File
 

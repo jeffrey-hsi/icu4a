@@ -22,15 +22,16 @@
 *                         supplementary code points, etc.
 */
 
-#include "unicode/utypes.h"
-#include "unicode/ustring.h"
-#include "unicode/udata.h"
-#include "unicode/uiter.h"
-#include "unicode/unorm.h"
 #include "cmemory.h"
 #include "ustr_imp.h"
 #include "umutex.h"
 #include "unormimp.h"
+
+#include "unicode/utypes.h"
+#include "unicode/ustring.h"
+#include "unicode/chariter.h"
+#include "unicode/udata.h"
+#include "unicode/unorm.h"
 
 /*
  * This new implementation of the normalization code loads its data from
@@ -108,14 +109,22 @@ static UDataMemory *normData=NULL;
 static UErrorCode dataErrorCode=U_ZERO_ERROR;
 static int8_t haveNormData=0;
 
-static int32_t indexes[_NORM_INDEX_TOP]={ 0 };
-static UTrie normTrie={ 0,0,0,0,0,0,0 }, fcdTrie={ 0,0,0,0,0,0,0 };
-
 /*
  * pointers into the memory-mapped unorm.dat
  */
-static const uint16_t *extraData=NULL,
-                      *combiningTable=NULL;
+static const uint16_t *indexes=NULL,
+                      *normTrieIndex=NULL, *extraData=NULL,
+                      *combiningTable=NULL,
+                      *fcdTrieIndex=NULL;
+
+/*
+ * note that there is no uint32_t *normTrieData:
+ * the indexes in the trie are adjusted so that they point to the data based on
+ * (uint32_t *)normTrieIndex - this saves one variable at runtime
+ */
+#define normTrieData ((uint32_t *)normTrieIndex)
+
+/* similarly for the FCD trie index and data - but both are uint16_t * */
 
 /* the Unicode version of the normalization data */
 static UVersionInfo dataVersion={ 3, 1, 0, 0 };
@@ -146,9 +155,8 @@ isAcceptable(void * /* context */,
         pInfo->dataFormat[1]==0x6f &&
         pInfo->dataFormat[2]==0x72 &&
         pInfo->dataFormat[3]==0x6d &&
-        pInfo->formatVersion[0]==2 &&
-        pInfo->formatVersion[2]==UTRIE_SHIFT &&
-        pInfo->formatVersion[3]==UTRIE_INDEX_SHIFT
+        pInfo->formatVersion[0]==1 &&
+        pInfo->formatVersion[3]==_NORM_TRIE_SHIFT
     ) {
         uprv_memcpy(dataVersion, pInfo->dataVersion, 4);
         return TRUE;
@@ -163,9 +171,8 @@ static int8_t
 loadNormData(UErrorCode &errorCode) {
     /* load Unicode normalization data from file */
     if(haveNormData==0) {
-        UTrie _normTrie={ 0,0,0,0,0,0,0 }, _fcdTrie={ 0,0,0,0,0,0,0 };
         UDataMemory *data;
-        const int32_t *p=NULL;
+        const uint16_t *p=NULL;
 
         if(&errorCode==NULL || U_FAILURE(errorCode)) {
             return 0;
@@ -178,37 +185,23 @@ loadNormData(UErrorCode &errorCode) {
             return haveNormData=-1;
         }
 
-        p=(const int32_t *)udata_getMemory(data);
-
-        utrie_unserialize(&_normTrie, (uint8_t *)(p+_NORM_INDEX_TOP), p[_NORM_INDEX_TRIE_SIZE], &errorCode);
-        utrie_unserialize(
-            &_fcdTrie,
-            (uint8_t *)(p+_NORM_INDEX_TOP)+p[_NORM_INDEX_TRIE_SIZE]+p[_NORM_INDEX_UCHAR_COUNT]*2+p[_NORM_INDEX_COMBINE_DATA_COUNT]*2,
-            p[_NORM_INDEX_FCD_TRIE_SIZE],
-            &errorCode);
-        if(U_FAILURE(errorCode)) {
-            dataErrorCode=errorCode;
-            udata_close(data);
-            return haveNormData=-1;
-        }
+        p=(const uint16_t *)udata_getMemory(data);
 
         /* in the mutex block, set the data for this process */
         umtx_lock(NULL);
         if(normData==NULL) {
             normData=data;
             data=NULL;
-
-            uprv_memcpy(&indexes, p, sizeof(indexes));
-            uprv_memcpy(&normTrie, &_normTrie, sizeof(UTrie));
-            uprv_memcpy(&fcdTrie, &_fcdTrie, sizeof(UTrie));
-        } else {
-            p=(const int32_t *)udata_getMemory(normData);
+            indexes=p;
+            p=NULL;
         }
         umtx_unlock(NULL);
 
         /* initialize some variables */
-        extraData=(uint16_t *)((uint8_t *)(p+_NORM_INDEX_TOP)+indexes[_NORM_INDEX_TRIE_SIZE]);
+        normTrieIndex=indexes+indexes[_NORM_INDEX_COUNT];
+        extraData=normTrieIndex+indexes[_NORM_INDEX_TRIE_INDEX_COUNT]+2*indexes[_NORM_INDEX_TRIE_DATA_COUNT];
         combiningTable=extraData+indexes[_NORM_INDEX_UCHAR_COUNT];
+        fcdTrieIndex=combiningTable+indexes[_NORM_INDEX_COMBINE_DATA_COUNT];
         haveNormData=1;
 
         /* if a different thread set it first, then close the extra data */
@@ -238,7 +231,7 @@ unorm_haveData(UErrorCode *pErrorCode) {
 U_CAPI const uint16_t * U_EXPORT2
 unorm_getFCDTrie(UErrorCode *pErrorCode) {
     if(_haveData(*pErrorCode)) {
-        return fcdTrie.index;
+        return fcdTrieIndex;
     } else {
         return NULL;
     }
@@ -248,20 +241,29 @@ unorm_getFCDTrie(UErrorCode *pErrorCode) {
 
 static inline uint32_t
 _getNorm32(UChar c) {
-    return UTRIE_GET32_FROM_LEAD(&normTrie, c);
+    return
+        normTrieData[
+            normTrieIndex[
+                c>>_NORM_TRIE_SHIFT
+            ]+
+            (c&_NORM_STAGE_2_MASK)
+        ];
 }
 
 static inline uint32_t
 _getNorm32FromSurrogatePair(uint32_t norm32, UChar c2) {
-    /*
-     * the surrogate index in norm32 stores only the number of the surrogate index block
-     * see gennorm/store.c/getFoldedNormValue()
-     */
-    norm32=
-        UTRIE_BMP_INDEX_LENGTH+
-            ((norm32>>(_NORM_EXTRA_SHIFT-UTRIE_SURROGATE_BLOCK_BITS))&
-             (0x3ff<<UTRIE_SURROGATE_BLOCK_BITS));
-    return UTRIE_GET32_FROM_OFFSET_TRAIL(&normTrie, norm32, c2);
+    /* the surrogate index in norm32 is an offset over the BMP top of stage 1 */
+    uint32_t c=
+        ((norm32>>(_NORM_EXTRA_SHIFT-10))&0xffc00)|
+        (c2&0x3ff);
+    return
+        normTrieData[
+            normTrieIndex[
+                _NORM_STAGE_1_BMP_COUNT+
+                (c>>_NORM_TRIE_SHIFT)
+            ]+
+            (c&_NORM_STAGE_2_MASK)
+        ];
 }
 
 /*
@@ -280,13 +282,28 @@ _getNorm32(const UChar *p, uint32_t mask) {
 
 static inline uint16_t
 _getFCD16(UChar c) {
-    return UTRIE_GET16_FROM_LEAD(&fcdTrie, c);
+    return
+        fcdTrieIndex[
+            fcdTrieIndex[
+                c>>_NORM_TRIE_SHIFT
+            ]+
+            (c&_NORM_STAGE_2_MASK)
+        ];
 }
 
 static inline uint16_t
 _getFCD16FromSurrogatePair(uint16_t fcd16, UChar c2) {
     /* the surrogate index in fcd16 is an absolute offset over the start of stage 1 */
-    return UTRIE_GET16_FROM_OFFSET_TRAIL(&fcdTrie, fcd16, c2);
+    uint32_t c=
+        ((uint32_t)fcd16<<10)|
+        (c2&0x3ff);
+    return
+        fcdTrieIndex[
+            fcdTrieIndex[
+                c>>_NORM_TRIE_SHIFT
+            ]+
+            (c&_NORM_STAGE_2_MASK)
+        ];
 }
 
 static inline const uint16_t *
@@ -2247,7 +2264,7 @@ unorm_normalize(const UChar *src, int32_t srcLength,
 
     return unorm_internalNormalize(dest, destCapacity,
                                    src, srcLength,
-                                   mode, (UBool)((option&(UNORM_IGNORE_HANGUL|1))!=0),
+                                   mode, (UBool)((option&UNORM_IGNORE_HANGUL)!=0),
                                    pErrorCode);
 }
 
@@ -2263,13 +2280,6 @@ unorm_normalize(const UChar *src, int32_t srcLength,
  * filled again.
  */
 
-/*
- * ### TODO:
- * Now that UCharIterator.next/previous return (int32_t)-1 not (UChar)0xffff
- * if iteration bounds are reached,
- * try to not call hasNext/hasPrevious and instead check for >=0.
- */
-
 /* backward iteration ------------------------------------------------------- */
 
 /*
@@ -2282,7 +2292,7 @@ _getPrevNorm32(UCharIterator &src, uint32_t minC, uint32_t mask, UChar &c, UChar
     uint32_t norm32;
 
     /* need src.hasPrevious() */
-    c=(UChar)src.previous(&src);
+    c=src.previous(&src);
     c2=0;
 
     /* check for a surrogate before getting norm32 to see if we need to predecrement further */
@@ -2293,7 +2303,7 @@ _getPrevNorm32(UCharIterator &src, uint32_t minC, uint32_t mask, UChar &c, UChar
     } else if(UTF_IS_SURROGATE_FIRST(c) || !src.hasPrevious(&src)) {
         /* unpaired surrogate */
         return 0;
-    } else if(UTF_IS_FIRST_SURROGATE(c2=(UChar)src.previous(&src))) {
+    } else if(UTF_IS_FIRST_SURROGATE(c2=src.previous(&src))) {
         norm32=_getNorm32(c2);
         if((norm32&mask)==0) {
             /* all surrogate pairs with this lead surrogate have irrelevant data */
@@ -2304,7 +2314,7 @@ _getPrevNorm32(UCharIterator &src, uint32_t minC, uint32_t mask, UChar &c, UChar
         }
     } else {
         /* unpaired second surrogate, undo the c2=src.previous() movement */
-        src.move(&src, 1, UITER_CURRENT);
+        src.move(&src, 1, UITERATOR_CURRENT);
         return 0;
     }
 }
@@ -2364,7 +2374,7 @@ _findPreviousIterationBoundary(UCharIterator &src,
 
             if(!u_growBufferFromStatic(stackBuffer, &buffer, &bufferCapacity, 2*bufferCapacity, bufferLength)) {
                 *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
-                src.move(&src, 0, UITER_START);
+                src.move(&src, 0, UITERATOR_START);
                 return 0;
             }
 
@@ -2389,37 +2399,19 @@ _findPreviousIterationBoundary(UCharIterator &src,
 }
 
 U_CAPI int32_t U_EXPORT2
-unorm_previous(UCharIterator *src,
-               UChar *dest, int32_t destCapacity,
-               UNormalizationMode mode, int32_t options,
-               UBool doNormalize, UBool *pNeededToNormalize,
-               UErrorCode *pErrorCode) {
-    UChar stackBuffer[100];
+unorm_previousNormalize(UChar *dest, int32_t destCapacity,
+                        UCharIterator *src,
+                        UNormalizationMode mode, UBool ignoreHangul,
+                        UErrorCode *pErrorCode) {
+    UChar stackBuffer[40];
     UChar *buffer;
     IsPrevBoundaryFn *isPreviousBoundary;
     uint32_t mask;
     int32_t startIndex, bufferLength, bufferCapacity, destLength;
-    int32_t c, c2;
     UChar minC;
-
-    /* check argument values */
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    if( destCapacity<0 || (dest==NULL && destCapacity>0) ||
-        src==NULL
-    ) {
-        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
 
     if(!_haveData(*pErrorCode)) {
         return 0;
-    }
-
-    if(pNeededToNormalize!=NULL) {
-        *pNeededToNormalize=FALSE;
     }
 
     switch(mode) {
@@ -2446,22 +2438,26 @@ unorm_previous(UCharIterator *src,
         break;
     case UNORM_NONE:
         destLength=0;
-        if((c=src->previous(src))>=0) {
+        if(src->hasPrevious(src)) {
+            UChar c, c2;
+
+            c=src->previous(src);
             destLength=1;
-            if(UTF_IS_TRAIL(c) && (c2=src->previous(src))>=0) {
+            if(UTF_IS_TRAIL(c) && src->hasPrevious(src)) {
+                c2=src->previous(src);
                 if(UTF_IS_LEAD(c2)) {
                     if(destCapacity>=2) {
-                        dest[1]=(UChar)c; /* trail surrogate */
+                        dest[1]=c; /* trail surrogate */
                         destLength=2;
                     }
                     c=c2; /* lead surrogate to be written below */
                 } else {
-                    src->move(src, 1, UITER_CURRENT);
+                    src->move(src, 1, UITERATOR_CURRENT);
                 }
             }
 
             if(destCapacity>0) {
-                dest[0]=(UChar)c;
+                dest[0]=c;
             }
         }
         return u_terminateUChars(dest, destCapacity, destLength, pErrorCode);
@@ -2478,25 +2474,12 @@ unorm_previous(UCharIterator *src,
                                                 startIndex,
                                                 pErrorCode);
     if(bufferLength>0) {
-        if(doNormalize) {
-            destLength=unorm_internalNormalize(dest, destCapacity,
-                                               buffer+startIndex, bufferLength,
-                                               mode, (UBool)((options&(UNORM_IGNORE_HANGUL|1))!=0),
-                                               pErrorCode);
-            if(pNeededToNormalize!=0 && U_SUCCESS(*pErrorCode)) {
-                *pNeededToNormalize=
-                    (UBool)(destLength!=bufferLength ||
-                            0!=uprv_memcmp(dest, buffer, destLength*U_SIZEOF_UCHAR));
-            }
-        } else {
-            /* just copy the source characters */
-            if(destCapacity>0) {
-                uprv_memcpy(buffer+startIndex, dest, uprv_min(bufferLength, destCapacity)*U_SIZEOF_UCHAR);
-            }
-            destLength=u_terminateUChars(dest, destCapacity, bufferLength, pErrorCode);
-        }
+        destLength=unorm_internalNormalize(dest, destCapacity,
+                                           buffer+startIndex, bufferLength,
+                                           mode, ignoreHangul,
+                                           pErrorCode);
     } else {
-        destLength=u_terminateUChars(dest, destCapacity, 0, pErrorCode);
+        destLength=0;
     }
 
     /* cleanup */
@@ -2520,7 +2503,7 @@ _getNextNorm32(UCharIterator &src, uint32_t minC, uint32_t mask, UChar &c, UChar
     uint32_t norm32;
 
     /* need src.hasNext() to be true */
-    c=(UChar)src.next(&src);
+    c=src.next(&src);
     c2=0;
 
     if(c<minC) {
@@ -2529,8 +2512,8 @@ _getNextNorm32(UCharIterator &src, uint32_t minC, uint32_t mask, UChar &c, UChar
 
     norm32=_getNorm32(c);
     if(UTF_IS_FIRST_SURROGATE(c)) {
-        if(src.hasNext(&src) && UTF_IS_SECOND_SURROGATE(c2=(UChar)src.current(&src))) {
-            src.move(&src, 1, UITER_CURRENT); /* skip the c2 surrogate */
+        if(src.hasNext(&src) && UTF_IS_SECOND_SURROGATE(c2=src.current(&src))) {
+            src.move(&src, 1, UITERATOR_CURRENT); /* skip the c2 surrogate */
             if((norm32&mask)==0) {
                 /* irrelevant data */
                 return 0;
@@ -2595,13 +2578,13 @@ _findNextIterationBoundary(UCharIterator &src,
     stackBuffer=buffer;
 
     /* get one character and ignore its properties */
-    buffer[0]=c=(UChar)src.next(&src);
+    buffer[0]=c=src.next(&src);
     bufferIndex=1;
     if(UTF_IS_FIRST_SURROGATE(c) && src.hasNext(&src)) {
-        if(UTF_IS_SECOND_SURROGATE(c2=(UChar)src.next(&src))) {
+        if(UTF_IS_SECOND_SURROGATE(c2=src.next(&src))) {
             buffer[bufferIndex++]=c2;
         } else {
-            src.move(&src, -1, UITER_CURRENT); /* back out the non-trail-surrogate */
+            src.move(&src, -1, UITERATOR_CURRENT); /* back out the non-trail-surrogate */
         }
     }
 
@@ -2610,7 +2593,7 @@ _findNextIterationBoundary(UCharIterator &src,
     while(src.hasNext(&src)) {
         if(isNextBoundary(src, minC, mask, c, c2)) {
             /* back out the latest movement to stop at the boundary */
-            src.move(&src, c2==0 ? -1 : -2, UITER_CURRENT);
+            src.move(&src, c2==0 ? -1 : -2, UITERATOR_CURRENT);
             break;
         } else {
             if(bufferIndex+(c2==0 ? 1 : 2)<=bufferCapacity ||
@@ -2625,7 +2608,7 @@ _findNextIterationBoundary(UCharIterator &src,
                 }
             } else {
                 *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
-                src.move(&src, 0, UITER_LIMIT);
+                src.move(&src, 0, UITERATOR_END);
                 return 0;
             }
         }
@@ -2636,37 +2619,19 @@ _findNextIterationBoundary(UCharIterator &src,
 }
 
 U_CAPI int32_t U_EXPORT2
-unorm_next(UCharIterator *src,
-           UChar *dest, int32_t destCapacity,
-           UNormalizationMode mode, int32_t options,
-           UBool doNormalize, UBool *pNeededToNormalize,
-           UErrorCode *pErrorCode) {
-    UChar stackBuffer[100];
+unorm_nextNormalize(UChar *dest, int32_t destCapacity,
+                    UCharIterator *src,
+                    UNormalizationMode mode, UBool ignoreHangul,
+                    UErrorCode *pErrorCode) {
+    UChar stackBuffer[40];
     UChar *buffer;
     IsNextBoundaryFn *isNextBoundary;
     uint32_t mask;
     int32_t bufferLength, bufferCapacity, destLength;
-    int32_t c, c2;
     UChar minC;
-
-    /* check argument values */
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    if( destCapacity<0 || (dest==NULL && destCapacity>0) ||
-        src==NULL
-    ) {
-        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
 
     if(!_haveData(*pErrorCode)) {
         return 0;
-    }
-
-    if(pNeededToNormalize!=NULL) {
-        *pNeededToNormalize=FALSE;
     }
 
     switch(mode) {
@@ -2693,22 +2658,26 @@ unorm_next(UCharIterator *src,
         break;
     case UNORM_NONE:
         destLength=0;
-        if((c=src->next(src))>=0) {
+        if(src->hasNext(src)) {
+            UChar c, c2;
+
+            c=src->next(src);
             destLength=1;
-            if(UTF_IS_LEAD(c) && (c2=src->next(src))>=0) {
+            if(UTF_IS_LEAD(c) && src->hasNext(src)) {
+                c2=src->next(src);
                 if(UTF_IS_TRAIL(c2)) {
                     if(destCapacity>=2) {
-                        dest[1]=(UChar)c2; /* trail surrogate */
+                        dest[1]=c2; /* trail surrogate */
                         destLength=2;
                     }
                     /* lead surrogate to be written below */
                 } else {
-                    src->move(src, -1, UITER_CURRENT);
+                    src->move(src, -1, UITERATOR_CURRENT);
                 }
             }
 
             if(destCapacity>0) {
-                dest[0]=(UChar)c;
+                dest[0]=c;
             }
         }
         return u_terminateUChars(dest, destCapacity, destLength, pErrorCode);
@@ -2724,25 +2693,12 @@ unorm_next(UCharIterator *src,
                                             buffer, bufferCapacity,
                                             pErrorCode);
     if(bufferLength>0) {
-        if(doNormalize) {
-            destLength=unorm_internalNormalize(dest, destCapacity,
-                                               buffer, bufferLength,
-                                               mode, (UBool)((options&(UNORM_IGNORE_HANGUL|1))!=0),
-                                               pErrorCode);
-            if(pNeededToNormalize!=0 && U_SUCCESS(*pErrorCode)) {
-                *pNeededToNormalize=
-                    (UBool)(destLength!=bufferLength ||
-                            0!=uprv_memcmp(dest, buffer, destLength*U_SIZEOF_UCHAR));
-            }
-        } else {
-            /* just copy the source characters */
-            if(destCapacity>0) {
-                uprv_memcpy(dest, buffer, uprv_min(bufferLength, destCapacity)*U_SIZEOF_UCHAR);
-            }
-            destLength=u_terminateUChars(dest, destCapacity, bufferLength, pErrorCode);
-        }
+        destLength=unorm_internalNormalize(dest, destCapacity,
+                                           buffer, bufferLength,
+                                           mode, ignoreHangul,
+                                           pErrorCode);
     } else {
-        destLength=u_terminateUChars(dest, destCapacity, 0, pErrorCode);
+        destLength=0;
     }
 
     /* cleanup */
@@ -2758,143 +2714,3 @@ unorm_next(UCharIterator *src,
  * and if not, how hard it would be to improve it.
  * For example, see _findSafeFCD().
  */
-
-/* Concatenation of normalized strings -------------------------------------- */
-
-U_CAPI int32_t U_EXPORT2
-unorm_concatenate(const UChar *left, int32_t leftLength,
-                  const UChar *right, int32_t rightLength,
-                  UChar *dest, int32_t destCapacity,
-                  UNormalizationMode mode, int32_t options,
-                  UErrorCode *pErrorCode) {
-    UChar stackBuffer[100];
-    UChar *buffer;
-    int32_t bufferLength, bufferCapacity;
-
-    UCharIterator iter;
-    int32_t leftBoundary, rightBoundary, destLength;
-
-    /* check argument values */
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    if( destCapacity<0 || (dest==NULL && destCapacity>0) ||
-        left==NULL || leftLength<-1 ||
-        right==NULL || rightLength<-1
-    ) {
-        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
-
-    /* check for overlapping right and destination */
-    if( dest!=NULL &&
-        ((right>=dest && right<(dest+destCapacity)) ||
-         (rightLength>0 && dest>=right && dest<(right+rightLength)))
-    ) {
-        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return 0;
-    }
-
-    /* allow left==dest */
-
-    /* set up intermediate buffer */
-    buffer=stackBuffer;
-    bufferCapacity=(int32_t)(sizeof(stackBuffer)/U_SIZEOF_UCHAR);
-
-    /*
-     * Input: left[0..leftLength[ + right[0..rightLength[
-     *
-     * Find normalization-safe boundaries leftBoundary and rightBoundary
-     * and copy the end parts together:
-     * buffer=left[leftBoundary..leftLength[ + right[0..rightBoundary[
-     *
-     * dest=left[0..leftBoundary[ +
-     *      normalize(buffer) +
-     *      right[rightBoundary..rightLength[
-     */
-
-    /*
-     * find a normalization boundary at the end of the left string
-     * and copy the end part into the buffer
-     */
-    uiter_setString(&iter, left, leftLength);
-    iter.index=leftLength=iter.length; /* end of left string */
-
-    bufferLength=unorm_previous(&iter, buffer, bufferCapacity,
-                                mode, options,
-                                FALSE, NULL,
-                                pErrorCode);
-    leftBoundary=iter.index;
-    if(*pErrorCode==U_BUFFER_OVERFLOW_ERROR) {
-        if(!u_growBufferFromStatic(stackBuffer, &buffer, &bufferCapacity, 2*bufferLength, 0)) {
-            *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
-            return 0;
-        }
-
-        /* just copy from the left string: we know the boundary already */
-        uprv_memcpy(buffer, left+leftBoundary, bufferLength*U_SIZEOF_UCHAR);
-    }
-    if(U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    /*
-     * find a normalization boundary at the beginning of the right string
-     * and concatenate the beginning part to the buffer
-     */
-    uiter_setString(&iter, right, rightLength);
-    rightLength=iter.length; /* in case it was -1 */
-
-    rightBoundary=unorm_next(&iter, buffer+bufferLength, bufferCapacity-bufferLength,
-                             mode, options,
-                             FALSE, NULL,
-                             pErrorCode);
-    if(*pErrorCode==U_BUFFER_OVERFLOW_ERROR) {
-        if(!u_growBufferFromStatic(stackBuffer, &buffer, &bufferCapacity, bufferLength+rightBoundary, 0)) {
-            *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
-            return 0;
-        }
-
-        /* just copy from the right string: we know the boundary already */
-        uprv_memcpy(buffer+bufferLength, right, rightBoundary*U_SIZEOF_UCHAR);
-    }
-    if(U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-    bufferLength+=rightBoundary;
-
-    /* copy left[0..leftBoundary[ to dest */
-    if(left!=dest && leftBoundary>0 && destCapacity>0) {
-        uprv_memcpy(dest, left, uprv_min(leftBoundary, destCapacity)*U_SIZEOF_UCHAR);
-    }
-    destLength=leftBoundary;
-
-    /* concatenate the normalization of the buffer to dest */
-    if(destCapacity>destLength) {
-        destLength+=unorm_internalNormalize(dest+destLength, destCapacity-destLength,
-                                            buffer, bufferLength,
-                                            mode, (UBool)((options&(UNORM_IGNORE_HANGUL|1))!=0),
-                                            pErrorCode);
-    } else {
-        destLength+=unorm_internalNormalize(NULL, 0,
-                                            buffer, bufferLength,
-                                            mode, (UBool)((options&(UNORM_IGNORE_HANGUL|1))!=0),
-                                            pErrorCode);
-    }
-
-    /* concatenate right[rightBoundary..rightLength[ to dest */
-    right+=rightBoundary;
-    rightLength-=rightBoundary;
-    if(rightLength>0 && destCapacity>destLength) {
-        uprv_memcpy(dest+destLength, right, uprv_min(rightLength, destCapacity-destLength)*U_SIZEOF_UCHAR);
-    }
-    destLength+=rightLength;
-
-    /* cleanup */
-    if(buffer!=stackBuffer) {
-        uprv_free(buffer);
-    }
-
-    return u_terminateUChars(dest, destCapacity, destLength, pErrorCode);
-}

@@ -940,22 +940,13 @@ U_CAPI const UChar* U_EXPORT2 ures_getStringByKey(const UResourceBundle *resB, c
 
     if(RES_GET_TYPE(resB->fRes) == RES_TABLE) {
         int32_t t=0;
-
         res = res_getTableItemByKey(&(resB->fResData), resB->fRes, &t, &key);
-
         if(res == RES_BOGUS) {
             key = inKey;
             if(resB->fHasFallback == TRUE) {
                 const ResourceData *rd = getFallbackData(resB, &key, &realData, &res, status);
                 if(U_SUCCESS(*status)) {
-                    switch (RES_GET_TYPE(res)) {
-                    case RES_STRING:
-                    case RES_TABLE:
-                    case RES_ARRAY:
-                        return res_getString(rd, res, len);
-                    default:
-                        *status = U_RESOURCE_TYPE_MISMATCH;
-                    }
+                    return res_getString(rd, res, len);
                 } else {
                     *status = U_MISSING_RESOURCE_ERROR;
                 }
@@ -963,14 +954,7 @@ U_CAPI const UChar* U_EXPORT2 ures_getStringByKey(const UResourceBundle *resB, c
                 *status = U_MISSING_RESOURCE_ERROR;
             }
         } else {
-            switch (RES_GET_TYPE(res)) {
-            case RES_STRING:
-            case RES_TABLE:
-            case RES_ARRAY:
-                return res_getString(&(resB->fResData), res, len);
-            default:
-                *status = U_RESOURCE_TYPE_MISMATCH;
-            }
+            return res_getString(&(resB->fResData), res, len);
         }
     } 
 #if 0 

@@ -35,6 +35,7 @@
 #include "unicode/dcfmtsym.h"
 #include "unicode/unicode.h"
 #include "unicode/ustring.h"
+#include "mutex.h"
 #include <float.h>
 
 // *****************************************************************************

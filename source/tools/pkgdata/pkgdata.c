@@ -38,20 +38,20 @@ static void loadLists(UPKGOptions *o, UErrorCode *status);
 /* This sets the modes that are available */
 static struct
 {
-  const char *name, *alt_name;
+  const char *name;
   UPKGMODE   *fcn;
   const char *desc;
 } modes[] =
 {
-  { "files", 0, pkg_mode_files, "Uses raw data files (no effect). Installation copies all files to the target location." },
+  { "files", pkg_mode_files, "Uses raw data files (no effect). Installation copies all files to the target location." },
 #ifdef WIN32
-  { "dll",    "library", pkg_mode_windows,    "Generates one common data file and one shared library, <package>.dll"},
-  { "common", "archive", pkg_mode_windows,    "Generates just the common file, <package>.dat"}
+  { "dll",    pkg_mode_windows,    "Generates one common data file and one shared library, <package>.dll"},
+  { "common", pkg_mode_windows,    "Generates just the common file, <package>.dat"}
 #else /*#ifdef WIN32*/
 #ifdef UDATA_SO_SUFFIX
-  { "dll",    "library", pkg_mode_dll,    "Generates one shared library, <package>" UDATA_SO_SUFFIX },
+  { "dll",    pkg_mode_dll,    "Generates one shared library, <package>" UDATA_SO_SUFFIX },
 #endif
-  { "common", "archive", pkg_mode_common, "Generates one common data file, <package>.dat" }
+  { "common", pkg_mode_common, "Generates one common data file, <package>.dat" }
 #endif /*#ifdef WIN32*/
 };
 
@@ -72,8 +72,6 @@ static UOption options[]={
 /*13*/    UOPTION_DEF( "install", 'I', UOPT_REQUIRES_ARG),
 /*14*/    UOPTION_SOURCEDIR ,
 /*15*/    UOPTION_DEF( "entrypoint", 'e', UOPT_REQUIRES_ARG),
-/*16*/    UOPTION_DEF( "revision", 'r', UOPT_REQUIRES_ARG),
-/*17*/    UOPTION_DEF( 0, 'M', UOPT_REQUIRES_ARG)
 };
 
 const char options_help[][160]={
@@ -83,7 +81,7 @@ const char options_help[][160]={
 #else
       "Specify options for the builder",
 #endif
-  "Specify the mode of building (see below; default: common)",
+  "Specify the mode of building (see below)",
   "This usage text",
   "This usage text",
   "Make the output verbose",
@@ -96,9 +94,7 @@ const char options_help[][160]={
   "Specify temporary dir (default: output dir)",
   "Install the data (specify target)",
   "Specify a custom source directory",
-  "Specify a custom entrypoint name (default: short name)",
-  "Specify a version when packaging in DLL mode",
-  "Pass the next argument to make(1)"
+  "Specify a custom entrypoint name (default: short name)"
 };
 
 int
@@ -113,9 +109,6 @@ main(int argc, char* argv[]) {
   int32_t i;
 
   progname = argv[0];
-
-  options[2].value = "common";
-  options[17].value = "";
 
   /* read command line options */
   argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
@@ -136,8 +129,9 @@ main(int argc, char* argv[]) {
       fprintf(stderr, "Run '%s --help' for help.\n", progname);
       return 1;
     }
-    if(! (options[0].doesOccur && options[1].doesOccur) ) {
-      fprintf(stderr, " required parameters are missing: -p and -O are required \n");
+    if(! (options[0].doesOccur && options[1].doesOccur &&
+          options[2].doesOccur) ) {
+      fprintf(stderr, " required parameters are missing: -p AND -O AND -m \n");
       fprintf(stderr, "Run '%s --help' for help.\n", progname);
       return 1;
     }
@@ -160,23 +154,16 @@ main(int argc, char* argv[]) {
 
     fprintf(stderr, "\n options:\n");
     for(i=0;i<(sizeof(options)/sizeof(options[0]));i++) {
-      fprintf(stderr, "%-5s -%c %s%-10s  %s\n",
-              (i<2?"[REQ]":""),
+      fprintf(stderr, "%-5s -%c or --%-10s  %s\n",
+              (i<3?"[REQ]":""),
               options[i].shortName,
-              options[i].longName ? "or --" : "     ",
-              options[i].longName ? options[i].longName : "",
+              options[i].longName,
               options_help[i]);
     }
 
     fprintf(stderr, "modes: (-m option)\n");
     for(i=0;i<(sizeof(modes)/sizeof(modes[0]));i++) {
-      fprintf(stderr, "   %-9s ", modes[i].name);
-      if (modes[i].alt_name) {
-	fprintf(stderr, "/ %-9s", modes[i].alt_name);
-      } else {
-        fprintf(stderr, "           ");
-      }
-      fprintf(stderr, "  %s\n", modes[i].desc);
+      fprintf(stderr, "   %-10s %s\n", modes[i].name, modes[i].desc);
     }
     return 1;
   }
@@ -185,17 +172,11 @@ main(int argc, char* argv[]) {
   uprv_memset(&o, 0, sizeof(o));
 
   o.mode      = options[2].value;
-  o.version   = options[16].doesOccur ? options[16].value : 0;
-  o.makeArgs  = options[17].value;
 
   o.fcn = NULL;
 
   for(i=0;i<sizeof(modes)/sizeof(modes[0]);i++) {
     if(!uprv_strcmp(modes[i].name, o.mode)) {
-      o.fcn = modes[i].fcn;
-      break;
-    } else if (modes[i].alt_name && !uprv_strcmp(modes[i].alt_name, o.mode)) {
-      o.mode = modes[i].name;
       o.fcn = modes[i].fcn;
       break;
     }
@@ -343,35 +324,32 @@ static int executeMakefile(const UPKGOptions *o)
 
   /*getcwd(pwd, 1024);*/
 #ifdef WIN32
-  sprintf(cmd, "%s %s%s -f \"%s\" %s %s %s %s",
+  sprintf(cmd, "%s %s%s -f \"%s\" %s %s %s",
           make,
           o->install ? "INSTALLTO=" : "",
           o->install ? o->install    : "",
           o->makeFile,
           o->clean   ? "clean"      : "",
           o->rebuild ? "rebuild"    : "",
-          o->install ? "install"    : "",
-          o->makeArgs);
+          o->install ? "install"    : "");
 #elif OS400
-  sprintf(cmd, "CALL GNU/GMAKE PARM(%s%s%s '-f' '%s' %s %s %s %s)",
+  sprintf(cmd, "CALL GNU/GMAKE PARM(%s%s%s '-f' '%s' %s %s %s)",
           o->install ? "'INSTALLTO=" : "",
           o->install ? o->install    : "",
           o->install ? "'"           : "",
           o->makeFile,
           o->clean   ? "'clean'"     : "",
           o->rebuild ? "'rebuild'"   : "",
-          o->install ? "'install'"   : "",
-          o->makeArgs);
+          o->install ? "'install'"   : "");
 #else
-  sprintf(cmd, "%s %s%s -f %s %s %s %s %s",
+  sprintf(cmd, "%s %s%s -f %s %s %s %s",
           make,
           o->install ? "INSTALLTO=" : "",
           o->install ? o->install    : "",
           o->makeFile,
           o->clean   ? "clean"      : "",
           o->rebuild ? "rebuild"    : "",
-          o->install ? "install"    : "",
-          o->makeArgs);
+          o->install ? "install"    : "");
 #endif
   if(o->verbose) {
     puts(cmd);

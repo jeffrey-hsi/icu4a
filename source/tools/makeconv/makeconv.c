@@ -109,22 +109,15 @@ parseCodepageBytes(const char *s, uint32_t *pBytes, const char **pEnd) {
     return length;
 }
 
-/* Remove all characters followed by '#'. There is an exception if there
- * is a fallback sign '|' after the comment and the comment does not
- * start in column 0. In this case, we just blank from '#' to just
- * before the '|' in order to support the fact that IBM official .ucm
- * files have the fallback information in comments!
+/* Remove all characters followed by '#'
  */
 static char *
   removeComments (char *line)
 {
-  char *pound;
-
-  line = (char*)skipWhitespace(line);
-  pound = uprv_strchr (line, '#');
+  char *pound = uprv_strchr (line, '#');
   if (pound != NULL)
   {
-      char *fallback = pound == line ? 0 : uprv_strchr(pound + 1, '|');
+      char *fallback = uprv_strchr(pound + 1, '|');
       if (fallback != NULL)
       {
           uprv_memset(pound, ' ', fallback-pound);

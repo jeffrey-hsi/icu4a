@@ -13,8 +13,12 @@
 *********************************************************************************
 */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "unicode/utypes.h"
 #include "unicode/uchar.h"
+#include "unicode/utypes.h"
 #include "unicode/putil.h"
 #include "unicode/ustring.h"
 #include "unicode/uloc.h"
@@ -24,29 +28,6 @@
 #include "cucdtst.h"
 #include "uparse.h"
 #include "unicode/uscript.h"
-
-/* prototypes --------------------------------------------------------------- */
-
-static void setUpDataTable(void);
-static void cleanUpDataTable(void);
-
-static void TestUpperLower(void);
-static void TestLetterNumber(void);
-static void TestMisc(void);
-static void TestControlPrint(void);
-static void TestIdentifier(void);
-static void TestUnicodeData(void);
-static void TestStringCopy(void);
-static void TestStringFunctions(void);
-static void TestStringSearching(void);
-static void TestCharNames(void);
-static void TestMirroring(void);
-static void TestUnescape(void);
-static void TestUScriptCodeAPI(void);
-
-/* internal methods used */
-static int32_t MakeProp(char* str);
-static int32_t MakeDir(char* str);
 
 /* test data ---------------------------------------------------------------- */
 
@@ -125,9 +106,7 @@ void addUnicodeTest(TestNode** root)
     addTest(root, &TestCharNames, "tsutil/cucdtst/TestCharNames");
     addTest(root, &TestMirroring, "tsutil/cucdtst/TestMirroring");
     addTest(root, &TestUnescape, "tsutil/cucdtst/TestUnescape");
-    addTest(root, &TestCaseLower, "tsutil/cucdtst/TestCaseLower");
-    addTest(root, &TestCaseUpper, "tsutil/cucdtst/TestCaseUpper");
-    addTest(root, &TestCaseTitle, "tsutil/cucdtst/TestCaseTitle");
+    addTest(root, &TestCaseMapping, "tsutil/cucdtst/TestCaseMapping");
     addTest(root, &TestCaseFolding, "tsutil/cucdtst/TestCaseFolding");
     addTest(root, &TestCaseCompare, "tsutil/cucdtst/TestCaseCompare");
     addTest(root, &TestUScriptCodeAPI, "tsutil/cucdtst/TestUScriptCodeAPI");
@@ -594,41 +573,6 @@ unicodeDataLineFn(void *context,
     }
 }
 
-static UBool U_CALLCONV
-enumTypeRange(const void *context, UChar32 start, UChar32 limit, UCharCategory type) {
-    static UChar32 test[][2]={
-        {0x41, U_UPPERCASE_LETTER},
-        {0x308, U_NON_SPACING_MARK},
-        {0xfffe, U_GENERAL_OTHER_TYPES},
-        {0xe0041, U_FORMAT_CHAR},
-        {0xeffff, U_UNASSIGNED}
-    };
-    int i, count;
-
-    if(0!=uprv_strcmp((const char *)context, "a1")) {
-        log_err("error: u_enumCharTypes() passes on an incorrect context pointer\n");
-    }
-
-    count=sizeof(test)/sizeof(test[0]);
-    for(i=0; i<count; ++i) {
-        if(start<=test[i][0] && test[i][0]<limit) {
-            if(type!=(UCharCategory)test[i][1]) {
-                log_err("error: u_enumCharTypes() has range [U+%04lx, U+%04lx[ with %ld instead of U+%04lx with %ld\n",
-                        start, limit, (long)type, test[i][0], test[i][1]);
-            }
-            /* stop at the range that includes the last test code point */
-            return i==(count-1) ? FALSE : TRUE;
-        }
-    }
-
-    if(start>test[count-1][0]) {
-        log_err("error: u_enumCharTypes() has range [U+%04lx, U+%04lx[ with %ld after it should have stopped\n",
-                start, limit, (long)type);
-        return FALSE;
-    }
-    return TRUE;
-}
-
 /* tests for several properties */
 static void TestUnicodeData()
 {
@@ -643,20 +587,17 @@ static void TestUnicodeData()
 
     /* Look inside ICU_DATA first */
     strcpy(newPath, u_getDataDirectory());
-    strcat(newPath, ".." U_FILE_SEP_STRING "unidata" U_FILE_SEP_STRING "UnicodeData.txt");
+    strcat(newPath, "unidata" U_FILE_SEP_STRING "UnicodeData.txt");
 
     /* As a fallback, try to guess where the source data was located
      *    at the time ICU was built, and look there.
      */
-#if defined (U_TOPSRCDIR)
-    strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING "data");
-#else
-    strcpy(backupPath, __FILE__);
-    strrchr(backupPath, U_FILE_SEP_CHAR)[0] = 0; /* Remove the file name */
-    strrchr(backupPath, U_FILE_SEP_CHAR)[0] = 0; /* Previous directory */
-    strrchr(backupPath, U_FILE_SEP_CHAR)[0] = 0; /* Previous directory */
-    strcat(backupPath, U_FILE_SEP_STRING "data");
-#endif
+    #if defined (U_TOPSRCDIR)
+        strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
+    #else
+        strcpy(backupPath, u_getDataDirectory());
+        strcat(backupPath, ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
+    #endif
     strcat(backupPath, U_FILE_SEP_STRING);
     strcat(backupPath, "unidata" U_FILE_SEP_STRING "UnicodeData.txt");
 
@@ -681,10 +622,10 @@ static void TestUnicodeData()
     }
 
     errorCode=U_ZERO_ERROR;
-    u_parseDelimitedFile(newPath, ';', fields, 15, unicodeDataLineFn, NULL, &errorCode);
+    u_parseDelimitedFile(backupPath, ';', fields, 15, unicodeDataLineFn, NULL, &errorCode);
     if(errorCode==U_FILE_ACCESS_ERROR) {
         errorCode=U_ZERO_ERROR;
-        u_parseDelimitedFile(backupPath, ';', fields, 15, unicodeDataLineFn, NULL, &errorCode);
+        u_parseDelimitedFile(newPath, ';', fields, 15, unicodeDataLineFn, NULL, &errorCode);
     }
     if(U_FAILURE(errorCode)) {
         log_err("error parsing UnicodeData.txt: %s\n", u_errorName(errorCode));
@@ -693,7 +634,7 @@ static void TestUnicodeData()
     /* sanity check on repeated properties */
     for(c=0xfffe; c<=0x10ffff;) {
         if(u_charType(c)!=U_UNASSIGNED) {
-            log_err("error: u_charType(U+%04lx)!=U_UNASSIGNED (returns %d)\n", c, u_charType(c));
+            log_err("error: u_charType(U+%04lx)!=U_UNASSIGNED\n", c);
         }
         if((c&0xffff)==0xfffe) {
             ++c;
@@ -717,9 +658,6 @@ static void TestUnicodeData()
             ++c;
         }
     }
-
-    /* test u_enumCharTypes() */
-    u_enumCharTypes(enumTypeRange, "a1");
 }
 
 /*internal functions ----*/
@@ -1014,8 +952,10 @@ static void TestStringFunctions()
 
     log_verbose("Testing u_strtok_r()");
     {
-        const char tokString[] = "  ,  1 2 3  AHHHHH! 5.5 6 7    ,        8\n";
+        const char tokString[]  = "  ,  1 2 3  AHHHHH! 5.5 6 7    ,        8\n";
         const char *tokens[] = {",", "1", "2", "3", "AHHHHH!", "5.5", "6", "7", "8\n"};
+        const char *delim1 = " ";
+        const char *delim2 = " ,";
         UChar delimBuf[sizeof(test)];
         UChar currTokenBuf[sizeof(tokString)];
         UChar *state;
@@ -1023,10 +963,10 @@ static void TestStringFunctions()
         UChar *ptr;
 
         u_uastrcpy(temp, tokString);
-        u_uastrcpy(delimBuf, " ");
+        u_uastrcpy(delimBuf, delim1);
 
         ptr = u_strtok_r(temp, delimBuf, &state);
-        u_uastrcpy(delimBuf, " ,");
+        u_uastrcpy(delimBuf, delim2);
         while (ptr != NULL) {
             u_uastrcpy(currTokenBuf, tokens[currToken]);
             if (u_strcmp(ptr, currTokenBuf) != 0) {
@@ -1055,7 +995,6 @@ static void TestStringFunctions()
         if (state != NULL) {
             log_err("State should be NULL for a string of delimiters\n");
         }
-
         state = delimBuf;       /* Give it an "invalid" saveState */
         u_uastrcpy(currTokenBuf, "q, ,");
         if (u_strtok_r(currTokenBuf, delimBuf, &state) == NULL) {
@@ -1066,18 +1005,6 @@ static void TestStringFunctions()
         }
         if (state != NULL) {
             log_err("State should be NULL for empty string\n");
-        }
-
-        state = delimBuf;       /* Give it an "invalid" saveState */
-        u_uastrcpy(currTokenBuf, tokString);
-        u_uastrcpy(temp, tokString);
-        u_uastrcpy(delimBuf, "q");  /* Give it a delimiter that it can't find. */
-        ptr = u_strtok_r(currTokenBuf, delimBuf, &state);
-        if (ptr == NULL || u_strcmp(ptr, temp) != 0) {
-            log_err("Should have recieved the same string when there are no delimiters\n");
-        }
-        if (u_strtok_r(NULL, delimBuf, &state) != NULL) {
-            log_err("Should not have found another token in a one token string\n");
         }
     }
 
@@ -1400,20 +1327,17 @@ static void TestStringCopy()
 
 static const struct {
     uint32_t code;
-    const char *name, *oldName, *extName;
+    const char *name, *oldName;
 } names[]={
-    {0x0061, "LATIN SMALL LETTER A", "", "LATIN SMALL LETTER A"},
-    {0x0284, "LATIN SMALL LETTER DOTLESS J WITH STROKE AND HOOK", "LATIN SMALL LETTER DOTLESS J BAR HOOK", "LATIN SMALL LETTER DOTLESS J WITH STROKE AND HOOK" },
-    {0x3401, "CJK UNIFIED IDEOGRAPH-3401", "", "CJK UNIFIED IDEOGRAPH-3401" },
-    {0x7fed, "CJK UNIFIED IDEOGRAPH-7FED", "", "CJK UNIFIED IDEOGRAPH-7FED" },
-    {0xac00, "HANGUL SYLLABLE GA", "", "HANGUL SYLLABLE GA" },
-    {0xd7a3, "HANGUL SYLLABLE HIH", "", "HANGUL SYLLABLE HIH" },
-    {0xd800, "", "", "<lead surrogate-D800>" },
-    {0xdc00, "", "", "<trail surrogate-DC00>" },
-    {0xff08, "FULLWIDTH LEFT PARENTHESIS", "FULLWIDTH OPENING PARENTHESIS", "FULLWIDTH LEFT PARENTHESIS" },
-    {0xffe5, "FULLWIDTH YEN SIGN", "", "FULLWIDTH YEN SIGN" },
-    {0xffff, "", "", "<noncharacter-FFFF>" },
-    {0x23456, "CJK UNIFIED IDEOGRAPH-23456", "", "CJK UNIFIED IDEOGRAPH-23456" }
+    {0x0061, "LATIN SMALL LETTER A", ""},
+    {0x0284, "LATIN SMALL LETTER DOTLESS J WITH STROKE AND HOOK", "LATIN SMALL LETTER DOTLESS J BAR HOOK"},
+    {0x3401, "CJK UNIFIED IDEOGRAPH-3401", ""},
+    {0x7fed, "CJK UNIFIED IDEOGRAPH-7FED", ""},
+    {0xac00, "HANGUL SYLLABLE GA", ""},
+    {0xd7a3, "HANGUL SYLLABLE HIH", ""},
+    {0xff08, "FULLWIDTH LEFT PARENTHESIS", "FULLWIDTH OPENING PARENTHESIS"},
+    {0xffe5, "FULLWIDTH YEN SIGN", ""},
+    {0x23456, "CJK UNIFIED IDEOGRAPH-23456", ""}
 };
 
 static UBool
@@ -1432,22 +1356,14 @@ enumCharNamesFn(void *context,
     ++*pCount;
     for(i=0; i<sizeof(names)/sizeof(names[0]); ++i) {
         if(code==names[i].code) {
-            switch (nameChoice) {
-                case U_EXTENDED_CHAR_NAME:
-                    if(0!=uprv_strcmp(name, names[i].extName)) {
-                        log_err("u_enumCharName(0x%lx - Extended)=%s instead of %s\n", code, name, names[i].extName);
-                    }
-                    break;
-                case U_UNICODE_CHAR_NAME:
-                    if(0!=uprv_strcmp(name, names[i].name)) {
-                        log_err("u_enumCharName(0x%lx)=%s instead of %s\n", code, name, names[i].name);
-                    }
-                    break;
-                case U_UNICODE_10_CHAR_NAME:
-                    if(names[i].oldName[0]==0 || 0!=uprv_strcmp(name, names[i].oldName)) {
-                        log_err("u_enumCharName(0x%lx - 1.0)=%s instead of %s\n", code, name, names[i].oldName);
-                    }
-                    break;
+            if(nameChoice==U_UNICODE_CHAR_NAME) {
+                if(0!=uprv_strcmp(name, names[i].name)) {
+                    log_err("u_enumCharName(0x%lx)=%s instead of %s\n", code, name, names[i].name);
+                }
+            } else {
+                if(names[i].oldName[0]==0 || 0!=uprv_strcmp(name, names[i].oldName)) {
+                    log_err("u_enumCharName(0x%lx - 1.0)=%s instead of %s\n", code, name, names[i].oldName);
+                }
             }
             break;
         }
@@ -1516,13 +1432,6 @@ TestCharNames() {
         log_err("u_enumCharNames(0..0x1100000) error %s names count=%ld\n", u_errorName(errorCode), length);
     }
 
-    length=0;
-    errorCode=U_ZERO_ERROR;
-    u_enumCharNames(0, 0x110000, enumCharNamesFn, &length, U_EXTENDED_CHAR_NAME, &errorCode);
-    if(U_FAILURE(errorCode) || length<0x1100000) {
-        log_err("u_enumCharNames(0..0x1100000 - Extended) error %s names count=%ld\n", u_errorName(errorCode), length);
-    }
-
     /* test that u_charFromName() uppercases the input name, i.e., works with mixed-case names (new in 2.0) */
     if(0x61!=u_charFromName(U_UNICODE_CHAR_NAME, "LATin smALl letTER A", &errorCode)) {
         log_err("u_charFromName(U_UNICODE_CHAR_NAME, \"LATin smALl letTER A\") did not find U+0061 (%s)\n", u_errorName(errorCode));
@@ -1582,6 +1491,463 @@ TestUnescape() {
     }
 
     /* ### TODO: test u_unescapeAt() */
+}
+
+/* test string case mapping functions --------------------------------------- */
+
+static void
+TestCaseMapping() {
+    static const UChar
+
+    beforeLower[]= { 0x61, 0x42, 0x49,  0x3a3, 0xdf, 0x3a3, 0x2f, 0xd93f, 0xdfff },
+    lowerRoot[]=   { 0x61, 0x62, 0x69,  0x3c3, 0xdf, 0x3c2, 0x2f, 0xd93f, 0xdfff },
+    lowerTurkish[]={ 0x61, 0x62, 0x131, 0x3c3, 0xdf, 0x3c2, 0x2f, 0xd93f, 0xdfff },
+
+    beforeUpper[]= { 0x61, 0x42, 0x69,  0x3c2, 0xdf,       0x3c3, 0x2f, 0xfb03,           0xd93f, 0xdfff },
+    upperRoot[]=   { 0x41, 0x42, 0x49,  0x3a3, 0x53, 0x53, 0x3a3, 0x2f, 0x46, 0x46, 0x49, 0xd93f, 0xdfff },
+    upperTurkish[]={ 0x41, 0x42, 0x130, 0x3a3, 0x53, 0x53, 0x3a3, 0x2f, 0x46, 0x46, 0x49, 0xd93f, 0xdfff };
+
+    UChar buffer[32];
+    int32_t length;
+    UErrorCode errorCode;
+
+    /* lowercase with root locale and separate buffers */
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strToLower(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        beforeLower, sizeof(beforeLower)/U_SIZEOF_UCHAR,
+                        "",
+                        &errorCode);
+    if( U_FAILURE(errorCode) ||
+        length!=(sizeof(lowerRoot)/U_SIZEOF_UCHAR) ||
+        uprv_memcmp(lowerRoot, buffer, length*U_SIZEOF_UCHAR)!=0 ||
+        buffer[length]!=0
+    ) {
+        log_err("error in u_strToLower(root locale)=%ld error=%s string matches: %s\n",
+            length,
+            u_errorName(errorCode),
+            uprv_memcmp(lowerRoot, buffer, length*U_SIZEOF_UCHAR)==0 && buffer[length]==0 ? "yes" : "no");
+    }
+
+    /* lowercase with turkish locale and in the same buffer */
+    uprv_memcpy(buffer, beforeLower, sizeof(beforeLower));
+    buffer[sizeof(beforeLower)/U_SIZEOF_UCHAR]=0;
+    errorCode=U_ZERO_ERROR;
+    length=u_strToLower(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        buffer, -1, /* implicit srcLength */
+                        "tr",
+                        &errorCode);
+    if( U_FAILURE(errorCode) ||
+        length!=(sizeof(lowerTurkish)/U_SIZEOF_UCHAR) ||
+        uprv_memcmp(lowerTurkish, buffer, length*U_SIZEOF_UCHAR)!=0 ||
+        buffer[length]!=0
+    ) {
+        log_err("error in u_strToLower(turkish locale)=%ld error=%s string matches: %s\n",
+            length,
+            u_errorName(errorCode),
+            uprv_memcmp(lowerTurkish, buffer, length*U_SIZEOF_UCHAR)==0 && buffer[length]==0 ? "yes" : "no");
+    }
+
+    /* uppercase with root locale and in the same buffer */
+    uprv_memcpy(buffer, beforeUpper, sizeof(beforeUpper));
+    errorCode=U_ZERO_ERROR;
+    length=u_strToUpper(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        buffer, sizeof(beforeUpper)/U_SIZEOF_UCHAR,
+                        "",
+                        &errorCode);
+    if( U_FAILURE(errorCode) ||
+        length!=(sizeof(upperRoot)/U_SIZEOF_UCHAR) ||
+        uprv_memcmp(upperRoot, buffer, length*U_SIZEOF_UCHAR)!=0 ||
+        buffer[length]!=0
+    ) {
+        log_err("error in u_strToUpper(root locale)=%ld error=%s string matches: %s\n",
+            length,
+            u_errorName(errorCode),
+            uprv_memcmp(upperRoot, buffer, length*U_SIZEOF_UCHAR)==0 && buffer[length]==0 ? "yes" : "no");
+    }
+
+    /* uppercase with turkish locale and separate buffers */
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strToUpper(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        beforeUpper, sizeof(beforeUpper)/U_SIZEOF_UCHAR,
+                        "tr",
+                        &errorCode);
+    if( U_FAILURE(errorCode) ||
+        length!=(sizeof(upperTurkish)/U_SIZEOF_UCHAR) ||
+        uprv_memcmp(upperTurkish, buffer, length*U_SIZEOF_UCHAR)!=0 ||
+        buffer[length]!=0
+    ) {
+        log_err("error in u_strToUpper(turkish locale)=%ld error=%s string matches: %s\n",
+            length,
+            u_errorName(errorCode),
+            uprv_memcmp(upperTurkish, buffer, length*U_SIZEOF_UCHAR)==0 && buffer[length]==0 ? "yes" : "no");
+    }
+
+    /* test preflighting */
+    buffer[0]=buffer[2]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strToLower(buffer, 2, /* set destCapacity=2 */
+                        beforeLower, sizeof(beforeLower)/U_SIZEOF_UCHAR,
+                        "",
+                        &errorCode);
+    if( errorCode!=U_BUFFER_OVERFLOW_ERROR ||
+        length!=(sizeof(lowerRoot)/U_SIZEOF_UCHAR) ||
+        uprv_memcmp(lowerRoot, buffer, 2*U_SIZEOF_UCHAR)!=0 ||
+        buffer[2]!=0xabcd
+    ) {
+        log_err("error in u_strToLower(root locale preflighting)=%ld error=%s string matches: %s\n",
+            length,
+            u_errorName(errorCode),
+            uprv_memcmp(lowerRoot, buffer, 2*U_SIZEOF_UCHAR)==0 && buffer[2]==0xabcd ? "yes" : "no");
+    }
+
+    errorCode=U_ZERO_ERROR;
+    length=u_strToUpper(NULL, 0,
+                        beforeUpper, sizeof(beforeUpper)/U_SIZEOF_UCHAR,
+                        "tr",
+                        &errorCode);
+    if( errorCode!=U_BUFFER_OVERFLOW_ERROR ||
+        length!=(sizeof(upperTurkish)/U_SIZEOF_UCHAR)
+    ) {
+        log_err("error in u_strToUpper(turkish locale pure preflighting)=%ld error=%s\n",
+            length,
+            u_errorName(errorCode));
+    }
+
+    /* test error handling */
+    errorCode=U_ZERO_ERROR;
+    length=u_strToLower(NULL, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        beforeLower, sizeof(beforeLower)/U_SIZEOF_UCHAR,
+                        "",
+                        &errorCode);
+    if(errorCode!=U_ILLEGAL_ARGUMENT_ERROR) {
+        log_err("error in u_strToLower(root locale dest=NULL)=%ld error=%s\n",
+            length,
+            u_errorName(errorCode));
+    }
+
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strToLower(buffer, -1,
+                        beforeLower, sizeof(beforeLower)/U_SIZEOF_UCHAR,
+                        "",
+                        &errorCode);
+    if( errorCode!=U_ILLEGAL_ARGUMENT_ERROR ||
+        buffer[0]!=0xabcd
+    ) {
+        log_err("error in u_strToLower(root locale destCapacity=-1)=%ld error=%s buffer[0]==0x%lx\n",
+            length,
+            u_errorName(errorCode),
+            buffer[0]);
+    }
+
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strToUpper(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        NULL, sizeof(beforeUpper)/U_SIZEOF_UCHAR,
+                        "tr",
+                        &errorCode);
+    if( errorCode!=U_ILLEGAL_ARGUMENT_ERROR ||
+        buffer[0]!=0xabcd
+    ) {
+        log_err("error in u_strToUpper(turkish locale src=NULL)=%ld error=%s buffer[0]==0x%lx\n",
+            length,
+            u_errorName(errorCode),
+            buffer[0]);
+    }
+
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strToUpper(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        beforeUpper, -2,
+                        "tr",
+                        &errorCode);
+    if( errorCode!=U_ILLEGAL_ARGUMENT_ERROR ||
+        buffer[0]!=0xabcd
+    ) {
+        log_err("error in u_strToUpper(turkish locale srcLength=-2)=%ld error=%s buffer[0]==0x%lx\n",
+            length,
+            u_errorName(errorCode),
+            buffer[0]);
+    }
+}
+
+/* test case folding and case-insensitive string compare -------------------- */
+
+static void
+TestCaseFolding() {
+    static const UChar32
+    simple[]={
+        /* input, default, exclude special i */
+        0x61,   0x61,  0x61,
+        0x49,   0x69,  0x69,
+        0x131,  0x69,  0x131,
+        0xdf,   0xdf,  0xdf,
+        0xfb03, 0xfb03, 0xfb03,
+        0x5ffff,0x5ffff,0x5ffff
+    };
+
+    static const UChar
+    mixed[]=                { 0x61, 0x42, 0x131, 0x3d0, 0xdf,       0xfb03,           0xd93f, 0xdfff },
+    foldedDefault[]=        { 0x61, 0x62, 0x69,  0x3b2, 0x73, 0x73, 0x66, 0x66, 0x69, 0xd93f, 0xdfff },
+    foldedExcludeSpecialI[]={ 0x61, 0x62, 0x131, 0x3b2, 0x73, 0x73, 0x66, 0x66, 0x69, 0xd93f, 0xdfff };
+
+    UVersionInfo unicodeVersion={ 0, 0, 17, 89 }, unicode_3_1={ 3, 1, 0, 0 };
+
+    const UChar32 *p;
+    int32_t i;
+
+    UChar buffer[32];
+    int32_t length;
+    UErrorCode errorCode;
+    UBool isUnicode_3_1;
+
+    /* if unicodeVersion()>=3.1 then test exclude-special-i cases as well */
+    u_getUnicodeVersion(unicodeVersion);
+    isUnicode_3_1= uprv_memcmp(unicodeVersion, unicode_3_1, 4)>=0;
+
+    /* test simple case folding */
+    p=simple;
+    for(i=0; i<sizeof(simple)/12; p+=3, ++i) {
+        if(u_foldCase(p[0], U_FOLD_CASE_DEFAULT)!=p[1]) {
+            log_err("error: u_foldCase(0x%04lx, default)=0x%04lx instead of 0x%04lx\n",
+                    p[0], u_foldCase(p[0], U_FOLD_CASE_DEFAULT), p[1]);
+            return;
+        }
+
+        if(isUnicode_3_1 && u_foldCase(p[0], U_FOLD_CASE_EXCLUDE_SPECIAL_I)!=p[2]) {
+            log_err("error: u_foldCase(0x%04lx, exclude special i)=0x%04lx instead of 0x%04lx\n",
+                    p[0], u_foldCase(p[0], U_FOLD_CASE_EXCLUDE_SPECIAL_I), p[2]);
+            return;
+        }
+    }
+
+    /* test full string case folding with default option and separate buffers */
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strFoldCase(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        mixed, sizeof(mixed)/U_SIZEOF_UCHAR,
+                        U_FOLD_CASE_DEFAULT,
+                        &errorCode);
+    if( U_FAILURE(errorCode) ||
+        length!=(sizeof(foldedDefault)/U_SIZEOF_UCHAR) ||
+        uprv_memcmp(foldedDefault, buffer, length*U_SIZEOF_UCHAR)!=0 ||
+        buffer[length]!=0
+    ) {
+        log_err("error in u_strFoldCase(default)=%ld error=%s string matches: %s\n",
+            length,
+            u_errorName(errorCode),
+            uprv_memcmp(foldedDefault, buffer, length*U_SIZEOF_UCHAR)==0 && buffer[length]==0 ? "yes" : "no");
+    }
+
+    /* exclude special i */
+    if(isUnicode_3_1) {
+        buffer[0]=0xabcd;
+        errorCode=U_ZERO_ERROR;
+        length=u_strFoldCase(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                            mixed, sizeof(mixed)/U_SIZEOF_UCHAR,
+                            U_FOLD_CASE_EXCLUDE_SPECIAL_I,
+                            &errorCode);
+        if( U_FAILURE(errorCode) ||
+            length!=(sizeof(foldedExcludeSpecialI)/U_SIZEOF_UCHAR) ||
+            uprv_memcmp(foldedExcludeSpecialI, buffer, length*U_SIZEOF_UCHAR)!=0 ||
+            buffer[length]!=0
+        ) {
+            log_err("error in u_strFoldCase(exclude special i)=%ld error=%s string matches: %s\n",
+                length,
+                u_errorName(errorCode),
+                uprv_memcmp(foldedExcludeSpecialI, buffer, length*U_SIZEOF_UCHAR)==0 && buffer[length]==0 ? "yes" : "no");
+        }
+    }
+
+    /* test full string case folding with default option and in the same buffer */
+    uprv_memcpy(buffer, mixed, sizeof(mixed));
+    buffer[sizeof(mixed)/U_SIZEOF_UCHAR]=0;
+    errorCode=U_ZERO_ERROR;
+    length=u_strFoldCase(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        buffer, -1, /* implicit srcLength */
+                        U_FOLD_CASE_DEFAULT,
+                        &errorCode);
+    if( U_FAILURE(errorCode) ||
+        length!=(sizeof(foldedDefault)/U_SIZEOF_UCHAR) ||
+        uprv_memcmp(foldedDefault, buffer, length*U_SIZEOF_UCHAR)!=0 ||
+        buffer[length]!=0
+    ) {
+        log_err("error in u_strFoldCase(default same buffer)=%ld error=%s string matches: %s\n",
+            length,
+            u_errorName(errorCode),
+            uprv_memcmp(foldedDefault, buffer, length*U_SIZEOF_UCHAR)==0 && buffer[length]==0 ? "yes" : "no");
+    }
+
+    /* test full string case folding, exclude special i, in the same buffer */
+    if(isUnicode_3_1) {
+        uprv_memcpy(buffer, mixed, sizeof(mixed));
+        errorCode=U_ZERO_ERROR;
+        length=u_strFoldCase(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                            buffer, sizeof(mixed)/U_SIZEOF_UCHAR,
+                            U_FOLD_CASE_EXCLUDE_SPECIAL_I,
+                            &errorCode);
+        if( U_FAILURE(errorCode) ||
+            length!=(sizeof(foldedExcludeSpecialI)/U_SIZEOF_UCHAR) ||
+            uprv_memcmp(foldedExcludeSpecialI, buffer, length*U_SIZEOF_UCHAR)!=0 ||
+            buffer[length]!=0
+        ) {
+            log_err("error in u_strFoldCase(exclude special i same buffer)=%ld error=%s string matches: %s\n",
+                length,
+                u_errorName(errorCode),
+                uprv_memcmp(foldedExcludeSpecialI, buffer, length*U_SIZEOF_UCHAR)==0 && buffer[length]==0 ? "yes" : "no");
+        }
+    }
+
+    /* test preflighting */
+    buffer[0]=buffer[2]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strFoldCase(buffer, 2, /* set destCapacity=2 */
+                        mixed, sizeof(mixed)/U_SIZEOF_UCHAR,
+                        U_FOLD_CASE_DEFAULT,
+                        &errorCode);
+    if( errorCode!=U_BUFFER_OVERFLOW_ERROR ||
+        length!=(sizeof(foldedDefault)/U_SIZEOF_UCHAR) ||
+        uprv_memcmp(foldedDefault, buffer, 2*U_SIZEOF_UCHAR)!=0 ||
+        buffer[2]!=0xabcd
+    ) {
+        log_err("error in u_strFoldCase(default preflighting)=%ld error=%s string matches: %s\n",
+            length,
+            u_errorName(errorCode),
+            uprv_memcmp(foldedDefault, buffer, 2*U_SIZEOF_UCHAR)==0 && buffer[2]==0xabcd ? "yes" : "no");
+    }
+
+    errorCode=U_ZERO_ERROR;
+    length=u_strFoldCase(NULL, 0,
+                        mixed, sizeof(mixed)/U_SIZEOF_UCHAR,
+                        U_FOLD_CASE_DEFAULT,
+                        &errorCode);
+    if( errorCode!=U_BUFFER_OVERFLOW_ERROR ||
+        length!=(sizeof(foldedDefault)/U_SIZEOF_UCHAR)
+    ) {
+        log_err("error in u_strFoldCase(default pure preflighting)=%ld error=%s\n",
+            length,
+            u_errorName(errorCode));
+    }
+
+    /* test error handling */
+    errorCode=U_ZERO_ERROR;
+    length=u_strFoldCase(NULL, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        mixed, sizeof(mixed)/U_SIZEOF_UCHAR,
+                        U_FOLD_CASE_DEFAULT,
+                        &errorCode);
+    if(errorCode!=U_ILLEGAL_ARGUMENT_ERROR) {
+        log_err("error in u_strFoldCase(default dest=NULL)=%ld error=%s\n",
+            length,
+            u_errorName(errorCode));
+    }
+
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strFoldCase(buffer, -1,
+                        mixed, sizeof(mixed)/U_SIZEOF_UCHAR,
+                        U_FOLD_CASE_DEFAULT,
+                        &errorCode);
+    if( errorCode!=U_ILLEGAL_ARGUMENT_ERROR ||
+        buffer[0]!=0xabcd
+    ) {
+        log_err("error in u_strFoldCase(default destCapacity=-1)=%ld error=%s buffer[0]==0x%lx\n",
+            length,
+            u_errorName(errorCode),
+            buffer[0]);
+    }
+
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strFoldCase(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        NULL, sizeof(mixed)/U_SIZEOF_UCHAR,
+                        U_FOLD_CASE_EXCLUDE_SPECIAL_I,
+                        &errorCode);
+    if( errorCode!=U_ILLEGAL_ARGUMENT_ERROR ||
+        buffer[0]!=0xabcd
+    ) {
+        log_err("error in u_strFoldCase(exclude special i src=NULL)=%ld error=%s buffer[0]==0x%lx\n",
+            length,
+            u_errorName(errorCode),
+            buffer[0]);
+    }
+
+    buffer[0]=0xabcd;
+    errorCode=U_ZERO_ERROR;
+    length=u_strFoldCase(buffer, sizeof(buffer)/U_SIZEOF_UCHAR,
+                        mixed, -2,
+                        U_FOLD_CASE_EXCLUDE_SPECIAL_I,
+                        &errorCode);
+    if( errorCode!=U_ILLEGAL_ARGUMENT_ERROR ||
+        buffer[0]!=0xabcd
+    ) {
+        log_err("error in u_strFoldCase(exclude special i srcLength=-2)=%ld error=%s buffer[0]==0x%lx\n",
+            length,
+            u_errorName(errorCode),
+            buffer[0]);
+    }
+}
+
+static void
+TestCaseCompare() {
+    static const UChar
+
+    mixed[]=               { 0x61, 0x42, 0x131, 0x3a3, 0xdf,       0xfb03,           0xd93f, 0xdfff, 0 },
+    otherDefault[]=        { 0x41, 0x62, 0x69,  0x3c3, 0x73, 0x53, 0x46, 0x66, 0x49, 0xd93f, 0xdfff, 0 },
+    otherExcludeSpecialI[]={ 0x41, 0x62, 0x131, 0x3c3, 0x53, 0x73, 0x66, 0x46, 0x69, 0xd93f, 0xdfff, 0 },
+    different[]=           { 0x41, 0x62, 0x69,  0x3c3, 0x73, 0x53, 0x46, 0x66, 0x49, 0xd93f, 0xdffd, 0 };
+
+    UVersionInfo unicodeVersion={ 0, 0, 17, 89 }, unicode_3_1={ 3, 1, 0, 0 };
+
+    int32_t result;
+    UBool isUnicode_3_1;
+
+    /* if unicodeVersion()>=3.1 then test exclude-special-i cases as well */
+    u_getUnicodeVersion(unicodeVersion);
+    isUnicode_3_1= uprv_memcmp(unicodeVersion, unicode_3_1, 4)>=0;
+
+    /* test u_strcasecmp() */
+    result=u_strcasecmp(mixed, otherDefault, U_FOLD_CASE_DEFAULT);
+    if(result!=0) {
+        log_err("error: u_strcasecmp(mixed, other, default)=%ld instead of 0\n", result);
+    }
+
+    /* test u_strcasecmp() - exclude special i */
+    result=u_strcasecmp(mixed, otherExcludeSpecialI, U_FOLD_CASE_EXCLUDE_SPECIAL_I);
+    if(result!=0) {
+        log_err("error: u_strcasecmp(mixed, other, exclude special i)=%ld instead of 0\n", result);
+    }
+
+    /* test u_strcasecmp() */
+    result=u_strcasecmp(mixed, different, U_FOLD_CASE_DEFAULT);
+    if(result<=0) {
+        log_err("error: u_strcasecmp(mixed, different, default)=%ld instead of positive\n", result);
+    }
+
+    /* test u_strncasecmp() - stop before the sharp s (U+00df) */
+    result=u_strncasecmp(mixed, different, 4, U_FOLD_CASE_DEFAULT);
+    if(result!=0) {
+        log_err("error: u_strncasecmp(mixed, different, 4, default)=%ld instead of 0\n", result);
+    }
+
+    /* test u_strncasecmp() - stop in the middle of the sharp s (U+00df) */
+    result=u_strncasecmp(mixed, different, 5, U_FOLD_CASE_DEFAULT);
+    if(result<=0) {
+        log_err("error: u_strncasecmp(mixed, different, 5, default)=%ld instead of positive\n", result);
+    }
+
+    /* test u_memcasecmp() - stop before the sharp s (U+00df) */
+    result=u_memcasecmp(mixed, different, 4, U_FOLD_CASE_DEFAULT);
+    if(result!=0) {
+        log_err("error: u_memcasecmp(mixed, different, 4, default)=%ld instead of 0\n", result);
+    }
+
+    /* test u_memcasecmp() - stop in the middle of the sharp s (U+00df) */
+    result=u_memcasecmp(mixed, different, 5, U_FOLD_CASE_DEFAULT);
+    if(result<=0) {
+        log_err("error: u_memcasecmp(mixed, different, 5, default)=%ld instead of positive\n", result);
+    }
 }
 
 static void TestUScriptCodeAPI(){
@@ -1824,3 +2190,4 @@ static void TestUScriptCodeAPI(){
 	    }
     }
  }
+

@@ -72,8 +72,6 @@ char symPrefix[100];
 
 extern int
 main(int argc, char* argv[]) {
-    UBool verbose = FALSE;
-
     options[2].value = ".";
 
     /* read command line options */
@@ -108,8 +106,6 @@ main(int argc, char* argv[]) {
             "\toptions:\n"
             "\t\t-h or -? or --help  this usage text\n"
             "\t\t-d or --destdir     destination directory, followed by the path\n"
-            "\t\t-n or --name        symbol prefix, followed by the prefix\n"
-            "\t\t-e or --entrypoint  entry point name, followed by the name\n"
 #ifdef CAN_GENERATE_OBJECTS
             "\t\t-o or --object      write a .obj file instead of .c\n"
 #endif
@@ -119,19 +115,17 @@ main(int argc, char* argv[]) {
         void (*writeCode)(const char *, const char *);
 #ifdef CAN_GENERATE_OBJECTS
         if(options[5].doesOccur) {
-            message="generating object code for %s\n";
+            message="Generating object code for %s\n";
             writeCode=&writeObjectCode;
         } else
 #endif
         {
-            message="generating C code for %s\n";
+            message="Generating C code for %s\n";
             writeCode=&writeCCode;
         }
         while(--argc) {
             filename=getLongPathname(argv[argc]);
-            if (verbose) {
-                fprintf(stdout, message, filename);
-            }
+            fprintf(stdout, message, filename);
             column=0xffff;
             writeCode(filename, options[2].value);
         }

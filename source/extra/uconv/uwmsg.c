@@ -18,7 +18,6 @@
 #include "unicode/umsg.h"
 #include "unicode/uwmsg.h"
 #include "unicode/ures.h"
-#include "cstring.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -81,7 +80,6 @@ finish:
     ucnv_close(converter);
 }
 
-static const char *gPath = 0;
 static UResourceBundle *gBundle = NULL;
 
 U_CAPI UResourceBundle *u_wmsg_setPath(const char *path, UErrorCode *err)
@@ -101,7 +99,6 @@ U_CAPI UResourceBundle *u_wmsg_setPath(const char *path, UErrorCode *err)
     UResourceBundle *b = NULL;
     b = ures_open(path, NULL, err);
 
-    gPath = uprv_strdup(path);
     gBundle = b;
   }
   
@@ -128,7 +125,7 @@ U_CAPI void  u_wmsg(const char *tag, ... )
 
     if(U_FAILURE(err))
     {
-        fprintf(stderr, "u_wmsg: failed to load tag [%s] [%s] [%s]!!\n", tag,  u_errorName(err), gPath);
+        fprintf(stderr, "u_wmsg: failed to load tag [%s] [%s]!!\n", tag,  u_errorName(err));
         return;
     }
 
@@ -198,24 +195,17 @@ U_CAPI const UChar *u_wmsg_errorName(UErrorCode err)
     }
     else
     {
-        const char *errname = u_errorName(err);
-        if (errname) {
-            msg = (UChar*)ures_getStringByKey(gBundle, errname, &msgLen, &subErr);
-            if(U_FAILURE(subErr))
-            {
-                msg = NULL;
-            }
+        msg = (UChar*)ures_getStringByKey(gBundle, u_errorName(err), &msgLen, &subErr);
+        
+        if(U_FAILURE(subErr))
+        {
+            msg = NULL;
         }
     }
 
     if(msg == NULL)  /* Couldn't find it anywhere.. */
     {
-        char error[128];
         textMsg = u_errorName(err);
-        if (!textMsg) {
-            sprintf(error, "UNDOCUMENTED ICU ERROR %d", err);
-            textMsg = error;
-        }
         msg = (UChar*)malloc((strlen(textMsg)+1)*sizeof(msg[0]));
         u_charsToUChars(textMsg, msg, strlen(textMsg)+1);
     }

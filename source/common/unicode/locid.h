@@ -32,8 +32,10 @@
 
 #include "unicode/putil.h"
 
-/* all ULOC constants are now in uloc.h. */
-#include "unicode/uloc.h"
+
+#define ULOC_LANG_CAPACITY 12
+#define ULOC_COUNTRY_CAPACITY 4
+#define ULOC_FULLNAME_CAPACITY 50
 
 #ifdef XP_CPLUSPLUS
 

@@ -20,6 +20,7 @@
 #include "unicode/resbund.h"
 #include "unicode/datefmt.h"
 #include "unicode/smpdtfmt.h"
+#include "mutex.h"
 
 // *****************************************************************************
 // class DateFormat
