@@ -353,10 +353,6 @@ SOURCE=.\msgfmt.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\name2uni.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\nultrans.cpp
 
 !IF  "$(CFG)" == "i18n - Win32 Release"
@@ -543,18 +539,6 @@ SOURCE=.\timezone.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\titletrn.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\tolowtrn.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\toupptrn.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\translit.cpp
 
 !IF  "$(CFG)" == "i18n - Win32 Release"
@@ -659,10 +643,6 @@ SOURCE=.\umsg.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\uni2name.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\unifltlg.cpp
 # End Source File
 # Begin Source File
@@ -729,10 +709,6 @@ SOURCE=.\utrans.cpp
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\xformtrn.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -1269,25 +1245,6 @@ InputPath=.\unicode\msgfmt.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\unicode\name2uni.h
-
-!IF  "$(CFG)" == "i18n - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\name2uni.h
-
-"..\..\include\unicode\name2uni.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    unicode\name2uni.h    ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
 SOURCE=.\unicode\nultrans.h
 
 !IF  "$(CFG)" == "i18n - Win32 Release"
@@ -1814,25 +1771,6 @@ InputPath=.\unicode\umsg.h
 
 "..\..\include\unicode\umsg.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy                unicode\umsg.h                ..\..\include\unicode
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=.\unicode\uni2name.h
-
-!IF  "$(CFG)" == "i18n - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
-
-# Begin Custom Build
-InputPath=.\unicode\uni2name.h
-
-"..\..\include\unicode\uni2name.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy    unicode\uni2name.h    ..\..\include\unicode
 
 # End Custom Build
 

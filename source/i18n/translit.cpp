@@ -19,20 +19,16 @@
 #include "unicode/jamohang.h"
 #include "unicode/locid.h"
 #include "unicode/msgfmt.h"
-#include "unicode/name2uni.h"
 #include "unicode/nultrans.h"
 #include "unicode/putil.h"
 #include "unicode/rep.h"
 #include "unicode/remtrans.h"
 #include "unicode/resbund.h"
-#include "unicode/titletrn.h"
-#include "unicode/tolowtrn.h"
-#include "unicode/toupptrn.h"
 #include "unicode/translit.h"
-#include "unicode/uni2name.h"
 #include "unicode/unifilt.h"
 #include "unicode/uniset.h"
 #include "unicode/unitohex.h"
+#include <stdio.h>
 
 const UChar Transliterator::ID_SEP   = 0x002D; /*-*/
 const UChar Transliterator::ID_DELIM = 0x003B; /*;*/
@@ -104,12 +100,6 @@ const char* Transliterator::RB_RULE_BASED_IDS =
  * Resource bundle key for the RuleBasedTransliterator rule.
  */
 const char* Transliterator::RB_RULE = "Rule";
-
-/**
- * Class identifier for subclasses of Transliterator that do not
- * define their class (anonymous subclasses).
- */
-char Transliterator::fgClassID = 0; // Value is irrelevant
 
 /**
  * Default constructor.
@@ -979,11 +969,6 @@ void Transliterator::initializeCache(void) {
     _registerInstance(new HangulJamoTransliterator(), status);
     _registerInstance(new NullTransliterator(), status);
     _registerInstance(new RemoveTransliterator(), status);
-    _registerInstance(new LowercaseTransliterator(), status);
-    _registerInstance(new UppercaseTransliterator(), status);
-    _registerInstance(new TitlecaseTransliterator(), status);
-    _registerInstance(new UnicodeNameTransliterator(), status);
-    _registerInstance(new NameUnicodeTransliterator(), status);
 
     cacheInitialized = TRUE;
 }

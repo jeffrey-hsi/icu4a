@@ -617,14 +617,14 @@ UnicodeSetTest::expectPattern(UnicodeSet& set,
     set.toPattern(temppattern);
     UnicodeSet *tempset=new UnicodeSet(temppattern, status);
     if (U_FAILURE(status)) {
-        errln(UnicodeString("FAIL: applyPattern(\""+ pattern + "\").toPattern() => " + temppattern + " => invalid pattern"));
+        errln(UnicodeString("FAIL: Construction with the pattern derived from toPattern() failed"));
         return;
     }
     if(*tempset != set || getPairs(*tempset) != getPairs(set)){
-        errln(UnicodeString("FAIL: applyPattern(\""+ pattern + "\").toPattern() => " + temppattern + " => pairs \""+ escape(getPairs(*tempset)) + "\", expected pairs \"" +
+        errln(UnicodeString("FAIL: "+ pattern + "!=>" + temppattern + ". Pairs \""+ escape(getPairs(*tempset)) + "\" expected->\"" +
             escape(getPairs(set)) + "\""));
     } else{
-        logln(UnicodeString("Ok:   applyPattern(\""+ pattern + "\").toPattern() => " + temppattern + " => pairs \"" + escape(getPairs(*tempset)) + "\""));
+        logln(UnicodeString("OK:  "+ pattern + "==>" + temppattern + ".  Pairs \"" + escape(getPairs(*tempset)) + "\""));
     }
 
     delete tempset;
