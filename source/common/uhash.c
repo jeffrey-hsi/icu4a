@@ -80,16 +80,13 @@ CAPI UHashtable*
 uhash_open(UHashFunction func,
        UErrorCode *status)
 {
-  UHashtable* myUHT =  uhash_openSize(func, 3, status);
-  if (SUCCESS(*status)) myUHT->isGrowable = TRUE;
-
-  return myUHT;
+  return uhash_openSize(func, 3, status);
 }
 
 CAPI UHashtable*
 uhash_openSize(UHashFunction func,
-	       int32_t size,
-	       UErrorCode *status)
+           int32_t size,
+           UErrorCode *status)
 {
   UHashtable *result;
   
@@ -107,7 +104,6 @@ uhash_openSize(UHashFunction func,
   result->valueDelete        = NULL;
   result->toBeDeleted        = NULL;
   result->toBeDeletedCount    = 0;
-  result->isGrowable    = FALSE;
 
   uhash_initialize(result, uhash_leastGreaterPrimeIndex(size), status);
 
@@ -164,11 +160,7 @@ uhash_putKey(UHashtable *hash,
   if(FAILURE(*status)) return UHASH_INVALID;
 
   if(hash->count > hash->highWaterMark) {
-    if (hash->isGrowable)    uhash_rehash(hash, status);
-    else  {
-      *status = INDEX_OUTOFBOUNDS_ERROR;
-      return UHASH_INVALID;
-    }
+    uhash_rehash(hash, status);
   }
 
   hashCode     = valueKey;
@@ -214,11 +206,7 @@ uhash_put(UHashtable *hash,
   if(FAILURE(*status)) return UHASH_INVALID;
 
   if(hash->count > hash->highWaterMark) {
-    if (hash->isGrowable)    uhash_rehash(hash, status);
-    else  {
-      *status = INDEX_OUTOFBOUNDS_ERROR;
-      return UHASH_INVALID;
-    }
+    uhash_rehash(hash, status);
   }
 
   hashCode     = (hash->hashFunction)(value);

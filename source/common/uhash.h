@@ -65,7 +65,6 @@ struct UHashtable {
 
   int32_t    toBeDeletedCount; 
   void**    toBeDeleted;
-  bool_t isGrowable;
 };
 typedef struct UHashtable UHashtable;
 
@@ -76,21 +75,20 @@ typedef struct UHashtable UHashtable;
  * @return A pointer to a UHashtable, or 0 if an error occurred.
  * @see uhash_openSize
  */
-CAPI UHashtable*
+CAPI UHashtable* U_EXPORT2
 uhash_open(UHashFunction func,
-       UErrorCode *status);
+	   UErrorCode *status);
 
 /**
- * Initialize a new UHashtable with a given size. If after a sequence of uhash_put the table runs out of space
- * An error will be signalled by uhash_put.
+ * Initialize a new UHashtable.
  * @param hash A pointer to the UHashtable to be initialized.
  * @param func A pointer to the hashing function to be used by this hash table.
- * @param size The maximal capacity of this hash table.
+ * @param size The initial capacity of this hash table.
  * @param status A pointer to an UErrorCode to receive any errors.
  * @return A pointer to a UHashtable, or 0 if an error occurred.
  * @see uhash_open
  */
-CAPI UHashtable*
+CAPI UHashtable* U_EXPORT2
 uhash_openSize(UHashFunction func,
            int32_t size,
            UErrorCode *status);
@@ -99,11 +97,11 @@ uhash_openSize(UHashFunction func,
  * Close a UHashtable, releasing the memory used.
  * @param hash The UHashtable to close.
  */
-CAPI void
+CAPI void U_EXPORT2
 uhash_close(UHashtable *hash);
 
 
-CAPI void
+CAPI void U_EXPORT2
 uhash_setValueDeleter(UHashtable *hash, ValueDeleter del);
 
 /**
@@ -111,7 +109,7 @@ uhash_setValueDeleter(UHashtable *hash, ValueDeleter del);
  * @param hash The UHashtable to query.
  * @return The number of items stored in hash.
  */
-CAPI int32_t
+CAPI int32_t U_EXPORT2
 uhash_size(const UHashtable *hash);
 
 /**
@@ -122,7 +120,7 @@ uhash_size(const UHashtable *hash);
  * @return The hash code associated with value.
  * @see uhash_get
  */
-CAPI int32_t
+CAPI int32_t U_EXPORT2
 uhash_put(UHashtable *hash,
       void *value,
       UErrorCode *status);
@@ -135,7 +133,7 @@ uhash_put(UHashtable *hash,
  * @return The hash code associated with value.
  * @see uhash_get
  */
-CAPI int32_t
+CAPI int32_t U_EXPORT2
 uhash_putKey(UHashtable *hash,
          int32_t valueKey,
          void *value,
@@ -147,7 +145,7 @@ uhash_putKey(UHashtable *hash,
  * @param key The hash code of the desired value.
  * @return The requested item, or 0 if not found.
  */
-CAPI void*
+CAPI void* U_EXPORT2
 uhash_get(const UHashtable *hash, 
       int32_t key);
 
@@ -158,7 +156,7 @@ uhash_get(const UHashtable *hash,
  * @param status A pointer to an UErrorCode to receive any errors.
  * @return The item removed, or 0 if not found.
  */
-CAPI void*
+CAPI void* U_EXPORT2
 uhash_remove(UHashtable *hash,
          int32_t key,
          UErrorCode *status);
@@ -170,7 +168,7 @@ uhash_remove(UHashtable *hash,
  * the first value, and should subsequently not be changed by the caller.
  * @return The next item in the hash table, or 0 if no items remain.
  */
-CAPI void*
+CAPI void* U_EXPORT2
 uhash_nextElement(const UHashtable *hash,
           int32_t *pos);
 
@@ -190,7 +188,7 @@ uhash_nextElement(const UHashtable *hash,
  * @param parm The ustring (const UChar*) to hash.
  * @return A hash code for parm.
  */
-CAPI int32_t
+CAPI int32_t U_EXPORT2
 uhash_hashUString(const void *parm);
 
 /**
@@ -200,7 +198,7 @@ uhash_hashUString(const void *parm);
  * @param parm The string (const char*) to hash.
  * @return A hash code for parm.
  */
-CAPI int32_t
+CAPI int32_t U_EXPORT2
 uhash_hashString(const void *parm);
 
 /**
@@ -208,7 +206,7 @@ uhash_hashString(const void *parm);
  * @param parm The long (cast to void*) to hash.
  * @return A hash code for parm.
  */
-CAPI int32_t
+CAPI int32_t U_EXPORT2
 uhash_hashLong(const void *parm);
 
 #endif

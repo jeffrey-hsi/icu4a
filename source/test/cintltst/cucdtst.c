@@ -319,7 +319,7 @@ void TestUnicodeData()
     char newPath[256];
 
     strcpy(newPath,icu_getDefaultDataDirectory());
-    strcat(newPath, "UnicodeData-3.0.0.txt");
+    strcat(newPath, "UnicodeData-3.0.0.beta.txt");
     
     input = fopen(newPath, "r");
 
