@@ -28,8 +28,6 @@ public:
      **/
     void TestConstruction(void);
 
-    void TestExemplar(void);
-
 private:
     /**
      * The assignment operator has no real implementation.

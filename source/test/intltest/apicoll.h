@@ -38,12 +38,6 @@ public:
     void TestRuleBasedColl(/* char* par */);
 
     /**
-    * This tests the RuleBasedCollator
-    * - getRules
-    */
-    void TestRules(/* char* par */);
-
-    /**
     * Tests decomposition setting
     */
     void TestDecomposition();
@@ -130,10 +124,6 @@ public:
     */
     void TestVariableTopSetting();
 
-    /**
-    * Tests GetLocale for a Collator
-    */
-    void TestGetLocale();
 private:
     // If this is too small for the test data, just increase it.
     // Just don't make it too large, otherwise the executable will get too big

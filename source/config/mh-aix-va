@@ -1,9 +1,9 @@
 ## -*-makefile-*-
-## Aix-specific setup (for Visual Age 5+)
-## Copyright (c) 1999-2002, International Business Machines Corporation and
+## Aix-specific setup (for xlC)
+## Copyright (c) 1999-2000, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-aix-va,v 1.21 2002/03/21 01:26:39 grhoten-oss Exp $
+## $Id: mh-aix-va,v 1.17.2.1 2002/02/22 01:34:09 srl Exp $
 
 ## Commands to generate dependency files
 GEN_DEPS.c=	$(CC) -E -M $(DEFS) $(CPPFLAGS)
@@ -23,8 +23,8 @@ LINK.cc=	$(CXX) -brtl -bh:5 $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
 ## -G means -berok -brtl -bnortllib -bnosymbolic -bnoautoexp
 ## -bh:8 means halt on errors or worse.  We don't display warnings about
 ##      duplicate inline symbols.
-SHLIB.c=	$(CXX) -qmkshrobj -G -brtl $(LDFLAGS)
-SHLIB.cc=	$(CXX) -qmkshrobj -G -brtl -bh:5 $(LDFLAGS)
+SHLIB.c=	$(CXX) -qmkshrobj -G -brtl
+SHLIB.cc=	$(CXX) -qmkshrobj -G -brtl -bh:5
 
 ## Compiler switch to embed a runtime search path
 LD_RPATH=	-I
@@ -39,10 +39,10 @@ MIDDLE_SO_TARGET= $(basename $(SO_TARGET))$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFF
 
 ## Special AIX rules
 ## Override the library calls because  AIX doesn't have library versioning. 
-LIBICUDT=       -L$(top_builddir)/data/out -L$(top_builddir)/stubdata -l$(ICUPREFIX)data$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
+LIBICUDT=       -L$(top_builddir)/data -L$(top_builddir)/stubdata -l$(ICUDATA_NAME)$(ICULIBSUFFIX)
 LIBICUUC=       -L$(top_builddir)/common -l$(ICUPREFIX)uc$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX) $(LIBICUDT)
 LIBICUI18N=     -L$(top_builddir)/i18n -l$(ICUPREFIX)i18n$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
-LIBICULE=       -L$(top_builddir)/layout -l$(ICUPREFIX)le$(SO_TARGET_VERSION_MAJOR)$(ICULIBSSUFFIX)
+LIBICULE=       -L$(top_builddir)/layout -l$(ICUPREFIX)le$(ICULIBSSUFFIX)
 LIBCTESTFW=     -L$(top_builddir)/tools/ctestfw -l$(ICUPREFIX)ctestfw$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
 LIBICUTOOLUTIL= -L$(top_builddir)/tools/toolutil -l$(ICUPREFIX)toolutil$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
 LIBUSTDIO=      -L$(top_builddir)/extra/ustdio -lustdio$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
@@ -85,11 +85,11 @@ STATIC_O = o
 		[ -s $@ ] || rm -f $@ ; rm -f $<'
 
 %.u : $(srcdir)/%.c
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.c) $< > /dev/null'
 
 %.u : $(srcdir)/%.cpp
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.cc) $< > /dev/null'
 
 ## Versioned libraries rules

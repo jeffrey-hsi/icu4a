@@ -33,6 +33,10 @@
 #include "makeconv.h"
 #include "genmbcs.h"
 
+#ifdef XP_MAC_CONSOLE
+# include <console.h>
+#endif
+
 #define DEBUG 0
 
 /*
@@ -105,22 +109,15 @@ parseCodepageBytes(const char *s, uint32_t *pBytes, const char **pEnd) {
     return length;
 }
 
-/* Remove all characters followed by '#'. There is an exception if there
- * is a fallback sign '|' after the comment and the comment does not
- * start in column 0. In this case, we just blank from '#' to just
- * before the '|' in order to support the fact that IBM official .ucm
- * files have the fallback information in comments!
+/* Remove all characters followed by '#'
  */
 static char *
   removeComments (char *line)
 {
-  char *pound;
-
-  line = (char*)skipWhitespace(line);
-  pound = uprv_strchr (line, '#');
+  char *pound = uprv_strchr (line, '#');
   if (pound != NULL)
   {
-      char *fallback = pound == line ? 0 : uprv_strchr(pound + 1, '|');
+      char *fallback = uprv_strchr(pound + 1, '|');
       if (fallback != NULL)
       {
           uprv_memset(pound, ' ', fallback-pound);
@@ -154,12 +151,12 @@ static UBool
 static int32_t
   nextTokenOffset (const char *line, const char *separators)
 {
-    int32_t i = 0;
+  int32_t i = 0;
 
-    while (line[i] && isInSet(line[i], separators))
-        i++;
+  while (line[i] && isInSet(line[i], separators))
+    i++;
 
-    return i;
+  return i;
 }
 
 /* Returns pointer to the next token based on the set of separators
@@ -167,14 +164,14 @@ static int32_t
 static char *
   getToken (char *token, char *line, const char *separators)
 {
-    int32_t i = nextTokenOffset (line, separators);
-    int8_t j = 0;
+  int32_t i = nextTokenOffset (line, separators);
+  int8_t j = 0;
 
-    while (line[i] && (!isInSet(line[i], separators)))
-        token[j++] = line[i++];
-    token[j] = '\0';
+  while (line[i] && (!isInSet(line[i], separators)))
+    token[j++] = line[i++];
+  token[j] = '\0';
 
-    return line + i;
+  return line + i;
 }
 
 UBool haveCopyright=TRUE;
@@ -261,7 +258,9 @@ int main(int argc, char* argv[])
     char cnvName[UCNV_MAX_FULL_FILE_NAME_LENGTH];
     UVersionInfo icuVersion;
 
-    U_MAIN_INIT_ARGS(argc, argv);
+#ifdef XP_MAC_CONSOLE
+    argc = ccommand((char***)&argv);
+#endif
 
     /* Set up the ICU version number */
     u_getVersion(icuVersion);
@@ -283,12 +282,12 @@ int main(int argc, char* argv[])
         fprintf(stderr,
             "usage: %s [-options] files...\n"
             "\tread .ucm codepage mapping files and write .cnv files\n"
-            "options:\n"
-            "\t-h or -? or --help  this usage text\n"
-            "\t-V or --version     show a version message\n"
-            "\t-c or --copyright   include a copyright notice\n"
-            "\t-d or --destdir     destination directory, followed by the path\n"
-            "\t-v or --verbose     Turn on verbose output\n",
+            "\toptions:\n"
+            "\t\t-h or -? or --help  this usage text\n"
+            "\t\t-V or --version     show a version message\n"
+            "\t\t-c or --copyright   include a copyright notice\n"
+            "\t\t-d or --destdir     destination directory, followed by the path\n"
+            "\t\t-v or --verbose     Turn on verbose output\n",
             argv[0]);
         return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }

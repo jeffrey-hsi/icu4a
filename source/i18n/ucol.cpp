@@ -23,7 +23,6 @@
 #include "bocsu.h"
 
 #include "unormimp.h"
-#include "uresimp.h"
 #include "cstring.h"
 #include "umutex.h"
 #include "uhash.h"
@@ -276,19 +275,12 @@ ucol_open(    const    char         *loc,
   UResourceBundle *b = ures_open(NULL, loc, status);
   /* first take on tailoring version: */
   /* get CollationElements -> Version */
-  UResourceBundle *binary = ures_getByKey(b, "%%CollationBin", NULL, status);
+  UResourceBundle *binary = ures_getByKey(b, "%%CollationNew", NULL, status);
 
   if(*status == U_MISSING_RESOURCE_ERROR) { /* if we don't find tailoring, we'll fallback to UCA */
     *status = U_USING_DEFAULT_ERROR;
     result = ucol_initCollator(UCA->image, result, status);
-    // if we use UCA, real locale is root
-    result->rb = ures_open(NULL, "", status);
-    result->binary = ures_open(NULL, "", status);
-    if(U_FAILURE(*status)) {
-      goto clean;
-    }
-    ures_close(binary);
-    ures_close(b);
+    /*result = UCA;*/
     result->hasRealData = FALSE;
   } else if(U_SUCCESS(*status)) { /* otherwise, we'll pick a collation data that exists */
     int32_t len = 0;
@@ -310,19 +302,16 @@ ucol_open(    const    char         *loc,
       }
       result->hasRealData = FALSE;
     }
-    result->binary = binary;
-    result->rb = b;
   } else { /* There is another error, and we're just gonna clean up */
 clean:
     ures_close(b);
     ures_close(binary);
     return NULL;
   }
-  if(loc == NULL) {
-    loc = ures_getLocale(result->rb, status);
-  }
-  result->requestedLocale = (char *)uprv_malloc((uprv_strlen(loc)+1)*sizeof(char));
-  uprv_strcpy(result->requestedLocale, loc);
+
+  result->rb = b;
+  ures_close(binary);
+
   return result;
 }
 
@@ -362,8 +351,7 @@ ucol_close(UCollator *coll)
     }
   }
   if(coll->mapping != NULL) {
-      /*ucmpe32_close(coll->mapping);*/
-    uprv_free(coll->mapping);
+      ucmpe32_close(coll->mapping);
   }
   if(coll->rules != NULL && coll->freeRulesOnClose) {
     uprv_free((UChar *)coll->rules);
@@ -372,12 +360,6 @@ ucol_close(UCollator *coll)
     ures_close(coll->rb);
   } else if(coll->hasRealData == TRUE) {
     uprv_free((UCATableHeader *)coll->image);
-  }
-  if(coll->binary != NULL) {
-    ures_close(coll->binary);
-  }
-  if(coll->requestedLocale != NULL) {
-    uprv_free(coll->requestedLocale);
   }
   uprv_free(coll);
 }
@@ -485,9 +467,7 @@ ucol_openRules( const UChar        *rules,
     result->rules = newRules;
     result->rulesLength = rulesLength;
     result->freeRulesOnClose = TRUE;
-    result->rb = NULL;
-    result->binary = NULL;
-    result->requestedLocale = NULL;
+    result->rb = 0;
     ucol_setAttribute(result, UCOL_STRENGTH, strength, status);
     ucol_setAttribute(result, UCOL_NORMALIZATION_MODE, norm, status);
   } else {
@@ -519,7 +499,7 @@ ucol_cloneRuleData(const UCollator *coll, int32_t *length, UErrorCode *status)
     result = (uint8_t *)uprv_malloc(*length);
     uprv_memcpy(result, coll->image, *length);
   } else {
-    *length = (int32_t)(paddedsize(sizeof(UCATableHeader))+paddedsize(sizeof(UColOptionSet)));
+    *length = (uint8_t)paddedsize(sizeof(UCATableHeader))+paddedsize(sizeof(UColOptionSet));
     result = (uint8_t *)uprv_malloc(*length);
     uprv_memcpy(result, UCA->image, sizeof(UCATableHeader));
     uprv_memcpy(result+paddedsize(sizeof(UCATableHeader)), coll->options, sizeof(UColOptionSet));
@@ -637,18 +617,7 @@ UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, UEr
 
     result->image = image;
     const uint8_t *mapping = (uint8_t*)result->image+result->image->mappingPosition;
-    /*CompactEIntArray *newUCAmapping = ucmpe32_openFromData(&mapping, status);*/
-    UTrie *newUCAmapping = (UTrie *)uprv_malloc(sizeof(UTrie)); 
-    if(newUCAmapping != NULL) {
-      utrie_unserialize(newUCAmapping, mapping, result->image->endExpansionCE - result->image->mappingPosition, status);
-    } else {
-      *status = U_MEMORY_ALLOCATION_ERROR;
-      if(result->freeOnClose == TRUE) {
-          uprv_free(result);
-          result = NULL;
-      }
-      return result;
-    }
+    CompactEIntArray *newUCAmapping = ucmpe32_openFromData(&mapping, status);
     if(U_SUCCESS(*status)) {
         result->mapping = newUCAmapping;
     } else {
@@ -656,12 +625,10 @@ UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, UEr
             uprv_free(result);
             result = NULL;
         }
-        uprv_free(newUCAmapping);
         return result;
     }
 
-    /*result->latinOneMapping = (uint32_t*)((uint8_t*)result->image+result->image->latinOneMapping);*/
-    result->latinOneMapping = UTRIE_GET32_LATIN1(result->mapping);
+    result->latinOneMapping = (uint32_t*)((uint8_t*)result->image+result->image->latinOneMapping);
     result->contractionCEs = (uint32_t*)((uint8_t*)result->image+result->image->contractionCEs);
     result->contractionIndex = (UChar*)((uint8_t*)result->image+result->image->contractionIndex);
     result->expansion = (uint32_t*)((uint8_t*)result->image+result->image->expansion);
@@ -738,8 +705,7 @@ ucol_cleanup(void)
     }
     if (UCA) {
         /* Since UCA was opened with ucol_initCollator, ucol_close won't work. */
-        /*ucmpe32_close(UCA->mapping);*/
-        uprv_free(UCA->mapping);
+        ucmpe32_close(UCA->mapping);
         uprv_free(UCA);
         UCA = NULL;
     }
@@ -1077,15 +1043,13 @@ inline uint32_t ucol_IGetNextCE(const UCollator *coll, collIterate *collationSou
       }
       else
       {
-          /*order = ucmpe32_get(coll->mapping, ch);*/                             /* we'll go for slightly slower trie */
-          order = UTRIE_GET32_FROM_LEAD(coll->mapping, ch);
+          order = ucmpe32_get(coll->mapping, ch);                             /* we'll go for slightly slower trie */
           if(order > UCOL_NOT_FOUND) {                                       /* if a CE is special                */
               order = ucol_prv_getSpecialCE(coll, ch, order, collationSource, status);    /* and try to get the special CE     */
           }
           if(order == UCOL_NOT_FOUND) {   /* We couldn't find a good CE in the tailoring */
             /* if we got here, the codepoint MUST be over 0xFF - so we look directly in the trie */
-            /*order = ucmpe32_get(UCA->mapping, ch);*/
-            order = UTRIE_GET32_FROM_LEAD(UCA->mapping, ch);
+            order = ucmpe32_get(UCA->mapping, ch);
 
             if(order > UCOL_NOT_FOUND) { /* UCA also gives us a special CE */
               order = ucol_prv_getSpecialCE(UCA, ch, order, collationSource, status);
@@ -1393,8 +1357,7 @@ inline uint32_t ucol_IGetPrevCE(const UCollator *coll, collIterate *data,
                     result = UCOL_THAI;
                 }
                 else {
-                    /*result = ucmpe32_get(coll->mapping, ch);*/
-                    result = UTRIE_GET32_FROM_LEAD(coll->mapping, ch);
+                    result = ucmpe32_get(coll->mapping, ch);
                 }
                 if (result > UCOL_NOT_FOUND) {
                     result = ucol_prv_getSpecialPrevCE(coll, ch, result, data, status);
@@ -1405,8 +1368,7 @@ inline uint32_t ucol_IGetPrevCE(const UCollator *coll, collIterate *data,
                       result = UCOL_CONTRACTION;
                   }
                   else {
-                        /*result = ucmpe32_get(UCA->mapping, ch);*/
-                        result = UTRIE_GET32_FROM_LEAD(UCA->mapping, ch);
+                        result = ucmpe32_get(UCA->mapping, ch);
                   }
 
                   if (result > UCOL_NOT_FOUND) {
@@ -1898,9 +1860,7 @@ uint32_t ucol_prv_getSpecialCE(const UCollator *coll, UChar ch, uint32_t CE, col
           loadState(source, &state, TRUE);
           return 0;
         } else {
-          /* CE = ucmpe32_getSurrogate(coll->mapping, CE, trail); */
-          /* TODO: CE contain the data from the previous CE + the mask. It should at least be unmasked */
-          CE = UTRIE_GET32_FROM_OFFSET_TRAIL(coll->mapping, CE&0xFFFFFF, trail);
+          CE = ucmpe32_getSurrogate(coll->mapping, CE, trail);
           if(CE == UCOL_NOT_FOUND) { // there are tailored surrogates in this block, but not this one.
             // We need to backup
             loadState(source, &state, TRUE);
@@ -2125,12 +2085,6 @@ uint32_t ucol_prv_getSpecialCE(const UCollator *coll, UChar ch, uint32_t CE, col
       }
       break;
       }
-    case LONG_PRIMARY_TAG:
-      {
-        *(source->CEpos++) = ((CE & 0xFF)<<24)|UCOL_CONTINUATION_MARKER;
-        CE = ((CE & 0xFFFF00) << 8) | (UCOL_BYTE_COMMON << 8) | UCOL_BYTE_COMMON;
-        return CE;
-      }
     case EXPANSION_TAG:
       {
       /* This should handle expansion. */
@@ -2202,18 +2156,15 @@ uint32_t ucol_prv_getSpecialCE(const UCollator *coll, UChar ch, uint32_t CE, col
         // return the first CE, but first put the rest into the expansion buffer
         if (!source->coll->image->jamoSpecial) { // FAST PATH
 
-          /**(source->CEpos++) = ucmpe32_get(UCA->mapping, V);*/
-          *(source->CEpos++) = UTRIE_GET32_FROM_LEAD(UCA->mapping, V);
+          *(source->CEpos++) = ucmpe32_get(UCA->mapping, V);
           if (T != TBase) {
-              /**(source->CEpos++) = ucmpe32_get(UCA->mapping, T);*/
-              *(source->CEpos++) = UTRIE_GET32_FROM_LEAD(UCA->mapping, T);
+              *(source->CEpos++) = ucmpe32_get(UCA->mapping, T);
           }
 
-          /*return ucmpe32_get(UCA->mapping, L);*/ // return first one
-          return UTRIE_GET32_FROM_LEAD(UCA->mapping, L);
+          return ucmpe32_get(UCA->mapping, L); // return first one
 
         } else { // Jamo is Special
-          // Since Hanguls pass the FCD check, it is 
+	  // Since Hanguls pass the FCD check, it is 
           // guaranteed that we won't be in
           // the normalization buffer if something like this happens
           // Move Jamos into normalization buffer
@@ -2704,13 +2655,6 @@ uint32_t ucol_prv_getSpecialPrevCE(const UCollator *coll, UChar ch, uint32_t CE,
             source->CEpos = source->CEs;
         }
         return *(source->toReturn);
-    case LONG_PRIMARY_TAG:
-      {
-        *(source->CEpos++) = ((CE & 0xFFFF00) << 8) | (UCOL_BYTE_COMMON << 8) | UCOL_BYTE_COMMON;
-        *(source->CEpos++) = ((CE & 0xFF)<<24)|UCOL_CONTINUATION_MARKER;
-        source->toReturn = source->CEpos - 1;
-        return *(source->toReturn);
-      }
     case EXPANSION_TAG: /* this tag always returns */
       /*
       This should handle expansion.
@@ -2768,18 +2712,15 @@ uint32_t ucol_prv_getSpecialPrevCE(const UCollator *coll, UChar ch, uint32_t CE,
         */
         if (!source->coll->image->jamoSpecial)
         {
-          /**(source->CEpos ++) = ucmpe32_get(UCA->mapping, L);*/
-          *(source->CEpos++) = UTRIE_GET32_FROM_LEAD(UCA->mapping, L);
-          /**(source->CEpos ++) = ucmpe32_get(UCA->mapping, V);*/
-          *(source->CEpos++) = UTRIE_GET32_FROM_LEAD(UCA->mapping, V);
+          *(source->CEpos ++) = ucmpe32_get(UCA->mapping, L);
+          *(source->CEpos ++) = ucmpe32_get(UCA->mapping, V);
           if (T != TBase)
-            /**(source->CEpos ++) = ucmpe32_get(UCA->mapping, T);*/
-            *(source->CEpos++) = UTRIE_GET32_FROM_LEAD(UCA->mapping, T);
+            *(source->CEpos ++) = ucmpe32_get(UCA->mapping, T);
 
           source->toReturn = source->CEpos - 1;
           return *(source->toReturn);
         } else {
-          // Since Hanguls pass the FCD check, it is 
+	  // Since Hanguls pass the FCD check, it is 
           // guaranteed that we won't be in
           // the normalization buffer if something like this happens
           // Move Jamos into normalization buffer
@@ -4251,73 +4192,6 @@ ucol_calcSortKeySimpleTertiary(const    UCollator    *coll,
     return sortKeySize;
 }
 
-/**
- * Produce a bound for a given sortkey and a number of levels.
- */
-U_CAPI int32_t U_EXPORT2 
-ucol_getBound(const uint8_t       *source,
-        int32_t             sourceLength,
-        UColBoundMode       boundType,
-        uint32_t            noOfLevels,
-        uint8_t             *result,
-        int32_t             resultLength,
-        UErrorCode          *status) {
-  // consistency checks 
-  if(status == NULL || U_FAILURE(*status)) {
-    return 0;
-  }
-  if(source == NULL) {
-    *status = U_ILLEGAL_ARGUMENT_ERROR;
-    return 0;
-  }
-
-  int32_t sourceIndex = 0;
-  // Scan the string until we skip enough of the key OR reach the end of the key
-  do {
-    sourceIndex++;
-    if(source[sourceIndex] == UCOL_LEVELTERMINATOR) {
-      noOfLevels--;
-    }
-  } while (noOfLevels > 0 
-    && (source[sourceIndex] != 0 || sourceIndex == sourceLength));
-
-  if((source[sourceIndex] != 0 || sourceIndex == sourceLength)
-    && noOfLevels > 0) {
-    *status = U_SORT_KEY_TOO_SHORT_WARNING;
-  }
-
-
-  // READ ME: this code assumes that the values for boundType
-  // enum will not changes. They are set so that the enum value
-  // corresponds to the number of extra bytes each bound type 
-  // needs.
-  if(result != NULL && resultLength >= sourceIndex+boundType) {
-    uprv_memcpy(result, source, sourceIndex);
-    switch(boundType) {
-    // Lower bound just gets terminated. No extra bytes
-    case UCOL_BOUND_LOWER: // = 0
-      break;
-    // Upper bound needs one extra byte
-    case UCOL_BOUND_UPPER: // = 1
-      result[sourceIndex++] = 2;
-      break;
-    // Upper long bound needs two extra bytes
-    case UCOL_BOUND_UPPER_LONG: // = 2
-      result[sourceIndex++] = 0xFF;
-      result[sourceIndex++] = 0xFF;
-      break;
-    default:
-      *status = U_ILLEGAL_ARGUMENT_ERROR;
-      return 0;
-    }
-    result[sourceIndex++] = 0;
-
-    return sourceIndex;
-  } else {
-    return sourceIndex+boundType+1; 
-  }
-}
-
 static
 inline void uprv_appendByteToHexString(char *dst, uint8_t val) {
   uint32_t len = (uint32_t)uprv_strlen(dst);
@@ -4837,9 +4711,7 @@ isTailored(const UCollator *coll, const UChar u, UErrorCode *status) {
         return FALSE;
       }
     } else { /* regular */
-      /*CE = ucmpe32_get(coll->mapping, u);*/
-      CE = UTRIE_GET32_FROM_LEAD(coll->mapping, u);
-
+      CE = ucmpe32_get(coll->mapping, u);
     }
 
     if(isContraction(CE)) {
@@ -5657,32 +5529,5 @@ ucol_equal(        const    UCollator        *coll,
 {
   return (ucol_strcoll(coll, source, sourceLength, target, targetLength)
       == UCOL_EQUAL);
-}
-
-/* returns the locale name the collation data comes from */
-U_CAPI const char * U_EXPORT2
-ucol_getLocale(const UCollator *coll, ULocDataLocaleType type, UErrorCode *status) {
-  const char *result = NULL;
-  if(status == NULL || U_FAILURE(*status)) {
-    return NULL;
-  }
-  switch(type) {
-  case ULOC_ACTUAL_LOCALE:
-    if(coll->binary != NULL) {
-      result = ures_getLocale(coll->binary, status);
-    }
-    break;
-  case ULOC_VALID_LOCALE:
-    if(coll->rb != NULL) {
-      result = ures_getLocale(coll->rb, status);
-    } 
-    break;
-  case ULOC_REQUESTED_LOCALE:
-    result = coll->requestedLocale;
-    break;
-  default:
-    *status = U_ILLEGAL_ARGUMENT_ERROR;
-  }
-  return result;
 }
 

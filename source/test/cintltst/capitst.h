@@ -68,15 +68,4 @@
      **/    
     void TestSafeClone(void);
 
-    /**
-     * Test getting bounds for a sortkey
-     */
-    void TestBounds(void);
-
-    /**
-     * Test ucol_getLocale function
-     */
-    void TestGetLocale(void);
-
-
 #endif

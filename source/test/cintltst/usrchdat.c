@@ -20,7 +20,7 @@ struct SearchData {
     const char               *collator;
           UCollationStrength  strength;
     const char               *breaker;
-          int32_t         offset[32];
+          UTextOffset         offset[32];
           uint32_t            size[32];
 };
 
@@ -50,7 +50,7 @@ static const SearchData BASIC[] = {
     {NULL, NULL, NULL, UCOL_TERTIARY, NULL, {-1}, {0}}
 };
 
-static const SearchData BREAKITERATOREXACT[] = {
+static const SearchData BREAKITERATOR[] = {
     {"foxy fox", "fox", NULL, UCOL_TERTIARY, "characterbreaker", {0, 5, -1}, 
     {3, 3}},
     {"foxy fox", "fox", NULL, UCOL_TERTIARY, "wordbreaker", {5, -1}, {3}},
@@ -60,11 +60,6 @@ static const SearchData BREAKITERATOREXACT[] = {
     {10, -1}, {3}},
     {"Channel, another channel, more channels, and one last Channel",
     "Channel", "es", UCOL_TERTIARY, "wordbreaker", {0, 54, -1}, {7, 7}},
-    /* jitterbug 1745 */
-    {"testing that \\u00e9 does not match e", "e", NULL, UCOL_TERTIARY, 
-     "characterbreaker", {1, 17, 30, -1}, {1, 1, 1}},
-    {"testing that string ab\\u00e9cd does not match e", "e", NULL, 
-     UCOL_TERTIARY, "characterbreaker", {1, 28, 41, -1}, {1, 1, 1}},
     {NULL, NULL, NULL, UCOL_TERTIARY, NULL, {-1}, {0}}
 };
 
@@ -289,11 +284,6 @@ static const SearchData BREAKITERATORCANONICAL[] = {
     {10, -1}, {3}},
     {"Channel, another channel, more channels, and one last Channel",
     "Channel", "es", UCOL_TERTIARY, "wordbreaker", {0, 54, -1}, {7, 7}},
-    /* jitterbug 1745 */
-    {"testing that \\u00e9 does not match e", "e", NULL, UCOL_TERTIARY, 
-     "characterbreaker", {1, 17, 30, -1}, {1, 1, 1}},
-    {"testing that string ab\\u00e9cd does not match e", "e", NULL, 
-     UCOL_TERTIARY, "characterbreaker", {1, 28, 41, -1}, {1, 1, 1}},
     {NULL, NULL, NULL, UCOL_TERTIARY, NULL, {-1}, {0}}
 };
 

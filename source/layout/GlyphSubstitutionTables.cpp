@@ -21,9 +21,9 @@ U_NAMESPACE_BEGIN
 void GlyphSubstitutionTableHeader::process(LEGlyphID *glyphs, const LETag **glyphTags, le_int32 glyphCount,
                                            le_bool rightToLeft, LETag scriptTag, LETag languageTag,
                                            const GlyphDefinitionTableHeader *glyphDefinitionTableHeader,
-                                           const LEGlyphFilter *filter, const LETag *featureOrder) const
+                                           const LEGlyphFilter *filter) const
 {
-    GlyphSubstitutionLookupProcessor processor(this, scriptTag, languageTag, filter, featureOrder);
+    GlyphSubstitutionLookupProcessor processor(this, scriptTag, languageTag, filter);
 
     processor.process(glyphs, NULL, glyphTags, glyphCount, rightToLeft, glyphDefinitionTableHeader, NULL);
 }

@@ -165,7 +165,7 @@
 }
 
 #define UTF16_FWD_N_UNSAFE(s, i, n) { \
-    int32_t __N=(n); \
+    UTextOffset __N=(n); \
     while(__N>0) { \
         UTF16_FWD_1_UNSAFE(s, i); \
         --__N; \
@@ -229,7 +229,7 @@
 }
 
 #define UTF16_FWD_N_SAFE(s, i, length, n) { \
-    int32_t __N=(n); \
+    UTextOffset __N=(n); \
     while(__N>0 && (i)<(length)) { \
         UTF16_FWD_1_SAFE(s, i, length); \
         --__N; \
@@ -272,7 +272,7 @@
 }
 
 #define UTF16_BACK_N_UNSAFE(s, i, n) { \
-    int32_t __N=(n); \
+    UTextOffset __N=(n); \
     while(__N>0) { \
         UTF16_BACK_1_UNSAFE(s, i); \
         --__N; \
@@ -321,7 +321,7 @@
 }
 
 #define UTF16_BACK_N_SAFE(s, start, i, n) { \
-    int32_t __N=(n); \
+    UTextOffset __N=(n); \
     while(__N>0 && (i)>(start)) { \
         UTF16_BACK_1_SAFE(s, start, i); \
         --__N; \

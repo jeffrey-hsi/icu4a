@@ -35,7 +35,7 @@ UBool UnicodeConverter_cleanup()
 {
     if (availableConverterNames)
     {
-        uprv_free(availableConverterNames);
+        delete []availableConverterNames;
         availableConverterNames = NULL;
     }
     availableConverterNamesCount = 0;
@@ -231,7 +231,7 @@ UnicodeConverter::toUnicodeString(UnicodeString&         target,
                     &err);
 
         /*appends what we got thus far to the UnicodeString*/
-        target.replace((int32_t)target.length(),
+        target.replace((UTextOffset)target.length(),
             myTargetUCharsAlias - myTargetUChars,
             myTargetUChars,
             myTargetUCharsAlias - myTargetUChars);
@@ -429,7 +429,7 @@ UnicodeConverter::getAvailableNames(int32_t& num, UErrorCode& err)
     if (availableConverterNames==NULL) {
         int32_t count = ucnv_io_countAvailableConverters(&err);
         if (count > 0) {
-            const char **names = (const char **) uprv_malloc( sizeof(const char*) * count );
+            const char **names = new const char *[count];
             if (names != NULL) {
                 ucnv_io_fillAvailableConverters(names, &err);
 
@@ -444,7 +444,7 @@ UnicodeConverter::getAvailableNames(int32_t& num, UErrorCode& err)
 
                 /* if a different thread set it first, then delete the extra data */
                 if (names != 0) {
-                    uprv_free(names);
+                    delete [] names;
                 }
             } else {
                 num = 0;

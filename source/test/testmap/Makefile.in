@@ -82,9 +82,6 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 $(TARGET) : $(OBJECTS)
 	$(LINK.c) -o $@ $^ $(LIBS)
 
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
-ifneq ($(patsubst %install,,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
 endif
-endif
-

@@ -9,13 +9,11 @@ U_NAMESPACE_USE
 
 ContractionTableTest::ContractionTableTest() {
   status = U_ZERO_ERROR;
-  /*testMapping = ucmpe32_open(0, 0, 0, &status);*/
-  testMapping = utrie_open(NULL, NULL, 0, 0, TRUE);
+  testMapping = ucmpe32_open(0, 0, 0, &status);
 }
 
 ContractionTableTest::~ContractionTableTest() {
-  /*ucmpe32_close(testMapping);*/
-  utrie_close(testMapping);
+  ucmpe32_close(testMapping);
 }
 
 void ContractionTableTest::TestGrowTable(/* char* par */) {
@@ -111,7 +109,7 @@ void ContractionTableTest::TestClone(){
   if(U_FAILURE(status)) {
     errln("Error constructing table error = %i (%s)\n", status, u_errorName(status));
   } else {
-    testClone = uprv_cnttab_clone(testTable, &status);
+    testClone = uprv_cnttab_clone(testTable);
     if(U_SUCCESS(status)) {
       for(i = 0; i<0x500; i++) {
         res = uprv_cnttab_getCE(testTable, i, 0, &status);

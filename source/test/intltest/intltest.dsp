@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /MD /Za /W3 /GX /Zi /Ox /Op /Ob0 /I "..\..\..\include" /I "..\..\..\source\common" /I "..\..\..\source\i18n" /I "..\..\tools\toolutil" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /Zi /Ox /Op /Ob0 /I "..\..\..\include" /I "..\..\..\source\common" /I "..\..\..\source\i18n" /I "..\..\tools\toolutil" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /Za /W3 /Gm /GX /ZI /Od /I "..\..\..\include" /I "..\..\..\source\common" /I "..\..\..\source\i18n" /I "..\..\tools\toolutil" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "UDATA_MAP_DLL" /FR /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "..\..\..\include" /I "..\..\..\source\common" /I "..\..\..\source\i18n" /I "..\..\tools\toolutil" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /D "UDATA_MAP_DLL" /FR /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -96,10 +96,6 @@ SOURCE=.\apicoll.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\biditst.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\callimts.cpp
 # End Source File
 # Begin Source File
@@ -113,10 +109,6 @@ SOURCE=.\caltest.cpp
 # Begin Source File
 
 SOURCE=.\caltztst.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\canittst.cpp
 # End Source File
 # Begin Source File
 
@@ -333,10 +325,6 @@ SOURCE=.\srchtest.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\strcase.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\strtest.cpp
 # End Source File
 # Begin Source File
@@ -398,7 +386,6 @@ SOURCE=.\tsdtfmsy.cpp
 # Begin Source File
 
 SOURCE=.\tsmthred.cpp
-# ADD CPP /Ze
 # End Source File
 # Begin Source File
 
@@ -462,10 +449,6 @@ SOURCE=.\apicoll.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\biditst.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\callimts.h
 # End Source File
 # Begin Source File
@@ -479,10 +462,6 @@ SOURCE=.\caltest.h
 # Begin Source File
 
 SOURCE=.\caltztst.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\canittst.h
 # End Source File
 # Begin Source File
 

@@ -24,7 +24,7 @@ MAN_FILES = $(TARGET).$(SECTION)
 subdir = tools/genrb
 
 ## Extra files to remove for 'make clean'
-CLEANFILES = *~ $(MAN_FILES) $(DEPS) 
+CLEANFILES = *~ $(TARGET).$(SECTION) $(DEPS) 
 
 ## Target information
 TARGET = genrb
@@ -49,14 +49,15 @@ LDFLAGS = @LDFLAGS@ $(RPATHLDFLAGS)
 LIBS = $(LIBICUI18N) $(LIBICUTOOLUTIL) $(LIBICUUC) @LIBS@ @LIB_M@ 
 
 ##OBJECTS = error.o genrb.o ustr.o parse.o read.o write.o list.o	\
-##rblist.o	util.o
-OBJECTS = error.o genrb.o parse.o read.o reslist.o ustr.o util.o  wrtjava.o rle.o
+##rblist.o  util.o
+OBJECTS = error.o genrb.o parse.o read.o reslist.o ustr.o util.o
 
 DEPS = $(OBJECTS:.o=.d)
 
+
 ## List of phony targets
 .PHONY : all all-local install install-local clean clean-local		\
-distclean distclean-local dist dist-local check \
+distclean distclean-local dist dist-local check	\
 check-local install-man
 
 ## Clear suffix list
@@ -74,7 +75,7 @@ all-local: $(TARGET) $(MAN_FILES)
 
 install-local: all-local install-man
 	$(MKINSTALLDIRS) $(DESTDIR)$(sbindir)
-	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)
+	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)/$(TARGET)
 
 <dist-local:
 
@@ -94,6 +95,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 $(TARGET) : $(OBJECTS)
 	$(LINK) -o $@ $^ $(LIBS) 
 
+
 # the 'mv' will always fail if you are building in the source dir
 
 # man page
@@ -101,7 +103,7 @@ install-man: $(MAN_FILES)
 	$(MKINSTALLDIRS) $(DESTDIR)$(mandir)/man$(SECTION)
 	$(INSTALL_DATA) $< $(DESTDIR)$(mandir)/man$(SECTION)
 
-%.$(SECTION): $(srcdir)/%.$(SECTION).in
+$(TARGET).$(SECTION): $(srcdir)/$(TARGET).$(SECTION).in
 	cd $(top_builddir) \
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
@@ -119,4 +121,3 @@ ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
 -include $(DEPS)
 endif
 endif
-

@@ -53,7 +53,7 @@ public:
    * @stable
    */
   StringCharacterIterator(const UnicodeString&    textStr,
-              int32_t              textPos);
+              UTextOffset              textPos);
 
   /**
    * Create an iterator over the UnicodeString referred to by "textStr".
@@ -68,9 +68,9 @@ public:
    * @stable
    */
   StringCharacterIterator(const UnicodeString&    textStr,
-              int32_t              textBegin,
-              int32_t              textEnd,
-              int32_t              textPos);
+              UTextOffset              textBegin,
+              UTextOffset              textEnd,
+              UTextOffset              textPos);
 
   /**
    * Copy constructor.  The new iterator iterates over the same range

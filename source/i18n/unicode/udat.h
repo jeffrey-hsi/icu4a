@@ -177,8 +177,8 @@ U_CAPI UDateFormat* U_EXPORT2
 udat_open(UDateFormatStyle  timeStyle,
           UDateFormatStyle  dateStyle,
           const char        *locale,
-          const UChar       *tzID,
-          int32_t           tzIDLength,
+	      const UChar       *tzID,
+	      int32_t           tzIDLength,
           const UChar       *pattern,
           int32_t           patternLength,
           UErrorCode        *status);
@@ -252,28 +252,6 @@ udat_parse(    const    UDateFormat*    format,
                     int32_t         textLength,
                     int32_t         *parsePos,
                     UErrorCode      *status);
-
-/**
-* Parse a string into an date/time using a UDateFormat.
-* The date will be parsed using the conventions specified in \Ref{udat_open}
-* or \Ref{udat_openPattern}
-* @param fmt The formatter to use.
-* @param calendar The calendar in which to store the parsed data.
-* @param text The text to parse.
-* @param textLength The length of text, or -1 if null-terminated.
-* @param parsePos If not 0, on input a pointer to an integer specifying the offset at which
-* to begin parsing.  If not 0, on output the offset at which parsing ended.
-* @param status A pointer to an UErrorCode to receive any errors
-* @see udat_format
-* @stable
-*/
-U_CAPI void U_EXPORT2 
-udat_parseCalendar(const    UDateFormat*    format,
-                            UCalendar*      calendar,
-                   const    UChar*          text,
-                            int32_t         textLength,
-                            int32_t         *parsePos,
-                            UErrorCode      *status);
 
 /**
 * Determine if an UDateFormat will perform lenient parsing.
@@ -513,6 +491,7 @@ udat_countSymbols(    const    UDateFormat                *fmt,
 * @param value The new value
 * @param valueLength The length of value, or -1 if null-terminated
 * @param status A pointer to an UErrorCode to receive any errors
+* @return A pointer to result.
 * @see udat_getSymbols
 * @see udat_countSymbols
 * @stable
@@ -530,7 +509,7 @@ udat_setSymbols(    UDateFormat             *format,
  *@deprecated Remove after Aug 2002
  */
 #ifdef U_USE_DEPRECATED_FORMAT_API
-#if ((U_ICU_VERSION_MAJOR_NUM != 2) || (U_ICU_VERSION_MINOR_NUM !=1))
+#if ((U_ICU_VERSION_MAJOR_NUM != 2) || (U_ICU_VERSION_MINOR_NUM !=0))
 #   error "ICU version has changed. Please redefine the macros under U_USE_DEPRECATED_FORMAT_API pre-processor definition"
 #else 
     static UDateFormat*
@@ -539,7 +518,7 @@ udat_setSymbols(    UDateFormat             *format,
         return udat_open(UDAT_IGNORE,UDAT_IGNORE,locale,NULL,0,pattern,patternLength,status);
     }
 
-#   define udat_open_2_1(timeStyle,dateStyle,locale,tzId,tzIdLength,status) udat_open(timeStyle,dateStyle,locale,tzId,tzIdLength,NULL,0,status)
+#   define udat_open_2_0(timeStyle,dateStyle,locale,tzId,tzIdLength,status) udat_open(timeStyle,dateStyle,locale,tzId,tzIdLength,NULL,0,status)
 #endif
 #endif
 /********************* End **********************************************/

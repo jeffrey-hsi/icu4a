@@ -366,7 +366,7 @@ void NumberFormatRegressionTest::Test4071492 (void)
 void NumberFormatRegressionTest::Test4086575(void) 
 {
     UErrorCode status = U_ZERO_ERROR;
-    NumberFormat *nf1 = NumberFormat::createInstance(Locale::getFrance(), status);
+    NumberFormat *nf1 = NumberFormat::createInstance(Locale::FRANCE, status);
     failure(status, "NumberFormat::createInstance");
     
     // C++ workaround to make sure cast works
@@ -688,9 +688,9 @@ void NumberFormatRegressionTest::Test4087244 (void) {
     FieldPosition pos;
     df->format(1.23, str, pos);
     UnicodeString monStr("1x23");
-    monStr.replace((int32_t)1, 1, monSep);
+    monStr.replace((UTextOffset)1, 1, monSep);
     UnicodeString decStr("1x23");
-    decStr.replace((int32_t)1, 1, decSep);
+    decStr.replace((UTextOffset)1, 1, decSep);
     if (str.indexOf(monStr) >= 0 && str.indexOf(decStr) < 0) {
         logln(UnicodeString("OK: 1.23 -> \"") + str + "\" contains \"" +
               monStr + "\" and not \"" + decStr + '"');
@@ -797,7 +797,7 @@ void NumberFormatRegressionTest::Test4071005 (void)
     UnicodeString expectedPercent(chars3, 9, 9);
 
     UErrorCode status = U_ZERO_ERROR;
-    formatter = NumberFormat::createInstance(Locale::getCanadaFrench(), status);
+    formatter = NumberFormat::createInstance(Locale::CANADA_FRENCH, status);
     failure(status, "NumberFormat::createNumberInstance");
     tempString = formatter->format (-5789.9876, tempString);
 
@@ -810,7 +810,7 @@ void NumberFormatRegressionTest::Test4071005 (void)
     }
     delete formatter;
 
-    formatter = NumberFormat::createCurrencyInstance(Locale::getCanadaFrench(), status);
+    formatter = NumberFormat::createCurrencyInstance(Locale::CANADA_FRENCH, status);
     failure(status, "NumberFormat::createCurrencyInstance");
     tempString.remove();
     tempString = formatter->format( 5789.9876, tempString );
@@ -824,7 +824,7 @@ void NumberFormatRegressionTest::Test4071005 (void)
     }
     delete formatter;
 
-    formatter = NumberFormat::createPercentInstance(Locale::getCanadaFrench(), status);
+    formatter = NumberFormat::createPercentInstance(Locale::CANADA_FRENCH, status);
     failure(status, "NumberFormat::createPercentInstance");
     tempString.remove();
     tempString = formatter->format (-5789.9876, tempString);
@@ -885,7 +885,7 @@ void NumberFormatRegressionTest::Test4071014 (void)
     }
     delete formatter;
 
-    formatter = NumberFormat::createPercentInstance(Locale::getGermany(), status);
+    formatter = NumberFormat::createPercentInstance(Locale::GERMANY, status);
     failure(status, "NumberFormat::createPercentInstance");
     tempString.remove();
     tempString = formatter->format (-5789.9876, tempString);

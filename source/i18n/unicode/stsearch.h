@@ -78,9 +78,6 @@ U_NAMESPACE_BEGIN
  * <\ul>
  * <p>
  * A breakiterator can be used if only matches at logical breaks are desired.
- * Using a breakiterator will only give you results that exactly matches the
- * boundaries given by the breakiterator. For instance the pattern "e" will
- * not be found in the string "\u00e9" if a character break iterator is used.
  * <p>
  * Options are provided to handle overlapping matches. 
  * E.g. In English, overlapping matches produces the result 0 and 2 
@@ -91,8 +88,6 @@ U_NAMESPACE_BEGIN
  * performing matches, there are no APIs here for setting and getting the 
  * attributes. These attributes can be set by getting the collator
  * from <tt>getCollator</tt> and using the APIs in <tt>coll.h</tt>.
- * Lastly to update StringSearch to the new collator attributes, 
- * reset() has to be called.
  * <p> 
  * Restriction: <br>
  * Currently there are no composite characters that consists of a
@@ -287,7 +282,7 @@ public:
      * @param status for errors if it occurs
      * @draft ICU 2.0
      */
-    virtual void setOffset(int32_t position, UErrorCode &status);
+    virtual void setOffset(UTextOffset position, UErrorCode &status);
 
     /**
      * Return the current index in the text being searched.
@@ -297,7 +292,7 @@ public:
      * @return current index in the text being searched.
      * @draft ICU 2.0
      */
-    virtual int32_t getOffset(void) const;
+    virtual UTextOffset getOffset(void) const;
 
     /**
      * Set the target text to be searched.
@@ -416,7 +411,7 @@ protected:
      * @return The index at which the matched text in the target starts, or 
      *         USEARCH_DONE if no match was found.
      */
-    virtual int32_t handleNext(int32_t position, UErrorCode &status);
+    virtual UTextOffset handleNext(UTextOffset position, UErrorCode &status);
 
     /**
      * Search backward for matching text, starting at a given location.
@@ -439,7 +434,7 @@ protected:
      * @return The index at which the matched text in the target starts, or 
      *         USEARCH_DONE if no match was found.
      */
-    virtual int32_t handlePrev(int32_t position, UErrorCode &status);
+    virtual UTextOffset handlePrev(UTextOffset position, UErrorCode &status);
     
 private :
 

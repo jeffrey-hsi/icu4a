@@ -52,13 +52,12 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 # ADD LINK32 icuuc.lib icutu.lib /nologo /subsystem:console /machine:I386 /libpath:"..\toolutil\Release" /libpath:"..\..\..\lib\Release" /libpath:"..\..\..\lib"
 # Begin Custom Build
-TargetPath=.\Release\genprops.exe
 InputPath=.\Release\genprops.exe
 InputName=genprops
 SOURCE="$(InputPath)"
 
 "..\..\..\bin\$(InputName).exe" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(TargetPath) ..\..\..\bin
+	copy $(InputPath) ..\..\..\bin
 
 # End Custom Build
 
@@ -86,13 +85,12 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 icuucd.lib icutud.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\toolutil\Debug" /libpath:"..\..\..\lib\Debug" /libpath:"..\..\..\lib"
 # Begin Custom Build
-TargetPath=.\Debug\genprops.exe
 InputPath=.\Debug\genprops.exe
 InputName=genprops
 SOURCE="$(InputPath)"
 
 "..\..\..\bin\$(InputName).exe" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(TargetPath) ..\..\..\bin
+	copy $(InputPath) ..\..\..\bin
 
 # End Custom Build
 
@@ -111,14 +109,6 @@ SOURCE=.\genprops.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\props2.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\propsvec.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\store.c
 # End Source File
 # End Group
@@ -128,10 +118,6 @@ SOURCE=.\store.c
 # Begin Source File
 
 SOURCE=.\genprops.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\propsvec.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

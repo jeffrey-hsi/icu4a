@@ -38,25 +38,25 @@ public:
 
     enum {
         // Character classes
-        NON =  0,
-        CON =  1,
-        COA =  2,
-        COD =  3,
+        NON	=  0,
+        CON	=  1,
+        COA	=  2,
+        COD	=  3,
         LVO =  4,
-        FV1 =  5,
-        FV2 =  6,
-        FV3 =  7,
-        BV1 =  8,
-        BV2 =  9,
+        FV1	=  5,
+        FV2	=  6,
+        FV3	=  7,
+        BV1	=  8,
+        BV2	=  9,
         BDI = 10,
-        TON = 11,
-        AD1 = 12,
-        AD2 = 13,
-        AD3 = 14,
-        NIK = 15,
-        AV1 = 16,
-        AV2 = 17,
-        AV3 = 18,
+        TON	= 11,
+        AD1	= 12,
+        AD2	= 13,
+        AD3	= 14,
+        NIK	= 15,
+        AV1	= 16,
+        AV2	= 17,
+        AV3	= 18,
         classCount = 19,
 
         // State Transition actions
@@ -85,9 +85,8 @@ public:
 
 private:
 
-    static const le_uint8 classTable[];
-    static const StateTransition thaiStateTable[][classCount];
-
+    static le_uint8 classTable[];
+    static StateTransition thaiStateTable[][classCount];
     static StateTransition getTransition(le_uint8 state, le_uint8 currClass);
     static le_uint8 doTransition(StateTransition transition, LEUnicode currChar, le_int32 inputIndex, le_uint8 glyphSet,
         LEUnicode errorChar, LEUnicode *outputBuffer, le_int32 *charIndicies, le_int32 &outputIndex);

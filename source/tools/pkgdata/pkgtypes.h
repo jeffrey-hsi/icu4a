@@ -80,14 +80,6 @@ void pkg_deleteList(CharList *l);
 struct UPKGOptions_;
 typedef   void (UPKGMODE)(struct UPKGOptions_ *, FileStream *s, UErrorCode *status);
 
-/*
- * Static mode - write the readme file 
- * @param opt UPKGOptions
- * @param libName Name of the .lib, etc file
- * @param status ICU error code
- */
-void pkg_sttc_writeReadme(struct UPKGOptions_ *opt, const char *libName, UErrorCode *status);
-
 /* 
  * Options to be passed throughout the program
  */
@@ -100,20 +92,16 @@ typedef struct UPKGOptions_
   CharList   *outFiles;      /* output files [full paths] */
 
   const char *shortName;   /* name of what we're building */
-  const char *cShortName;   /* name of what we're building as a C identifier */
   const char *entryName;   /* special entrypoint name */
   const char *targetDir;
   const char *tmpDir;
   const char *srcDir;
   const char *options;     /* Options arg */
   const char *mode;        /* Mode of building */
-  const char *version;     /* Library version */
-  const char *makeArgs;    /* XXX Should be a CharList! */
   const char *comment;     /* comment string */
   const char *makeFile;    /* Makefile path */
   const char *install;     /* Where to install to (NULL = don't install) */
   const char *icuroot;     /* where does ICU lives */
-
   UBool      rebuild;
   UBool      clean;
   UBool      nooutput;
@@ -132,12 +120,10 @@ typedef struct UPKGOptions_
 # endif
 # define LIB_PREFIX ""
 # define OBJ_SUFFIX ".obj"
-# define UDATA_LIB_SUFFIX ".LIB"
 
 #else  /* POSIX? */
 # define LIB_PREFIX "lib"
 # define OBJ_SUFFIX ".o"
-# define UDATA_LIB_SUFFIX ".a"
 #endif 
 
 

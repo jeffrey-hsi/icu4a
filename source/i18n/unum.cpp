@@ -128,20 +128,9 @@ unum_open(  UNumberFormatStyle    style,
                                     *status);
         break;
 
-      case UNUM_SCIENTIFIC:
-        if(locale == 0)
-          retVal = (UNumberFormat*)NumberFormat::createScientificInstance(*status);
-        else
-          retVal = (UNumberFormat*)NumberFormat::createScientificInstance(Locale(locale),
-                                    *status);
-        break;
-
       case UNUM_SPELLOUT:
-#if U_HAVE_RBNF
-        return (UNumberFormat*)new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale(locale), *status);
-#else
-        // fall through
-#endif
+		return (UNumberFormat*)new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale(locale), *status);
+
       default:
         *status = U_UNSUPPORTED_ERROR;
         return 0;
@@ -154,7 +143,7 @@ unum_open(  UNumberFormatStyle    style,
 
       return retVal;
   }else{
-      /* we don't support RBNF patterns yet */
+	  /* we don't support RBNF patterns yet */
       UParseError tErr;
       int32_t len = (patternLength == -1 ? u_strlen(pattern) : patternLength);
       const UnicodeString pat((UChar*)pattern, len, len);

@@ -15,14 +15,14 @@
 
 #include "unicode/utypes.h"
 #include "ucmp8.h"
-/*#include "ucmpe32.h"*/
+#include "ucmpe32.h"
 #include "cmemory.h"
 #include "cintltst.h"
 #include "ucol_imp.h"
 
 
 static void TestUCMP8API(void);
-/*static void TestUCMPE32API(void);*/
+static void TestUCMPE32API(void);
 
 void addCompactArrayTest(TestNode** root);
 
@@ -31,7 +31,7 @@ void
 addCompactArrayTest(TestNode** root)
 {
     addTest(root, &TestUCMP8API,   "ucmptst/TestUCMP8API");
-/*    addTest(root, &TestUCMPE32API,  "ucmptst/TestUCMPE32API");*/
+    addTest(root, &TestUCMPE32API,  "ucmptst/TestUCMPE32API");
 }
 
 static void TestUCMP8API(){
@@ -126,7 +126,9 @@ static void TestUCMP8API(){
 }
 
 
-#if 0
+
+void addCompactArrayTest(TestNode** root);
+
 struct {
   UChar lead;
   UChar trail;
@@ -243,4 +245,3 @@ static void TestUCMPE32API(){
         ucmpe32_close(ucmpe32Array);
     }
 }
-#endif

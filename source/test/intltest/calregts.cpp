@@ -997,7 +997,7 @@ CalendarRegressionTest::test4031502()
         UErrorCode status = U_ZERO_ERROR;
         Locale saveLocale = Locale::getDefault();
         //try {
-        Locale locales [] = { Locale::getChinese(), Locale::getChina() };
+        Locale locales [] = { Locale::CHINESE, Locale::CHINA };
             for (int32_t i=0; i<2; ++i) {
                 Locale::setDefault(locales[i], status);
                 failure(status, "Locale::setDefault");
@@ -1861,9 +1861,9 @@ void CalendarRegressionTest::TestJ81() {
                 status = U_ZERO_ERROR;
                 int32_t amount = DATA[i].amount * (sign==MINUS?-1:1);
                 UDate date = cutover + 
-                    (sign==PLUS ? DATA[i].before : DATA[i].after);
+                    (sign==PLUS>0 ? DATA[i].before : DATA[i].after);
                 UDate expected = cutover + 
-                    (sign==PLUS ? DATA[i].after : DATA[i].before);
+                    (sign==PLUS>0 ? DATA[i].after : DATA[i].before);
                 cal.setTime(date, status);
                 if (U_FAILURE(status)) {
                     errln((UnicodeString)"FAIL: setTime returned error code " + u_errorName(status));

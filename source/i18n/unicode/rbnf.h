@@ -1,17 +1,11 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2002, International Business Machines Corporation and others.
-* All Rights Reserved.
+* Copyright (C) 1997-2001, International Business Machines Corporation and others. All Rights Reserved.
 *******************************************************************************
 */
 
 #ifndef RBNF_H
 #define RBNF_H
-
-#ifdef U_INT64_T_UNAVAILABLE
-#define U_HAVE_RBNF 0
-#else
-#define U_HAVE_RBNF 1
 
 #include "unicode/coll.h"
 #include "unicode/dcfmtsym.h"
@@ -27,10 +21,10 @@ class NFRuleSet;
 
 /** Tags for the predefined rulesets. */
 enum URBNFRuleSetTag {
-    URBNF_SPELLOUT,
-    URBNF_ORDINAL,
-    URBNF_DURATION,
-    URBNF_COUNT
+	URBNF_SPELLOUT,
+	URBNF_ORDINAL,
+	URBNF_DURATION,
+	URBNF_COUNT
 };
 
 /**
@@ -513,7 +507,7 @@ public:
    * @draft ICU 2.0
    */
   RuleBasedNumberFormat(const UnicodeString& rules, const Locale& locale, 
-                        UParseError& perror, UErrorCode& status);
+	  UParseError& perror, UErrorCode& status);
 
   /**
    * Creates a RuleBasedNumberFormat from a predefined ruleset.  The selector
@@ -589,7 +583,7 @@ public:
   virtual int32_t getNumberOfRuleSetNames() const;
 
   /**
-   * Formats the specified 32-bit number using the default ruleset.
+   * Formats the specified number using the default ruleset.
    * @param number The number to format.
    * @param toAppendTo the string that will hold the (appended) result
    * @param pos the fieldposition
@@ -597,18 +591,6 @@ public:
    * @draft ICU 2.0
    */
   virtual UnicodeString& format(int32_t number,
-                                UnicodeString& toAppendTo,
-                                FieldPosition& pos) const;
-
-  /**
-   * Formats the specified 64-bit number using the default ruleset.
-   * @param number The number to format.
-   * @param toAppendTo the string that will hold the (appended) result
-   * @param pos the fieldposition
-   * @return A textual representation of the number.
-   * @draft ICU 2.1
-   */
-  virtual UnicodeString& format(int64_t number,
                                 UnicodeString& toAppendTo,
                                 FieldPosition& pos) const;
   /**
@@ -635,22 +617,6 @@ public:
    * @draft ICU 2.0
    */
   virtual UnicodeString& format(int32_t number,
-                                const UnicodeString& ruleSetName,
-                                UnicodeString& toAppendTo,
-                                FieldPosition& pos,
-                                UErrorCode& status) const;
-  /**
-   * Formats the specified 64-bit number using the default ruleset.
-   * @param number The number to format.
-   * @param ruleSetName The name of the rule set to format the number with.
-   * This must be the name of a valid public rule set for this formatter.
-   * @param toAppendTo the string that will hold the (appended) result
-   * @param pos the fieldposition
-   * @param status the status
-   * @return A textual representation of the number.
-   * @draft ICU 2.1
-   */
-  virtual UnicodeString& format(int64_t number,
                                 const UnicodeString& ruleSetName,
                                 UnicodeString& toAppendTo,
                                 FieldPosition& pos,
@@ -722,7 +688,7 @@ public:
    * @draft ICU 2.0
    */
   virtual void parse(const UnicodeString& text,
-                     Formattable& result,
+			         Formattable& result,
                      ParsePosition& parsePosition) const;
 
   
@@ -818,13 +784,12 @@ private:
 inline UnicodeString&
 RuleBasedNumberFormat::format(const Formattable& obj,
                               UnicodeString& result,
-                              UErrorCode& status) const
-{
+                              UErrorCode& status) const {
     // Don't use Format:: - use immediate base class only,
     // in case immediate base modifies behavior later.
-    // dlf - the above comment is bogus, if there were a reason to modify
-    // it, it would be virtual, and there's no reason because it is
-    // a one-line macro in NumberFormat anyway, just like this one.
+	// dlf - the above comment is bogus, if there were a reason to modify
+	// it, it would be virtual, and there's no reason because it is
+	// a one-line macro in NumberFormat anyway, just like this one.
     return NumberFormat::format(obj, result, status);
 }
 
@@ -841,25 +806,21 @@ RuleBasedNumberFormat::format(int32_t number, UnicodeString& output) const {
 }
 
 inline void
-RuleBasedNumberFormat::parse(const UnicodeString& text, Formattable& result, UErrorCode& status) const
-{
-    NumberFormat::parse(text, result, status);
+RuleBasedNumberFormat::parse(const UnicodeString& text, Formattable& result, UErrorCode& status) const { 
+	NumberFormat::parse(text, result, status); 
 }
 
 inline UBool 
 RuleBasedNumberFormat::isLenient(void) const { 
-    return lenient; 
+	return lenient; 
 }
 
 inline NFRuleSet* 
 RuleBasedNumberFormat::getDefaultRuleSet() const { 
-    return defaultRuleSet; 
+	return defaultRuleSet; 
 }
 
 U_NAMESPACE_END
-
-/* U_HAVE_RBNF */
-#endif
 
 /* RBNF_H */
 #endif

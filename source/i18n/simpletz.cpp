@@ -636,7 +636,6 @@ SimpleTimeZone::setRawOffset(int32_t offsetMillis)
     rawOffset = offsetMillis;
 }
 
-#ifdef ICU_SIMPLETIMEZONE_USE_DEPRECATES
 // -------------------------------------
 
 // deprecated
@@ -647,19 +646,14 @@ SimpleTimeZone::setDSTSavings(int32_t millisSavedDuringDST)
     setDSTSavings(millisSavedDuringDST, status);
 }
 
-#endif
-
 // -------------------------------------
 
 void 
 SimpleTimeZone::setDSTSavings(int32_t millisSavedDuringDST, UErrorCode& status) 
 {
-    if (millisSavedDuringDST <= 0) {
+    dstSavings = millisSavedDuringDST;
+    if(dstSavings <= 0)
         status = U_ILLEGAL_ARGUMENT_ERROR;
-    }
-    else {
-        dstSavings = millisSavedDuringDST;
-    }
 }
 
 // -------------------------------------

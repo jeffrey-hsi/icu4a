@@ -12,17 +12,17 @@
 
 U_NAMESPACE_BEGIN
 
-Quantifier::Quantifier(UnicodeFunctor *adoptedMatcher,
+Quantifier::Quantifier(UnicodeMatcher *adopted,
                        uint32_t _minCount, uint32_t _maxCount) {
     // assert(adopted != 0);
     // assert(minCount <= maxCount);
-    matcher = adoptedMatcher;
+    matcher = adopted;
     this->minCount = _minCount;
     this->maxCount = _maxCount;
 }
 
 Quantifier::Quantifier(const Quantifier& o) :
-    UnicodeFunctor(o),
+    UnicodeMatcher(o),
     matcher(o.matcher->clone()),
     minCount(o.minCount),
     maxCount(o.maxCount)
@@ -34,18 +34,10 @@ Quantifier::~Quantifier() {
 }
 
 /**
- * Implement UnicodeFunctor
+ * Implement UnicodeMatcher
  */
-UnicodeFunctor* Quantifier::clone() const {
+UnicodeMatcher* Quantifier::clone() const {
     return new Quantifier(*this);
-}
-
-/**
- * UnicodeFunctor API.  Cast 'this' to a UnicodeMatcher* pointer
- * and return the pointer.
- */
-UnicodeMatcher* Quantifier::toMatcher() const {
-    return (UnicodeMatcher*) this;
 }
 
 UMatchDegree Quantifier::matches(const Replaceable& text,
@@ -56,7 +48,7 @@ UMatchDegree Quantifier::matches(const Replaceable& text,
     uint32_t count = 0;
     while (count < maxCount) {
         int32_t pos = offset;
-        UMatchDegree m = matcher->toMatcher()->matches(text, offset, limit, incremental);
+        UMatchDegree m = matcher->matches(text, offset, limit, incremental);
         if (m == U_MATCH) {
             ++count;
             if (pos == offset) {
@@ -86,7 +78,7 @@ UMatchDegree Quantifier::matches(const Replaceable& text,
 UnicodeString& Quantifier::toPattern(UnicodeString& result,
                                      UBool escapeUnprintable) const {
     result.truncate(0);
-    matcher->toMatcher()->toPattern(result, escapeUnprintable);
+    matcher->toPattern(result, escapeUnprintable);
     if (minCount == 0) {
         if (maxCount == 1) {
             return result.append((UChar)63); /*?*/
@@ -111,14 +103,7 @@ UnicodeString& Quantifier::toPattern(UnicodeString& result,
  * Implement UnicodeMatcher
  */
 UBool Quantifier::matchesIndexValue(uint8_t v) const {
-    return (minCount == 0) || matcher->toMatcher()->matchesIndexValue(v);
-}
-
-/**
- * Implement UnicodeFunctor
- */
-void Quantifier::setData(const TransliterationRuleData* d) {
-    matcher->setData(d);
+    return (minCount == 0) || matcher->matchesIndexValue(v);
 }
 
 U_NAMESPACE_END

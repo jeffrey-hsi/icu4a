@@ -114,7 +114,6 @@ void TestPartialParse994()
     f = udat_open(UDAT_DEFAULT, UDAT_SHORT, "en_US", NULL, 0,  NULL, 0,&status);
     if(U_FAILURE(status)){
         log_err("FAIL: ErrorCode received during test: %s\n", myErrorName(status));
-        return;
     }
     s=(UChar*)uprv_malloc(sizeof(UChar) * (strlen("01/01/97 10:11:42 AM")+1) );
     u_uastrcpy(s, "01/01/97 10:11:42 AM");
@@ -183,7 +182,6 @@ void TestRunTogetherPattern985()
     format = udat_open(UDAT_IGNORE, UDAT_IGNORE, NULL, NULL, 0,pattern, u_strlen(pattern), &status);
     if(U_FAILURE(status)){
         log_err("FAIL: Error in date format construction with pattern: %s\n", myErrorName(status));
-        return;
     }
     date1 = ucal_getNow();
     now=myDateFormat(format, date1);
@@ -217,10 +215,7 @@ void TestCzechMonths459()
     UChar *date;
     
     fmt = udat_open(UDAT_FULL, UDAT_FULL, "cs", NULL, 0, NULL, 0, &status);
-    if(U_FAILURE(status)){
-        log_err("Error in constructing the date format\n");
-        return;
-    }
+    if(U_FAILURE(status)){log_err("Error in constructing the date format\n"); }
     lneed=0;
     lneed=udat_toPattern(fmt, TRUE, NULL, lneed, &status);
     if(status==U_BUFFER_OVERFLOW_ERROR){
@@ -245,7 +240,7 @@ void TestCzechMonths459()
     pos=0;
     d = udat_parse(fmt, juneStr, u_strlen(juneStr), &pos, &status);
     date = myDateFormat(fmt, d);
-    u_UCharsToChars(date, buffer, (int32_t)(u_strlen(date)+1));
+    u_UCharsToChars(date, buffer, (UTextOffset)(u_strlen(date)+1));
     if(u_strcmp(myDateFormat(fmt, june), myDateFormat(fmt, d) ) !=0)
         log_err("Error in handling the czech month june\n");
     else
@@ -253,7 +248,7 @@ void TestCzechMonths459()
     pos=0;
     d = udat_parse(fmt, julyStr, u_strlen(julyStr), &pos, &status);
     date = myDateFormat(fmt, d);
-    u_UCharsToChars(date, buffer, (int32_t)(u_strlen(date)+1));
+    u_UCharsToChars(date, buffer, (UTextOffset)(u_strlen(date)+1));
     if(u_strcmp(myDateFormat(fmt, july), myDateFormat(fmt, d) ) !=0)
         log_err("Error in handling the czech month july\n");
     else
@@ -284,10 +279,7 @@ void TestQuotePattern161()
        - very bad if you try to run the tests on machine where default locale is NOT "en_US" */
     /* format= udat_openPattern(pattern, u_strlen(pattern), NULL, &status); */
     format= udat_open(UDAT_IGNORE, UDAT_IGNORE,"en_US", NULL, 0,pattern, u_strlen(pattern), &status);
-    if(U_FAILURE(status)){
-        log_err("error in udat_open: %s\n", myErrorName(status));
-        return;
-    }
+    if(U_FAILURE(status)){ log_err("error in udat_openPattern  : %s\n", myErrorName(status));    }
     tzID=(UChar*)uprv_malloc(sizeof(UChar) * 4);
     u_uastrcpy(tzID, "PST");
     /* this is supposed to open default date format, but later on it treats it like it is "en_US" 

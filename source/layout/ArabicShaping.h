@@ -1,5 +1,5 @@
 /*
- * @(#)ArabicShaping.h  1.6 00/03/15
+ * @(#)ArabicShaping.h	1.6 00/03/15
  *
  * (C) Copyright IBM Corp. 1998, 1999, 2000 - All Rights Reserved
  *
@@ -49,9 +49,9 @@ public:
     static void shape(const LEUnicode *chars, le_int32 offset, le_int32 charCount, le_int32 charMax,
                       le_bool rightToLeft, Shaper &shaper);
 
-    static const le_uint8 glyphSubstitutionTable[];
+    static le_uint8 glyphSubstitutionTable[];
   //static le_uint8 ligatureSubstitutionSubtable[];
-    static const le_uint8 glyphDefinitionTable[];
+    static le_uint8 glyphDefinitionTable[];
 
 private:
     static ShapeType getShapeType(LEUnicode c);
@@ -97,7 +97,7 @@ public:
 private:
     LEUnicode *chars;
     
-    static const LEUnicode isolateShapes[];
+    static LEUnicode isolateShapes[];
 
     static LEUnicode getToIsolateShape(LEUnicode ch);
 };

@@ -191,7 +191,7 @@ DateFormatTest::escape(UnicodeString& s)
     UnicodeString buf;
     for (int32_t i=0; i<s.length(); ++i)
     {
-        UChar c = s[(int32_t)i];
+        UChar c = s[(UTextOffset)i];
         if (c <= (UChar)0x7F) buf += c;
         else {
             buf += (UChar)0x5c; buf += (UChar)0x55;
@@ -277,8 +277,8 @@ DateFormatTest::TestFieldPosition(void)
     UDate someDate = 871508052513.0;
     int32_t j, exp;
 
-    dateFormats[0] = DateFormat::createDateTimeInstance(DateFormat::FULL, DateFormat::FULL, Locale::getUS());
-    dateFormats[1] = DateFormat::createDateTimeInstance(DateFormat::FULL, DateFormat::FULL, Locale::getFrance());
+    dateFormats[0] = DateFormat::createDateTimeInstance(DateFormat::FULL, DateFormat::FULL, Locale::US);
+    dateFormats[1] = DateFormat::createDateTimeInstance(DateFormat::FULL, DateFormat::FULL, Locale::FRANCE);
     dateFormats[2] = new SimpleDateFormat((UnicodeString)"G, y, M, d, k, H, m, s, S, E, D, F, w, W, a, h, K, z, Y, e", status);
     dateFormats[3] = new SimpleDateFormat((UnicodeString)"GGGG, yyyy, MMMM, dddd, kkkk, HHHH, mmmm, ssss, SSSS, EEEE, DDDD, FFFF, wwww, WWWW, aaaa, hhhh, KKKK, zzzz, YYYY, eeee", status);
     for (j = 0, exp = 0; j < dateFormats_length;++j) {

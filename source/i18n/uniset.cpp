@@ -10,11 +10,13 @@
 
 #include "unicode/uniset.h"
 #include "unicode/parsepos.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "unicode/uscript.h"
 #include "symtable.h"
 #include "cmemory.h"
 #include "rbt_rule.h"
+#include "umutex.h"
+#include "ucln_in.h"
 #include "upropset.h"
 #include "util.h"
 
@@ -84,6 +86,15 @@ static const UChar CATEGORY_NAMES[] = {
  */
 static const UChar CATEGORY_CLOSE[] = {COLON, SET_CLOSE, 0x0000}; /* ":]" */
 
+/**
+ * Cleanup function for transliterator component; delegates to
+ * Transliterator::cleanupRegistry().
+ */
+U_CFUNC UBool unicodeset_cleanup(void) {
+    UnicodePropertySet::cleanup();
+    return TRUE;
+}
+
 U_NAMESPACE_BEGIN
 
 /**
@@ -95,6 +106,11 @@ const UChar32 UnicodeSet::MIN_VALUE = UNICODESET_LOW;
  * Maximum value that can be stored in a UnicodeSet.
  */
 const UChar32 UnicodeSet::MAX_VALUE = UNICODESET_HIGH - 1;
+
+// HEY WHAT'S THIS DOING HERE?
+// This is here until we have sufficient reason to add an entire
+// separate unimatch.cpp source file just for one line.
+const char UnicodeMatcher::fgClassID = 0;
 
 const char UnicodeSet::fgClassID = 0;
 
@@ -150,7 +166,7 @@ UnicodeSet::UnicodeSet() :
     len(1), capacity(1 + START_EXTRA), bufferCapacity(0),
     buffer(0)
 {
-    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
+    list = new UChar32[capacity];
     list[0] = UNICODESET_HIGH;
     _dbgct(this);
 }
@@ -166,7 +182,7 @@ UnicodeSet::UnicodeSet(UChar32 start, UChar32 end) :
     len(1), capacity(1 + START_EXTRA), bufferCapacity(0),
     buffer(0)
 {
-    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
+    list = new UChar32[capacity];
     list[0] = UNICODESET_HIGH;
     complement(start, end);
     _dbgct(this);
@@ -183,7 +199,7 @@ UnicodeSet::UnicodeSet(const UnicodeString& pattern,
     len(0), capacity(START_EXTRA), bufferCapacity(0),
     buffer(0)
 {
-    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
+    list = new UChar32[capacity];
     applyPattern(pattern, status);
     _dbgct(this);
 }
@@ -195,19 +211,8 @@ UnicodeSet::UnicodeSet(const UnicodeString& pattern, ParsePosition& pos,
     len(0), capacity(START_EXTRA), bufferCapacity(0),
     buffer(0)
 {
-    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
+    list = new UChar32[capacity];
     applyPattern(pattern, pos, &symbols, status);
-    _dbgct(this);
-}
-
-// For internal use by TransliteratorIDParser
-UnicodeSet::UnicodeSet(const UnicodeString& pattern, ParsePosition& pos,
-                       UErrorCode& status) :
-    len(0), capacity(START_EXTRA), bufferCapacity(0),
-    buffer(0)
-{
-    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
-    applyPattern(pattern, pos, NULL, status);
     _dbgct(this);
 }
 
@@ -230,7 +235,7 @@ UnicodeSet::UnicodeSet(int8_t category, UErrorCode& status) :
             UnicodeString pattern(FALSE, CATEGORY_NAMES + category*2, 2);
             pattern.insert(0, OPEN);
             pattern.append(CLOSE);
-            list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
+            list = new UChar32[capacity];
             applyPattern(pattern, status);
         }
     }
@@ -245,7 +250,7 @@ UnicodeSet::UnicodeSet(const UnicodeSet& o) :
     capacity(o.len + GROW_EXTRA), bufferCapacity(0),
     buffer(0)
 {
-    list = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
+    list = new UChar32[capacity];
     *this = o;
     _dbgct(this);
 }
@@ -255,8 +260,8 @@ UnicodeSet::UnicodeSet(const UnicodeSet& o) :
  */
 UnicodeSet::~UnicodeSet() {
     _dbgdt(this); // first!
-    uprv_free(list);
-    uprv_free(buffer);
+    delete[] list;
+    delete[] buffer;
 }
 
 /**
@@ -293,7 +298,7 @@ UBool UnicodeSet::operator==(const UnicodeSet& o) const {
  * to support cloning in order to allow classes using
  * UnicodeMatchers, such as Transliterator, to implement cloning.
  */
-UnicodeFunctor* UnicodeSet::clone() const {
+UnicodeMatcher* UnicodeSet::clone() const {
     return new UnicodeSet(*this);
 }
 
@@ -356,7 +361,7 @@ void UnicodeSet::applyPattern(const UnicodeString& pattern,
     // Skip over trailing whitespace
     int32_t i = pos.getIndex();
     int32_t n = pattern.length();
-    while (i<n && u_isWhitespace(pattern.charAt(i))) {
+    while (i<n && Unicode::isWhitespace(pattern.charAt(i))) {
         ++i;
     }
 
@@ -622,58 +627,6 @@ UMatchDegree UnicodeSet::matches(const Replaceable& text,
 }
 
 /**
- * Returns the index of the given character within this set, where
- * the set is ordered by ascending code point.  If the character
- * is not in this set, return -1.  The inverse of this method is
- * <code>charAt()</code>.
- * @return an index from 0..size()-1, or -1
- */
-int32_t UnicodeSet::indexOf(UChar32 c) const {
-    if (c < MIN_VALUE || c > MAX_VALUE) {
-        return -1;
-    }
-    int32_t i = 0;
-    int32_t n = 0;
-    for (;;) {
-        UChar32 start = list[i++];
-        if (c < start) {
-            return -1;
-        }
-        UChar32 limit = list[i++];
-        if (c < limit) {
-            return n + c - start;
-        }
-        n += limit - start;
-    }
-}
-
-/**
- * Returns the character at the given index within this set, where
- * the set is ordered by ascending code point.  If the index is
- * out of range, return (UChar32)-1.  The inverse of this method is
- * <code>indexOf()</code>.
- * @param index an index from 0..size()-1
- * @return the character at the given index, or (UChar32)-1.
- */
-UChar32 UnicodeSet::charAt(int32_t index) const {
-    if (index >= 0) {
-        // len2 is the largest even integer <= len, that is, it is len
-        // for even values and len-1 for odd values.  With odd values
-        // the last entry is UNICODESET_HIGH.
-        int32_t len2 = len & ~1;
-        for (int32_t i=0; i < len2;) {
-            UChar32 start = list[i++];
-            int32_t count = list[i++] - start;
-            if (index < count) {
-                return (UChar32)(start + index);
-            }
-            index -= count;
-        }
-    }
-    return (UChar32)-1;
-}
-
-/**
  * Adds the specified range to this set if it is not already
  * present.  If this set already contains the specified range,
  * the call leaves this set unchanged.  If <code>end > start</code>
@@ -925,12 +878,12 @@ UChar32 UnicodeSet::getRangeEnd(int32_t index) const {
 void UnicodeSet::compact() {
     if (len != capacity) {
         capacity = len;
-        UChar32* temp = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
+        UChar32* temp = new UChar32[capacity];
         uprv_memcpy(temp, list, len*sizeof(UChar32));
-        uprv_free(list);
+        delete[] list;
         list = temp;
     }
-    uprv_free(buffer);
+    delete[] buffer;
     buffer = NULL;
 }
 
@@ -1054,7 +1007,7 @@ void UnicodeSet::_applyPattern(const UnicodeString& pattern,
             if (ivarValueBuffer < varValueBuffer->length()) {
                 c = varValueBuffer->char32At(ivarValueBuffer);
                 ivarValueBuffer += UTF_CHAR_LENGTH(c);
-                const UnicodeFunctor *m = symbols->lookupMatcher(c); // may be NULL
+                const UnicodeMatcher *m = symbols->lookupMatcher(c); // may be NULL
                 if (m != NULL && m->getDynamicClassID() != UnicodeSet::getStaticClassID()) {
                     status = U_ILLEGAL_ARGUMENT_ERROR;
                     return;
@@ -1402,21 +1355,19 @@ void UnicodeSet::_applyPattern(const UnicodeString& pattern,
 //----------------------------------------------------------------
 
 void UnicodeSet::ensureCapacity(int32_t newLen) {
-    if (newLen <= capacity)
-        return;
+    if (newLen <= capacity) return;
     capacity = newLen + GROW_EXTRA;
-    UChar32* temp = (UChar32*) uprv_malloc(sizeof(UChar32) * capacity);
+    UChar32* temp = new UChar32[capacity];
     uprv_memcpy(temp, list, len*sizeof(UChar32));
-    uprv_free(list);
+    delete[] list;
     list = temp;
 }
 
 void UnicodeSet::ensureBufferCapacity(int32_t newLen) {
-    if (buffer != NULL && newLen <= bufferCapacity)
-        return;
-    uprv_free(buffer);
+    if (buffer != NULL && newLen <= bufferCapacity) return;
+    delete[] buffer;
     bufferCapacity = newLen + GROW_EXTRA;
-    buffer = (UChar32*) uprv_malloc(sizeof(UChar32) * bufferCapacity);
+    buffer = new UChar32[bufferCapacity];
 }
 
 /**

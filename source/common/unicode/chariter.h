@@ -287,17 +287,17 @@ protected:
  * Calls to notBoundary() in this example represents some additional stopping criteria.
  * <pre>
  * \code
- * void traverseOut(CharacterIterator& iter, int32_t pos)
+ * void traverseOut(CharacterIterator& iter, UTextOffset pos)
  * {
  *      UChar c;
  *      for (c = iter.setIndex(pos);
  *      c != CharacterIterator.DONE && (Unicode::isLetter(c) || Unicode::isDigit(c));
  *          c = iter.next()) {}
- *      int32_t end = iter.getIndex();
+ *      UTextOffset end = iter.getIndex();
  *      for (c = iter.setIndex(pos);
  *          c != CharacterIterator.DONE && (Unicode::isLetter(c) || Unicode::isDigit(c));
  *          c = iter.previous()) {}
- *      int32_t start = iter.getIndex() + 1;
+ *      UTextOffset start = iter.getIndex() + 1;
  *  
  *      cout << "start: " << start << " end: " << end << endl;
  *      for (c = iter.setIndex(start); iter.getIndex() < end; c = iter.next() ) {
@@ -387,7 +387,7 @@ public:
    * @return the start position of the iteration range
    * @stable
    */
-  inline int32_t    setToStart();
+  inline UTextOffset    setToStart();
 
   /**
    * Sets the iterator to refer to the last code unit in its
@@ -412,7 +412,7 @@ public:
    * @return the end position of the iteration range
    * @stable
    */
-  inline int32_t    setToEnd();
+  inline UTextOffset    setToEnd();
 
   /**
    * Sets the iterator to refer to the "position"-th code unit
@@ -420,7 +420,7 @@ public:
    * returns that code unit.  
    * @stable
    */
-  virtual UChar         setIndex(int32_t position) = 0;
+  virtual UChar         setIndex(UTextOffset position) = 0;
 
   /**
    * Sets the iterator to refer to the beginning of the code point
@@ -431,7 +431,7 @@ public:
    * (its first code unit).
    * @stable
    */
-  virtual UChar32       setIndex32(int32_t position) = 0;
+  virtual UChar32       setIndex32(UTextOffset position) = 0;
 
   /**
    * Returns the code unit the iterator currently refers to.  
@@ -497,7 +497,7 @@ public:
    * necessarily 0.  
    * @stable
    */
-  inline int32_t       startIndex(void) const;
+  inline UTextOffset       startIndex(void) const;
         
   /**
    * Returns the numeric index in the underlying text-storage
@@ -505,7 +505,7 @@ public:
    * returned by last().  
    * @stable
    */
-  inline int32_t       endIndex(void) const;
+  inline UTextOffset       endIndex(void) const;
         
   /**
    * Returns the numeric index in the underlying text-storage
@@ -513,7 +513,7 @@ public:
    * (i.e., the character returned by current()).  
    * @stable
    */
-  inline int32_t       getIndex(void) const;
+  inline UTextOffset       getIndex(void) const;
 
   /**
    * Returns the length of the entire text in the underlying
@@ -530,7 +530,7 @@ public:
    * @return the new position
    * @stable
    */
-  virtual int32_t      move(int32_t delta, EOrigin origin) = 0;
+  virtual UTextOffset      move(int32_t delta, EOrigin origin) = 0;
 
   /**
    * Moves the current position relative to the start or end of the
@@ -540,7 +540,7 @@ public:
    * @return the new position
    * @stable
    */
-  virtual int32_t      move32(int32_t delta, EOrigin origin) = 0;
+  virtual UTextOffset      move32(int32_t delta, EOrigin origin) = 0;
 
   /**
    * Copies the text under iteration into the UnicodeString
@@ -553,16 +553,16 @@ public:
 protected:
   CharacterIterator() {}
   CharacterIterator(int32_t length);
-  CharacterIterator(int32_t length, int32_t position);
-  CharacterIterator(int32_t length, int32_t textBegin, int32_t textEnd, int32_t position);
+  CharacterIterator(int32_t length, UTextOffset position);
+  CharacterIterator(int32_t length, UTextOffset textBegin, UTextOffset textEnd, UTextOffset position);
   CharacterIterator(const CharacterIterator &that);
 
   CharacterIterator &operator=(const CharacterIterator &that);
 
   int32_t      textLength; // need this for correct getText() and hashCode()
-  int32_t  pos;
-  int32_t  begin;
-  int32_t  end;
+  UTextOffset  pos;
+  UTextOffset  begin;
+  UTextOffset  end;
 };
 
 inline UBool
@@ -570,27 +570,27 @@ ForwardCharacterIterator::operator!=(const ForwardCharacterIterator& that) const
   return !operator==(that);
 }
 
-inline int32_t
+inline UTextOffset
 CharacterIterator::setToStart() {
   return move(0, kStart);
 }
 
-inline int32_t
+inline UTextOffset
 CharacterIterator::setToEnd() {
   return move(0, kEnd);
 }
 
-inline int32_t
+inline UTextOffset
 CharacterIterator::startIndex(void) const {
   return begin;
 }
 
-inline int32_t
+inline UTextOffset
 CharacterIterator::endIndex(void) const {
   return end;
 }
 
-inline int32_t
+inline UTextOffset
 CharacterIterator::getIndex(void) const {
   return pos;
 }

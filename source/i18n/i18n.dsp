@@ -43,7 +43,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "I18N_EXPORTS" /YX /FD /c
-# ADD CPP /nologo /G6 /MD /Za /W3 /GX /Zi /O2 /Ob2 /I "..\..\include" /I "..\..\source\common" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "I18N_EXPORTS" /D "U_I18N_IMPLEMENTATION" /FR /YX /FD /GF /c
+# ADD CPP /nologo /G6 /MD /Za /W3 /GX /Zi /O2 /Ob2 /I "..\..\include" /I "..\..\source\common" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "I18N_EXPORTS" /D "U_I18N_IMPLEMENTATION" /FR /YX /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 icuuc.lib /nologo /base:"0x4a900000" /dll /machine:I386 /out:"..\..\bin\icuin21.dll" /implib:"..\..\lib\icuin.lib" /libpath:"..\..\lib"
+# ADD LINK32 icuuc.lib /nologo /base:"0x4a900000" /dll /machine:I386 /out:"..\..\bin\icuin20.dll" /implib:"..\..\lib\icuin.lib" /libpath:"..\..\lib"
 # SUBTRACT LINK32 /pdb:none /debug
 
 !ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
@@ -70,7 +70,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "I18N_EXPORTS" /YX /FD /GZ /c
-# ADD CPP /nologo /G6 /MDd /Za /W3 /Gm /GX /ZI /Od /I "..\..\include" /I "..\..\source\common" /D "_WINDOWS" /D "_USRDLL" /D "I18N_EXPORTS" /D "U_I18N_IMPLEMENTATION" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "UDATA_MAP" /FR /YX /FD /GF /GZ /c
+# ADD CPP /nologo /G6 /MDd /Za /W3 /Gm /GX /ZI /Od /I "..\..\include" /I "..\..\source\common" /D "_WINDOWS" /D "_USRDLL" /D "I18N_EXPORTS" /D "U_I18N_IMPLEMENTATION" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "UDATA_MAP" /FR /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
@@ -80,7 +80,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 icuucd.lib /nologo /base:"0x4a900000" /dll /debug /machine:I386 /out:"..\..\bin\icuin21d.dll" /implib:"..\..\lib\icuind.lib" /pdbtype:sept /libpath:"..\..\lib"
+# ADD LINK32 icuucd.lib /nologo /base:"0x4a900000" /dll /debug /machine:I386 /out:"..\..\bin\icuin20d.dll" /implib:"..\..\lib\icuind.lib" /pdbtype:sept /libpath:"..\..\lib"
 # SUBTRACT LINK32 /pdb:none
 
 !ENDIF 
@@ -98,11 +98,15 @@ SOURCE=.\bocsu.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\calendar.cpp
+SOURCE=.\brkdict.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\caniter.cpp
+SOURCE=.\brkiter.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\calendar.cpp
 # End Source File
 # Begin Source File
 
@@ -123,6 +127,14 @@ SOURCE=.\cpdtrans.cpp
 # Begin Source File
 
 SOURCE=.\datefmt.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\dbbi.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\dbbi_tbl.cpp
 # End Source File
 # Begin Source File
 
@@ -150,15 +162,15 @@ SOURCE=.\format.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\funcrepl.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\gregocal.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=.\hextouni.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\llong.cpp
 # End Source File
 # Begin Source File
 
@@ -195,6 +207,14 @@ SOURCE=.\numfmt.cpp
 # Begin Source File
 
 SOURCE=.\quant.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbi.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbi_tbl.cpp
 # End Source File
 # Begin Source File
 
@@ -246,10 +266,6 @@ SOURCE=.\strmatch.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\strrepl.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\stsearch.cpp
 # End Source File
 # Begin Source File
@@ -282,7 +298,7 @@ SOURCE=.\transreg.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\tridpars.cpp
+SOURCE=.\ubrk.cpp
 # End Source File
 # Begin Source File
 
@@ -346,10 +362,6 @@ SOURCE=.\unifltlg.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\unifunct.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\uniset.cpp
 # End Source File
 # Begin Source File
@@ -376,6 +388,10 @@ SOURCE=.\util.cpp
 
 SOURCE=.\utrans.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=.\xformtrn.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 
@@ -383,6 +399,37 @@ SOURCE=.\utrans.cpp
 # Begin Source File
 
 SOURCE=.\bocsu.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\brkdict.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\brkiter.h
+
+!IF  "$(CFG)" == "i18n - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\brkiter.h
+
+"..\..\include\unicode\brkiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy                unicode\brkiter.h                ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\brkiter.h
+
+"..\..\include\unicode\brkiter.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy                unicode\brkiter.h                ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -410,10 +457,6 @@ InputPath=.\unicode\calendar.h
 
 !ENDIF 
 
-# End Source File
-# Begin Source File
-
-SOURCE=.\caniter.h
 # End Source File
 # Begin Source File
 
@@ -553,6 +596,37 @@ InputPath=.\unicode\datefmt.h
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\dbbi.h
+
+!IF  "$(CFG)" == "i18n - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\dbbi.h
+
+"..\..\include\unicode\dbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy                unicode\dbbi.h                ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\dbbi.h
+
+"..\..\include\unicode\dbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy                unicode\dbbi.h                ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\dbbi_tbl.h
 # End Source File
 # Begin Source File
 
@@ -772,6 +846,10 @@ InputPath=.\unicode\hextouni.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\llong.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\unicode\msgfmt.h
 
 !IF  "$(CFG)" == "i18n - Win32 Release"
@@ -932,6 +1010,37 @@ InputPath=.\unicode\parsepos.h
 # Begin Source File
 
 SOURCE=.\quant.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\rbbi.h
+
+!IF  "$(CFG)" == "i18n - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\rbbi.h
+
+"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy                unicode\rbbi.h                ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\rbbi.h
+
+"..\..\include\unicode\rbbi.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy                unicode\rbbi.h                ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbbi_tbl.h
 # End Source File
 # Begin Source File
 
@@ -1246,6 +1355,33 @@ SOURCE=.\transreg.h
 # Begin Source File
 
 SOURCE=.\tzdat.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\unicode\ubrk.h
+
+!IF  "$(CFG)" == "i18n - Win32 Release"
+
+# Begin Custom Build
+InputPath=.\unicode\ubrk.h
+
+"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy                unicode\ubrk.h                ..\..\include\unicode
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "i18n - Win32 Debug"
+
+# Begin Custom Build
+InputPath=.\unicode\ubrk.h
+
+"..\..\include\unicode\ubrk.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy                unicode\ubrk.h                ..\..\include\unicode
+
+# End Custom Build
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -1641,6 +1777,10 @@ InputPath=.\unicode\utrans.h
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=.\xformtrn.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

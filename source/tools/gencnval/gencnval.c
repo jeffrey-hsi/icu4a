@@ -34,8 +34,6 @@
 #include "unewdata.h"
 #include "uoptions.h"
 
-/* TODO: Need to specify the maximum alias name length in a header (see ucnv_io.c::findalias()) */
-
 #define STRING_STORE_SIZE 100000
 #define MAX_ALIAS_COUNT 2000
 
@@ -140,8 +138,6 @@ main(int argc, char* argv[]) {
     int i;
     uint16_t tagOffset, stringOffset;
 
-    U_MAIN_INIT_ARGS(argc, argv);
-
     /* preset then read command line options */
     options[3].value=options[4].value=u_getDataDirectory();
     argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
@@ -156,11 +152,11 @@ main(int argc, char* argv[]) {
         fprintf(stderr,
             "usage: %s [-options] [convrtrs.txt]\n"
             "\tread convrtrs.txt and create " DATA_NAME "." DATA_TYPE "\n"
-            "options:\n"
-            "\t-h or -? or --help  this usage text\n"
-            "\t-c or --copyright   include a copyright notice\n"
-            "\t-d or --destdir     destination directory, followed by the path\n"
-            "\t-s or --sourcedir   source directory, followed by the path\n",
+            "\toptions:\n"
+            "\t\t-h or -? or --help  this usage text\n"
+            "\t\t-c or --copyright   include a copyright notice\n"
+            "\t\t-d or --destdir     destination directory, followed by the path\n"
+            "\t\t-s or --sourcedir   source directory, followed by the path\n",
             argv[0]);
         return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
@@ -179,7 +175,7 @@ main(int argc, char* argv[]) {
             uprv_strcpy((char *)path, "convrtrs.txt");
             path=line;
         } else {
-            path = "convrtrs.txt";
+            path="convrtrs.txt";
         }
     }
     in=T_FileStream_open(path, "r");
@@ -409,7 +405,7 @@ getTagNumber(const char *tag, uint16_t tagLen) {
     char *atag;
     uint16_t t;
 
-    if (tagCount >= MAX_TAG_COUNT) {
+    if (tagCount == MAX_TAG_COUNT) {
         fprintf(stderr, "gencnval: too many tags\n");
         exit(U_BUFFER_OVERFLOW_ERROR);
     }
@@ -422,7 +418,7 @@ getTagNumber(const char *tag, uint16_t tagLen) {
 
     /* we need to add this tag */
 
-    if (tagCount >= MAX_TAG_COUNT) {
+    if (tagCount == MAX_TAG_COUNT) {
         fprintf(stderr, "gencnval: too many tags\n");
         exit(U_BUFFER_OVERFLOW_ERROR);
     }
@@ -448,30 +444,28 @@ addTaggedAlias(uint16_t tag, const char *alias, uint16_t converter) {
 
 static uint16_t
 addAlias(const char *alias, uint16_t converter) {
-    if(aliasCount>=MAX_ALIAS_COUNT) {
+    if(aliasCount==MAX_ALIAS_COUNT) {
         fprintf(stderr, "gencnval: too many aliases\n");
         exit(U_BUFFER_OVERFLOW_ERROR);
     }
 
-    /* TODO: Check for duplicates */
-    aliases[aliasCount].alias = alias;
-    aliases[aliasCount].converter = converter;
+    aliases[aliasCount].alias=alias;
+    aliases[aliasCount].converter=converter;
 
-    converters[converter].aliasCount++;
+    ++converters[converter].aliasCount;
 
     return aliasCount++;
 }
 
 static uint16_t
 addConverter(const char *converter) {
-    if(converterCount>=MAX_ALIAS_COUNT) {
+    if(converterCount==MAX_ALIAS_COUNT) {
         fprintf(stderr, "gencnval: too many converters\n");
         exit(U_BUFFER_OVERFLOW_ERROR);
     }
 
-    /* TODO: Check for duplicates */
-    converters[converterCount].converter = converter;
-    converters[converterCount].aliasCount = 0;
+    converters[converterCount].converter=converter;
+    converters[converterCount].aliasCount=0;
 
     return converterCount++;
 }
@@ -481,12 +475,12 @@ allocString(StringBlock *block, uint32_t length) {
     uint32_t top=block->top+length;
     char *p;
 
-    if(top > block->max) {
+    if(top>block->max) {
         fprintf(stderr, "gencnval: out of memory\n");
         exit(U_MEMORY_ALLOCATION_ERROR);
     }
-    p = block->store + block->top;
-    block->top = top;
+    p=block->store+block->top;
+    block->top=top;
     return p;
 }
 

@@ -12,6 +12,7 @@
 #include "unicode/unifilt.h"
 #include "unicode/uchar.h"
 
+
 // As of Unicode 3.0.0, the longest name is 83 characters long.
 #define LONGEST_NAME 83
 
@@ -110,7 +111,7 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
             break;
 
         case 1: // after open delimiter
-            // Look for [-a-zA-Z0-9<>].  If \s+ is found, convert it
+            // Look for [-a-zA-Z0-9].  If \w+ is found, convert it
             // to a single space.  If closeDelimiter is found, exit
             // the loop.  If any other character is found, exit the
             // loop.  If the limit is found, exit the loop.
@@ -134,11 +135,11 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
                 buf[ibuf] = 0; // Add terminating zero
                 UErrorCode status = U_ZERO_ERROR;
 
-                UChar32 ch;
-
+                // Convert UChar to char
                 u_UCharsToChars(buf, cbuf, ibuf+1);
-                ch = u_charFromName(U_EXTENDED_CHAR_NAME, cbuf, &status);
-                if (U_SUCCESS(status)) {
+
+                UChar32 ch = u_charFromName(U_UNICODE_CHAR_NAME, cbuf, &status);
+                if (ch != (UChar32) 0xFFFF && U_SUCCESS(status)) {
                     // Lookup succeeded
                     str.truncate(0);
                     str.append(ch);
@@ -158,12 +159,14 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
                 continue;
             }
             
-            // Check if c =~ [-A-Za-z0-9<> ]
+            //if (c >= (UChar)0x0061 && c <= (UChar)0x007A) {
+            //    c -= 0x0020; // [a-z] => [A-Z]
+            //}
+
+            // Check if c =~ [-A-Z0-9]
             if (c == (UChar)0x002D ||
                 (c >= (UChar)0x0041 && c <= (UChar)0x005A) ||
-                (c >= (UChar)0x0061 && c <= (UChar)0x007A) ||
-                (c >= (UChar)0x0030 && c <= (UChar)0x0039) ||
-                c == (UChar)0x003C || c == (UChar)0x003E) {
+                (c >= (UChar)0x0030 && c <= (UChar)0x0039)) {
                 buf[ibuf++] = (char) c;
                 // If we go a bit past the longest possible name then abort
                 if (ibuf == (LONGEST_NAME + 4)) {

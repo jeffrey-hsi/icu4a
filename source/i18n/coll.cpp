@@ -150,13 +150,11 @@ UnicodeString& Collator::getDisplayName(const Locale& objectLocale,
   return objectLocale.getDisplayName(Locale::getDefault(), name);
 }
 
-/* This is useless information */
-/*void Collator::getVersion(UVersionInfo versionInfo) const
+void Collator::getVersion(UVersionInfo versionInfo) const
 {
   if (versionInfo!=NULL)
     uprv_memcpy(versionInfo, fVersion, U_MAX_VERSION_LENGTH);
 }
-*/
 
 // UCollator protected constructor destructor ----------------------------
 
@@ -192,21 +190,9 @@ Collator::Collator(const Collator& /* other */)
 {
 }
 
-int32_t Collator::getBound(const uint8_t       *source,
-        int32_t             sourceLength,
-        UColBoundMode       boundType,
-        uint32_t            noOfLevels,
-        uint8_t             *result,
-        int32_t             resultLength,
-        UErrorCode          &status) {
-  return ucol_getBound(source, sourceLength, boundType, noOfLevels, result, resultLength, &status);
-}
-
-
 // UCollator private data members ----------------------------------------
 
-/* This is useless information */
-/*const UVersionInfo Collator::fVersion = {1, 1, 0, 0};*/
+const UVersionInfo Collator::fVersion = {1, 1, 0, 0};
 
 U_NAMESPACE_END
 

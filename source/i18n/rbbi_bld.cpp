@@ -11,7 +11,7 @@
 #include "unicode/rbbi.h"
 #include "rbbi_bld.h"
 #include "cmemory.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 
 //=======================================================================
 // RuleBasedBreakIterator.Builder
@@ -302,8 +302,8 @@ RuleBasedBreakIteratorBuilder::buildRuleList(UnicodeString& description,
     // punctuation
     UStack parenStack;
 
-    int32_t p = 0;
-    int32_t ruleStart = 0;
+    UTextOffset p = 0;
+    UTextOffset ruleStart = 0;
     UChar c = 0x0000;
     UChar lastC = 0x0000;
     UChar lastOpen = 0x0000;
@@ -508,8 +508,8 @@ RuleBasedBreakIteratorBuilder::buildRuleList(UnicodeString& description,
             // if the character is anything else (escaped characters are
             // skipped and don't make it here), it's an error
             default:
-                if (c >= ASCII_LOW && c < ASCII_HI && !u_isalpha(c)
-                    && !u_isdigit(c) && !sawIllegalChar) {
+                if (c >= ASCII_LOW && c < ASCII_HI && !Unicode::isLetter(c)
+                    && !Unicode::isDigit(c) && !sawIllegalChar) {
                     sawIllegalChar = TRUE;
                     illegalCharPos = p;
                 }
@@ -532,9 +532,9 @@ RuleBasedBreakIteratorBuilder::buildRuleList(UnicodeString& description,
  */
 void
 RuleBasedBreakIteratorBuilder::processSubstitution(UnicodeString& description,
-                                                   int32_t ruleStart,
-                                                   int32_t ruleEnd,
-                                                   int32_t startPos,
+                                                   UTextOffset ruleStart,
+                                                   UTextOffset ruleEnd,
+                                                   UTextOffset startPos,
                                                    UErrorCode& err)
 {
     if (U_FAILURE(err))
@@ -546,7 +546,7 @@ RuleBasedBreakIteratorBuilder::processSubstitution(UnicodeString& description,
     UnicodeString replaceWith;
 
     description.extractBetween(ruleStart, ruleEnd, substitutionRule);
-    int32_t equalPos = substitutionRule.indexOf(EQUAL_SIGN);
+    UTextOffset equalPos = substitutionRule.indexOf(EQUAL_SIGN);
     substitutionRule.extractBetween(0, equalPos, replace);
     substitutionRule.extractBetween(equalPos + 1, substitutionRule.length() - 1, replaceWith);
 
@@ -580,8 +580,8 @@ RuleBasedBreakIteratorBuilder::processSubstitution(UnicodeString& description,
 
     description.removeBetween(ruleStart, ruleEnd);
 
-    int32_t lastPos = startPos;
-    int32_t pos = description.indexOf(replace, lastPos);
+    UTextOffset lastPos = startPos;
+    UTextOffset pos = description.indexOf(replace, lastPos);
     while (pos != -1) {
         description.replaceBetween(pos, pos + replace.length(), replaceWith);
         lastPos = pos + replace.length();
@@ -646,7 +646,7 @@ RuleBasedBreakIteratorBuilder::buildCharCategories(UErrorCode& err)
         return;
 
     int32_t bracketLevel = 0;
-    int32_t p = 0;
+    UTextOffset p = 0;
     int32_t lineNum = 0;
 
     // build hash table of every literal character or [] expression in the rule list
@@ -666,7 +666,7 @@ RuleBasedBreakIteratorBuilder::buildCharCategories(UErrorCode& err)
                 // and add the whole expression to the expression list
                 case OPEN_BRACKET:
                     {
-                        int32_t q = p + 1;
+                        UTextOffset q = p + 1;
                         ++bracketLevel;
                         while (q < line->length() && bracketLevel != 0) {
                             c = (*line)[q];
@@ -951,7 +951,7 @@ RuleBasedBreakIteratorBuilder::parseRule(const UnicodeString& rule,
     //   "a" rather than the last one.  Both of these are limitations in the design
     //   of RuleBasedBreakIterator and not limitations of the rule parser.
 
-    int32_t p = 0;
+    UTextOffset p = 0;
     int32_t currentState = 1;   // don't use state number 0; 0 means "stop"
     int32_t lastState = currentState;
     UnicodeString pendingChars;
@@ -979,8 +979,8 @@ RuleBasedBreakIteratorBuilder::parseRule(const UnicodeString& rule,
         // effectively literal characters too), the . token, and [] expressions
         if (c == OPEN_BRACKET
             || c == BACKSLASH
-            || u_isalpha(c)
-            || u_isdigit(c)
+            || Unicode::isLetter(c)
+            || Unicode::isDigit(c)
             || c < ASCII_LOW
             || c == PERIOD
             || c >= ASCII_HI) {
@@ -988,7 +988,7 @@ RuleBasedBreakIteratorBuilder::parseRule(const UnicodeString& rule,
             // if we're not on a period, isolate the expression and look up
             // the corresponding category list
             if (c != PERIOD) {
-                int32_t q = p;
+                UTextOffset q = p;
 
                 // if we're on a backslash, the expression is the character
                 // after the backslash

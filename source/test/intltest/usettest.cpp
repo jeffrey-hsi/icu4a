@@ -46,7 +46,6 @@ UnicodeSetTest::runIndexedTest(int32_t index, UBool exec,
         CASE(8,TestClone);
         CASE(9,TestExhaustive);
         CASE(10,TestToPattern);
-        CASE(11,TestIndexOf);
         default: name = ""; break;
     }
 }
@@ -548,46 +547,19 @@ void UnicodeSetTest::TestClone() {
     expectContainment(t, "abc", "def");
 }
 
-/**
- * Test the indexOf() and charAt() methods.
- */
-void UnicodeSetTest::TestIndexOf() {
-    UErrorCode ec = U_ZERO_ERROR;
-    UnicodeSet set("[a-cx-y3578]", ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: UnicodeSet constructor");
-        return;
-    }
-    for (int32_t i=0; i<set.size(); ++i) {
-        UChar32 c = set.charAt(i);
-        if (set.indexOf(c) != i) {
-            errln("FAIL: charAt(%d) = %X => indexOf() => %d",
-                i, c, set.indexOf(c));
-        }
-    }
-    UChar32 c = set.charAt(set.size());
-    if (c != -1) {
-        errln("FAIL: charAt(<out of range>) = %X", c);
-    }
-    int32_t j = set.indexOf((UChar32)0x71/*'q'*/);
-    if (j != -1) {
-        errln((UnicodeString)"FAIL: indexOf('q') = " + j);
-    }
-}
-
 void UnicodeSetTest::TestExhaustive() {
     // exhaustive tests. Simulate UnicodeSets with integers.
     // That gives us very solid tests (except for large memory tests).
 
-    int32_t limit = 128;
+    UChar32 limit = (UChar32)128;
 
     UnicodeSet x, y, z;
 
-    for (int32_t i = 0; i < limit; ++i) {
+    for (UChar32 i = 0; i < limit; ++i) {
         bitsToSet(i, x);
         logln((UnicodeString)"Testing " + i + ", " + x);
         _testComplement(i, x, y);
-        for (int32_t j = 0; j < limit; ++j) {
+        for (UChar32 j = 0; j < limit; ++j) {
             _testAdd(i,j,  x,y,z);
             _testXor(i,j,  x,y,z);
             _testRetain(i,j,  x,y,z);
@@ -679,13 +651,13 @@ void UnicodeSetTest::checkCanonicalRep(const UnicodeSet& set, const UnicodeStrin
         if (start > end) {
             errln((UnicodeString)"FAIL result of " + msg +
                   ": range " + (i+1) +
-                  " start > end: " + (int)start + ", " + (int)end +
+                  " start > end: " + start + ", " + end +
                   " for " + set);
         }
         if (i > 0 && start <= last) {
             errln((UnicodeString)"FAIL result of " + msg +
                   ": range " + (i+1) +
-                  " overlaps previous range: " + (int)start + ", " + (int)end +
+                  " overlaps previous range: " + start + ", " + end +
                   " for " + set);
         }
         last = end;
@@ -850,7 +822,7 @@ UnicodeSetTest::escape(const UnicodeString& s) {
     UnicodeString buf;
     for (int32_t i=0; i<s.length(); ++i)
     {
-        UChar c = s[(int32_t)i];
+        UChar c = s[(UTextOffset)i];
         if (0x0020 <= c && c <= 0x007F) {
             buf += c;
         } else {

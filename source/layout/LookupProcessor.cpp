@@ -6,7 +6,6 @@
  */
 
 #include "LETypes.h"
-#include "OpenTypeUtilities.h"
 #include "LEFontInstance.h"
 #include "OpenTypeTables.h"
 #include "Features.h"
@@ -19,10 +18,8 @@
 
 U_NAMESPACE_BEGIN
 
-const LETag LookupProcessor::notSelected    = 0x00000000;
-const LETag LookupProcessor::defaultFeature = 0xFFFFFFFF;
-
-const LETag emptyTag = 0x00000000;
+LETag LookupProcessor::notSelected    = 0x00000000;
+LETag LookupProcessor::defaultFeature = 0xFFFFFFFF;
 
 
 le_uint32 LookupProcessor::applyLookupTable(const LookupTable *lookupTable, GlyphIterator *glyphIterator,
@@ -56,8 +53,9 @@ void LookupProcessor::process(LEGlyphID *glyphs, GlyphPositionAdjustment *glyphP
         return;
     }
 
-    for (le_uint16 order = 0; order < lookupOrderCount; order += 1) {
-        le_uint16 lookup = lookupOrderArray[order];
+    le_uint16 lookupListCount = SWAPW(lookupListTable->lookupCount);
+
+    for (le_uint16 lookup = 0; lookup < lookupListCount; lookup += 1) {
         LETag selectTag = lookupSelectArray[lookup];
 
         if (selectTag != notSelected) {
@@ -89,23 +87,29 @@ le_uint32 LookupProcessor::applySingleLookup(le_uint16 lookupTableIndex, GlyphIt
     return delta;
 }
 
-le_int32 LookupProcessor::selectLookups(const FeatureTable *featureTable, LETag featureTag, le_int32 order)
+LETag LookupProcessor::selectFeature(le_uint16 featureIndex, LETag tagOverride) const
 {
+    LETag featureTag;
+    const FeatureTable *featureTable = featureListTable->getFeatureTable(featureIndex, &featureTag);
     le_uint16 lookupCount = featureTable? SWAPW(featureTable->lookupCount) : 0;
+
+    if (tagOverride != notSelected) {
+        featureTag = tagOverride;
+    }
 
     for (le_uint16 lookup = 0; lookup < lookupCount; lookup += 1) {
         le_uint16 lookupListIndex = SWAPW(featureTable->lookupListIndexArray[lookup]);
 
         lookupSelectArray[lookupListIndex] = featureTag;
-        lookupOrderArray[order + lookup]   = lookupListIndex;
     }
 
-    return lookupCount;
-}
+    return featureTag;
+ }
+
 
 LookupProcessor::LookupProcessor(const char *baseAddress,
         Offset scriptListOffset, Offset featureListOffset, Offset lookupListOffset,
-        LETag scriptTag, LETag languageTag, const LETag *featureOrder)
+        LETag scriptTag, LETag languageTag)
     : lookupListTable(NULL), featureListTable(NULL), lookupSelectArray(NULL),
       requiredFeatureTag(notSelected)
 {
@@ -119,9 +123,9 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
         scriptListTable = (const ScriptListTable *) (baseAddress + scriptListOffset);
         langSysTable = scriptListTable->findLanguage(scriptTag, languageTag);
 
-        if (langSysTable != 0) {
-            featureCount = SWAPW(langSysTable->featureCount);
-        }
+		if (langSysTable != 0) {
+			featureCount = SWAPW(langSysTable->featureCount);
+		}
     }
 
     if (featureListOffset != 0) {
@@ -146,48 +150,15 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
         lookupSelectArray[i] = notSelected;
     }
 
-    le_int32 count, order = 0;
-    const FeatureTable *featureTable = 0;
-    LETag featureTag;
-
-    lookupOrderArray = new le_uint16[lookupListCount];
-
     if (requiredFeatureIndex != 0xFFFF) {
-        featureTable = featureListTable->getFeatureTable(requiredFeatureIndex, &featureTag);
-        order += selectLookups(featureTable, defaultFeature, order);
+        requiredFeatureTag = selectFeature(requiredFeatureIndex, defaultFeature);
     }
 
-    if (featureOrder != NULL) {
-        if (order > 1) {
-            OpenTypeUtilities::sort(lookupOrderArray, order);
-        }
+    for (le_uint16 feature = 0; feature < featureCount; feature += 1) {
+        le_uint16 featureIndex = SWAPW(langSysTable->featureIndexArray[feature]);
 
-        for (le_int32 tag = 0; featureOrder[tag] != emptyTag; tag += 1) {
-            featureTag = featureOrder[tag];
-            featureTable = featureListTable->getFeatureTable(featureTag);
-            count = selectLookups(featureTable, featureTag, order);
-
-            if (count > 1) {
-                OpenTypeUtilities::sort(&lookupOrderArray[order], count);
-            }
-
-            order += count;
-        }
-    } else {
-        for (le_uint16 feature = 0; feature < featureCount; feature += 1) {
-            le_uint16 featureIndex = SWAPW(langSysTable->featureIndexArray[feature]);
- 
-            featureTable = featureListTable->getFeatureTable(featureIndex, &featureTag);
-            count = selectLookups(featureTable, featureTag, order);
-            order += count;
-        }
-
-        if (order > 1) {
-            OpenTypeUtilities::sort(lookupOrderArray, order);
-        }
+        selectFeature(featureIndex);
     }
-
-    lookupOrderCount = order;
 }
 
 LookupProcessor::LookupProcessor()
@@ -196,7 +167,6 @@ LookupProcessor::LookupProcessor()
 
 LookupProcessor::~LookupProcessor()
 {
-    delete[] lookupOrderArray;
     delete[] lookupSelectArray;
 };
 

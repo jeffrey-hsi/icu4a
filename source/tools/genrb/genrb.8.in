@@ -2,30 +2,25 @@
 .\"
 .\" genrb.8: manual page for the genrb utility
 .\"
-.\" Copyright (C) 2000-2002 IBM, Inc. and others.
+.\" Copyright (C) 2000 IBM, Inc. and others.
 .\"
-.\" Manual page by Yves Arrouye <yves@realnames.com>.
-.\"
-.TH GENRB 8 "19 March 2002" "ICU MANPAGE" "ICU @VERSION@ Manual"
+.TH GENRB 8 "12 October 2000" "ICU MANPAGE" "ICU @VERSION@ Manual"
 .SH NAME
 .B genrb
 \- compile a resource bundle
 .SH SYNOPSIS
 .B genrb
 [
-.BR "\-h\fP, \fB\-?\fP, \fB\-\-help"
+.BR "\-V\fP, \fB\-\-version"
 ]
 [
-.BR "\-V\fP, \fB\-\-version"
+.BR "\-h\fP, \fB\-?\fP, \fB\-\-help"
 ]
 [
 .BR "\-v\fP, \fB\-\-verbose"
 ]
 [
 .BI "\-e\fP, \fB\-\-encoding" " encoding"
-]
-[
-.BI "\-j\fP, \fB\-\-write\-java" " \fR[ \fPencoding\fR ]\fP"
 ]
 [
 .BI "\-s\fP, \fB\-\-sourcedir" " source"
@@ -34,72 +29,59 @@
 .BI "\-d\fP, \fB\-\-destdir" " destination"
 ]
 [
-.BI "\-i\fP, \fB\-\-icudatadir" " directory"
+.BI "\-i\fP, \fB\-\-icudatadir" " ICU data directory"
 ]
 .IR bundle " \.\.\."
 .SH DESCRIPTION
 .B genrb
 converts the resource
 .I bundle
-source files passed on the command line to their binary form or to
-a Java source file for use with ICU4J.
-The resulting binary files have a
+source files passed on the command line to their binary form.
+The resulting files have a
 .B .res
 extension while resource bundle source files typically have a 
 .B .txt
-extension. Java source files have a
-.B java
-extension and follow the ICU4J naming conventions.
-.PP
-It is customary to name the resource bundles by their locale name,
-i.e. to use a local identifier for the
+extension.
+The
 .I bundle
-filename, e.g.
+file name should be a local identifier, e.g.
 .B ja_JP.txt
 for Japanese (Japan) data, or
 .B root.txt
 for the root bundle.
-In any case,
-.B genrb
-will produce a file whose base name is the name of the locale found
-in the resource file, not the base name of the resource file itself.
 .PP
-The binary files can be read directly by ICU, or used by
+These binary files can then be read directly by ICU, or used by
 .BR pkgdata (8)
 for incorporation into a larger archive or library.
 .SH OPTIONS
 .TP
-.BR "\-h\fP, \fB\-?\fP, \fB\-\-help"
-Print help about usage and exit.
-.TP
-.BR "\-V\fP, \fB\-\-version"
+.BR \-V\fP, \fB\-\-version
 Print the version of
 .B genrb
 and exit.
 .TP
-.BR "\-v\fP, \fB\-\-verbose"
+.BR \-h\fP, \fB\-?\fP, \fB\-\-help
+Print help about usage and exit.
+.TP
+.BR \-v\fP, \fB\-\-verbose
 Display extra informative messages during execution.
 .TP
 .BI "\-e\fP, \fB\-\-encoding" " encoding"
 Set the encoding used to read input files to
 .IR encoding .
 The default encoding is the invariant (subset of ASCII or EBCDIC)
-codepage for the system (see section
-.BR "INVARIANT CHARACTERS" ).
-The encodings UTF-8, UTF-16BE, and UTF-16LE are automatically detected
-if a byte order mark (BOM) is present.
-.TP
-.BI "\-j\fP, \fB\-\-write\-java" " \fR[ \fPencoding\fR ]\fP"
-Generate a Java source code for use with ICU4J. An optional
-.I encoding
-for the Java file can be given.
+codepage for the system. See section
+.BR "INVARIANT CHARACTERS" .
+.B genrb
+does automatically detect UTF-8, UTF-16BE, and UTF-16LE if a byte order mark
+(BOM) is present.
 .TP
 .BI "\-s\fP, \fB\-\-sourcedir" " source"
 Set the source directory to
 .IR source .
 The default source directory is specified by the environment variable
-.BR ICU_DATA ,
-or the location set when ICU was built if 
+.BR ICU_DATA
+or is the location set when ICU was built if 
 .B ICU_DATA
 is not set.
 .TP
@@ -112,12 +94,10 @@ or is the location set when ICU was built if
 .B ICU_DATA
 is not set.
 .TP
-.BI "\-i\fP, \fB\-\-icudatadir" " directory"
-Look for any necessary ICU data files in
-.IR directory .
-For example, when processing collation overrides, the file
-.B ucadata.dat
-must be located.
+.BI "\-i\fP, \fB\-\-icudatadir" " ICU data directory"
+Set the directory used to locate any necessary ICU data files to
+.IR icudatadir .
+For example, when processing collation overrides, ucadata.dat must be located.
 The default ICU data directory is specified by the environment variable
 .BR ICU_DATA .
 .SH INVARIANT CHARACTERS
@@ -131,7 +111,7 @@ This is the set which is guaranteed to be available regardless of code page.
 .TP 10
 .B ICU_DATA
 Specifies the directory containing ICU data. Defaults to
-.BR @thepkgicudatadir@/@PACKAGE@/@VERSION@/ .
+.BR @thedatadir@/icu/@VERSION@/ .
 Some tools in ICU depend on the presence of the trailing slash. It is thus
 important to make sure that it is present if
 .B ICU_DATA
@@ -139,6 +119,6 @@ is set.
 .SH VERSION
 @VERSION@
 .SH COPYRIGHT
-Copyright (C) 2000-2002 IBM, Inc. and others.
+Copyright (C) 2000-2001 IBM, Inc. and others.
 .SH SEE ALSO
 .BR pkgdata (8)

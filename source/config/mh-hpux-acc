@@ -1,9 +1,9 @@
 ## -*-makefile-*-
 ## HP/UX-specific setup using aCC
-## Copyright (c) 1999-2002, International Business Machines Corporation and
+## Copyright (c) 1999-2000, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-hpux-acc,v 1.27 2002/03/14 02:00:36 srl Exp $
+## $Id: mh-hpux-acc,v 1.25.2.1 2002/01/24 01:49:19 srl Exp $
 
 ## Commands to generate dependency files
 GEN_DEPS.c=	:
@@ -59,11 +59,11 @@ STATIC_O = o
 
 ## Dependency rules
 %.d : $(srcdir)/%.c
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(GEN_DEPS.c) $< > $@
 
 %.d : $(srcdir)/%.cpp
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(GEN_DEPS.cc) $< > $@
 
 ## Versioned libraries rules

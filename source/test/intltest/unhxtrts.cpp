@@ -17,7 +17,7 @@
 #include "unicode/translit.h"
 #include "unicode/unitohex.h"
 #include "unicode/unifilt.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "intltest.h"
 /*converts a Unicodestring to integer*/
 static int32_t getInt(UnicodeString str)
@@ -68,7 +68,7 @@ static void pseudoHandleTransliterate(const Transliterator* t,
  * Used by TestConstruction() and TestTransliterate.
  */
 class TestUniFilter : public UnicodeFilter {
-    virtual UnicodeFunctor* clone() const {
+    virtual UnicodeMatcher* clone() const {
         return new TestUniFilter(*this);
     }
     virtual UBool contains(UChar32 c) const {

@@ -23,15 +23,6 @@
 #include "sfnt.h"
 #include "cmaps.h"
 
-#define TABLE_CACHE_INIT 5
-#define TABLE_CACHE_GROW 5
-
-struct TableCacheEntry
-{
-    LETag tag;
-    void *table;
-};
-
 enum PFIErrorCode {
     PFI_NO_ERROR = 0,
 
@@ -47,42 +38,36 @@ typedef enum PFIErrorCode PFIErrorCode;
 class PortableFontInstance : public LEFontInstance
 {
 private:
-    FILE *fFile;
+	FILE *fFile;
 
     float fUnitsPerEM;
     float fPointSize;
 
-    const SFNTDirectory *fDirectory;
-    le_uint16 fDirPower;
-    le_uint16 fDirExtra;
+	const SFNTDirectory *fDirectory;
 
-    TableCacheEntry *fTableCache;
-    le_int32 fTableCacheCurr;
-    le_int32 fTableCacheSize;
+	CMAPMapper *fCMAPMapper;
 
-    CMAPMapper *fCMAPMapper;
+	const HMTXTable *fHMTXTable;
+	le_uint16 fNumGlyphs;
+	le_uint16 fNumLongHorMetrics;
 
-    const HMTXTable *fHMTXTable;
-    le_uint16 fNumGlyphs;
-    le_uint16 fNumLongHorMetrics;
+	const DirectoryEntry *findTable(LETag tag) const;
+	const void *readTable(LETag tag, le_uint32 *length) const;
+	void deleteTable(const void *table) const;
 
-    static le_int8 highBit(le_int32 value);
-
-    PFIErrorCode PortableFontInstance::initFontTableCache();
-    void PortableFontInstance::flushFontTableCache();
-
-    const DirectoryEntry *findTable(LETag tag) const;
-    const void *readTable(LETag tag, le_uint32 *length) const;
-    void deleteTable(const void *table) const;
-
-    CMAPMapper *PortableFontInstance::findUnicodeMapper();
+	CMAPMapper *PortableFontInstance::findUnicodeMapper();
 
 public:
     PortableFontInstance(char *fileName, float pointSize, PFIErrorCode &status);
 
     virtual ~PortableFontInstance();
 
-    virtual const void *getFontTable(LETag tableTag) const;
+    virtual const void *getFontTable(LETag tableTag) const
+    {
+		le_uint32 length;
+
+        return readTable(tableTag, &length);
+    };
 
     virtual le_bool canDisplay(LEUnicode32 ch) const
     {
@@ -97,7 +82,7 @@ public:
     virtual le_int32 getLineHeight() const
     {
         // this is a cheap hack!!
-    return (le_int32) fPointSize;
+	return (le_int32) fPointSize;
     };
 
     virtual void mapCharsToGlyphs(const LEUnicode chars[], le_int32 offset, le_int32 count, le_bool reverse, const LECharMapper *mapper, LEGlyphID glyphs[]) const;
@@ -106,13 +91,13 @@ public:
 
     virtual le_int32 getName(le_uint16 platformID, le_uint16 scriptID, le_uint16 languageID, le_uint16 nameID, LEUnicode *name) const
     {
-        // This is only used for CDAC fonts, and we'll have to loose that support anyhow...
+		// This is only used for CDAC fonts, and we'll have to loose that support anyhow...
         //return (le_int32) fFontObject->getName(platformID, scriptID, languageID, nameID, name);
-        if (name != NULL) {
-            *name = 0;
-        }
+		if (name != NULL) {
+			*name = 0;
+		}
 
-        return 0;
+		return 0;
     };
 
     virtual void getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const;

@@ -60,7 +60,7 @@ $HEADERDEF =~ s/\./_/;
 print HEADER <<"EndOfHeaderComment";
 /*
 *******************************************************************************
-*   Copyright (C) 2002, International Business Machines
+*   Copyright (C) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *******************************************************************************
 *
@@ -71,7 +71,7 @@ print HEADER <<"EndOfHeaderComment";
 *
 *   Created by: Perl script written by Vladimir Weinstein
 *
-*  Contains data for renaming ICU exports.
+*  Contains data for renaming ICU exports in the $ARGV[0] library
 *  Gets included by umachine.h
 *
 *  THIS FILE IS MACHINE-GENERATED, DON'T PLAY WITH IT IF YOU DON'T KNOW WHAT
@@ -81,11 +81,6 @@ print HEADER <<"EndOfHeaderComment";
 #ifndef $HEADERDEF
 #define $HEADERDEF
 
-/* Uncomment the following line to disable renaming on platforms
-   that do not use Autoconf. */
-/* #define U_DISABLE_RENAMING 1 */
-
-#if !U_DISABLE_RENAMING
 EndOfHeaderComment
 
 for(;@ARGV; shift(@ARGV)) {
@@ -128,21 +123,20 @@ for(;@ARGV; shift(@ARGV)) {
     }
 }
 
-print HEADER "\n/* C exports renaming data */\n\n";
+print HEADER "\n/* C exports renaming data */\n";
 foreach(sort keys(%CFuncs)) {
     print HEADER "#define $_ $_$U_ICU_VERSION_SUFFIX\n";
 }
 
-print HEADER "/* C++ class names renaming defines */\n\n";
+print HEADER "\n/* C++ class names renaming defines */\n";
 print HEADER "#ifdef XP_CPLUSPLUS\n";
-print HEADER "#if !U_HAVE_NAMESPACE\n\n";
+print HEADER "#if !U_HAVE_NAMESPACE\n";
 foreach(sort keys(%CppClasses)) {
     print HEADER "#define $_ $_$U_ICU_VERSION_SUFFIX\n";
 }
-print HEADER "\n#endif\n";
 print HEADER "#endif\n";
-print HEADER "\n#endif\n";
-print HEADER "\n#endif\n";
+print HEADER "#endif\n";
+print HEADER "#endif\n";
 
 close HEADER;
 
@@ -168,4 +162,11 @@ EndHelpText
     exit 0;
 
 }
+
+
+
+
+
+
+
 

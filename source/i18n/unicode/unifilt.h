@@ -8,7 +8,6 @@
 #ifndef UNIFILT_H
 #define UNIFILT_H
 
-#include "unicode/unifunct.h"
 #include "unicode/unimatch.h"
 
 U_NAMESPACE_BEGIN
@@ -38,7 +37,7 @@ U_NAMESPACE_BEGIN
  * @see UnicodeFilterLogic
  * @stable
  */
-class U_I18N_API UnicodeFilter : public UnicodeFunctor, public UnicodeMatcher {
+class U_I18N_API UnicodeFilter : public UnicodeMatcher {
 
 public:
     /**
@@ -55,12 +54,6 @@ public:
      * @stable
      */
     virtual UBool contains(UChar32 c) const = 0;
-
-    /**
-     * UnicodeFunctor API.  Cast 'this' to a UnicodeMatcher* pointer
-     * and return the pointer.
-     */
-    virtual UnicodeMatcher* toMatcher() const;
 
     /**
      * UnicodeMatcher API.  This class stubs this out.
@@ -80,11 +73,6 @@ public:
                                  int32_t& offset,
                                  int32_t limit,
                                  UBool incremental);
-
-    /**
-     * UnicodeFunctor API.  Nothing to do.
-     */
-    virtual void setData(const TransliterationRuleData*) {}
 
 protected:
 

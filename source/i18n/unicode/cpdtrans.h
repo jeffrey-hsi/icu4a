@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2002, International Business Machines
+*   Copyright (C) 1999, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -32,6 +32,7 @@ class TransliteratorRegistry;
  * <p>Copyright &copy; IBM Corporation 1999.  All rights reserved.
  *
  * @author Alan Liu
+ * @version $RCSfile: cpdtrans.h,v $ $Revision: 1.25 $ $Date: 2001/11/19 19:53:10 $
  * @deprecated To be removed after 2002-sep-30.
  */
 class U_I18N_API CompoundTransliterator : public Transliterator {
@@ -180,13 +181,14 @@ private:
                            const UnicodeString& idBlock,
                            int32_t idSplitPoint,
                            Transliterator *adoptedTrans,
+                           UParseError& parseError,
                            UErrorCode& status);
                            
     /**
      * Private constructor for Transliterator.
      */
-    CompoundTransliterator(UVector& list,
-                           UParseError& parseError,
+    CompoundTransliterator(UTransDirection dir,
+                           UVector& list,
                            UErrorCode& status);
 
     void init(const UnicodeString& id,
@@ -194,6 +196,7 @@ private:
               int32_t idSplitPoint,
               Transliterator *adoptedRbt,
               UBool fixReverseID,
+              UParseError& parseError,
               UErrorCode& status);
 
     void init(UVector& list,

@@ -43,9 +43,7 @@ public:
     virtual const void setFont(void *surface) const
     {
         HDC hdc = (HDC) surface;
-	GDIFontInstance *real = (GDIFontInstance *) this;
 
-	real->fHdc = hdc;
         SelectObject(hdc, fFont);
     };
     

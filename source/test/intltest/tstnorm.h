@@ -34,7 +34,6 @@ public:
     void TestVerisign(void);
     void TestPreviousNext(void);
     void TestNormalizerAPI(void);
-    void TestConcatenate(void);
 
 private:
     UnicodeString canonTests[24][3];

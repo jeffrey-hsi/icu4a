@@ -148,15 +148,9 @@
  *                              The net result will be something of the form
  *                                  #define U_ICU_ENTRY_POINT icudt19_dat
  */
-#if U_HAVE_LIB_SUFFIX
-#define U_ICUDATA_ENTRY_POINT  U_DEF2_ICUDATA_ENTRY_POINT(U_ICU_VERSION_MAJOR_NUM, U_ICU_VERSION_MINOR_NUM, U_LIB_SUFFIX_C_NAME) 
-#define U_DEF2_ICUDATA_ENTRY_POINT(major, minor, suffix) U_DEF_ICUDATA_ENTRY_POINT(major, minor, suffix)
-#define U_DEF_ICUDATA_ENTRY_POINT(major, minor, suffix) icudt##major##minor##suffix##_dat
-#else
 #define U_ICUDATA_ENTRY_POINT  U_DEF2_ICUDATA_ENTRY_POINT(U_ICU_VERSION_MAJOR_NUM, U_ICU_VERSION_MINOR_NUM) 
 #define U_DEF2_ICUDATA_ENTRY_POINT(major, minor) U_DEF_ICUDATA_ENTRY_POINT(major, minor)
 #define U_DEF_ICUDATA_ENTRY_POINT(major, minor) icudt##major##minor##_dat
-#endif
 
 /**
  * \def U_CALLCONV
@@ -379,7 +373,6 @@ enum UErrorCode {
     U_STATE_OLD_WARNING       = -125,   /**< ICU has to use compatibility layer to construct the service. Expect performance/memory usage degradation. Consider upgrading */
 
     U_STRING_NOT_TERMINATED_WARNING = -124,/**< An output string could not be NUL-terminated because output length==destCapacity. */
-    U_SORT_KEY_TOO_SHORT_WARNING = -123,
 
     U_ERROR_WARNING_LIMIT,                 /**< This must always be the last warning value to indicate the limit for UErrorCode warnings (last warning code +1) */
     
@@ -397,7 +390,7 @@ enum UErrorCode {
     U_MEMORY_ALLOCATION_ERROR =  7,     /**< Memory allocation error */
     U_INDEX_OUTOFBOUNDS_ERROR =  8,
     U_PARSE_ERROR             =  9,     /**< Equivalent to Java ParseException */
-    U_INVALID_CHAR_FOUND      = 10,     /**< In the Character conversion routines: Invalid character or sequence was encountered. In other APIs: Invalid character or code point name. */
+    U_INVALID_CHAR_FOUND      = 10,     /**< In the Character conversion routines: Invalid character or sequence was encountered */
     U_TRUNCATED_CHAR_FOUND    = 11,     /**< In the Character conversion routines: More bytes are required to complete the conversion successfully */
     U_ILLEGAL_CHAR_FOUND      = 12,     /**< In codeset conversion: a sequence that does NOT belong in the codepage has been encountered */
     U_INVALID_TABLE_FORMAT    = 13,     /**< Conversion table file found, but corrupted */
@@ -447,10 +440,6 @@ enum UErrorCode {
     U_ILLEGAL_CHAR_IN_SEGMENT,
     U_VARIABLE_RANGE_EXHAUSTED,         /**< Too many stand-ins generated for the given variable range */
     U_VARIABLE_RANGE_OVERLAP,           /**< The variable range overlaps characters used in rules */
-    U_ILLEGAL_CHARACTER,
-    U_INTERNAL_TRANSLITERATOR_ERROR,
-    U_INVALID_ID,
-    U_INVALID_FUNCTION,
     U_PARSE_ERROR_LIMIT,                /**< end of Transliterator specific parse Errors */
 
     /* 
@@ -514,6 +503,12 @@ typedef enum UErrorCode UErrorCode;
  */
 U_CAPI const char * U_EXPORT2
 u_errorName(UErrorCode code);
+
+/**
+ * Mutex data type.
+ * @internal
+ */
+typedef void *UMTX;
 
 
 

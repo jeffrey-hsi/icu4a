@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2000-2002, International Business Machines
+*   Copyright (C) 2000-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -23,25 +23,14 @@
 
 #include "unicode/utypes.h"
 
-U_CDECL_BEGIN
-
-/**
- * Skip space ' ' and TAB '\t' characters.
- *
- * @param s Pointer to characters.
- * @return Pointer to first character at or after s that is not a space or TAB.
- */
-U_CAPI const char * U_EXPORT2
-u_skipWhitespace(const char *s);
-
-/** Function type for u_parseDelimitedFile(). */
+/* Function type for u_parseDelimitedFile(). */
 typedef void U_CALLCONV
 UParseLineFn(void *context,
               char *fields[][2],
               int32_t fieldCount,
               UErrorCode *pErrorCode);
 
-/**
+/*
  * Parser for files that are similar to UnicodeData.txt:
  * This function opens the file and reads it line by line. It skips empty lines
  * and comment lines that start with a '#'.
@@ -70,53 +59,5 @@ u_parseDelimitedFile(const char *filename, char delimiter,
                      char *fields[][2], int32_t fieldCount,
                      UParseLineFn *lineFn, void *context,
                      UErrorCode *pErrorCode);
-
-/**
- * Parse a string of code points like 0061 0308 0300.
- * s must end with either ';' or NUL.
- *
- * @return Number of code points.
- */
-U_CAPI int32_t U_EXPORT2
-u_parseCodePoints(const char *s,
-                  uint32_t *dest, int32_t destCapacity,
-                  UErrorCode *pErrorCode);
-
-/**
- * Parse a list of code points like 0061 0308 0300
- * into a UChar * string.
- * s must end with either ';' or NUL.
- *
- * Set the first code point in *pFirst.
- *
- * @param s Input char * string.
- * @param dest Output string buffer.
- * @param destCapacity Capacity of dest in numbers of UChars.
- * @param pFirst If pFirst!=NULL the *pFirst will be set to the first
- *               code point in the string.
- * @param pErrorCode ICU error code.
- * @return The length of the string in numbers of UChars.
- */
-U_CAPI int32_t U_EXPORT2
-u_parseString(const char *s,
-              UChar *dest, int32_t destCapacity,
-              uint32_t *pFirst,
-              UErrorCode *pErrorCode);
-
-/**
- * Parse a code point range like
- * 0085 or
- * 4E00..9FA5.
- *
- * s must contain such a range and end with either ';' or NUL.
- *
- * @return Length of code point range, end-start+1
- */
-U_CAPI int32_t U_EXPORT2
-u_parseCodePointRange(const char *s,
-                      uint32_t *pStart, uint32_t *pEnd,
-                      UErrorCode *pErrorCode);
-
-U_CDECL_END
 
 #endif

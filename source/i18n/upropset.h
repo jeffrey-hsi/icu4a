@@ -1,7 +1,11 @@
 /*
 **********************************************************************
-*   Copyright (c) 2001-2002, International Business Machines
+*   Copyright (c) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
+**********************************************************************
+* $Source: /xsrl/Nsvn/icu/icu/source/i18n/Attic/upropset.h,v $
+* $Date: 2001/10/18 17:20:02 $
+* $Revision: 1.2 $
 **********************************************************************
 */
 #ifndef _UPROPSET_H_
@@ -55,7 +59,7 @@ class Hashtable;
  * '+' indicates a supported property.
  *
  * @author Alan Liu
- * @internal
+ * @version $RCSfile: upropset.h,v $ $Revision: 1.2 $ $Date: 2001/10/18 17:20:02 $
  */
 class UnicodePropertySet {
 
@@ -201,6 +205,9 @@ class UnicodePropertySet {
                          int32_t value);
 
     static void init();
+
+ public:
+    static void cleanup();
 
  private:
     //----------------------------------------------------------------

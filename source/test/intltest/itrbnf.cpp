@@ -6,13 +6,11 @@
  */
 #include "itrbnf.h"
 
-#include "unicode/umachine.h"
-
 #include "unicode/tblcoll.h"
 #include "unicode/coleitr.h"
 #include "unicode/ures.h"
 #include "unicode/ustring.h"
-//#include "llong.h"
+#include "llong.h"
 
 #include <string.h>
 
@@ -37,7 +35,6 @@ void IntlTestRBNF::runIndexedTest(int32_t index, UBool exec, const char* &name, 
 {
     if (exec) logln("TestSuite RuleBasedNumberFormat");
     switch (index) {
-#if U_HAVE_RBNF
       TESTCASE(0, TestEnglishSpellout);
       TESTCASE(1, TestOrdinalAbbreviations);
       TESTCASE(2, TestDurations);
@@ -49,17 +46,12 @@ void IntlTestRBNF::runIndexedTest(int32_t index, UBool exec, const char* &name, 
       TESTCASE(8, TestThaiSpellout);
       TESTCASE(9, TestAPI);
       TESTCASE(10, TestFractionalRuleSet);
-      // TESTCASE(11, TestLLong);
-#else
-      TESTCASE(0, TestRBNFDisabled);
-#endif
+      TESTCASE(11, TestLLong);
     default:
       name = "";
       break;
     }
 }
-
-#if U_HAVE_RBNF
 
 void 
 IntlTestRBNF::TestAPI() {
@@ -273,7 +265,6 @@ void IntlTestRBNF::TestFractionalRuleSet()
     }
 }
 
-#if 0
 #define LLAssert(a) \
   if (!(a)) errln("FAIL: " #a)
 
@@ -750,7 +741,7 @@ void IntlTestRBNF::TestLLong()
         }
     }
 
-    logln("Testing operator%%=, operator%%");
+    logln("Testing operator%=, operator%");
     //operator%=, operator%
     {
         const llong ZERO;
@@ -898,9 +889,6 @@ void IntlTestRBNF::TestLLong()
         LLAssert((llong(0x12345678, 0x9abcdef0).lltou(buf, (uint32_t)sizeof(buf), 16) == 16) && (u_strcmp(buf, ubig1) == 0));
     }
 }
-
-/* if 0 */
-#endif
 
 void 
 IntlTestRBNF::TestEnglishSpellout() 
@@ -1071,7 +1059,7 @@ IntlTestRBNF::TestFrenchSpellout()
 {
     UErrorCode status = U_ZERO_ERROR;
     RuleBasedNumberFormat* formatter
-        = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::getFrance(), status);
+        = new RuleBasedNumberFormat(URBNF_SPELLOUT, Locale::FRANCE, status);
     
     if (U_FAILURE(status)) {
         errln("FAIL: could not construct formatter");
@@ -1401,13 +1389,3 @@ IntlTestRBNF::doLenientParseTest(RuleBasedNumberFormat* formatter, const char* t
     }
 }
 
-/* U_HAVE_RBNF */
-#else
-
-void
-IntlTestRBNF::TestRBNFDisabled() {
-    errln("*** RBNF currently disabled on this platform ***\n");
-}
-
-/* U_HAVE_RBNF */
-#endif

@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2001-2002, International Business Machines
+*   Copyright (C) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -18,10 +18,10 @@
 #define __UNORMIMP_H__
 
 #include "unicode/utypes.h"
-#include "unicode/uiter.h"
 #include "unicode/unorm.h"
-#include "utrie.h"
-#include "uset.h"
+#ifdef XP_CPLUSPLUS
+#   include "unicode/chariter.h"
+#endif
 #include "ustr_imp.h"
 
 /*
@@ -29,6 +29,27 @@
  * unorm.dat, which is generated with the gennorm tool.
  * The format of that file is described at the end of this file.
  */
+
+/* trie constants */
+enum {
+    /**
+     * Normalization trie table shift value.
+     * This value must be <=10:
+     * above 10, a lead surrogate's block is smaller than a stage 2 block
+     */
+    _NORM_TRIE_SHIFT=5,
+
+    _NORM_STAGE_2_BLOCK_COUNT=1<<_NORM_TRIE_SHIFT,
+    _NORM_STAGE_2_MASK=_NORM_STAGE_2_BLOCK_COUNT-1,
+
+    _NORM_STAGE_1_BMP_COUNT=(1<<(16-_NORM_TRIE_SHIFT)),
+
+    _NORM_SURROGATE_BLOCK_BITS=10-_NORM_TRIE_SHIFT,
+    _NORM_SURROGATE_BLOCK_COUNT=(1<<_NORM_SURROGATE_BLOCK_BITS)
+};
+
+/* this may be >0xffff and may not work as an enum */
+#define _NORM_STAGE_1_MAX_COUNT (0x110000>>_NORM_TRIE_SHIFT)
 
 /* norm32 value constants */
 enum {
@@ -72,57 +93,29 @@ enum {
 #define _NORM_MIN_JAMO_V        0xfff20000
 #define _NORM_JAMO_V_TOP        0xfff30000
 
-/* value constants for auxTrie */
-enum {
-    _NORM_AUX_COMP_EX_SHIFT=10,
-    _NORM_AUX_UNSAFE_SHIFT=11
-};
-
-#define _NORM_AUX_MAX_FNC           ((int32_t)1<<_NORM_AUX_COMP_EX_SHIFT)
-
-#define _NORM_AUX_FNC_MASK          (uint32_t)(_NORM_AUX_MAX_FNC-1)
-#define _NORM_AUX_COMP_EX_MASK      ((uint32_t)1<<_NORM_AUX_COMP_EX_SHIFT)
-#define _NORM_AUX_UNSAFE_MASK       ((uint32_t)1<<_NORM_AUX_UNSAFE_SHIFT)
-
-/* canonStartSets[0..31] contains indexes for what is in the array */
-enum {
-    _NORM_SET_INDEX_CANON_SETS_LENGTH,  /* number of uint16_t in canonical starter sets */
-    _NORM_SET_INDEX_CANON_BMP_TABLE_LENGTH, /* number of uint16_t in the BMP search table (contains pairs) */
-    _NORM_SET_INDEX_CANON_SUPP_TABLE_LENGTH,/* number of uint16_t in the supplementary search table (contains triplets) */
-
-    _NORM_SET_INDEX_TOP=32              /* changing this requires a new formatVersion */
-};
-
-/* more constants for canonical starter sets */
-
-/* 14 bit indexes to canonical USerializedSets */
-#define _NORM_MAX_CANON_SETS            0x4000
-
-/* single-code point BMP sets are encoded directly in the search table except if result=0x4000..0x7fff */
-#define _NORM_CANON_SET_BMP_MASK        0xc000
-#define _NORM_CANON_SET_BMP_IS_INDEX    0x4000
 
 /* indexes[] value names */
 enum {
-    _NORM_INDEX_TRIE_SIZE,              /* number of bytes in normalization trie */
-    _NORM_INDEX_UCHAR_COUNT,            /* number of UChars in extra data */
+    _NORM_INDEX_COUNT,
+    _NORM_INDEX_TRIE_SHIFT,
+    _NORM_INDEX_TRIE_INDEX_COUNT,
+    _NORM_INDEX_TRIE_DATA_COUNT,
+    _NORM_INDEX_UCHAR_COUNT,
 
-    _NORM_INDEX_COMBINE_DATA_COUNT,     /* number of uint16_t words for combining data */
-    _NORM_INDEX_COMBINE_FWD_COUNT,      /* number of code points that combine forward */
-    _NORM_INDEX_COMBINE_BOTH_COUNT,     /* number of code points that combine forward and backward */
-    _NORM_INDEX_COMBINE_BACK_COUNT,     /* number of code points that combine backward */
+    _NORM_INDEX_COMBINE_DATA_COUNT,
+    _NORM_INDEX_COMBINE_FWD_COUNT,
+    _NORM_INDEX_COMBINE_BOTH_COUNT,
+    _NORM_INDEX_COMBINE_BACK_COUNT,
 
-    _NORM_INDEX_MIN_NFC_NO_MAYBE,       /* first code point with quick check NFC NO/MAYBE */
-    _NORM_INDEX_MIN_NFKC_NO_MAYBE,      /* first code point with quick check NFKC NO/MAYBE */
-    _NORM_INDEX_MIN_NFD_NO_MAYBE,       /* first code point with quick check NFD NO/MAYBE */
-    _NORM_INDEX_MIN_NFKD_NO_MAYBE,      /* first code point with quick check NFKD NO/MAYBE */
+    _NORM_INDEX_MIN_NFC_NO_MAYBE,
+    _NORM_INDEX_MIN_NFKC_NO_MAYBE,
+    _NORM_INDEX_MIN_NFD_NO_MAYBE,
+    _NORM_INDEX_MIN_NFKD_NO_MAYBE,
 
-    _NORM_INDEX_FCD_TRIE_SIZE,          /* number of bytes in FCD trie */
+    _NORM_INDEX_FCD_TRIE_INDEX_COUNT,
+    _NORM_INDEX_FCD_TRIE_DATA_COUNT,
 
-    _NORM_INDEX_AUX_TRIE_SIZE,          /* number of bytes in the auxiliary trie */
-    _NORM_INDEX_CANON_SET_COUNT,        /* number of uint16_t in the array of serialized USet */
-
-    _NORM_INDEX_TOP=32                  /* changing this requires a new formatVersion */
+    _NORM_INDEX_TOP=16
 };
 
 enum {
@@ -222,10 +215,10 @@ inline uint16_t
 unorm_getFCD16(const uint16_t *fcdTrieIndex, UChar c) {
     return
         fcdTrieIndex[
-            (fcdTrieIndex[
-                c>>UTRIE_SHIFT
-            ]<<UTRIE_INDEX_SHIFT)+
-            (c&UTRIE_MASK)
+            fcdTrieIndex[
+                c>>_NORM_TRIE_SHIFT
+            ]+
+            (c&_NORM_STAGE_2_MASK)
         ];
 }
 
@@ -242,12 +235,16 @@ unorm_getFCD16(const uint16_t *fcdTrieIndex, UChar c) {
  */
 inline uint16_t
 unorm_getFCD16FromSurrogatePair(const uint16_t *fcdTrieIndex, uint16_t fcd16, UChar c2) {
+    /* the surrogate index in fcd16 is an absolute offset over the start of stage 1 */
+    uint32_t c=
+        ((uint32_t)fcd16<<10)|
+        (c2&0x3ff);
     return
         fcdTrieIndex[
-            (fcdTrieIndex[
-                (int32_t)fcd16+((c2&0x3ff)>>UTRIE_SHIFT)
-            ]<<UTRIE_INDEX_SHIFT)+
-            (c2&UTRIE_MASK)
+            fcdTrieIndex[
+                c>>_NORM_TRIE_SHIFT
+            ]+
+            (c&_NORM_STAGE_2_MASK)
         ];
 }
 
@@ -255,75 +252,170 @@ U_NAMESPACE_END
 
 #endif
 
+U_CDECL_BEGIN
+
+struct UCharIterator;
+typedef struct UCharIterator UCharIterator;
+
+enum UCharIteratorOrigin {
+    UITERATOR_START, UITERATOR_CURRENT, UITERATOR_END
+};
+typedef enum UCharIteratorOrigin UCharIteratorOrigin;
+
+typedef int32_t U_CALLCONV
+UCharIteratorMove( UCharIterator *iter, int32_t delta, UCharIteratorOrigin origin);
+
+typedef UBool U_CALLCONV
+UCharIteratorHasNext(UCharIterator *iter);
+
+typedef UBool U_CALLCONV
+UCharIteratorHasPrevious(UCharIterator *iter);
+ 
+typedef UChar U_CALLCONV
+UCharIteratorCurrent(UCharIterator *iter);
+
+typedef UChar U_CALLCONV
+UCharIteratorNext(UCharIterator *iter);
+
+typedef UChar U_CALLCONV
+UCharIteratorPrevious(UCharIterator *iter);
+
+
 /**
- * internal API, used by the canonical iterator
+ * C API for code unit iteration.
+ * This can be used as a C wrapper around
+ * CharacterIterator, Replaceable, or implemented using simple strings, etc.
+ *
+ * @internal for normalization
+ */
+struct UCharIterator {
+    /**
+     * (protected) Pointer to string or wrapped object or similar.
+     * Not used by caller.
+     */
+    void *context;
+
+    /**
+     * (protected) Length of string or similar.
+     * Not used by caller.
+     */
+    int32_t length;
+
+    /**
+     * (protected) Start index or similar.
+     * Not used by caller.
+     */
+    int32_t start;
+
+    /**
+     * (protected) Current index or similar.
+     * Not used by caller.
+     */
+    int32_t index;
+
+    /**
+     * (protected) Limit index or similar.
+     * Not used by caller.
+     */
+    int32_t limit;
+
+    /**
+     * (public) Moves the current position relative to the start or end of the
+     * iteration range, or relative to the current position itself.
+     * The movement is expressed in numbers of code units forward
+     * or backward by specifying a positive or negative delta.
+     *
+     * @param delta can be positive, zero, or negative
+     * @param origin move relative to the start, end, or current index
+     * @return the new index
+     */
+    UCharIteratorMove *move;
+
+    /**
+     * (public) Check if current() and next() can still
+     * return another code unit.
+     */
+    UCharIteratorHasNext *hasNext;
+
+    /**
+     * (public) Check if previous() can still return another code unit.
+     */
+    UCharIteratorHasPrevious *hasPrevious;
+
+    /**
+     * (public) Return the code unit at the current position,
+     * or 0xffff if there is none (index is at the end).
+     */
+    UCharIteratorCurrent *current;
+
+    /**
+     * (public) Return the code unit at the current index and increment
+     * the index (post-increment, like s[i++]),
+     * or return 0xffff if there is none (index is at the end).
+     */
+    UCharIteratorNext *next;
+
+    /**
+     * (public) Decrement the index and return the code unit from there
+     * (pre-decrement, like s[--i]),
+     * or return 0xffff if there is none (index is at the start).
+     */
+    UCharIteratorPrevious *previous;
+};
+
+/**
+ * Internal API for iterative normalizing - see Normalizer.
  * @internal
  */
 U_CAPI int32_t U_EXPORT2
-unorm_getDecomposition(UChar32 c, UBool compat,
-                       UChar *dest, int32_t destCapacity);
+unorm_nextNormalize(UChar *dest, int32_t destCapacity,
+                    UCharIterator *src,
+                    UNormalizationMode mode, UBool ignoreHangul,
+                    UErrorCode *pErrorCode);
 
 /**
- * internal API, used by uprops.cpp
+ * Internal API for iterative normalizing - see Normalizer.
  * @internal
  */
-U_CAPI UBool U_EXPORT2
-unorm_internalIsFullCompositionExclusion(UChar32 c);
+U_CAPI int32_t U_EXPORT2
+unorm_previousNormalize(UChar *dest, int32_t destCapacity,
+                        UCharIterator *src,
+                        UNormalizationMode mode, UBool ignoreHangul,
+                        UErrorCode *pErrorCode);
+
+U_CDECL_END
 
 /**
- * Internal API, used by enumeration of canonically equivalent strings
- * @internal
- */
-U_CAPI UBool U_EXPORT2
-unorm_isCanonSafeStart(UChar32 c);
-
-/**
- * Internal API, used by enumeration of canonically equivalent strings
- * @internal
- */
-U_CAPI UBool U_EXPORT2
-unorm_getCanonStartSet(UChar32 c, USerializedSet *fillSet);
-
-/**
- * Description of the format of unorm.dat version 2.1.
- *
- * Main change from version 1 to version 2:
- * Use of new, common UTrie instead of normalization-specific tries.
- * Change to version 2.1: add third/auxiliary trie with associated data.
+ * Description of the format of unorm.dat.
  *
  * For more details of how to use the data structures see the code
  * in unorm.cpp (runtime normalization code) and
  * in gennorm.c and gennorm/store.c (build-time data generation).
  *
- * For the serialized format of UTrie see utrie.c/UTrieHeader.
  *
  * - Overall partition
  *
  * unorm.dat customarily begins with a UDataInfo structure, see udata.h and .c.
- * After that there are the following structures:
+ * After that there are the following arrays:
  *
- * uint16_t indexes[_NORM_INDEX_TOP];           -- _NORM_INDEX_TOP=32, see enum in this file
+ * uint16_t indexes[_NORM_INDEX_TOP];           -- _NORM_INDEX_TOP=indexes[0]=indexes[_NORM_INDEX_COUNT]
  *
- * UTrie normTrie;                              -- size in bytes=indexes[_NORM_INDEX_TRIE_SIZE]
- * 
+ * uint16_t stage1[stage1Top];                  -- stage1Top=indexes[_NORM_INDEX_TRIE_INDEX_COUNT]
+ * uint32_t norm32Table[norm32TableTop];        -- norm32TableTop=indexes[_NORM_INDEX_TRIE_DATA_COUNT]
+ *
  * uint16_t extraData[extraDataTop];            -- extraDataTop=indexes[_NORM_INDEX_UCHAR_COUNT]
- *                                                 extraData[0] contains the number of units for
- *                                                 FC_NFKC_Closure (formatVersion>=2.1)
- *
  * uint16_t combiningTable[combiningTableTop];  -- combiningTableTop=indexes[_NORM_INDEX_COMBINE_DATA_COUNT]
- *                                                 combiningTableTop may include one 16-bit padding unit
- *                                                 to make sure that fcdTrie is 32-bit-aligned
  *
- * UTrie fcdTrie;                               -- size in bytes=indexes[_NORM_INDEX_FCD_TRIE_SIZE]
- *
- * UTrie auxTrie;                               -- size in bytes=indexes[_NORM_INDEX_AUX_TRIE_SIZE]
- *
- * uint16_t canonStartSets[canonStartSetsTop]   -- canonStartSetsTop=indexes[_NORM_INDEX_CANON_SET_COUNT]
- *                                                 serialized USets and binary search tables, see below
+ * uint16_t fcdStage1[fcdStage1Top];            -- fcdStage1Top=indexes[_NORM_INDEX_FCD_TRIE_INDEX_COUNT]
+ * uint16_t fcdTable[fcdTableTop];              -- fcdTableTop=indexes[_NORM_INDEX_FCD_TRIE_DATA_COUNT]
  *
  *
- * The indexes array contains lengths and sizes of the following arrays and structures
+ * The indexes array contains lengths of the following arrays (and its own length)
  * as well as the following values:
+ *  indexes[_NORM_INDEX_COUNT]=_NORM_INDEX_TOP
+ *      -- length of indexes[]
+ *  indexes[_NORM_INDEX_TRIE_SHIFT]=_NORM_TRIE_SHIFT
+ *      -- for trie indexes: shift UChars by this much
  *  indexes[_NORM_INDEX_COMBINE_FWD_COUNT]=combineFwdTop
  *      -- one more than the highest combining index computed for forward-only-combining characters
  *  indexes[_NORM_INDEX_COMBINE_BOTH_COUNT]=combineBothTop-combineFwdTop
@@ -331,22 +423,53 @@ unorm_getCanonStartSet(UChar32 c, USerializedSet *fillSet);
  *  indexes[_NORM_INDEX_COMBINE_BACK_COUNT]=combineBackTop-combineBothTop
  *      -- number of combining indexes computed for backward-only-combining characters
  *
- *  indexes[_NORM_INDEX_MIN_NF*_NO_MAYBE] (where *={ C, D, KC, KD })
- *      -- first code point with a quick check NF* value of NO/MAYBE
- *
  *
  * - Tries
  *
- * The main structures are two UTrie tables ("compact arrays"),
+ * The main structures are two trie tables ("compact arrays"),
  * each with one index array and one data array.
- * See utrie.h and utrie.c.
+ * Generally, tries use the upper bits of an input value to access the index array,
+ * which results in an index to the data array where a block of values is stored.
+ * The lower bits of the same input value are then used to index inside that data
+ * block to get to the specific data element for the input value.
+ *
+ * In order to use each trie with a single base pointer, the index values in
+ * the index array are offset by the length of the index array.
+ * With this, a base pointer to the trie index array is also directly used
+ * with the index value to access the trie data array.
+ * For example, if trieIndex[n] refers to offset m in trieData[] then
+ * the actual value is q=trieIndex[n]=lengthof(trieIndex)+m
+ * and you access trieIndex[q] instead of trieData[m].
+ *
+ *
+ * - Folded tries
+ *
+ * The tries here are extended to work for lookups on UTF-16 strings with
+ * supplementary characters encoded with surrogate pairs.
+ * They are called "folded tries".
+ *
+ * Each 16-bit code unit (UChar, not code point UChar32) is looked up this way.
+ * If there is relevant data for any given code unit, then the data or the code unit
+ * must be checked for whether it is a leading surrogate.
+ * If so, then the data contains an offset that is used together with the following
+ * trailing surrogate code unit value for a second trie access.
+ * This uses a portion of the index array beyond what is accessible with 16-bit units,
+ * i.e., it uses the part of the trie index array starting at its index
+ * 0x10000>>_NORM_TRIE_SHIFT.
+ *
+ * Such folded tries are useful when processing UTF-16 strings, especially if
+ * many code points do not have relevant data, so that the check for
+ * surrogates and the second trie lookup are rarely performed.
+ * It avoids the overhead of a double-index trie that is necessary if the input
+ * is always with 21-bit code points.
  *
  *
  * - Tries in unorm.dat
  *
- * The first trie (normTrie above)
- * provides data for the NF* quick checks and normalization.
- * The second trie (fcdTrie above) provides data just for FCD checks.
+ * The first trie consists of the stage1 and the norm32Table arrays.
+ * It provides data for the NF* quick checks and normalization.
+ * The second trie consists of the fcdStage1 and the fcdTable arrays
+ * and provides data just for FCD checks.
  *
  *
  * - norm32 data words from the first trie
@@ -487,68 +610,6 @@ unorm_getCanonStartSet(UChar32 c, USerializedSet *fillSet);
  * This is done only if the 16-bit data word is not zero.
  * If the code unit is a leading surrogate and the data word is not zero,
  * then instead of cc's it contains the offset for the second trie lookup.
- *
- *
- * - Auxiliary trie and data
- *
- * The auxiliary 16-bit trie contains data for additional properties.
- * Bits
- * 15..12   reserved (for skippable flags, see NormalizerTransliterator)
- *     11   flag: not a safe starter for canonical closure
- *     10   composition exclusion
- *  9.. 0   index into extraData[] to FC_NFKC_Closure string
- *          (not for lead surrogate),
- *          or lead surrogate offset (for lead surrogate, if 9..0 not zero)
- *
- * - FC_NFKC_Closure strings in extraData[]
- *
- * Strings are either stored as a single code unit or as the length
- * followed by that many units.
- *   const UChar *s=extraData+(index from auxTrie data bits 29..20);
- *   int32_t length;
- *   if(*s<0xff00) {
- *     // s points to the single-unit string
- *     length=1;
- *   } else {
- *     length=*s&0xff;
- *     ++s;
- *   }
- *
- *
- * - structure inside canonStartSets[]
- *
- * This array maps from code points c to sets of code points (USerializedSet).
- * The result sets are the code points whose canonical decompositions start
- * with c.
- *
- * canonStartSets[] contains the following sub-arrays:
- *
- * indexes[_NORM_SET_INDEX_TOP]
- *   - contains lengths of sub-arrays etc.
- *
- * startSets[indexes[_NORM_SET_INDEX_CANON_SETS_LENGTH]-_NORM_SET_INDEX_TOP]
- *   - contains serialized sets (USerializedSet) of canonical starters for
- *     enumerating canonically equivalent strings
- *     indexes[_NORM_SET_INDEX_CANON_SETS_LENGTH] includes _NORM_SET_INDEX_TOP
- *     for details about the structure see uset.c
- *
- * bmpTable[indexes[_NORM_SET_INDEX_CANON_BMP_TABLE_LENGTH]]
- *   - a sorted search table for BMP code points whose results are
- *     either indexes to USerializedSets or single code points for
- *     single-code point sets;
- *     each entry is a pair of { code point, result } with result=(binary) yy xxxxxx xxxxxxxx
- *     if yy==01 then there is a USerializedSet at canonStartSets+x
- *     else build a USerializedSet with result as the single code point
- *
- * suppTable[indexes[_NORM_SET_INDEX_CANON_SUPP_TABLE_LENGTH]]
- *   - a sorted search table for supplementary code points whose results are
- *     either indexes to USerializedSets or single code points for
- *     single-code point sets;
- *     each entry is a triplet of { high16(cp), low16(cp), result }
- *     each code point's high-word may contain extra data in bits 15..5:
- *     if the high word has bit 15 set, then build a set with a single code point
- *     which is (((high16(cp)&0x1f00)<<8)|result;
- *     else there is a USerializedSet at canonStartSets+result
  */
 
 #endif

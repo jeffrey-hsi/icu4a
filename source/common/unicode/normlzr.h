@@ -272,41 +272,6 @@ public:
   static UNormalizationCheckResult
   quickCheck(const UnicodeString &source, UNormalizationMode mode, UErrorCode &status);
 
-  /*
-   * Concatenate normalized strings, making sure that the result is normalized as well.
-   *
-   * If both the left and the right strings are in
-   * the normalization form according to "mode",
-   * then the result will be
-   *
-   * \code
-   *     dest=normalize(left+right, mode)
-   * \endcode
-   *
-   * For details see unorm_concatenate in unorm.h.
-   *
-   * @param left Left source string.
-   * @param right Right source string.
-   * @param dest The output string.
-   * @param mode The normalization mode.
-   * @param options A bit set of normalization options.
-   * @param pErrorCode ICU error code in/out parameter.
-   *                   Must fulfill U_SUCCESS before the function call.
-   * @return result
-   *
-   * @see unorm_concatenate
-   * @see normalize
-   * @see unorm_next
-   * @see unorm_previous
-   *
-   * @draft ICU 2.1
-   */
-  static UnicodeString &
-  concatenate(UnicodeString &left, UnicodeString &right,
-              UnicodeString &result,
-              UNormalizationMode mode, int32_t options,
-              UErrorCode &errorCode);
-
   //-------------------------------------------------------------------------
   // Iteration API
   //-------------------------------------------------------------------------
@@ -380,7 +345,7 @@ public:
    * @return      the normalized character from the text at index
    * @deprecated To be removed after 2002-aug-31. Use setIndexOnly().
    */
-  UChar32              setIndex(int32_t index);
+  UChar32              setIndex(UTextOffset index);
 
   /**
    * Set the iteration position in the input text that is being normalized,
@@ -391,7 +356,7 @@ public:
    * @param index the desired index in the input text.
    * @draft ICU 2.0
    */
-  void                 setIndexOnly(int32_t index);
+  void                 setIndexOnly(UTextOffset index);
 
   /**
    * Reset the index to the beginning of the text.
@@ -414,7 +379,7 @@ public:
    * @return the current index in the input text
    * @stable
    */
-  int32_t            getIndex(void) const;
+  UTextOffset            getIndex(void) const;
 
   /**
    * Retrieve the index of the start of the input text. This is the begin index
@@ -424,7 +389,7 @@ public:
    * @return the smallest index in the input text where the Normalizer operates
    * @stable
    */
-  int32_t            startIndex(void) const;
+  UTextOffset            startIndex(void) const;
 
   /**
    * Retrieve the index of the end of the input text. This is the end index
@@ -436,7 +401,7 @@ public:
    * @return the first index in the input text where the Normalizer does not operate
    * @stable
    */
-  int32_t            endIndex(void) const;
+  UTextOffset            endIndex(void) const;
 
   /**
    * Returns TRUE when both iterators refer to the same character in the same
@@ -947,11 +912,11 @@ private:
 
   // The normalization buffer is the result of normalization
   // of the source in [currentIndex..nextIndex[ .
-  int32_t         currentIndex, nextIndex;
+  UTextOffset         currentIndex, nextIndex;
 
   // A buffer for holding intermediate results
   UnicodeString       buffer;
-  int32_t         bufferPos;
+  UTextOffset         bufferPos;
 };
 
 //-------------------------------------------------------------------------

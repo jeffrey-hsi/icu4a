@@ -41,7 +41,7 @@
 #include "digitlst.h"
 #include "unicode/dcfmtsym.h"
 #include "unicode/resbund.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "cmemory.h"
 
 U_NAMESPACE_BEGIN
@@ -52,7 +52,7 @@ U_NAMESPACE_BEGIN
 #include <stdio.h>
 static void debugout(UnicodeString s) {
     char buf[2000];
-    s.extract((int32_t) 0, s.length(), buf);
+    s.extract((UTextOffset) 0, s.length(), buf);
     printf("%s", buf);
 }
 #define debug(x) printf("%s", x);
@@ -314,7 +314,6 @@ DecimalFormat::operator=(const DecimalFormat& rhs)
     else 
         *fSymbols = *rhs.fSymbols;
     fUseExponentialNotation = rhs.fUseExponentialNotation;
-    fExponentSignAlwaysShown = rhs.fExponentSignAlwaysShown;
     /*Bertrand A. D. Update 98.03.17*/
     fIsCurrencyFormat = rhs.fIsCurrencyFormat;
     /*end of Update*/
@@ -1118,8 +1117,8 @@ is here if we change our minds.
 UBool DecimalFormat::subparse(const UnicodeString& text, ParsePosition& parsePosition,
                                DigitList& digits, UBool* status) const
 {
-    int32_t position = parsePosition.getIndex();
-    int32_t oldStart = position;
+    UTextOffset position = parsePosition.getIndex();
+    UTextOffset oldStart = position;
 
     // check for positivePrefix; take longest
     UBool gotPositive = text.compare(position,fPositivePrefix.length(),fPositivePrefix,0,
@@ -1247,10 +1246,9 @@ UBool DecimalFormat::subparse(const UnicodeString& text, ParsePosition& parsePos
                 digits.fDecimalAt = digitCount; // Not digits.fCount!
                 sawDecimal = TRUE;
             }
-            else if (!text.caseCompare(position,
+            else if (!text.compare(position,
                 fSymbols->getSymbol(DecimalFormatSymbols::kExponentialSymbol).length(),
-                fSymbols->getSymbol(DecimalFormatSymbols::kExponentialSymbol),
-                U_FOLD_CASE_DEFAULT))    // error code is set below if !sawDigit
+                fSymbols->getSymbol(DecimalFormatSymbols::kExponentialSymbol)))    // error code is set below if !sawDigit
             {
                 // Parse sign, if present
                 int32_t pos = position + 1; // position + exponentSep.length();
@@ -1274,7 +1272,7 @@ UBool DecimalFormat::subparse(const UnicodeString& text, ParsePosition& parsePos
                 }
 
                 while (pos < textLength) {
-                    ch = text[(int32_t)pos];
+                    ch = text[(UTextOffset)pos];
                     digit = ch - zero;
 
                     if (digit < 0 || digit > 9) {
@@ -2208,8 +2206,8 @@ DecimalFormat::toPattern(UnicodeString& result, UBool localized) const
                 {
                     int32_t length = fPosPrefixPattern->length();
                     isDefault = fNegPrefixPattern->length() == (length+2) &&
-                        (*fNegPrefixPattern)[(int32_t)0] == kQuote &&
-                        (*fNegPrefixPattern)[(int32_t)1] == kPatternMinus &&
+                        (*fNegPrefixPattern)[(UTextOffset)0] == kQuote &&
+                        (*fNegPrefixPattern)[(UTextOffset)1] == kPatternMinus &&
                         fNegPrefixPattern->compare(2, length, *fPosPrefixPattern, 0, length) == 0;
                 }
                 if (!isDefault &&
@@ -2326,7 +2324,7 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
     int32_t groupSepLen = groupingSeparator.length();
     int32_t decimalSepLen = decimalSeparator.length();
 
-    int32_t pos = 0;
+    UTextOffset pos = 0;
     int32_t patLen = pattern.length();
     // Part 0 is the positive pattern.  Part 1, if present, is the negative
     // pattern.
@@ -2451,7 +2449,7 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
                         }
                         // Check for positive prefix
                         if ((pos+1) < patLen
-                            && pattern.compare((int32_t) (pos+1), plus.length(), plus) == 0)
+                            && pattern.compare((UTextOffset) (pos+1), plus.length(), plus) == 0)
                         {
                             expSignAlways = TRUE;
                             pos += plus.length();
@@ -2461,7 +2459,7 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
                         expDigits = 0;
                         pos += exponent.length() - 1;
                         while (++pos < patLen &&
-                               pattern[(int32_t) pos] == zeroDigit)
+                               pattern[(UTextOffset) pos] == zeroDigit)
                         {
                             ++expDigits;
                         }
@@ -2723,8 +2721,8 @@ DecimalFormat::applyPattern(const UnicodeString& pattern,
             fUseExponentialNotation = (expDigits >= 0);
             if (fUseExponentialNotation) {
                 fMinExponentDigits = expDigits;
+                fExponentSignAlwaysShown = expSignAlways;
             }
-            fExponentSignAlwaysShown = expSignAlways;
             fIsCurrencyFormat = isCurrency;
             int digitTotalCount = digitLeftCount + zeroDigitCount + digitRightCount;
             // The effectiveDecimalPos is the position the decimal is at or

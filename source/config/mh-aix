@@ -3,7 +3,7 @@
 ## Copyright (c) 1999-2002, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-aix,v 1.28 2002/03/21 01:26:39 grhoten-oss Exp $
+## $Id: mh-aix,v 1.24.2.1 2002/01/24 01:49:17 srl Exp $
 ##
 ## Please note: AIX does NOT have library versioning per se (there is no 'SONAME' capability). 
 ## So, we are using 'windows' style library names, that is, libicuuc20.1.so instead of libicuuc.so.20.1
@@ -13,7 +13,7 @@ GEN_DEPS.c=	$(CC) -E -M $(DEFS) $(CPPFLAGS)
 GEN_DEPS.cc=	$(CXX) -E -M $(DEFS) $(CPPFLAGS)
 
 ## Commands to compile
-COMPILE.c=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS) -qroconst -c
+COMPILE.c=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS)  -qroconst -c
 COMPILE.cc=	$(CXX) $(DEFS) $(CPPFLAGS) $(CXXFLAGS) -qroconst -c
 
 ## Commands to link
@@ -23,8 +23,8 @@ LINK.c=		$(CXX) -brtl $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
 LINK.cc=	$(CXX) -brtl $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
 
 ## Commands to make a shared library
-SHLIB.c=	$(AIX_SHLIB) -p 5000 -brtl $(LDFLAGS)
-SHLIB.cc=	$(AIX_SHLIB) -p 5000 -brtl $(LDFLAGS)
+SHLIB.c=	makeC++SharedLib_r -p 5000 -brtl
+SHLIB.cc=	makeC++SharedLib_r -p 5000 -brtl
 
 ## Compiler switch to embed a runtime search path
 LD_RPATH=	-I
@@ -38,10 +38,10 @@ FINAL_SO_TARGET=  $(basename $(SO_TARGET))$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(
 MIDDLE_SO_TARGET= $(basename $(SO_TARGET))$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX).$(SO)
 
 ## Override the library calls because  AIX doesn't have library versioning. 
-LIBICUDT=       -L$(top_builddir)/data/out -L$(top_builddir)/stubdata -l$(ICUPREFIX)data$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
+LIBICUDT=       -L$(top_builddir)/data -L$(top_builddir)/stubdata -l$(ICUDATA_NAME)$(ICULIBSUFFIX)
 LIBICUUC=       -L$(top_builddir)/common -l$(ICUPREFIX)uc$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX) $(LIBICUDT)
 LIBICUI18N=     -L$(top_builddir)/i18n -l$(ICUPREFIX)i18n$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
-LIBICULE=       -L$(top_builddir)/layout -l$(ICUPREFIX)le$(SO_TARGET_VERSION_MAJOR)$(ICULIBSSUFFIX)
+LIBICULE=       -L$(top_builddir)/layout -l$(ICUPREFIX)le$(ICULIBSSUFFIX)
 LIBCTESTFW=     -L$(top_builddir)/tools/ctestfw -l$(ICUPREFIX)ctestfw$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
 LIBICUTOOLUTIL= -L$(top_builddir)/tools/toolutil -l$(ICUPREFIX)toolutil$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
 LIBUSTDIO=      -L$(top_builddir)/extra/ustdio -lustdio$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX)
@@ -88,11 +88,11 @@ STATIC_O = o
 		[ -s $@ ] || rm -f $@ ; rm -f $<'
 
 %.u : $(srcdir)/%.c
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.c) $< > /dev/null'
 
 %.u : $(srcdir)/%.cpp
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.cc) $< > /dev/null'
 
 

@@ -28,7 +28,6 @@
 #include "unicode/ucnv_err.h"
 #include "unicode/uchar.h"
 #include "ustrfmt.h"
-#include "cmemory.h"
 
 // *****************************************************************************
 // class MessageFormat
@@ -117,8 +116,8 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
   fCount(kMaxFormat),
   fArgumentNumbers(NULL)
 {
-    fOffsets = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
-    fArgumentNumbers = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    fOffsets = new int32_t[fCount];
+    fArgumentNumbers = new int32_t[fCount];
     for (int32_t i = 0; i < fCount; i++) {
         fFormats[i] = NULL;       // Format instances
         fOffsets[i] = 0;          // Starting offset
@@ -132,11 +131,12 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
                              UErrorCode& success)
 : fLocale(newLocale),  // Uses the default locale
   fOffsets(NULL),
-  fCount(kMaxFormat),
+  fCount(0),
   fArgumentNumbers(NULL)
 {
-    fOffsets = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
-    fArgumentNumbers = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    fCount = kMaxFormat;
+    fOffsets = new int32_t[fCount];
+    fArgumentNumbers = new int32_t[fCount];
     for (int32_t i = 0; i < fCount; i++) {
         fFormats[i] = NULL;       // Format instances
         fOffsets[i] = 0;          // Starting offset
@@ -151,11 +151,12 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
                              UErrorCode& success)
 : fLocale(newLocale),  // Uses the default locale
   fOffsets(NULL),
-  fCount(kMaxFormat),
+  fCount(0),
   fArgumentNumbers(NULL)
 {
-    fOffsets = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
-    fArgumentNumbers = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+    fCount = kMaxFormat;
+    fOffsets = new int32_t[fCount];
+    fArgumentNumbers = new int32_t[fCount];
     for (int32_t i = 0; i < fCount; i++) {
         fFormats[i] = NULL;       // Format instances
         fOffsets[i] = 0;          // Starting offset
@@ -171,8 +172,8 @@ MessageFormat::~MessageFormat()
             delete fFormats[i];
         }
     }
-    uprv_free(fOffsets);
-    uprv_free(fArgumentNumbers);
+    delete [] fOffsets;
+    delete [] fArgumentNumbers;
     fCount = 0;
 }
 
@@ -183,9 +184,9 @@ MessageFormat::MessageFormat(const MessageFormat& that)
 : Format(that),
   fLocale(that.fLocale),
   fPattern(that.fPattern),
-  fOffsets((int32_t *)uprv_malloc(that.fCount * sizeof(int32_t))),
+  fOffsets(new int32_t[that.fCount]),
   fCount(that.fCount),
-  fArgumentNumbers((int32_t *)uprv_malloc(that.fCount * sizeof(int32_t))),
+  fArgumentNumbers(new int32_t[that.fCount]),
   fMaxOffset(that.fMaxOffset)
 {
     // Sets up the format instance array, offsets and argument numbers.
@@ -213,16 +214,14 @@ MessageFormat::operator=(const MessageFormat& that)
             delete fFormats[j];
             fFormats[j] = NULL;
         }
-        uprv_free(fOffsets);
-        fOffsets = NULL;
-        uprv_free(fArgumentNumbers);
-        fArgumentNumbers = NULL;
+        delete [] fOffsets; fOffsets = NULL;
+        delete [] fArgumentNumbers; fArgumentNumbers = NULL;
         fPattern = that.fPattern;
         fLocale = that.fLocale;
         fCount = that.fCount;
         fMaxOffset = that.fMaxOffset;
-        fOffsets = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
-        fArgumentNumbers = (int32_t*) uprv_malloc( sizeof(int32_t) * fCount );
+        fOffsets = new int32_t[fCount];
+        fArgumentNumbers = new int32_t[fCount];
         // Sets up the format instance array, offsets and argument numbers.
         for (int32_t i = 0; i < fCount; i++) {
             if (that.fFormats[i] == NULL) {
@@ -1233,14 +1232,18 @@ MessageFormat::makeFormat(/*int32_t position, */
             break;
         default:
             newFormat = DateFormat::createDateInstance(DateFormat::kDefault, fLocale);
-            if(newFormat && newFormat->getDynamicClassID() == SimpleDateFormat::getStaticClassID()){
+            if(newFormat->getDynamicClassID() == SimpleDateFormat::getStaticClassID()){
                     ((SimpleDateFormat*)newFormat)->applyPattern(segments[3]);
             }
+                /* Ram: 'success' is not passed to above methods 
+                   and is not set so we donot have to check for failure.
+                if(U_FAILURE(success)) {
+                    fMaxOffset = oldMaxOffset;
+                    success = U_ILLEGAL_ARGUMENT_ERROR;
+                    return;
+                }
+                */
             break;
-        }
-        if (!newFormat) {
-            /* TODO: get the real error from createDateInstance */
-            success = U_MEMORY_ALLOCATION_ERROR;
         }
         break;
     case 5: case 6:// time
@@ -1265,20 +1268,24 @@ MessageFormat::makeFormat(/*int32_t position, */
             break;
         default:
             newFormat = DateFormat::createTimeInstance(DateFormat::kDefault, fLocale);
-            if(newFormat && newFormat->getDynamicClassID() == SimpleDateFormat::getStaticClassID()){
+            if(newFormat->getDynamicClassID() == SimpleDateFormat::getStaticClassID()){
                     ((SimpleDateFormat*)newFormat)->applyPattern(segments[3]);
             }
+                /* Ram: 'success' is not passed to above methods 
+                   and is not set so we donot have to check for failure.
+                if(U_FAILURE(success)) {
+                    fMaxOffset = oldMaxOffset;
+                    success = U_ILLEGAL_ARGUMENT_ERROR;
+                    return;
+                }
+                */
             break;
-        }
-        if (!newFormat) {
-            /* TODO: get the real error from createTimeInstance */
-            success = U_MEMORY_ALLOCATION_ERROR;
         }
         break;
     case 7: case 8:// choice
         fFormatTypeList[argumentNumber] = Formattable::kDouble;
 
-        newFormat = new ChoiceFormat(segments[3], parseError, success);
+        newFormat = new ChoiceFormat(segments[3],parseError,success);
         if(U_FAILURE(success)) {
             fMaxOffset = oldMaxOffset;
             return argumentNumber;
@@ -1332,7 +1339,7 @@ MessageFormat::copyAndFixQuotes(const UnicodeString& source,
 {
     UBool gotLB = FALSE;
     
-    for (int32_t i = start; i < end; ++i) {
+    for (UTextOffset i = start; i < end; ++i) {
         UChar ch = source[i];
         if (ch == LEFT_CURLY_BRACE) {
             target += SINGLE_QUOTE;

@@ -56,11 +56,7 @@ UVector::UVector(UObjectDeleter d, UKeyComparator c, int32_t initialCapacity, UE
 }
 
 void UVector::_init(int32_t initialCapacity, UErrorCode &status) {
-    // Fix bogus initialCapacity values; avoid malloc(0)
-    if (initialCapacity < 1) {
-        initialCapacity = DEFUALT_CAPACITY;
-    }
-    elements = (UHashTok *)uprv_malloc(sizeof(UHashTok)*initialCapacity);
+    elements = new UHashTok[initialCapacity];
     if (elements == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
     } else {
@@ -70,7 +66,7 @@ void UVector::_init(int32_t initialCapacity, UErrorCode &status) {
 
 UVector::~UVector() {
     removeAllElements();
-    uprv_free(elements);
+    delete[] elements;
     elements = 0;
 }
 
@@ -113,7 +109,7 @@ void UVector::insertElementAt(void* obj, int32_t index, UErrorCode &status) {
             elements[i] = elements[i-1];
         }
         elements[index].pointer = obj;
-        ++count;
+		++count;
     }
     /* else index out of range */
 }
@@ -166,19 +162,6 @@ int32_t UVector::indexOf(void* obj, int32_t startIndex) const {
     return -1;
 }
 
-int32_t UVector::indexOf(int32_t obj, int32_t startIndex) const {
-    if (comparer != 0) {
-        UHashTok key;
-        key.integer = obj;
-        for (int32_t i=startIndex; i<count; ++i) {
-            if ((*comparer)(key, elements[i])) {
-                return i;
-            }
-        }
-    }
-    return -1;
-}
-
 UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
     if (capacity >= minimumCapacity) {
         return TRUE;
@@ -187,13 +170,13 @@ UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
         if (newCap < minimumCapacity) {
             newCap = minimumCapacity;
         }
-        UHashTok* newElems = (UHashTok *)uprv_malloc(sizeof(UHashTok)*newCap);
+        UHashTok* newElems = new UHashTok[newCap];
         if (newElems == 0) {
             status = U_MEMORY_ALLOCATION_ERROR;
             return FALSE;
         }
         uprv_memcpy(newElems, elements, sizeof(elements[0]) * count);
-        uprv_free(elements);
+        delete[] elements;
         elements = newElems;
         capacity = newCap;
         return TRUE;
@@ -204,7 +187,7 @@ UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
  * Change the size of this vector as follows: If newSize is smaller,
  * then truncate the array, possibly deleting held elements for i >=
  * newSize.  If newSize is larger, grow the array, filling in new
- * slots with NULL.
+ * slows with NULL.
  */
 void UVector::setSize(int32_t newSize) {
     int32_t i;

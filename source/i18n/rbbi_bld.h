@@ -199,9 +199,9 @@ protected:
      * must be enclosed in either [] or () for this to work.)
      */
     virtual void processSubstitution(UnicodeString& description,
-                                     int32_t ruleStart,
-                                     int32_t ruleEnd,
-                                     int32_t startPos,
+                                     UTextOffset ruleStart,
+                                     UTextOffset ruleEnd,
+                                     UTextOffset startPos,
                                      UErrorCode& err);
 
     /**

@@ -51,9 +51,7 @@ static uint8_t calcPadding(uint32_t size) {
 void setIncludeCopyright(UBool val){
     gIncludeCopyright=val;
 }
-UBool getIncludeCopyright(void){
-    return gIncludeCopyright;
-}
+
 /* Writing Functions */
 static uint32_t string_write(UNewDataMemory *mem, struct SResource *res,
                              uint32_t usedOffset, UErrorCode *status) {
@@ -260,52 +258,18 @@ uint32_t res_write(UNewDataMemory *mem, struct SResource *res,
     return 0;
 }
 
-void bundle_write(struct SRBRoot *bundle, const char *outputDir, char *writtenFilename, int writtenFilenameLen, UErrorCode *status) {
+void bundle_write(struct SRBRoot *bundle, const char *outputDir, UErrorCode *status) {
     UNewDataMemory *mem        = NULL;
     uint8_t         pad        = 0;
     uint32_t        root       = 0;
     uint32_t        usedOffset = 0;
 
-    if (writtenFilename && writtenFilenameLen) {
-        *writtenFilename = 0;
-    }
-
     if (U_FAILURE(*status)) {
         return;
     }
 
-    if (writtenFilename) {
-       int off = 0, len = 0;
-       if (outputDir) {
-           len = uprv_strlen(outputDir);
-           if (len > writtenFilenameLen) {
-               len = writtenFilenameLen;
-           }
-           uprv_strncpy(writtenFilename, outputDir, len);
-       }
-       if (writtenFilenameLen -= len) {
-           off += len;
-           writtenFilename[off] = U_FILE_SEP_CHAR;
-           if (--writtenFilenameLen) {
-               ++off;
-               len = uprv_strlen(bundle->fLocale);
-               if (len > writtenFilenameLen) {
-                   len = writtenFilenameLen;
-               }
-               uprv_strncpy(writtenFilename + off, bundle->fLocale, len);
-               if (writtenFilenameLen -= len) {
-                   off += len;
-                   len = 5;
-                   if (len > writtenFilenameLen) {
-                       len = writtenFilenameLen;
-                   }
-                   uprv_strncpy(writtenFilename +  off, ".res", len);
-               }
-           }
-       }
-    }
-
     mem = udata_create(outputDir, "res", bundle->fLocale, &dataInfo, (gIncludeCopyright==TRUE)? U_COPYRIGHT_STRING:NULL, status);
+    /*mem = udata_create(outputDir, "res", filename, &dataInfo, U_COPYRIGHT_STRING, status);*/
 
     pad = calcPadding(bundle->fKeyPoint);
 

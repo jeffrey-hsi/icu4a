@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2002, International Business Machines
+*   Copyright (C) 1999-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -24,10 +24,8 @@
 #include "cmemory.h"
 #include "cstring.h"
 #include "filestrm.h"
-#include "utrie.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
-#include "uprops.h"
 #include "genprops.h"
 
 #define DO_DEBUG_OUT 0
@@ -42,7 +40,8 @@ the udata API for loading ICU data. Especially, a UDataInfo structure
 precedes the actual data. It contains platform properties values and the
 file format version.
 
-The following is a description of format version 3 .
+The following is a description of format version 1.1 .
+
 
 Data contents:
 
@@ -54,36 +53,39 @@ the properties, if any, for that code point. This means that the input
 to the lookup are 21-bit unsigned integers, with not all of the
 21-bit range used.
 
-It is assumed that client code keeps a uint32_t pointer
+It is assumed that client code keeps a uint16_t pointer
 to the beginning of the data:
 
-    const uint32_t *p32;
+    const uint16 *p16;
+
+Some indexes assume 32-bit units; although client code should only
+cast the above pointer to (const uint32_t *), it is easier here
+to talk about the result of the indexing with the definition of
+another pointer variable for this:
+
+    const uint32_t *p32=(const uint32_t *)p16;
 
 Formally, the file contains the following structures:
 
-    const int32_t indexes[16] with values i0..i15:
+    A0 const uint16_t STAGE_2_BITS(=6);
+    A1 const uint16_t STAGE_3_BITS(=4);
+      (STAGE_1_BITS(=11) not stored, implicitly=21-(STAGE_2_BITS+STAGE_3_BITS))
+    A2 const uint16_t exceptionsIndex;  -- 32-bit unit index
+    A3 const uint16_t stage3Index; -- 16-bit unit index of stage3, new in formatVersion 1.1
+    A4 const uint16_t propsIndex; -- 32-bit unit index, new in formatVersion 1.1
+    A5 const uint16_t exceptionsTopIndex; -- 32-bit unit index to the first unit after exceptions units, new in formatVersion 1.1
+    A6 const uint16_t ucharsTopIndex; -- 32-bit unit index to the first unit after the array of UChars for special casing
+    A7 const uint16_t reservedIndex;
 
-    i0 propsIndex; -- 32-bit unit index to the table of 32-bit properties words
-    i1 exceptionsIndex;  -- 32-bit unit index to the table of 32-bit exception words
-    i2 exceptionsTopIndex; -- 32-bit unit index to the array of UChars for special mappings
+    S1 const uint16_t stage1[0x440];    -- 0x440=0x110000>>10
+    S2 const uint16_t stage2[variable size];
+    S3 const uint16_t stage3[variable size];
+       (possible 1*uint16_t for padding to 4-alignment)
 
-    i3 additionalTrieIndex; -- 32-bit unit index to the additional trie for more properties
-    i4 additionalVectorsIndex; -- 32-bit unit index to the table of properties vectors
-    i5 additionalVectorsColumns; -- number of 32-bit words per properties vector
+    P  const uint32_t props32[variable size];
+    E  const uint32_t exceptions[variable size];
 
-    i6 reservedItemIndex; -- 32-bit unit index to the top of the properties vectors table
-    i7..i15 reservedIndexes; -- reserved values; 0 for now
-
-    PT serialized properties trie, see utrie.h (byte size: 4*(i0-16))
-
-    P  const uint32_t props32[i1-i0];
-    E  const uint32_t exceptions[i2-i1];
-    U  const UChar uchars[2*(i3-i2)];
-
-    AT serialized trie for additional properties (byte size: 4*(i4-i3))
-    PV const uint32_t propsVectors[(i6-i4)/i5][i5]==uint32_t propsVectors[i6-i4];
-
-Trie lookup and properties:
+3-stage lookup and properties:
 
 In order to condense the data for the 21-bit code space, several properties of
 the Unicode code assignment are exploited:
@@ -93,30 +95,56 @@ the Unicode code assignment are exploited:
 - Inside blocks for scripts the properties are often repetitive.
 - The 21-bit space is not fully used for Unicode.
 
-The lookup of properties for a given code point is done with a trie lookup,
-using the UTrie implementation.
-The trie lookup result is a 16-bit index in the props32[] table where the
-actual 32-bit properties word is stored. This is done to save space.
+The three-stage lookup organizes code points in groups of 16 in stage 3.
+64 such groups are grouped again, resulting in blocks of 64 indexes
+for a total of 1k code points in stage 2.
+The first stage is limited according to all code points being <0x110000.
+Each stage contains indexes to groups or blocks of the next stage
+in an n:1 manner, i.e., multiple entries of one stage may index the same
+group or block in the next one.
+In the second and third stages, groups of 64 or 16 may partially or completely
+overlap to save space with repetitive properties.
+In the properties table, only unique 32-bit words are stored to exploit
+non-adjacent overlapping. This is why the third stage does not directly
+contain the 32-bit properties words but only indexes to them.
 
-(There are thousands of 16-bit entries in the trie data table, but
-only a few hundred unique 32-bit properties words.
-If the trie data table contained 32-bit words directly, then that would be
-larger because the length of the table would be the same as now but the
-width would be 32 bits instead of 16. This saves more than 10kB.)
+The indexes in each stage take the offset in the data of the next block into
+account to save additional arithmetic in the access.
 
 With a given Unicode code point
 
-    UChar32 c;
+    uint32_t c;
 
-and 0<=c<0x110000, the lookup is done like this:
-
-    uint16_t i;
-    UTRIE_GET16(c, i);
-    uint32_t props=p32[i];
-
+and 0<=c<0x110000, the lookup uses the three stage tables to
+arrive at an index into the props32[] table containing the character
+properties for c.
 For some characters, not all of the properties can be efficiently encoded
 using 32 bits. For them, the 32-bit word contains an index into the exceptions[]
-array:
+array.
+
+The first stage consumes the 11 most significant bits of the 21-bit code point
+and results in an index into the second stage:
+
+    uint16_t i2=p16[8+c>>10];
+
+The second stage consumes bits 9 to 4 of c and results in an index into the
+third stage:
+
+    uint16_t i3=p16[i2+((c>>4)&0x3f)];
+
+The third stage consumes bits 3 to 0 of c and results in a code point-
+specific value, which itself is only an index into the props32[] table:
+
+    uint16_t i=p16[i3+(c&0xf)];
+
+Note that the bit numbers and shifts actually depend on the STAGE_2/3_BITS
+in p16[0..1].
+
+There is finally the 32-bit encoded set of properties for c:
+
+    uint32_t props=p32[i];
+
+For some characters, this contains an index into the exceptions array:
 
     if(props&EXCEPTION_BIT)) {
         uint16_t e=(uint16_t)(props>>VALUE_SHIFT);
@@ -139,13 +167,7 @@ Each 32-bit properties word contains:
  5      has exception values
  6..10  BiDi category
 11      is mirrored
-12..14  numericType:
-            0 no numeric value
-            1 decimal digit value
-            2 digit value
-            3 numeric value
-            ### TODO: type 4 for Han digits & numbers?!
-15..19  reserved
+12..19  reserved
 20..31  value according to bits 0..5:
         if(has exception) {
             exception index;
@@ -153,13 +175,15 @@ Each 32-bit properties word contains:
         case Ll: delta to uppercase; -- same as titlecase
         case Lu: -delta to lowercase; -- titlecase is same as c
         case Lt: -delta to lowercase; -- uppercase is same as c
+        case Mn: combining class;
+        case Nd: value=numeric value==decimal digit value=digit value;
+        case Nl:
+        case No: value=numeric value - but decimal digit value and digit value are not defined;
         default:
             if(is mirrored) {
-                delta to mirror;
-            } else if(numericType!=0) {
-                numericValue;
+                delta to mirror
             } else {
-                0;
+                0
             };
         }
 
@@ -167,16 +191,16 @@ Exception values:
 
 In the first uint32_t exception word for a code point,
 bits
-31..16  reserved
+31..24  reserved
+23..16  combining class
 15..0   flags that indicate which values follow:
 
 bit
  0      has uppercase mapping
  1      has lowercase mapping
  2      has titlecase mapping
- 3      unused
+ 3      has digit value(s)
  4      has numeric value (numerator)
-            if numericValue=0x7fffff00+x then numericValue=10^x
  5      has denominator value
  6      has a mirror-image Unicode code point
  7      has SpecialCasing.txt entries
@@ -202,8 +226,6 @@ is implicitly 1. This means:
     x         none        x
     none      y           1/y
     x         y           x/y
-
-If the numerator value is 0x7fffff00+x then it is replaced with 10^x.
 
 For the denominator value, a uint32_t word contains the value directly.
 
@@ -246,17 +268,6 @@ Its exception values would be stored as 3 uint32_t words:
 - lowercase mapping 0x2170
 - numeric value=1
 
---- Additional properties (new in format version 2.1) ---
-
-The second trie for additional properties (AT) is also a UTrie with 16-bit data.
-The data words consist of 32-bit unit indexes (not row indexes!) into the
-table of unique properties vectors (PV).
-Each vector contains a set of properties.
-The width of a vector (number of uint32_t per row) may change
-with the formatVersion, it is stored in i5.
-
-Current properties: see icu/source/common/uprops.h
-
 ----------------------------------------------------------------------------- */
 
 /* UDataInfo cf. udata.h */
@@ -269,30 +280,59 @@ static UDataInfo dataInfo={
     U_SIZEOF_UCHAR,
     0,
 
-    { 0x55, 0x50, 0x72, 0x6f },                 /* dataFormat="UPro" */
-    { 3, 0, UTRIE_SHIFT, UTRIE_INDEX_SHIFT },   /* formatVersion */
-    { 3, 0, 0, 0 }                              /* dataVersion */
+    {0x55, 0x50, 0x72, 0x6f},     /* dataFormat="UPro" */
+    {1, 3, 0, 0},                 /* formatVersion */
+    {3, 0, 0, 0}                  /* dataVersion */
 };
 
-/* definitions of expected data size limits */
+/* definitions and arrays for the 3-stage lookup */
 enum {
+    STAGE_2_BITS=6, STAGE_3_BITS=4,
+    STAGE_1_BITS=21-(STAGE_2_BITS+STAGE_3_BITS),
+
+    STAGE_2_SHIFT=STAGE_3_BITS,
+    STAGE_1_SHIFT=(STAGE_2_SHIFT+STAGE_2_BITS),
+
+    /* number of entries per sub-table in each stage */
+    STAGE_1_BLOCK=0x110000>>STAGE_1_SHIFT,
+    STAGE_2_BLOCK=1<<STAGE_2_BITS,
+    STAGE_3_BLOCK=1<<STAGE_3_BITS,
+
+    /* number of code points per stage 1 index */
+    STAGE_2_3_AREA=1<<STAGE_1_SHIFT,
+
     MAX_PROPS_COUNT=25000,
-    MAX_UCHAR_COUNT=10000
+    MAX_UCHAR_COUNT=10000,
+    MAX_EXCEPTIONS_COUNT=4096,
+    MAX_STAGE_2_COUNT=MAX_PROPS_COUNT
 };
 
-static UNewTrie *pTrie=NULL;
+/* definitions for the properties words */
+enum {
+    EXCEPTION_SHIFT=5,
+    BIDI_SHIFT,
+    MIRROR_SHIFT=BIDI_SHIFT+5,
+    VALUE_SHIFT=20,
 
-/* props32[] contains unique properties words after compacting the array of properties */
-static uint32_t props32[MAX_PROPS_COUNT];
+    EXCEPTION_BIT=1UL<<EXCEPTION_SHIFT,
+    VALUE_BITS=32-VALUE_SHIFT
+};
 
-/* context pointer for compareProps() - temporarily holds a pointer to the trie data */
-static uint32_t *props;
+static const int32_t MAX_VALUE=(1L<<(VALUE_BITS-1))-1;
+static const int32_t MIN_VALUE=-(1L<<(VALUE_BITS-1));
 
-/* length of props32[] after compaction */
-static int32_t propsTop;
+static uint16_t stage1[STAGE_1_BLOCK], stage2[MAX_STAGE_2_COUNT],
+                stage3[MAX_PROPS_COUNT], map[MAX_PROPS_COUNT];
+
+/* stage1Top=STAGE_1_BLOCK never changes, stage2Top starts after the empty-properties-group */
+static uint16_t stage2Top=STAGE_2_BLOCK, stage3Top;
+
+/* props[] is used before, props32[] after compacting the array of properties */
+static uint32_t props[MAX_PROPS_COUNT], props32[MAX_PROPS_COUNT];
+static uint16_t propsTop=STAGE_3_BLOCK; /* the first props[] are always empty */
 
 /* exceptions values */
-static uint32_t exceptions[UPROPS_MAX_EXCEPTIONS_COUNT+20];
+static uint32_t exceptions[MAX_EXCEPTIONS_COUNT+20];
 static uint16_t exceptionsTop=0;
 
 /* Unicode characters, e.g. for special casing or decomposition */
@@ -304,8 +344,35 @@ static uint16_t exceptionsCount=0;
 
 /* prototypes --------------------------------------------------------------- */
 
+static void
+repeatFromStage2(uint16_t i2, uint32_t start, uint32_t limit, uint16_t i3Repeat, uint32_t x);
+
+static void
+repeatFromStage3(uint16_t i3, uint32_t start, uint32_t limit, uint32_t x);
+
+static uint16_t
+compactStage(uint16_t *stage, uint16_t stageTop, uint16_t blockSize,
+             uint16_t *parent, uint16_t parentTop);
+
 static int
 compareProps(const void *l, const void *r);
+
+#if DO_DEBUG_OUT
+static uint32_t
+getProps2(uint32_t c, uint16_t *pI1, uint16_t *pI2, uint16_t *pI3, uint16_t *pI4);
+
+static uint32_t
+getProps(uint32_t c, uint16_t *pI1, uint16_t *pI2, uint16_t *pI3);
+#endif
+
+static void
+setProps(uint32_t c, uint32_t x, uint16_t *pI1, uint16_t *pI2, uint16_t *pI3);
+
+static uint16_t
+allocStage2(void);
+
+static uint16_t
+allocProps(void);
 
 static uint32_t
 addUChars(const UChar *s, uint32_t length);
@@ -321,14 +388,12 @@ setUnicodeVersion(const char *v) {
 
 extern void
 initStore() {
-    pTrie=utrie_open(NULL, NULL, MAX_PROPS_COUNT, 0, FALSE);
-    if(pTrie==NULL) {
-        fprintf(stderr, "error: unable to create a UNewTrie\n");
-        exit(U_MEMORY_ALLOCATION_ERROR);
-    }
-
+    uprv_memset(stage1, 0, sizeof(stage1));
+    uprv_memset(stage2, 0, sizeof(stage2));
+    uprv_memset(stage3, 0, sizeof(stage3));
+    uprv_memset(map, 0, sizeof(map));
+    uprv_memset(props, 0, sizeof(props));
     uprv_memset(props32, 0, sizeof(props32));
-    initAdditionalProperties();
 }
 
 /* store a character's properties ------------------------------------------- */
@@ -388,7 +453,7 @@ makeProps(Props *p) {
         if(p->generalCategory==U_LOWERCASE_LETTER) {
             value=(int32_t)p->code-(int32_t)p->upperCase;
         } else {
-            x=UPROPS_EXCEPTION_BIT;
+            x=EXCEPTION_BIT;
         }
         ++count;
     }
@@ -397,20 +462,50 @@ makeProps(Props *p) {
         if(p->generalCategory==U_UPPERCASE_LETTER || p->generalCategory==U_TITLECASE_LETTER) {
             value=(int32_t)p->lowerCase-(int32_t)p->code;
         } else {
-            x=UPROPS_EXCEPTION_BIT;
+            x=EXCEPTION_BIT;
         }
         ++count;
     }
     if(p->upperCase!=p->titleCase) {
-        x=UPROPS_EXCEPTION_BIT;
+        x=EXCEPTION_BIT;
         ++count;
     }
-    if(p->numericType!=0) {
-        value=p->numericValue;
+    if(p->canonicalCombining>0) {
+        /* verify that only Mn has a canonical combining class */
+        if(p->generalCategory==U_NON_SPACING_MARK) {
+            value=p->canonicalCombining;
+        } else {
+            x=EXCEPTION_BIT;
+        }
+        ++count;
+    }
+    if(p->generalCategory==U_DECIMAL_DIGIT_NUMBER) {
+        /* verify that all numeric fields contain the same value */
+        if(p->decimalDigitValue!=-1 && p->digitValue==p->decimalDigitValue &&
+           p->hasNumericValue && p->numericValue==p->decimalDigitValue &&
+           p->denominator==0
+        ) {
+            value=p->decimalDigitValue;
+        } else {
+            x=EXCEPTION_BIT;
+        }
+        ++count;
+    } else if(p->generalCategory==U_LETTER_NUMBER || p->generalCategory==U_OTHER_NUMBER) {
+        /* verify that only the numeric value field itself contains a value */
+        if(p->decimalDigitValue==-1 && p->digitValue==-1 && p->hasNumericValue) {
+            value=p->numericValue;
+        } else {
+            x=EXCEPTION_BIT;
+        }
+        ++count;
+    } else if(p->decimalDigitValue!=-1 || p->digitValue!=-1 || p->hasNumericValue) {
+        /* verify that only numeric categories have numeric values */
+        x=EXCEPTION_BIT;
         ++count;
     }
     if(p->denominator!=0) {
-        x=UPROPS_EXCEPTION_BIT;
+        /* verification for numeric category covered by the above */
+        x=EXCEPTION_BIT;
         ++count;
     }
     if(p->isMirrored) {
@@ -420,41 +515,42 @@ makeProps(Props *p) {
         ++count;
     }
     if(p->specialCasing!=NULL) {
-        x=UPROPS_EXCEPTION_BIT;
+        x=EXCEPTION_BIT;
         ++count;
     }
     if(p->caseFolding!=NULL) {
-        x=UPROPS_EXCEPTION_BIT;
+        x=EXCEPTION_BIT;
         ++count;
     }
 
     /* handle exceptions */
-    if(count>1 || x!=0 || value<UPROPS_MIN_VALUE || UPROPS_MAX_VALUE<value) {
+    if(count>1 || x!=0 || value<MIN_VALUE || MAX_VALUE<value) {
         /* this code point needs exception values */
         if(beVerbose) {
             if(x!=0) {
-                /* do not print - many code points because of SpecialCasing & CaseFolding
                 printf("*** code 0x%06x needs an exception because it is irregular\n", p->code);
-                */
-            } else if(value<UPROPS_MIN_VALUE || UPROPS_MAX_VALUE<value) {
+            } else if(count==1) {
+                printf("*** code 0x%06x needs an exception because its value would be %ld\n",
+                    p->code, (long)value);
+            } else if(value<MIN_VALUE || MAX_VALUE<value) {
                 printf("*** code 0x%06x needs an exception because its value is out-of-bounds at %ld (not [%ld..%ld]\n",
-                    p->code, (long)value, (long)UPROPS_MIN_VALUE, (long)UPROPS_MAX_VALUE);
+                    p->code, (long)value, (long)MIN_VALUE, (long)MAX_VALUE);
             } else {
                 printf("*** code 0x%06x needs an exception because it has %u values\n", p->code, count);
             }
         }
 
         ++exceptionsCount;
-        x=UPROPS_EXCEPTION_BIT;
+        x=EXCEPTION_BIT;
 
         /* allocate and create exception values */
         value=exceptionsTop;
-        if(value>=UPROPS_MAX_EXCEPTIONS_COUNT) {
+        if(value>=4096) {
             fprintf(stderr, "genprops: out of exceptions memory at U+%06x. (%d exceeds allocated space)\n",
                     p->code, value);
             exit(U_MEMORY_ALLOCATION_ERROR);
         } else {
-            uint32_t first=0;
+            uint32_t first=(uint32_t)p->canonicalCombining<<16;
             uint16_t length=1;
 
             if(p->upperCase!=0) {
@@ -473,7 +569,13 @@ makeProps(Props *p) {
                     exceptions[value+length++]=p->code;
                 }
             }
-            if(p->numericType!=0) {
+            if(p->decimalDigitValue!=-1 || p->digitValue!=-1) {
+                first|=8;
+                exceptions[value+length++]=
+                    (uint32_t)p->decimalDigitValue<<16|
+                    (uint16_t)p->digitValue;
+            }
+            if(p->hasNumericValue) {
                 if(p->denominator==0) {
                     first|=0x10;
                     exceptions[value+length++]=(uint32_t)p->numericValue;
@@ -558,10 +660,26 @@ makeProps(Props *p) {
     /* put together the 32-bit word of encoded properties */
     x|=
         (uint32_t)p->generalCategory |
-        (uint32_t)p->bidi<<UPROPS_BIDI_SHIFT |
-        (uint32_t)p->isMirrored<<UPROPS_MIRROR_SHIFT |
-        (uint32_t)p->numericType<<UPROPS_NUMERIC_TYPE_SHIFT |
-        (uint32_t)value<<UPROPS_VALUE_SHIFT;
+        (uint32_t)p->bidi<<BIDI_SHIFT |
+        (uint32_t)p->isMirrored<<MIRROR_SHIFT |
+        (uint32_t)value<<VALUE_SHIFT;
+
+    if(beVerbose && p->code<=0x9f) {
+        if(p->code==0) {
+            printf("static uint32_t staticProps32Table[0xa0]={\n");
+        }
+        if(x&EXCEPTION_BIT) {
+            /* ### TODO: do something more intelligent if there is an exception */
+            printf("    /* 0x%02lx */ 0x%lx, /* has exception */\n",
+                (unsigned long)p->code, (unsigned long)x&~EXCEPTION_BIT);
+        } else {
+            printf("    /* 0x%02lx */ 0x%lx,\n",
+                (unsigned long)p->code, (unsigned long)x);
+        }
+        if(p->code==0x9f) {
+            printf("};\n");
+        }
+    }
 
     return x;
 
@@ -584,27 +702,292 @@ makeProps(Props *p) {
 
 extern void
 addProps(uint32_t c, uint32_t x) {
-    if(!utrie_set32(pTrie, (UChar32)c, x)) {
-        fprintf(stderr, "error: too many entries for the properties trie\n");
-        exit(U_BUFFER_OVERFLOW_ERROR);
-    }
-    setMainProperties(c, c+1, x);
+    uint16_t notUsed;
+
+    setProps(c, x, &notUsed, &notUsed, &notUsed);
 }
 
 /* areas of same properties ------------------------------------------------- */
 
 extern void
 repeatProps(uint32_t first, uint32_t last, uint32_t x) {
-    if(!utrie_setRange32(pTrie, (UChar32)first, (UChar32)(last+1), x, FALSE)) {
-        fprintf(stderr, "error: too many entries for the properties trie\n");
-        exit(U_BUFFER_OVERFLOW_ERROR);
+    /*
+     * Set the repetitive properties for the big, known areas of all the same
+     * character properties. Most of those will share the same stage 2 and 3
+     * tables.
+     *
+     * Assumptions:
+     * - each area starts at a code point that is a multiple of 16
+     * - there may be some properties already stored for some code points,
+     *   especially in the Private Use areas
+     */
+
+    uint16_t i1, i2, j3, i1Limit, i2Repeat, i3Repeat;
+    uint32_t start, next, limit;
+
+    /* fill in the repetitive properties */
+    start=first;
+    limit=last+1;
+
+    /* allocate a stage 3 block and set all of its properties to x */
+    i3Repeat=allocProps();
+    for(j3=0; j3<STAGE_3_BLOCK; ++j3) {
+        props[i3Repeat+j3]=x;
     }
-    setMainProperties(first, last+1, x);
+
+    /* we will need to allocate a stage 2 block if we use an entire one at all */
+    i2Repeat=0;
+
+    i1=(uint16_t)(start>>STAGE_1_SHIFT);
+    i1Limit=(uint16_t)(limit>>STAGE_1_SHIFT);
+
+    /*
+     * now there are up to three sub-areas:
+     * - a range of code points before the first full block for
+     *   one stage 1 index
+     * - a (big) range of code points within full blocks for
+     *   stage 1 indexes
+     * - a range of code points after the last full block for
+     *   one stage 1 index
+     */
+
+    if((start&(STAGE_2_3_AREA-1))!=0) {
+        /* incomplete stage 2 block at the beginning */
+        /* allocate the stage 2 block if necessary */
+        i2=stage1[i1];
+        if(i2==0) {
+            stage1[i1]=i2=allocStage2();
+        }
+
+        /* fill stages 2 & 3 of this sub-area */
+        if(i1<i1Limit) {
+            /* the stage 2 block goes to the end */
+            next=(i1+1)<<STAGE_1_SHIFT;
+            repeatFromStage2(i2, start, next, i3Repeat, x);
+            start=next;
+
+            /* advance i1 to the first full block */
+            ++i1;
+        } else {
+            /* there is only one stage 2 block at all */
+            repeatFromStage2(i2, start, limit, i3Repeat, x);
+            return;
+        }
+    }
+
+    while(i1<i1Limit) {
+        /* fill complete stage 2 blocks */
+        next=start+STAGE_2_3_AREA;
+        i2=stage1[i1];
+        if(i2==0) {
+            /* set the index for common repeat block for stage 2 */
+            if(i2Repeat==0) {
+                /* allocate and fill a stage 2 block for this */
+                uint16_t j2;
+
+                i2Repeat=allocStage2();
+                for(j2=0; j2<STAGE_2_BLOCK; ++j2) {
+                    stage2[i2Repeat+j2]=i3Repeat;
+                }
+            }
+            stage1[i1]=i2Repeat;
+        } else {
+            repeatFromStage2(i2, start, next, i3Repeat, x);
+        }
+        start=next;
+        ++i1;
+    }
+
+    if(start<limit) {
+        /* fill the area after the last full block */
+        i2=stage1[i1];
+        if(i2==0) {
+            stage1[i1]=i2=allocStage2();
+        }
+
+        repeatFromStage2(i2, start, limit, i3Repeat, x);
+    }
+}
+
+/* set a section of a stage 2 table and its properties to x */
+static void
+repeatFromStage2(uint16_t i2, uint32_t start, uint32_t limit, uint16_t i3Repeat, uint32_t x) {
+    uint32_t next;
+    uint16_t i2Limit, i3;
+
+    /* remove irrelevant bits from start and limit */
+    start&=STAGE_2_3_AREA-1;
+    limit=((limit-1)&(STAGE_2_3_AREA-1))+1;
+
+    i2Limit=(uint16_t)(i2+(limit>>STAGE_3_BITS));
+    i2+=(uint16_t)(start>>STAGE_3_BITS);
+
+    /* similar to repeatProps(), there may be 3 sub-areas */
+    if((start&(STAGE_3_BLOCK-1))!=0) {
+        /* incomplete stage 3 block at the beginning */
+        i3=stage2[i2];
+        if(i3==0) {
+            stage2[i2]=i3=allocProps();
+        }
+
+        if(i2<i2Limit) {
+            /* the stage 3 block goes to the end */
+            next=(i2+1)<<STAGE_3_BITS;
+            repeatFromStage3(i3, start, next, x);
+            start=next;
+            ++i2;
+        } else {
+            /* there is only one stage 3 block at all */
+            repeatFromStage3(i3, start, limit, x);
+            return;
+        }
+    }
+
+    while(i2<i2Limit) {
+        /* fill complete stage 3 blocks */
+        next=start+STAGE_3_BLOCK;
+        i3=stage2[i2];
+        if(i3==0) {
+            stage2[i2]=i3Repeat;
+        } else {
+            repeatFromStage3(i3, start, next, x);
+        }
+        start=next;
+        ++i2;
+    }
+
+    if(start<limit) {
+        i3=stage2[i2];
+        if(i3==0) {
+            stage2[i2]=i3=allocProps();
+        }
+
+        repeatFromStage3(i3, start, limit, x);
+    }
+}
+
+static void
+repeatFromStage3(uint16_t i3, uint32_t start, uint32_t limit, uint32_t x) {
+    uint16_t i3End;
+
+    i3End=(uint16_t)(i3+((limit-1)&(STAGE_3_BLOCK-1)));
+    i3+=(uint16_t)(start&(STAGE_3_BLOCK-1));
+
+    while(i3<=i3End) {
+        /* some properties may be set in this stage 3 block */
+        if(props[i3]==0) {
+            props[i3]=x;
+        }
+        ++i3;
+    }
 }
 
 /* compacting --------------------------------------------------------------- */
 
-static void
+extern void
+compactStage2(void) {
+    uint16_t newTop=compactStage(stage2, stage2Top, STAGE_2_BLOCK, stage1, STAGE_1_BLOCK);
+
+    /* we saved some space */
+    if(beVerbose) {
+        printf("compactStage2() reduced stage2Top from %u to %u\n", stage2Top, newTop);
+    }
+    stage2Top=newTop;
+
+#if DO_DEBUG_OUT
+    {
+        /* debug output */
+        uint16_t i1, i2, i3, i4;
+        uint32_t c;
+        for(c=0; c<0xffff; c+=307) {
+            printf("properties(0x%06x)=0x%06x\n", c, getProps2(c, &i1, &i2, &i3, &i4));
+        }
+    }
+#endif
+}
+
+extern void
+compactStage3(void) {
+    uint16_t newTop=compactStage(stage3, stage3Top, STAGE_3_BLOCK, stage2, stage2Top);
+
+    /* we saved some space */
+    if(beVerbose) {
+        printf("compactStage3() reduced stage3Top from %u to %u\n", stage3Top, newTop);
+    }
+    stage3Top=newTop;
+
+#if DO_DEBUG_OUT
+    {
+        /* debug output */
+        uint16_t i1, i2, i3, i4;
+        uint32_t c;
+        for(c=0; c<0xffff; c+=307) {
+            printf("properties(0x%06x)=0x%06x\n", c, getProps2(c, &i1, &i2, &i3, &i4));
+        }
+    }
+#endif
+}
+
+static uint16_t
+compactStage(uint16_t *stage, uint16_t stageTop, uint16_t blockSize,
+             uint16_t *parent, uint16_t parentTop) {
+    /*
+     * This function is the common implementation for compacting
+     * a stage table.
+     * There are stageTop entries (indexes) in stage[].
+     * stageTop is a multiple of blockSize, and there are always blockSize stage[] entries
+     * per parent stage entry which do not overlap - yet.
+     * The first blockSize stage[] entries are always the empty ones.
+     * We make the blocks overlap appropriately here and fill every blockSize-th entry in
+     * map[] with the mapping from old to new properties indexes
+     * in order to adjust the parent stage tables.
+     * This simple algorithm does not find arbitrary overlaps, but only those
+     * where the last i entries of the previous block and the first i of the
+     * current one all have the same value.
+     * This seems reasonable and yields linear performance.
+     */
+    uint16_t i, start, prevEnd, newStart, x;
+
+    map[0]=0;
+    newStart=blockSize;
+    for(start=newStart; start<stageTop;) {
+        prevEnd=(uint16_t)(newStart-1);
+        x=stage[start];
+        if(x==stage[prevEnd]) {
+            /* overlap by at least one */
+            for(i=1; i<blockSize && x==stage[start+i] && x==stage[prevEnd-i]; ++i) {}
+
+            /* overlap by i */
+            map[start]=(uint16_t)(newStart-i);
+
+            /* move the non-overlapping indexes to their new positions */
+            start+=i;
+            for(i=(uint16_t)(blockSize-i); i>0; --i) {
+                stage[newStart++]=stage[start++];
+            }
+        } else if(newStart<start) {
+            /* move the indexes to their new positions */
+            map[start]=newStart;
+            for(i=blockSize; i>0; --i) {
+                stage[newStart++]=stage[start++];
+            }
+        } else /* no overlap && newStart==start */ {
+            map[start]=start;
+            newStart+=blockSize;
+            start=newStart;
+        }
+    }
+
+    /* now adjust the parent stage table */
+    for(i=0; i<parentTop; ++i) {
+        parent[i]=map[parent[i]];
+    }
+
+    /* we saved some space */
+    return (uint16_t)(stageTop-(start-newStart));
+}
+
+extern void
 compactProps(void) {
     /*
      * At this point, all the propsTop properties are in props[], but they
@@ -620,11 +1003,8 @@ compactProps(void) {
      * index table anyway and qsort() does not allow to sort two tables together
      * directly. This will thus also reduce the amount of data moved around.
      */
+    uint16_t i, oldIndex, newIndex;
     uint32_t x;
-    int32_t i, oldIndex, newIndex;
-
-    static uint16_t map[MAX_PROPS_COUNT];
-
 #if DO_DEBUG_OUT
     {
         /* debug output */
@@ -636,16 +1016,14 @@ compactProps(void) {
     }
 #endif
 
-    props=utrie_getData(pTrie, &propsTop);
-
     /* build the index table */
     for(i=propsTop; i>0;) {
         --i;
-        map[i]=(uint16_t)i;
+        map[i]=i;
     }
 
-    /* reorder */
-    qsort(map, propsTop, 2, compareProps);
+    /* do not reorder the first, empty entries */
+    qsort(map+STAGE_3_BLOCK, propsTop-STAGE_3_BLOCK, 2, compareProps);
 
     /*
      * Now invert the reordered table and compact it in the same step.
@@ -657,22 +1035,22 @@ compactProps(void) {
         /* set the first of a possible series of the same properties */
         oldIndex=map[i];
         props32[newIndex]=x=props[oldIndex];
-        props[oldIndex]=newIndex;
+        stage3[oldIndex]=newIndex;
 
         /* set the following same properties only in stage3 */
         while(++i<propsTop && x==props[map[i]]) {
-            props[map[i]]=newIndex;
+            stage3[map[i]]=newIndex;
         }
 
         ++newIndex;
     }
 
     /* we saved some space */
-    if(beVerbose) {
-        printf("compactProps() reduced propsTop from %u to %u\n", propsTop, newIndex);
-    }
+    stage3Top=propsTop;
     propsTop=newIndex;
-
+    if(beVerbose) {
+        printf("compactProps() reduced propsTop from %u to %u\n", stage3Top, propsTop);
+    }
 #if DO_DEBUG_OUT
     {
         /* debug output */
@@ -699,82 +1077,56 @@ compareProps(const void *l, const void *r) {
 
 /* generate output data ----------------------------------------------------- */
 
-/* folding value: just store the offset (16 bits) if there is any non-0 entry */
-U_CAPI uint32_t U_EXPORT2
-getFoldedPropsValue(UNewTrie *trie, UChar32 start, int32_t offset) {
-    uint32_t value;
-    UChar32 limit;
-    UBool inBlockZero;
-
-    limit=start+0x400;
-    while(start<limit) {
-        value=utrie_get32(trie, start, &inBlockZero);
-        if(inBlockZero) {
-            start+=UTRIE_DATA_BLOCK_LENGTH;
-        } else if(value!=0) {
-            return (uint32_t)(offset|0x8000);
-        } else {
-            ++start;
-        }
-    }
-    return 0;
-}
-
 extern void
 generateData(const char *dataDir) {
-    static int32_t indexes[UPROPS_INDEX_COUNT]={
-        0, 0, 0, 0,
-        0, 0, 0, 0,
-        0, 0, 0, 0,
+    static uint16_t indexes[8]={
+        STAGE_2_BITS, STAGE_3_BITS,
+        0, 0,
         0, 0, 0, 0
     };
-    static uint8_t trieBlock[40000];
-    static uint8_t additionalProps[120000];
 
     UNewDataMemory *pData;
     UErrorCode errorCode=U_ZERO_ERROR;
     uint32_t size;
-    int32_t trieSize, additionalPropsSize, offset;
     long dataLength;
+    uint16_t i, offset;
 
-    compactProps();
-
-    trieSize=utrie_serialize(pTrie, trieBlock, sizeof(trieBlock), getFoldedPropsValue, TRUE, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        fprintf(stderr, "error: utrie_serialize failed: %s (length %ld)\n", u_errorName(errorCode), (long)trieSize);
-        exit(errorCode);
+    /* fix up the indexes in the stage tables to include the table offsets in the data */
+    offset=8+STAGE_1_BLOCK;                 /* uint16_t offset to stage2[] */
+    for(i=0; i<STAGE_1_BLOCK; ++i) {
+        stage1[i]+=offset;
     }
 
-    offset=sizeof(indexes)/4;               /* uint32_t offset to the properties trie */
+    offset+=stage2Top;                      /* uint16_t offset to stage3[] */
+    indexes[3]=offset;
+    for(i=0; i<stage2Top; ++i) {
+        stage2[i]+=offset;
+    }
 
-    /* round up trie size to 4-alignement */
-    trieSize=(trieSize+3)&~3;
-    offset+=trieSize>>2;
-    indexes[UPROPS_PROPS32_INDEX]=offset;   /* uint32_t offset to props[] */
+    offset=(uint16_t)((offset+stage3Top+1)/2);  /* uint32_t offset to props[], include padding */
+    indexes[4]=offset;                      /* uint32_t offset to props[] */
+
+    for(i=0; i<stage3Top; ++i) {
+        stage3[i]+=offset;
+    }
 
     offset+=propsTop;
-    indexes[UPROPS_EXCEPTIONS_INDEX]=offset;/* uint32_t offset to exceptions[] */
+    indexes[2]=offset;                      /* uint32_t offset to exceptions[] */
 
     offset+=exceptionsTop;                  /* uint32_t offset to the first unit after exceptions[] */
-    indexes[UPROPS_EXCEPTIONS_TOP_INDEX]=offset;
+    indexes[5]=offset;
 
-    /* round up UChar count to 4-alignement */
     ucharsTop=(ucharsTop+1)&~1;
     offset+=(uint16_t)(ucharsTop/2);        /* uint32_t offset to the first unit after uchars[] */
-    indexes[UPROPS_ADDITIONAL_TRIE_INDEX]=offset;
+    indexes[6]=offset;
+    size=4*offset;                          /* total size of data */
 
     if(beVerbose) {
-        printf("trie size in bytes:                    %5u\n", trieSize);
+        printf("number of stage 2 entries:             %5u\n", stage2Top);
+        printf("number of stage 3 entries:             %5u\n", stage3Top);
         printf("number of unique properties values:    %5u\n", propsTop);
         printf("number of code points with exceptions: %5u\n", exceptionsCount);
         printf("size in bytes of exceptions:           %5u\n", 4*exceptionsTop);
-        printf("number of UChars for special mappings: %5u\n", ucharsTop);
-    }
-
-    additionalPropsSize=writeAdditionalData(additionalProps, sizeof(additionalProps), indexes);
-
-    size=4*offset+additionalPropsSize;      /* total size of data */
-    if(beVerbose) {
         printf("data size:                            %6lu\n", (unsigned long)size);
     }
 
@@ -782,16 +1134,18 @@ generateData(const char *dataDir) {
     pData=udata_create(dataDir, DATA_TYPE, DATA_NAME, &dataInfo,
                        haveCopyright ? U_COPYRIGHT_STRING : NULL, &errorCode);
     if(U_FAILURE(errorCode)) {
-        fprintf(stderr, "genprops: unable to create data memory, %s\n", u_errorName(errorCode));
+        fprintf(stderr, "genprops: unable to create data memory, error %d\n", errorCode);
         exit(errorCode);
     }
 
     udata_writeBlock(pData, indexes, sizeof(indexes));
-    udata_writeBlock(pData, trieBlock, trieSize);
+    udata_writeBlock(pData, stage1, sizeof(stage1));
+    udata_writeBlock(pData, stage2, 2*stage2Top);
+    udata_writeBlock(pData, stage3, 2*stage3Top);
+    udata_writePadding(pData, 2*((stage2Top+stage3Top)&1));
     udata_writeBlock(pData, props32, 4*propsTop);
     udata_writeBlock(pData, exceptions, 4*exceptionsTop);
     udata_writeBlock(pData, uchars, 2*ucharsTop);
-    udata_writeBlock(pData, additionalProps, additionalPropsSize);
 
     /* finish up */
     dataLength=udata_finish(pData, &errorCode);
@@ -805,11 +1159,78 @@ generateData(const char *dataDir) {
             dataLength, (unsigned long)size);
         exit(U_INTERNAL_PROGRAM_ERROR);
     }
-
-    utrie_close(pTrie);
 }
 
 /* helpers ------------------------------------------------------------------ */
+
+/* get properties after compacting them */
+#if DO_DEBUG_OUT
+static uint32_t
+getProps2(uint32_t c, uint16_t *pI1, uint16_t *pI2, uint16_t *pI3, uint16_t *pI4) {
+    uint16_t i1, i2, i3, i4;
+
+    *pI1=i1=(uint16_t)(c>>STAGE_1_SHIFT);
+    *pI2=i2=(uint16_t)(stage1[i1]+((c>>STAGE_2_SHIFT)&(STAGE_2_BLOCK-1)));
+    *pI3=i3=(uint16_t)(stage2[i2]+(c&(STAGE_3_BLOCK-1)));
+    *pI4=i4=stage3[i3];
+    return props32[i4];
+}
+
+/* get properties before compacting them */
+static uint32_t
+getProps(uint32_t c, uint16_t *pI1, uint16_t *pI2, uint16_t *pI3) {
+    uint16_t i1, i2, i3;
+
+    *pI1=i1=(uint16_t)(c>>STAGE_1_SHIFT);
+    *pI2=i2=(uint16_t)(stage1[i1]+((c>>STAGE_2_SHIFT)&(STAGE_2_BLOCK-1)));
+    *pI3=i3=(uint16_t)(stage2[i2]+(c&(STAGE_3_BLOCK-1)));
+    return props[i3];
+}
+#endif
+
+/* set properties before compacting them */
+static void
+setProps(uint32_t c, uint32_t x, uint16_t *pI1, uint16_t *pI2, uint16_t *pI3) {
+    uint16_t i1, i2, i3;
+
+    *pI1=i1=(uint16_t)(c>>STAGE_1_SHIFT);
+
+    i2=stage1[i1];
+    if(i2==0) {
+        stage1[i1]=i2=allocStage2();
+    }
+    *pI2=i2+=(uint16_t)((c>>STAGE_2_SHIFT)&(STAGE_2_BLOCK-1));
+
+    i3=stage2[i2];
+    if(i3==0) {
+        stage2[i2]=i3=allocProps();
+    }
+    *pI3=i3+=(uint16_t)(c&(STAGE_3_BLOCK-1));
+
+    props[i3]=x;
+}
+
+static uint16_t
+allocStage2(void) {
+    uint16_t i=stage2Top;
+    stage2Top+=STAGE_2_BLOCK;
+    if(stage2Top>=MAX_STAGE_2_COUNT) {
+        fprintf(stderr, "genprops: stage 2 overflow\n");
+        exit(U_MEMORY_ALLOCATION_ERROR);
+    }
+    return i;
+}
+
+static uint16_t
+allocProps(void) {
+    uint16_t i=propsTop;
+    propsTop+=STAGE_3_BLOCK;
+    if(propsTop>=MAX_PROPS_COUNT) {
+        fprintf(stderr, "genprops: properties overflow\n");
+        exit(U_MEMORY_ALLOCATION_ERROR);
+    }
+    return i;
+}
 
 static uint32_t
 addUChars(const UChar *s, uint32_t length) {

@@ -16,7 +16,7 @@
 #include "RenderingFontInstance.h"
 
 #include "unicode/utypes.h"
-#include "unicode/uchar.h"
+#include "unicode/unicode.h"
 #include "unicode/uchriter.h"
 #include "unicode/brkiter.h"
 #include "unicode/locid.h"
@@ -218,8 +218,8 @@ int32_t Paragraph::previousBreak(int32_t charIndex)
     // characters, because they can hang in
     // the margin.
     while (charIndex < fCharCount &&
-           (u_isWhitespace(ch) ||
-            u_iscntrl(ch))) {
+           (Unicode::isWhitespace(ch) ||
+            Unicode::isControl(ch))) {
         ch = fText[++charIndex];
     }
 
@@ -403,10 +403,6 @@ int32_t Paragraph::drawRun(void *surface, const RenderingFontInstance *fontInsta
         fontInstance->drawGlyphs(surface, &fGlyphs[dyStart], dyEnd - dyStart,
             &fDX[dyStart], x, y + fDY[dyStart], fWidth, fHeight);
 
-        for (int32_t i = dyStart; i < dyEnd; i += 1) {
-            x += fDX[i];
-        }
-
         dyStart = dyEnd;
     }
 
@@ -434,7 +430,7 @@ void Paragraph::draw(void *surface, int32_t firstLine, int32_t lastLine)
         dirCount = ubidi_countRuns(lBidi, &bidiStatus);
 
         for (dirRun = 0; dirRun < dirCount; dirRun += 1) {
-            int32_t relStart = 0, runLength = 0;
+            UTextOffset relStart = 0, runLength = 0;
             UBiDiDirection runDirection = ubidi_getVisualRun(lBidi, dirRun, &relStart, &runLength);
             int32_t runStart  = relStart + firstChar;
             int32_t runEnd    = runStart + runLength - 1;
@@ -487,7 +483,7 @@ Paragraph *Paragraph::paragraphFactory(const char *fileName, FontMap *fontMap, G
     dirCount = ubidi_countRuns(pBidi, &bidiStatus);
 
     for (dirRun = 0; dirRun < dirCount; dirRun += 1) {
-        int32_t runStart = 0, runLength = 0;
+        UTextOffset runStart = 0, runLength = 0;
         UBiDiDirection runDirection = ubidi_getVisualRun(pBidi, dirRun, &runStart, &runLength);
         
         scriptRun.reset(runStart, runLength);
