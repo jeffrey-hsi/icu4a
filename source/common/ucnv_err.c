@@ -11,6 +11,7 @@
  *
  */
 
+#include "uhash.h"
 #include "ucmp8.h"
 #include "ucmp16.h"
 #include "unicode/ucnv_bld.h"

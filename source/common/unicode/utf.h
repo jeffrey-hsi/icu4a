@@ -23,16 +23,6 @@
 #ifndef __UTF_H__
 #define __UTF_H__
 
-/*
- * ANSI C headers:
- * stddef.h defines wchar_t
- * limits.h defines CHAR_MAX
- *
- * Typical, though not ANSI, headers:
- * wchar.h defines WCHAR_MAX
- */
-#include <stddef.h>
-#include <limits.h>
 #include <wchar.h>
 #include "unicode/umachine.h"
 /* include the utfXX.h after the following definitions */
@@ -46,19 +36,7 @@
 
 /* U_SIZEOF_WCHAR_T==sizeof(wchar_t) */
 #ifndef U_SIZEOF_WCHAR_T
-#   ifdef WCHAR_MAX
-#       if WCHAR_MAX<=255
-#           define U_SIZEOF_WCHAR_T 1
-#       elif WCHAR_MAX==65535
-#           define U_SIZEOF_WCHAR_T 2
-#       elif WCHAR_MAX>=0x10ffff
-#           define U_SIZEOF_WCHAR_T 4
-#       else
-#           error unexpected value of WCHAR_MAX
-#       endif
-#   else
-#       define U_SIZEOF_WCHAR_T 4
-#   endif
+#   define U_SIZEOF_WCHAR_T 4
 #endif
 
 /* Define UChar32 to be compatible with wchar_t if possible. */
@@ -133,12 +111,7 @@ typedef int32_t UTextOffset;
 
 #   error UTF-8 is not implemented, undefine UTF_SIZE or define it to 16
 
-    /* Define UChar to be compatible with char if possible. */
-#   if CHAR_MAX>=255
-        typedef char UChar;
-#   else
-        typedef uint8_t UChar;
-#   endif
+    typedef uint8_t UChar;
 
 #elif UTF_SIZE==16
 

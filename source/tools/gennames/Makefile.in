@@ -113,7 +113,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 $(TARGET) : $(OBJECTS)
 	$(LINK.cc) -o $@ $^ $(LIBS) 
 
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
 endif
 

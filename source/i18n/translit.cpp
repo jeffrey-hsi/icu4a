@@ -18,7 +18,7 @@
 #include "rbt_pars.h"
 #include "unicode/rep.h"
 #include "unicode/resbund.h"
-#include "hash.h"
+#include "uhash.h"
 #include "unicode/unifilt.h"
 #include "unicode/unitohex.h"
 #include "unicode/nultrans.h"
@@ -26,7 +26,7 @@
 #include "unicode/cpdtrans.h"
 #include "unicode/jamohang.h"
 #include "unicode/hangjamo.h"
-#include <stdio.h>
+
 const UChar Transliterator::ID_SEP   = 0x002D; /*-*/
 const UChar Transliterator::ID_DELIM = 0x003B; /*;*/
 
@@ -48,7 +48,7 @@ const UChar Transliterator::ID_DELIM = 0x003B; /*;*/
  * RuleBasedTransliterator constructor.
  * </ul>
  */
-Hashtable* Transliterator::cache = 0;
+UHashtable* Transliterator::cache = 0;
 
 /**
  * The mutex controlling access to the cache.
@@ -600,9 +600,9 @@ const char* Transliterator::getDataDirectory(void) {
     return DATA_DIR;
 }
 
-/*inline int32_t Transliterator::hash(const UnicodeString& str) {
+inline int32_t Transliterator::hash(const UnicodeString& str) {
     return str.hashCode() & 0x7FFFFFFF;
-    }*/
+}
 
 /**
  * Returns a transliterator object given its ID.  Unlike getInstance(),
@@ -618,8 +618,7 @@ Transliterator* Transliterator::_createInstance(const UnicodeString& ID,
 
     Mutex lock(&cacheMutex);
 
-    CacheEntry* entry = (CacheEntry*) cache->get(ID);
-
+    CacheEntry* entry = (CacheEntry*) uhash_get(cache, hash(ID));
     TransliterationRuleData* data = 0;
 
     if (entry == 0) {
@@ -730,7 +729,7 @@ void Transliterator::_registerInstance(Transliterator* adoptedPrototype,
         return;
     }
 
-    /*int32_t hashCode = hash(adoptedPrototype->getID());*/
+    int32_t hashCode = hash(adoptedPrototype->getID());
 
     // This needs explaining: The string reference that getID returns
     // is to the ID data member of Transliterator.  As long as the
@@ -741,15 +740,14 @@ void Transliterator::_registerInstance(Transliterator* adoptedPrototype,
     // entry.
     cacheIDs.addElement((void*) &adoptedPrototype->getID());
 
-    CacheEntry* entry = (CacheEntry*) cache->get(adoptedPrototype->getID());
+    CacheEntry* entry = (CacheEntry*) uhash_get(cache, hashCode);
     if (entry == 0) {
         entry = new CacheEntry();
     }
 
     entry->adoptPrototype(adoptedPrototype);
 
-    //uhash_putKey(cache, hashCode, entry, &status);
-    cache->put(adoptedPrototype->getID(), entry, status);
+    uhash_putKey(cache, hashCode, entry, &status);
 }
 
 /**
@@ -774,11 +772,11 @@ void Transliterator::unregister(const UnicodeString& ID) {
  */
 void Transliterator::_unregister(const UnicodeString& ID) {
     cacheIDs.removeElement((void*) &ID);
-	//int32_t hc = hash(ID);
-    CacheEntry* entry = (CacheEntry*) cache->get(ID);
+	int32_t hc = hash(ID);
+    CacheEntry* entry = (CacheEntry*) uhash_get(cache, hc);
 	if (entry != 0) {
 		UErrorCode status = U_ZERO_ERROR;
-		cache->remove(ID);
+		uhash_remove(cache, hc, &status);
 		delete entry;
 	}
 }
@@ -850,7 +848,7 @@ void Transliterator::initializeCache(void) {
     // Before looking for the resource, construct our cache.
     // That way if the resource is absent, we will at least
     // have a valid cache object.
-    cache = new Hashtable(status); // TODO: What if this call fails?
+    cache = uhash_open((UHashFunction)uhash_hashUString, &status);
     cacheIDs.setComparer(compareIDs);
 
     /* The following code parses the index table located in
@@ -883,8 +881,7 @@ void Transliterator::initializeCache(void) {
                         CacheEntry::RULE_BASED_PLACEHOLDER :
                         CacheEntry::REVERSE_RULE_BASED_PLACEHOLDER;
                     entry->rbFile = row[2];
-                    //uhash_putKey(cache, hash(row[col]), entry, &status);
-                    cache->put(row[col], entry, status);
+                    uhash_putKey(cache, hash(row[col]), entry, &status);
 
                     /* It's okay to take the address of the string
                      * from the resource bundle under the assumption

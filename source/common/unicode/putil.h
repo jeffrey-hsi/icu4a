@@ -26,11 +26,8 @@
 
 #include "unicode/utypes.h"
 
-/* Define this to 1 if your platform supports IEEE 754 floating point,
-   to 0 if it does not. */
-#ifndef IEEE_754
-#   define IEEE_754 1
-#endif
+/* Define this if your platform supports IEEE 754 floating point */
+#define IEEE_754       
 
 /*===========================================================================*/
 /* Platform utilities                                                        */

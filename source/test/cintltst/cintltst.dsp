@@ -175,10 +175,6 @@ SOURCE=.\cg7coll.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\chashtst.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\cintltst.c
 # End Source File
 # Begin Source File

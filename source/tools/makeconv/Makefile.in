@@ -121,7 +121,7 @@ $(TARGET) : $(OBJECTS)
 	@echo -n "$< -> "
 	@./makeconv -d @DATABUILDDIR@ $<
 
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
 endif
 

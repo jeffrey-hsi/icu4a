@@ -165,7 +165,7 @@ $(TARGET) : $(OBJECTS)
 # the 'mv' will always fail if you are building in the source dir
 
 
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
 endif
 

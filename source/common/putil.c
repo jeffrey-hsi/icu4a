@@ -78,7 +78,7 @@
 /* floating point implementations ------------------------------------------- */
 
 /* We return QNAN rather than SNAN*/
-#if IEEE_754
+#ifdef IEEE_754
 #define NAN_TOP ((int16_t)0x7FF8)
 #define INF_TOP ((int16_t)0x7FF0)
 #else
@@ -163,7 +163,7 @@ uprv_getUTCtime()
 bool_t 
 uprv_isNaN(double number)
 {
-#if IEEE_754
+#ifdef IEEE_754
   /* This should work in theory, but it doesn't, so we resort to the more*/
   /* complicated method below.*/
   /*  return number != number;*/
@@ -206,7 +206,7 @@ uprv_isNaN(double number)
 bool_t
 uprv_isInfinite(double number)
 {
-#if IEEE_754
+#ifdef IEEE_754
   /* We know the top bit is the sign bit, so we mask that off in a copy of */
   /* the number and compare against infinity. [LIU]*/
   /* The following approach doesn't work for some reason, so we go ahead and */
@@ -244,7 +244,7 @@ return ((highBits  & ~SIGN) == 0x70FF0000L) && (lowBits == 0x00000000L);
 bool_t   
 uprv_isPositiveInfinity(double number)
 {
-#if IEEE_754 || defined(OS390)
+#if defined(IEEE_754) || defined(OS390)
   return (number > 0 && uprv_isInfinite(number));
 #else
   return uprv_isInfinite(number);
@@ -254,7 +254,7 @@ uprv_isPositiveInfinity(double number)
 bool_t   
 uprv_isNegativeInfinity(double number)
 {
-#if IEEE_754 || defined(OS390)
+#if defined(IEEE_754) || defined(OS390)
   return (number < 0 && uprv_isInfinite(number));
 #else
   uint32_t highBits = *(uint32_t*)u_topNBytesOfDouble(&number,
@@ -267,7 +267,7 @@ uprv_isNegativeInfinity(double number)
 double 
 uprv_getNaN()
 {
-#if IEEE_754 || defined(OS390)
+#if defined(IEEE_754) || defined(OS390)
   if( ! fgNaNInitialized) {
     umtx_lock(NULL);
     if( ! fgNaNInitialized) {
@@ -292,7 +292,7 @@ uprv_getNaN()
 double 
 uprv_getInfinity()
 {
-#if IEEE_754 || defined(OS390)
+#if defined(IEEE_754  ) || defined(OS390)
   if (!fgInfInitialized)
     {
       int i;
@@ -351,35 +351,10 @@ uprv_pow10(int32_t x)
 #endif
 }
 
-/**
- * Computes the remainder of an implied division of its operands, as
- * defined by the IEEE 754 standard.  Commonly used to bring a value
- * into range without losing accuracy; e.g., bringing a large argument
- * to sin() into range.
- *
- * Returns r, where x = n * p + r.  Here n is the integer nearest to
- * x / p.  If two integers are equidistant from x / p, n is the even
- * integer.  If r is zero, then it should have the same sign as the
- * dividend x.
- *
- * The IEEE remainder may be negative or positive.
- * IEEEremainder(5,3) = -1.  IEEEremainder(4,3) = 1.
- *
- * The IEEE remainder r is always less than or equal to p/2 in
- * absolute value.  That is, |r| <= |p/2|.  By comparison, fmod()
- * returns a remainder r such that |r| <= |p|.
- *
- * Some floating point processors can compute this value in hardware.
- * We provide two implementations here, one that manipulates the IEEE
- * bit pattern directly, and one that is built upon other floating
- * point operations.  The former implementation has superior accuracy
- * and is preferred; the latter may work on platforms where the former
- * fails, but will introduce inaccuracies.
- */
 double 
 uprv_IEEEremainder(double x, double p)
 {
-#if IEEE_754
+#ifdef IEEE_754
   int32_t hx, hp;
   uint32_t sx, lx, lp;
   double p_half;
@@ -430,35 +405,15 @@ uprv_IEEEremainder(double x, double p)
   
   return x;
 #else
-    /* INACCURATE but portable implementation of IEEEremainder.  This
-     * implementation should work on platforms that do not have IEEE
-     * bit layouts.  Deficiencies of this implementation are its
-     * inaccuracy and that it does not attempt to handle NaN or
-     * infinite parameters and it returns the dividend if the divisor
-     * is zero.  This is probably not an issue on non-IEEE
-     * platforms. - aliu
-     */
-    if (p != 0.0) { /* exclude zero divisor */
-        double a = x / p;
-        double aint = uprv_floor(a);
-        double afrac = a - aint;
-        if (afrac > 0.5) {
-            aint += 1.0;
-        } else if (!(afrac < 0.5)) { /* avoid == comparison */
-            if (uprv_modf(aint / 2.0, &a) > 0.0) {
-                aint += 1.0;
-            }
-        }
-        x -= (p * aint);
-    }
-    return x;
+  /* {sfb} need to fix this*/
+  return uprv_fmod(x, p);
 #endif
 }
 
 double 
 uprv_fmax(double x, double y)
 {
-#if IEEE_754
+#ifdef IEEE_754
   int32_t lowBits;
   
   /* first handle NaN*/
@@ -491,7 +446,7 @@ uprv_max(int32_t x, int32_t y)
 double 
 uprv_fmin(double x, double y)
 {
-#if IEEE_754
+#ifdef IEEE_754
   int32_t lowBits;
 
   /* first handle NaN*/
@@ -532,7 +487,7 @@ uprv_min(int32_t x, int32_t y)
 double 
 uprv_trunc(double d)
 {
-#if IEEE_754
+#ifdef IEEE_754
 
   int32_t lowBits;
   
@@ -1298,7 +1253,7 @@ uprv_getDefaultLocaleID()
 double 
 uprv_nextDouble(double d, bool_t next)
 {
-#if IEEE_754
+#ifdef IEEE_754
   int32_t highBits;
   uint32_t lowBits;
   int32_t highMagnitude;

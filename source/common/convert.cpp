@@ -142,7 +142,7 @@ UnicodeConverterCPP::fromUnicodeString(char*                    target,
 
 
   mySourceLength = source.length();
-  mySource = source.getArrayStart();
+  mySource = source.getUChars();
   myTarget = target;
   ucnv_fromUnicode(&myConverter,
                  &myTarget,
