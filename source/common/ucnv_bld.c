@@ -35,9 +35,7 @@ static const UConverterSharedData *
 converterData[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES]={
     &_SBCSData, &_DBCSData, &_MBCSData, &_Latin1Data,
     &_UTF8Data, &_UTF16BEData, &_UTF16LEData, &_EBCDICStatefulData,
-    &_ISO2022Data, 
-    &_LMBCSData1,&_LMBCSData2, &_LMBCSData3, &_LMBCSData4, &_LMBCSData5, &_LMBCSData6,
-    &_LMBCSData8,&_LMBCSData11,&_LMBCSData16,&_LMBCSData17,&_LMBCSData18,&_LMBCSData19
+    &_ISO2022Data
 };
 
 static struct {
@@ -55,21 +53,8 @@ static struct {
   { "UTF16_PlatformEndian", UCNV_UTF16_LittleEndian },
   { "UTF16_OppositeEndian", UCNV_UTF16_BigEndian},
 #endif
-  { "ISO_2022", UCNV_ISO_2022 },
-  { "LMBCS-1", UCNV_LMBCS_1 },
-  { "LMBCS-2", UCNV_LMBCS_2 },
-  { "LMBCS-3", UCNV_LMBCS_3 },
-  { "LMBCS-4", UCNV_LMBCS_4 },
-  { "LMBCS-5", UCNV_LMBCS_5 },
-  { "LMBCS-6", UCNV_LMBCS_6 },
-  { "LMBCS-8", UCNV_LMBCS_8 },
-  { "LMBCS-11",UCNV_LMBCS_11 },
-  { "LMBCS-16",UCNV_LMBCS_16 },
-  { "LMBCS-17",UCNV_LMBCS_17 },
-  { "LMBCS-18",UCNV_LMBCS_18 },
-  { "LMBCS-19",UCNV_LMBCS_19 }
+  { "ISO_2022", UCNV_ISO_2022 }
 };
-
 
 /*Takes an alias name gets an actual converter file name
  *goes to disk and opens it.
@@ -78,6 +63,11 @@ static struct {
 static UConverterSharedData *createConverterFromFile (const char *converterName, UErrorCode * err);
 
 static const UConverterSharedData *getAlgorithmicTypeFromName (const char *realName);
+
+/**
+ *hash function for UConverterSharedData
+ */
+static int32_t uhash_hashSharedData (void *sharedData);
 
 /*Defines the struct of a UConverterSharedData the immutable, shared part of
  *UConverter -
@@ -192,6 +182,11 @@ const UConverterSharedData *
   return NULL;
 }
 
+int32_t uhash_hashSharedData (void *sharedData)
+{
+  return uhash_hashIString(((UConverterSharedData *) sharedData)->name);
+}
+
 /*Puts the shared data in the static hashtable SHARED_DATA_HASHTABLE */
 void   shareConverterData (UConverterSharedData * data)
 {
@@ -200,7 +195,7 @@ void   shareConverterData (UConverterSharedData * data)
 
   if (SHARED_DATA_HASHTABLE == NULL)
     {
-      UHashtable* myHT = uhash_openSize (uhash_hashIChars, uhash_compareIChars,
+      UHashtable* myHT = uhash_openSize ((UHashFunction) uhash_hashSharedData, 
                                          ucnv_io_countAvailableAliases(&err),
                                          &err);
       if (U_FAILURE (err)) return;
@@ -213,8 +208,6 @@ void   shareConverterData (UConverterSharedData * data)
   umtx_lock (NULL);
   /* ### check to see if the element is not already there! */
   uhash_put(SHARED_DATA_HASHTABLE,
-             (void*) data->name, /* Okay to cast away const as long as
-                                    keyDeleter == NULL */
             data,
             &err);
   umtx_unlock (NULL);
@@ -228,7 +221,7 @@ UConverterSharedData *getSharedConverterData (const char *name)
   if (SHARED_DATA_HASHTABLE == NULL)    return NULL;
   else
     {
-      return (UConverterSharedData*)uhash_get (SHARED_DATA_HASHTABLE, name);
+      return (UConverterSharedData*)uhash_get (SHARED_DATA_HASHTABLE, uhash_hashIString (name));
     }
 }
 

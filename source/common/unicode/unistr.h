@@ -27,14 +27,12 @@
 #include "unicode/ucnv.h"
 #include "unicode/rep.h"
 
+// Size of stack buffer for small strings
+#define US_STACKBUF_SIZE 10
+
 class Locale;
 class UCharReference;
 class UnicodeStringStreamer;
-class UnicodeConverterCPP;
-
-// for unistrm.h
-class ostream;
-U_COMMON_API ostream &operator<<(ostream& stream, const UnicodeString& s);
 
 /**
  * Unicode String literals in C++.
@@ -61,43 +59,9 @@ U_COMMON_API ostream &operator<<(ostream& stream, const UnicodeString& s);
 #endif
 
 /**
- * UnicodeString is a concrete implementation of the abstract class Replaceable.
- * It is a string class that stores Unicode characters directly and provides
- * similar functionality as the Java string class.
- *
- * UnicodeString uses four storage models:
- * <ol>
- * <li>Short strings are normally stored inside the UnicodeString object itself.
- *     The object has fields for the "bookkeeping" and a small UChar array.
- *     When the object is copied, then the internal characters are copied
- *     into the destination object.</li>
- * <li>Longer strings are normally stored in allocated memory.
- *     The allocated UChar array is preceeded by a reference counter.
- *     When the string object is copied, then the allocated buffer is shared by
- *     incrementing the reference counter.</li>
- * <li>A UnicodeString can be constructed or setTo() such that it aliases a read-only
- *     buffer instead of copying the characters. In this case, the string object
- *     uses this aliased buffer for as long as it is not modified, and it will never
- *     attempt to modify or release the buffer. This has copy-on-write semantics:
- *     When the string object is modified, then the buffer contents is first copied
- *     into writeable memory (inside the object for short strings, or allocated
- *     buffer for longer strings). When a UnicodeString with a read-only alias
- *     is assigned to another UnicodeString, then both string objects will
- *     share the same read-only alias.</li>
- * <li>A UnicodeString can be constructed or setTo() such that it aliases a writeable
- *     buffer instead of copying the characters. The difference from the above is that
- *     the string object will write through to this aliased buffer for write
- *     operations. Only when the capacity of the buffer is not sufficient is
- *     a new buffer allocated and the contents copied.
- *     An efficient way to get the string contents into the original buffer is
- *     to use the extract(..., UChar *dst, ...) function: It will only copy the
- *     string contents if the dst buffer is different from the buffer of the string
- *     object itself. If a string grows and shrinks during a sequence of operations,
- *     then it will not use the same buffer any more, but may fit into it again.
- *     When a UnicodeString with a writeable alias is assigned to another UnicodeString,
- *     then the contents is always copied. The destination string will not alias
- *     to the buffer that the source string aliases.</li>
- * </ol>
+ * UnicodeString is a concrete implementation of the abstract class 
+ * UnicodeText.  UnicodeString performs codeset conversion from char*
+ * data based on the type of data specified.
  */
 class U_COMMON_API UnicodeString : public Replaceable
 {
@@ -509,27 +473,18 @@ public:
               int32_t length) const;
 
   /**
-   * Locate in this the first occurrence of the code unit <TT>c</TT>, 
+   * Locate in this the first occurrence of the character <TT>c</TT>, 
    * using bitwise comparison.
-   * @param c The code unit to search for.
+   * @param c The character to search for.
    * @return The offset into this of <TT>c</TT>, or -1 if not found.
    * @draft
    */
   inline UTextOffset indexOf(UChar c) const;
 
   /**
-   * Locate in this the first occurrence of the code point <TT>c</TT>, 
-   * using bitwise comparison.
-   * @param c The code point to search for.
-   * @return The offset into this of <TT>c</TT>, or -1 if not found.
-   * @draft
-   */
-  inline UTextOffset indexOf(UChar32 c) const;
-
-  /**
-   * Locate in this the first occurrence of the code unit <TT>c</TT>
+   * Locate in this the first occurrence of the character <TT>c</TT>
    * starting at offset <TT>start</TT>, using bitwise comparison.
-   * @param c The code unit to search for.
+   * @param c The character to search for.
    * @param start The offset at which searching will start.
    * @return The offset into this of <TT>c</TT>, or -1 if not found.
    * @draft
@@ -538,41 +493,16 @@ public:
               UTextOffset start) const;
 
   /**
-   * Locate in this the first occurrence of the code point <TT>c</TT>
-   * starting at offset <TT>start</TT>, using bitwise comparison.
-   * @param c The code point to search for.
-   * @param start The offset at which searching will start.
-   * @return The offset into this of <TT>c</TT>, or -1 if not found.
-   * @draft
-   */
-  inline UTextOffset indexOf(UChar32 c,
-              UTextOffset start) const;
-
-  /**
-   * Locate in this the first occurrence of the code unit <TT>c</TT> 
+   * Locate in this the first occurrence of the character <TT>c</TT> 
    * in the range [<TT>start</TT>, <TT>start + length</TT>), 
    * using bitwise comparison.   
-   * @param c The code unit to search for.
+   * @param c The character to search for.
    * @param start the offset into this at which to start matching
    * @param length the number of characters in this to search
    * @return The offset into this of <TT>c</TT>, or -1 if not found.
    * @draft
    */
   inline UTextOffset indexOf(UChar c,
-              UTextOffset start,
-              int32_t length) const;
-
-  /**
-   * Locate in this the first occurrence of the code point <TT>c</TT> 
-   * in the range [<TT>start</TT>, <TT>start + length</TT>), 
-   * using bitwise comparison.   
-   * @param c The code point to search for.
-   * @param start the offset into this at which to start matching
-   * @param length the number of characters in this to search
-   * @return The offset into this of <TT>c</TT>, or -1 if not found.
-   * @draft
-   */
-  inline UTextOffset indexOf(UChar32 c,
               UTextOffset start,
               int32_t length) const;
 
@@ -689,27 +619,18 @@ public:
               int32_t length) const;
 
   /**
-   * Locate in this the last occurrence of the code unit <TT>c</TT>, 
+   * Locate in this the last occurrence of the character <TT>c</TT>, 
    * using bitwise comparison.
-   * @param c The code unit to search for.
+   * @param c The character to search for.
    * @return The offset into this of <TT>c</TT>, or -1 if not found.
    * @draft
    */
   inline UTextOffset lastIndexOf(UChar c) const;
 
   /**
-   * Locate in this the last occurrence of the code point <TT>c</TT>, 
-   * using bitwise comparison.
-   * @param c The code point to search for.
-   * @return The offset into this of <TT>c</TT>, or -1 if not found.
-   * @draft
-   */
-  inline UTextOffset lastIndexOf(UChar32 c) const;
-
-  /**
-   * Locate in this the last occurrence of the code unit <TT>c</TT>
+   * Locate in this the last occurrence of the character <TT>c</TT>
    * starting at offset <TT>start</TT>, using bitwise comparison.
-   * @param c The code unit to search for.
+   * @param c The character to search for.
    * @param start The offset at which searching will start.
    * @return The offset into this of <TT>c</TT>, or -1 if not found.
    * @draft
@@ -718,41 +639,16 @@ public:
               UTextOffset start) const;
 
   /**
-   * Locate in this the last occurrence of the code point <TT>c</TT>
-   * starting at offset <TT>start</TT>, using bitwise comparison.
-   * @param c The code point to search for.
-   * @param start The offset at which searching will start.
-   * @return The offset into this of <TT>c</TT>, or -1 if not found.
-   * @draft
-   */
-  inline UTextOffset lastIndexOf(UChar32 c,
-              UTextOffset start) const;
-
-  /**
-   * Locate in this the last occurrence of the code unit <TT>c</TT> 
+   * Locate in this the last occurrence of the character <TT>c</TT> 
    * in the range [<TT>start</TT>, <TT>start + length</TT>), 
    * using bitwise comparison.   
-   * @param c The code unit to search for.
+   * @param c The character to search for.
    * @param start the offset into this at which to start matching
    * @param length the number of characters in this to search
    * @return The offset into this of <TT>c</TT>, or -1 if not found.
    * @draft
    */
   inline UTextOffset lastIndexOf(UChar c,
-              UTextOffset start,
-              int32_t length) const;
-
-  /**
-   * Locate in this the last occurrence of the code point <TT>c</TT> 
-   * in the range [<TT>start</TT>, <TT>start + length</TT>), 
-   * using bitwise comparison.   
-   * @param c The code point to search for.
-   * @param start the offset into this at which to start matching
-   * @param length the number of characters in this to search
-   * @return The offset into this of <TT>c</TT>, or -1 if not found.
-   * @draft
-   */
-  inline UTextOffset lastIndexOf(UChar32 c,
               UTextOffset start,
               int32_t length) const;
 
@@ -760,62 +656,21 @@ public:
   /* Character access */
 
   /**
-   * Return the code unit at offset <tt>offset</tt>.
+   * Return the character at offset <tt>offset</tt>.
    * @param offset a valid offset into the text
-   * @returns the code unit at offset <tt>offset</tt>
+   * @returns the character at offset <tt>offset</tt>
    * @draft
    */
   inline UChar charAt(UTextOffset offset) const;
 
   /**
-   * Return the code unit at offset <tt>offset</tt>.
+   * Return the character at offset <tt>offset</tt>.
    * @param offset a valid offset into the text
-   * @returns the code unit at offset <tt>offset</tt>
+   * @returns the character at offset <tt>offset</tt>
    * @draft
    */
   inline UChar operator [] (UTextOffset offset) const;
 
-  /**
-   * Return the code point that contains the code unit
-   * at offset <tt>offset</tt>.
-   * @param offset a valid offset into the text
-   * that indicates the text offset of any of the code units
-   * that will be assembled into a code point (21-bit value) and returned
-   * @returns the code point of text at <tt>offset</tt>
-   * @draft
-   */
-  inline UChar32 char32At(UTextOffset offset) const;
-
-  /**
-   * Adjust a random-access offset so that
-   * it points to the beginning of a Unicode character.
-   * The offset that is passed in points to
-   * any code unit of a code point,
-   * while the returned offset will point to the first code unit
-   * of the same code point.
-   * In UTF-16, if the input offset points to a second surrogate
-   * of a surrogate pair, then the returned offset will point
-   * to the first surrogate.
-   * @param offset a valid offset into one code point of the text
-   * @return offset of the first code unit of the same code point
-   */
-  inline UTextOffset getCharStart(UTextOffset offset);
-
-  /**
-   * Adjust a random-access offset so that
-   * it points behind a Unicode character.
-   * The offset that is passed in points behind
-   * any code unit of a code point,
-   * while the returned offset will point behind the last code unit
-   * of the same code point.
-   * In UTF-16, if the input offset points behind the first surrogate
-   * (i.e., to the second surrogate)
-   * of a surrogate pair, then the returned offset will point
-   * behind the second surrogate (i.e., to the first surrogate).
-   * @param offset a valid offset after any code unit of a code point of the text
-   * @return offset of the first code unit after the same code point
-   */
-  inline UTextOffset getCharLimit(UTextOffset offset);
 
   /* Substring extraction */
 
@@ -823,9 +678,6 @@ public:
    * Copy the characters in the range 
    * [<tt>start</tt>, <tt>start + length</tt>) into the array <tt>dst</tt>,
    * beginning at <tt>dstStart</tt>.
-   * If the string aliases to <code>dst</code> itself as an external buffer,
-   * then extract() will not copy the contents.
-   *
    * @param start offset of first character which will be copied into the array
    * @param length the number of characters to extract
    * @param dst array in which to copy characters.  The length of <tt>dst</tt>
@@ -991,6 +843,23 @@ public:
 
   /**
    * Set the characters in the UnicodeString object to the characters
+   * in <TT>srcChars</TT> in the range 
+   * [<TT>srcStart</TT>, <TT>srcStart + srcLength</TT>).
+   * <TT>srcChars</TT> is not modified.
+   * @param srcChars the source for the new characters
+   * @param srcStart the offset into <TT>srcChars</TT> where new characters 
+   * will be obtained
+   * @param srcLength the number of characters in <TT>srcChars</TT> in the 
+   * replace string
+   * @return a reference to this
+   * @stable
+   */
+  inline UnicodeString& setTo(const UChar *srcChars, 
+               UTextOffset srcStart, 
+               int32_t srcLength);
+
+  /**
+   * Set the characters in the UnicodeString object to the characters
    * in <TT>srcChars</TT>. <TT>srcChars</TT> is not modified.
    * @param srcChars the source for the new characters
    * @param srcLength the number of Unicode characters in srcChars.
@@ -1011,51 +880,6 @@ public:
   UnicodeString& setTo(UChar srcChar);
 
   /**
-   * Aliasing setTo() function, analogous to the readonly-aliasing UChar* constructor.
-   * The text will be used for the UnicodeString object, but
-   * it will not be released when the UnicodeString is destroyed.
-   * This has copy-on-write semantics:
-   * When the string is modified, then the buffer is first copied into
-   * newly allocated memory.
-   * The aliased buffer is never modified.
-   * In an assignment to another UnicodeString, the text will be aliased again,
-   * so that both strings then alias the same readonly-text.
-   *
-   * @param isTerminated specifies if <code>text</code> is <code>NUL</code>-terminated.
-   *                     This must be true if <code>textLength==-1</code>.
-   * @param text The characters to alias for the UnicodeString.
-   * @param textLength The number of Unicode characters in <code>text</code> to alias.
-   *                   If -1, then this constructor will determine the length
-   *                   by calling <code>u_strlen()</code>.
-   * @draft
-   */
-  UnicodeString &setTo(bool_t isTerminated,
-                       const UChar *text,
-                       int32_t textLength);
-
-  /**
-   * Aliasing setTo() function, analogous to the writeable-aliasing UChar* constructor.
-   * The text will be used for the UnicodeString object, but
-   * it will not be released when the UnicodeString is destroyed.
-   * This has write-through semantics:
-   * For as long as the capacity of the buffer is sufficient, write operations
-   * will directly affect the buffer. When more capacity is necessary, then
-   * a new buffer will be allocated and the contents copied as with regularly
-   * constructed strings.
-   * In an assignment to another UnicodeString, the buffer will be copied.
-   * The extract(UChar *dst) function detects whether the dst pointer is the same
-   * as the string buffer itself and will in this case not copy the contents.
-   *
-   * @param buffer The characters to alias for the UnicodeString.
-   * @param buffLength The number of Unicode characters in <code>buffer</code> to alias.
-   * @param buffCapacity The size of <code>buffer</code> in UChars.
-   * @draft
-   */
-  UnicodeString &setTo(UChar *buffer,
-                       int32_t buffLength,
-                       int32_t buffCapacity);
-
-  /**
    * Set the character at the specified offset to the specified character.
    * @param offset A valid offset into the text of the character to set
    * @param ch The new character
@@ -1069,22 +893,13 @@ public:
   /* Append operations */
 
   /**
-   * Append operator. Append the code unit <TT>ch</TT> to the UnicodeString
+   * Append operator. Append the character <TT>ch</TT> to the UnicodeString
    * object.
-   * @param ch the code unit to be appended
+   * @param ch the character to be appended
    * @return a reference to this
    * @draft
    */
  inline  UnicodeString& operator+= (UChar ch);
-
-  /**
-   * Append operator. Append the code point <TT>ch</TT> to the UnicodeString
-   * object.
-   * @param ch the code point to be appended
-   * @return a reference to this
-   * @draft
-   */
- inline  UnicodeString& operator+= (UChar32 ch);
 
   /**
    * Append operator. Append the characters in <TT>srcText</TT> to the
@@ -1152,20 +967,12 @@ public:
             int32_t srcLength);
 
   /**
-   * Append the code unit <TT>srcChar</TT> to the UnicodeString object.
-   * @param srcChar the code unit to append
+   * Append the character <TT>srcChar</TT> to the UnicodeString object.
+   * @param srcChar the character to append
    * @return a reference to this
    * @draft
    */
   inline UnicodeString& append(UChar srcChar);
-
-  /**
-   * Append the code point <TT>srcChar</TT> to the UnicodeString object.
-   * @param srcChar the code point to append
-   * @return a reference to this
-   * @draft
-   */
-  inline UnicodeString& append(UChar32 srcChar);
 
 
   /* Insert operations */
@@ -1460,7 +1267,7 @@ public:
    * @stable
    */
   inline UnicodeString& remove(UTextOffset start, 
-                               int32_t length = INT32_MAX);
+            int32_t length = LONG_MAX);
 
   /**
    * Remove the characters in the range 
@@ -1471,7 +1278,7 @@ public:
    * @stable
    */
   inline UnicodeString& removeBetween(UTextOffset start,
-                                      UTextOffset limit = INT32_MAX);
+                   UTextOffset limit = LONG_MAX);
 
 
   /* Length operations */
@@ -1487,8 +1294,8 @@ public:
    * @return TRUE if the text was padded, FALSE otherwise.
    * @draft
    */
-  bool_t padLeading(int32_t targetLength,
-                    UChar padChar = 0x0020);
+  inline bool_t padLeading(int32_t targetLength,
+            UChar padChar = 0x0020);
 
   /**
    * Pad the end of this UnicodeString with the character <TT>padChar</TT>.  
@@ -1501,8 +1308,8 @@ public:
    * @return TRUE if the text was padded, FALSE otherwise.
    * @draft
    */
-  bool_t padTrailing(int32_t targetLength,
-                     UChar padChar = 0x0020);
+  inline bool_t padTrailing(int32_t targetLength,
+             UChar padChar = 0x0020);
 
   /**
    * Truncate this UnicodeString to the <TT>targetLength</TT>.
@@ -1517,7 +1324,7 @@ public:
    * @return a reference to this
    * @stable
    */
-  UnicodeString& trim(void);
+  inline UnicodeString& trim(void);
 
 
   /* Miscellaneous operations */
@@ -1579,13 +1386,6 @@ public:
   // Constructors
   //========================================
 
-  /**
-   * Dummy enumeration for the disambiguation of function signatures.
-   */
-  enum ESignature {
-    kCodePoint
-  };
-
   /** Construct an empty UnicodeString.  
    * @stable
    */
@@ -1601,28 +1401,11 @@ public:
   UnicodeString(int32_t capacity);
 
   /**
-   * Single UChar (code unit) constructor.
+   * Single UChar constructor.
    * @param ch the character to place in the UnicodeString
    * @draft
    */
   UnicodeString(UChar ch);
-
-  /**
-   * Single UChar32 (code point) constructor.
-   * @param ch the character to place in the UnicodeString
-   * @param sig is a dummy parameter that guarantees that this
-   *        constructor can be distinguished from
-   *        <code>UnicodeString(int32_t capacity)</code>
-   *        on all platforms
-   * @draft
-   *
-   * Usage example:
-   * <pre>
-   * UChar32 c=0x104321;
-   * UnicodeString us(c, UnicodeString::kCodePoint);
-   * </pre>
-   */
-  UnicodeString(UChar32 ch, ESignature sig);
 
   /**
    * UChar* constructor.
@@ -1643,15 +1426,12 @@ public:
         int32_t textLength);
 
   /**
-   * Readonly-aliasing UChar* constructor.
-   * The text will be used for the UnicodeString object, but
+   * Aliasing UChar* constructor.
+   * The text will be used for the new UnicodeString object, but
    * it will not be released when the UnicodeString is destroyed.
-   * This has copy-on-write semantics:
-   * When the string is modified, then the buffer is first copied into
-   * newly allocated memory.
-   * The aliased buffer is never modified.
-   * In an assignment to another UnicodeString, the text will be aliased again,
-   * so that both strings then alias the same readonly-text.
+   * Be careful not to attempt to modify the contents of the UnicodeString
+   * if the text is read-only. Operations that allocate an entirely
+   * new buffer are harmless.
    *
    * @param isTerminated specifies if <code>text</code> is <code>NUL</code>-terminated.
    *                     This must be true if <code>textLength==-1</code>.
@@ -1662,28 +1442,8 @@ public:
    * @stable
    */
   UnicodeString(bool_t isTerminated,
-                const UChar *text,
+                UChar *text,
                 int32_t textLength);
-
-  /**
-   * Writeable-aliasing UChar* constructor.
-   * The text will be used for the UnicodeString object, but
-   * it will not be released when the UnicodeString is destroyed.
-   * This has write-through semantics:
-   * For as long as the capacity of the buffer is sufficient, write operations
-   * will directly affect the buffer. When more capacity is necessary, then
-   * a new buffer will be allocated and the contents copied as with regularly
-   * constructed strings.
-   * In an assignment to another UnicodeString, the buffer will be copied.
-   * The extract(UChar *dst) function detects whether the dst pointer is the same
-   * as the string buffer itself and will in this case not copy the contents.
-   *
-   * @param buffer The characters to alias for the UnicodeString.
-   * @param buffLength The number of Unicode characters in <code>buffer</code> to alias.
-   * @param buffCapacity The size of <code>buffer</code> in UChars.
-   * @draft
-   */
-  UnicodeString(UChar *buffer, int32_t buffLength, int32_t buffCapacity);
 
   /**
    * char* constructor.
@@ -1720,7 +1480,7 @@ public:
    * @param that The UnicodeString object to copy.
    * @stable
    */
-  UnicodeString(const UnicodeString& that);
+  inline UnicodeString(const UnicodeString& that);
 
   /** Destructor. 
    * @stable
@@ -1753,11 +1513,29 @@ public:
    * @stable
    */
   int32_t numDisplayCells(UTextOffset start = 0,
-              int32_t length = INT32_MAX,
+              int32_t length = LONG_MAX,
               bool_t asian = TRUE) const;
 
 
   UCharReference operator[] (UTextOffset pos);
+
+  // {sfb} remove these later?
+  /* Hack to avoid circular dependencies */
+
+  /**
+   * Convert the characters in this to UPPER CASE following the conventions of
+   * the default locale.
+   * @retrurn A reference to this.
+   */
+  // UnicodeString& toUpper();
+
+  /**
+   * Convert the characters in this to lower case following the conventions of
+   * the default locale.
+   * @retrurn A reference to this.
+   */
+  // UnicodeString& toLower();
+
 
   //========================================
   // Implementation methods
@@ -1797,6 +1575,9 @@ private:
   
   inline UChar doCharAt(UTextOffset offset)  const;
 
+  UnicodeString& doSetCharAt(UTextOffset offset,
+                 UChar c);
+
   UnicodeString& doReplace(UTextOffset start, 
                int32_t length, 
                const UnicodeString& srcText, 
@@ -1822,21 +1603,12 @@ private:
   // get the "real" capacity of the array, adjusted for ref count
   inline int32_t getCapacity(void) const;
 
-  // allocate the array; result may be fStackBuffer
-  // sets refCount to 1 if appropriate
-  // sets fArray, fCapacity, and fFlags
-  // returns boolean for success or failure
-  bool_t allocate(int32_t capacity);
-
-  // release the array if owned
-  inline void releaseArray();
-
   // utility method to get around lack of exception handling
   void setToBogus(void);
 
   // Pin start and limit to acceptable values.
-  inline void pinIndices(UTextOffset& start,
-                         int32_t& length) const;
+  void pinIndices(UTextOffset& start,
+          int32_t& length) const;
 
   /*
    * Real constructor for converting from codepage data.
@@ -1849,53 +1621,36 @@ private:
    * subset ("invariant characters") of the platform encoding. See utypes.h.
    */
   void doCodepageCreate(const char *codepageData,
-                        int32_t dataLength,
-                        const char *codepage);
+            int32_t dataLength,
+            const char *codepage);
 
-  /*
-   * This function is called when write access to the array
-   * is necessary.
-   *
-   * We need to make a copy of the array if
-   * the buffer is read-only, or
-   * the buffer is refCounted (shared), and refCount>1, or
-   * the buffer is too small.
-   *
-   * Return FALSE if memory could not be allocated.
-   */
-  bool_t cloneArrayIfNeeded(int32_t newCapacity = -1,
-                            int32_t growCapacity = -1,
-                            bool_t doCopyArray = TRUE,
-                            int32_t **pBufferToDelete = 0);
+  // clones array if refCount > 1
+  void cloneArrayIfNeeded(void);
 
   // ref counting
-  inline int32_t addRef(void);
-  inline int32_t removeRef(void);
-  inline int32_t refCount(void) const;
-  inline int32_t setRefCount(int32_t count);
+  inline uint16_t addRef(void);
+  inline uint16_t removeRef(void);
+  inline uint16_t refCount(void) const;
+  inline uint16_t setRefCount(uint16_t count);
+
+  UChar     fStackBuffer [ US_STACKBUF_SIZE ]; // buffer for small strings
+  UChar     *fArray;        // the Unicode data
+  int32_t   fLength;        // number characters in fArray
+  int32_t   fCapacity;      // sizeof fArray
+  int32_t   fHashCode;      // the hash code
+  bool_t    fRefCounted;    // indicates if we own storage
+  bool_t    fBogus;         // indicates if an operation failed
 
   // constants
-  enum {
-    US_STACKBUF_SIZE=9, // Size of stack buffer for small strings
-    kInvalidUChar=0xffff, // invalid UChar index
-    kGrowSize=128, // grow size for this buffer
-    kInvalidHashCode=0, // invalid hash code
-    kEmptyHashCode=1, // hash code for empty string
-
-    // bit flag values for fFlags
-    kIsBogus=1, // this string is bogus, i.e., not valid
-    kUsingStackBuffer=2, // fArray==fStackBuffer
-    kRefCounted=4, // there is a refCount field before the characters in fArray
-    kBufferIsReadonly=8, // do not write to this buffer
-
-    // combined values for convenience
-    kShortString=kUsingStackBuffer,
-    kLongString=kRefCounted,
-    kReadonlyAlias=kBufferIsReadonly,
-    kWriteableAlias=0
-  };
-
+  static const UChar fgInvalidUChar; // invalid UChar index
+  static const int32_t kGrowSize; // grow size for this buffer
+  static const int32_t kInvalidHashCode; // invalid hash code
+  static const int32_t kEmptyHashCode; // hash code for empty string
+  
   // statics
+  inline static int32_t allocation(int32_t minSize); // allocation algorithm
+  inline static UChar* allocate(int32_t minSize, // allocate buffer >= minSize
+             int32_t& actualSize);
 
   // default converter cache
   static UConverter* getDefaultConverter(UErrorCode& status);
@@ -1904,27 +1659,6 @@ private:
   static UConverter *fgDefaultConverter;
 
   friend class UnicodeStringStreamer;
-  friend class UnicodeConverterCPP;
-  friend U_COMMON_API ostream &operator<<(ostream& stream, const UnicodeString& s);
-
-  /*
-   * The following are all the class fields that are stored
-   * in each UnicodeString object.
-   * Note that UnicodeString has virtual functions,
-   * therefore there is an implicit vtable pointer
-   * as the first real field.
-   * The fields should be aligned such that no padding is
-   * necessary, mostly by having larger types first.
-   * On 32-bit machines, the size should be 40 bytes,
-   * on 64-bit machines (8-byte pointers), it should be 48 bytes.
-   */
-  // (implicit) *vtable;
-  UChar     *fArray;        // the Unicode data
-  int32_t   fLength;        // number characters in fArray
-  int32_t   fCapacity;      // sizeof fArray
-  int32_t   fHashCode;      // the hash code
-  uint16_t  fFlags;         // bit flags: see constants above
-  UChar     fStackBuffer [ US_STACKBUF_SIZE ]; // buffer for small strings
 
 public:
 
@@ -1950,11 +1684,19 @@ public:
    /* @deprecated */
   inline void operator delete(void *location);
 
+
   //========================================
   // Non-public API - will be removed!
   //========================================
-  /* @deprecated */
-  const UChar* getUChars() const;
+   /* @deprecated */
+  UnicodeString(UChar *buff, int32_t bufLength, int32_t buffCapacity);
+   /* @deprecated */
+  const UChar* getUChars(void) const;
+   /* @deprecated */
+  inline const UChar* getUniChars(void) const;
+   /* @deprecated */
+  UChar* orphanStorage(void);
+
 };
 
 //========================================
@@ -1974,6 +1716,12 @@ uprv_arrayCopy(const UnicodeString *src, int32_t srcStart,
 //========================================
 // Inline members
 //========================================
+inline 
+UnicodeString::UnicodeString(const UnicodeString& that)
+  : fArray(fStackBuffer), fLength(0), fCapacity(US_STACKBUF_SIZE),
+    fRefCounted(FALSE), fHashCode(kEmptyHashCode), fBogus(FALSE)
+{ *this = that; }
+
 
 //========================================
 // Read-only alias methods
@@ -2123,54 +1871,15 @@ UnicodeString::indexOf(UChar c) const
 { return doIndexOf(c, 0, fLength); }
 
 inline UTextOffset 
-UnicodeString::indexOf(UChar32 c) const {
-  if(!UTF_NEED_MULTIPLE_UCHAR(c)) {
-    return doIndexOf((UChar)c, 0, fLength);
-  } else {
-    UChar buffer[UTF_MAX_CHAR_LENGTH];
-    int32_t length = 0;
-    UTF_APPEND_CHAR_UNSAFE(buffer, length, c);
-    return indexOf(buffer, length, 0);
-  }
-}
-
-inline UTextOffset 
 UnicodeString::indexOf(UChar c,
                UTextOffset start) const
 { return doIndexOf(c, start, fLength - start); }
-
-inline UTextOffset 
-UnicodeString::indexOf(UChar32 c,
-               UTextOffset start) const {
-  if(!UTF_NEED_MULTIPLE_UCHAR(c)) {
-    return doIndexOf((UChar)c, start, fLength - start);
-  } else {
-    UChar buffer[UTF_MAX_CHAR_LENGTH];
-    int32_t length = 0;
-    UTF_APPEND_CHAR_UNSAFE(buffer, length, c);
-    return indexOf(buffer, length, start);
-  }
-}
 
 inline UTextOffset 
 UnicodeString::indexOf(UChar c,
                UTextOffset start,
                int32_t length) const
 { return doIndexOf(c, start, length); }
-
-inline UTextOffset 
-UnicodeString::indexOf(UChar32 c,
-               UTextOffset start,
-               int32_t length) const {
-  if(!UTF_NEED_MULTIPLE_UCHAR(c)) {
-    return doIndexOf((UChar)c, start, length);
-  } else {
-    UChar buffer[UTF_MAX_CHAR_LENGTH];
-    int32_t cLength = 0;
-    UTF_APPEND_CHAR_UNSAFE(buffer, cLength, c);
-    return indexOf(buffer, cLength, start, length);
-  }
-}
 
 inline UTextOffset 
 UnicodeString::lastIndexOf(const UnicodeString& text) const
@@ -2221,54 +1930,15 @@ UnicodeString::lastIndexOf(UChar c) const
 { return doLastIndexOf(c, 0, fLength); }
 
 inline UTextOffset 
-UnicodeString::lastIndexOf(UChar32 c) const {
-  if(!UTF_NEED_MULTIPLE_UCHAR(c)) {
-    return doLastIndexOf((UChar)c, 0, fLength);
-  } else {
-    UChar buffer[UTF_MAX_CHAR_LENGTH];
-    int32_t count = 0;
-    UTF_APPEND_CHAR_UNSAFE(buffer, count, c);
-    return lastIndexOf(buffer, count, 0);
-  }
-}
-
-inline UTextOffset 
 UnicodeString::lastIndexOf(UChar c,
                UTextOffset start) const
 { return doLastIndexOf(c, start, fLength - start); }
-
-inline UTextOffset 
-UnicodeString::lastIndexOf(UChar32 c,
-               UTextOffset start) const {
-  if(!UTF_NEED_MULTIPLE_UCHAR(c)) {
-    return doLastIndexOf((UChar)c, start, fLength - start);
-  } else {
-    UChar buffer[UTF_MAX_CHAR_LENGTH];
-    int32_t count = 0;
-    UTF_APPEND_CHAR_UNSAFE(buffer, count, c);
-    return lastIndexOf(buffer, count, start);
-  }
-}
 
 inline UTextOffset 
 UnicodeString::lastIndexOf(UChar c,
                UTextOffset start,
                int32_t length) const
 { return doLastIndexOf(c, start, length); }
-
-inline UTextOffset 
-UnicodeString::lastIndexOf(UChar32 c,
-               UTextOffset start,
-               int32_t length) const {
-  if(!UTF_NEED_MULTIPLE_UCHAR(c)) {
-    return doLastIndexOf((UChar)c, start, length);
-  } else {
-    UChar buffer[UTF_MAX_CHAR_LENGTH];
-    int32_t count = 0;
-    UTF_APPEND_CHAR_UNSAFE(buffer, count, c);
-    return lastIndexOf(buffer, count, start, length);
-  }
-}
 
 inline bool_t 
 UnicodeString::startsWith(const UnicodeString& text) const
@@ -2419,11 +2089,10 @@ UnicodeString::extractBetween(UTextOffset start,
 inline UChar
 UnicodeString::doCharAt(UTextOffset offset) const
 {
-  if((uint32_t)offset < (uint32_t)fLength) {
-    return fArray[offset];
-  } else {
-    return kInvalidUChar;
-  }
+  if(offset < 0 || offset >= fLength) 
+    return fgInvalidUChar;
+  // in ref-counted implementation, first char is ref count
+  return fArray[ fRefCounted ? offset + 1 : offset ];
 }
 
 inline UChar
@@ -2433,38 +2102,6 @@ UnicodeString::charAt(UTextOffset offset) const
 inline UChar
 UnicodeString::operator[] (UTextOffset offset) const
 { return doCharAt(offset); }
-
-inline UChar32
-UnicodeString::char32At(UTextOffset offset) const
-{
-  if((uint32_t)offset < (uint32_t)fLength) {
-    UChar32 c;
-    UTF_GET_CHAR(fArray, offset, fLength, c);
-    return c;
-  } else {
-    return kInvalidUChar;
-  }
-}
-
-inline UTextOffset
-UnicodeString::getCharStart(UTextOffset offset) {
-  if((uint32_t)offset < (uint32_t)fLength) {
-    UTF_SET_CHAR_START(fArray, offset);
-    return offset;
-  } else {
-    return 0;
-  }
-}
-
-inline UTextOffset
-UnicodeString::getCharLimit(UTextOffset offset) {
-  if((uint32_t)offset < (uint32_t)fLength) {
-    UTF_SET_CHAR_LIMIT(fArray, offset, fLength);
-    return offset;
-  } else {
-    return fLength;
-  }
-}
 
 inline bool_t
 UnicodeString::empty() const
@@ -2500,6 +2137,12 @@ UnicodeString::setTo(const UnicodeString& srcText)
 { return doReplace(0, fLength, srcText, 0, srcText.fLength); }
 
 inline UnicodeString& 
+UnicodeString::setTo(const UChar *srcChars, 
+             UTextOffset srcStart, 
+             int32_t srcLength)
+{ return doReplace(0, fLength, srcChars, srcStart, srcLength); }
+
+inline UnicodeString& 
 UnicodeString::setTo(const UChar *srcChars,
              int32_t srcLength)
 { return doReplace(0, fLength, srcChars, 0, srcLength); }
@@ -2511,14 +2154,6 @@ UnicodeString::setTo(UChar srcChar)
 inline UnicodeString& 
 UnicodeString::operator+= (UChar ch)
 { return doReplace(fLength, 0, &ch, 0, 1); }
-
-inline UnicodeString& 
-UnicodeString::operator+= (UChar32 ch) {
-  UChar buffer[UTF_MAX_CHAR_LENGTH];
-  int32_t length = 0;
-  UTF_APPEND_CHAR_UNSAFE(buffer, length, ch);
-  return doReplace(fLength, 0, buffer, 0, length);
-}
 
 inline UnicodeString& 
 UnicodeString::operator+= (const UnicodeString& srcText)
@@ -2548,14 +2183,6 @@ UnicodeString::append(const UChar *srcChars,
 inline UnicodeString& 
 UnicodeString::append(UChar srcChar)
 { return doReplace(fLength, 0, &srcChar, 0, 1); }
-
-inline UnicodeString& 
-UnicodeString::append(UChar32 srcChar) {
-  UChar buffer[UTF_MAX_CHAR_LENGTH];
-  int32_t length = 0;
-  UTF_APPEND_CHAR_UNSAFE(buffer, length, srcChar);
-  return doReplace(fLength, 0, buffer, 0, length);
-}
 
 inline UnicodeString& 
 UnicodeString::insert(UTextOffset start, 
@@ -2603,14 +2230,70 @@ UnicodeString::removeBetween(UTextOffset start,
 { return doReplace(start, limit - start, 0, 0, 0); }
 
 inline bool_t 
+UnicodeString::padLeading(int32_t targetLength,
+              UChar padChar)
+{
+  if(fLength >= targetLength)
+    return FALSE;
+  else {
+    int32_t len = fLength;
+    for(int32_t i = 0; i < targetLength - len; ++i)
+      doReplace(0, 0, &padChar, 0, 1);
+    return TRUE;
+  }
+}
+
+inline bool_t 
+UnicodeString::padTrailing(int32_t targetLength,
+               UChar padChar)
+{
+  if(fLength >= targetLength)
+    return FALSE;
+  else {
+    int32_t len = fLength;
+    for(int32_t i = 0; i < targetLength - len; ++i)
+      doReplace(fLength, 0, &padChar, 0, 1);
+    return TRUE;
+  }
+}
+
+inline bool_t 
 UnicodeString::truncate(int32_t targetLength)
 {
-  if((uint32_t)targetLength < (uint32_t)fLength) {
-    fLength = targetLength;
-    return TRUE;
-  } else {
+  if(fLength < targetLength)
     return FALSE;
+  else {
+    doReplace(targetLength, fLength - targetLength, 0, 0, 0);
+    return TRUE;
   }
+}
+
+inline UnicodeString& 
+UnicodeString::trim()
+{
+  int32_t wsStart = 0;
+  int32_t wsEnd = 0;
+  UTextOffset start = 0;
+  UTextOffset limit = fLength;
+  UChar c = doCharAt(start);
+
+  while(start < limit && 
+    (c == 0x0020 || Unicode::getType(c) == Unicode::SPACE_SEPARATOR)) {
+    ++wsStart;
+    c = doCharAt(++start);
+  }
+
+  c = charAt(--limit);
+  while(limit > start && 
+    (c == 0x0020 || Unicode::getType(c) == Unicode::SPACE_SEPARATOR)) {
+    ++wsEnd;
+    c = doCharAt(--limit);
+  }
+
+  doReplace(0, wsStart, 0, 0, 0);
+  doReplace(fLength - wsEnd, wsEnd, 0, 0, 0);
+
+  return *this;
 }
 
 inline UnicodeString& 
@@ -2628,70 +2311,50 @@ UnicodeString::reverse(UTextOffset start,
 //========================================
 inline bool_t 
 UnicodeString::isBogus() const
-{ return fFlags & kIsBogus; }
+{ return fBogus; }
 
 
 //========================================
 // Privates
 //========================================
 
-inline void
-UnicodeString::pinIndices(UTextOffset& start,
-                          int32_t& length) const
-{
-  // pin indices
-  if(start < 0) {
-    start = 0;
-  } else if(start > fLength) {
-    start = fLength;
-  }
-  if(length < 0) {
-    length = 0;
-  } else if(length > (fLength - start)) {
-    length = (fLength - start);
-  }
-}
-
 inline UChar* 
 UnicodeString::getArrayStart()
-{ return fArray; }
+{ return (fRefCounted ? fArray + 1 : fArray); }
 
 inline const UChar* 
 UnicodeString::getArrayStart() const
-{ return fArray; }
+{ return (fRefCounted ? fArray + 1 : fArray); }
 
 inline int32_t 
 UnicodeString::getCapacity() const
-{ return fCapacity; }
+{ return (fRefCounted ? fCapacity - 1 : fCapacity); }
 
-inline void
-UnicodeString::releaseArray() {
-  if((fFlags & kRefCounted) && removeRef() == 0) {
-    delete [] ((int32_t *)fArray - 1);
-  }
-}
-
-inline int32_t
+inline uint16_t
 UnicodeString::addRef()
-{ return ++*((int32_t *)fArray - 1); }
+{ return ++(fArray[0]); }
 
-inline int32_t
+inline uint16_t
 UnicodeString::removeRef()
-{ return --*((int32_t *)fArray - 1); }
+{ return --(fArray[0]); }
 
-inline int32_t
+inline uint16_t
 UnicodeString::refCount() const
-{ return *((int32_t *)fArray - 1); }
+{ return fArray[0]; }
 
-inline int32_t
-UnicodeString::setRefCount(int32_t count)
-{ return (*((int32_t *)fArray - 1) = count); }
+inline uint16_t
+UnicodeString::setRefCount(uint16_t count)
+{ fRefCounted = TRUE; return (fArray[0] = count); }
 
 
 // deprecated API - remove later
 inline int32_t
 UnicodeString::size() const
 { return fLength; }
+
+inline const UChar*
+UnicodeString::getUniChars() const
+{ return getUChars(); }
 
 inline UnicodeString& 
 UnicodeString::findAndReplace(const UnicodeString& oldText,
@@ -2717,6 +2380,14 @@ UnicodeString::operator delete(void *location)
 //========================================
 // Static members
 //========================================
+inline int32_t
+UnicodeString::allocation(int32_t minSize)
+{ return minSize < kGrowSize ? kGrowSize 
+    : (minSize * 2 + kGrowSize) & ~(kGrowSize - 1); }
+
+inline UChar*
+UnicodeString::allocate(int32_t minSize, int32_t& actualSize)
+{ actualSize = allocation(minSize); return new UChar[ actualSize ]; }
 
 //========================================
 // class UCharReference
@@ -2771,3 +2442,6 @@ UCharReference::operator UChar()
 { return fString->charAt(fPos); }
 
 #endif
+
+
+

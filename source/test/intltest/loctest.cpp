@@ -941,15 +941,15 @@ LocaleTest::TestAtypicalLocales()
                                     "Dominican Republic",
                                     "Belgique" };
     UnicodeString rus("Russian (M");
-    rus += (UChar32)0x00e9;
+    rus += 0x00e9;
     rus += "xico)";
 
     UnicodeString esp("espa");
-    esp += (UChar32)0x00f1;
+    esp += 0x00f1;
     esp += "ol (Germany)";
 
     UnicodeString dr("Rep");
-    dr += (UChar32)0x00fa;
+    dr += 0x00fa;
     dr += "blica Dominicana";
 
     UnicodeString spanishDisplayNames [] = { "German (Canada)",
@@ -1264,7 +1264,7 @@ LocaleTest::Test4147552()
     };
     
     UnicodeString edn("Norwegian (Norway, Bokm");
-    edn += (UChar32)0x00e5;
+    edn += 0x00e5;
     edn += "l)";
     UnicodeString englishDisplayNames [] = { 
                                                 "Norwegian (Norway)",
@@ -1274,7 +1274,7 @@ LocaleTest::Test4147552()
                                                  "Norwegian (Norway, Nynorsk)" 
     };
     UnicodeString ndn("norsk (Norge, Bokm");
-    ndn += (UChar32)0x00e5;
+    ndn += 0x00e5;
     ndn += "l)";
     UnicodeString norwegianDisplayNames [] = { 
                                                 "norsk (Norge)",

@@ -231,10 +231,6 @@ SOURCE=.\ucnv_io.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\ucnv_lmb.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\ucnv_utf.c
 # End Source File
 # Begin Source File
@@ -257,10 +253,6 @@ SOURCE=.\udata.c
 # Begin Source File
 
 SOURCE=.\uhash.c
-# End Source File
-# Begin Source File
-
-SOURCE=.\uhash_us.cpp
 # End Source File
 # Begin Source File
 

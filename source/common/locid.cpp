@@ -23,7 +23,7 @@
 *                           getLanguagesForCountry()
 *   03/16/99    bertrand    rehaul.
 *   07/21/99    stephen     Added U_CFUNC setDefault
-*       11/09/99        weiv            Added const char * getName() const;
+*	11/09/99	weiv		Added const char * getName() const;
 *******************************************************************************
 */
 
@@ -144,16 +144,15 @@ Locale::Locale( const   UnicodeString&  newLanguage)
 Locale::Locale( const   UnicodeString&  newLanguage, 
                 const   UnicodeString&  newCountry)
 {
-    UnicodeString togo(newLanguage);
-    char myLocaleID[ULOC_FULLNAME_CAPACITY];
+  UnicodeString togo(newLanguage);
+  char myLocaleID[ULOC_FULLNAME_CAPACITY];
   
-    if(newCountry.length()>0) {
-        togo += sep;
-        togo += newCountry;
-    }
 
-    myLocaleID[togo.extract(0, 0x7fffffff, myLocaleID, "")] = '\0';
-    init(myLocaleID);
+  togo += sep;
+  togo += newCountry;
+
+  myLocaleID[togo.extract(0, 0x7fffffff, myLocaleID, "")] = '\0';
+  init(myLocaleID);
 }
 
 
@@ -323,7 +322,32 @@ void
 Locale::setHashCode()
 {
   UnicodeString fullNameUString(language, "");
-  khashCode = fullNameUString.append(UnicodeString(country, "")).append(UnicodeString(variant, "")).hashCode();
+  fullNameUString += UnicodeString(country, "");
+  fullNameUString += UnicodeString(variant, "");
+  const UChar *key       = fullNameUString.getUChars();
+  int32_t len           = fullNameUString.length();
+  int32_t hash          = 0;
+  const UChar *limit     = key + len;
+  int32_t inc           = (len >= 128 ? len/64 : 1);
+  
+  /*
+    We compute the hash by iterating sparsely over 64 (at most) characters
+    spaced evenly through the string.  For each character, we multiply the
+    previous hash value by a prime number and add the new character in,
+    in the manner of a additive linear congruential random number generator,
+    thus producing a pseudorandom deterministic value which should be well
+    distributed over the output range. [LIU]
+  */
+
+  while(key < limit) 
+    {
+      hash = (hash * 37) + (char)*key;
+      key += inc;
+    }
+  
+  if(hash == 0)    hash = 1;
+  
+  khashCode = hash & 0x7FFFFFFF;
 }
 
 
@@ -729,15 +753,13 @@ Locale::getLanguagesForCountry(const UnicodeString& country, int32_t& count)
   // lookups.
   if(ctry2LangMapping == 0) {
     UErrorCode err = U_ZERO_ERROR;
-    UHashtable *temp = uhash_open(uhash_hashUnicodeString, uhash_compareUnicodeString, &err);
+    UHashtable *temp = uhash_open((UHashFunction)uhash_hashUString, &err);
     if (U_FAILURE(err)) 
       {
-        count = 0;
-        return NULL;
+	count = 0;
+	return NULL;
       }
-
-    uhash_setKeyDeleter(temp, uhash_deleteUnicodeString);
-
+    
     int32_t i = 0;
     int32_t j;
     int32_t count = sizeof(compressedCtry2LangMapping) / sizeof(compressedCtry2LangMapping[0]);
@@ -746,15 +768,15 @@ Locale::getLanguagesForCountry(const UnicodeString& country, int32_t& count)
       compressedCtry2LangMapping.extractBetween(i, i + 2, key);
       i += 2;
       for(j = i; j < count; j += 2)
-        if(Unicode::isUpperCase(compressedCtry2LangMapping[j]))
-          break;
+    if(Unicode::isUpperCase(compressedCtry2LangMapping[j]))
+      break;
       UnicodeString compressedValues;
       compressedCtry2LangMapping.extractBetween(i, j, compressedValues);
       UnicodeString *values = new UnicodeString[compressedValues.length() / 2];
       int32_t valLen = sizeof(values) / sizeof(values[0]);
       for (int32_t k = 0; k < valLen; ++k)
-        compressedValues.extractBetween(k * 2, (k * 2) + 2, values[k]);
-      uhash_put(temp, new UnicodeString(key), values, &err);
+    compressedValues.extractBetween(k * 2, (k * 2) + 2, values[k]);
+      uhash_putKey(temp, uhash_hashUString((void*)key.getUChars()),values,&err);
       i = j;
     }
     
@@ -764,8 +786,8 @@ Locale::getLanguagesForCountry(const UnicodeString& country, int32_t& count)
     else
       ctry2LangMapping = temp;
   }
-
-  const UnicodeString *result = (const UnicodeString*)uhash_get(ctry2LangMapping, &country);
+  
+  const UnicodeString *result = (const UnicodeString*)uhash_get(ctry2LangMapping,uhash_hashUString(country.getUChars()));
   if(result == 0)
     count = 0;
   else
