@@ -57,7 +57,6 @@ enum {
 };
 
 #define IS_BIDI_CONTROL_CHAR(c) (((uint32_t)(c)&0xfffffffe)==LRM_CHAR || (uint32_t)((c)-LRE_CHAR)<5)
-#define IS_COMBINING(type) ((1UL<<(type))&(1UL<<U_NON_SPACING_MARK|1UL<<U_COMBINING_SPACING_MARK|1UL<<U_ENCLOSING_MARK))
 
 /*
  * When we have UBIDI_OUTPUT_REVERSE set on ubidi_writeReordered(), then we
@@ -221,7 +220,7 @@ doWriteReverse(const UChar *src, int32_t srcLength,
             /* collect code units and modifier letters for one base character */
             do {
                 UTF_PREV_CHAR(src, 0, srcLength, c);
-            } while(srcLength>0 && IS_COMBINING(u_charType(c)));
+            } while(srcLength>0 && u_charType(c)==U_MODIFIER_LETTER);
 
             /* copy this "user character" */
             j=srcLength;
@@ -271,7 +270,7 @@ doWriteReverse(const UChar *src, int32_t srcLength,
             UTF_PREV_CHAR(src, 0, srcLength, c);
             if(options&UBIDI_KEEP_BASE_COMBINING) {
                 /* collect modifier letters for this base character */
-                while(srcLength>0 && IS_COMBINING(u_charType(c))) {
+                while(srcLength>0 && u_charType(c)==U_MODIFIER_LETTER) {
                     UTF_PREV_CHAR(src, 0, srcLength, c);
                 }
             }

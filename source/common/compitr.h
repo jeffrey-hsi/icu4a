@@ -62,7 +62,6 @@ class U_COMMON_API ComposedCharIter
    * Constant that indicates the iteration has completed.
    * {@link #next} returns this value when there are no more composed
    * characters over which to iterate.
-   * This value is equal to <code>Normalizer::DONE</tt>.
    */
   enum { DONE = 0xffff };
     

@@ -133,7 +133,7 @@ void IntlTestDecimalFormatSymbols::testSymbols(char *par)
     }
 
     // test get/setSymbol()
-    if((int) UNUM_FORMAT_SYMBOL_COUNT != (int) DecimalFormatSymbols::kFormatSymbolCount) {
+    if(UNUM_FORMAT_SYMBOL_COUNT != DecimalFormatSymbols::kFormatSymbolCount) {
         errln("unum.h and decimfmt.h have inconsistent numbers of format symbols!");
         return;
     }

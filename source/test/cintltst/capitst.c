@@ -301,10 +301,7 @@ void TestSortKey()
     UChar *test1, *test2, *test3;
     UErrorCode status = U_ZERO_ERROR;
     log_verbose("testing SortKey begins...\n");
-    /* this is supposed to open default date format, but later on it treats it like it is "en_US" 
-       - very bad if you try to run the tests on machine where default locale is NOT "en_US" */
-    /* col = ucol_open(NULL, &status); */
-    col = ucol_open("en_US", &status);
+    col = ucol_open(NULL, &status);
     if (U_FAILURE(status)) {
         log_err("ERROR: Default collation creation failed.: %s\n", myErrorName(status));
         return;

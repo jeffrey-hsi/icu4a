@@ -218,7 +218,33 @@ SOURCE=.\putil.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\rbcache.cpp
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# ADD CPP /Ze
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\rbdata.cpp
+
+!IF  "$(CFG)" == "common - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "common - Win32 Debug"
+
+# ADD CPP /Ze
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbread.cpp
 
 !IF  "$(CFG)" == "common - Win32 Release"
 
@@ -647,7 +673,15 @@ InputPath=.\unicode\pwin32.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\rbcache.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\rbdata.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\rbread.h
 # End Source File
 # Begin Source File
 

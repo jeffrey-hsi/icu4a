@@ -68,8 +68,6 @@ int main ( int argc, const char **argv )
         return 1;
     }
 
-    fprintf(stderr, "Default locale for this run is %s\n", uloc_getDefault());
-
     root = NULL;
     addAllTests(&root);
     processArgs(root, argc, argv);
@@ -154,13 +152,14 @@ ctest_setTestDirectory(const char* newDir)
     strcpy(_testDirectory, newTestDir);
 }
 
+
 char *austrdup(const UChar* unichars)
 {
     int   length;
     char *newString;
 
     length    = u_strlen ( unichars );
-    newString = (char*)malloc  ( sizeof( char ) * 4 * ( length + 1 ) );
+    newString = (char*)malloc  ( sizeof( char ) * ( length + 1 ) );
  
     if ( newString == NULL )
         return NULL;
