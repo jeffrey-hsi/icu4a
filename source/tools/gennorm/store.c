@@ -38,7 +38,7 @@
 
 /*
  * The new implementation of the normalization code loads its data from
- * unorm.icu, which is generated with this gennorm tool.
+ * unorm.dat, which is generated with this gennorm tool.
  * The format of that file is described in unormimp.h .
  */
 

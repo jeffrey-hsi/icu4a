@@ -22,7 +22,7 @@
 
 /* file definitions */
 #define DATA_NAME "uprops"
-#define DATA_TYPE "icu"
+#define DATA_TYPE "dat"
 
 /* special casing data */
 typedef struct {

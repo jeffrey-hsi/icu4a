@@ -79,13 +79,13 @@ static void TestUDataOpen(){
     UDataMemory *result;
     UErrorCode status=U_ZERO_ERROR;
     const char* memMap[][2]={
-        {"tz", "icu"},
+        {"tz", "dat"},
         {"cnvalias", "icu"},
-        {"unames",   "icu"},
+        {"unames",   "dat"},
         {"ibm-1141", "cnv"}
     };
     const char* name           = "test";
-    const char* type           = "icu";
+    const char* type           = "dat";
     const char  dirSepString[] = {U_FILE_SEP_CHAR, 0};
 
     char* path=(char*)malloc(sizeof(char) * (strlen(ctest_dataOutDir())
@@ -160,7 +160,7 @@ static void TestUDataOpen(){
     strcat(icuDataFilePath, dirSepString);
     strcat(icuDataFilePath, U_ICUDATA_NAME);
     strcat(icuDataFilePath, "_");
-    strcat(icuDataFilePath, "tz.icu");
+    strcat(icuDataFilePath, "tz.dat");
 
     /* lots_of_mallocs(); */
     if (stat(icuDataFilePath, &stat_buf) == 0)
@@ -267,6 +267,8 @@ static void TestUDataSetAppData(){
 
     size_t            i;
        
+
+    /** srl REVISIT **/
     /* Open the testdata.dat file, using normal   */
     const char* tdrelativepath = loadTestData(&status);
     char* filePath=(char*)malloc(sizeof(char) * (strlen(tdrelativepath) + strlen(".dat") +1 +strlen(tdrelativepath)) );
@@ -445,7 +447,7 @@ static void TestUDataOpenChoiceDemo1() {
         "unames",
         "test"
     };
-    const char* type="icu";
+    const char* type="dat";
     const char* testPath="testdata";
 
     result=udata_openChoice(NULL, "icu", name[0], isAcceptable1, NULL, &status);
@@ -516,7 +518,7 @@ static void TestUDataOpenChoiceDemo2() {
     int p=2;
 
     const char* name="test";
-    const char* type="icu";
+    const char* type="dat";
     const char* path = loadTestData(&status);
 
     result=udata_openChoice(path, type, name, isAcceptable, &p, &status);
@@ -573,11 +575,11 @@ static void TestUDataGetInfo() {
     UErrorCode status=U_ZERO_ERROR;
     const char* name="cnvalias";
     const char* name2="test";
-    const char* type="icu";
+    const char* type="dat";
 
     const char* testPath=loadTestData(&status);
 
-    log_verbose("Testing udata_getInfo() for cnvalias.icu\n");
+    log_verbose("Testing udata_getInfo() for cnvalias.dat\n");
     result=udata_open(NULL, "icu", name, &status);
     if(U_FAILURE(status)){
         log_err("FAIL: udata_open() failed for path = NULL, name=%s, type=%s, \n errorcode=%s\n",  name, type, myErrorName(status));
@@ -601,7 +603,7 @@ static void TestUDataGetInfo() {
     udata_close(result);
 
 
-    log_verbose("Testing udata_getInfo() for test.icu\n");
+    log_verbose("Testing udata_getInfo() for test.dat\n");
     result=udata_open(testPath, type, name2, &status);
     if(U_FAILURE(status)) {
        log_err("FAIL: udata_open() failed for path=%s name2=%s, type=%s, \n errorcode=%s\n", testPath, name2, type, myErrorName(status));
@@ -640,7 +642,7 @@ static void TestUDataGetMemory() {
     const char* testPath = loadTestData(&status);
 
     type="icu";
-    log_verbose("Testing udata_getMemory() for \"cnvalias.icu\"\n");
+    log_verbose("Testing udata_getMemory for \"cnvalias.dat()\"\n");
     result=udata_openChoice(NULL, type, name, isAcceptable1, NULL, &status);
     if(U_FAILURE(status)){
         log_err("FAIL: udata_openChoice() failed for name=%s, type=%s, \n errorcode=%s\n", name, type, myErrorName(status));
@@ -654,8 +656,8 @@ static void TestUDataGetMemory() {
 
     udata_close(result);
 
-    type="icu";
-    log_verbose("Testing udata_getMemory for \"test.icu\"()\n");
+    type="dat";
+    log_verbose("Testing udata_getMemory for \"test.dat\"()\n");
     result=udata_openChoice(testPath, type, name2, isAcceptable3, NULL, &status);
     if(U_FAILURE(status)){
         log_err("FAIL: udata_openChoice() failed for path=%s name=%s, type=%s, \n errorcode=%s\n", testPath, name2, type, myErrorName(status));
@@ -690,7 +692,7 @@ static void TestErrorConditions(){
     };
 
     const char* name = "test";
-    const char* type="icu";
+    const char* type="dat";
 
     const char *testPath = loadTestData(&status);
 

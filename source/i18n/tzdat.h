@@ -63,7 +63,7 @@
 // Information used to identify and validate the data
 
 #define TZ_DATA_NAME "tz"
-#define TZ_DATA_TYPE "icu"
+#define TZ_DATA_TYPE "dat"
 
 // Fields in UDataInfo:
 

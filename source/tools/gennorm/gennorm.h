@@ -22,7 +22,7 @@
 
 /* file definitions */
 #define DATA_NAME "unorm"
-#define DATA_TYPE "icu"
+#define DATA_TYPE "dat"
 
 /*
  * data structure that holds the normalization properties for one or more

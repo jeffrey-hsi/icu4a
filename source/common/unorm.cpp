@@ -123,7 +123,7 @@ _composePart(UChar *stackBuffer, UChar *&buffer, int32_t &bufferCapacity, int32_
 /* load unorm.dat ----------------------------------------------------------- */
 
 #define DATA_NAME "unorm"
-#define DATA_TYPE "icu"
+#define DATA_TYPE "dat"
 
 static UDataMemory *normData=NULL;
 static UErrorCode dataErrorCode=U_ZERO_ERROR;
@@ -133,7 +133,7 @@ static int32_t indexes[_NORM_INDEX_TOP]={ 0 };
 static UTrie normTrie={ 0,0,0,0,0,0,0 }, fcdTrie={ 0,0,0,0,0,0,0 }, auxTrie={ 0,0,0,0,0,0,0 };
 
 /*
- * pointers into the memory-mapped unorm.icu
+ * pointers into the memory-mapped unorm.dat
  */
 static const uint16_t *extraData=NULL,
                       *combiningTable=NULL,

@@ -28,7 +28,7 @@
 
 #define DATA_PKG  "testdata"
 #define DATA_NAME "test"
-#define DATA_TYPE "icu"
+#define DATA_TYPE "dat"
 
 /* UDataInfo cf. udata.h */
 static const UDataInfo dataInfo={
