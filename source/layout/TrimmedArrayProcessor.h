@@ -48,8 +48,8 @@ private:
     TrimmedArrayProcessor();
 
 protected:
-    TTGlyphID firstGlyph;
-    TTGlyphID lastGlyph;
+    le_int16 firstGlyph;
+    le_int16 lastGlyph;
     const TrimmedArrayLookupTable *trimmedArrayLookupTable;
 
 private:

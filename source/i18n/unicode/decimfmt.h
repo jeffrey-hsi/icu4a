@@ -669,7 +669,6 @@ public:
 
     /**
      * Get the width to which the output of <code>format()</code> is padded.
-     * The width is counted in 16-bit code units.
      * @return the format width, or zero if no padding is in effect
      * @see #setFormatWidth
      * @see #getPadCharacter
@@ -682,7 +681,6 @@ public:
 
     /**
      * Set the width to which the output of <code>format()</code> is padded.
-     * The width is counted in 16-bit code units.
      * This method also controls whether padding is enabled.
      * @param width the width to which to pad the result of
      * <code>format()</code>, or zero to disable padding.  A negative
@@ -697,10 +695,11 @@ public:
     virtual void setFormatWidth(int32_t width);
 
     /**
-     * Get the pad character used to pad to the format width.  The
-     * default is ' '.  Note: The result string will have a length of
-     * one 32-bit code point.
-     * @return a string containing the pad character
+     * Get the grapheme string (a character, possibly with modifier letters)
+     * used to pad to the format width.  The default is " ".
+     * Note: The current implementation only stores the first code unit of the
+     * pad string.
+     * @return the pad grapheme string
      * @see #setFormatWidth
      * @see #getFormatWidth
      * @see #setPadCharacter
@@ -711,12 +710,12 @@ public:
     virtual UnicodeString getPadCharacterString();
 
     /**
-     * Set the character used to pad to the format width.  This has no
-     * effect unless padding is enabled.  Note: The current
-     * implementation only reads the first 32-bit code point of the
-     * given string.
-     * @param padChar a string containing the pad charcter. If the
-     * string has length 0, then the pad characer is set to ' '.
+     * Set the grapheme string (a character, possibly with modifier letters)
+     * used to pad to the format width.  This has no effect
+     * unless padding is enabled.
+     * Note: The current implementation only stores the first code unit of the
+     * pad string.
+     * @param padChar the pad grapheme
      * @see #setFormatWidth
      * @see #getFormatWidth
      * @see #getPadCharacter
@@ -1096,12 +1095,10 @@ public:
      * the currency is used if and when this object becomes a
      * currency format through the application of a new pattern.
      * @param theCurrency a 3-letter ISO code indicating new currency
-     * to use.  It need not be null-terminated.  May be the empty
-     * string or NULL to indicate no currency.
-     * @param ec input-output error code
-     * @draft ICU 3.0
+     * to use.  It need not be null-terminated.
+     * @stable ICU 2.2
      */
-    virtual void setCurrency(const UChar* theCurrency, UErrorCode& ec);
+    virtual void setCurrency(const UChar* theCurrency);
 
     /**
      * The resource tags we use to retrieve decimal format data from

@@ -392,6 +392,7 @@ MessageFormat::operator==(const Format& rhs) const
 
     // Check class ID before checking MessageFormat members
     if (!Format::operator==(rhs) ||
+        getDynamicClassID() != that.getDynamicClassID() ||
         fPattern != that.fPattern ||
         fLocale != that.fLocale) {
         return FALSE;

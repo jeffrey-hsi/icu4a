@@ -74,7 +74,13 @@ DecimalFormatSymbols::~DecimalFormatSymbols()
 DecimalFormatSymbols::DecimalFormatSymbols(const DecimalFormatSymbols &source)
     : UObject(source)
 {
-    *this = source;
+    int i;
+    for(i = 0; i < (int)kFormatSymbolCount; ++i) {
+        // fastCopyFrom is safe, see docs on fSymbols
+        fSymbols[(ENumberFormatSymbol)i].fastCopyFrom(source.fSymbols[(ENumberFormatSymbol)i]);
+    }
+    uprv_strcpy(validLocale, source.validLocale);
+    uprv_strcpy(actualLocale, source.actualLocale);
 }
 
 // -------------------------------------
@@ -83,14 +89,13 @@ DecimalFormatSymbols::DecimalFormatSymbols(const DecimalFormatSymbols &source)
 DecimalFormatSymbols&
 DecimalFormatSymbols::operator=(const DecimalFormatSymbols& rhs)
 {
-    if (this != &rhs) {
-        for(int32_t i = 0; i < (int32_t)kFormatSymbolCount; ++i) {
+    if (this != &rhs)
+    {
+        int i;
+        for(i = 0; i < (int)kFormatSymbolCount; ++i) {
             // fastCopyFrom is safe, see docs on fSymbols
             fSymbols[(ENumberFormatSymbol)i].fastCopyFrom(rhs.fSymbols[(ENumberFormatSymbol)i]);
         }
-        locale = rhs.locale;
-        uprv_strcpy(validLocale, rhs.validLocale);
-        uprv_strcpy(actualLocale, rhs.actualLocale);
     }
     return *this;
 }
@@ -103,14 +108,14 @@ DecimalFormatSymbols::operator==(const DecimalFormatSymbols& that) const
     if (this == &that) {
         return TRUE;
     }
-    for(int32_t i = 0; i < (int32_t)kFormatSymbolCount; ++i) {
+
+    int i;
+    for(i = 0; i < (int)kFormatSymbolCount; ++i) {
         if(fSymbols[(ENumberFormatSymbol)i] != that.fSymbols[(ENumberFormatSymbol)i]) {
             return FALSE;
         }
     }
-    return locale == that.locale &&
-        uprv_strcmp(validLocale, that.validLocale) == 0 &&
-        uprv_strcmp(actualLocale, that.actualLocale) == 0;
+    return TRUE;
 }
  
 // -------------------------------------

@@ -1,6 +1,6 @@
 // ***************************************************************************
 // *
-// *   Copyright (C) 1997-2004, International Business Machines
+// *   Copyright (C) 1997-2003, International Business Machines
 // *   Corporation and others.  All Rights Reserved.
 // *
 // ***************************************************************************
@@ -14,6 +14,7 @@ en {
         }
     }
     Countries {
+        //AA {} // Not in ISO-3166 standard
         AD { "Andorra" }
         AE { "United Arab Emirates" }
         AF { "Afghanistan" }
@@ -167,7 +168,7 @@ en {
         MM { "Myanmar" }
         MN { "Mongolia" }
         MO { "Macao S.A.R. China" }
-        MP { "Northern Mariana Islands" }
+        MP { "Northern Mariana Islands"}
         MQ { "Martinique" }
         MR { "Mauritania" }
         MS { "Montserrat" }
@@ -277,6 +278,7 @@ en {
         YU { "Yugoslavia" }
 
         ZA { "South Africa" }
+//        ZR { "Zaire" }
         ZM { "Zambia" }
         ZW { "Zimbabwe" }
     }
@@ -1495,7 +1497,7 @@ en {
             direct      { "Direct Order"    }
         }
         calendar{
-            //traditional   { "Traditional Calendar" }
+            traditional   { "Traditional Calendar" }
             japanese      { "Japanese Calendar"  }
             buddhist      { "Buddhist Calendar"  }
             islamic       { "Islamic Calendar"   }

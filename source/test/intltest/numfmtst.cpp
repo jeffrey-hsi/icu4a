@@ -65,8 +65,6 @@ void NumberFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &n
 		CASE(23,TestScientificGrouping);
 		CASE(24,TestInt64);
 
-        CASE(25,TestPerMill);
-
         default: name = ""; break;
     }
 }
@@ -1472,24 +1470,6 @@ void NumberFormatTest::TestAdoptDecimalFormatSymbols(void) {
     }
 }
 
-void NumberFormatTest::TestPerMill() {
-    UErrorCode ec = U_ZERO_ERROR;
-    UnicodeString str;
-    DecimalFormat fmt(ctou("###.###\\u2030"), ec);
-    if (!assertSuccess("DecimalFormat ct", ec)) return;
-    assertEquals("0.4857 x ###.###\\u2030",
-                 ctou("485.7\\u2030"), fmt.format(0.4857, str));
-    
-    DecimalFormatSymbols sym(Locale::getUS(), ec);
-    sym.setSymbol(DecimalFormatSymbols::kPerMillSymbol, ctou("m"));
-    DecimalFormat fmt2("", sym, ec);
-    fmt2.applyLocalizedPattern("###.###m", ec);
-    if (!assertSuccess("setup", ec)) return;
-    str.truncate(0);
-    assertEquals("0.4857 x ###.###m",
-                 "485.7m", fmt2.format(0.4857, str));
-}
-
 //----------------------------------------------------------------------
 // Support methods
 //----------------------------------------------------------------------
@@ -1617,9 +1597,11 @@ void NumberFormatTest::expectCurrency(NumberFormat& nf, const Locale& locale,
     u_strcpy(curr, DEFAULT_CURR);
     if (*locale.getLanguage() != 0) {
         ucurr_forLocale(locale.getName(), curr, 4, &ec);
-        assertSuccess("ucurr_forLocale", ec);
-        fmt.setCurrency(curr, ec);
-        assertSuccess("DecimalFormat::setCurrency", ec);
+        if (U_FAILURE(ec)) {
+            errln("FAIL: UCurrency::forLocale");
+            return;
+        }
+        fmt.setCurrency(curr);
     }
     UnicodeString s;
     fmt.format(value, s);

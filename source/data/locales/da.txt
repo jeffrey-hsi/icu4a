@@ -55,18 +55,18 @@ da {
         BR { "Brasilien" }
         //BS { "Bahamas" }
         //BT { "Bhutan" }
-        BV { "Bouvet\u00f8" }
+        //BV { "Bouvet Island" }
         //BW { "Botswana" }
         BY { "Hviderusland" }
         //BZ { "Belize" }
         //CA { "Canada" }
-        CC { "Cocos-\u00f8erne (Keeling\u00f8erne)" }
+        CC { "Cocos (Keeling) Islands" }
         CD { "Den Demokratiske Republik Congo" }
         CF { "Centralafrikanske Republik" }
         //CG { "Congo" }
         CH { "Schweiz" }
         CI { "Elfenbenskysten" }
-        CK { "Cook-\u00f8erne" }
+        //CK { "Cook Islands" }
         //CL { "Chile" }
         CM { "Cameroun" }
         CN { "Kina" }
@@ -91,7 +91,7 @@ da {
         ES { "Spanien" }
         ET { "Etiopien" }
         //FI { "Finland" }
-        FJ { "Fiji-\u00f8erne" }
+        //FJ { "Fiji" }
         FK { "Falklands\u00F8erne" }
         FM { "Mikronesiens Forenede Stater" }
         FO { "F\u00E6r\u00F8erne" }
@@ -114,8 +114,8 @@ da {
         //GU { "Guam" }
         //GW { "Guinea-Bissau" }
         //GY { "Guyana" }
-        HK { "SAR Hongkong" }
-        HM { "Heard- og McDonald-\u00f8erne" }
+        //HK { "Hong Kong S.A.R. of China (Special Administrative Region)" }
+        HM { "Heard Island og McDonald Islands" }
         //HN { "Honduras" }
         HR { "Kroatien" }
         //HT { "Haiti" }
@@ -163,7 +163,7 @@ da {
         //ML { "Mali" }
         //MM { "Myanmar" }
         MN { "Mongoliet" }
-        MO { "SAR Macao" }
+        //MO { "Macao S.A.R. of China (Special Administrative Region)" }
         MP { "Nordmarianerne" }
         //MQ { "Martinique" }
         MR { "Mauretanien" }
@@ -255,7 +255,7 @@ da {
         VI { "De amerikanske jomfru\u00F8er" }
         //VN { "Vietnam" }
         //VU { "Vanuatu" }
-        WF { "Wallis og Futuna\u00f8erne" }
+        WF { "Wallis og Futuna" }
         //WS { "Samoa" }
         //YE { "Yemen" }
         //YT { "Mayotte" }
