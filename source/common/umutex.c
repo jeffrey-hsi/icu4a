@@ -68,8 +68,6 @@
 #include "umutex.h"
 #include "cmemory.h"
 
-#if (ICU_USE_THREADS == 1)
-
 /* the global mutex. Use it proudly and wash it often. */
 static UMTX    gGlobalMutex = NULL;
 
@@ -80,7 +78,6 @@ static CRITICAL_SECTION gPlatformMutex;
 static pthread_mutex_t gPlatformMutex;
 
 #endif
-#endif /* ICU_USE_THREADS==1 */
 
 void umtx_lock(UMTX *mutex)
 {

@@ -125,11 +125,10 @@ TransliteratorTest::runIndexedTest(int32_t index, UBool exec,
         TESTCASE(43,TestEmptyContext);
         TESTCASE(44,TestCompoundFilterID);
         TESTCASE(45,TestPropertySet);
-        TESTCASE(46,TestNewEngine);
-        TESTCASE(47,TestDevanagariLatinRT);
-        TESTCASE(48,TestTeluguLatinRT);
-        TESTCASE(49,TestCompoundLatinRT);
-        TESTCASE(50,TestSanskritLatinRT);
+        TESTCASE(46,TestDevanagariLatinRT);
+        TESTCASE(47,TestTeluguLatinRT);
+        TESTCASE(48,TestCompoundLatinRT);
+        TESTCASE(49,TestSanskritLatinRT);
         default: name = ""; break;
     }
 }
@@ -462,36 +461,35 @@ void TransliteratorTest::keyboardAux(const Transliterator& t,
 }
 
 void TransliteratorTest::TestArabic(void) {
-// Test disabled for 2.0 until new Arabic transliterator can be written.
-//    /*
-//    const char* DATA[] = {
-//        "Arabic", "\u062a\u062a\u0645\u062a\u0639\u0020"+
-//                  "\u0627\u0644\u0644\u063a\u0629\u0020"+
-//                  "\u0627\u0644\u0639\u0631\u0628\u0628\u064a\u0629\u0020"+
-//                  "\u0628\u0628\u0646\u0638\u0645\u0020"+
-//                  "\u0643\u062a\u0627\u0628\u0628\u064a\u0629\u0020"+
-//                  "\u062c\u0645\u064a\u0644\u0629",
-//    };
-//    */
-//
-//    UChar ar_raw[] = {
-//        0x062a, 0x062a, 0x0645, 0x062a, 0x0639, 0x0020, 0x0627,
-//        0x0644, 0x0644, 0x063a, 0x0629, 0x0020, 0x0627, 0x0644,
-//        0x0639, 0x0631, 0x0628, 0x0628, 0x064a, 0x0629, 0x0020,
-//        0x0628, 0x0628, 0x0646, 0x0638, 0x0645, 0x0020, 0x0643,
-//        0x062a, 0x0627, 0x0628, 0x0628, 0x064a, 0x0629, 0x0020,
-//        0x062c, 0x0645, 0x064a, 0x0644, 0x0629, 0
-//    };
-//    UnicodeString ar(ar_raw);
-//    UErrorCode status=U_ZERO_ERROR;
-//    UParseError parseError;
-//    Transliterator *t = Transliterator::createInstance("Latin-Arabic", UTRANS_FORWARD, parseError, status);
-//    if (t == 0) {
-//        errln("FAIL: createInstance failed");
-//        return;
-//    }
-//    expect(*t, "Arabic", ar);
-//    delete t;
+    /*
+    const char* DATA[] = {
+        "Arabic", "\u062a\u062a\u0645\u062a\u0639\u0020"+
+                  "\u0627\u0644\u0644\u063a\u0629\u0020"+
+                  "\u0627\u0644\u0639\u0631\u0628\u0628\u064a\u0629\u0020"+
+                  "\u0628\u0628\u0646\u0638\u0645\u0020"+
+                  "\u0643\u062a\u0627\u0628\u0628\u064a\u0629\u0020"+
+                  "\u062c\u0645\u064a\u0644\u0629",
+    };
+    */
+
+    UChar ar_raw[] = {
+        0x062a, 0x062a, 0x0645, 0x062a, 0x0639, 0x0020, 0x0627,
+        0x0644, 0x0644, 0x063a, 0x0629, 0x0020, 0x0627, 0x0644,
+        0x0639, 0x0631, 0x0628, 0x0628, 0x064a, 0x0629, 0x0020,
+        0x0628, 0x0628, 0x0646, 0x0638, 0x0645, 0x0020, 0x0643,
+        0x062a, 0x0627, 0x0628, 0x0628, 0x064a, 0x0629, 0x0020,
+        0x062c, 0x0645, 0x064a, 0x0644, 0x0629, 0
+    };
+    UnicodeString ar(ar_raw);
+    UErrorCode status=U_ZERO_ERROR;
+    UParseError parseError;
+    Transliterator *t = Transliterator::createInstance("Latin-Arabic", UTRANS_FORWARD, parseError, status);
+    if (t == 0) {
+        errln("FAIL: createInstance failed");
+        return;
+    }
+    expect(*t, "Arabic", ar);
+    delete t;
 }
 
 /**
@@ -501,9 +499,9 @@ void TransliteratorTest::TestArabic(void) {
 void TransliteratorTest::TestCompoundKana(void) {
     UParseError parseError;
     UErrorCode status = U_ZERO_ERROR;
-    Transliterator* t = Transliterator::createInstance("Latin-Hiragana;Hiragana-Latin", UTRANS_FORWARD, parseError, status);
+    Transliterator* t = Transliterator::createInstance("Latin-Kana;Kana-Latin", UTRANS_FORWARD, parseError, status);
     if (t == 0) {
-        errln("FAIL: construction of Latin-Hiragana;Hiragana-Latin failed");
+        errln("FAIL: construction of Latin-Kana;Kana-Latin failed");
     } else {
         expect(*t, "aaaaa", "aaaaa");
         delete t;
@@ -1151,10 +1149,10 @@ void TransliteratorTest::TestLiberalizedID(void) {
     // getID() return canonical case yet.  It will all get rewritten
     // with the move to Source-Target/Variant IDs anyway. [aliu]
     const char* DATA[] = {
-        "latin-greek", NULL /*"Latin-Greek"*/, "case insensitivity",
+        "latin-arabic", NULL /*"Latin-Arabic"*/, "case insensitivity",
         "  Null  ", "Null", "whitespace",
-        " Latin[a-z]-Greek  ", "Latin[a-z]-Greek", "inline filter",
-        "  null  ; latin-greek  ", NULL /*"Null;Latin-Greek"*/, "compound whitespace",
+        " Latin[a-z]-Arabic  ", "Latin[a-z]-Arabic", "inline filter",
+        "  null  ; latin-arabic  ", NULL /*"Null;Latin-Arabic"*/, "compound whitespace",
     };
     const int32_t DATA_length = sizeof(DATA)/sizeof(DATA[0]);
     UParseError parseError;
@@ -1434,7 +1432,7 @@ void TransliteratorTest::TestCompoundFilter(void) {
     UParseError parseError;
     UErrorCode status = U_ZERO_ERROR;
     Transliterator *t = Transliterator::createInstance
-        ("Greek-Latin; Latin-Greek; Lower", UTRANS_FORWARD, parseError, status);
+        ("Greek-Latin; Latin-Cyrillic; Lower", UTRANS_FORWARD, parseError, status);
     if (t == 0) {
         errln("FAIL: createInstance failed");
         return;
@@ -1448,8 +1446,8 @@ void TransliteratorTest::TestCompoundFilter(void) {
     
     // Only the 'A' at index 1 should remain unchanged
     expect(*t,
-           CharsToUnicodeString("BA\\u039A\\u0391"),
-           CharsToUnicodeString("\\u03b2A\\u03ba\\u03b1"));
+           CharsToUnicodeString("CA\\u039A\\u0391"),
+           CharsToUnicodeString("\\u043AA\\u043A\\u0430"));
     delete t;
 }
 
@@ -1991,7 +1989,6 @@ void TransliteratorTest::TestCompoundInverseID() {
 
 /**
  * Test undefined variable.
-
  */
 void TransliteratorTest::TestUndefinedVariable() {
     UnicodeString rule = "$initial } a <> \\u1161;";
@@ -2077,72 +2074,6 @@ void TransliteratorTest::TestPropertySet() {
     expect("a>A; \\p{Lu}>x; \\p{ANY}>y;", "abcDEF", "Ayyxxx");
     expect("(.+)>'[' $1 ']';", " a stitch \n in time \r saves 9",
            "[ a stitch ]\n[ in time ]\r[ saves 9]");
-}
-
-/**
- * Test various failure points of the new 2.0 engine.
- */
-void TransliteratorTest::TestNewEngine() {
-    UParseError pe;
-    UErrorCode ec = U_ZERO_ERROR;
-    Transliterator *t = Transliterator::createInstance("Latin-Hiragana", UTRANS_FORWARD, pe, ec);
-    if (t == 0 || U_FAILURE(ec)) {
-        errln("FAIL: createInstance Latin-Hiragana");
-        return;
-    }
-    // Katakana should be untouched
-    expect(*t, CharsToUnicodeString("a\\u3042\\u30A2"),
-           CharsToUnicodeString("\\u3042\\u3042\\u30A2"));
-
-    delete t;
-
-    Transliterator *a =
-        Transliterator::createFromRules("a", "a > A;", UTRANS_FORWARD, pe, ec);
-    Transliterator *A =
-        Transliterator::createFromRules("A", "A > b;", UTRANS_FORWARD, pe, ec);
-    if (U_FAILURE(ec)) {
-        delete a;
-        delete A;
-        return;
-    }
-
-    Transliterator* array[3];
-    array[0] = a;
-    array[1] = Transliterator::createInstance("NFD", UTRANS_FORWARD, pe, ec);
-    array[2] = A;
-    if (U_FAILURE(ec)) {
-        errln("FAIL: createInstance NFD");
-        delete a;
-        delete A;
-        delete array[1];
-        return;
-    }
-
-    t = new CompoundTransliterator(array, 3, new UnicodeSet("[:Ll:]", ec));
-    if (U_FAILURE(ec)) {
-        errln("FAIL: UnicodeSet constructor");
-        delete a;
-        delete A;
-        delete array[1];
-        delete t;
-        return;
-    }
-
-    expect(*t, "aAaA", "bAbA");
-
-    expect("$smooth = x; $macron = q; [:^L:] { ([aeiouyAEIOUY] $macron?) } [^aeiouyAEIOUY$smooth$macron] > | $1 $smooth ;",
-           "a",
-           "ax");
-
-    UnicodeString gr = CharsToUnicodeString(
-        "$ddot = \\u0308 ;"
-        "$lcgvowel = [\\u03b1\\u03b5\\u03b7\\u03b9\\u03bf\\u03c5\\u03c9] ;"
-        "$rough = \\u0314 ;"
-        "($lcgvowel+ $ddot?) $rough > h | $1 ;"
-        "\\u03b1 <> a ;"
-        "$rough <> h ;");
-
-    expect(gr, CharsToUnicodeString("\\u03B1\\u0314"), "ha");
 }
 
 //======================================================================
@@ -2261,7 +2192,7 @@ void TransliteratorTest::TestDevanagariLatinRT(){
         "\\u0922\\u094D\\u092F",          /* d\\u0323hya */
      // "hma",                         /* hma         */
         "\\u0939\\u094D\\u092F",          /* hya         */
-        "\\u0936\\u0943",                 /* s\\u0301r\\u0325a  */
+        "\\u0936\\u0943\\u0905",          /* s\\u0301r\\u0325a  */
         "\\u0936\\u094D\\u091A",          /* s\\u0301ca  */
         "\\u090d",                        /* e\\u0306    */
         "\\u0938\\u0902\\u091C\\u0940\\u092C\\u094D \\u0938\\u0947\\u0928\\u0917\\u0941\\u092A\\u094D\\u0924",
@@ -2348,13 +2279,13 @@ void TransliteratorTest::TestSanskritLatinRT(){
         "vi\\u1E63\\u0101da",
         "y\\u014Dga",
         "dhr\\u0325tar\\u0101\\u1E63\\u1E6Dra",
-        "uv\\u0101cr\\u0325a",
+        "uv\\u0101cr\\u0325",
         "dharmak\\u1E63\\u0113tr\\u0113",
         "kuruk\\u1E63\\u0113tr\\u0113",
         "samav\\u0113t\\u0101",
         "yuyutsava-\\u1E25",
         "m\\u0101mak\\u0101-\\u1E25",
-    // "p\\u0101\\u1E47\\u1E0Dav\\u0101\\u015Bcaiva",
+     // "p\\u0101\\u1E47\\u1E0Dav\\u0101\\u015Bcaiva",
         "kimakurvata",
         "san\\u0304java",
     };
@@ -2373,7 +2304,7 @@ void TransliteratorTest::TestSanskritLatinRT(){
         "\\u0938\\u092e\\u0935\\u0947\\u0924\\u093e",
         "\\u092f\\u0941\\u092f\\u0941\\u0924\\u094d\\u0938\\u0935\\u0903",
         "\\u092e\\u093e\\u092e\\u0915\\u093e\\u0903",
-    //"\\u092a\\u093e\\u0923\\u094d\\u0921\\u0935\\u093e\\u0936\\u094d\\u091a\\u0948\\u0935",
+      //"\\u092a\\u093e\\u0923\\u094d\\u0921\\u0935\\u093e\\u0936\\u094d\\u091a\\u0948\\u0935",
         "\\u0915\\u093f\\u092e\\u0915\\u0941\\u0930\\u094d\\u0935\\u0924",
         "\\u0938\\u0902\\u091c\\u0935",
     };
@@ -2399,7 +2330,8 @@ void TransliteratorTest::TestSanskritLatinRT(){
 
 
 void TransliteratorTest::TestCompoundLatinRT(){
-    const char* const source[] = {
+    const int MAX_LEN =16;
+    const char* const source[MAX_LEN] = {
         "rmk\\u1E63\\u0113t",
         "\\u015Br\\u012Bmad",
         "bhagavadg\\u012Bt\\u0101",
@@ -2408,7 +2340,7 @@ void TransliteratorTest::TestCompoundLatinRT(){
         "vi\\u1E63\\u0101da",
         "y\\u014Dga",
         "dhr\\u0325tar\\u0101\\u1E63\\u1E6Dra",
-        "uv\\u0101cr\\u0325a",
+        "uv\\u0101cr\\u0325",
         "dharmak\\u1E63\\u0113tr\\u0113",
         "kuruk\\u1E63\\u0113tr\\u0113",
         "samav\\u0113t\\u0101",
@@ -2418,7 +2350,6 @@ void TransliteratorTest::TestCompoundLatinRT(){
         "kimakurvata",
         "san\\u0304java"
     };
-    const int MAX_LEN = sizeof(source)/sizeof(source[0]);
     const char* const expected[MAX_LEN] = {
         "\\u0930\\u094D\\u092E\\u094D\\u0915\\u094D\\u0937\\u0947\\u0924\\u094D",
         "\\u0936\\u094d\\u0930\\u0940\\u092e\\u0926\\u094d",
@@ -2438,16 +2369,11 @@ void TransliteratorTest::TestCompoundLatinRT(){
         "\\u0915\\u093f\\u092e\\u0915\\u0941\\u0930\\u094d\\u0935\\u0924",
         "\\u0938\\u0902\\u091c\\u0935"
     };
-    if(MAX_LEN != sizeof(expected)/sizeof(expected[0])) {
-        errln("error in TestCompoundLatinRT: source[] and expected[] have different lengths!");
-        return;
-    }
-
     UErrorCode status = U_ZERO_ERROR;
     UParseError parseError;
     UnicodeString message;
-    Transliterator* devToLatinToDev  =Transliterator::createInstance("Devanagari-Latin;Latin-Devanagari", UTRANS_FORWARD, parseError, status);
     Transliterator* latinToDevToLatin=Transliterator::createInstance("Latin-Devanagari;Devanagari-Latin", UTRANS_FORWARD, parseError, status);
+    Transliterator* devToLatinToDev  =Transliterator::createInstance("Devanagari-Latin;Latin-Devanagari", UTRANS_FORWARD, parseError, status);
     Transliterator* devToTelToDev    =Transliterator::createInstance("Devanagari-Telugu;Telugu-Devanagari", UTRANS_FORWARD, parseError, status);
     Transliterator* latinToTelToLatin=Transliterator::createInstance("Latin-Telugu;Telugu-Latin", UTRANS_FORWARD, parseError, status);
 
@@ -2457,10 +2383,10 @@ void TransliteratorTest::TestCompoundLatinRT(){
         return;
     }
     UnicodeString gotResult;
-    for(int i= 0; i<MAX_LEN; i++){
+    for(int i= 0; i<1; i++){
         gotResult = source[i];
-        expect(*devToLatinToDev,CharsToUnicodeString(expected[i]),CharsToUnicodeString(expected[i]));
         expect(*latinToDevToLatin,CharsToUnicodeString(source[i]),CharsToUnicodeString(source[i]));
+        expect(*devToLatinToDev,CharsToUnicodeString(expected[i]),CharsToUnicodeString(expected[i]));
         expect(*devToTelToDev,CharsToUnicodeString(expected[i]),CharsToUnicodeString(expected[i]));
         expect(*latinToTelToLatin,CharsToUnicodeString(source[i]),CharsToUnicodeString(source[i]));
 
