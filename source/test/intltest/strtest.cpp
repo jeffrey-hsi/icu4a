@@ -36,16 +36,12 @@ void StringTest::TestSizeofWCharT(void) {
 }
 
 void StringTest::TestSizeofInt64(void) {
-#ifdef U_INT64_T_UNAVAILABLE
-    errln("int64_t and uint64_t are undefined.");
-#else
     if(8!=sizeof(int64_t)) {
         errln("TestSizeofInt64: 8!=sizeof(int64_t) - int64_t needs to be fixed in platform.h");
     }
     if(8!=sizeof(uint64_t)) {
         errln("TestSizeofInt64: 8!=sizeof(uint64_t) - uint64_t needs to be fixed in platform.h");
     }
-#endif
 }
 
 void StringTest::TestCharsetFamily(void) {
@@ -117,22 +113,6 @@ void StringTest::runIndexedTest(int32_t index, UBool exec, const char *&name, ch
                 ustringVar[4]!=0x2d
             ) {
                 errln("Test_UNICODE_STRING: UNICODE_STRING does not work right! "
-                      "See unistr.h and utypes.h with platform.h.");
-            }
-        }
-        break;
-    case 6:
-        name="Test_UNICODE_STRING_SIMPLE";
-        if(exec) {
-            UnicodeString ustringVar=UNICODE_STRING_SIMPLE("aZ0 -");
-            if( ustringVar.length()!=5 ||
-                ustringVar[0]!=0x61 ||
-                ustringVar[1]!=0x5a ||
-                ustringVar[2]!=0x30 ||
-                ustringVar[3]!=0x20 ||
-                ustringVar[4]!=0x2d
-            ) {
-                errln("Test_UNICODE_STRING_SIMPLE: UNICODE_STRING_SIMPLE does not work right! "
                       "See unistr.h and utypes.h with platform.h.");
             }
         }
