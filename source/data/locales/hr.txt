@@ -6,7 +6,7 @@
 // ***************************************************************************
 
 hr {
-    Version{"3.0"}
+    Version{"2.0"}
 
     Countries { 
         Fallback{ "en"}
@@ -364,65 +364,7 @@ hr {
                         "ruj",
                         "lis",
                         "stu",
-                        "pro"
-                    }
-                    narrow {
-                        "s",
-                        "v",
-                        "o",
-                        "t",
-                        "s",
-                        "l",
-                        "s",
-                        "k",
-                        "r",
-                        "l",
-                        "s",
-                        "p"
-                    }
-                    wide{
-                        "sije\u010dnja",
-                        "velja\u010de",
-                        "o\u017eujka",
-                        "travnja",
-                        "svibnja",
-                        "lipnja",
-                        "srpnja",
-                        "kolovoza",
-                        "rujna",
-                        "listopada",
-                        "studenoga",
-                        "prosinca"
-                    }
-                }
-                stand-alone{
-                    abbreviated{
-                        "sij",
-                        "vel",
-                        "o\u017Eu",
-                        "tra",
-                        "svi",
-                        "lip",
-                        "srp",
-                        "kol",
-                        "ruj",
-                        "lis",
-                        "stu",
-                        "pro"
-                    }
-                    narrow {
-                        "s",
-                        "v",
-                        "o",
-                        "t",
-                        "s",
-                        "l",
-                        "s",
-                        "k",
-                        "r",
-                        "l",
-                        "s",
-                        "p"
+                        "pro",
                     }
                     wide{
                         "sije\u010Danj",
@@ -436,7 +378,7 @@ hr {
                         "rujan",
                         "listopad",
                         "studeni",
-                        "prosinac"
+                        "prosinac",
                     }
                 }
             }

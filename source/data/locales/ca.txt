@@ -43,7 +43,7 @@ ca {
         CF { "Rep\u00FAblica Centrafricana" }
         CG { "Congo" }
         CH { "Switzerland" }
-        CI { "Costa d\u2019Ivori" }
+        CI { "Costa d'Ivori" }
         CL { "Xile" }
         CM { "Camerun" }
         CN { "Xina" }
