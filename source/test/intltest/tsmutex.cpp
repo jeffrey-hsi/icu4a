@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef U_SOLARIS
+#ifdef SOLARIS
 #include <signal.h>
 #endif
 

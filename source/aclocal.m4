@@ -38,8 +38,7 @@ case "${host}" in
 	esac;;
 *-*-os390*)	icu_cv_host_frag=$srcdir/config/mh-os390 ;;
 *-*-os400*)	icu_cv_host_frag=$srcdir/config/mh-os400 ;;
-*-apple-rhapsody*)	icu_cv_host_frag=$srcdir/config/mh-darwin ;;
-*-apple-darwin*)	icu_cv_host_frag=$srcdir/config/mh-darwin ;;
+*-apple-rhapsody*)	icu_cv_host_frag=$srcdir/config/mh-rhapsody ;;
 *) 		icu_cv_host_frag=$srcdir/config/mh-unknown ;;
 esac
 		]

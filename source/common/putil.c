@@ -86,7 +86,7 @@
 #   include <Script.h>
 #elif defined(AIX)
 #   include <sys/ldr.h>
-#elif defined(U_SOLARIS) || defined(U_LINUX)
+#elif defined(SOLARIS) || defined(LINUX)
 #   include <dlfcn.h>
 #   include <link.h>
 #elif defined(HPUX)
@@ -128,7 +128,7 @@ static char* u_bottomNBytesOfDouble(double* d, int n);
   ---------------------------------------------------------------------------*/
 
 /* Assume POSIX, and modify as necessary below*/
-#if defined(_WIN32) || defined(XP_MAC) || defined(OS400) || defined(OS2) || defined(U_DARWIN)
+#if defined(_WIN32) || defined(XP_MAC) || defined(OS400) || defined(OS2)
 #   undef POSIX
 #else
 #   define POSIX
@@ -676,7 +676,7 @@ uprv_tzset()
 int32_t 
 uprv_timezone()
 {
-#if defined(POSIX) && !defined(U_RHAPSODY) && !defined(U_DARWIN)
+#if defined(POSIX) && !defined(RHAPSODY)
 #if defined(OS390)
   return _timezone;
 #else
@@ -684,7 +684,7 @@ uprv_timezone()
 #endif
 #endif
 
-#if defined(OS400) || defined(XP_MAC) || defined(U_RHAPSODY) || defined(U_DARWIN)
+#if defined(OS400) || defined(XP_MAC) || defined(RHAPSODY)
   time_t t, t1, t2;
   struct tm tmrec;
   UBool dst_checked;
@@ -711,11 +711,11 @@ uprv_timezone()
 char* 
 uprv_tzname(int n)
 {
-#if defined(POSIX) && !defined(U_RHAPSODY) && !defined(U_DARWIN)
+#if defined(POSIX) && !defined(RHAPSODY)
   return tzname[n];
 #endif
 
-#if defined(OS400) || defined(XP_MAC) || defined(U_RHAPSODY) || defined(U_DARWIN)
+#if defined(OS400) || defined(XP_MAC) || defined(RHAPSODY)
   return "";
 #endif
 
@@ -848,7 +848,7 @@ getLibraryPath(char *path, int size) {
 #   elif defined(OS390)
 #   elif defined(OS400)
 #   elif defined(XP_MAC)
-#   elif defined(U_SOLARIS)
+#   elif defined(SOLARIS)
         void *handle=dlopen(U_COMMON_LIBNAME, RTLD_LAZY); /* "libicu-uc.so" */
         if(handle!=NULL) {
             Link_map *p=NULL;
@@ -880,7 +880,7 @@ getLibraryPath(char *path, int size) {
             dlclose(handle);
             return length;
         }
-#   elif defined(U_LINUX)
+#   elif defined(LINUX)
 #   elif defined(AIX)
         void *handle=(void*)load(U_COMMON_LIBNAME, L_LIBPATH_EXEC, "."); /* "libicu-uc.a" */
         if(handle!=NULL) {
@@ -977,8 +977,8 @@ findLibraryPath(char *path, int size) {
 #       define LIB_FILENAME "libicuuc.a"
 #   elif defined(OS400)
 #   elif defined(XP_MAC)
-#   elif defined(U_SOLARIS)
-#   elif defined(U_LINUX)
+#   elif defined(SOLARIS)
+#   elif defined(LINUX)
 #       define LIB_PATH_VAR "LD_LIBRARY_PATH"
 #       define LIB_FILENAME "libicuuc.so"
 #   elif defined(AIX)
@@ -1480,7 +1480,7 @@ const char* uprv_getDefaultCodepage()
     {
         uprv_memset(codesetName, 0, 100);
     }
-#ifdef U_LINUX
+#ifdef LINUX
     if (nl_langinfo(_NL_CTYPE_CODESET_NAME) != NULL)
         uprv_strcpy(codesetName, nl_langinfo(_NL_CTYPE_CODESET_NAME));     
 #else

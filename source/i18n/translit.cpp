@@ -141,8 +141,8 @@ Transliterator::Transliterator(const Transliterator& other) :
 Transliterator& Transliterator::operator=(const Transliterator& other) {
     ID = other.ID;
     maximumContextLength = other.maximumContextLength;
-    // MUST go through adoptFilter in case latter is overridden
-    adoptFilter((other.filter == 0) ? 0 : other.filter->clone());
+    filter = (other.filter == 0) ?
+        0 : other.filter->clone();
     return *this;
 }
 
@@ -160,7 +160,7 @@ int32_t Transliterator::transliterate(Replaceable& text,
 
     UTransPosition offsets = { start, limit, start, limit };
     handleTransliterate(text, offsets, FALSE);
-    return offsets.limit;
+    return offsets.contextLimit;
 }
 
 /**
@@ -672,14 +672,24 @@ Transliterator* Transliterator::_createInstance(const UnicodeString& ID,
         
         // Call RBT to parse the rules from the resource bundle
 
+        // We don't own the rules - 'rules' is an alias pointer to
+        // a string in the RB cache.
+        /*const UnicodeString* rules = bundle.getString(RB_RULE, status);*/
         UnicodeString rules = bundle.getStringEx(RB_RULE, status);
 
-        // If the status indicates a failure, then we don't have any
-        // rules -- there is probably an installation error.  The list
-        // in the root locale should correspond to all the installed
-        // transliterators; if it lists something that's not
-        // installed, we'll get an error from ResourceBundle.
-        if (U_SUCCESS(status)) {
+        // If rules == 0 at this point, or if the status indicates a
+        // failure, then we don't have any rules -- there is probably
+        // an installation error.  The list in the root locale should
+        // correspond to all the installed transliterators; if it
+        // lists something that's not installed, we'll get a null
+        // pointer here.
+/*        if (rules != 0 && U_SUCCESS(status)) {
+
+            data = TransliterationRuleParser::parse(*rules, isReverse
+                                    ? RuleBasedTransliterator::REVERSE
+                                    : RuleBasedTransliterator::FORWARD,
+                                    parseError); */
+        if (rules.length() != 0 && U_SUCCESS(status)) {
 
             data = TransliterationRuleParser::parse(rules, isReverse
                                     ? UTRANS_REVERSE
