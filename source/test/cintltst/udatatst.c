@@ -73,18 +73,19 @@ static void TestUDataOpen(){
     };
     const char* name           = "test";
     const char* type           = "dat";
-    const char  dirSepString[] = {U_FILE_SEP_CHAR, 0};
+	const char  dirSepString[] = {U_FILE_SEP_CHAR, 0};
 
     char* path=(char*)malloc(sizeof(char) * (strlen(u_getDataDirectory())
                                            + strlen(U_ICUDATA_NAME)
                                            + strlen("/build")+1 ) );
+    char* testPath=(char*)malloc(sizeof(char) * (strlen(u_getDataDirectory()) + strlen("testdata") +1 ) );
 
     char        *icuDataFilePath = 0;
     struct stat stat_buf;
-    
-    const char* testPath=loadTestData(&status);
 
     strcat(strcpy(path, u_getDataDirectory()), U_ICUDATA_NAME);
+    strcat(strcpy(testPath, u_getDataDirectory()), "testdata");
+
 
     log_verbose("Testing udata_open()\n");
     result=udata_open(testPath, type, name, &status);
@@ -137,15 +138,15 @@ static void TestUDataOpen(){
     icuDataFilePath = (char *)malloc(strlen(u_getDataDirectory()) + 50);
     strcpy(icuDataFilePath, u_getDataDirectory());
     strcat(icuDataFilePath, "build");
-    strcat(icuDataFilePath, dirSepString);
-    strcat(icuDataFilePath, "tz.dat");
+	strcat(icuDataFilePath, dirSepString);
+	strcat(icuDataFilePath, "tz.dat");
     if (stat(icuDataFilePath, &stat_buf) == 0)
     {
         int i;
         strcpy(icuDataFilePath, u_getDataDirectory());
         strcat(icuDataFilePath, "build");
-        strcat(icuDataFilePath, dirSepString);
-        strcat(icuDataFilePath, "dummyLibraryName");
+		strcat(icuDataFilePath, dirSepString);
+		strcat(icuDataFilePath, "dummyLibraryName");
         log_verbose("Testing udata_open() on %s\n", icuDataFilePath);
         for(i=0; i<sizeof(memMap)/sizeof(memMap[0]); i++){
             status=U_ZERO_ERROR;
@@ -178,9 +179,8 @@ static void TestUDataOpen(){
      *  A test data file named testudata_nam.typ exists for the purpose of testing this.
      */
     log_verbose("Testing udata_open, with base_name.type style fallback to individual file.\n");
-    icuDataFilePath = (char *)malloc(sizeof(char) * (strlen(u_getDataDirectory()) + 50));
-    strcpy(icuDataFilePath, testPath);
-    strrchr(icuDataFilePath, U_FILE_SEP_CHAR)[1] = 0; /* Trncate after the '\' */
+    icuDataFilePath = (char *)malloc(strlen(u_getDataDirectory()) + 50);
+    strcpy(icuDataFilePath, u_getDataDirectory());
     strcat(icuDataFilePath, "testudata");
     status = U_ZERO_ERROR;
     result = udata_open( icuDataFilePath, "typ", "nam", &status);
@@ -197,7 +197,7 @@ static void TestUDataOpen(){
      */
     log_verbose("Testing udata_open, with path containing a trailing directory separator.\n");
     icuDataFilePath = (char *)malloc(strlen(u_getDataDirectory()) + 50);
-    strcpy(icuDataFilePath, testPath);
+    strcpy(icuDataFilePath, u_getDataDirectory());
     status = U_ZERO_ERROR;
     result = udata_open( icuDataFilePath, "cnv", "test1", &status);
     if (status != U_ZERO_ERROR) {
@@ -227,6 +227,7 @@ static void TestUDataOpen(){
     }
 
     free(path);
+    free(testPath);
 }
 
 
@@ -236,21 +237,18 @@ static void TestUDataSetAppData(){
 
     UErrorCode        status=U_ZERO_ERROR;
     int               fileHandle = 0;              /* We are going to read the testdata.dat file */
+    char             *filePath = 0;
     struct stat       statBuf;
     size_t            fileSize = 0;
     char             *fileBuf = 0;
 
     size_t            i;
-       
-    /* Open the testdata.dat file, using normal   */
-    const char* tdrelativepath = loadTestData(&status);
-    char* filePath=(char*)malloc(sizeof(char) * (strlen(u_getDataDirectory()) + strlen("testdata.dat") +1 +strlen(tdrelativepath)) );
-
-    strcpy(filePath, tdrelativepath);
-    strcat(filePath, ".dat");
-
+    
     log_verbose("Testing udata_setAppData()\n");
-
+    
+    /* Open the testdata.dat file, using normal   */
+    filePath=(char*)malloc(sizeof(char) * (strlen(u_getDataDirectory()) + 100) );
+    strcat(strcpy(filePath, u_getDataDirectory()), "testdata.dat");
 #ifdef WIN32
     fileHandle = open( filePath, O_RDONLY | O_BINARY );
 #else

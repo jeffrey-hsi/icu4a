@@ -3,7 +3,7 @@
 ## Copyright (c) 1999-2000, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-alpha-linux-cc,v 1.7 2002/05/13 23:50:12 grhoten-oss Exp $
+## $Id: mh-alpha-linux-cc,v 1.5 2001/10/23 02:14:05 rviswanadha Exp $
 
 ## Commands to generate dependency files
 #GEN_DEPS.c=	$(CC) $(DEFS) $(CPPFLAGS) -MD -c -msg_quiet
@@ -18,21 +18,18 @@ SHAREDLIBCPPFLAGS = -DPIC
 LIBCPPFLAGS = -D_REENTRANT
 THREADSCPPFLAGS = -D_REENTRANT
 
-# Use int for int32_t
-DEFS += -D_LP64
-
-# The tests need complete IEEE floating point support
-CFLAGS += -ieee
-CXXFLAGS += -ieee
-
 ## Commands to compile
-COMPILE.c=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS)  -c -signed -accept nogccinline
-COMPILE.cc=	$(CXX) $(DEFS) $(CPPFLAGS) $(CXXFLAGS) -c -signed -D__USE_STD_IOSTREAM -accept nogcc_inline
+COMPILE.c=	$(CC) -D_LP64 $(DEFS) $(CPPFLAGS) $(CFLAGS)  -c -signed -accept nogccinline -ieee 
+COMPILE.cc=	$(CXX) -D_LP64 $(DEFS) $(CPPFLAGS) $(CXXFLAGS) -c -signed -D__USE_STD_IOSTREAM -accept nogcc_inline -ieee  
 
 
 ## Commands to link
-LINK.c=		$(CC) -call_shared $(CFLAGS) $(LDFLAGS)
-LINK.cc=	$(CXX) -call_shared $(CXXFLAGS) $(LDFLAGS)
+LINK.c=		$(CC) -D_LP64 -call_shared $(DEFS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)  -ieee
+LINK.cc=	$(CXX) -D_LP64 -call_shared $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -ieee 
+
+## Commands to make a shared library
+SHLIB.c=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared 
+SHLIB.cc=	$(CXX) $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -shared  
 
 ## Compiler switch to embed a runtime search path
 LD_RPATH=
@@ -62,13 +59,13 @@ STATIC_O = ao
 
 ## Dependency rules
 #%.d: $(srcdir)/%.c
-#	@echo "generating dependency information for $<"
+#	@echo "Generating dependency information for $<"
 #	@$(SHELL) -ec '$(GEN_DEPS.c) $< \
 #		| sed '\''s%\($*\)\.o[ :]*%\1.o $@ : %g'\'' > $@; \
 #		[ -s $@ ] || rm -f $@'
 
 #%.d: $(srcdir)/%.cpp
-#	@echo "generating dependency information for $<"
+#	@echo "Generating dependency information for $<"
 #	@$(SHELL) -ec '$(GEN_DEPS.cc) $< \
 #		| sed '\''s%\($*\)\.o[ :]*%\1.o $@ : %g'\'' > $@; \
 #		[ -s $@ ] || rm -f $@'

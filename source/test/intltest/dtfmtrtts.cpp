@@ -26,7 +26,7 @@
 // There are 24 total possible tests per each locale.  A SPARSENESS
 // of 12 means we run half of them.  A SPARSENESS of 23 means we run
 // 1 of them.  SPARSENESS _must_ be in the range 0..23.
-int32_t DateFormatRoundTripTest::SPARSENESS = 0;
+int32_t DateFormatRoundTripTest::SPARSENESS = 18;
 int32_t DateFormatRoundTripTest::TRIALS = 4;
 int32_t DateFormatRoundTripTest::DEPTH = 5;
 
@@ -70,8 +70,9 @@ void DateFormatRoundTripTest::TestDateFormatRoundTrip()
     const Locale *avail = DateFormat::getAvailableLocales(locCount);
     logln("DateFormat available locales: %d", locCount);
     if(quick) {
-        SPARSENESS = 18;
-        logln("Quick mode: only testing SPARSENESS = 18");
+        if(locCount > 5)
+            locCount = 5;
+        logln("Quick mode: only testing first 5 Locales");
     }
     TimeZone *tz = TimeZone::createDefault();
     UnicodeString temp;
@@ -142,9 +143,9 @@ void DateFormatRoundTripTest::test(const Locale& loc)
     int32_t style = 0;
     for(style = DateFormat::FULL; style <= DateFormat::SHORT; ++style) {
         if(TEST_TABLE[itable++]) {
-            logln("Testing style " + UnicodeString(styleName((DateFormat::EStyle)style)));
+/**/          logln("Testing style " + UnicodeString(styleName((DateFormat::EStyle)style)));
             DateFormat *df = DateFormat::createDateInstance((DateFormat::EStyle)style, loc);
-            test(df, loc);
+            test(df);
             delete df;
         }
     }
@@ -153,7 +154,7 @@ void DateFormatRoundTripTest::test(const Locale& loc)
         if (TEST_TABLE[itable++]) {
           logln("Testing style " + UnicodeString(styleName((DateFormat::EStyle)style)));
             DateFormat *df = DateFormat::createTimeInstance((DateFormat::EStyle)style, loc);
-            test(df, loc, TRUE);
+            test(df, TRUE);
             delete df;
         }
     }
@@ -163,14 +164,14 @@ void DateFormatRoundTripTest::test(const Locale& loc)
             if(TEST_TABLE[itable++]) {
               logln("Testing dstyle" + UnicodeString(styleName((DateFormat::EStyle)dstyle)) + ", tstyle" + UnicodeString(styleName((DateFormat::EStyle)tstyle)) );
                 DateFormat *df = DateFormat::createDateTimeInstance((DateFormat::EStyle)dstyle, (DateFormat::EStyle)tstyle, loc);
-                test(df, loc);
+                test(df);
                 delete df;
             }
         }
     }
 }
 
-void DateFormatRoundTripTest::test(DateFormat *fmt, const Locale &origLocale, UBool timeOnly) 
+void DateFormatRoundTripTest::test(DateFormat *fmt, UBool timeOnly) 
 {
     UnicodeString pat;
     if(fmt->getDynamicClassID() != SimpleDateFormat::getStaticClassID()) {
@@ -271,28 +272,19 @@ void DateFormatRoundTripTest::test(DateFormat *fmt, const Locale &origLocale, UB
                 else if(fmt->getTimeZone().inDaylightTime(d[0], status) && ! failure(status, "foo") &&
                          pat.indexOf(UnicodeString("yyyy")) == -1)
                     maxSmatch = 2;
-                // Two digit year with no time zone change,
-                // unless timezone isn't used or we aren't close to the DST changover
-                else if (pat.indexOf(UnicodeString("y")) != -1
-                        && pat.indexOf(UnicodeString("yyyy")) == -1
-                        && getField(d[0], Calendar::YEAR)
-                            != getField(d[dmatch], Calendar::YEAR)
-                        && !failure(status, "foo")
-                        && ((hasZone
-                         && (fmt->getTimeZone().inDaylightTime(d[0], status)
-                                == fmt->getTimeZone().inDaylightTime(d[dmatch], status)
-                            || getField(d[0], Calendar::MONTH) == Calendar::APRIL
-                            || getField(d[0], Calendar::MONTH) == Calendar::OCTOBER))
-                         || !hasZone)
-                         )
-                {
+                // Two digit year with zone and year change and zone in pattern
+                else if (hasZone &&
+                         fmt->getTimeZone().inDaylightTime(d[0], status) !=
+                         fmt->getTimeZone().inDaylightTime(d[dmatch], status) && ! failure(status, "foo") &&
+                         getField(d[0], Calendar::YEAR) !=
+                         getField(d[dmatch], Calendar::YEAR) &&
+                         pat.indexOf(UnicodeString("y")) != -1 &&
+                         pat.indexOf(UnicodeString("yyyy")) == -1)
                     maxSmatch = 2;
-                }
             }
             
             if(dmatch > maxDmatch || smatch > maxSmatch) {
-                errln(UnicodeString("Pattern: ") + pat + UnicodeString(" failed to match in Locale: ")
-                    + origLocale.getName());
+                errln(UnicodeString("Pattern: ") + pat + UnicodeString(" failed to match"));
                 logln(UnicodeString(" Date ") + dmatch + "  String " + smatch);
 
                 printf("dmatch:%d maxD:%d smatch:%d maxS:%d\n", dmatch,maxDmatch, smatch, maxSmatch);
@@ -300,8 +292,8 @@ void DateFormatRoundTripTest::test(DateFormat *fmt, const Locale &origLocale, UB
                 for(int j = 0; j <= loop && j < DEPTH; ++j) {
                     UnicodeString temp;
                     FieldPosition pos(FieldPosition::DONT_CARE);
-                    errln((j>0?" P> ":"    ") + dateFormat->format(d[j], temp, pos) + " F> " +
-                          escape(s[j], temp) + UnicodeString(" d=") + d[j] + 
+                    logln((j>0?" P> ":"    ") + dateFormat->format(d[j], temp, pos) + " F> " +
+                          escape(s[j], temp) +
                           (j > 0 && d[j]/*.getTime()*/==d[j-1]/*.getTime()*/?" d==":"") +
                           (j > 0 && s[j] == s[j-1]?" s==":""));
                 }
@@ -360,7 +352,7 @@ UDate DateFormatRoundTripTest::generateDate()
     
     // Now scale up to ms
     a *= 365.25 * 24 * 60 * 60 * 1000;
-
+    
     //return new Date((long)a);
     return a;
 }

@@ -67,7 +67,7 @@ CalendarRegressionTest::runIndexedTest( int32_t index, UBool exec, const char* &
         CASE(35,Test4197699);
         CASE(36,TestJ81);
         CASE(37,TestJ438);
-        CASE(38,TestLeapFieldDifference);
+        
     default: name = ""; break;
     }
 }
@@ -997,7 +997,7 @@ CalendarRegressionTest::test4031502()
         UErrorCode status = U_ZERO_ERROR;
         Locale saveLocale = Locale::getDefault();
         //try {
-        Locale locales [] = { Locale::getChinese(), Locale::getChina() };
+        Locale locales [] = { Locale::CHINESE, Locale::CHINA };
             for (int32_t i=0; i<2; ++i) {
                 Locale::setDefault(locales[i], status);
                 failure(status, "Locale::setDefault");
@@ -1861,9 +1861,9 @@ void CalendarRegressionTest::TestJ81() {
                 status = U_ZERO_ERROR;
                 int32_t amount = DATA[i].amount * (sign==MINUS?-1:1);
                 UDate date = cutover + 
-                    (sign==PLUS ? DATA[i].before : DATA[i].after);
+                    (sign==PLUS>0 ? DATA[i].before : DATA[i].after);
                 UDate expected = cutover + 
-                    (sign==PLUS ? DATA[i].after : DATA[i].before);
+                    (sign==PLUS>0 ? DATA[i].after : DATA[i].before);
                 cal.setTime(date, status);
                 if (U_FAILURE(status)) {
                     errln((UnicodeString)"FAIL: setTime returned error code " + u_errorName(status));
@@ -1986,79 +1986,6 @@ void CalendarRegressionTest::TestJ438(void) {
         }
     }
     delete pcal;
-}
-
-/**
- * Test behavior of fieldDifference around leap years.  Also test a large
- * field difference to check binary search.
- */
-void CalendarRegressionTest::TestLeapFieldDifference() {
-    UErrorCode ec = U_ZERO_ERROR;
-    Calendar* cal = Calendar::createInstance(ec);
-    if (cal == NULL || U_FAILURE(ec)) {
-        errln("FAIL: Calendar::createInstance()");
-        delete cal;
-        return;
-    }
-    cal->set(2004, Calendar::FEBRUARY, 29);
-    UDate date2004 = cal->getTime(ec);
-    cal->set(2000, Calendar::FEBRUARY, 29);
-    UDate date2000 = cal->getTime(ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: getTime()");
-        delete cal;
-        return;
-    }
-    int32_t y = cal->fieldDifference(date2004, Calendar::YEAR, ec);
-    int32_t d = cal->fieldDifference(date2004, Calendar::DAY_OF_YEAR, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: fieldDifference()");
-        delete cal;
-        return;
-    }
-    if (d == 0) {
-        logln((UnicodeString)"Ok: 2004/Feb/29 - 2000/Feb/29 = " + y + " years, " + d + " days");
-    } else {
-        errln((UnicodeString)"FAIL: 2004/Feb/29 - 2000/Feb/29 = " + y + " years, " + d + " days");
-    }
-    cal->setTime(date2004, ec);
-    y = cal->fieldDifference(date2000, Calendar::YEAR, ec);
-    d = cal->fieldDifference(date2000, Calendar::DAY_OF_YEAR, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: setTime() / fieldDifference()");
-        delete cal;
-        return;
-    }
-    if (d == 0) {
-        logln((UnicodeString)"Ok: 2000/Feb/29 - 2004/Feb/29 = " + y + " years, " + d + " days");
-    } else {
-        errln((UnicodeString)"FAIL: 2000/Feb/29 - 2004/Feb/29 = " + y + " years, " + d + " days");
-    }
-    // Test large difference
-    cal->set(2001, Calendar::APRIL, 5); // 2452005
-    UDate ayl = cal->getTime(ec);
-    cal->set(1964, Calendar::SEPTEMBER, 7); // 2438646
-    UDate asl = cal->getTime(ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: getTime()");
-        delete cal;
-        return;
-    }
-    d = cal->fieldDifference(ayl, Calendar::DAY_OF_MONTH, ec);
-    cal->setTime(ayl, ec);
-    int32_t d2 = cal->fieldDifference(asl, Calendar::DAY_OF_MONTH, ec);
-    if (U_FAILURE(ec)) {
-        errln("FAIL: setTime() / fieldDifference()");
-        delete cal;
-        return;
-    }
-    if (d == -d2 && d == 13359) {
-        logln((UnicodeString)"Ok: large field difference symmetrical " + d);
-    } else {
-        logln((UnicodeString)"FAIL: large field difference incorrect " + d + ", " + d2 +
-              ", expect +/- 13359");
-    }
-    delete cal;
 }
 
 UDate

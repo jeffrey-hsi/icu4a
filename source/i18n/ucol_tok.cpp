@@ -97,14 +97,11 @@ void ucol_tok_initTokenList(UColTokenParser *src, const UChar *rules, const uint
     return;
   }
   
-  // set everything to zero, so that we can clean up gracefully
-  uprv_memset(src, 0, sizeof(UColTokenParser));
-  
   src->source = (UChar *)uprv_malloc(estimatedSize*sizeof(UChar));
   nSize = unorm_normalize(rules, rulesLength, UNORM_NFD, 0, src->source, estimatedSize, status);
   if(nSize > estimatedSize || *status == U_BUFFER_OVERFLOW_ERROR) {
     *status = U_ZERO_ERROR;
-    src->source = (UChar *)uprv_realloc(src->source, (nSize+UCOL_TOK_EXTRA_RULE_SPACE_SIZE)*sizeof(UChar));
+    src->source = (UChar *)realloc(src->source, (nSize+UCOL_TOK_EXTRA_RULE_SPACE_SIZE)*sizeof(UChar));
     nSize = unorm_normalize(rules, rulesLength, UNORM_NFD, 0, src->source, nSize+UCOL_TOK_EXTRA_RULE_SPACE_SIZE, status);
   }
   src->current = src->source;
@@ -112,23 +109,11 @@ void ucol_tok_initTokenList(UColTokenParser *src, const UChar *rules, const uint
   src->sourceCurrent = src->source;
   src->extraCurrent = src->end;
   src->extraEnd = src->source+estimatedSize; //src->end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
-  src->varTop = NULL;
   src->UCA = UCA;
   src->invUCA = ucol_initInverseUCA(status);
-  src->parsedToken.charsLen = 0;
-  src->parsedToken.charsOffset = 0;
-  src->parsedToken.extensionLen = 0;
-  src->parsedToken.extensionOffset = 0;
-  src->parsedToken.prefixLen = 0;
-  src->parsedToken.prefixOffset = 0;
-  src->parsedToken.flags = 0;
-  src->parsedToken.strength = UCOL_TOK_UNSET;
-
-
-
-  if(U_FAILURE(*status)) {
-    return;
-  }
+  src->resultLen = 0;
+  src->lh = 0;
+  src->varTop = NULL;
   src->tailored = uhash_open(uhash_hashTokens, uhash_compareTokens, status);
   if(U_FAILURE(*status)) {
     return;
@@ -140,7 +125,6 @@ void ucol_tok_initTokenList(UColTokenParser *src, const UChar *rules, const uint
   uprv_memcpy(src->opts, UCA->options, sizeof(UColOptionSet));
 
   // rulesToParse = src->source;
-  src->lh = 0;
   src->lh = (UColTokListHeader *)uprv_malloc(512*sizeof(UColTokListHeader));
   src->resultLen = 0;
 }
@@ -201,53 +185,7 @@ void ucol_uprv_tok_setOptionInImage(UColOptionSet *opts, UColAttribute attrib, U
   }
 }
 
-typedef struct {
-  uint32_t startCE;
-  uint32_t startContCE;
-  uint32_t limitCE;
-  uint32_t limitContCE;
-} indirectBoundaries;
-
-/* these values are used for finding CE values for indirect positioning. */
-/* Indirect positioning is a mechanism for allowing resets on symbolic   */
-/* values. It only works for resets and you cannot tailor indirect names */
-/* An indirect name can define either an anchor point or a range. An     */
-/* anchor point behaves in exactly the same way as a code point in reset */
-/* would, except that it cannot be tailored. A range (we currently only  */
-/* know for the [top] range will explicitly set the upper bound for      */
-/* generated CEs, thus allowing for better control over how many CEs can */
-/* be squeezed between in the range without performance penalty.         */
-/* In that respect, we use [top] for tailoring of locales that use CJK   */
-/* characters. Other indirect values are currently a pure convenience,   */
-/* they can be used to assure that the CEs will be always positioned in  */
-/* the same place relative to a point with known properties (e.g. first  */
-/* primary ignorable). */
-static indirectBoundaries ucolIndirectBoundaries[] = {
-  { UCOL_RESET_TOP_VALUE,               0, 
-    UCOL_NEXT_TOP_VALUE,                0 },
-  { UCOL_FIRST_PRIMARY_IGNORABLE,       0, 
-    0,                                  0 },
-  { UCOL_LAST_PRIMARY_IGNORABLE,        UCOL_LAST_PRIMARY_IGNORABLE_CONT, 
-    0,                                  0 },
-  { UCOL_FIRST_SECONDARY_IGNORABLE,     0, 
-    0,                                  0 },
-  { UCOL_LAST_SECONDARY_IGNORABLE,      0, 
-    0,                                  0 },
-  { UCOL_FIRST_TERTIARY_IGNORABLE,      0, 
-    0,                                  0 },
-  { UCOL_LAST_TERTIARY_IGNORABLE,       0, 
-    0,                                  0 },
-  { UCOL_FIRST_VARIABLE,                0, 
-    0,                                  0 },
-  { UCOL_LAST_VARIABLE,                 0, 
-    0,                                  0 },
-  { UCOL_FIRST_NON_VARIABLE,            0, 
-    0,                                  0 },
-  { UCOL_LAST_NON_VARIABLE,             0, 
-    0,                                  0 },
-};
-
-#define UTOK_OPTION_COUNT 17
+#define UTOK_OPTION_COUNT 15
 
 static UBool didInit = FALSE;
 /* we can be strict, or we can be lenient */
@@ -266,11 +204,7 @@ U_STRING_DECL(suboption_08, "3",              1);
 U_STRING_DECL(suboption_09, "4",              1);
 U_STRING_DECL(suboption_10, "I",              1);
 
-U_STRING_DECL(suboption_11, "primary",        7);
-U_STRING_DECL(suboption_12, "secondary",      9);
-U_STRING_DECL(suboption_13, "tertiary",       8);
-U_STRING_DECL(suboption_14, "variable",       8);
-U_STRING_DECL(suboption_15, "non-ignorable", 13);
+
 
 U_STRING_DECL(option_00,    "undefined",      9);
 U_STRING_DECL(option_01,    "rearrange",      9);  
@@ -287,16 +221,6 @@ U_STRING_DECL(option_11,    "charset",        7);
 U_STRING_DECL(option_12,    "before",         6);  
 U_STRING_DECL(option_13,    "hiraganaQ",      9);
 U_STRING_DECL(option_14,    "strength",       8);
-U_STRING_DECL(option_15,    "first",          5);
-U_STRING_DECL(option_16,    "last",           4);
-
-/*
-[last variable] last variable value 
-[last primary ignorable] largest CE for primary ignorable 
-[last secondary ignorable] largest CE for secondary ignorable 
-[last tertiary ignorable] largest CE for tertiary ignorable 
-[top] guaranteed to be above all implicit CEs, for now and in the future (in 1.8) 
-*/
 
 
 static const ucolTokSuboption alternateSub[2] = {
@@ -333,14 +257,6 @@ static const ucolTokSuboption strengthSub[5] = {
   {suboption_10, 1, UCOL_IDENTICAL},
 };
 
-static const ucolTokSuboption firstLastSub[5] = {
-  {suboption_11, 7, UCOL_PRIMARY},
-  {suboption_12, 9, UCOL_PRIMARY},
-  {suboption_13, 8, UCOL_PRIMARY},
-  {suboption_14, 8, UCOL_PRIMARY},
-  {suboption_15, 13, UCOL_PRIMARY},
-};
-
 static const ucolTokOption rulesOptions[UTOK_OPTION_COUNT] = {
  {option_02,  9, alternateSub, 2, UCOL_ALTERNATE_HANDLING}, /*"alternate" */
  {option_03,  9, frenchSub, 1, UCOL_FRENCH_COLLATION}, /*"backwards"      */
@@ -351,10 +267,8 @@ static const ucolTokOption rulesOptions[UTOK_OPTION_COUNT] = {
  {option_14, 8, strengthSub, 5, UCOL_STRENGTH}, /*"strength" */
  {option_04, 12, NULL, 0, UCOL_ATTRIBUTE_COUNT}, /*"variable top"   */
  {option_01,  9, NULL, 0, UCOL_ATTRIBUTE_COUNT}, /*"rearrange"      */
- {option_12,  6, beforeSub, 3, UCOL_ATTRIBUTE_COUNT}, /*"before"    */
  {option_05,  3, NULL, 0, UCOL_ATTRIBUTE_COUNT}, /*"top"            */
- {option_15,  5, firstLastSub, 5, UCOL_ATTRIBUTE_COUNT}, /*"first" */
- {option_16,  4, firstLastSub, 5, UCOL_ATTRIBUTE_COUNT}, /*"last" */
+ {option_12,  6, beforeSub, 3, UCOL_ATTRIBUTE_COUNT}, /*"before"    */
  {option_00,  9, NULL, 0, UCOL_ATTRIBUTE_COUNT}, /*"undefined"      */
  {option_09, 11, NULL, 0, UCOL_ATTRIBUTE_COUNT}, /*"scriptOrder"    */
  {option_10, 11, NULL, 0, UCOL_ATTRIBUTE_COUNT}, /*"charsetname"    */
@@ -381,7 +295,11 @@ int32_t u_strncmpNoCase(const UChar     *s1,
 }
 
 static
-void ucol_uprv_tok_initData() {
+uint8_t ucol_uprv_tok_readAndSetOption(UColOptionSet *opts, const UChar* start, const UChar *end, UErrorCode *status) {
+  uint32_t i = 0;
+  int32_t j=0;
+  UBool foundOption = FALSE;
+  const UChar *optionArg = NULL;
   if(!didInit) {
     U_STRING_INIT(suboption_00, "non-ignorable", 13);
     U_STRING_INIT(suboption_01, "shifted",        7);
@@ -396,12 +314,6 @@ void ucol_uprv_tok_initData() {
     U_STRING_INIT(suboption_08, "3",              1);
     U_STRING_INIT(suboption_09, "4",              1);
     U_STRING_INIT(suboption_10, "I",              1);
-
-    U_STRING_INIT(suboption_11, "primary",        7);
-    U_STRING_INIT(suboption_12, "secondary",      9);
-    U_STRING_INIT(suboption_13, "tertiary",       8);
-    U_STRING_INIT(suboption_14, "variable",       8);
-    U_STRING_INIT(suboption_15, "non-ignorable", 13);
 
 
     U_STRING_INIT(option_00, "undefined",      9);
@@ -419,89 +331,7 @@ void ucol_uprv_tok_initData() {
     U_STRING_INIT(option_12, "before",         6);  
     U_STRING_INIT(option_13, "hiraganaQ",      9);
     U_STRING_INIT(option_14, "strength",       8);
-    U_STRING_INIT(option_15, "first",          5);
-    U_STRING_INIT(option_16, "last",           4);
   }
-}
-
-const UChar *
-ucol_tok_getNextArgument(const UChar *start, const UChar *end, 
-                               UColAttribute *attrib, UColAttributeValue *value, 
-                               UErrorCode *status) {
-  uint32_t i = 0;
-  int32_t j=0;
-  UBool foundOption = FALSE;
-  const UChar *optionArg = NULL;
-
-  ucol_uprv_tok_initData();
-
-  while(u_isWhitespace(*start) && start < end) { /* eat whitespace */
-    start++;
-  }
-  if(start >= end) {
-    return NULL;
-  }
-  /* skip opening '[' */
-  if(*start == 0x005b) {
-    start++;
-  } else {
-    *status = U_ILLEGAL_ARGUMENT_ERROR; // no opening '['
-    return NULL;
-  }
-
-  while(i < UTOK_OPTION_COUNT) {
-    if(u_strncmpNoCase(start, rulesOptions[i].optionName, rulesOptions[i].optionLen) == 0) {
-      foundOption = TRUE;
-      if(end - start > rulesOptions[i].optionLen) {
-        optionArg = start+rulesOptions[i].optionLen+1; /* start of the options, skip space */
-        while(u_isWhitespace(*optionArg)) { /* eat whitespace */
-          optionArg++;
-        }
-      }     
-      break;
-    }
-    i++;
-  }
-
-  if(!foundOption) {
-    *status = U_ILLEGAL_ARGUMENT_ERROR;
-    return NULL;
-  }
-
-  if(optionArg) {
-    for(j = 0; j<rulesOptions[i].subSize; j++) {
-      if(u_strncmpNoCase(optionArg, rulesOptions[i].subopts[j].subName, rulesOptions[i].subopts[j].subLen) == 0) {
-        //ucol_uprv_tok_setOptionInImage(src->opts, rulesOptions[i].attr, rulesOptions[i].subopts[j].attrVal);
-        *attrib = rulesOptions[i].attr;
-        *value = rulesOptions[i].subopts[j].attrVal;
-        optionArg += rulesOptions[i].subopts[j].subLen;
-        while(u_isWhitespace(*optionArg)) { /* eat whitespace */
-          optionArg++;
-        }
-        if(*optionArg == 0x005d) {
-          optionArg++;
-          return optionArg;
-        } else {
-          *status = U_ILLEGAL_ARGUMENT_ERROR;
-          return NULL;
-        }
-      }
-    }
-  }
-  *status = U_ILLEGAL_ARGUMENT_ERROR;
-  return NULL;
-}
-
-static
-uint8_t ucol_uprv_tok_readAndSetOption(UColTokenParser *src, const UChar *end, UErrorCode *status) {
-  const UChar* start = src->current;
-  uint32_t i = 0;
-  int32_t j=0;
-  UBool foundOption = FALSE;
-  const UChar *optionArg = NULL;
-
-  ucol_uprv_tok_initData();
-
   start++; /*skip opening '['*/
   while(i < UTOK_OPTION_COUNT) {
     if(u_strncmpNoCase(start, rulesOptions[i].optionName, rulesOptions[i].optionLen) == 0) {
@@ -526,7 +356,7 @@ uint8_t ucol_uprv_tok_readAndSetOption(UColTokenParser *src, const UChar *end, U
     if(optionArg) {
       for(j = 0; j<rulesOptions[i].subSize; j++) {
         if(u_strncmpNoCase(optionArg, rulesOptions[i].subopts[j].subName, rulesOptions[i].subopts[j].subLen) == 0) {
-          ucol_uprv_tok_setOptionInImage(src->opts, rulesOptions[i].attr, rulesOptions[i].subopts[j].attrVal);
+          ucol_uprv_tok_setOptionInImage(opts, rulesOptions[i].attr, rulesOptions[i].subopts[j].attrVal);
           return UCOL_TOK_SUCCESS;
         }
       }
@@ -537,7 +367,9 @@ uint8_t ucol_uprv_tok_readAndSetOption(UColTokenParser *src, const UChar *end, U
     return UCOL_TOK_SUCCESS | UCOL_TOK_VARIABLE_TOP;
   } else if(i == 8) {  /*rearange */
     return UCOL_TOK_SUCCESS;
-  } else if(i == 9) {  /*before*/
+  } else if(i == 9) {  /*top */
+    return UCOL_TOK_SUCCESS | UCOL_TOK_TOP;
+  } else if(i == 10) {  /*before*/
     if(optionArg) {
       for(j = 0; j<rulesOptions[i].subSize; j++) {
         if(u_strncmpNoCase(optionArg, rulesOptions[i].subopts[j].subName, rulesOptions[i].subopts[j].subLen) == 0) {
@@ -547,19 +379,6 @@ uint8_t ucol_uprv_tok_readAndSetOption(UColTokenParser *src, const UChar *end, U
     }
     *status = U_ILLEGAL_ARGUMENT_ERROR;
     return 0;
-  } else if(i == 10) {  /*top */ /* we are going to have an array with structures of limit CEs */
-    /* index to this array will be src->parsedToken.indirectIndex*/
-    src->parsedToken.indirectIndex = 0;
-    return UCOL_TOK_SUCCESS | UCOL_TOK_TOP;
-  } else if(i < 13) { /* first, last */
-    for(j = 0; j<rulesOptions[i].subSize; j++) {
-      if(u_strncmpNoCase(optionArg, rulesOptions[i].subopts[j].subName, rulesOptions[i].subopts[j].subLen) == 0) {
-        src->parsedToken.indirectIndex = (uint16_t)(i-10+j*2);         
-        return UCOL_TOK_SUCCESS | UCOL_TOK_TOP;;
-      }
-    }
-    *status = U_ILLEGAL_ARGUMENT_ERROR;
-    return FALSE;
   } else {
     *status = U_UNSUPPORTED_ERROR;
     return 0;
@@ -568,6 +387,11 @@ uint8_t ucol_uprv_tok_readAndSetOption(UColTokenParser *src, const UChar *end, U
 
 U_CAPI const UChar* U_EXPORT2
 ucol_tok_parseNextToken(UColTokenParser *src, 
+                        uint32_t *strength, 
+                        uint32_t *chOffset, uint32_t *chLen, 
+                        uint32_t *exOffset, uint32_t *exLen,
+                        uint32_t *prefixOffset, uint32_t *prefixLen,
+                        uint8_t *specs,
                         UBool startOfRules,
                         UParseError *parseError,
                         UErrorCode *status) { 
@@ -585,8 +409,7 @@ ucol_tok_parseNextToken(UColTokenParser *src,
   uint32_t charsOffset = 0, extensionOffset = 0;
   uint32_t newStrength = UCOL_TOK_UNSET; 
 
-  src->parsedToken.prefixOffset = 0; src->parsedToken.prefixLen = 0;
-  src->parsedToken.indirectIndex = 0;
+  *prefixOffset = 0; *prefixLen = 0;
 
   while (src->current < src->end) {
       UChar ch = *(src->current);
@@ -710,17 +533,12 @@ ucol_tok_parseNextToken(UColTokenParser *src,
         case 0x005b/*'['*/:
           /* options - read an option, analyze it */
           if((optionEnd = u_strchr(src->current, 0x005d /*']'*/)) != NULL) {
-            uint8_t result = ucol_uprv_tok_readAndSetOption(src, optionEnd, status);
+            uint8_t result = ucol_uprv_tok_readAndSetOption(src->opts, src->current, optionEnd, status);
             src->current = optionEnd;
             if(U_SUCCESS(*status)) {
               if(result & UCOL_TOK_TOP) {
                 if(newStrength == UCOL_TOK_RESET) { 
                   top = TRUE;
-                  charsOffset = src->extraCurrent - src->source;
-                  *src->extraCurrent++ = 0xFFFE;
-                  *src->extraCurrent++ = (UChar)(ucolIndirectBoundaries[src->parsedToken.indirectIndex].startCE >> 16);
-                  *src->extraCurrent++ = (UChar)(ucolIndirectBoundaries[src->parsedToken.indirectIndex].startCE & 0xFFFF);
-                  newCharsLen = 3;
                   src->current++;
                   goto EndOfLoop;
                 } else {
@@ -821,8 +639,8 @@ ucol_tok_parseNextToken(UColTokenParser *src,
           // that case we would have to complicate the token hasher, which I do not 
           // intend to play with. Instead, we will do prefixes when prefixes are due
           // (before adding the elements).
-          src->parsedToken.prefixOffset = charsOffset;
-          src->parsedToken.prefixLen = newCharsLen;
+          *prefixOffset = charsOffset;
+          *prefixLen = newCharsLen;
 
           if(inChars) { /* we're doing characters */
             if(wasInQuote == FALSE) {
@@ -913,89 +731,19 @@ ucol_tok_parseNextToken(UColTokenParser *src,
     return NULL;
   }
 
-  src->parsedToken.strength = newStrength; 
-  src->parsedToken.charsOffset = charsOffset;
-  src->parsedToken.charsLen = newCharsLen;
-  src->parsedToken.extensionOffset = extensionOffset;
-  src->parsedToken.extensionLen = newExtensionLen;
-  src->parsedToken.flags = (UCOL_TOK_VARIABLE_TOP * (variableTop?1:0)) | (UCOL_TOK_TOP * (top?1:0)) | before;
+  *strength = newStrength; 
+
+  *chOffset = charsOffset;
+  *chLen = newCharsLen;
+  *exOffset = extensionOffset;
+  *exLen = newExtensionLen;
+  *specs = (UCOL_TOK_VARIABLE_TOP * (variableTop?1:0)) | (UCOL_TOK_TOP * (top?1:0)) | before;
 
   return src->current;
 }
 
-/*
-Processing Description
-  1 Build a ListList. Each list has a header, which contains two lists (positive 
-  and negative), a reset token, a baseCE, nextCE, and previousCE. The lists and 
-  reset may be null. 
-  2 As you process, you keep a LAST pointer that points to the last token you 
-  handled. 
-*/
-
-static UColToken *ucol_tok_initAReset(UColTokenParser *src, UChar *expand, uint32_t *expandNext,
-                                      UParseError *parseError, UErrorCode *status) {
-  /* do the reset thing */
-  UColToken *sourceToken = (UColToken *)uprv_malloc(sizeof(UColToken));
-  sourceToken->rulesToParse = src->source;
-  sourceToken->source = src->parsedToken.charsLen << 24 | src->parsedToken.charsOffset;
-  sourceToken->expansion = src->parsedToken.extensionLen << 24 | src->parsedToken.extensionOffset;
-
-  sourceToken->debugSource = *(src->source + src->parsedToken.charsOffset);
-  sourceToken->debugExpansion = *(src->source + src->parsedToken.extensionOffset);
-
-  if(src->parsedToken.prefixOffset != 0) {
-    // this is a syntax error 
-    *status = U_INVALID_FORMAT_ERROR;
-    syntaxError(src->source,src->parsedToken.charsOffset-1,src->parsedToken.charsOffset+src->parsedToken.charsLen,parseError);
-    return 0;
-  } else {
-    sourceToken->prefix = 0;
-  }
-
-  sourceToken->polarity = UCOL_TOK_POLARITY_POSITIVE; /* TODO: this should also handle reverse */
-  sourceToken->strength = UCOL_TOK_RESET;
-  sourceToken->next = NULL;
-  sourceToken->previous = NULL;
-  sourceToken->noOfCEs = 0;
-  sourceToken->noOfExpCEs = 0;
-  sourceToken->listHeader = &src->lh[src->resultLen];
-
-  src->lh[src->resultLen].first = NULL;
-  src->lh[src->resultLen].last = NULL;
-  src->lh[src->resultLen].first = NULL;
-  src->lh[src->resultLen].last = NULL;
-
-  src->lh[src->resultLen].reset = sourceToken;
-
-  /*
-    3 Consider each item: relation, source, and expansion: e.g. ...< x / y ... 
-      First convert all expansions into normal form. Examples: 
-        If "xy" doesn't occur earlier in the list or in the UCA, convert &xy * c * 
-        d * ... into &x * c/y * d * ... 
-        Note: reset values can never have expansions, although they can cause the 
-        very next item to have one. They may be contractions, if they are found 
-        earlier in the list. 
-  */
-  if(expand != NULL) {
-    /* check to see if there is an expansion */
-    if(src->parsedToken.charsLen > 1) {
-      uint32_t resetCharsOffset;
-      resetCharsOffset = expand - src->source;
-      sourceToken->source = ((resetCharsOffset - src->parsedToken.charsOffset ) << 24) | src->parsedToken.charsOffset;
-      *expandNext = ((src->parsedToken.charsLen + src->parsedToken.charsOffset - resetCharsOffset)<<24) | (resetCharsOffset);
-    } else {
-      *expandNext = 0;
-    }
-  }
-
-  src->resultLen++;
-  uhash_put(src->tailored, sourceToken, sourceToken, status);
-
-  return sourceToken;
-}
-
 static
-inline UColToken *getVirginBefore(UColTokenParser *src, UColToken *sourceToken, uint8_t strength, UParseError *parseError, UErrorCode *status) {
+inline UColToken *getVirginBefore(UColTokenParser *src, UColToken *sourceToken, uint32_t strength, uint32_t *charsOffset, uint32_t *newCharsLen, UErrorCode *status) {
   if(U_FAILURE(*status)) {
     return NULL;
   }
@@ -1007,7 +755,7 @@ inline UColToken *getVirginBefore(UColTokenParser *src, UColToken *sourceToken, 
   if(sourceToken != NULL) {
     init_collIterate(src->UCA, src->source+((sourceToken->source)&0xFFFFFF), 1, &s); 
   } else {
-    init_collIterate(src->UCA, src->source+src->parsedToken.charsOffset /**charsOffset*/, 1, &s); 
+    init_collIterate(src->UCA, src->source+*charsOffset, 1, &s); 
   }
 
   baseCE = ucol_getNextCE(src->UCA, &s, status) & 0xFFFFFF3F;
@@ -1027,8 +775,8 @@ inline UColToken *getVirginBefore(UColTokenParser *src, UColToken *sourceToken, 
     ch = conts[offset];
   }      
   *src->extraCurrent++ = (UChar)ch;        
-  src->parsedToken.charsOffset = src->extraCurrent - src->source - 1;
-  src->parsedToken.charsLen = 1;
+  *charsOffset = src->extraCurrent - src->source - 1;
+  *newCharsLen = 1;
 
   // We got an UCA before. However, this might have been tailored.
   // example:
@@ -1038,66 +786,61 @@ inline UColToken *getVirginBefore(UColTokenParser *src, UColToken *sourceToken, 
   
   // uint32_t key = (*newCharsLen << 24) | *charsOffset;
   UColToken key;
-  uint32_t expandNext = 0;
-  key.source = (src->parsedToken.charsLen/**newCharsLen*/ << 24) | src->parsedToken.charsOffset/**charsOffset*/;
+  key.source = (*newCharsLen << 24) | *charsOffset;
   key.rulesToParse = src->source;
 
   //sourceToken = (UColToken *)uhash_iget(src->tailored, (int32_t)key);
   sourceToken = (UColToken *)uhash_get(src->tailored, &key);
-  
-  // if we found a tailored thing, we have to use the UCA value and construct 
-  // a new reset token with constructed name
-  if(sourceToken != NULL && sourceToken->strength != UCOL_TOK_RESET) {
-    // character to which we want to anchor is already tailored. 
-    // We need to construct a new token which will be the anchor
-    // point
-    *(src->extraCurrent-1) = 0xFFFE;
-    *src->extraCurrent++ = (UChar)ch;
-    src->parsedToken.charsLen++;
-    src->lh[src->resultLen].baseCE = CE & 0xFFFFFF3F;
-    if(isContinuation(SecondCE)) {
-      src->lh[src->resultLen].baseContCE = SecondCE;
-    } else {
-      src->lh[src->resultLen].baseContCE = 0;
-    }
-    src->lh[src->resultLen].nextCE = 0;
-    src->lh[src->resultLen].nextContCE = 0;
-    src->lh[src->resultLen].previousCE = 0;
-    src->lh[src->resultLen].previousContCE = 0;
-
-    src->lh[src->resultLen].indirect = FALSE;
-
-    sourceToken = ucol_tok_initAReset(src, 0, &expandNext, parseError, status);   
-  }
-
   return sourceToken;
+  
+  // if we found a tailored thing, we have to get one further down the line
+  //if(sourceToken != NULL && sourceToken->strength != UCOL_TOK_RESET) {
+    //src->extraCurrent--;
+    //getVirginBefore(src, sourceToken, strength, charsOffset, newCharsLen, status);
+  //}
+
 
 }
 
-uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseError, UErrorCode *status) {
+/*
+Processing Description
+  1 Build a ListList. Each list has a header, which contains two lists (positive 
+  and negative), a reset token, a baseCE, nextCE, and previousCE. The lists and 
+  reset may be null. 
+  2 As you process, you keep a LAST pointer that points to the last token you 
+  handled. 
+*/
+
+uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseError,UErrorCode *status) {
   UColToken *lastToken = NULL;
   const UChar *parseEnd = NULL;
   uint32_t expandNext = 0;
   UBool variableTop = FALSE;
   UBool top = FALSE;
-  uint16_t specs = 0;
+  uint8_t specs = 0;
 
   UColTokListHeader *ListList = NULL;
 
-  src->parsedToken.strength = UCOL_TOK_UNSET; 
+  uint32_t newCharsLen = 0, charsOffset = 0;
+  uint32_t newExtensionsLen = 0, extensionOffset = 0;
+  uint32_t prefixLen = 0, prefixOffset = 0;
+  uint32_t newStrength = UCOL_TOK_UNSET; 
 
+  UHashtable *uchars2tokens = src->tailored;
   ListList = src->lh;
 
   while(src->current < src->end) {
-    src->parsedToken.prefixOffset = 0;
+    prefixOffset = 0; prefixLen = 0;
   
     parseEnd = ucol_tok_parseNextToken(src, 
+                        &newStrength, 
+                        &charsOffset, &newCharsLen, 
+                        &extensionOffset, &newExtensionsLen,
+                        &prefixOffset, &prefixLen,
+                        &specs,
                         (UBool)(lastToken == NULL),
                         parseError,
                         status);
-
-    specs = src->parsedToken.flags;
-
 
     variableTop = ((specs & UCOL_TOK_VARIABLE_TOP) != 0);
     top = ((specs & UCOL_TOK_TOP) != 0);
@@ -1113,13 +856,14 @@ uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseErro
 
       //key = newCharsLen << 24 | charsOffset;
       UColToken key;
-      key.source = src->parsedToken.charsLen << 24 | src->parsedToken.charsOffset;
+      key.source = newCharsLen << 24 | charsOffset;
       key.rulesToParse = src->source;
 
       /*  4 Lookup each source in the CharsToToken map, and find a sourceToken */
-      sourceToken = (UColToken *)uhash_get(src->tailored, &key);
+      //sourceToken = (UColToken *)uhash_iget(uchars2tokens, (int32_t)key);
+      sourceToken = (UColToken *)uhash_get(uchars2tokens, &key);
 
-      if(src->parsedToken.strength != UCOL_TOK_RESET) {
+      if(newStrength != UCOL_TOK_RESET) {
         if(lastToken == NULL) { /* this means that rules haven't started properly */
           *status = U_INVALID_FORMAT_ERROR;
           syntaxError(src->source,0,(src->end-src->source),parseError);
@@ -1130,19 +874,20 @@ uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseErro
           /* If sourceToken is null, create new one, */
           sourceToken = (UColToken *)uprv_malloc(sizeof(UColToken));
           sourceToken->rulesToParse = src->source;
-          sourceToken->source = src->parsedToken.charsLen << 24 | src->parsedToken.charsOffset;
+          sourceToken->source = newCharsLen << 24 | charsOffset;
 
-          sourceToken->debugSource = *(src->source + src->parsedToken.charsOffset);
+          sourceToken->debugSource = *(src->source + charsOffset);
 
-          sourceToken->prefix = src->parsedToken.prefixLen << 24 | src->parsedToken.prefixOffset;
-          sourceToken->debugPrefix = *(src->source + src->parsedToken.prefixOffset);
+          sourceToken->prefix = prefixLen << 24 | prefixOffset;
+          sourceToken->debugPrefix = *(src->source + prefixOffset);
 
           sourceToken->polarity = UCOL_TOK_POLARITY_POSITIVE; /* TODO: this should also handle reverse */
           sourceToken->next = NULL;
           sourceToken->previous = NULL;
           sourceToken->noOfCEs = 0;
           sourceToken->noOfExpCEs = 0;
-          uhash_put(src->tailored, sourceToken, sourceToken, status);
+          //uhash_iput(uchars2tokens, (int32_t)sourceToken->source, sourceToken, status);
+          uhash_put(uchars2tokens, sourceToken, sourceToken, status);
         } else {
           /* we could have fished out a reset here */
           if(sourceToken->strength != UCOL_TOK_RESET && lastToken != sourceToken) {
@@ -1166,11 +911,11 @@ uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseErro
           }
         }
 
-        sourceToken->strength = src->parsedToken.strength;
+        sourceToken->strength = newStrength;
         sourceToken->listHeader = lastToken->listHeader;
 
         /*
-        1.  Find the strongest strength in each list, and set strongestP and strongestN 
+        1.	Find the strongest strength in each list, and set strongestP and strongestN 
         accordingly in the headers. 
         */
         if(lastStrength == UCOL_TOK_RESET 
@@ -1253,7 +998,7 @@ uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseErro
        // (&abc * d * e <=> &ab * d / c * e / c) 
        // if both of them are in effect for a token, they are combined.
 
-        sourceToken->expansion = src->parsedToken.extensionLen << 24 | src->parsedToken.extensionOffset;
+        sourceToken->expansion = newExtensionsLen << 24 | extensionOffset;
 
         if(expandNext != 0) {
           if(sourceToken->strength == UCOL_PRIMARY) { /* primary strength kills off the implicit expansion */
@@ -1262,44 +1007,39 @@ uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseErro
             sourceToken->expansion = expandNext;
           } else { /* there is both explicit and implicit expansion. We need to make a combination */
             memcpy(src->extraCurrent, src->source + (expandNext & 0xFFFFFF), (expandNext >> 24)*sizeof(UChar));
-            memcpy(src->extraCurrent+(expandNext >> 24), src->source + src->parsedToken.extensionOffset, src->parsedToken.extensionLen*sizeof(UChar));
-            sourceToken->expansion = ((expandNext >> 24) + src->parsedToken.extensionLen)<<24 | (src->extraCurrent - src->source);
-            src->extraCurrent += (expandNext >> 24) + src->parsedToken.extensionLen;
+            memcpy(src->extraCurrent+(expandNext >> 24), src->source + extensionOffset, newExtensionsLen*sizeof(UChar));
+            sourceToken->expansion = ((expandNext >> 24) + newExtensionsLen)<<24 | (src->extraCurrent - src->source);
+            src->extraCurrent += (expandNext >> 24) + newExtensionsLen;
           }
         }
 
         // This is just for debugging purposes
         if(sourceToken->expansion != 0) {
-          sourceToken->debugExpansion = *(src->source + src->parsedToken.extensionOffset);
+          sourceToken->debugExpansion = *(src->source + extensionOffset);
         } else {
           sourceToken->debugExpansion = 0;
         }
       } else {
-        if(lastToken != NULL && lastStrength == UCOL_TOK_RESET) {
-          /* if the previous token was also a reset, */
-          /*this means that we have two consecutive resets */
-          /* and we want to remove the previous one if empty*/
-          if(ListList[src->resultLen-1].first == NULL) {
-            src->resultLen--;
-          }
-        }
-
         if(sourceToken == NULL) { /* this is a reset, but it might still be somewhere in the tailoring, in shorter form */
-          uint32_t searchCharsLen = src->parsedToken.charsLen;
+          uint32_t searchCharsLen = newCharsLen;
           while(searchCharsLen > 1 && sourceToken == NULL) {
             searchCharsLen--;
             //key = searchCharsLen << 24 | charsOffset;
+            //sourceToken = (UColToken *)uhash_iget(uchars2tokens, (int32_t)key);
             UColToken key;
-            key.source = searchCharsLen << 24 | src->parsedToken.charsOffset;
+            key.source = searchCharsLen << 24 | charsOffset;
             key.rulesToParse = src->source;
-            sourceToken = (UColToken *)uhash_get(src->tailored, &key);
+            sourceToken = (UColToken *)uhash_get(uchars2tokens, &key);
           }
           if(sourceToken != NULL) {
-            expandNext = (src->parsedToken.charsLen - searchCharsLen) << 24 | (src->parsedToken.charsOffset + searchCharsLen);
+            expandNext = (newCharsLen - searchCharsLen) << 24 | (charsOffset + searchCharsLen);
           }
         }
 
-        if((specs & UCOL_TOK_BEFORE) != 0 && top == FALSE) { /* we're doing before & there is no indirection */
+        uint32_t CE = UCOL_NOT_FOUND, SecondCE = UCOL_NOT_FOUND;
+        collIterate s;
+
+        if((specs & UCOL_TOK_BEFORE) != 0) { /* we're doing before */
           uint8_t strength = (specs & UCOL_TOK_BEFORE) - 1;
           if(sourceToken != NULL && sourceToken->strength != UCOL_TOK_RESET) { 
             /* this is a before that is already ordered in the UCA - so we need to get the previous with good strength */
@@ -1316,21 +1056,57 @@ uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseErro
             } else { /* we hit NULL */
               /* we should be doing the else part */
               sourceToken = sourceToken->listHeader->reset;
-              sourceToken = getVirginBefore(src, sourceToken, strength, parseError, status);
+              sourceToken = getVirginBefore(src, sourceToken, strength, &charsOffset, &newCharsLen, status);
               //sourceToken = NULL;
             }
           } else {
-            sourceToken = getVirginBefore(src, sourceToken, strength, parseError, status);
+            sourceToken = getVirginBefore(src, sourceToken, strength, &charsOffset, &newCharsLen, status);
             //sourceToken = NULL;
           }
         }
 
+
+        if(lastToken != NULL && lastStrength == UCOL_TOK_RESET) {
+          /* if the previous token was also a reset, */
+          /*this means that we have two consecutive resets */
+          /* and we want to remove the previous one if empty*/
+          if(ListList[src->resultLen-1].first == NULL) {
+            src->resultLen--;
+          }
+        }
 
       /*  5 If the relation is a reset: 
           If sourceToken is null 
             Create new list, create new sourceToken, make the baseCE from source, put 
             the sourceToken in ListHeader of the new list */
         if(sourceToken == NULL) {
+
+          /* do the reset thing */
+          sourceToken = (UColToken *)uprv_malloc(sizeof(UColToken));
+          sourceToken->rulesToParse = src->source;
+          sourceToken->source = newCharsLen << 24 | charsOffset;
+          sourceToken->expansion = newExtensionsLen << 24 | extensionOffset;
+          
+          sourceToken->debugSource = *(src->source + charsOffset);
+          sourceToken->debugExpansion = *(src->source + extensionOffset);
+
+          if(prefixOffset != 0) {
+            // this is a syntax error 
+            *status = U_INVALID_FORMAT_ERROR;
+            syntaxError(src->source,charsOffset-1,charsOffset+newCharsLen,parseError);
+            return 0;
+          } else {
+            sourceToken->prefix = 0;
+          }
+
+
+          sourceToken->polarity = UCOL_TOK_POLARITY_POSITIVE; /* TODO: this should also handle reverse */
+          sourceToken->strength = UCOL_TOK_RESET;
+          sourceToken->next = NULL;
+          sourceToken->previous = NULL;
+          sourceToken->noOfCEs = 0;
+          sourceToken->noOfExpCEs = 0;
+          sourceToken->listHeader = &ListList[src->resultLen];
           /*
             3 Consider each item: relation, source, and expansion: e.g. ...< x / y ... 
               First convert all expansions into normal form. Examples: 
@@ -1341,59 +1117,44 @@ uint32_t ucol_tok_assembleTokenList(UColTokenParser *src, UParseError *parseErro
                 earlier in the list. 
           */
           if(top == FALSE) {
-            collIterate s;
-            uint32_t CE = UCOL_NOT_FOUND, SecondCE = UCOL_NOT_FOUND;
+            uint32_t resetCharsOffset;
 
-            init_collIterate(src->UCA, src->source+src->parsedToken.charsOffset, src->parsedToken.charsLen, &s);
+            init_collIterate(src->UCA, src->source+charsOffset, newCharsLen, &s);
 
             CE = ucol_getNextCE(src->UCA, &s, status);
-            UChar *expand = s.pos;
-            SecondCE = ucol_getNextCE(src->UCA, &s, status);
+            resetCharsOffset = s.pos - src->source;
 
+            SecondCE = ucol_getNextCE(src->UCA, &s, status);
+    
             ListList[src->resultLen].baseCE = CE & 0xFFFFFF3F;
             if(isContinuation(SecondCE)) {
               ListList[src->resultLen].baseContCE = SecondCE;
             } else {
               ListList[src->resultLen].baseContCE = 0;
             }
-            ListList[src->resultLen].nextCE = 0;
-            ListList[src->resultLen].nextContCE = 0;
-            ListList[src->resultLen].previousCE = 0;
-            ListList[src->resultLen].previousContCE = 0;
-            ListList[src->resultLen].indirect = FALSE;
-            sourceToken = ucol_tok_initAReset(src, expand, &expandNext, parseError, status);
+            if(newCharsLen > 1) {
+              sourceToken->source = ((resetCharsOffset - charsOffset ) << 24) | charsOffset;
+              expandNext = ((newCharsLen + charsOffset - resetCharsOffset)<<24) | (resetCharsOffset);
+            } else {
+              expandNext = 0;
+            }
           } else { /* top == TRUE */
             top = FALSE;
-            ListList[src->resultLen].previousCE = 0;
-            ListList[src->resultLen].previousContCE = 0;
-            ListList[src->resultLen].indirect = TRUE;
-            if((specs & UCOL_TOK_BEFORE) == 0) { /* indirect without before */
-              /* just use the supplied values */
-              ListList[src->resultLen].baseCE = ucolIndirectBoundaries[src->parsedToken.indirectIndex].startCE;
-              ListList[src->resultLen].baseContCE = ucolIndirectBoundaries[src->parsedToken.indirectIndex].startContCE;
-              ListList[src->resultLen].nextCE = ucolIndirectBoundaries[src->parsedToken.indirectIndex].limitCE;
-              ListList[src->resultLen].nextContCE = ucolIndirectBoundaries[src->parsedToken.indirectIndex].limitContCE;
-            } else { /* there was a before */
-              /* we need to do slightly more work. we need to get the baseCE using the */
-              /* inverse UCA & getPrevious. The next bound is not set, and will be decided */
-              /* in ucol_bld */
-              uint8_t strength = (specs & UCOL_TOK_BEFORE) - 1;
-              uint32_t baseCE = ucolIndirectBoundaries[src->parsedToken.indirectIndex].startCE;
-              uint32_t baseContCE = ucolIndirectBoundaries[src->parsedToken.indirectIndex].startContCE;//&0xFFFFFF3F;
-              uint32_t CE = UCOL_NOT_FOUND, SecondCE = UCOL_NOT_FOUND;
-
-              /*int32_t invPos = ucol_inv_getPrevCE(baseCE, baseContCE, &CE, &SecondCE, strength);*/
-              ucol_inv_getPrevCE(baseCE, baseContCE, &CE, &SecondCE, strength);
-
-              ListList[src->resultLen].baseCE = CE;
-              ListList[src->resultLen].baseContCE = SecondCE;
-              ListList[src->resultLen].nextCE = 0;
-              ListList[src->resultLen].nextContCE = 0;
-            }
-
-            sourceToken = ucol_tok_initAReset(src, 0, &expandNext, parseError, status);
-
+            ListList[src->resultLen].baseCE = UCOL_RESET_TOP_VALUE;
+            ListList[src->resultLen].baseContCE = 0;
           }
+
+
+          ListList[src->resultLen].first = NULL;
+          ListList[src->resultLen].last = NULL;
+          ListList[src->resultLen].first = NULL;
+          ListList[src->resultLen].last = NULL;
+
+          ListList[src->resultLen].reset = sourceToken;
+
+          src->resultLen++;
+          //uhash_iput(uchars2tokens, (int32_t)sourceToken->source, sourceToken, status);
+          uhash_put(uchars2tokens, sourceToken, sourceToken, status);
         } else { /* reset to something already in rules */
           top = FALSE;
         }

@@ -12,7 +12,7 @@
 
 #include <unicode/umachine.h>
 
-#if !defined(WIN32) && !defined(XP_MAC) && !defined(U_RHAPSODY)
+#if !defined(WIN32) && !defined(XP_MAC) && !defined(U_DARWIN)
 #define POSIX 1
 #endif
 
@@ -121,13 +121,6 @@ void MultithreadTest::runIndexedTest( int32_t index, UBool exec,
 #ifdef WIN32
 #define HAVE_IMP
 
-#   define VC_EXTRALEAN
-#   define WIN32_LEAN_AND_MEAN
-#   define NOGDI
-#   define NOUSER
-#   define NOSERVICE
-#   define NOIME
-#   define NOMCX
 #include <windows.h>
 
 struct Win32ThreadImplementation

@@ -77,14 +77,11 @@
  *
  */
 
-static const char DATA_NAME[] = "cnvalias";
-static const char DATA_TYPE[] = "dat";
+#define DATA_NAME "cnvalias"
+#define DATA_TYPE "dat"
 
 static UDataMemory *aliasData=NULL;
 static const uint16_t *aliasTable=NULL;
-
-static const char **availableConverters = NULL;
-static uint16_t availableConverterCount = 0;
 
 static const uint16_t *converterTable = NULL;
 static const uint16_t *tagTable = NULL;
@@ -170,14 +167,7 @@ ucnv_io_cleanup()
 {
     if (aliasData) {
         udata_close(aliasData);
-        aliasData = NULL;
     }
-
-    if (availableConverters) {
-        uprv_free((char **)availableConverters);
-        availableConverters = NULL;
-    }
-    availableConverterCount = 0;
 
     aliasData = NULL;
     aliasTable = NULL;
@@ -406,42 +396,10 @@ ucnv_getStandardName(const char *alias, const char *standard, UErrorCode *pError
    return NULL;
 }
 
-static void ucnv_io_loadAvailableConverterList(void) {
-    uint16_t idx = 0;
-    uint16_t localConverterCount = 0;
-    UErrorCode status;
-    char *converterName;
-
-    /* We can't have more than "*converterTable" converters to open */
-    char **localConverterList = (char **) uprv_malloc(*converterTable * sizeof(char*));
-
-    for (; idx < *converterTable; idx++) {
-        status = U_ZERO_ERROR;
-        converterName = (char *)aliasTable+converterTable[1+2*idx];
-        ucnv_close(ucnv_open(converterName, &status));
-        if (U_SUCCESS(status)) {
-            localConverterList[localConverterCount++] = converterName;
-        }
-    }
-
-    umtx_lock(NULL);
-    if (availableConverters == NULL) {
-        availableConverters = localConverterList;
-        availableConverterCount = localConverterCount;
-    }
-    else {
-        uprv_free(localConverterList);
-    }
-    umtx_unlock(NULL);
-}
-
 U_CFUNC uint16_t
 ucnv_io_countAvailableConverters(UErrorCode *pErrorCode) {
     if(haveAliasData(pErrorCode)) {
-        if (availableConverters == NULL) {
-            ucnv_io_loadAvailableConverterList();
-        }
-        return availableConverterCount;
+        return *converterTable;
     }
     return 0;
 }
@@ -449,11 +407,9 @@ ucnv_io_countAvailableConverters(UErrorCode *pErrorCode) {
 U_CFUNC const char *
 ucnv_io_getAvailableConverter(uint16_t n, UErrorCode *pErrorCode) {
     if(haveAliasData(pErrorCode)) {
-        if (availableConverters == NULL) {
-            ucnv_io_loadAvailableConverterList();
-        }
-        if(n < availableConverterCount) {
-            return availableConverters[n];
+        const uint16_t *p=converterTable;
+        if(n<*p) {
+            return (const char *)aliasTable+p[1+2*n];
         }
     }
     return NULL;

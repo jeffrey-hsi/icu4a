@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2002, International Business Machines
+*   Copyright (C) 1999-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -18,7 +18,6 @@
 #define __GENPROPS_H__
 
 #include "unicode/utypes.h"
-#include "utrie.h"
 
 /* file definitions */
 #define DATA_NAME "uprops"
@@ -41,9 +40,10 @@ typedef struct {
 /* character properties */
 typedef struct {
     uint32_t code, lowerCase, upperCase, titleCase, mirrorMapping;
-    int32_t numericValue; /* see numericType */
+    int16_t decimalDigitValue, digitValue; /* -1: no value */
+    int32_t numericValue; /* see hasNumericValue */
     uint32_t denominator; /* 0: no value */
-    uint8_t generalCategory, bidi, isMirrored, numericType;
+    uint8_t generalCategory, canonicalCombining, bidi, isMirrored, hasNumericValue;
     SpecialCasing *specialCasing;
     CaseFolding *caseFolding;
 } Props;
@@ -59,12 +59,6 @@ extern const char *const
 genCategoryNames[];
 
 /* prototypes */
-U_CFUNC void
-writeUCDFilename(char *basename, const char *filename, const char *suffix);
-
-U_CFUNC int32_t
-getTokenIndex(const char *const tokens[], int32_t countTokens, const char *s);
-
 extern void
 setUnicodeVersion(const char *v);
 
@@ -80,24 +74,17 @@ addProps(uint32_t c, uint32_t props);
 extern void
 repeatProps(uint32_t first, uint32_t last, uint32_t props);
 
-U_CAPI uint32_t U_EXPORT2
-getFoldedPropsValue(UNewTrie *trie, UChar32 start, int32_t offset);
+extern void
+compactStage2(void);
+
+extern void
+compactStage3(void);
+
+extern void
+compactProps(void);
 
 extern void
 generateData(const char *dataDir);
-
-/* props2.c */
-U_CFUNC void
-initAdditionalProperties(void);
-
-U_CFUNC void
-setMainProperties(uint32_t start, uint32_t limit, uint32_t value);
-
-U_CFUNC void
-generateAdditionalProperties(char *filename, const char *suffix, UErrorCode *pErrorCode);
-
-U_CFUNC int32_t
-writeAdditionalData(uint8_t *p, int32_t capacity, int32_t indexes[16]);
 
 #endif
 

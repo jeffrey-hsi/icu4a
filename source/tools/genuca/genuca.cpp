@@ -28,7 +28,11 @@
 #include "toolutil.h"
 #include "cstring.h"
 
-#include "cmemory.h"
+#include <stdlib.h>
+
+#ifdef XP_MAC_CONSOLE
+#include <console.h>
+#endif
 
 UCAElements le;
 
@@ -253,7 +257,7 @@ static InverseTableHeader *assembleInverseTable(UErrorCode *status)
   uint32_t contsByteSize = sContPos * sizeof(UChar);
   uint32_t i = 0;
 
-  result = (InverseTableHeader *)uprv_malloc(headerByteSize + inverseTableByteSize + contsByteSize);
+  result = (InverseTableHeader *)malloc(headerByteSize + inverseTableByteSize + contsByteSize);
   if(result != NULL) {
     result->byteSize = headerByteSize + inverseTableByteSize + contsByteSize;
 
@@ -307,11 +311,9 @@ static void writeOutInverseData(InverseTableHeader *data,
     }
 
     /* write the data to the file */
-    if (VERBOSE) {
-        fprintf(stdout, "Writing out inverse UCA table: %s%c%s.%s\n", outputDir, U_FILE_SEP_CHAR,
+    fprintf(stdout, "Writing out inverse UCA table: %s%s.%s\n", outputDir,
                                                                 INVC_DATA_NAME,
                                                                 INVC_DATA_TYPE);
-    }
     udata_writeBlock(pData, data, data->byteSize);
 
     /* finish up */
@@ -367,20 +369,20 @@ UCAElements *readAnElement(FILE *data, UErrorCode *status) {
     UCAElements *element = &le; //(UCAElements *)malloc(sizeof(UCAElements));
 
     if(buffer[0] == '[') {
-        const char *vt = "[variable top = ";
-        uint32_t vtLen = (uint32_t)uprv_strlen(vt);
-        if(uprv_strncmp(buffer, vt, vtLen) == 0) {
-            element->variableTop = TRUE;
-            if(sscanf(buffer+vtLen, "%4x", &theValue) != 1) /* read first code point */
-            {
-                fprintf(stderr, " scanf(hex) failed!\n ");
-            }
-            element->cPoints[0] = (UChar)theValue;
-            return element; // just a comment, skip whole line
-        } else {
-            *status = U_INVALID_FORMAT_ERROR;
-            return NULL;
+      const char *vt = "[variable top = ";
+      uint32_t vtLen = uprv_strlen(vt);
+      if(uprv_strncmp(buffer, vt, vtLen) == 0) {
+        element->variableTop = TRUE;
+        if(sscanf(buffer+vtLen, "%04X", &theValue) != 1) /* read first code point */
+        {
+          fprintf(stderr, " scanf(hex) failed!\n ");
         }
+        element->cPoints[0] = (UChar)theValue;
+        return element; // just a comment, skip whole line
+      } else {
+        *status = U_INVALID_FORMAT_ERROR;
+        return NULL;
+      }
     }
     element->variableTop = FALSE;
 
@@ -405,7 +407,7 @@ UCAElements *readAnElement(FILE *data, UErrorCode *status) {
     element->cPoints = element->uchars;
 
     spacePointer = strchr(buffer, ' ');
-    if(sscanf(buffer, "%4x", &theValue) != 1) /* read first code point */
+    if(sscanf(buffer, "%04X", &theValue) != 1) /* read first code point */
     {
       fprintf(stderr, " scanf(hex) failed!\n ");
     }
@@ -418,7 +420,7 @@ UCAElements *readAnElement(FILE *data, UErrorCode *status) {
         i = 1;
         detectedContraction = TRUE;
         while(spacePointer != NULL) {
-            sscanf(spacePointer+1, "%4x", &theValue);
+            sscanf(spacePointer+1, "%04X", &theValue);
             element->cPoints[i++] = (UChar)theValue;
             spacePointer = strchr(spacePointer+1, ' ');
         }
@@ -545,12 +547,9 @@ void writeOutData(UCATableHeader *data,
     }
 
     /* write the data to the file */
-    if (VERBOSE) {
-        fprintf(stdout, "Writing out UCA table: %s%c%s.%s\n", outputDir,
-                                                        U_FILE_SEP_CHAR,
+    fprintf(stdout, "Writing out UCA table: %s%s.%s\n", outputDir,
                                                         UCA_DATA_NAME,
                                                         UCA_DATA_TYPE);
-    }
     udata_writeBlock(pData, data, size);
 
     if(noOfcontractions != 0) {
@@ -621,7 +620,6 @@ struct {
       int32_t value;
     } ranges[] =
     {
-#if 0
       {0xAC00, 0xD7AF, UCOL_SPECIAL_FLAG | (HANGUL_SYLLABLE_TAG << 24) },  //0 HANGUL_SYLLABLE_TAG,/* AC00-D7AF*/
       {0xD800, 0xDBFF, UCOL_SPECIAL_FLAG | (LEAD_SURROGATE_TAG << 24)  },  //1 LEAD_SURROGATE_TAG,  /* D800-DBFF*/
       {0xDC00, 0xDFFF, UCOL_SPECIAL_FLAG | (TRAIL_SURROGATE_TAG << 24) },  //2 TRAIL_SURROGATE DC00-DFFF
@@ -630,29 +628,32 @@ struct {
       {0xF900, 0xFA2D, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)    },  //5 CJK_IMPLICIT_TAG,   /* 0xF900-0xFA2D*/
       {0x20000, 0x2A6D6, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)  },  //6 CJK_IMPLICIT_TAG,   /* 0x20000-0x2A6D6*/
       {0x2F800, 0x2FA1D, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)  },  //7 CJK_IMPLICIT_TAG,   /* 0x2F800-0x2FA1D*/
-#endif
-      {0xAC00, 0xD7B0, UCOL_SPECIAL_FLAG | (HANGUL_SYLLABLE_TAG << 24) },  //0 HANGUL_SYLLABLE_TAG,/* AC00-D7AF*/
-      {0xD800, 0xDC00, UCOL_SPECIAL_FLAG | (LEAD_SURROGATE_TAG << 24)  },  //1 LEAD_SURROGATE_TAG,  /* D800-DBFF*/
-      {0xDC00, 0xE000, UCOL_SPECIAL_FLAG | (TRAIL_SURROGATE_TAG << 24) },  //2 TRAIL_SURROGATE DC00-DFFF
-      {0x3400, 0x4DB6, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)    },  //3 CJK_IMPLICIT_TAG,   /* 0x3400-0x4DB5*/
-      {0x4E00, 0x9FA6, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)    },  //4 CJK_IMPLICIT_TAG,   /* 0x4E00-0x9FA5*/
-      {0xF900, 0xFA2E, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)    },  //5 CJK_IMPLICIT_TAG,   /* 0xF900-0xFA2D*/
-      //{0x20000, 0x2A6D7, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)  },  //6 CJK_IMPLICIT_TAG,   /* 0x20000-0x2A6D6*/
-      //{0x2F800, 0x2FA1E, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24)  },  //7 CJK_IMPLICIT_TAG,   /* 0x2F800-0x2FA1D*/
     };
     uint32_t i = 0;
 
     for(i = 0; i<sizeof(ranges)/sizeof(ranges[0]); i++) {
-      /*ucmpe32_setRange32(t->mapping, ranges[i].start, ranges[i].end, ranges[i].value); */
-      utrie_setRange32(t->mapping, ranges[i].start, ranges[i].end, ranges[i].value, TRUE);
+      ucmpe32_setRange32(t->mapping, ranges[i].start, ranges[i].end, ranges[i].value); 
     }
 
 
-    int32_t surrogateCount = 0;
+#if 0
+    uprv_uca_setRange(t, 0xAC00, 0xD7AF, UCOL_SPECIAL_FLAG | (HANGUL_SYLLABLE_TAG << 24), status);  // HANGUL_SYLLABLE_TAG,/* AC00-D7AF*/
+    uprv_uca_setRange(t, 0xD800, 0xDBFF, UCOL_SPECIAL_FLAG | (LEAD_SURROGATE_TAG << 24), status);  // LEAD_SURROGATE_TAG,  /* D800-DBFF*/
+    uprv_uca_setRange(t, 0xDC00, 0xDFFF, UCOL_SPECIAL_FLAG | (TRAIL_SURROGATE_TAG << 24), status);  // TRAIL_SURROGATE DC00-DFFF
+    uprv_uca_setRange(t, 0x3400, 0x4DB5, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24), status);  // CJK_IMPLICIT_TAG,   /* 0x3400-0x4DB5*/
+    uprv_uca_setRange(t, 0x4E00, 0x9FA5, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24), status);  // CJK_IMPLICIT_TAG,   /* 0x4E00-0x9FA5*/
+    uprv_uca_setRange(t, 0xF900, 0xFA2D, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24), status);  // CJK_IMPLICIT_TAG,   /* 0xF900-0xFA2D*/
+    uprv_uca_setRange(t, 0x2F800, 0x2FA1D, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24), status);  // CJK_IMPLICIT_TAG,   /* 0xF900-0xFA2D*/
+    uprv_uca_setRange(t, 0x20000, 0x2A6D6, UCOL_SPECIAL_FLAG | (CJK_IMPLICIT_TAG << 24), status);  // CJK_IMPLICIT_TAG,   /* 0xF900-0xFA2D*/
+#endif
+
+
+
+  int32_t surrogateCount = 0;
     while(!feof(data)) {
         if(U_FAILURE(*status)) {
-            fprintf(stderr, "Something returned an error %i (%s) while processing line %i of %s. Exiting...\n",
-                *status, u_errorName(*status), line, filename);
+            fprintf(stderr, "Something returned an error %i (%s) while processing line: %i\nExiting...",
+                *status, u_errorName(*status), line);
             exit(*status);
         }
 
@@ -692,7 +693,7 @@ struct {
         fprintf(stdout, "\nLines read: %i\n", line);
         fprintf(stdout, "Surrogate count: %i\n", surrogateCount);
         fprintf(stdout, "Raw data breakdown:\n");
-        /*fprintf(stdout, "Compact array stage1 top: %i, stage2 top: %i\n", t->mapping->stage1Top, t->mapping->stage2Top);*/
+        fprintf(stdout, "Compact array stage1 top: %i, stage2 top: %i\n", t->mapping->stage1Top, t->mapping->stage2Top);
         fprintf(stdout, "Number of contractions: %i\n", noOfContractions);
         fprintf(stdout, "Contraction image size: %i\n", t->image->contractionSize);
         fprintf(stdout, "Expansions size: %i\n", t->expansions->position);
@@ -703,7 +704,7 @@ struct {
 
     if (VERBOSE) {
         fprintf(stdout, "Compacted data breakdown:\n");
-        /*fprintf(stdout, "Compact array stage1 top: %i, stage2 top: %i\n", t->mapping->stage1Top, t->mapping->stage2Top);*/
+        fprintf(stdout, "Compact array stage1 top: %i, stage2 top: %i\n", t->mapping->stage1Top, t->mapping->stage2Top);
         fprintf(stdout, "Number of contractions: %i\n", noOfContractions);
         fprintf(stdout, "Contraction image size: %i\n", t->image->contractionSize);
         fprintf(stdout, "Expansions size: %i\n", t->expansions->position);
@@ -723,7 +724,7 @@ struct {
     uprv_free(inverse);
     fclose(data);
 
-    return 0;
+	return 0;
 }
 
 static UOption options[]={
@@ -733,8 +734,7 @@ static UOption options[]={
     UOPTION_VERSION,             /* 3 */
     UOPTION_DESTDIR,             /* 4 */
     UOPTION_SOURCEDIR,           /* 5 */
-    UOPTION_VERBOSE,             /* 6 */
-    UOPTION_ICUDATADIR           /* 7 */
+    UOPTION_VERBOSE              /* 6 */
     /* weiv can't count :))))) */
 };
 
@@ -746,7 +746,9 @@ int main(int argc, char* argv[]) {
     char *basename = NULL;
     const char *copyright = NULL;
 
-    U_MAIN_INIT_ARGS(argc, argv);
+#ifdef XP_MAC_CONSOLE
+    argc = ccommand((char***)&argv);
+#endif
 
     /* preset then read command line options */
     options[4].value=u_getDataDirectory();
@@ -765,16 +767,14 @@ int main(int argc, char* argv[]) {
         fprintf(stderr,
             "usage: %s [-options] file\n"
             "\tRead in UCA collation text data and write out the binary collation data\n"
-            "options:\n"
-            "\t-h or -? or --help  this usage text\n"
-            "\t-V or --version     show a version message\n"
-            "\t-c or --copyright   include a copyright notice\n"
-            "\t-d or --destdir     destination directory, followed by the path\n"
-            "\t-s or --sourcedir   source directory, followed by the path\n"
-            "\t-v or --verbose     turn on verbose output\n"
-            "\t-i or --icudatadir  directory for locating any needed intermediate data files,\n"
-            "\t                    followed by path, defaults to %s\n",
-            argv[0], u_getDataDirectory());
+            "\toptions:\n"
+            "\t\t-h or -? or --help  this usage text\n"
+            "\t\t-V or --version     show a version message\n"
+            "\t\t-c or --copyright   include a copyright notice\n"
+            "\t\t-d or --destdir     destination directory, followed by the path\n"
+            "\t\t-s or --sourcedir   source directory, followed by the path\n"
+            "\t\t-v or --verbose     Turn on verbose output\n",
+            argv[0]);
         return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
@@ -795,16 +795,12 @@ int main(int argc, char* argv[]) {
         copyright = U_COPYRIGHT_STRING;
     }
 
-    if (options[7].doesOccur) {
-        u_setDataDirectory(options[7].value);
-    }
-
     /* prepare the filename beginning with the source dir */
     uprv_strcpy(filename, srcDir);
     basename=filename+uprv_strlen(filename);
 
     if(basename>filename && *(basename-1)!=U_FILE_SEP_CHAR) {
-        *basename++ = U_FILE_SEP_CHAR;
+        *basename++=U_FILE_SEP_CHAR;
     }
 
     if(argc < 0) { 

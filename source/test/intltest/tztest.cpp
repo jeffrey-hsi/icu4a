@@ -11,6 +11,13 @@
 #include "unicode/resbund.h"
 #include "tztest.h"
 
+#define CHECK_HEAP 0
+
+#if defined(_WIN32) && !defined(__WINDOWS__)
+#define _CRTDBG_MAP_ALLOC
+#include <crtdbg.h>
+#endif
+
 #define CASE(id,test) case id:                               \
                           name = #test;                      \
                           if (exec) {                        \
@@ -281,6 +288,25 @@ TimeZoneTest::TestVariousAPI518()
 void
 TimeZoneTest::TestGetAvailableIDs913()
 {
+#if defined(_WIN32) && !defined(__WINDOWS__)
+#if defined(WIN32) && defined(_DEBUG) && CHECK_HEAP
+    /*
+     * Set the debug-heap flag to keep freed blocks in the
+     * heap's linked list - This will allow us to catch any
+     * inadvertent use of freed memory
+     */
+    int32_t tmpDbgFlag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+    tmpDbgFlag |= _CRTDBG_DELAY_FREE_MEM_DF;
+    tmpDbgFlag |= _CRTDBG_LEAK_CHECK_DF;
+    tmpDbgFlag |= _CRTDBG_CHECK_ALWAYS_DF;
+    _CrtSetDbgFlag(tmpDbgFlag);
+
+    _CrtMemState memstate;
+    _CrtMemCheckpoint(&memstate);
+    {
+#endif
+#endif
+
     UnicodeString str;
     UnicodeString *buf = new UnicodeString("TimeZone.getAvailableIDs() = { ");
     int32_t s_length;
@@ -883,7 +909,7 @@ TimeZoneTest::TestDSTSavings()
         errln(UnicodeString("The offset for 10 AM, 6/1/98 should have been -4.5 hours, but we got ")
               + (offset / U_MILLIS_PER_HOUR) + " hours.");
 
-    tz->setDSTSavings(U_MILLIS_PER_HOUR, status);
+    tz->setDSTSavings(U_MILLIS_PER_HOUR);
     offset = tz->getOffset(GregorianCalendar::AD, 1998, Calendar::JANUARY, 1,
                           Calendar::THURSDAY, 10 * U_MILLIS_PER_HOUR);
     if (offset != -5 * U_MILLIS_PER_HOUR)

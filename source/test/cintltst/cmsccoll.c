@@ -169,7 +169,7 @@ const static char cnt2[][10] = {
   "DAVI"
 };
 
-static void IncompleteCntTest(void)
+static void IncompleteCntTest( )
 {
   UErrorCode status = U_ZERO_ERROR;
   UChar temp[90];
@@ -272,7 +272,7 @@ const static char nonignorable[][20] = {
   "blackbirds"
 };
 
-static void BlackBirdTest(void) {
+static void BlackBirdTest( ) {
   UErrorCode status = U_ZERO_ERROR;
   UChar t1[90];
   UChar t2[90];
@@ -348,7 +348,7 @@ const static UCollationResult results[] = {
     UCOL_EQUAL
 };
 
-static void FunkyATest(void)
+static void FunkyATest( )
 {
 
     int32_t i;
@@ -421,7 +421,7 @@ static const char * caseLevelC[] = {
 };
 
 /* not used currently - does not test only prints */
-static void PrintMarkDavis(void)
+static void PrintMarkDavis( )
 {
   UErrorCode status = U_ZERO_ERROR;
   UChar m[256];
@@ -472,7 +472,7 @@ static void PrintMarkDavis(void)
 }
 #endif
 
-static void BillFairmanTest(void) {
+static void BillFairmanTest( ) {
 /*
 ** check for actual locale via ICU resource bundles
 **
@@ -629,7 +629,7 @@ static void testCollator(UCollator *coll, UErrorCode *status) {
 /*  uint32_t rExpsLen = 0; */
   uint32_t firstLen = 0;
   UBool varT = FALSE; UBool top_ = TRUE;
-  uint16_t specs = 0;
+  uint8_t specs = 0;
   UBool startOfRules = TRUE;
   UBool lastReset = FALSE;
   UBool before = FALSE;
@@ -654,22 +654,13 @@ static void testCollator(UCollator *coll, UErrorCode *status) {
     src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
     *first = *second = 0;
 
-    while ((current = ucol_tok_parseNextToken(&src, startOfRules,&parseError, status)) != NULL) {
-      strength = src.parsedToken.strength;
-      chOffset = src.parsedToken.charsOffset;
-      chLen = src.parsedToken.charsLen;
-      exOffset = src.parsedToken.extensionOffset;
-      exLen = src.parsedToken.extensionLen;
-      prefixOffset = src.parsedToken.prefixOffset;
-      prefixLen = src.parsedToken.prefixLen;
-      specs = src.parsedToken.flags;
-
+    while ((current = ucol_tok_parseNextToken(&src, &strength,
+                      &chOffset, &chLen, &exOffset, &exLen,
+                      &prefixOffset, &prefixLen,
+                      &specs, startOfRules,&parseError, status)) != NULL) {
       startOfRules = FALSE;
       varT = (UBool)((specs & UCOL_TOK_VARIABLE_TOP) != 0);
       top_ = (UBool)((specs & UCOL_TOK_TOP) != 0);
-      if(top_) { /* if reset is on top, we should just continue */
-        continue;
-      }
       u_strncpy(second,rulesCopy+chOffset, chLen);
       second[chLen] = 0;
 
@@ -991,7 +982,7 @@ static void testAgainstUCA(UCollator *coll, UCollator *UCA, const char *refName,
 /*  uint32_t rExpsLen = 0; */
   uint32_t firstLen = 0, secondLen = 0;
   UBool varT = FALSE; UBool top_ = TRUE;
-  uint16_t specs = 0;
+  uint8_t specs = 0;
   UBool startOfRules = TRUE;
   UColTokenParser src;
   UColOptionSet opts;
@@ -1019,16 +1010,10 @@ static void testAgainstUCA(UCollator *coll, UCollator *UCA, const char *refName,
     src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
     *first = *second = 0;
 
-    while ((current = ucol_tok_parseNextToken(&src, startOfRules, &parseError,status)) != NULL) {
-      strength = src.parsedToken.strength;
-      chOffset = src.parsedToken.charsOffset;
-      chLen = src.parsedToken.charsLen;
-      exOffset = src.parsedToken.extensionOffset;
-      exLen = src.parsedToken.extensionLen;
-      prefixOffset = src.parsedToken.prefixOffset;
-      prefixLen = src.parsedToken.prefixLen;
-      specs = src.parsedToken.flags;
-
+    while ((current = ucol_tok_parseNextToken(&src, &strength,
+                      &chOffset, &chLen, &exOffset, &exLen,
+                      &prefixOffset, &prefixLen,
+                      &specs, startOfRules, &parseError,status)) != NULL) {
       startOfRules = FALSE;
       varT = (UBool)((specs & UCOL_TOK_VARIABLE_TOP) != 0);
       top_ = (UBool)((specs & UCOL_TOK_TOP) != 0);
@@ -1087,7 +1072,7 @@ static void testCEs(UCollator *coll, UErrorCode *status) {
 
   /* uint32_t rExpsLen = 0; */
   /* uint32_t firstLen = 0; */
-  uint16_t specs = 0;
+  uint8_t specs = 0;
   UBool varT = FALSE; UBool top_ = TRUE;
   UBool startOfRules = TRUE;
   UColTokenParser src;
@@ -1112,16 +1097,10 @@ static void testCEs(UCollator *coll, UErrorCode *status) {
     src.extraCurrent = src.end;
     src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
 
-    while ((current = ucol_tok_parseNextToken(&src, startOfRules, &parseError,status)) != NULL) {
-      strength = src.parsedToken.strength;
-      chOffset = src.parsedToken.charsOffset;
-      chLen = src.parsedToken.charsLen;
-      exOffset = src.parsedToken.extensionOffset;
-      exLen = src.parsedToken.extensionLen;
-      prefixOffset = src.parsedToken.prefixOffset;
-      prefixLen = src.parsedToken.prefixLen;
-      specs = src.parsedToken.flags;
-
+    while ((current = ucol_tok_parseNextToken(&src, &strength,
+                      &chOffset, &chLen, &exOffset, &exLen,
+                      &prefixOffset, &prefixLen,
+                      &specs, startOfRules, &parseError,status)) != NULL) {
       startOfRules = FALSE;
       varT = (UBool)((specs & UCOL_TOK_VARIABLE_TOP) != 0);
       top_ = (UBool)((specs & UCOL_TOK_TOP) != 0);
@@ -1250,7 +1229,7 @@ static UBool hasCollationElements(const char *locName) {
 }
 
 
-static void TestCollations(void) {
+static void TestCollations( ) {
   int32_t noOfLoc = uloc_countAvailable();
   int32_t i = 0, j = 0;
 
@@ -1289,7 +1268,7 @@ static void TestCollations(void) {
   ucol_close(UCA);
 }
 
-static void RamsRulesTest(void) {
+static void RamsRulesTest( ) {
   UErrorCode status = U_ZERO_ERROR;
   int32_t i = 0;
   UCollator *coll = NULL;
@@ -1337,7 +1316,7 @@ static void RamsRulesTest(void) {
 
 }
 
-static void IsTailoredTest(void) {
+static void IsTailoredTest( ) {
   UErrorCode status = U_ZERO_ERROR;
   uint32_t i = 0;
   UCollator *coll = NULL;
@@ -1704,7 +1683,7 @@ static void TestComposeDecompose(void) {
     uprv_free(t);
 }
 
-static void TestEmptyRule(void) {
+static void TestEmptyRule() {
   UErrorCode status = U_ZERO_ERROR;
   UChar rulez[] = { 0 };
   UCollator *coll = ucol_openRules(rulez, 0, UCOL_OFF, UCOL_TERTIARY,NULL, &status);
@@ -1712,7 +1691,7 @@ static void TestEmptyRule(void) {
   ucol_close(coll);
 }
 
-static void TestUCARules(void) {
+static void TestUCARules() {
   UErrorCode status = U_ZERO_ERROR;
   UChar b[256];
   UChar *rules = b;
@@ -1766,7 +1745,7 @@ However, in testing we got the following order:
       < .. (\u01dc) < .. (\u01da) < .. (\u01d6) < .. (\u016b)
 */
 
-static void TestBefore(void) {
+static void TestBefore() {
   const static char *data[] = {
       "\\u0101", "\\u00e1", "\\u01ce", "\\u00e0", "A",
       "\\u0113", "\\u00e9", "\\u011b", "\\u00e8", "E",
@@ -1785,7 +1764,7 @@ static void TestBefore(void) {
     data, sizeof(data)/sizeof(data[0]));
 }
 
-static void TestJ784(void) {
+static void TestJ784() {
   const static char *data[] = {
       "A", "\\u0101", "\\u00e1", "\\u01ce", "\\u00e0",
       "E", "\\u0113", "\\u00e9", "\\u011b", "\\u00e8",
@@ -1799,7 +1778,7 @@ static void TestJ784(void) {
 }
 
 
-static void TestJ831(void) {
+static void TestJ831() {
   const static char *data[] = {
     "I",
       "i",
@@ -1809,7 +1788,7 @@ static void TestJ831(void) {
   genericLocaleStarter("lv", data, sizeof(data)/sizeof(data[0]));
 }
 
-static void TestJ815(void) {
+static void TestJ815() {
   const static char *data[] = {
     "aa",
       "Aa",
@@ -1842,7 +1821,7 @@ static void TestJ815(void) {
 "& a < b <<< c << d <<< e& [before 1] e <<< x",            "& a <<< x < b <<< c << d <<< e",
 "& a < b <<< c << d <<< e <<< f < g& [before 1] g < x",    "& a < b <<< c << d <<< e <<< f < x < g",
 */
-static void TestRedundantRules(void) {
+static void TestRedundantRules() {
   int32_t i;
 
   const static char *rules[] = {
@@ -1941,7 +1920,7 @@ static void TestRedundantRules(void) {
 
 }
 
-static void TestExpansionSyntax(void) {
+static void TestExpansionSyntax() {
   int32_t i;
 
   const static char *rules[] = {
@@ -1997,7 +1976,7 @@ static void TestExpansionSyntax(void) {
   }
 }
 
-static void TestCase(void)
+static void TestCase( )
 {
     const static UChar gRules[MAX_TOKEN_LEN] =
     /*" & 0 < 1,\u2461<a,A"*/
@@ -2115,7 +2094,7 @@ static void TestCase(void)
 
 }
 
-static void TestIncrementalNormalize(void) {
+static void TestIncrementalNormalize() {
 
     UChar baseA     =0x41;
 /*    UChar baseB     = 0x42;*/
@@ -2328,7 +2307,7 @@ static void TestIncrementalNormalize(void) {
 
 
 #if 0
-static void TestGetCaseBit(void) {
+static void TestGetCaseBit() {
   static const char *caseBitData[] = {
     "a", "A", "ch", "Ch", "CH",
       "\\uFF9E", "\\u0009"
@@ -2355,7 +2334,7 @@ static void TestGetCaseBit(void) {
 }
 #endif
 
-static void TestHangulTailoring(void) {
+static void TestHangulTailoring() {
     static const char *koreanData[] = {
         "\\uac00", "\\u4f3d", "\\u4f73", "\\u5047", "\\u50f9", "\\u52a0", "\\u53ef", "\\u5475",
             "\\u54e5", "\\u5609", "\\u5ac1", "\\u5bb6", "\\u6687", "\\u67b6", "\\u67b7", "\\u67ef",
@@ -2398,7 +2377,7 @@ static void TestHangulTailoring(void) {
   genericLocaleStarter("ko__LOTUS", koreanData, sizeof(koreanData)/sizeof(koreanData[0]));
 }
 
-static void TestCompressOverlap(void) {
+static void TestCompressOverlap() {
     UChar       secstr[150];
     UChar       tertstr[150];
     UErrorCode  status = U_ZERO_ERROR;
@@ -2497,7 +2476,7 @@ static void TestCyrillicTailoring(void) {
     genericRulesStarter("&Z < \\u0410 < \\u0410\\u0301", test, 3);
 }
 
-static void TestContraction(void) {
+static void TestContraction() {
     const static char *testrules[] = {
         "&A = AB / B",
         "&A = A\\u0306/\\u0306",
@@ -2637,7 +2616,7 @@ static void TestContraction(void) {
     }
 }
 
-static void TestExpansion(void) {
+static void TestExpansion() {
     const static char *testrules[] = {
         "&J << K / B & K << M",
         "&J << K / B << M"
@@ -2677,7 +2656,7 @@ static void TestExpansion(void) {
 #if 0
 /* this test tests the current limitations of the engine */
 /* it always fail, so it is disabled by default */
-static void TestLimitations(void) {
+static void TestLimitations() {
   /* recursive expansions */
   {
     static const char *rule = "&a=b/c&d=c/e";
@@ -2766,7 +2745,7 @@ static void TestLimitations(void) {
 }
 #endif
 
-static void TestBocsuCoverage(void) {
+static void TestBocsuCoverage() {
   UErrorCode status = U_ZERO_ERROR;
   const char *testString = "\\u0041\\u0441\\u4441\\U00044441\\u4441\\u0441\\u0041";
   UChar       test[256] = {0};
@@ -2782,14 +2761,14 @@ static void TestBocsuCoverage(void) {
   ucol_close(coll);
 }
 
-static void TestVariableTopSetting(void) {
+static void TestVariableTopSetting() {
   UErrorCode status = U_ZERO_ERROR;
   const UChar *current = NULL;
   uint32_t varTopOriginal = 0, varTop1, varTop2;
   UCollator *coll = ucol_open("", &status);
 
   uint32_t strength = 0;
-  uint16_t specs = 0;
+  uint8_t specs = 0;
   uint32_t chOffset = 0;
   uint32_t chLen = 0;
   uint32_t exOffset = 0;
@@ -2825,18 +2804,12 @@ static void TestVariableTopSetting(void) {
     src.source = src.current = rulesCopy;
     src.end = rulesCopy+rulesLen;
     src.extraCurrent = src.end;
-    src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE; 
+    src.extraEnd = src.end+UCOL_TOK_EXTRA_RULE_SPACE_SIZE;
 
-    while ((current = ucol_tok_parseNextToken(&src, startOfRules, &parseError,&status)) != NULL) {
-      strength = src.parsedToken.strength;
-      chOffset = src.parsedToken.charsOffset;
-      chLen = src.parsedToken.charsLen;
-      exOffset = src.parsedToken.extensionOffset;
-      exLen = src.parsedToken.extensionLen;
-      prefixOffset = src.parsedToken.prefixOffset;
-      prefixLen = src.parsedToken.prefixLen;
-      specs = src.parsedToken.flags;
-
+    while ((current = ucol_tok_parseNextToken(&src, &strength,
+                      &chOffset, &chLen, &exOffset, &exLen,
+                      &prefixOffset, &prefixLen,
+                      &specs, startOfRules, &parseError,&status)) != NULL) {
       startOfRules = FALSE;
       if(0) {
         log_verbose("%04X %d ", *(rulesCopy+chOffset), chLen);
@@ -2955,7 +2928,7 @@ static void TestVariableTopSetting(void) {
   ucol_close(coll);
 }
 
-static void TestNonChars(void) {
+static void TestNonChars() {
   static const char *test[] = {
     "\\u0000",
     "\\uFFFE", "\\uFFFF",
@@ -2990,7 +2963,7 @@ static void TestNonChars(void) {
   ucol_close(coll);
 }
 
-static void TestExtremeCompression(void) {
+static void TestExtremeCompression() {
   static char *test[4];
   int32_t i = 0;
 
@@ -3008,7 +2981,7 @@ static void TestExtremeCompression(void) {
   }
 }
 
-static void TestSurrogates(void) {
+static void TestSurrogates() {
   static const char *test[] = {
     "z","\\ud900\\udc25",  "\\ud805\\udc50",
        "\\ud800\\udc00y",  "\\ud800\\udc00r",
@@ -3030,7 +3003,7 @@ static void TestSurrogates(void) {
 }
 
 /* This is a test for prefix implementation, used by JIS X 4061 collation rules */
-static void TestPrefix(void) {
+static void TestPrefix() {
   uint32_t i;
 
   static struct {
@@ -3054,7 +3027,7 @@ static void TestPrefix(void) {
 
 /* This test uses data suplied by Masashiko Maedera to test the implementation */
 /* JIS X 4061 collation order implementation                                   */
-static void TestNewJapanese(void) {
+static void TestNewJapanese() {
 
   static const char *test1[] = {
       "\\u30b7\\u30e3\\u30fc\\u30ec",
@@ -3211,7 +3184,7 @@ static void TestNewJapanese(void) {
   genericLocaleStarterWithOptions("ja", test2, sizeof(test2)/sizeof(test2[0]), att, valShifted, 1);
 }
 
-static void TestStrCollIdenticalPrefix(void) {
+static void TestStrCollIdenticalPrefix() {
   const char* rule = "&\\ud9b0\\udc70=\\ud9b0\\udc71";
   const char* test[] = {
     "ab\\ud9b0\\udc70",
@@ -3219,37 +3192,19 @@ static void TestStrCollIdenticalPrefix(void) {
   };
   genericRulesTestWithResult(rule, test, sizeof(test)/sizeof(test[0]), UCOL_EQUAL);
 }
-/* Contractions should have all their canonically equivalent */
-/* strings included */
-static void TestContractionClosure(void) {
-  static struct {
-    const char *rules;
-    const char *data[50];
-    const uint32_t len;
-  } tests[] = {  
-    {   "&b=\\u00e4\\u00e4",
-      { "b", "\\u00e4\\u00e4", "a\\u0308a\\u0308", "\\u00e4a\\u0308", "a\\u0308\\u00e4" }, 5},
-    {   "&b=\\u00C5",
-      { "b", "\\u00C5", "A\\u030A", "\\u212B" }, 4},
-  };
-  uint32_t i;
 
-
-  for(i = 0; i<(sizeof(tests)/sizeof(tests[0])); i++) {
-    genericRulesTestWithResult(tests[i].rules, tests[i].data, tests[i].len, UCOL_EQUAL);
-  }
-}
-
+#if 0
 /* This tests also fails*/
-static void TestBeforePrefixFailure(void) {
+static void TestBeforePrefixFailure() {
   static struct {
     const char *rules;
     const char *data[50];
     const uint32_t len;
   } tests[] = {  
-    { "&g <<< a"
-      "&[before 3]\\uff41 <<< x",
-      {"x", "\\uff41"}, 2 },
+    {   "&b<\\u00e4\\u00e4",
+      { "b", "\\u00e4\\u00e4", "a\\u0308a\\u0308", "\\u00e4a\\u0308", "a\\u0308\\u00e4" }, 5},
+    {   "&b<\\u00C5",
+      { "b", "\\u00C5", "A\\u030A", "\\u212B" }, 4},
     {   "&\\u30A7=\\u30A7=\\u3047=\\uff6a"
         "&\\u30A8=\\u30A8=\\u3048=\\uff74"
         "&[before 3]\\u30a7<<<\\u30a9", 
@@ -3317,8 +3272,8 @@ static void TestBeforePrefixFailure(void) {
   }
 #endif
 }
-
-static void TestPrefixCompose(void) {
+#endif
+static void TestPrefixCompose() {
   const char* rule1 = 
         "&\\u30a7<<<\\u30ab|\\u30fc=\\u30ac|\\u30fc";
   /*
@@ -3353,7 +3308,7 @@ static int tMemCmp(const uint8_t *first, const uint8_t *second) {
 
 
 
-static void TestMergeSortKeys(void) {
+static void TestMergeSortKeys() {
   UErrorCode status = U_ZERO_ERROR;
 
   const char* cases[] = {
@@ -3449,46 +3404,9 @@ static void TestMergeSortKeys(void) {
   /* need to finish this up */
 }
 
-/*
-[last variable] last variable value 
-[last primary ignorable] largest CE for primary ignorable 
-[last secondary ignorable] largest CE for secondary ignorable 
-[last tertiary ignorable] largest CE for tertiary ignorable 
-[top] guaranteed to be above all implicit CEs, for now and in the future (in 1.8) 
-*/
-
-static void TestRuleOptions(void) {
-  static struct {
-    const char *rules;
-    const char *data[50];
-    const uint32_t len;
-  } tests[] = {  
-    { "&[last variable]<z"
-      "&[last primary ignorable]<x"
-      "&[last secondary ignorable]<<y"
-      "&[last tertiary ignorable]<<<w"
-      "&[top]<u",
-      {"\\ufffb",  "w", "y", "\\u20e3", "x", "\\u137c", "z", "u"}, 7 },
-    { "&[before 1][first tertiary ignorable]<<<k", 
-    { "\\u0000", "k"}, 2}, /* you cannot go before first tertiary ignorable */
-    /* - all befores here amount to zero */
-    { "&[before 3][last primary ignorable]<<<k",
-    { "k", "\\u20e3"}, 2},
-  };
-  uint32_t i;
-
-
-  for(i = 0; i<(sizeof(tests)/sizeof(tests[0])); i++) {
-    genericRulesStarter(tests[i].rules, tests[i].data, tests[i].len);
-  }
-}
-
 void addMiscCollTest(TestNode** root)
 {
-
-    addTest(root, &TestRuleOptions, "tscoll/cmsccoll/TestRuleOptions");
-    addTest(root, &TestBeforePrefixFailure, "tscoll/cmsccoll/TestBeforePrefixFailure");
-    addTest(root, &TestContractionClosure, "tscoll/cmsccoll/TestContractionClosure");
+    /*addTest(root, &TestBeforePrefixFailure, "tscoll/cmsccoll/TestBeforePrefixFailure");*/
     addTest(root, &TestMergeSortKeys, "tscoll/cmsccoll/TestMergeSortKeys");
     addTest(root, &TestPrefixCompose, "tscoll/cmsccoll/TestPrefixCompose");
     addTest(root, &TestStrCollIdenticalPrefix, "tscoll/cmsccoll/TestStrCollIdenticalPrefix");

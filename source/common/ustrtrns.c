@@ -406,7 +406,6 @@ u_strToUTF8(char *dest,
     return (char*)dest;
 }
 
-#if !defined(U_WCHAR_IS_UTF16) && !defined(U_WCHAR_IS_UTF32)
 /* helper function */
 static wchar_t* 
 _strToWCS(wchar_t *dest, 
@@ -567,7 +566,6 @@ cleanup:
 
     return dest;
 }
-#endif
 
 U_CAPI wchar_t* U_EXPORT2
 u_strToWCS(wchar_t *dest, 
@@ -614,7 +612,6 @@ u_strToWCS(wchar_t *dest,
 #endif
 }
 
-#if !defined(U_WCHAR_IS_UTF16) && !defined(U_WCHAR_IS_UTF32)
 /* helper function */
 static UChar* 
 _strFromWCS( UChar   *dest,
@@ -817,7 +814,6 @@ cleanup:
 
     return dest;
 }
-#endif
 
 U_CAPI UChar* U_EXPORT2
 u_strFromWCS(UChar   *dest,

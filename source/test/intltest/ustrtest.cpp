@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2002, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -24,21 +24,23 @@ using namespace std;
 
 #endif
 
-void UnicodeStringTest::runIndexedTest( int32_t index, UBool exec, const char* &name, char *par)
+UnicodeStringTest::UnicodeStringTest()
 {
-    if (exec) logln("TestSuite UnicodeStringTest: ");
+}
+
+UnicodeStringTest::~UnicodeStringTest()
+{
+}
+
+void UnicodeStringTest::runIndexedTest( int32_t index, UBool exec, const char* &name, char* /*par*/ )
+{
+    if (exec) logln("TestSuite LocaleTest: ");
     switch (index) {
         case 0: name = "TestBasicManipulation"; if (exec) TestBasicManipulation(); break;
         case 1: name = "TestCompare"; if (exec) TestCompare(); break;
         case 2: name = "TestExtract"; if (exec) TestExtract(); break;
         case 3: name = "TestRemoveReplace"; if (exec) TestRemoveReplace(); break;
-        case 4:
-            name = "StringCaseTest";
-            if (exec) {
-                StringCaseTest test;
-                callTest(test, par);
-                break;
-            }
+        case 4: name = "TestCaseConversion"; if (exec) TestCaseConversion(); break;
         case 5: name = "TestNothing"; break;
         case 6: name = "TestSearching"; if (exec) TestSearching(); break;
         case 7: name = "TestSpacePadding"; if (exec) TestSpacePadding(); break;
@@ -165,22 +167,6 @@ UnicodeStringTest::TestBasicManipulation()
             errln("u_countChar32(bad input) failed (returned non-zero counts)");
         }
     }
-
-	{
-		// test new 2.2 constructors and setTo function that parallel Java's substring function.
-		UnicodeString src("Hello folks how are you?");
-		UnicodeString target1("how are you?");
-		if (target1 != UnicodeString(src, 12)) {
-			errln("UnicodeString(const UnicodeString&, int32_t) failed");
-		}
-		UnicodeString target2("folks");
-		if (target2 != UnicodeString(src, 6, 5)) {
-			errln("UnicodeString(const UnicodeString&, int32_t, int32_t) failed");
-		}
-		if (target1 != target2.setTo(src, 12)) {
-			errln("UnicodeString::setTo(const UnicodeString&, int32_t) failed");
-		}
-	}
 }
 
 void
@@ -270,26 +256,21 @@ UnicodeStringTest::TestCompare()
     /* test compareCodePointOrder() */
     {
         /* these strings are in ascending order */
-        static const UChar strings[][4]={
-            { 0x61, 0 },                    /* U+0061 */
-            { 0x20ac, 0xd801, 0 },          /* U+20ac U+d801 */
-            { 0x20ac, 0xd800, 0xdc00, 0 },  /* U+20ac U+10000 */
-            { 0xd800, 0 },                  /* U+d800 */
-            { 0xd800, 0xff61, 0 },          /* U+d800 U+ff61 */
-            { 0xdfff, 0 },                  /* U+dfff */
-            { 0xff61, 0xdfff, 0 },          /* U+ff61 U+dfff */
-            { 0xff61, 0xd800, 0xdc02, 0 },  /* U+ff61 U+10002 */
-            { 0xd800, 0xdc02, 0 },          /* U+10002 */
-            { 0xd84d, 0xdc56, 0 }           /* U+23456 */
+        static const UChar strings[5][3]={
+            { 0x61, 0 },            /* U+0061 */
+            { 0x20ac, 0 },          /* U+20ac */
+            { 0xff61, 0 },          /* U+ff61 */
+            { 0xd800, 0xdc02, 0 },  /* U+10002 */
+            { 0xd84d, 0xdc56, 0 }   /* U+23456 */
         };
-        UnicodeString u[20]; // must be at least as long as strings[]
+        UnicodeString u[5];
         int i;
 
-        for(i=0; i<sizeof(strings)/sizeof(strings[0]); ++i) {
+        for(i=0; i<5; ++i) {
             u[i]=UnicodeString(TRUE, strings[i], -1);
         }
 
-        for(i=0; i<(sizeof(strings)/sizeof(strings[0])-1); ++i) {
+        for(i=0; i<4; ++i) {
             if(u[i].compareCodePointOrder(u[i+1])>=0) {
                 errln("error: UnicodeString::compareCodePointOrder() fails for string %d and the following one\n", i);
             }
@@ -413,20 +394,20 @@ UnicodeStringTest::TestExtract()
         errln("UnicodeString.extract(-1) failed to stop reading the string.");
     }
 
-    for (int32_t i = 0; i < 12; i++) {
-        if (test1[(int32_t)(11 + i)] != test2[i]) {
+    for (UTextOffset i = 0; i < 12; i++) {
+        if (test1[(UTextOffset)(11 + i)] != test2[i]) {
             errln(UnicodeString("extracting into a UnicodeString failed at position ") + i);
             break;
         }
-        if (test1[(int32_t)(11 + i)] != test3[i]) {
+        if (test1[(UTextOffset)(11 + i)] != test3[i]) {
             errln(UnicodeString("extracting into an array of UChar failed at position ") + i);
             break;
         }
-        if (((char)test1[(int32_t)(11 + i)]) != test4b[i]) {
+        if (((char)test1[(UTextOffset)(11 + i)]) != test4b[i]) {
             errln(UnicodeString("extracting into an array of char failed at position ") + i);
             break;
         }
-        if (test1[(int32_t)(11 + i)] != test5[i]) {
+        if (test1[(UTextOffset)(11 + i)] != test5[i]) {
             errln(UnicodeString("extracting with extractBetween failed at position ") + i);
             break;
         }
@@ -581,7 +562,7 @@ UnicodeStringTest::TestRemoveReplace()
               "  expected \"The SPAM in SPAM SPAM SPAM on the SPAM\",\n"
               "  got \"" + test1 + "\"");
 
-    for (int32_t i = 0; i < test1.length(); i++)
+    for (UTextOffset i = 0; i < test1.length(); i++)
         if (test5[i] != 0x53 && test5[i] != 0x50 && test5[i] != 0x41 && test5[i] != 0x4d && test5[i] != 0x20)
             test1[i] = 0x78;
 
@@ -596,6 +577,277 @@ UnicodeStringTest::TestRemoveReplace()
 }
 
 void
+UnicodeStringTest::TestCaseConversion()
+{
+    UChar uppercaseGreek[] =
+        { 0x399, 0x395, 0x3a3, 0x3a5, 0x3a3, 0x20, 0x03a7, 0x3a1, 0x399, 0x3a3, 0x3a4,
+        0x39f, 0x3a3, 0 };
+        // "IESUS CHRISTOS"
+
+    UChar lowercaseGreek[] = 
+        { 0x3b9, 0x3b5, 0x3c3, 0x3c5, 0x3c2, 0x20, 0x03c7, 0x3c1, 0x3b9, 0x3c3, 0x3c4,
+        0x3bf, 0x3c2, 0 };
+        // "iesus christos"
+
+    UChar lowercaseTurkish[] = 
+        { 0x69, 0x73, 0x74, 0x61, 0x6e, 0x62, 0x75, 0x6c, 0x2c, 0x20, 0x6e, 0x6f, 0x74, 0x20, 0x63, 0x6f, 
+        0x6e, 0x73, 0x74, 0x61, 0x6e, 0x74, 0x0131, 0x6e, 0x6f, 0x70, 0x6c, 0x65, 0x21, 0 };
+
+    UChar uppercaseTurkish[] = 
+        { 0x54, 0x4f, 0x50, 0x4b, 0x41, 0x50, 0x49, 0x20, 0x50, 0x41, 0x4c, 0x41, 0x43, 0x45, 0x2c, 0x20,
+        0x0130, 0x53, 0x54, 0x41, 0x4e, 0x42, 0x55, 0x4c, 0 };
+    
+    UnicodeString expectedResult;
+    UnicodeString   test3;
+
+    test3 += (UChar32)0x0130;
+    test3 += "STANBUL, NOT CONSTANTINOPLE!";
+
+    UnicodeString   test4(test3);
+    test4.toLower();
+    expectedResult = "istanbul, not constantinople!";
+    if (test4 != expectedResult)
+        errln("1. toLower failed: expected \"" + expectedResult + "\", got \"" + test4 + "\".");
+
+    test4 = test3;
+    test4.toLower(Locale("tr", "TR"));
+    expectedResult = lowercaseTurkish;
+    if (test4 != expectedResult)
+        errln("2. toLower failed: expected \"" + expectedResult + "\", got \"" + test4 + "\".");
+
+    test3 = "topkap";
+    test3 += (UChar32)0x0131;
+    test3 += " palace, istanbul";
+    test4 = test3;
+
+    test4.toUpper();
+    expectedResult = "TOPKAPI PALACE, ISTANBUL";
+    if (test4 != expectedResult)
+        errln("toUpper failed: expected \"" + expectedResult + "\", got \"" + test4 + "\".");
+
+    test4 = test3;
+    test4.toUpper(Locale("tr", "TR"));
+    expectedResult = uppercaseTurkish;
+    if (test4 != expectedResult)
+        errln("toUpper failed: expected \"" + expectedResult + "\", got \"" + test4 + "\".");
+
+    test3 = CharsToUnicodeString("S\\u00FC\\u00DFmayrstra\\u00DFe");
+
+    test3.toUpper(Locale("de", "DE"));
+    expectedResult = CharsToUnicodeString("S\\u00DCSSMAYRSTRASSE");
+    if (test3 != expectedResult)
+        errln("toUpper failed: expected \"" + expectedResult + "\", got \"" + test3 + "\".");
+    
+    test4.replace(0, test4.length(), uppercaseGreek);
+
+    test4.toLower(Locale("el", "GR"));
+    expectedResult = lowercaseGreek;
+    if (test4 != expectedResult)
+        errln("toLower failed: expected \"" + expectedResult + "\", got \"" + test4 + "\".");
+    
+    test4.replace(0, test4.length(), lowercaseGreek);
+
+    test4.toUpper();
+    expectedResult = uppercaseGreek;
+    if (test4 != expectedResult)
+        errln("toUpper failed: expected \"" + expectedResult + "\", got \"" + test4 + "\".");
+
+    // more string case mapping tests with the new implementation
+    {
+        static const UChar
+
+        beforeLower[]= { 0x61, 0x42, 0x49,  0x3a3, 0xdf, 0x3a3, 0x2f, 0xd93f, 0xdfff },
+        lowerRoot[]=   { 0x61, 0x62, 0x69,  0x3c3, 0xdf, 0x3c2, 0x2f, 0xd93f, 0xdfff },
+        lowerTurkish[]={ 0x61, 0x62, 0x131, 0x3c3, 0xdf, 0x3c2, 0x2f, 0xd93f, 0xdfff },
+
+        beforeUpper[]= { 0x61, 0x42, 0x69,  0x3c2, 0xdf,       0x3c3, 0x2f, 0xfb03,           0xfb03,           0xfb03,           0xd93f, 0xdfff },
+        upperRoot[]=   { 0x41, 0x42, 0x49,  0x3a3, 0x53, 0x53, 0x3a3, 0x2f, 0x46, 0x46, 0x49, 0x46, 0x46, 0x49, 0x46, 0x46, 0x49, 0xd93f, 0xdfff },
+        upperTurkish[]={ 0x41, 0x42, 0x130, 0x3a3, 0x53, 0x53, 0x3a3, 0x2f, 0x46, 0x46, 0x49, 0x46, 0x46, 0x49, 0x46, 0x46, 0x49, 0xd93f, 0xdfff },
+
+        beforeMiniUpper[]=  { 0xdf, 0x61 },
+        miniUpper[]=        { 0x53, 0x53, 0x41 };
+
+        UnicodeString s;
+
+        /* lowercase with root locale */
+        s=UnicodeString(FALSE, beforeLower, (int32_t)(sizeof(beforeLower)/U_SIZEOF_UCHAR));
+        s.toLower("");
+        if( s.length()!=(sizeof(lowerRoot)/U_SIZEOF_UCHAR) ||
+            s!=UnicodeString(FALSE, lowerRoot, s.length())
+        ) {
+            errln("error in toLower(root locale)=\"" + s + "\" expected \"" + UnicodeString(FALSE, lowerRoot, (int32_t)(sizeof(lowerRoot)/U_SIZEOF_UCHAR)) + "\"");
+        }
+
+        /* lowercase with turkish locale */
+        s=UnicodeString(FALSE, beforeLower, (int32_t)(sizeof(beforeLower)/U_SIZEOF_UCHAR));
+        s.setCharAt(0, beforeLower[0]).toLower(Locale("tr"));
+        if( s.length()!=(sizeof(lowerTurkish)/U_SIZEOF_UCHAR) ||
+            s!=UnicodeString(FALSE, lowerTurkish, s.length())
+        ) {
+            errln("error in toLower(turkish locale)=\"" + s + "\" expected \"" + UnicodeString(FALSE, lowerTurkish, (int32_t)(sizeof(lowerTurkish)/U_SIZEOF_UCHAR)) + "\"");
+        }
+
+        /* uppercase with root locale */
+        s=UnicodeString(FALSE, beforeUpper, (int32_t)(sizeof(beforeUpper)/U_SIZEOF_UCHAR));
+        s.setCharAt(0, beforeUpper[0]).toUpper();
+        if( s.length()!=(sizeof(upperRoot)/U_SIZEOF_UCHAR) ||
+            s!=UnicodeString(FALSE, upperRoot, s.length())
+        ) {
+            errln("error in toUpper(root locale)=\"" + s + "\" expected \"" + UnicodeString(FALSE, upperRoot, (int32_t)(sizeof(upperRoot)/U_SIZEOF_UCHAR)) + "\"");
+        }
+
+        /* uppercase with turkish locale */
+        s=UnicodeString(FALSE, beforeUpper, (int32_t)(sizeof(beforeUpper)/U_SIZEOF_UCHAR));
+        s.toUpper(Locale("tr"));
+        if( s.length()!=(sizeof(upperTurkish)/U_SIZEOF_UCHAR) ||
+            s!=UnicodeString(FALSE, upperTurkish, s.length())
+        ) {
+            errln("error in toUpper(turkish locale)=\"" + s + "\" expected \"" + UnicodeString(FALSE, upperTurkish, (int32_t)(sizeof(upperTurkish)/U_SIZEOF_UCHAR)) + "\"");
+        }
+
+        /* uppercase a short string with root locale */
+        s=UnicodeString(FALSE, beforeMiniUpper, (int32_t)(sizeof(beforeMiniUpper)/U_SIZEOF_UCHAR));
+        s.setCharAt(0, beforeMiniUpper[0]).toUpper("");
+        if( s.length()!=(sizeof(miniUpper)/U_SIZEOF_UCHAR) ||
+            s!=UnicodeString(FALSE, miniUpper, s.length())
+        ) {
+            errln("error in toUpper(root locale)=\"" + s + "\" expected \"" + UnicodeString(FALSE, miniUpper, (int32_t)(sizeof(miniUpper)/U_SIZEOF_UCHAR)) + "\"");
+        }
+    }
+
+    // test some supplementary characters (>= Unicode 3.1)
+    {
+        UnicodeString t;
+
+        UnicodeString
+            deseretInput=UnicodeString("\\U0001043C\\U00010414", "").unescape(),
+            deseretLower=UnicodeString("\\U0001043C\\U0001043C", "").unescape(),
+            deseretUpper=UnicodeString("\\U00010414\\U00010414", "").unescape();
+        (t=deseretInput).toLower();
+        if(t!=deseretLower) {
+            errln("error lowercasing Deseret (plane 1) characters");
+        }
+        (t=deseretInput).toUpper();
+        if(t!=deseretUpper) {
+            errln("error uppercasing Deseret (plane 1) characters");
+        }
+    }
+
+    // test some more cases that looked like problems
+    {
+        UnicodeString t;
+
+        UnicodeString
+            ljInput=UnicodeString("ab'cD \\uFB00i\\u0131I\\u0130 \\u01C7\\u01C8\\u01C9 \\U0001043C\\U00010414", "").unescape(),
+            ljLower=UnicodeString("ab'cd \\uFB00i\\u0131ii \\u01C9\\u01C9\\u01C9 \\U0001043C\\U0001043C", "").unescape(),
+            ljUpper=UnicodeString("AB'CD FFIII\\u0130 \\u01C7\\u01C7\\u01C7 \\U00010414\\U00010414", "").unescape();
+        (t=ljInput).toLower("en");
+        if(t!=ljLower) {
+            errln("error lowercasing LJ characters");
+        }
+        (t=ljInput).toUpper("en");
+        if(t!=ljUpper) {
+            errln("error uppercasing LJ characters");
+        }
+    }
+
+    // Unicode 3.1.1 SpecialCasing tests
+    {
+        UnicodeString t;
+
+        // sigmas preceded and/or followed by cased letters
+        UnicodeString
+            sigmas=UnicodeString("i\\u0307\\u03a3\\u0308j \\u0307\\u03a3\\u0308j i\\u00ad\\u03a3\\u0308 \\u0307\\u03a3\\u0308 ", "").unescape(),
+            sigmasLower=UnicodeString("i\\u0307\\u03c3\\u0308j \\u0307\\u03c3\\u0308j i\\u00ad\\u03c2\\u0308 \\u0307\\u03c3\\u0308 ", "").unescape(),
+            sigmasUpper=UnicodeString("I\\u0307\\u03a3\\u0308J \\u0307\\u03a3\\u0308J I\\u00ad\\u03a3\\u0308 \\u0307\\u03a3\\u0308 ", "").unescape();
+
+        (t=sigmas).toLower();
+        if(t!=sigmasLower) {
+            errln("error in sigmas.toLower()=\"" + t + "\" expected \"" + sigmasLower + "\"");
+        }
+
+        (t=sigmas).toUpper();
+        if(t!=sigmasUpper) {
+            errln("error in sigmas.toUpper()=\"" + t + "\" expected \"" + sigmasUpper + "\"");
+        }
+
+        // turkish & azerbaijani dotless i & dotted I
+        // remove dot above if there was a capital I before and there are no more accents above
+        UnicodeString
+            dots=UnicodeString("I \\u0130 I\\u0307 I\\u0327\\u0307 I\\u0301\\u0307 I\\u0327\\u0307\\u0301", "").unescape(),
+            dotsTurkish=UnicodeString("\\u0131 i i i\\u0327 \\u0131\\u0301\\u0307 i\\u0327\\u0307\\u0301", "").unescape(),
+            dotsDefault=UnicodeString("i i i i\\u0327 i\\u0301\\u0307 i\\u0327\\u0307\\u0301", "").unescape();
+
+        (t=dots).toLower("tr");
+        if(t!=dotsTurkish) {
+            errln("error in dots.toLower(tr)=\"" + t + "\" expected \"" + dotsTurkish + "\"");
+        }
+
+        (t=dots).toLower("de");
+        if(t!=dotsDefault) {
+            errln("error in dots.toLower(de)=\"" + t + "\" expected \"" + dotsDefault + "\"");
+        }
+    }
+
+    // more Unicode 3.1.1 tests
+    {
+        UnicodeString t;
+
+        // lithuanian dot above in uppercasing
+        UnicodeString
+            dots=UnicodeString("a\\u0307 \\u0307 i\\u0307 j\\u0327\\u0307 j\\u0301\\u0307", "").unescape(),
+            dotsLithuanian=UnicodeString("A\\u0307 \\u0307 I J\\u0327 J\\u0301\\u0307", "").unescape(),
+            dotsDefault=UnicodeString("A\\u0307 \\u0307 I\\u0307 J\\u0327\\u0307 J\\u0301\\u0307", "").unescape();
+
+        (t=dots).toUpper("lt");
+        if(t!=dotsLithuanian) {
+            errln("error in dots.toUpper(lt)=\"" + t + "\" expected \"" + dotsLithuanian + "\"");
+        }
+
+        (t=dots).toUpper("de");
+        if(t!=dotsDefault) {
+            errln("error in dots.toUpper(de)=\"" + t + "\" expected \"" + dotsDefault + "\"");
+        }
+
+        // lithuanian adds dot above to i in lowercasing if there are more above accents
+        UnicodeString
+            i=UnicodeString("I I\\u0301 J J\\u0301 \\u012e \\u012e\\u0301 \\u00cc\\u00cd\\u0128", "").unescape(),
+            iLithuanian=UnicodeString("i i\\u0307\\u0301 j j\\u0307\\u0301 \\u012f \\u012f\\u0307\\u0301 i\\u0307\\u0300i\\u0307\\u0301i\\u0307\\u0303", "").unescape(),
+            iDefault=UnicodeString("i i\\u0301 j j\\u0301 \\u012f \\u012f\\u0301 \\u00ec\\u00ed\\u0129", "").unescape();
+
+        (t=i).toLower("lt");
+        if(t!=iLithuanian) {
+            errln("error in i.toLower(lt)=\"" + t + "\" expected \"" + iLithuanian + "\"");
+        }
+
+        (t=i).toLower("de");
+        if(t!=iDefault) {
+            errln("error in i.toLower(de)=\"" + t + "\" expected \"" + iDefault + "\"");
+        }
+    }
+
+    // test case folding
+    {
+        UnicodeString
+            s=UNICODE_STRING("A\\u00df\\u00b5\\ufb03\\U0001040c\\u0131", 35).unescape(),
+            f=UNICODE_STRING("ass\\u03bcffi\\U00010434i", 23).unescape(),
+            t;
+
+        (t=s).foldCase();
+        if(f!=t) {
+            errln("error in foldCase(\"" + s + "\", default)=\"" + t + "\" but expected \"" + f + "\"");
+        }
+
+        // alternate handling for dotted I/dotless i (U+0130, U+0131)
+        f.setCharAt(f.length()-1, 0x131);
+        (t=s).foldCase(U_FOLD_CASE_EXCLUDE_SPECIAL_I);
+        if(f!=t) {
+            errln("error in foldCase(\"" + s + "\", U_FOLD_CASE_EXCLUDE_SPECIAL_I)=\"" + t + "\" but expected \"" + f + "\"");
+        }
+    }
+}
+
+void
 UnicodeStringTest::TestSearching()
 {
     UnicodeString test1("test test ttest tetest testesteststt");
@@ -603,21 +855,14 @@ UnicodeStringTest::TestSearching()
     UChar testChar = 0x74;
     
     UChar32 testChar32 = 0x20402;
-    UChar testData[]={
-        //   0       1       2       3       4       5       6       7
-        0xd841, 0xdc02, 0x0071, 0xdc02, 0xd841, 0x0071, 0xd841, 0xdc02,
-
-        //   8       9      10      11      12      13      14      15
-        0x0071, 0x0072, 0xd841, 0xdc02, 0x0071, 0xd841, 0xdc02, 0x0071,
-
-        //  16      17      18      19
-        0xdc02, 0xd841, 0x0073, 0x0000
-    };
+    UChar testData[]={0xd841, 0xdc02, 0x71, 0xdc02, 0xd841, 0x71, 0xd841, 0xdc02, 0x71, 0x72, 0xd841, 0xdc02, 0x71, 0xd841, 0xdc02, 0x71, 0xdc02, 0xd841, 0x73, 0x0000};
     UnicodeString test3(testData);
     UnicodeString test4(testChar32);
 
+
+
     uint16_t occurrences = 0;
-    int32_t startPos = 0;
+    UTextOffset startPos = 0;
     for ( ;
           startPos != -1 && startPos < test1.length();
           (startPos = test1.indexOf(test2, startPos)) != -1 ? (++occurrences, startPos += 4) : 0)
@@ -632,7 +877,7 @@ UnicodeStringTest::TestSearching()
     if (occurrences != 4)
         errln("indexOf with starting offset failed: expected to find 4 occurrences, found " + occurrences);
 
-    int32_t endPos = 28;
+    UTextOffset endPos = 28;
     for ( occurrences = 0, startPos = 5;
           startPos != -1 && startPos < test1.length();
           (startPos = test1.indexOf(test2, startPos, endPos - startPos)) != -1 ? (++occurrences, startPos += 4) : 0)
@@ -739,17 +984,6 @@ UnicodeStringTest::TestSearching()
     if (occurrences != 18)
         errln((UnicodeString)"indexOf failed: expected to find 18 occurrences, found " + occurrences);
     //---
-
-    // test that indexOf(UChar32) and lastIndexOf(UChar32)
-    // do not find surrogate code points when they are part of matched pairs
-    // (= part of supplementary code points)
-    // Jitterbug 1542
-    if(test3.indexOf((UChar32)0xd841) != 4 || test3.indexOf((UChar32)0xdc02) != 3) {
-        errln("error: UnicodeString::indexOf(UChar32 surrogate) finds a partial supplementary code point");
-    }
-    if(test3.lastIndexOf((UChar32)0xd841, 0, 17) != 4 || test3.lastIndexOf((UChar32)0xdc02, 0, 17) != 16) {
-        errln("error: UnicodeString::indexOf(UChar32 surrogate) finds a partial supplementary code point");
-    }
 }
 
 void
@@ -1123,7 +1357,7 @@ UnicodeStringTest::TestStackAllocation()
     }
 
     // test the (new) capacity constructor
-    UnicodeString capTest(5, (UChar32)0x2a, 5);
+    UnicodeString capTest(5, 0x2a, 5);
     if( capTest.length() != 5 * Unicode::charLength(0x2a) ||
         capTest.char32At(0) != 0x2a ||
         capTest.char32At(4) != 0x2a
@@ -1131,7 +1365,7 @@ UnicodeStringTest::TestStackAllocation()
         errln("The UnicodeString capacity constructor does not work with an ASCII filler");
     }
 
-    capTest = UnicodeString(5, (UChar32)0x10ff2a, 5);
+    capTest = UnicodeString(5, 0x10ff2a, 5);
     if( capTest.length() != 5 * Unicode::charLength(0x10ff2a) ||
         capTest.char32At(0) != 0x10ff2a ||
         capTest.char32At(4) != 0x10ff2a

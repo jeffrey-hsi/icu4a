@@ -10,7 +10,6 @@
 #include "transreg.h"
 #include "rbt_data.h"
 #include "rbt_pars.h"
-#include "tridpars.h"
 #include "unicode/cpdtrans.h"
 #include "unicode/nultrans.h"
 #include "unicode/parseerr.h"
@@ -20,17 +19,6 @@
 #include "unicode/uniset.h"
 #include "unicode/uscript.h"
 #include "charstr.h"
-
-// Enable the following symbol to add debugging code that tracks the
-// allocation, deletion, and use of Entry objects.  BoundsChecker has
-// reported dangling pointer errors with these objects, but I have
-// been unable to confirm them.  I suspect BoundsChecker is getting
-// confused with pointers going into and coming out of a UHashtable,
-// despite the hinting code that is designed to help it.
-// #define DEBUG_MEM
-#ifdef DEBUG_MEM
-#include <stdio.h>
-#endif
 
 // UChar constants
 static const UChar LOCALE_SEP  = 95; // '_'
@@ -84,7 +72,7 @@ Transliterator* TransliteratorAlias::create(UParseError& pe,
         t = Transliterator::createInstance(aliasID, UTRANS_FORWARD, pe, ec);
     } else {
         t = new CompoundTransliterator(ID, aliasID, idSplitPoint,
-                                       trans, ec);
+                                       trans, pe, ec);
         trans = 0; // so we don't delete it later
         if (compoundFilter) {
             t->adoptFilter((UnicodeSet*) compoundFilter->clone());
@@ -237,71 +225,6 @@ ResourceBundle& Spec::getBundle() const {
 }
 
 //----------------------------------------------------------------------
-
-#ifdef DEBUG_MEM
-
-// Vector of Entry pointers currently in use
-static UVector* DEBUG_entries = NULL;
-
-static void DEBUG_setup() {
-    if (DEBUG_entries == NULL) {
-        UErrorCode ec = U_ZERO_ERROR;
-        DEBUG_entries = new UVector(ec);
-    }
-}
-
-// Caller must call DEBUG_setup first.  Return index of given Entry,
-// if it is in use (not deleted yet), or -1 if not found.
-static int DEBUG_findEntry(Entry* e) {
-    for (int i=0; i<DEBUG_entries->size(); ++i) {
-        if (e == (Entry*) DEBUG_entries->elementAt(i)) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-// Track object creation
-static void DEBUG_newEntry(Entry* e) {
-    DEBUG_setup();
-    if (DEBUG_findEntry(e) >= 0) {
-        // This should really never happen unless the heap is broken
-        printf("ERROR DEBUG_newEntry duplicate new pointer %08X\n", e);
-        return;
-    }
-    UErrorCode ec = U_ZERO_ERROR;
-    DEBUG_entries->addElement(e, ec);
-}
-
-// Track object deletion
-static void DEBUG_delEntry(Entry* e) {
-    DEBUG_setup();
-    int i = DEBUG_findEntry(e);
-    if (i < 0) {
-        printf("ERROR DEBUG_delEntry possible double deletion %08X\n", e);
-        return;
-    }
-    DEBUG_entries->removeElementAt(i);
-}
-
-// Track object usage
-static void DEBUG_useEntry(Entry* e) {
-    if (e == NULL) return;
-    DEBUG_setup();
-    int i = DEBUG_findEntry(e);
-    if (i < 0) {
-        printf("ERROR DEBUG_useEntry possible dangling pointer %08X\n", e);
-    }
-}
-
-#else
-// If we're not debugging then make these macros into NOPs
-#define DEBUG_newEntry(x)
-#define DEBUG_delEntry(x)
-#define DEBUG_useEntry(x)
-#endif
-
-//----------------------------------------------------------------------
 // class Entry
 //----------------------------------------------------------------------
 
@@ -352,11 +275,9 @@ Entry::Entry() {
     u.prototype = 0;
     compoundFilter = NULL;
     entryType = NONE;
-    DEBUG_newEntry(this);
 }
 
 Entry::~Entry() {
-    DEBUG_delEntry(this);
     if (entryType == PROTOTYPE) {
         delete u.prototype;
     } else if (entryType == RBT_DATA || entryType == COMPOUND_RBT) {
@@ -461,8 +382,7 @@ void TransliteratorRegistry::put(const UnicodeString& ID,
 
 void TransliteratorRegistry::remove(const UnicodeString& ID) {
     UnicodeString source, target, variant;
-    UBool sawSource;
-    TransliteratorIDParser::IDtoSTV(ID, source, target, variant, sawSource);
+    IDtoSTV(ID, source, target, variant);
     // Only need to do this if ID.indexOf('-') < 0
     UnicodeString id;
     STVtoID(source, target, variant, id);
@@ -586,6 +506,32 @@ UnicodeString& TransliteratorRegistry::getAvailableVariant(int32_t index,
 //----------------------------------------------------------------------
 
 /**
+ * Given an ID, parse it into source, target, and variant strings.
+ * The variant may be empty.  If the source is empty it will be set to
+ * "Any".
+ */
+void TransliteratorRegistry::IDtoSTV(const UnicodeString& id,
+                                     UnicodeString& source,
+                                     UnicodeString& target,
+                                     UnicodeString& variant) {
+    int32_t dash = id.indexOf(ID_SEP);
+    int32_t stroke = id.indexOf(VARIANT_SEP);
+    int32_t start = 0;
+    int32_t limit = id.length();
+    if (dash < 0) {
+        source = ANY;
+    } else {
+        id.extractBetween(0, dash, source);
+        start = dash + 1;
+    }
+    if (stroke >= 0) {
+        id.extractBetween(stroke + 1, id.length(), variant);
+        limit = stroke;
+    }
+    id.extractBetween(start, limit, target);
+}
+
+/**
  * Given source, target, and variant strings, concatenate them into a
  * full ID.  If the source is empty, then "Any" will be used for the
  * source, so the ID will always be of the form s-t/v or s-t.
@@ -628,8 +574,7 @@ void TransliteratorRegistry::registerEntry(const UnicodeString& ID,
                                            Entry* adopted,
                                            UBool visible) {
     UnicodeString source, target, variant;
-    UBool sawSource;
-    TransliteratorIDParser::IDtoSTV(ID, source, target, variant, sawSource);
+    IDtoSTV(ID, source, target, variant);
     // Only need to do this if ID.indexOf('-') < 0
     UnicodeString id;
     STVtoID(source, target, variant, id);
@@ -738,9 +683,7 @@ Entry* TransliteratorRegistry::findInDynamicStore(const Spec& src,
                                                   const UnicodeString& variant) {
     UnicodeString ID;
     STVtoID(src, trg, variant, ID);
-    Entry *e = (Entry*) registry.get(ID);
-    DEBUG_useEntry(e);
-    return e;
+    return (Entry*) registry.get(ID);
 }
 
 /**
@@ -793,11 +736,10 @@ static const UChar TRANSLITERATE[] = {84,114,97,110,115,108,105,116,101,114,97,1
 Entry* TransliteratorRegistry::findInBundle(const Spec& specToOpen,
                                             const Spec& specToFind,
                                             const UnicodeString& variant,
-                                            UTransDirection direction)
-{
+                                            UTransDirection direction) {
     UnicodeString utag;
     UnicodeString resStr;
-    int32_t pass;
+	int32_t pass;
 
     for (pass=0; pass<2; ++pass) {
         utag.truncate(0);
@@ -876,8 +818,7 @@ Entry* TransliteratorRegistry::findInBundle(const Spec& specToOpen,
  */
 Entry* TransliteratorRegistry::find(const UnicodeString& ID) {
     UnicodeString source, target, variant;
-    UBool sawSource;
-    TransliteratorIDParser::IDtoSTV(ID, source, target, variant, sawSource);
+    IDtoSTV(ID, source, target, variant);
     return find(source, target, variant);
 }
 

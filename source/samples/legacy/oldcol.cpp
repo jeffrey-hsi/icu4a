@@ -57,25 +57,10 @@ int compare_legacy(const void *string1, const void *string2) {
 void initCollator_legacy(const char *locale) {
   UErrorCode status = U_ZERO_ERROR;
   compareCollator = ucol_open(locale, &status);
-  
-  if(U_FAILURE(status))
-  {
-    fprintf(stderr, "initCollator_legacy(%s): error opening collator, %s!\n", locale, u_errorName(status));
-    fprintf(stderr, "Note: ICU data directory is %s\n", u_getDataDirectory());
-    fprintf(stderr, "Read the README!\n");
-    exit(0);
-  }
 }
 
 void closeCollator_legacy(void) {
-  if(compareCollator != NULL)
-  {
-    ucol_close(compareCollator);
-  }
-  else
-  {
-    fprintf(stderr, "closeCollator_legacy(): collator was already NULL!\n");
-  }
+  ucol_close(compareCollator);
   compareCollator = NULL;
 }
 

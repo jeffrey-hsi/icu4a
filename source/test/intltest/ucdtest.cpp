@@ -307,11 +307,10 @@ void UnicodeTest::TestIdentifier()
 }
 
 /* for each line of UnicodeData.txt, check some of the properties */
-U_CAPI void U_CALLCONV
-unicodeDataLineFn(void *context,
+void U_CALLCONV
+UnicodeTest::unicodeDataLineFn(void *context,
                   char *fields[][2], int32_t fieldCount,
-                  UErrorCode *pErrorCode)
-{
+                  UErrorCode *pErrorCode) {
     char *end;
     uint32_t value;
     UChar32 c;
@@ -343,8 +342,29 @@ unicodeDataLineFn(void *context,
     }
 
     /* get general category, field 2 */
-    *fields[2][1]=0;
-    type = (int8_t)tagValues[me->MakeProp(fields[2][0])];
+    /* we override the general category of some control characters */
+    switch(c) {
+    case 9:
+    case 0xb:
+    case 0x1f:
+        type = U_SPACE_SEPARATOR;
+        break;
+    case 0xc:
+        type = U_LINE_SEPARATOR;
+        break;
+    case 0xa:
+    case 0xd:
+    case 0x1c:
+    case 0x1d:
+    case 0x1e:
+    case 0x85:
+        type = U_PARAGRAPH_SEPARATOR;
+        break;
+    default:
+        *fields[2][1]=0;
+        type = (int8_t)tagValues[me->MakeProp(fields[2][0])];
+        break;
+    }
     if(Unicode::getType(c)!=type) {
         me->errln("error: Unicode::getType(U+%04lx)==%u instead of %u\n", c, Unicode::getType(c), type);
         *pErrorCode = U_PARSE_ERROR;
@@ -450,30 +470,29 @@ void UnicodeTest::TestUnicodeData()
     char newPath[256];
     char backupPath[256];
     char *fields[15][2];
-    UErrorCode errorCode = U_ZERO_ERROR;
+    UErrorCode errorCode;
 
     /* Look inside ICU_DATA first */
     strcpy(newPath, u_getDataDirectory());
     strcat(newPath, "unidata" U_FILE_SEP_STRING "UnicodeData.txt");
 
 
-    // As a fallback, try to guess where the source data was located
-    //   at the time ICU was built, and look there.
-#   if defined (U_TOPSRCDIR)
-        strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING "data");
-#   else
-        strcpy(backupPath, loadTestData(errorCode));
-        strcat(backupPath, U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
-#   endif
+	// As a fallback, try to guess where the source data was located
+	//   at the time ICU was built, and look there.
+	#if defined (U_TOPSRCDIR)
+	    strcpy(backupPath, U_TOPSRCDIR  U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
+	#else
+        strcpy(backupPath, u_getDataDirectory());
+        strcat(backupPath, ".." U_FILE_SEP_STRING ".." U_FILE_SEP_STRING "data");
+	#endif
     strcat(backupPath, U_FILE_SEP_STRING);
     strcat(backupPath, "unidata" U_FILE_SEP_STRING "UnicodeData.txt");
 
-    u_parseDelimitedFile(newPath, ';', fields, 15, unicodeDataLineFn, this, &errorCode);
-
+    errorCode=U_ZERO_ERROR;
+    u_parseDelimitedFile(backupPath, ';', fields, 15, unicodeDataLineFn, this, &errorCode);
     if(errorCode==U_FILE_ACCESS_ERROR) {
         errorCode=U_ZERO_ERROR;
-        u_parseDelimitedFile(backupPath, ';', fields, 15, unicodeDataLineFn, this, &errorCode);
-
+        u_parseDelimitedFile(newPath, ';', fields, 15, unicodeDataLineFn, this, &errorCode);
     }
     if(U_FAILURE(errorCode)) {
         errln("error parsing UnicodeData.txt: %s\n" + UnicodeString(u_errorName(errorCode), ""));
@@ -483,7 +502,7 @@ void UnicodeTest::TestUnicodeData()
     // test Unicode::getCharName()
     // a more thorough test of u_charName() is in cintltst/cucdtst.c
     char buffer[100];
-    int32_t length=Unicode::getCharName(0x284, buffer, (int32_t)sizeof(buffer));
+    UTextOffset length=Unicode::getCharName(0x284, buffer, (UTextOffset)sizeof(buffer));
 
     // use invariant-character conversion to Unicode
     UnicodeString name(buffer, length, "");

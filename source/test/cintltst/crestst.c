@@ -22,6 +22,7 @@
 
 #define RESTEST_HEAP_CHECK 0
 
+#include "unicode/uloc.h"
 #include "unicode/ures.h"
 #include "crestst.h"
 #include "unicode/ctest.h"
@@ -91,7 +92,7 @@ void addResourceBundleTest(TestNode** root)
     addTest(root, &TestOpenDirect, "tsutil/crestst/TestOpenDirect");
     addTest(root, &TestResourceBundles, "tsutil/crestst/TestResourceBundle");
     addTest(root, &TestFallback, "tsutil/crestst/TestFallback");
-    addTest(root, &TestAliasConflict, "tsutil/crestst/TestAliasConflict");
+    addTest(root, &TestAliasConflict, "tsutil/crestst/TestAlias");
 }
 
 
@@ -106,12 +107,12 @@ void TestAliasConflict(void) {
     he = ures_open(NULL, "he", &status);
     iw = ures_open(NULL, "iw", &status);
     if(U_FAILURE(status)) { 
-        log_err("Failed to get resource with %s\n", myErrorName(status));
+        log_err("Failed to get resource with %s", myErrorName(status));
     }
     ures_close(iw);
-    result = ures_getStringByKey(he, "localPatternChars", &resultLen, &status);
+    result = ures_getStringByKey(he, "ShortLanguage", &resultLen, &status);
     if(U_FAILURE(status) || result == NULL) { 
-        log_err("Failed to get resource with %s\n", myErrorName(status));
+        log_err("Failed to get resource with %s", myErrorName(status));
     }
     ures_close(he);
 }
@@ -131,40 +132,31 @@ void TestResourceBundles()
     log_verbose("Passed:=  %d   Failed=   %d \n", pass, fail);
 }
 
+
 void TestConstruction1()
 {
     UResourceBundle *test1 = 0, *test2 = 0;
     const UChar *result1, *result2;
     int32_t resultLen;
-
     UErrorCode   err = U_ZERO_ERROR;
-    const char* testdatapath ;
+    const char*        directory=NULL;
     const char*      locale="te_IN";
-
+    char testdatapath[256];
+    
+    directory= u_getDataDirectory();
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
     log_verbose("Testing ures_open()......\n");
     
-
-    testdatapath=loadTestData(&err);
-    if(U_FAILURE(err))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(err));
-        return;
-    }
-    
     test1=ures_open(testdatapath, NULL, &err);
-    if(U_FAILURE(err))
-    {
-        log_err("construction of %s did not succeed :  %s \n",NULL, myErrorName(err));
-        return;
-    }
-
-    
     test2=ures_open(testdatapath, locale, &err);
+    
     if(U_FAILURE(err))
     {
-        log_err("construction of %s did not succeed :  %s \n",locale, myErrorName(err));
+        log_err("construction did not succeed :  %s \n", myErrorName(err));
         return;
     }
+    
     result1= ures_getStringByKey(test1, "string_in_Root_te_te_IN", &resultLen, &err);
     result2= ures_getStringByKey(test2, "string_in_Root_te_te_IN", &resultLen, &err);
     
@@ -275,7 +267,11 @@ UBool testTag(const char* frag,
     int32_t i,j;
     int32_t actual_bundle;
     int32_t resultLen;
-    const char *testdatapath = loadTestData(&status);
+    char testdatapath[256];
+    const char *directory= u_getDataDirectory();
+
+    uprv_strcpy(testdatapath, directory);
+    uprv_strcat(testdatapath, "testdata");
 
     is_in[0] = in_Root;
     is_in[1] = in_te;
@@ -460,20 +456,20 @@ static void TestFallback()
     status = U_ZERO_ERROR;
     
     /* OK first one. This should be a Default value. */
-    junk = ures_getStringByKey(fr_FR, "%%PREEURO", &resultLen, &status);
+    junk = ures_getStringByKey(fr_FR, "%%EURO", &resultLen, &status);
     if(status != U_USING_DEFAULT_ERROR)
     {
-        log_err("Expected U_USING_DEFAULT_ERROR when trying to get %%PREEURO from fr_FR, got %s\n", 
+        log_err("Expected U_USING_DEFAULT_ERROR when trying to get %%EURO from fr_FR, got %s\n", 
             u_errorName(status));
     }
     
     status = U_ZERO_ERROR;
     
     /* and this is a Fallback, to fr */
-    junk = ures_getStringByKey(fr_FR, "DayNames", &resultLen, &status);
+    junk = ures_getStringByKey(fr_FR, "ShortLanguage", &resultLen, &status);
     if(status != U_USING_FALLBACK_ERROR)
     {
-        log_err("Expected U_USING_FALLBACK_ERROR when trying to get DayNames from fr_FR, got %s\n", 
+        log_err("Expected U_USING_FALLBACK_ERROR when trying to get ShortLanguage from fr_FR, got %s\n", 
             u_errorName(status));
     }
     
@@ -530,7 +526,7 @@ TestOpenDirect(void) {
         /* falling back to default or root is ok */
         errorCode=U_ZERO_ERROR;
     } else {
-        log_err("ures_open(\"translit_index\") succeeded, should fail! Got: %s\n", u_errorName(errorCode));
+        log_err("ures_open(\"translit_index\") succeeded, should fail!\n");
     }
     ures_close(translit_index);
 
@@ -543,4 +539,3 @@ TestOpenDirect(void) {
     }
     ures_close(translit_index);
 }
-

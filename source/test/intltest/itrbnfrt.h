@@ -18,7 +18,6 @@ class RbnfRoundTripTest : public IntlTest {
   // IntlTest override
   virtual void runIndexedTest(int32_t index, UBool exec, const char* &name, char* par);
 
-#if U_HAVE_RBNF
   /**
    * Perform an exhaustive round-trip test on the English spellout rules
    */
@@ -81,14 +80,6 @@ class RbnfRoundTripTest : public IntlTest {
 
  protected:
   void doTest(const RuleBasedNumberFormat* formatter,  double lowLimit, double highLimit);
-
-  /* U_HAVE_RBNF */
-#else
-
-  void TestRBNFDisabled();
-
-  /* U_HAVE_RBNF */
-#endif
 };
 
 // endif ITRBNFRT_H

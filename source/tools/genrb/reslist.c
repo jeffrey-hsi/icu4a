@@ -19,7 +19,7 @@
 #include "reslist.h"
 #include "unewdata.h"
 #include "unicode/ures.h"
-#include "errmsg.h"
+#include "error.h"
 
 #define BIN_ALIGNMENT 16
 
@@ -29,18 +29,18 @@ uint32_t res_write(UNewDataMemory *mem, struct SResource *res,
                    uint32_t usedOffset, UErrorCode *status);
 
 static const UDataInfo dataInfo= {
-    sizeof(UDataInfo),
-    0,
+                                     sizeof(UDataInfo),
+                                     0,
 
-    U_IS_BIG_ENDIAN,
-    U_CHARSET_FAMILY,
-    sizeof(UChar),
-    0,
+                                     U_IS_BIG_ENDIAN,
+                                     U_CHARSET_FAMILY,
+                                     sizeof(UChar),
+                                     0,
 
-    {0x52, 0x65, 0x73, 0x42},     /* dataFormat="resb" */
-    {1, 0, 0, 0},                 /* formatVersion */
-    {1, 4, 0, 0}                  /* dataVersion take a look at version inside parsed resb*/
-};
+                                     {0x52, 0x65, 0x73, 0x42},     /* dataFormat="resb" */
+                                     {1, 0, 0, 0},                 /* formatVersion */
+                                     {1, 4, 0, 0}                  /* dataVersion take a look at version inside parsed resb*/
+                                 };
 
 static uint8_t calcPadding(uint32_t size) {
     /* returns space we need to pad */
@@ -50,10 +50,6 @@ static uint8_t calcPadding(uint32_t size) {
 
 void setIncludeCopyright(UBool val){
     gIncludeCopyright=val;
-}
-
-UBool getIncludeCopyright(void){
-    return gIncludeCopyright;
 }
 
 /* Writing Functions */
@@ -262,52 +258,18 @@ uint32_t res_write(UNewDataMemory *mem, struct SResource *res,
     return 0;
 }
 
-void bundle_write(struct SRBRoot *bundle, const char *outputDir, char *writtenFilename, int writtenFilenameLen, UErrorCode *status) {
+void bundle_write(struct SRBRoot *bundle, const char *outputDir, UErrorCode *status) {
     UNewDataMemory *mem        = NULL;
     uint8_t         pad        = 0;
     uint32_t        root       = 0;
     uint32_t        usedOffset = 0;
 
-    if (writtenFilename && writtenFilenameLen) {
-        *writtenFilename = 0;
-    }
-
     if (U_FAILURE(*status)) {
         return;
     }
 
-    if (writtenFilename) {
-       int32_t off = 0, len = 0;
-       if (outputDir) {
-           len = (int32_t)uprv_strlen(outputDir);
-           if (len > writtenFilenameLen) {
-               len = writtenFilenameLen;
-           }
-           uprv_strncpy(writtenFilename, outputDir, len);
-       }
-       if (writtenFilenameLen -= len) {
-           off += len;
-           writtenFilename[off] = U_FILE_SEP_CHAR;
-           if (--writtenFilenameLen) {
-               ++off;
-               len = (int32_t)uprv_strlen(bundle->fLocale);
-               if (len > writtenFilenameLen) {
-                   len = writtenFilenameLen;
-               }
-               uprv_strncpy(writtenFilename + off, bundle->fLocale, len);
-               if (writtenFilenameLen -= len) {
-                   off += len;
-                   len = 5;
-                   if (len > writtenFilenameLen) {
-                       len = writtenFilenameLen;
-                   }
-                   uprv_strncpy(writtenFilename +  off, ".res", len);
-               }
-           }
-       }
-    }
-
     mem = udata_create(outputDir, "res", bundle->fLocale, &dataInfo, (gIncludeCopyright==TRUE)? U_COPYRIGHT_STRING:NULL, status);
+    /*mem = udata_create(outputDir, "res", filename, &dataInfo, U_COPYRIGHT_STRING, status);*/
 
     pad = calcPadding(bundle->fKeyPoint);
 

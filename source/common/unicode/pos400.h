@@ -25,6 +25,9 @@
 /* Define whether inttypes.h is available */
 #define U_HAVE_INTTYPES_H 0
 
+/* Define whether namespace is supported */
+#define U_HAVE_NAMESPACE 0
+
 /*
  * Define what support for C++ streams is available.
  *     If U_IOSTREAM_SOURCE is set to 199711, then <iostream> is available
@@ -50,12 +53,12 @@
 #define HAVE_UINT16_T 0
 #define HAVE_INT32_T 0
 #define HAVE_UINT32_T 0
-
-/* Define whether namespace is supported */
-#define U_HAVE_NAMESPACE 0
+#define HAVE_BOOL_T 0
 
 /* Determines the endianness of the platform */
 #define U_IS_BIG_ENDIAN 1
+
+#define HAVE_DLOPEN     0
 
 /* 1 or 0 to enable or disable threads.  If undefined, default is: enable threads. */
 #define ICU_USE_THREADS 1
@@ -121,14 +124,9 @@ typedef unsigned long uint32_t;
 
 /* These cannot be defined for this platform
 #define U_TZSET
-#define U_HAVE_TIMEZONE 0
-#if U_HAVE_TIMEZONE
-#   define U_TIMEZONE
-#endif
+#define U_TIMEZONE
 #define U_TZNAME
 */
-
-#define U_HAVE_MMAP 1
 
 /*===========================================================================*/
 /* Symbol import-export control                                              */
@@ -139,18 +137,7 @@ typedef unsigned long uint32_t;
 #define U_IMPORT
 
 /*===========================================================================*/
-/* Code alignment and C function inlining                                    */
-/*===========================================================================*/
-
-#ifndef U_INLINE
-#define U_INLINE
-#endif
-
-#define U_ALIGN_CODE(n)
-
-/*===========================================================================*/
 /* Programs used by ICU code                                                 */
 /*===========================================================================*/
 
 #define U_MAKE  "gmake"
-

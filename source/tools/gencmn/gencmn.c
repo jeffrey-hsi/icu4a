@@ -65,7 +65,7 @@ static uint32_t fileCount=0;
 /* prototypes --------------------------------------------------------------- */
 
 static void
-addFile(const char *filename, UBool sourceTOC, UBool verbose);
+addFile(const char *filename, UBool sourceTOC);
 
 static char *
 allocString(uint32_t length);
@@ -88,7 +88,7 @@ static UOption options[]={
 /*9*/ UOPTION_DEF( "entrypoint", 'e', UOPT_REQUIRES_ARG)
 };
 
-static char *symPrefix;
+char symPrefix[100];
 
 extern int
 main(int argc, char* argv[]) {
@@ -97,17 +97,30 @@ main(int argc, char* argv[]) {
     FileStream *in, *file;
     char *s;
     UErrorCode errorCode=U_ZERO_ERROR;
-    uint32_t i, fileOffset, basenameOffset, length, nread;
-    UBool sourceTOC, verbose;
+    uint32_t i, fileOffset, basenameOffset, length;
+    UBool sourceTOC;
     const char *entrypointName = NULL;
-
-    U_MAIN_INIT_ARGS(argc, argv);
 
     /* preset then read command line options */
     options[4].value=u_getDataDirectory();
     options[6].value=COMMON_DATA_NAME;
     options[7].value=DATA_TYPE;
     argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
+
+#ifndef U_HAVE_BIND_INTERNAL_REFERENCES
+    /* if it is ICU data.. no prefix. */
+    if(!uprv_strcmp(options[6].value, COMMON_DATA_NAME))
+    {
+      symPrefix[0] = 0;
+    }
+    else
+    {
+      uprv_strcpy(symPrefix, options[6].value);
+      uprv_strcat(symPrefix, "_");
+    }
+#else
+    symPrefix[0] = 0;
+#endif
 
     /* error handling, printing usage message */
     if(argc<0) {
@@ -118,42 +131,38 @@ main(int argc, char* argv[]) {
         argc=-1;
     }
     if(argc<0 || options[0].doesOccur || options[1].doesOccur) {
-        FILE *where = argc < 0 ? stderr : stdout;
-        
         /*
          * Broken into chucks because the C89 standard says the minimum
          * required supported string length is 509 bytes.
          */
-        fprintf(where,
-                "%csage: %s [ -h, -?, --help ] [ -v, --verbose ] [ -c, --copyright ] [ -C, --comment comment ] [ -d, --destdir dir ] [ -n, --name filename ] [ -t, --type filetype ] [ -C, --source tocfile ] [ -e, --entrypoint name ] [ maxsize ] [ [ -f ] filename ]\n", argc < 0 ? 'u' : 'U', *argv);
-        if (options[0].doesOccur || options[1].doesOccur) {
-            fprintf(where, "\n"
-            "Read the list file (default: standard input) and create a common data\n"
-                    "file from specified files; omit any larger than maxsize.\n");
-            fprintf(where, "\n"
-            "Options:\n"
-            "\t-h, -?, --help              this usage text\n"
-            "\t-v, --verbose               verbose output\n"
-            "\t-c, --copyright             include the ICU copyright notice\n"
-            "\t-C, --comment comment       include a comment string\n"
-            "\t-d, --destdir dir           destination directory\n");
-            fprintf(where,
-            "\t-n, --name filename         output filename, without .type extension\n"
-            "\t                            (default: " COMMON_DATA_NAME ")\n"
-            "\t-t, --type filetype         type of the destination file\n"
-            "\t                            (default: \"" DATA_TYPE "\")\n"
-            "\t-S, --source tocfile        write a .c source file with the table of\n"
-            "\t                            contents\n"
-            "\t-e, --entrypoint name       override the c entrypoint name\n"
-            "\t                            (default: \"<name>_<type>\")\n"
-            "\t-r, --revision x.x          Set a version (example: 20.1)\n");
-        }
+        fprintf(stderr,
+            "usage: %s [-options] maxsize [list-filename]\n"
+            "\n"
+            "Read the list file (default: stdin) and \n"
+            "create a common data file from specified files; omit any larger than maxsize\n"
+            "\n",
+            argv[0]);
+        fprintf(stderr,
+            "    option              parameter   description\n"
+            "    ---------------------------------------------------------------------------\n"
+            "    -h or -? or --help              this usage text\n"
+            "    -v or --verbose                 verbose output\n"
+            "    -c or --copyright               include the ICU copyright notice\n"
+            "    -C or --comment     \"text\"      include a comment string\n"
+            "    -d or --destdir     dir         destination directory\n");
+        fprintf(stderr,
+            "    -n or --name        file-name   output file name, without .type extension\n"
+            "                                       defaults to " COMMON_DATA_NAME "\n"
+            "    -t or --type        file-type   type of the destination file\n"
+            "                                       defaults to \"" DATA_TYPE "\"\n"
+            "    -S or --source      toc-file    write a .c source file with the table of contents\n"
+            "    -e or --entrypoint  name        override the c entrypoint name\n"
+            "                                       defaults to \"<name>_<type>\" ");
+
         return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
     sourceTOC=options[8].doesOccur;
-
-    verbose = options[2].doesOccur;
 
     maxSize=(uint32_t)uprv_strtoul(argv[1], NULL, 0);
 
@@ -167,12 +176,10 @@ main(int argc, char* argv[]) {
         }
     }
 
-    if (verbose) {
-        if(sourceTOC) {
-            printf("generating %s_%s.c (table of contents source file)\n", options[6].value, options[7].value);
-        } else {
-            printf("generating %s.%s (common data file with table of contents)\n", options[6].value, options[7].value);
-        }
+    if(sourceTOC) {
+        printf("Generating %s_%s.c Table of Contents source file\n", options[6].value, options[7].value);
+    } else {
+        printf("Generating %s.%s common data file with Table of Contents\n", options[6].value, options[7].value);
     }
 
     /* read the list of files and get their lengths */
@@ -189,13 +196,13 @@ main(int argc, char* argv[]) {
 
         /* check for comment */
 
-        if (*line == '#') {
+	if (*line == '#') {
             continue;
         }
 
         /* add the file */
 
-        addFile(getLongPathname(line), sourceTOC, verbose);
+        addFile(getLongPathname(line), sourceTOC);
     }
 
     if(in!=T_FileStream_stdin()) {
@@ -203,7 +210,7 @@ main(int argc, char* argv[]) {
     }
 
     if(fileCount==0) {
-        fprintf(stderr, "gencmn: no files listed in %s\n", argc==2 ? "<stdin>" : argv[2]);
+        printf("gencmn: no files listed in %s\n", argc==2 ? "<stdin>" : argv[2]);
         return 0;
     }
 
@@ -256,31 +263,21 @@ main(int argc, char* argv[]) {
                 udata_writePadding(out, 16-length);
             }
 
-            if (verbose) {
-                printf("adding %s (%ld byte%s)\n", files[i].pathname, (long)files[i].fileSize, files[i].fileSize == 1 ? "" : "s");
-            }
-
             /* copy the next file */
             file=T_FileStream_open(files[i].pathname, "rb");
             if(file==NULL) {
                 fprintf(stderr, "gencmn: unable to open listed file %s\n", files[i].pathname);
                 exit(U_FILE_ACCESS_ERROR);
             }
-            for(nread = 0;;) {
+            for(;;) {
                 length=T_FileStream_read(file, buffer, sizeof(buffer));
-                if(length <= 0) {
+                if(length==0) {
                     break;
                 }
-                nread += length;
                 udata_writeBlock(out, buffer, length);
             }
             T_FileStream_close(file);
             length=files[i].fileSize;
-
-            if (nread != files[i].fileSize) {
-                fprintf(stderr, "gencmn: unable to read %s properly (got %ld/%ld byte%s)\n", files[i].pathname, (long)nread, (long)files[i].fileSize, files[i].fileSize == 1 ? "" : "s");
-                exit(U_FILE_ACCESS_ERROR);
-            }
         }
 
         /* finish */
@@ -317,17 +314,6 @@ main(int argc, char* argv[]) {
             exit(U_FILE_ACCESS_ERROR);
         }
 
-        /* If an entrypoint is specified, use it. */
-        if(options[9].doesOccur) {
-            entrypointName = options[9].value;
-        } else {
-            entrypointName = options[6].value;
-        }
-
-        symPrefix = (char *) uprv_malloc(uprv_strlen(entrypointName) + 2);
-        uprv_strcpy(symPrefix, entrypointName);
-        uprv_strcat(symPrefix, "_");
-
         /* write the source file */
         sprintf(buffer,
             "/*\n"
@@ -348,6 +334,13 @@ main(int argc, char* argv[]) {
             T_FileStream_writeLine(out, buffer);
         }
         T_FileStream_writeLine(out, ";\n\n");
+
+        /* If an entrypoint is specified, use it. */
+        if(options[9].doesOccur) {
+            entrypointName = options[9].value;
+        } else {
+            entrypointName = options[6].value;
+        }
 
         sprintf(
             buffer,
@@ -390,15 +383,13 @@ main(int argc, char* argv[]) {
 
         T_FileStream_writeLine(out, "\n    }\n};\n");
         T_FileStream_close(out);
-
-        uprv_free(symPrefix);
     }
 
     return 0;
 }
 
 static void
-addFile(const char *filename, UBool sourceTOC, UBool verbose) {
+addFile(const char *filename, UBool sourceTOC) {
     char *s;
     uint32_t length;
 
@@ -440,9 +431,6 @@ addFile(const char *filename, UBool sourceTOC, UBool verbose) {
 
         /* do not add files that are longer than maxSize */
         if(maxSize && length>maxSize) {
-            if (verbose) {
-                printf("%s ignored (size %ld > %ld)\n", filename, (long)length, (long)maxSize);
-            }
             return;
         }
         files[fileCount].fileSize=length;

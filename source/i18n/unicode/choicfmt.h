@@ -363,7 +363,7 @@ public:
      *                          &lt;= X &lt; limit[i+1].
      * @param formatsToAdopt    The format strings you want to use for each limit.
      * @param count             The size of the above arrays.
-     * @deprecated Remove after 2003-mar-25. Use setChoices instead.
+     * @stable
      */
     virtual void adoptChoices(double* limitsToAdopt,
                               UnicodeString* formatsToAdopt,
@@ -377,7 +377,6 @@ public:
      * @param closuresToAdopt Array of limit booleans to adopt
      * @param formatsToAdopt Array of format string to adopt
      * @param count The size of the above arrays
-     * @deprecated Remove after 2003-mar-25. Use setChoices instead.
      */
     virtual void adoptChoices(double* limitsToAdopt,
                               UBool* closuresToAdopt,

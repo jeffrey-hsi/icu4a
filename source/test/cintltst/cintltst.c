@@ -29,7 +29,6 @@
 #include "unicode/ucnv.h"
 #include "unicode/ures.h"
 #include "unicode/uclean.h"
-#include "dadrcoll.h"
 
 #ifdef XP_MAC_CONSOLE
 #   include <console.h>
@@ -41,30 +40,16 @@ U_CFUNC void ctst_freeAll(void);
 U_CFUNC void ctst_init(void);
 #endif
 
-static char* _testDataPath=NULL;
+static char* _testDirectory=NULL;
 
 /*
  *  Forward Declarations
  */
 void ctest_setICU_DATA(void);
 
-static UBool gMutexInitialized = FALSE;
-
-static void TestMutex(void) {
-    if (!gMutexInitialized) {
-        log_err("*** Failure! The global mutex was not initialized.\n"
-                "*** Make sure the right linker was used.\n");
-    }
-}
-
-void addSetup(TestNode** root)
-{
-    addTest(root, &TestMutex,    "setup/TestMutex");
-}
-
 int main(int argc, const char* const argv[])
 {
-    int nerrors = 0;
+    int nerrors;
     TestNode *root;
 
     /* initial check for the default converter */
@@ -72,90 +57,67 @@ int main(int argc, const char* const argv[])
     UResourceBundle *rb;
     UConverter *cnv;
 
-    /* This must be tested before using anything! */
-    gMutexInitialized = umtx_isInitialized(NULL);
-
-    while (REPEAT_TESTS > 0) {
-
 #ifdef CTST_LEAK_CHECK
-        ctst_init();
+    ctst_init();
 #endif
-        /* try opening the data from dll instead of the dat file */
-        cnv = ucnv_open("iso-8859-7", &errorCode);
-        if(cnv != 0) {
-            /* ok */
-            ucnv_close(cnv);
-        } else {
-            fprintf(stderr,
-                    "#### WARNING! The converter for iso-8859-7 cannot be loaded from data dll/so."
-                    "Proceeding to load data from dat file.\n");
-            errorCode = U_ZERO_ERROR;
 
-        }
-
-        /* If no ICU_DATA environment was set, try to fake up one. */
-        ctest_setICU_DATA();
+    /* If no ICU_DATA environment was set, try to fake up one. */
+    ctest_setICU_DATA();
 
 #ifdef XP_MAC_CONSOLE
-        argc = ccommand((char***)&argv);
+    argc = ccommand((char***)&argv);
 #endif
 
-        cnv  = ucnv_open(NULL, &errorCode);
-        if(cnv != NULL) {
-            /* ok */
-            ucnv_close(cnv);
-        } else {
-            fprintf(stderr,
-                "*** Failure! The default converter cannot be opened.\n"
+    cnv  = ucnv_open(NULL, &errorCode);
+    if(cnv != NULL) {
+        /* ok */
+        ucnv_close(cnv);
+    } else {
+        fprintf(stderr,
+            "*** Failure! The default converter cannot be opened.\n"
+            "*** Check the ICU_DATA environment variable and \n"
+            "*** check that the data files are present.\n");
+        return 1;
+    }
+
+    /* try more data */
+    cnv = ucnv_open("iso-8859-7", &errorCode);
+    if(cnv != 0) {
+        /* ok */
+        ucnv_close(cnv);
+    } else {
+        fprintf(stderr,
+                "*** Failure! The converter for iso-8859-7 cannot be opened.\n"
                 "*** Check the ICU_DATA environment variable and \n"
                 "*** check that the data files are present.\n");
-            return 1;
-        }
-
-        /* try more data */
-        cnv = ucnv_open("iso-8859-7", &errorCode);
-        if(cnv != 0) {
-            /* ok */
-            ucnv_close(cnv);
-        } else {
-            fprintf(stderr,
-                    "*** Failure! The converter for iso-8859-7 cannot be opened.\n"
-                    "*** Check the ICU_DATA environment variable and \n"
-                    "*** check that the data files are present.\n");
-            return 1;
-        }
-
-        rb = ures_open(NULL, "en", &errorCode);
-        if(U_SUCCESS(errorCode)) {
-            /* ok */
-            ures_close(rb);
-        } else {
-            fprintf(stderr,
-                    "*** Failure! The \"en\" locale resource bundle cannot be opened.\n"
-                    "*** Check the ICU_DATA environment variable and \n"
-                    "*** check that the data files are present.\n");
-            return 1;
-        }
-
-        fprintf(stdout, "Default locale for this run is %s\n", uloc_getDefault());
-
-        root = NULL;
-        addAllTests(&root);
-        nerrors = processArgs(root, argc, argv);
-        if (--REPEAT_TESTS > 0) {
-            printf("Repeating tests %d more time(s)\n", REPEAT_TESTS);
-        }
-        cleanUpTestTree(root);
-        /* ugly, but otherwise, we would either leak (bad) or open/close on individual tests (slow) */
-        closeDataDrivenCollatorTest();
-#ifdef CTST_LEAK_CHECK
-        ctst_freeAll();
-
-        /* To check for leaks */
-
-        u_cleanup(); /* nuke the hashtable.. so that any still-open cnvs are leaked */
-#endif
+        return 1;
     }
+
+    rb = ures_open(NULL, "en", &errorCode);
+    if(U_SUCCESS(errorCode)) {
+        /* ok */
+        ures_close(rb);
+    } else {
+        fprintf(stderr,
+                "*** Failure! The \"en\" locale resource bundle cannot be opened.\n"
+                "*** Check the ICU_DATA environment variable and \n"
+                "*** check that the data files are present.\n");
+        return 1;
+    }
+
+    fprintf(stdout, "Default locale for this run is %s\n", uloc_getDefault());
+
+    root = NULL;
+    addAllTests(&root);
+    nerrors = processArgs(root, argc, argv);
+    cleanUpTestTree(root);
+#ifdef CTST_LEAK_CHECK
+    ctst_freeAll();
+
+    /* To check for leaks */
+
+    u_cleanup(); /* nuke the hashtable.. so that any still-open cnvs are leaked */
+#endif
 
     return nerrors ? 1 : 0;
 }
@@ -213,6 +175,29 @@ ctest_pathnameInContext( char* fullname, int32_t maxsize, const char* relPath )
     }
 }
 
+const char*
+ctest_getTestDirectory()
+{
+    if (_testDirectory == NULL)
+    {
+        /* always relative to icu/source/data/.. */
+        ctest_setTestDirectory("test|testdata|");
+    }
+    return _testDirectory;
+}
+
+void
+ctest_setTestDirectory(const char* newDir)
+{
+    char newTestDir[256];
+    ctest_pathnameInContext(newTestDir, (int32_t)sizeof(newTestDir), newDir);
+    if(_testDirectory != NULL)
+        free(_testDirectory);
+    _testDirectory = (char*) ctst_malloc(sizeof(char*) * (strlen(newTestDir) + 1));
+    strcpy(_testDirectory, newTestDir);
+}
+
+
 
 /*  ctest_setICU_DATA  - if the ICU_DATA environment variable is not already
  *                       set, try to deduce the directory in which ICU was built,
@@ -232,16 +217,16 @@ void ctest_setICU_DATA() {
     }
 
     /* U_TOPBUILDDIR is set by the makefiles on UNIXes when building cintltst and intltst
-    //              to point to the top of the build hierarchy, which may or
-    //              may not be the same as the source directory, depending on
-    //              the configure options used.  At any rate,
-    //              set the data path to the built data from this directory.
-    //              The value is complete with quotes, so it can be used
-    //              as-is as a string constant.
-    */
+	 //              to point to the top of the build hierarchy, which may or
+	 //              may not be the same as the source directory, depending on
+	 //              the configure options used.  At any rate,
+	 //              set the data path to the built data from this directory.
+	 //              The value is complete with quotes, so it can be used
+	 //              as-is as a string constant.
+     */
 #if defined (U_TOPBUILDDIR)
     {
-        static char env_string[] = U_TOPBUILDDIR  U_FILE_SEP_STRING "data"U_FILE_SEP_STRING"out"U_FILE_SEP_STRING;
+        static char env_string[] = U_TOPBUILDDIR  "/data/";
         u_setDataDirectory(env_string);
         return;
     }
@@ -270,7 +255,7 @@ void ctest_setICU_DATA() {
             /* We found and truncated three names from the path.
              *  Now append "source\data" and set the environment
              */
-            strcpy(pBackSlash, U_FILE_SEP_STRING "data" U_FILE_SEP_STRING "out" U_FILE_SEP_STRING);
+            strcpy(pBackSlash, U_FILE_SEP_STRING "data" U_FILE_SEP_STRING);
             u_setDataDirectory(p);     /*  p is "ICU_DATA=wherever\icu\source\data"    */
             return;
         }
@@ -302,15 +287,15 @@ char *austrdup(const UChar* unichars)
     return newString;
 }
 
-char *aescstrdup(const UChar* unichars,int32_t length){
+char *aescstrdup(const UChar* unichars){
+    int length;
     char *newString,*targetLimit,*target;
     UConverterFromUCallback cb;
     const void *p;
     UErrorCode errorCode = U_ZERO_ERROR;
     UConverter* conv = ucnv_open("US-ASCII",&errorCode);
-    if(length==-1){
-        length = u_strlen( unichars);
-    }
+
+    length = u_strlen( unichars);
     newString = (char*)ctst_malloc ( sizeof(char) * 8 * (length +1));
     target = newString;
     targetLimit = newString+sizeof(char) * 8 * (length +1);
@@ -321,72 +306,7 @@ char *aescstrdup(const UChar* unichars,int32_t length){
     return newString;
 }
 
-const char* loadTestData(UErrorCode* err){
-    const char*      directory=NULL;
-    UResourceBundle* test =NULL;
-    char* tdpath=NULL;
-    const char* tdrelativepath = ".."U_FILE_SEP_STRING"test"U_FILE_SEP_STRING"testdata"U_FILE_SEP_STRING"out"U_FILE_SEP_STRING;
-    if( _testDataPath == NULL){
-        directory= u_getDataDirectory();
-    
-        tdpath = (char*) ctst_malloc(sizeof(char) *(( strlen(directory) * strlen(tdrelativepath)) + 10));
 
-
-        /* u_getDataDirectory shoul return \source\data ... set the
-         * directory to ..\source\data\..\test\testdata\out\testdata
-         *
-         * Fallback: When Memory mapped file is built
-         * ..\source\data\out\..\..\test\testdata\out\testdata
-         */
-        strcpy(tdpath, directory);
-        strcat(tdpath, tdrelativepath);
-        strcat(tdpath,"testdata");
-
-    
-        test=ures_open(tdpath, "testtypes", err);
-    
-        /* we could not find the data in tdpath 
-         * try tdpathFallback
-         */
-        if(U_FAILURE(*err))
-        {
-            strcpy(tdpath,directory);
-            strcat(tdpath,".."U_FILE_SEP_STRING);
-            strcat(tdpath, tdrelativepath);
-            strcat(tdpath,"testdata");
-            *err =U_ZERO_ERROR;
-            test=ures_open(tdpath, "testtypes", err);
-            /* we could not find the data in tdpath 
-             * try one more tdpathFallback
-             */
-            if(U_FAILURE(*err)){
-                strcpy(tdpath,directory);
-                strcat(tdpath,".."U_FILE_SEP_STRING);
-                strcat(tdpath,".."U_FILE_SEP_STRING);
-                strcat(tdpath, tdrelativepath);
-                strcat(tdpath,"testdata");
-                *err =U_ZERO_ERROR;
-                test=ures_open(tdpath, "testtypes", err);
-                /* Fall back did not succeed either so return */
-                if(U_FAILURE(*err)){
-                    *err = U_FILE_ACCESS_ERROR;
-                    log_err("construction of NULL did not succeed  :  %s \n", u_errorName(*err));
-                    return "";
-                }
-                ures_close(test);
-                _testDataPath = tdpath;
-                return _testDataPath;
-            }
-            ures_close(test);
-            _testDataPath = tdpath;
-            return _testDataPath;
-        }
-        ures_close(test);
-        _testDataPath = tdpath;
-        return _testDataPath;
-    }
-    return _testDataPath;
-}
 
 #define CTST_MAX_ALLOC 10000
 /* Array used as a queue */
@@ -424,6 +344,5 @@ void ctst_freeAll() {
             free(ctst_allocated_stuff[i]);
         }
     }
-    _testDataPath=NULL;
 }
 #endif

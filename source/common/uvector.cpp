@@ -56,11 +56,7 @@ UVector::UVector(UObjectDeleter d, UKeyComparator c, int32_t initialCapacity, UE
 }
 
 void UVector::_init(int32_t initialCapacity, UErrorCode &status) {
-    // Fix bogus initialCapacity values; avoid malloc(0)
-    if (initialCapacity < 1) {
-        initialCapacity = DEFUALT_CAPACITY;
-    }
-    elements = (UHashTok *)uprv_malloc(sizeof(UHashTok)*initialCapacity);
+    elements = new UHashTok[initialCapacity];
     if (elements == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
     } else {
@@ -70,39 +66,8 @@ void UVector::_init(int32_t initialCapacity, UErrorCode &status) {
 
 UVector::~UVector() {
     removeAllElements();
-    uprv_free(elements);
+    delete[] elements;
     elements = 0;
-}
-
-/**
- * Assign this object to another (make this a copy of 'other').
- * Use the 'assign' function to assign each element.
- */
-void UVector::assign(const UVector& other, UTokenAssigner assign, UErrorCode &ec) {
-    if (ensureCapacity(other.count, ec)) {
-        setSize(other.count);
-        for (int32_t i=0; i<other.count; ++i) {
-            if (elements[i].pointer != 0 && deleter != 0) {
-                (*deleter)(elements[i].pointer);
-            }
-            (*assign)(elements[i], other.elements[i]);
-        }
-    }
-}
-
-// This only does something sensible if this object has a non-null comparer
-UBool UVector::operator==(const UVector& other) {
-    int32_t i;
-    if (count != other.count) return FALSE;
-    if (comparer != NULL) {
-        // Compare using this object's comparer
-        for (i=0; i<count; ++i) {
-            if (!(*comparer)(elements[i], other.elements[i])) {
-                return FALSE;
-            }
-        }
-    }
-    return TRUE;
 }
 
 void UVector::addElement(void* obj, UErrorCode &status) {
@@ -144,7 +109,7 @@ void UVector::insertElementAt(void* obj, int32_t index, UErrorCode &status) {
             elements[i] = elements[i-1];
         }
         elements[index].pointer = obj;
-        ++count;
+		++count;
     }
     /* else index out of range */
 }
@@ -155,48 +120,6 @@ void* UVector::elementAt(int32_t index) const {
 
 int32_t UVector::elementAti(int32_t index) const {
     return (0 <= index && index < count) ? elements[index].integer : 0;
-}
-
-UBool UVector::containsAll(const UVector& other) const {
-    for (int32_t i=0; i<other.size(); ++i) {
-        if (indexOf(other.elements[i]) < 0) {
-            return FALSE;
-        }
-    }
-    return TRUE;
-}
-
-UBool UVector::containsNone(const UVector& other) const {
-    for (int32_t i=0; i<other.size(); ++i) {
-        if (indexOf(other.elements[i]) >= 0) {
-            return FALSE;
-        }
-    }
-    return TRUE;
-}
-
-UBool UVector::removeAll(const UVector& other) {
-    UBool changed = FALSE;
-    for (int32_t i=0; i<other.size(); ++i) {
-        int32_t j = indexOf(other.elements[i]);
-        if (j >= 0) {
-            removeElementAt(j);
-            changed = TRUE;
-        }
-    }
-    return changed;
-}
-
-UBool UVector::retainAll(const UVector& other) {
-    UBool changed = FALSE;
-    for (int32_t j=size()-1; j>=0; --j) {
-        int32_t i = other.indexOf(elements[j]);
-        if (i < 0) {
-            removeElementAt(j);
-            changed = TRUE;
-        }
-    }
-    return changed;
 }
 
 void UVector::removeElementAt(int32_t index) {
@@ -227,22 +150,10 @@ void UVector::removeAllElements(void) {
 }
 
 int32_t UVector::indexOf(void* obj, int32_t startIndex) const {
-    UHashTok key;
-    key.pointer = obj;
-    return indexOf(key, startIndex);
-}
-
-int32_t UVector::indexOf(int32_t obj, int32_t startIndex) const {
-    UHashTok key;
-    key.integer = obj;
-    return indexOf(key, startIndex);
-}
-
-// This only works if this object has a non-null comparer
-int32_t UVector::indexOf(UHashTok key, int32_t startIndex) const {
-    int32_t i;
     if (comparer != 0) {
-        for (i=startIndex; i<count; ++i) {
+        UHashTok key;
+        key.pointer = obj;
+        for (int32_t i=startIndex; i<count; ++i) {
             if ((*comparer)(key, elements[i])) {
                 return i;
             }
@@ -259,13 +170,13 @@ UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
         if (newCap < minimumCapacity) {
             newCap = minimumCapacity;
         }
-        UHashTok* newElems = (UHashTok *)uprv_malloc(sizeof(UHashTok)*newCap);
+        UHashTok* newElems = new UHashTok[newCap];
         if (newElems == 0) {
             status = U_MEMORY_ALLOCATION_ERROR;
             return FALSE;
         }
         uprv_memcpy(newElems, elements, sizeof(elements[0]) * count);
-        uprv_free(elements);
+        delete[] elements;
         elements = newElems;
         capacity = newCap;
         return TRUE;
@@ -276,7 +187,7 @@ UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
  * Change the size of this vector as follows: If newSize is smaller,
  * then truncate the array, possibly deleting held elements for i >=
  * newSize.  If newSize is larger, grow the array, filling in new
- * slots with NULL.
+ * slows with NULL.
  */
 void UVector::setSize(int32_t newSize) {
     int32_t i;
@@ -346,55 +257,6 @@ void* UVector::orphanElementAt(int32_t index) {
     }
     /* else index out of range */
     return e;
-}
-
-/**
- * Insert the given object into this vector at its sorted position
- * as defined by 'compare'.  The current elements are assumed to
- * be sorted already.
- */
-void UVector::sortedInsert(void* obj, USortComparator compare, UErrorCode& ec) {
-    UHashTok tok;
-    tok.pointer = obj;
-    sortedInsert(tok, compare, ec);
-}
-
-/**
- * Insert the given integer into this vector at its sorted position
- * as defined by 'compare'.  The current elements are assumed to
- * be sorted already.
- */
-void UVector::sortedInsert(int32_t obj, USortComparator compare, UErrorCode& ec) {
-    UHashTok tok;
-    tok.integer = obj;
-    sortedInsert(tok, compare, ec);
-}
-
-// ASSUME elements[] IS CURRENTLY SORTED
-void UVector::sortedInsert(UHashTok tok, USortComparator compare, UErrorCode& ec) {
-    // Perform a binary search for the location to insert tok at.  Tok
-    // will be inserted between two elements a and b such that a <=
-    // tok && tok < b, where there is a 'virtual' elements[-1] always
-    // less than tok and a 'virtual' elements[count] always greater
-    // than tok.
-    int32_t min = 0, max = count;
-    while (min != max) {
-        int32_t probe = (min + max) / 2;
-        int8_t c = (*compare)(elements[probe], tok);
-        if (c > 0) {
-            max = probe;
-        } else {
-            // assert(c <= 0);
-            min = probe + 1;
-        }
-    }
-    if (ensureCapacity(count + 1, ec)) {
-        for (int32_t i=count; i>min; --i) {
-            elements[i] = elements[i-1];
-        }
-        elements[min] = tok;
-        ++count;
-    }
 }
 
 UStack::UStack(UErrorCode &status) :

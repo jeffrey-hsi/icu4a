@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2002, International Business Machines
+*   Copyright (C) 1999-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -71,8 +71,6 @@ main(int argc, char* argv[]) {
     char *basename=NULL;
     UErrorCode errorCode=U_ZERO_ERROR;
 
-    U_MAIN_INIT_ARGS(argc, argv);
-
     /* preset then read command line options */
     options[4].value=u_getDataDirectory();
     options[5].value="";
@@ -137,27 +135,55 @@ main(int argc, char* argv[]) {
     initStore();
 
     /* process BidiMirroring.txt */
-    writeUCDFilename(basename, "BidiMirroring", suffix);
+    if(suffix==NULL) {
+        uprv_strcpy(basename, "BidiMirroring.txt");
+    } else {
+        uprv_strcpy(basename, "BidiMirroring");
+        basename[6]='-';
+        uprv_strcpy(basename+7, suffix);
+        uprv_strcat(basename+7, ".txt");
+    }
     parseBidiMirroring(filename, &errorCode);
 
     /* process SpecialCasing.txt */
-    writeUCDFilename(basename, "SpecialCasing", suffix);
+    if(suffix==NULL) {
+        uprv_strcpy(basename, "SpecialCasing.txt");
+    } else {
+        uprv_strcpy(basename, "SpecialCasing");
+        basename[13]='-';
+        uprv_strcpy(basename+14, suffix);
+        uprv_strcat(basename+14, ".txt");
+    }
     parseSpecialCasing(filename, &errorCode);
 
     /* process CaseFolding.txt */
-    writeUCDFilename(basename, "CaseFolding", suffix);
+    if(suffix==NULL) {
+        uprv_strcpy(basename, "CaseFolding.txt");
+    } else {
+        uprv_strcpy(basename, "CaseFolding");
+        basename[11]='-';
+        uprv_strcpy(basename+12, suffix);
+        uprv_strcat(basename+12, ".txt");
+    }
     parseCaseFolding(filename, &errorCode);
 
     /* process UnicodeData.txt */
-    writeUCDFilename(basename, "UnicodeData", suffix);
+    if(suffix==NULL) {
+        uprv_strcpy(basename, "UnicodeData.txt");
+    } else {
+        uprv_strcpy(basename, "UnicodeData");
+        basename[11]='-';
+        uprv_strcpy(basename+12, suffix);
+        uprv_strcat(basename+12, ".txt");
+    }
     parseDB(filename, &errorCode);
-
-    /* process additional properties files */
-    *basename=0;
-    generateAdditionalProperties(filename, suffix, &errorCode);
 
     /* process parsed data */
     if(U_SUCCESS(errorCode)) {
+        compactProps();
+        compactStage3();
+        compactStage2();
+
         /* write the properties data file */
         generateData(destDir);
     }
@@ -165,44 +191,68 @@ main(int argc, char* argv[]) {
     return errorCode;
 }
 
-U_CFUNC void
-writeUCDFilename(char *basename, const char *filename, const char *suffix) {
-    int32_t length=uprv_strlen(filename);
-    uprv_strcpy(basename, filename);
-    if(suffix!=NULL) {
-        basename[length++]='-';
-        uprv_strcpy(basename+length, suffix);
-        length+=uprv_strlen(suffix);
+static const char *
+skipWhitespace(const char *s) {
+    while(*s==' ' || *s=='\t') {
+        ++s;
     }
-    uprv_strcpy(basename+length, ".txt");
+    return s;
 }
 
-U_CFUNC int32_t
-getTokenIndex(const char *const tokens[], int32_t countTokens, const char *s) {
-    const char *t, *z;
-    int32_t i, j;
+/*
+ * parse a list of code points
+ * store them as a string in dest[destSize] with the string length in dest[0]
+ * set the first code point in *pFirst
+ * return the number of code points
+ */
+static int32_t
+parseCodePoints(const char *s,
+                UChar *dest, int32_t destSize,
+                uint32_t *pFirst,
+                UErrorCode *pErrorCode) {
+    char *end;
+    uint32_t value;
+    int32_t i, count;
 
-    s=u_skipWhitespace(s);
-    for(i=0; i<countTokens; ++i) {
-        t=tokens[i];
-        if(t!=NULL) {
-            for(j=0;; ++j) {
-                if(t[j]!=0) {
-                    if(s[j]!=t[j]) {
-                        break;
-                    }
-                } else {
-                    z=u_skipWhitespace(s+j);
-                    if(*z==';' || *z==0) {
-                        return i;
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
+    if(pFirst!=NULL) {
+        *pFirst=0xffff;
     }
-    return -1;
+
+    count=0;
+    i=1; /* leave dest[0] for the length value */
+    for(;;) {
+        s=skipWhitespace(s);
+        if(*s==';' || *s==0) {
+            dest[0]=(UChar)(i-1);
+            return count;
+        }
+
+        /* read one code point */
+        value=(uint32_t)uprv_strtoul(s, &end, 16);
+        if(end<=s || (*end!=' ' && *end!='\t' && *end!=';') || value>=0x110000) {
+            fprintf(stderr, "genprops: syntax error parsing code point at %s\n", s);
+            *pErrorCode=U_PARSE_ERROR;
+            return -1;
+        }
+
+        /* store the first code point */
+        if(++count==1 && pFirst!=NULL) {
+            *pFirst=value;
+        }
+
+        /* append it to the destination array */
+        UTF_APPEND_CHAR(dest, i, destSize, value);
+
+        /* overflow? */
+        if(i>=destSize) {
+            fprintf(stderr, "genprops: code point sequence too long at at %s\n", s);
+            *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
+            return -1;
+        }
+
+        /* go to the following characters */
+        s=end;
+    }
 }
 
 /* parser for BidiMirroring.txt --------------------------------------------- */
@@ -275,8 +325,8 @@ specialCasingLineFn(void *context,
     char *end;
 
     /* get code point */
-    specialCasings[specialCasingCount].code=(uint32_t)uprv_strtoul(u_skipWhitespace(fields[0][0]), &end, 16);
-    end=(char *)u_skipWhitespace(end);
+    specialCasings[specialCasingCount].code=(uint32_t)uprv_strtoul(skipWhitespace(fields[0][0]), &end, 16);
+    end=(char *)skipWhitespace(end);
     if(end<=fields[0][0] || end!=fields[0][1]) {
         fprintf(stderr, "genprops: syntax error in SpecialCasing.txt field 0 at %s\n", fields[0][0]);
         *pErrorCode=U_PARSE_ERROR;
@@ -284,7 +334,7 @@ specialCasingLineFn(void *context,
     }
 
     /* is this a complex mapping? */
-    if(*u_skipWhitespace(fields[4][0])!=0) {
+    if(*skipWhitespace(fields[4][0])!=0) {
         /* there is some condition text in the fifth field */
         specialCasings[specialCasingCount].isComplex=TRUE;
 
@@ -295,12 +345,9 @@ specialCasingLineFn(void *context,
     } else {
         /* just set the "complex" flag and get the case mappings */
         specialCasings[specialCasingCount].isComplex=FALSE;
-        specialCasings[specialCasingCount].lowerCase[0]=
-            (UChar)u_parseString(fields[1][0], specialCasings[specialCasingCount].lowerCase+1, 31, NULL, pErrorCode);
-        specialCasings[specialCasingCount].upperCase[0]=
-            (UChar)u_parseString(fields[3][0], specialCasings[specialCasingCount].upperCase+1, 31, NULL, pErrorCode);
-        specialCasings[specialCasingCount].titleCase[0]=
-            (UChar)u_parseString(fields[2][0], specialCasings[specialCasingCount].titleCase+1, 31, NULL, pErrorCode);
+        parseCodePoints(fields[1][0], specialCasings[specialCasingCount].lowerCase, 32, NULL, pErrorCode);
+        parseCodePoints(fields[3][0], specialCasings[specialCasingCount].upperCase, 32, NULL, pErrorCode);
+        parseCodePoints(fields[2][0], specialCasings[specialCasingCount].titleCase, 32, NULL, pErrorCode);
         if(U_FAILURE(*pErrorCode)) {
             fprintf(stderr, "genprops: error parsing special casing at %s\n", fields[0][0]);
             exit(*pErrorCode);
@@ -373,8 +420,8 @@ caseFoldingLineFn(void *context,
     char status;
 
     /* get code point */
-    caseFoldings[caseFoldingCount].code=(uint32_t)uprv_strtoul(u_skipWhitespace(fields[0][0]), &end, 16);
-    end=(char *)u_skipWhitespace(end);
+    caseFoldings[caseFoldingCount].code=(uint32_t)uprv_strtoul(skipWhitespace(fields[0][0]), &end, 16);
+    end=(char *)skipWhitespace(end);
     if(end<=fields[0][0] || end!=fields[0][1]) {
         fprintf(stderr, "genprops: syntax error in CaseFolding.txt field 0 at %s\n", fields[0][0]);
         *pErrorCode=U_PARSE_ERROR;
@@ -382,7 +429,7 @@ caseFoldingLineFn(void *context,
     }
 
     /* get the status of this mapping */
-    caseFoldings[caseFoldingCount].status=status=*u_skipWhitespace(fields[1][0]);
+    caseFoldings[caseFoldingCount].status=status=*skipWhitespace(fields[1][0]);
     if(status!='L' && status!='E' && status!='C' && status!='S' && status!='F' && status!='I') {
         fprintf(stderr, "genprops: unrecognized status field in CaseFolding.txt at %s\n", fields[0][0]);
         *pErrorCode=U_PARSE_ERROR;
@@ -395,15 +442,14 @@ caseFoldingLineFn(void *context,
     }
 
     /* get the mapping */
-    count=caseFoldings[caseFoldingCount].full[0]=
-        (UChar)u_parseString(fields[2][0], caseFoldings[caseFoldingCount].full+1, 31, &caseFoldings[caseFoldingCount].simple, pErrorCode);
+    count=parseCodePoints(fields[2][0], caseFoldings[caseFoldingCount].full, 32, &caseFoldings[caseFoldingCount].simple, pErrorCode);
     if(U_FAILURE(*pErrorCode)) {
         fprintf(stderr, "genprops: error parsing CaseFolding.txt mapping at %s\n", fields[0][0]);
         exit(*pErrorCode);
     }
 
-    /* there is a simple mapping only if there is exactly one code point (count is in UChars) */
-    if(count==0 || count>2 || (count==2 && UTF_IS_SINGLE(caseFoldings[caseFoldingCount].full[1]))) {
+    /* there is a simple mapping only if there is exactly one code point */
+    if(count!=1) {
         caseFoldings[caseFoldingCount].simple=0;
     }
 
@@ -483,6 +529,23 @@ bidiNames[U_CHAR_DIRECTION_COUNT]={
     "WS", "ON", "LRE", "LRO", "AL", "RLE", "RLO", "PDF", "NSM", "BN"
 };
 
+/* control code properties */
+static const struct {
+    uint32_t code;
+    uint8_t generalCategory;
+} controlProps[]={
+    /* TAB */   {0x9, U_SPACE_SEPARATOR},
+    /* VT */    {0xb, U_SPACE_SEPARATOR},
+    /* LF */    {0xa, U_PARAGRAPH_SEPARATOR},
+    /* FF */    {0xc, U_LINE_SEPARATOR},
+    /* CR */    {0xd, U_PARAGRAPH_SEPARATOR},
+    /* FS */    {0x1c, U_PARAGRAPH_SEPARATOR},
+    /* GS */    {0x1d, U_PARAGRAPH_SEPARATOR},
+    /* RS */    {0x1e, U_PARAGRAPH_SEPARATOR},
+    /* US */    {0x1f, U_SPACE_SEPARATOR},
+    /* NL */    {0x85, U_PARAGRAPH_SEPARATOR}
+};
+
 static struct {
     uint32_t first, last, props;
     char name[80];
@@ -498,10 +561,12 @@ unicodeDataLineFn(void *context,
     char *end;
     static uint32_t prevCode=0;
     uint32_t value;
-    int32_t i;
+    int i;
 
     /* reset the properties */
     uprv_memset(&p, 0, sizeof(Props));
+    p.decimalDigitValue=p.digitValue=-1;
+    p.numericValue=0x80000000;
 
     /* get the character code, field 0 */
     p.code=(uint32_t)uprv_strtoul(fields[0][0], &end, 16);
@@ -512,25 +577,42 @@ unicodeDataLineFn(void *context,
     }
 
     /* get general category, field 2 */
-    i=getTokenIndex(genCategoryNames, U_CHAR_CATEGORY_COUNT, fields[2][0]);
-    if(i>=0) {
-        p.generalCategory=(uint8_t)i;
-    } else {
-        fprintf(stderr, "genprops: unknown general category \"%s\" at code 0x%lx\n",
-            fields[2][0], (unsigned long)p.code);
+    *fields[2][1]=0;
+    for(i=0;;) {
+        if(uprv_strcmp(fields[2][0], genCategoryNames[i])==0) {
+            p.generalCategory=(uint8_t)i;
+            break;
+        }
+        if(++i==U_CHAR_CATEGORY_COUNT) {
+            fprintf(stderr, "genprops: unknown general category \"%s\" at code 0x%lx\n",
+                fields[2][0], (unsigned long)p.code);
+            *pErrorCode=U_PARSE_ERROR;
+            exit(U_PARSE_ERROR);
+        }
+    }
+
+    /* get canonical combining class, field 3 */
+    p.canonicalCombining=(uint8_t)uprv_strtoul(fields[3][0], &end, 10);
+    if(end<=fields[3][0] || end!=fields[3][1]) {
+        fprintf(stderr, "genprops: syntax error in field 3 at code 0x%lx\n",
+            (unsigned long)p.code);
         *pErrorCode=U_PARSE_ERROR;
         exit(U_PARSE_ERROR);
     }
 
     /* get BiDi category, field 4 */
-    i=getTokenIndex(bidiNames, U_CHAR_DIRECTION_COUNT, fields[4][0]);
-    if(i>=0) {
-        p.bidi=(uint8_t)i;
-    } else {
-        fprintf(stderr, "genprops: unknown BiDi category \"%s\" at code 0x%lx\n",
-            fields[4][0], (unsigned long)p.code);
-        *pErrorCode=U_PARSE_ERROR;
-        exit(U_PARSE_ERROR);
+    *fields[4][1]=0;
+    for(i=0;;) {
+        if(uprv_strcmp(fields[4][0], bidiNames[i])==0) {
+            p.bidi=(uint8_t)i;
+            break;
+        }
+        if(++i==U_CHAR_DIRECTION_COUNT) {
+            fprintf(stderr, "genprops: unknown BiDi category \"%s\" at code 0x%lx\n",
+                fields[4][0], (unsigned long)p.code);
+            *pErrorCode=U_PARSE_ERROR;
+            exit(U_PARSE_ERROR);
+        }
     }
 
     /* decimal digit value, field 6 */
@@ -542,8 +624,7 @@ unicodeDataLineFn(void *context,
             *pErrorCode=U_PARSE_ERROR;
             exit(U_PARSE_ERROR);
         }
-        p.numericValue=(int32_t)value;
-        p.numericType=1;
+        p.decimalDigitValue=(int16_t)value;
     }
 
     /* digit value, field 7 */
@@ -555,15 +636,7 @@ unicodeDataLineFn(void *context,
             *pErrorCode=U_PARSE_ERROR;
             exit(U_PARSE_ERROR);
         }
-        if(p.numericType==0) {
-            p.numericValue=(int32_t)value;
-            p.numericType=2;
-        } else if((int32_t)value!=p.numericValue) {
-            fprintf(stderr, "genprops error: numeric values in fields 6 & 7 different at code 0x%lx\n",
-                (unsigned long)p.code);
-            *pErrorCode=U_PARSE_ERROR;
-            exit(U_PARSE_ERROR);
-        }
+        p.digitValue=(int16_t)value;
     }
 
     /* numeric value, field 8 */
@@ -582,13 +655,6 @@ unicodeDataLineFn(void *context,
         value=(uint32_t)uprv_strtoul(s, &end, 10);
         if(value>0 && *end=='/') {
             /* field 8 may contain a fractional value, get the denominator */
-            if(p.numericType>0) {
-                fprintf(stderr, "genprops error: numeric values in fields 6..8 different at code 0x%lx\n",
-                    (unsigned long)p.code);
-                *pErrorCode=U_PARSE_ERROR;
-                exit(U_PARSE_ERROR);
-            }
-
             p.denominator=(uint32_t)uprv_strtoul(end+1, &end, 10);
             if(p.denominator==0) {
                 fprintf(stderr, "genprops: denominator is 0 in field 8 at code 0x%lx\n",
@@ -604,19 +670,12 @@ unicodeDataLineFn(void *context,
             exit(U_PARSE_ERROR);
         }
 
-        if(p.numericType==0) {
-            if(isNegative) {
-                p.numericValue=-(int32_t)value;
-            } else {
-                p.numericValue=(int32_t)value;
-            }
-            p.numericType=3;
-        } else if((int32_t)value!=p.numericValue) {
-            fprintf(stderr, "genprops error: numeric values in fields 6..8 different at code 0x%lx\n",
-                (unsigned long)p.code);
-            *pErrorCode=U_PARSE_ERROR;
-            exit(U_PARSE_ERROR);
+        if(isNegative) {
+            p.numericValue=-(int32_t)value;
+        } else {
+            p.numericValue=(int32_t)value;
         }
+        p.hasNumericValue=TRUE;
     }
 
     /* get Mirrored flag, field 9 */
@@ -658,6 +717,15 @@ unicodeDataLineFn(void *context,
         exit(U_PARSE_ERROR);
     }
     p.titleCase=value;
+
+    /* override properties for some common control characters */
+    if(p.generalCategory==U_CONTROL_CHAR) {
+        for(i=0; i<sizeof(controlProps)/sizeof(controlProps[0]); ++i) {
+            if(controlProps[i].code==p.code) {
+                p.generalCategory=controlProps[i].generalCategory;
+            }
+        }
+    }
 
     /* set additional properties from previously parsed files */
     if(mirrorIndex<mirrorCount && p.code==mirrorMappings[mirrorIndex][0]) {

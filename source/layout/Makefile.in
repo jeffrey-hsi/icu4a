@@ -11,6 +11,9 @@ top_builddir = ..
 
 include $(top_builddir)/icudefs.mk
 
+## Platform-specific setup
+include @platform_make_fragment@
+
 ## Build directory information
 subdir = layout
 
@@ -19,10 +22,14 @@ CLEANFILES = *~ $(DEPS)
 
 ## Target information
 
+ENABLE_STATIC = @ENABLE_STATIC@
+ENABLE_SHARED = @ENABLE_SHARED@
+
 TARGET_STUBNAME=le
 
 ifneq ($(ENABLE_STATIC),)
 TARGET = $(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).a
+RANLIB = @RANLIB@
 endif
 
 ifneq ($(ENABLE_SHARED),)
@@ -36,8 +43,17 @@ DYNAMICCPPFLAGS = $(SHAREDLIBCPPFLAGS)
 DYNAMICCFLAGS = $(SHAREDLIBCFLAGS)
 DYNAMICCXXFLAGS = $(SHAREDLIBCXXFLAGS)
 
-CPPFLAGS += -I$(srcdir) -I$(top_builddir)/common -I$(srcdir)/unicode -I$(srcdir)/.. -I$(top_builddir)/common -I$(top_srcdir)/common $(LIBCPPFLAGS)
-LIBS = $(DEFAULT_LIBS)
+DEFS = @DEFS@
+CPPFLAGS = @CPPFLAGS@ $(LIBCPPFLAGS) -I$(srcdir) -I$(top_builddir)/common -I$(srcdir)/unicode -I$(srcdir)/.. -I$(top_builddir)/common -I$(top_srcdir)/common
+CFLAGS = @CFLAGS@
+CXXFLAGS = @CXXFLAGS@
+ENABLE_RPATH = @ENABLE_RPATH@
+ifeq ($(ENABLE_RPATH),YES)
+RPATHLDFLAGS = $(LD_RPATH)$(LD_RPATH_PRE)$(libdir)
+endif
+LDFLAGS = @LDFLAGS@ $(RPATHLDFLAGS)
+#LIBS = $(LIBICUUC) @LIBS@
+LIBS= @LIBS@
 
 
 OBJECTS =  loengine.o \

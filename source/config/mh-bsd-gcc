@@ -3,7 +3,7 @@
 ## Copyright (c) 1999-2000, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-bsd-gcc,v 1.6 2002/05/01 23:48:09 grhoten-oss Exp $
+## $Id: mh-bsd-gcc,v 1.4 2001/10/03 23:32:11 grhoten-oss Exp $
 
 ## Commands to generate dependency files
 GEN_DEPS.c=	$(CC) -E -MM $(DEFS) $(CPPFLAGS)
@@ -14,6 +14,10 @@ SHAREDLIBCFLAGS = -fPIC
 SHAREDLIBCXXFLAGS = -fPIC
 SHAREDLIBCPPFLAGS = -DPIC
 
+## Commands to make a shared library
+SHLIB.c=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -shared
+SHLIB.cc=	$(CXX) $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -shared
+
 ## Compiler switch to embed a runtime search path
 LD_RPATH=	
 LD_RPATH_PRE=	-Wl,-rpath,
@@ -22,7 +26,7 @@ LD_RPATH_PRE=	-Wl,-rpath,
 LD_SONAME = -Wl,-soname -Wl,$(MIDDLE_SO_TARGET)
 
 ## Shared object suffix
-SO = so
+SO=		so
 ## Non-shared intermediate object suffix
 STATIC_O = ao
 
@@ -41,14 +45,14 @@ STATIC_O = ao
 	$(COMPILE.c) $(DYNAMICCPPFLAGS) $(DYNAMICCFLAGS) -o $@ $<
 
 ## Dependency rules
-%.d: $(srcdir)/%.c
-	@echo "generating dependency information for $<"
+%.d : $(srcdir)/%.c
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.c) $< \
 		| sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
 		[ -s $@ ] || rm -f $@'
 
-%.d: $(srcdir)/%.cpp
-	@echo "generating dependency information for $<"
+%.d : $(srcdir)/%.cpp
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.cc) $< \
 		| sed '\''s/\($*\)\.o[ :]*/\1.o $@ : /g'\'' > $@; \
 		[ -s $@ ] || rm -f $@'

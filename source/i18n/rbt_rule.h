@@ -16,8 +16,6 @@ U_NAMESPACE_BEGIN
 
 class Replaceable;
 class TransliterationRuleData;
-class StringMatcher;
-class UnicodeFunctor;
 
 /**
  * A transliteration rule used by
@@ -61,35 +59,6 @@ public:
 
 private:
 
-    // TODO Eliminate the pattern and keyLength data members.  They
-    // are used only by masks() and getIndexValue() which are called
-    // only during build time, not during run-time.  Perhaps these
-    // methods and pattern/keyLength can be isolated into a separate
-    // object.
-
-    /**
-     * The match that must occur before the key, or null if there is no
-     * preceding context.
-     */
-    StringMatcher *anteContext;
-
-    /**
-     * The matcher object for the key.  If null, then the key is empty.
-     */
-    StringMatcher *key;
-
-    /**
-     * The match that must occur after the key, or null if there is no
-     * following context.
-     */
-    StringMatcher *postContext;
-
-    /**
-     * The object that performs the replacement if the key,
-     * anteContext, and postContext are matched.  Never null.
-     */
-    UnicodeFunctor* output;
-
     /**
      * The string that must be matched, consisting of the anteContext, key,
      * and postContext, concatenated together, in that order.  Some components
@@ -100,6 +69,12 @@ private:
     UnicodeString pattern;
 
     /**
+     * The string that is emitted if the key, anteContext, and postContext
+     * are matched.
+     */
+    UnicodeString output;
+
+    /**
      * An array of matcher objects corresponding to the input pattern
      * segments.  If there are no segments this is null.  N.B. This is
      * a UnicodeMatcher for generality, but in practice it is always a
@@ -108,7 +83,7 @@ private:
      *
      * The array is owned, but the pointers within it are not.
      */
-    UnicodeFunctor** segments;
+    UnicodeMatcher** segments;
 
     /**
      * The number of elements in segments[] or zero if segments is NULL.
@@ -128,6 +103,13 @@ private:
 
      */
     int32_t keyLength;
+
+    /**
+     * The position of the cursor after emitting the output string, from 0 to
+     * output.length().  For most rules with no special cursor specification,
+     * the cursorPos is output.length().
+     */
+    int32_t cursorPos;
 
     /**
      * Miscellaneous attributes.
@@ -184,7 +166,7 @@ public:
                         int32_t anteContextPos, int32_t postContextPos,
                         const UnicodeString& outputStr,
                         int32_t cursorPosition, int32_t cursorOffset,
-                        UnicodeFunctor** segs,
+                        UnicodeMatcher** segs,
                         int32_t segsCount,
                         UBool anchorStart, UBool anchorEnd,
                         const TransliterationRuleData* data,
@@ -204,7 +186,13 @@ public:
      * Change the data object that this rule belongs to.  Used
      * internally by the TransliterationRuleData copy constructor.
      */
-    void setData(const TransliterationRuleData* data);
+    inline void setData(const TransliterationRuleData* data);
+
+    /**
+     * Return the position of the cursor within the output string.
+     * @return a value from 0 to <code>getOutput().length()</code>, inclusive.
+     */
+    virtual int32_t getCursorPos(void) const;
 
     /**
      * Return the preceding context length.  This method is needed to
@@ -279,7 +267,23 @@ public:
  private:
 
     friend class StringMatcher;
+
+    static void appendToRule(UnicodeString& rule,
+                             UChar32 c,
+                             UBool isLiteral,
+                             UBool escapeUnprintable,
+                             UnicodeString& quoteBuf);
+    
+    static void appendToRule(UnicodeString& rule,
+                             const UnicodeString& text,
+                             UBool isLiteral,
+                             UBool escapeUnprintable,
+                             UnicodeString& quoteBuf);
 };
+
+inline void TransliterationRule::setData(const TransliterationRuleData* d) {
+    data = d;
+}
 
 U_NAMESPACE_END
 

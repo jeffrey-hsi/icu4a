@@ -181,11 +181,9 @@ static int32_t ures_flushCache()
          * Don't worry about the parents of this node.
          * Those will eventually get deleted too, if not already.
          */
-        /* DONE: figure out why fCountExisting may not go to zero. Do not make this function public yet. */
-        /* 04/05/2002 [weiv] fCountExisting should now be accurate. If it's not zero, that means that    */
-        /* some resource bundles are still open somewhere. */
-
-        if (resB->fCountExisting == 0) {
+/* TODO: figure out why fCountExisting may not go to zero. Do not make this function public yet. */
+/*        if (resB->fCountExisting == 0)*/
+        {
             rbDeletedNum++;
             uhash_removeElement(cache, e);
             if(resB->fBogus == U_ZERO_ERROR) {
@@ -374,13 +372,7 @@ static UResourceDataEntry *findFirstExisting(const char* path, char* name, UBool
     *isDefault = (UBool)(uprv_strncmp(name, defaultLoc, uprv_strlen(name)) == 0);
     hasRealData = (UBool)(r->fBogus == U_ZERO_ERROR);
     if(!hasRealData) {
-      /* this entry is not real. We will discard it. */
-      /* However, the parent line for this entry is  */
-      /* not to be used - as there might be parent   */
-      /* lines in cache from previous openings that  */
-      /* are not updated yet. */
-      r->fCountExisting--;
-      /*entryCloseInt(r);*/
+      entryCloseInt(r);
       r = NULL;
       *status = U_USING_FALLBACK_ERROR;
     } else {
@@ -495,7 +487,7 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
 /**
  * Functions to create and destroy resource bundles.
  */
-static void entryClose(UResourceDataEntry *resB);
+
 /* INTERNAL: */
 static UResourceBundle *init_resb_result(const ResourceData *rdata, const Resource r, const char *key, UResourceDataEntry *realData, UResourceBundle *resB, UErrorCode *status) {
     if(status == NULL || U_FAILURE(*status)) {
@@ -505,14 +497,8 @@ static UResourceBundle *init_resb_result(const ResourceData *rdata, const Resour
         resB = (UResourceBundle *)uprv_malloc(sizeof(UResourceBundle));
         ures_setIsStackObject(resB, FALSE);
     } else {
-        if(resB->fData != NULL) {
-            entryClose(resB->fData);
-        }
-        if(resB->fVersion != NULL) {
-            uprv_free(resB->fVersion);
-        }
         if(ures_isStackObject(resB) != FALSE) {
-            ures_initStackObject(resB);
+            ures_setIsStackObject(resB, TRUE);
         }
     }
     resB->fData = realData;
@@ -544,8 +530,8 @@ UResourceBundle *ures_copyResb(UResourceBundle *r, const UResourceBundle *origin
             if(U_FAILURE(*status)) {
                 return r;
             }
-            ures_close(r);
             if(isStackObject == FALSE) {
+                ures_close(r);
                 r = (UResourceBundle *)uprv_malloc(sizeof(UResourceBundle));
             }
         }
@@ -945,22 +931,13 @@ U_CAPI const UChar* U_EXPORT2 ures_getStringByKey(const UResourceBundle *resB, c
 
     if(RES_GET_TYPE(resB->fRes) == RES_TABLE) {
         int32_t t=0;
-
         res = res_getTableItemByKey(&(resB->fResData), resB->fRes, &t, &key);
-
         if(res == RES_BOGUS) {
             key = inKey;
             if(resB->fHasFallback == TRUE) {
                 const ResourceData *rd = getFallbackData(resB, &key, &realData, &res, status);
                 if(U_SUCCESS(*status)) {
-                    switch (RES_GET_TYPE(res)) {
-                    case RES_STRING:
-                    case RES_TABLE:
-                    case RES_ARRAY:
-                        return res_getString(rd, res, len);
-                    default:
-                        *status = U_RESOURCE_TYPE_MISMATCH;
-                    }
+                    return res_getString(rd, res, len);
                 } else {
                     *status = U_MISSING_RESOURCE_ERROR;
                 }
@@ -968,14 +945,7 @@ U_CAPI const UChar* U_EXPORT2 ures_getStringByKey(const UResourceBundle *resB, c
                 *status = U_MISSING_RESOURCE_ERROR;
             }
         } else {
-            switch (RES_GET_TYPE(res)) {
-            case RES_STRING:
-            case RES_TABLE:
-            case RES_ARRAY:
-                return res_getString(&(resB->fResData), res, len);
-            default:
-                *status = U_RESOURCE_TYPE_MISMATCH;
-            }
+            return res_getString(&(resB->fResData), res, len);
         }
     } 
 #if 0 
@@ -1093,12 +1063,6 @@ ures_openFillIn(UResourceBundle *r, const char* path,
         r->fKey = NULL;
         r->fVersion = NULL;
         r->fIndex = -1;
-        if(r->fData != NULL) {
-            entryClose(r->fData);
-        }
-        if(r->fVersion != NULL) {
-            uprv_free(r->fVersion);
-        }
         r->fData = entryOpen(path, localeID, status);
         /* this is a quick fix to get regular data in bundle - until construction is cleaned up */
         firstData = r->fData;
@@ -1277,12 +1241,6 @@ U_CFUNC UBool ures_isStackObject(UResourceBundle* resB) {
   return((resB->fMagic1 == MAGIC1 && resB->fMagic2 == MAGIC2)?FALSE:TRUE);
 }
 
-
-U_CFUNC void ures_initStackObject(UResourceBundle* resB) {
-  memset(resB, 0, sizeof(UResourceBundle));
-  ures_setIsStackObject(resB, TRUE);
-}
-
 /**
  *  API: Counts members. For arrays and tables, returns number of resources.
  *  For strings, returns 1.
@@ -1293,7 +1251,7 @@ ures_countArrayItems(const UResourceBundle* resourceBundle,
                   UErrorCode* status)
 {
     UResourceBundle resData;
-    ures_initStackObject(&resData);
+    ures_setIsStackObject(&resData, TRUE);
         if (status==NULL || U_FAILURE(*status)) {
                 return 0;
         }
@@ -1321,6 +1279,11 @@ ures_close(UResourceBundle*    resB)
         if(resB->fData != NULL) {
             entryClose(resB->fData);
         }
+        /*
+        if(resB->fKey != NULL) {
+            uprv_free(resB->fKey);
+        }
+        */
         if(resB->fVersion != NULL) {
             uprv_free(resB->fVersion);
         }

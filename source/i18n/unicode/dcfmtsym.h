@@ -180,11 +180,6 @@ public:
      */
     void setSymbol(ENumberFormatSymbol symbol, UnicodeString value);
 
-    /**
-     * Returns the locale for which this object was constructed.
-     */
-    inline Locale getLocale() const;
-
 #ifdef ICU_DECIMALFORMATSYMBOLS_USE_DEPRECATES
     /**
      * character used for zero. Different for Arabic, etc.
@@ -311,7 +306,7 @@ public:
      *      text starts with the inifinity string, otherwise it returns 0.
      * @deprecated remove after 2000-dec-31. See UNumberFormatSymbol and getSymbol() for a replacement.
      */
-    int32_t compareInfinity(const UnicodeString& text, int32_t offset) const;
+    int32_t compareInfinity(const UnicodeString& text, UTextOffset offset) const;
 
     /**
      * character used to represent NaN (Not A Number). Almost always left
@@ -331,7 +326,7 @@ public:
      *      text starts with the NaN string, otherwise it returns 0.
      * @deprecated remove after 2000-dec-31. See UNumberFormatSymbol and getSymbol() for a replacement.
      */
-    int32_t compareNaN(const UnicodeString& text, int32_t offset) const;
+    int32_t compareNaN(const UnicodeString& text, UTextOffset offset) const;
 
     /**
      * character used to represent plus sign
@@ -401,7 +396,7 @@ public:
      *      0.
      * @deprecated remove after 2000-dec-31. See UNumberFormatSymbol and getSymbol() for a replacement.
      */
-    int32_t compareCurrencySymbol(const UnicodeString& text, int32_t offset) const;
+    int32_t compareCurrencySymbol(const UnicodeString& text, UTextOffset offset) const;
 
     /**
      * The international string denoting the local currency.
@@ -421,7 +416,7 @@ public:
      *      Symbol string, otherwise it returns 0.
      * @deprecated remove after 2000-dec-31. See UNumberFormatSymbol and getSymbol() for a replacement.
      */
-    int32_t compareInternationalCurrencySymbol(const UnicodeString& text, int32_t offset) const;
+    int32_t compareInternationalCurrencySymbol(const UnicodeString& text, UTextOffset offset) const;
 
     /**
      * The monetary decimal separator.
@@ -488,11 +483,7 @@ private:
      */
     void initialize();
 
-    void setCurrencyForSymbols();
-
     UnicodeString fSymbols[kFormatSymbolCount];
-
-    Locale locale;
 
     static const char fgNumberElements[];
     static const char fgCurrencyElements[];
@@ -512,19 +503,11 @@ DecimalFormatSymbols::getSymbol(ENumberFormatSymbol symbol) const {
 
 // -------------------------------------
 
-/* TODO: This should use "const UnicodeString &value" */
 inline void
 DecimalFormatSymbols::setSymbol(ENumberFormatSymbol symbol, UnicodeString value) {
     if(symbol<kFormatSymbolCount) {
         fSymbols[symbol]=value;
     }
-}
-
-// -------------------------------------
-
-inline Locale
-DecimalFormatSymbols::getLocale() const {
-    return locale;
 }
 
 #ifdef ICU_DECIMALFORMATSYMBOLS_USE_DEPRECATES
@@ -660,7 +643,7 @@ DecimalFormatSymbols::setInfinity(const UnicodeString& infinity)
 
 inline int32_t
 DecimalFormatSymbols::compareInfinity(const UnicodeString& text,
-                                      int32_t offset) const
+                                      UTextOffset offset) const
 {
     int32_t symbolLength = fSymbols[kInfinitySymbol].length();
     return text.compare(offset,
@@ -690,7 +673,7 @@ DecimalFormatSymbols::setNaN(const UnicodeString& NaN)
 // -------------------------------------
 
 inline int32_t
-DecimalFormatSymbols::compareNaN(const UnicodeString& text, int32_t offset) const
+DecimalFormatSymbols::compareNaN(const UnicodeString& text, UTextOffset offset) const
 {
     int32_t symbolLength = fSymbols[kNaNSymbol].length();
     return text.compare(offset,
@@ -769,7 +752,7 @@ DecimalFormatSymbols::setCurrencySymbol(const UnicodeString& str)
 
 inline int32_t
 DecimalFormatSymbols::compareCurrencySymbol(const UnicodeString& text,
-                                            int32_t offset) const
+                                            UTextOffset offset) const
 {
     int32_t symbolLength = fSymbols[kCurrencySymbol].length();
     return text.compare(offset,
@@ -800,7 +783,7 @@ DecimalFormatSymbols::setInternationalCurrencySymbol(const UnicodeString& str)
 
 inline int32_t
 DecimalFormatSymbols::compareInternationalCurrencySymbol(const UnicodeString& text,
-                                                         int32_t offset) const
+                                                         UTextOffset offset) const
 {
     int32_t symbolLength = fSymbols[kIntlCurrencySymbol].length();
     return text.compare(offset,

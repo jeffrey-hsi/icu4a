@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-*   Copyright (C) 2002, International Business Machines
+*   Copyright (C) 2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *******************************************************************************
 *
@@ -11,7 +11,7 @@
 *
 *   Created by: Vladimir Weinstein
 *
-*  Contains all the important version numbers for ICU. 
+*  Contains all the important version numbers for ICU.
 *  Gets included by utypes.h and Windows .rc files
 */
 
@@ -24,15 +24,14 @@
 
 /** IMPORTANT: When updating version, the following things need to be done:   */
 /** source/common/unicode/uversion.h - this file: update major, minor,        */
-/**        patchlevel, suffix, version, short version constants, namespace,   */
-/**                                                             and copyright */
+/**        patchlevel, suffix, version, short version constants and copyright */
 /** source/common/common.dsp - update 'Output file name' on the link tab so   */
 /**                   that it contains the new major/minor combination        */
 /** source/i18n/i18n.dsp - same as for the common.dsp                         */
 /** source/layout/layout.dsp - same as for the common.dsp                     */
-/** source/extra/ustdio/ustdio.dsp - same as for the common.dsp               */
-/** source/data/makedata.mak - change U_ICUDATA_NAME so that it contains      */
-/**                            the new major/minor combination                */
+/** source/ustdio/ustdio.dsp - same as for the common.dsp                     */
+/** source/data/build/makedata.mak - change U_ICUDATA_NAME so that it contains*/
+/**                   the new major/minor combination                         */
 /** source/tools/genren/genren.pl - use this script according to the README   */
 /**                    in that folder                                         */
 
@@ -48,20 +47,20 @@
 #define U_ICU_VERSION_MAJOR_NUM 2
 
 /** The current ICU minor version as an integer. */
-#define U_ICU_VERSION_MINOR_NUM 1
+#define U_ICU_VERSION_MINOR_NUM 0
 
 /** The current ICU patchlevel version as an integer. */
-#define U_ICU_VERSION_PATCHLEVEL_NUM 0
+#define U_ICU_VERSION_PATCHLEVEL_NUM 2
 
 /** Glued version suffix for renamers */
-#define U_ICU_VERSION_SUFFIX _2_1
+#define U_ICU_VERSION_SUFFIX _2_0
 
 /** The current ICU library version as a dotted-decimal string. The patchlevel
     only appears in this string if it non-zero. */
-#define U_ICU_VERSION "2.1"
+#define U_ICU_VERSION "2.0.2"
 
 /** The current ICU library major/minor version as a string without dots, for library name suffixes. */
-#define U_ICU_VERSION_SHORT "21"
+#define U_ICU_VERSION_SHORT "20"
 
 /** An ICU version consists of up to 4 numbers from 0..255. */
 #define U_MAX_VERSION_LENGTH 4
@@ -76,7 +75,7 @@
 typedef uint8_t UVersionInfo[U_MAX_VERSION_LENGTH];
 
 #if U_HAVE_NAMESPACE && defined(XP_CPLUSPLUS)
-#define U_ICU_NAMESPACE icu_2_1
+#define U_ICU_NAMESPACE icu_2_0
 namespace U_ICU_NAMESPACE { }
 namespace icu = U_ICU_NAMESPACE;
 U_NAMESPACE_USE
@@ -142,12 +141,12 @@ u_getVersion(UVersionInfo versionArray);
 /** in assigning different collation elements to code points                  */
 /** version 2 was in ICU 1.8.1. added support for prefixes, tweaked canonical */
 /** closure. However, the tailorings should probably get same CEs assigned    */
-#define UCOL_BUILDER_VERSION 4
+#define UCOL_BUILDER_VERSION 3
 
 /* This is the version of FractionalUCA.txt tailoring rules*/
 /* Version 1 was in ICU 1.8.1. Version two contains canonical closure for */
 /* supplementary code points */
-#define UCOL_FRACTIONAL_UCA_VERSION 3
+#define UCOL_FRACTIONAL_UCA_VERSION 2
 
 /** This is the version of the tailorings */
 #define UCOL_TAILORINGS_VERSION 1

@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2002, International Business Machines
+*   Copyright (C) 1999-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -24,8 +24,6 @@
 #include "cstring.h"
 #include "filestrm.h"
 #include "unicode/udata.h"
-#include "utrie.h"
-#include "uset.h"
 #include "unewdata.h"
 #include "unormimp.h"
 #include "gennorm.h"
@@ -55,8 +53,8 @@ static UDataInfo dataInfo={
     0,
 
     { 0x4e, 0x6f, 0x72, 0x6d },   /* dataFormat="Norm" */
-    { 2, 1, UTRIE_SHIFT, UTRIE_INDEX_SHIFT },   /* formatVersion */
-    { 3, 1, 0, 0 }                /* dataVersion (Unicode version) */
+    {1, 0, 0, _NORM_TRIE_SHIFT},  /* formatVersion - [3] contains the trie shift! */
+    {3, 1, 0, 0}                  /* dataVersion (Unicode version) */
 };
 
 extern void
@@ -66,7 +64,7 @@ setUnicodeVersion(const char *v) {
     uprv_memcpy(dataInfo.dataVersion, version, 4);
 }
 
-static int32_t indexes[_NORM_INDEX_TOP]={ 0 };
+static uint16_t indexes[_NORM_INDEX_TOP]={ 0 };
 
 /* tool memory helper ------------------------------------------------------- */
 
@@ -104,6 +102,7 @@ utm_open(const char *name, uint32_t count, uint32_t size) {
     return mem;
 }
 
+/* we don't use this - we don't clean up memory here... */
 static void
 utm_close(UToolMemory *mem) {
     if(mem!=NULL) {
@@ -116,11 +115,6 @@ utm_close(UToolMemory *mem) {
 static void *
 utm_getStart(UToolMemory *mem) {
     return (char *)mem->array;
-}
-
-static int32_t
-utm_countItems(UToolMemory *mem) {
-    return mem->index;
 }
 
 static void *
@@ -153,12 +147,10 @@ utm_allocN(UToolMemory *mem, int32_t n) {
 
 typedef void EnumTrieFn(void *context, uint32_t code, Norm *norm);
 
-static UNewTrie
-    normTrie={ {0},0,0,0,0,0,0,0,0,{0} },
-    fcdTrie={ {0},0,0,0,0,0,0,0,0,{0} },
-    auxTrie={ {0},0,0,0,0,0,0,0,0,{0} };
+static UToolMemory *stage2Mem, *normMem, *utf32Mem, *extraMem, *combiningTriplesMem;
 
-static UToolMemory *normMem, *utf32Mem, *extraMem, *combiningTriplesMem;
+static uint16_t stage1[_NORM_STAGE_1_MAX_COUNT], fcdStage1[_NORM_STAGE_1_MAX_COUNT];
+static uint16_t *stage2;
 
 static Norm *norms;
 
@@ -181,20 +173,21 @@ typedef struct CombiningTriple {
 static uint16_t combiningTable[0x8000];
 static uint16_t combiningTableTop=0;
 
-#define _NORM_MAX_SET_SEARCH_TABLE_LENGTH 0x4000
-static uint16_t canonStartSets[_NORM_MAX_CANON_SETS+2*_NORM_MAX_SET_SEARCH_TABLE_LENGTH];
-static int32_t canonStartSetsTop=_NORM_SET_INDEX_TOP;
-static int32_t canonSetsCount=0;
+/* stage 2 table after turning Norm structs into 32-bit words */
+static uint32_t *norm32Table=NULL, *fcdTable=NULL;
+
+/* number of units used in stage 1 and norm32Table, and same for FCD */
+static uint16_t stage1Top, fcdStage1Top,
+                norm32TableTop, fcdTableTop;
 
 extern void
 init() {
-    uint16_t *p16;
+    /* reset stage 1 of the trie */
+    uprv_memset(stage1, 0, sizeof(stage1));
 
-    /* initialize the two tries */
-    if(NULL==utrie_open(&normTrie, NULL, 30000, 0, FALSE)) {
-        fprintf(stderr, "error: failed to initialize tries\n");
-        exit(U_MEMORY_ALLOCATION_ERROR);
-    }
+    /* allocate stage 2 of the trie and reset the first block */
+    stage2Mem=utm_open("gennorm trie stage 2", 30000, sizeof(*stage2));
+    stage2=utm_allocN(stage2Mem, _NORM_STAGE_2_BLOCK_COUNT);
 
     /* allocate Norm structures and reset the first one */
     normMem=utm_open("gennorm normalization structs", 20000, sizeof(Norm));
@@ -208,9 +201,6 @@ init() {
 
     /* allocate extra data memory for UTF-16 decomposition strings and other values */
     extraMem=utm_open("gennorm extra 16-bit memory", _NORM_EXTRA_INDEX_TOP, 2);
-    /* initialize the extraMem counter for the top of FNC strings */
-    p16=(uint16_t *)utm_alloc(extraMem);
-    *p16=1;
 
     /* allocate temporary memory for combining triples */
     combiningTriplesMem=utm_open("gennorm combining triples", 0x4000, sizeof(CombiningTriple));
@@ -220,9 +210,24 @@ init() {
     indexes[_NORM_INDEX_MIN_NFKC_NO_MAYBE]=0xffff;
     indexes[_NORM_INDEX_MIN_NFD_NO_MAYBE]=0xffff;
     indexes[_NORM_INDEX_MIN_NFKD_NO_MAYBE]=0xffff;
+}
 
-    /* preset the indexes portion of canonStartSets */
-    uprv_memset(canonStartSets, 0, _NORM_SET_INDEX_TOP*2);
+/* get or create a block in stage 2 of the trie */
+static uint16_t
+createStage2Block(uint32_t code) {
+    uint32_t i;
+    uint16_t j;
+
+    i=code>>_NORM_TRIE_SHIFT;
+    j=stage1[i];
+    if(j==0) {
+        /* allocate a stage 2 block */
+        uint16_t *p;
+
+        p=(uint16_t *)utm_allocN(stage2Mem, _NORM_STAGE_2_BLOCK_COUNT);
+        stage1[i]=j=(uint16_t)(p-stage2);
+    }
+    return j;
 }
 
 /*
@@ -232,18 +237,16 @@ init() {
 static Norm *
 createNorm(uint32_t code) {
     Norm *p;
-    uint32_t i;
+    uint16_t stage2Block, k;
 
-    i=utrie_get32(&normTrie, (UChar32)code, NULL);
-    if(i!=0) {
-        p=norms+i;
-    } else {
+    stage2Block=createStage2Block(code);
+    k=(uint16_t)(stage2Block+(code&_NORM_STAGE_2_MASK));
+    if(stage2[k]==0) {
         /* allocate Norm */
         p=(Norm *)utm_alloc(normMem);
-        if(!utrie_set32(&normTrie, (UChar32)code, (uint32_t)(p-norms))) {
-            fprintf(stderr, "error: too many normalization entries\n");
-            exit(U_BUFFER_OVERFLOW_ERROR);
-        }
+        stage2[k]=(uint16_t)(p-norms);
+    } else {
+        p=norms+stage2[k];
     }
     return p;
 }
@@ -252,12 +255,23 @@ createNorm(uint32_t code) {
 static Norm *
 getNorm(uint32_t code) {
     uint32_t i;
+    uint16_t j;
 
-    i=utrie_get32(&normTrie, (UChar32)code, NULL);
-    if(i==0) {
+    /* access stage 1 and get the stage 2 block start index */
+    i=code>>_NORM_TRIE_SHIFT;
+    j=stage1[i];
+    if(j==0) {
         return NULL;
     }
-    return norms+i;
+
+    /* access stage 2 and get the Norm unit */
+    i=(uint16_t)(j+(code&_NORM_STAGE_2_MASK));
+    j=stage2[i];
+    if(j==0) {
+        return NULL;
+    } else {
+        return norms+j;
+    }
 }
 
 /* get the canonical combining class of a character */
@@ -277,21 +291,24 @@ getCCFromCP(uint32_t code) {
  */
 static uint32_t
 enumTrie(EnumTrieFn *fn, void *context) {
-    uint32_t count, i;
-    UChar32 code;
-    UBool isInBlockZero;
+    uint32_t code, count, i;
+    uint16_t j, k, l;
 
+    code=0;
     count=0;
-    for(code=0; code<=0x10ffff;) {
-        i=utrie_get32(&normTrie, code, &isInBlockZero);
-        if(isInBlockZero) {
-            code+=UTRIE_DATA_BLOCK_LENGTH;
-        } else {
-            if(i!=0) {
-                fn(context, (uint32_t)code, norms+i);
-                ++count;
+    for(i=0; i<_NORM_STAGE_1_MAX_COUNT; ++i) {
+        j=stage1[i];
+        if(j!=0) {
+            for(k=0; k<_NORM_STAGE_2_BLOCK_COUNT; ++k) {
+                l=stage2[j+k];
+                if(l!=0) {
+                    fn(context, code, norms+l);
+                    ++count;
+                }
+                ++code;
             }
-            ++code;
+        } else {
+            code+=_NORM_STAGE_2_BLOCK_COUNT;
         }
     }
     return count;
@@ -741,7 +758,6 @@ storeNorm(uint32_t code, Norm *norm) {
     p=createNorm(code);
     norm->qcFlags=p->qcFlags;
     norm->combiningFlags=p->combiningFlags;
-    norm->fncIndex=p->fncIndex;
 
     /* process the decomposition if if there is at one here */
     if((norm->lenNFD|norm->lenNFKD)!=0) {
@@ -790,7 +806,9 @@ setCompositionExclusion(uint32_t code) {
 static void
 setHangulJamoSpecials() {
     Norm *norm;
-    uint32_t c, hangul;
+    uint16_t *pStage2Block;
+    uint32_t c;
+    uint16_t i;
 
     /*
      * Hangul syllables are algorithmically decomposed into Jamos,
@@ -799,15 +817,10 @@ setHangulJamoSpecials() {
      */
 
     /* set Jamo L specials */
-    hangul=0xac00;
     for(c=0x1100; c<=0x1112; ++c) {
         norm=createNorm(c);
         norm->specialTag=_NORM_EXTRA_INDEX_TOP+_NORM_EXTRA_JAMO_L;
         norm->combiningFlags=1;
-
-        /* for each Jamo L create a set with its associated Hangul block */
-        norm->canonStart=uset_open(hangul, hangul+21*28);
-        hangul+=21*28;
     }
 
     /* set Jamo V specials */
@@ -815,7 +828,6 @@ setHangulJamoSpecials() {
         norm=createNorm(c);
         norm->specialTag=_NORM_EXTRA_INDEX_TOP+_NORM_EXTRA_JAMO_V;
         norm->combiningFlags=2;
-        norm->unsafeStart=TRUE;
     }
 
     /* set Jamo T specials */
@@ -823,7 +835,6 @@ setHangulJamoSpecials() {
         norm=createNorm(c);
         norm->specialTag=_NORM_EXTRA_INDEX_TOP+_NORM_EXTRA_JAMO_T;
         norm->combiningFlags=2;
-        norm->unsafeStart=TRUE;
     }
 
     /* set Hangul specials, precompacted */
@@ -831,59 +842,35 @@ setHangulJamoSpecials() {
     norm->specialTag=_NORM_EXTRA_INDEX_TOP+_NORM_EXTRA_HANGUL;
     norm->qcFlags=_NORM_QC_NFD|_NORM_QC_NFKD;
 
-    if(!utrie_setRange32(&normTrie, 0xac00, 0xd7a4, (uint32_t)(norm-norms), TRUE)) {
-        fprintf(stderr, "error: too many normalization entries (setting Hangul)\n");
-        exit(U_BUFFER_OVERFLOW_ERROR);
-    }
-}
-
-/*
- * set FC-NFKC-Closure string
- * s contains the closure string; s[0]==length, s[1..length] is the actual string
- * may modify s[0]
- */
-U_CFUNC void
-setFNC(uint32_t c, UChar *s) {
-    uint16_t *p;
-    int32_t length, i, count;
-    UChar first;
-
-    count=utm_countItems(extraMem);
-    length=s[0];
-    first=s[1];
-
-    /* try to overlay single-unit strings with existing ones */
-    if(length==1 && first<0xff00) {
-        p=utm_getStart(extraMem);
-        for(i=1; i<count; ++i) {
-            if(first==p[i]) {
-                break;
-            }
-        }
-    } else {
-        i=count;
+    /* set one complete stage 2 block with this Hangul information */
+    pStage2Block=(uint16_t *)utm_allocN(stage2Mem, _NORM_STAGE_2_BLOCK_COUNT);
+    for(i=0; i<_NORM_STAGE_2_BLOCK_COUNT; ++i) {
+        pStage2Block[i]=(uint16_t)(norm-norms);
     }
 
-    /* append the new string if it cannot be overlayed with an old one */
-    if(i==count) {
-        if(count>_NORM_AUX_MAX_FNC) {
-            fprintf(stderr, "gennorm error: too many FNC strings\n");
-            exit(U_INDEX_OUTOFBOUNDS_ERROR);
-        }
+    /* set these data for U+ac00..U+d7a3 */
+    c=0xac00;
 
-        /* prepend 0xffxx with xx==length */
-        s[0]=(uint16_t)(0xff00+length);
-        ++length;
-        p=(uint16_t *)utm_allocN(extraMem, length);
-        uprv_memcpy(p, s, length*2);
-
-        /* update the top index in extraMem[0] */
-        count+=length;
-        ((uint16_t *)utm_getStart(extraMem))[0]=(uint16_t)count;
+    /* set a partial stage 2 block before pStage2Block can be repeated */
+    if(c&_NORM_STAGE_2_MASK) {
+        i=(uint16_t)(createStage2Block(c)+(c&_NORM_STAGE_2_MASK));
+        do {
+            stage2[i++]=(uint16_t)(norm-norms);
+        } while(++c&_NORM_STAGE_2_MASK);
     }
 
-    /* store the index to the string */
-    createNorm(c)->fncIndex=i;
+    /* set full stage 1 blocks to the common stage 2 block */
+    while(c<(0xd7a3&~_NORM_STAGE_2_MASK)) {
+        stage1[c>>_NORM_TRIE_SHIFT]=(uint16_t)(pStage2Block-stage2);
+        c+=_NORM_STAGE_2_BLOCK_COUNT;
+    }
+
+    /* set a partial stage 2 block after the repetition */
+    i=createStage2Block(c);
+    while(c<=0xd7a3) {
+        stage2[i++]=(uint16_t)(norm-norms);
+        ++c;
+    }
 }
 
 /* build runtime structures ------------------------------------------------- */
@@ -932,8 +919,6 @@ static UBool combineAndQC[64]={ 0 };
 /*
  * canonically reorder the up to two decompositions
  * and store the leading and trailing combining classes accordingly
- *
- * also process canonical decompositions for canonical closure
  */
 static void
 postParseFn(void *context, uint32_t code, Norm *norm) {
@@ -953,71 +938,39 @@ postParseFn(void *context, uint32_t code, Norm *norm) {
 
     /* verify that code has a decomposition if and only if the quick check flags say "no" on NF(K)D */
     if((norm->lenNFD!=0) != ((norm->qcFlags&_NORM_QC_NFD)!=0)) {
-        fprintf(stderr, "gennorm warning: U+%04lx has NFD[%d] but quick check 0x%02x\n", (long)code, norm->lenNFD, norm->qcFlags);
+        printf("U+%04lx has NFD[%d] but quick check 0x%02x\n", (long)code, norm->lenNFD, norm->qcFlags);
     }
     if(((norm->lenNFD|norm->lenNFKD)!=0) != ((norm->qcFlags&(_NORM_QC_NFD|_NORM_QC_NFKD))!=0)) {
-        fprintf(stderr, "gennorm warning: U+%04lx has NFD[%d] NFKD[%d] but quick check 0x%02x\n", (long)code, norm->lenNFD, norm->lenNFKD, norm->qcFlags);
+        printf("U+%04lx has NFD[%d] NFKD[%d] but quick check 0x%02x\n", (long)code, norm->lenNFD, norm->lenNFKD, norm->qcFlags);
     }
 
-    /* see which combinations of combiningFlags and qcFlags are used for NFC/NFKC */
+    /* ### see which combinations of combiningFlags and qcFlags are used for NFC/NFKC */
     combineAndQC[(norm->qcFlags&0x33)|((norm->combiningFlags&3)<<2)]=1;
 
     if(norm->combiningFlags&1) {
         if(norm->udataCC!=0) {
             /* illegal - data-derivable composition exclusion */
-            fprintf(stderr, "gennorm warning: U+%04lx combines forward but udataCC==%u\n", (long)code, norm->udataCC);
+            printf("U+%04lx combines forward but udataCC==%u\n", (long)code, norm->udataCC);
         }
     }
     if(norm->combiningFlags&2) {
         if((norm->qcFlags&0x11)==0) {
-            fprintf(stderr, "gennorm warning: U+%04lx combines backward but qcNF?C==0\n", (long)code);
+            printf("U+%04lx combines backward but qcNF?C==0\n", (long)code);
         }
 #if 0
-        /* occurs sometimes, this one is ok (therefore #if 0) - still here for documentation */
+        /* occurs sometimes */
         if(norm->udataCC==0) {
             printf("U+%04lx combines backward but udataCC==0\n", (long)code);
         }
 #endif
     }
-    if((norm->combiningFlags&3)==3 && beVerbose) {
+    if((norm->combiningFlags&3)==3) {
         printf("U+%04lx combines both ways\n", (long)code);
     }
-
-    /*
-     * process canonical decompositions for canonical closure
-     *
-     * in each canonical decomposition:
-     *   add the current character (code) to the set of canonical starters of its norm->nfd[0]
-     *   set the "unsafe starter" flag for each norm->nfd[1..]
-     */
-    length=norm->lenNFD;
-    if(length>0) {
-        Norm *otherNorm;
-        UChar32 c;
-        int32_t i;
-
-        /* nfd[0].canonStart.add(code) */
-        c=norm->nfd[0];
-        otherNorm=createNorm(c);
-        if(otherNorm->canonStart==NULL) {
-            otherNorm->canonStart=uset_open(code, code+1);
-            if(otherNorm->canonStart==NULL) {
-                fprintf(stderr, "gennorm error: out of memory in uset_open()\n");
-                exit(U_MEMORY_ALLOCATION_ERROR);
-            }
-        } else {
-            if(!uset_add(otherNorm->canonStart, code)) {
-                fprintf(stderr, "gennorm error: uset_add(setOf(U+%4lx), U+%4x)\n", c, code);
-                exit(U_INTERNAL_PROGRAM_ERROR);
-            }
-        }
-
-        /* for(i=1..length-1) nfd[i].unsafeStart=TRUE */
-        for(i=1; i<length; ++i) {
-            createNorm(norm->nfd[i])->unsafeStart=TRUE;
-        }
-    }
 }
+
+/* ### debug */
+static uint32_t countCCSame=0, countCCTrail=0, countCCTwo=0;
 
 static uint32_t
 make32BitNorm(Norm *norm) {
@@ -1151,24 +1104,38 @@ make32BitNorm(Norm *norm) {
 /* turn all Norm structs into corresponding 32-bit norm values */
 static void
 makeAll32() {
-    uint32_t *pNormData;
-    uint32_t n;
-    int32_t i, normLength, count;
+    uint16_t i, count;
 
-    count=(int32_t)normMem->index;
-    for(i=0; i<count; ++i) {
-        norms[i].value32=make32BitNorm(norms+i);
+    /*
+     * allocate and fill the table of 32-bit normalization data
+     * leave space for data for the up to 1024 lead surrogates
+     */
+    norm32TableTop=(uint16_t)stage2Mem->index;
+    norm32Table=(uint32_t *)uprv_malloc((norm32TableTop+1024)*4);
+    if(norm32Table==NULL) {
+        fprintf(stderr, "error: gennorm - unable to allocate %ld 32-bit words for norm32Table\n",
+                (long)(norm32TableTop+1024));
+        exit(U_MEMORY_ALLOCATION_ERROR);
     }
 
-    pNormData=utrie_getData(&normTrie, &normLength);
+    /* reset all entries */
+    uprv_memset(norm32Table, 0, (norm32TableTop+1024)*4);
 
     count=0;
-    for(i=0; i<normLength; ++i) {
-        n=pNormData[i];
-        if(0!=(pNormData[i]=norms[n].value32)) {
-            ++count;
+
+    /* skip the first, all-empty block */
+    for(i=_NORM_STAGE_2_BLOCK_COUNT; i<norm32TableTop; ++i) {
+        if(stage2[i]!=0) {
+            if(0!=(norm32Table[i]=make32BitNorm(norms+stage2[i]))) {
+                ++count;
+            }
         }
     }
+
+    printf("count of 16-bit extra data: %lu\n", (long)extraMem->index);
+    printf("count of (uncompacted) non-zero 32-bit words: %lu\n", (long)count);
+    printf("count CC frequencies: same %lu  trail %lu  two %lu\n",
+            (long)countCCSame, (long)countCCTrail, (long)countCCTwo);
 }
 
 /*
@@ -1177,216 +1144,232 @@ makeAll32() {
  */
 static void
 makeFCD() {
-    uint32_t *pFCDData;
-    uint32_t n;
-    int32_t i, count, fcdLength;
-    uint16_t bothCCs;
-
-    count=(int32_t)normMem->index;
-    for(i=0; i<count; ++i) {
-        bothCCs=norms[i].canonBothCCs;
-        if(bothCCs==0) {
-            /* if there are no decomposition cc's then use the udataCC twice */
-            bothCCs=norms[i].udataCC;
-            bothCCs|=bothCCs<<8;
-        }
-        norms[i].value32=bothCCs;
-    }
-
-    pFCDData=utrie_getData(&fcdTrie, &fcdLength);
-
-    for(i=0; i<fcdLength; ++i) {
-        n=pFCDData[i];
-        pFCDData[i]=norms[n].value32;
-    }
-}
-
-static void
-makeCanonSetFn(void *context, uint32_t code, Norm *norm) {
-    if(!uset_isEmpty(norm->canonStart)) {
-        uint16_t *table;
-        int32_t c, tableLength;
-        UErrorCode errorCode=U_ZERO_ERROR;
-
-        /* does the set contain exactly one code point? */
-        c=uset_containsOne(norm->canonStart);
-
-        /* add an entry to the BMP or supplementary search table */
-        if(code<=0xffff) {
-            table=canonStartSets+_NORM_MAX_CANON_SETS;
-            tableLength=canonStartSets[_NORM_SET_INDEX_CANON_BMP_TABLE_LENGTH];
-
-            table[tableLength++]=(uint16_t)code;
-
-            if(c>=0 && c<=0xffff && (c&_NORM_CANON_SET_BMP_MASK)!=_NORM_CANON_SET_BMP_IS_INDEX) {
-                /* single-code point BMP result for BMP code point */
-                table[tableLength++]=(uint16_t)c;
-            } else {
-                table[tableLength++]=(uint16_t)(_NORM_CANON_SET_BMP_IS_INDEX|canonStartSetsTop);
-                c=-1;
-            }
-            canonStartSets[_NORM_SET_INDEX_CANON_BMP_TABLE_LENGTH]=(uint16_t)tableLength;
-        } else {
-            table=canonStartSets+_NORM_MAX_CANON_SETS+_NORM_MAX_SET_SEARCH_TABLE_LENGTH;
-            tableLength=canonStartSets[_NORM_SET_INDEX_CANON_SUPP_TABLE_LENGTH];
-
-            table[tableLength++]=(uint16_t)(code>>16);
-            table[tableLength++]=(uint16_t)code;
-
-            if(c>=0) {
-                /* single-code point result for supplementary code point */
-                table[tableLength-2]|=(uint16_t)(0x8000|((c>>8)&0x1f00));
-                table[tableLength++]=(uint16_t)c;
-            } else {
-                table[tableLength++]=(uint16_t)canonStartSetsTop;
-            }
-            canonStartSets[_NORM_SET_INDEX_CANON_SUPP_TABLE_LENGTH]=(uint16_t)tableLength;
-        }
-
-        if(c<0) {
-            /* write a USerializedSet */
-            ++canonSetsCount;
-            canonStartSetsTop+=
-                    uset_serialize(norm->canonStart,
-                            canonStartSets+canonStartSetsTop,
-                            _NORM_MAX_CANON_SETS-canonStartSetsTop,
-                            &errorCode);
-        }
-        canonStartSets[_NORM_SET_INDEX_CANON_SETS_LENGTH]=(uint16_t)canonStartSetsTop;
-
-        if(U_FAILURE(errorCode)) {
-            fprintf(stderr, "gennorm error: uset_serialize()->%s (canonStartSetsTop=%d)\n", u_errorName(errorCode), canonStartSetsTop);
-            exit(errorCode);
-        }
-        if(tableLength>_NORM_MAX_SET_SEARCH_TABLE_LENGTH) {
-            fprintf(stderr, "gennorm error: search table for canonical starter sets too long\n");
-            exit(U_INDEX_OUTOFBOUNDS_ERROR);
-        }
-    }
-}
-
-static void
-makeAux() {
+    static uint16_t map[0x10000>>_NORM_TRIE_SHIFT];
     Norm *norm;
-    uint32_t *pData;
-    int32_t i, length;
+    uint32_t i, oredValues;
+    uint16_t bothCCs, delta;
 
-    pData=utrie_getData(&auxTrie, &length);
-
-    for(i=0; i<length; ++i) {
-        norm=norms+pData[i];
-        /*
-         * 16-bit auxiliary normalization properties
-         * see unormimp.h
-         */
-        pData[i]=
-            ((uint32_t)(norm->combiningFlags&0x80)<<(_NORM_AUX_COMP_EX_SHIFT-7))|
-            (uint32_t)norm->fncIndex;
-
-        if(norm->unsafeStart || norm->udataCC!=0) {
-            pData[i]|=_NORM_AUX_UNSAFE_MASK;
-        }
+    /*
+     * allocate and fill the table of 32-bit normalization data
+     * leave space for data for the up to 1024 lead surrogates
+     */
+    fcdTableTop=(uint16_t)stage2Mem->index;
+    fcdTable=(uint32_t *)uprv_malloc((fcdTableTop+1024)*4);
+    if(fcdTable==NULL) {
+        fprintf(stderr, "error: gennorm - unable to allocate %ld 32-bit words for fcdTable\n",
+                (long)(fcdTableTop+1024));
+        exit(U_MEMORY_ALLOCATION_ERROR);
     }
-}
 
-/* folding value for normalization: just store the offset (16 bits) if there is any non-0 entry */
-static uint32_t U_CALLCONV
-getFoldedNormValue(UNewTrie *trie, UChar32 start, int32_t offset) {
-    uint32_t value, leadNorm32=0;
-    UChar32 limit;
-    UBool inBlockZero;
+    /* reset all entries */
+    uprv_memset(fcdTable, 0, (fcdTableTop+1024)*4);
 
-    limit=start+0x400;
-    while(start<limit) {
-        value=utrie_get32(trie, start, &inBlockZero);
-        if(inBlockZero) {
-            start+=UTRIE_DATA_BLOCK_LENGTH;
-        } else {
-            if(value!=0) {
-                leadNorm32|=value;
+    /* compact out the all-zero stage 2 blocks */
+    map[0]=0;
+    delta=0;
+
+    /* oredValues detects all-zero stage 2 blocks that will be removed from fcdStage1 */
+    oredValues=0;
+
+    /* skip the first, all-empty block */
+    for(i=_NORM_STAGE_2_BLOCK_COUNT; i<fcdTableTop; ++i) {
+        if(stage2[i]!=0) {
+            norm=norms+stage2[i];
+            bothCCs=norm->canonBothCCs;
+            if(bothCCs==0) {
+                /* if there are no decomposition cc's then use the udataCC twice */
+                bothCCs=norm->udataCC;
+                bothCCs|=bothCCs<<8;
             }
-            ++start;
+            oredValues|=fcdTable[i-delta]=bothCCs;
+        }
+
+        if((i&_NORM_STAGE_2_MASK)==_NORM_STAGE_2_MASK) {
+            /* at the end of a stage 2 block, check if there are any non-zero entries */
+            if(oredValues==0) {
+                /* all zero: skip this block */
+                delta+=_NORM_STAGE_2_BLOCK_COUNT;
+                map[i>>_NORM_TRIE_SHIFT]=(uint16_t)0;
+            } else {
+                /* keep this block */
+                map[i>>_NORM_TRIE_SHIFT]=(uint16_t)((i&~_NORM_STAGE_2_MASK)-delta);
+                oredValues=0;
+            }
         }
     }
 
-    /* turn multi-bit fields into the worst-case value */
-    if(leadNorm32&_NORM_CC_MASK) {
-        leadNorm32|=_NORM_CC_MASK;
+    /* now adjust stage 1 */
+    for(i=0; i<_NORM_STAGE_1_MAX_COUNT; ++i) {
+        fcdStage1[i]=map[fcdStage1[i]>>_NORM_TRIE_SHIFT];
     }
 
-    /* clean up unnecessarily ored bit fields */
-    leadNorm32&=~((uint32_t)0xffffffff<<_NORM_EXTRA_SHIFT);
+    printf("FCD: omitted %u stage 2 entries in all-zero blocks\n", delta);
 
-    if(leadNorm32==0) {
-        /* nothing to do (only composition exclusions?) */
-        return 0;
-    }
-
-    /* add the extra surrogate index, offset by the BMP top, for the new stage 1 location */
-    leadNorm32|=(
-        (uint32_t)_NORM_EXTRA_INDEX_TOP+
-        (uint32_t)((offset-UTRIE_BMP_INDEX_LENGTH)>>UTRIE_SURROGATE_BLOCK_BITS)
-    )<<_NORM_EXTRA_SHIFT;
-
-    return leadNorm32;
-}
-
-/* folding value for FCD: just store the offset (16 bits) if there is any non-0 entry */
-static uint32_t U_CALLCONV
-getFoldedFCDValue(UNewTrie *trie, UChar32 start, int32_t offset) {
-    uint32_t value;
-    UChar32 limit;
-    UBool inBlockZero;
-
-    limit=start+0x400;
-    while(start<limit) {
-        value=utrie_get32(trie, start, &inBlockZero);
-        if(inBlockZero) {
-            start+=UTRIE_DATA_BLOCK_LENGTH;
-        } else if(value!=0) {
-            return (uint32_t)offset;
-        } else {
-            ++start;
-        }
-    }
-    return 0;
+    /* adjust the table top */
+    fcdTableTop-=delta;
 }
 
 /*
- * folding value for auxiliary data:
- * store the non-zero offset in bits 9..0 (FNC bits)
- * if there is any non-0 entry;
- * "or" [verb!] together data bits 15..10 of all of the 1024 supplementary code points
+ * Fold the supplementary code point data for one lead surrogate.
  */
-static uint32_t U_CALLCONV
-getFoldedAuxValue(UNewTrie *trie, UChar32 start, int32_t offset) {
-    uint32_t value, oredValues;
-    UChar32 limit;
-    UBool inBlockZero;
+static uint16_t
+foldLeadSurrogate(uint16_t *parent, uint16_t parentCount,
+                  uint32_t *stage, uint16_t *pStageCount,
+                  uint32_t base,
+                  UBool isNorm32) {
+    uint32_t leadNorm32=0;
+    uint32_t i, j, s2;
+    uint32_t leadSurrogate=0xd7c0+(base>>10);
 
-    oredValues=0;
-    limit=start+0x400;
-    while(start<limit) {
-        value=utrie_get32(trie, start, &inBlockZero);
-        if(inBlockZero) {
-            start+=UTRIE_DATA_BLOCK_LENGTH;
-        } else {
-            oredValues|=value;
-            ++start;
+    printf("supplementary data for lead surrogate U+%04lx\n", (long)leadSurrogate);
+
+    /* calculate the 32-bit data word for the lead surrogate */
+    for(i=0; i<_NORM_SURROGATE_BLOCK_COUNT; ++i) {
+        s2=parent[(base>>_NORM_TRIE_SHIFT)+i];
+        if(s2!=0) {
+            for(j=0; j<_NORM_STAGE_2_BLOCK_COUNT; ++j) {
+                /* basically, or all 32-bit data into the one for the lead surrogate */
+                leadNorm32|=stage[s2+j];
+            }
         }
     }
 
-    if(oredValues!=0) {
-        /* move the 10 significant offset bits into bits 9..0 */
-        offset>>=UTRIE_SURROGATE_BLOCK_BITS;
-        if(offset>_NORM_AUX_FNC_MASK) {
-            fprintf(stderr, "gennorm error: folding offset too large (auxTrie)\n");
-            exit(U_INDEX_OUTOFBOUNDS_ERROR);
+    if(isNorm32) {
+        /* turn multi-bit fields into the worst-case value */
+        if(leadNorm32&_NORM_CC_MASK) {
+            leadNorm32|=_NORM_CC_MASK;
         }
-        return (uint32_t)offset|(oredValues&~_NORM_AUX_FNC_MASK);
+
+        /* clean up unnecessarily ored bit fields */
+        leadNorm32&=~((uint32_t)0xffffffff<<_NORM_EXTRA_SHIFT);
+
+        if(leadNorm32==0) {
+            /* nothing to do (only composition exclusions?) */
+            return 0;
+        }
+
+        /* add the extra surrogate index, offset by the BMP top, for the new stage 1 location */
+        leadNorm32|=(
+            (uint32_t)_NORM_EXTRA_INDEX_TOP+
+            (uint32_t)((parentCount-_NORM_STAGE_1_BMP_COUNT)>>_NORM_SURROGATE_BLOCK_BITS)
+        )<<_NORM_EXTRA_SHIFT;
     } else {
-        return 0;
+        if(leadNorm32==0) {
+            /* FCD: nothing to do */
+            return 0;
+        }
+
+        /*
+         * For FCD, replace the entire combined value by the surrogate index
+         * and make sure that it is not 0 (by not offsetting it by the BMP top,
+         * since here we have enough bits for this);
+         * lead surrogates are tested at runtime on the character code itself
+         * instead on special values of the trie data -
+         * this is because 16 bits in the FCD trie data do not allow for anything
+         * but the two leading and trailing combining classes of the canonical decomposition.
+         */
+        leadNorm32=parentCount>>_NORM_SURROGATE_BLOCK_BITS;
     }
+
+    /* enter the lead surrogate's data */
+    s2=parent[leadSurrogate>>_NORM_TRIE_SHIFT];
+    if(s2==0) {
+        /* allocate a new stage 2 block in stage (the memory is there from makeAll32()/makeFCD()) */
+        s2=parent[leadSurrogate>>_NORM_TRIE_SHIFT]=*pStageCount;
+        *pStageCount+=_NORM_STAGE_2_BLOCK_COUNT;
+    }
+    stage[s2+(leadSurrogate&_NORM_STAGE_2_MASK)]=leadNorm32;
+
+    /* move the actual stage 1 indexes from the supplementary position to the new one */
+    uprv_memmove(parent+parentCount, parent+(base>>_NORM_TRIE_SHIFT), _NORM_SURROGATE_BLOCK_COUNT*2);
+
+    /* increment stage 1 top */
+    return _NORM_SURROGATE_BLOCK_COUNT;
+}
+
+/*
+ * Fold the normalization data for supplementary code points into
+ * a compact area on top of the BMP-part of the trie index,
+ * with the lead surrogates indexing this compact area.
+ *
+ * Use after makeAll32().
+ */
+static uint16_t
+foldSupplementary(uint16_t *parent, uint16_t parentCount,
+                  uint32_t *stage, uint16_t *pStageCount,
+                  UBool isNorm32) {
+    uint32_t c;
+    uint16_t i;
+
+    /* search for any stage 1 entries for supplementary code points */
+    for(c=0x10000; c<0x110000;) {
+        i=parent[c>>_NORM_TRIE_SHIFT];
+        if(i!=0) {
+            /* there is data, treat the full block for a lead surrogate */
+            c&=~0x3ff;
+            parentCount+=foldLeadSurrogate(parent, parentCount, stage, pStageCount, c, isNorm32);
+            c+=0x400;
+        } else {
+            c+=_NORM_STAGE_2_BLOCK_COUNT;
+        }
+    }
+
+    printf("trie index count: BMP %u  all Unicode %lu  folded %u\n",
+           _NORM_STAGE_1_BMP_COUNT, (long)_NORM_STAGE_1_MAX_COUNT, parentCount);
+    return parentCount;
+}
+
+static uint16_t
+compact(uint16_t *parent, uint16_t parentCount,
+        uint32_t *stage, uint16_t stageCount) {
+    /*
+     * This function is the common implementation for compacting
+     * the stage 2 tables of 32-bit values.
+     * It is a copy of genprops/store.c's compactStage() adapted for the 32-bit stage 2 tables.
+     */
+    static uint16_t map[0x10000>>_NORM_TRIE_SHIFT];
+    uint32_t x;
+    uint16_t i, start, prevEnd, newStart;
+
+    map[0]=0;
+    newStart=_NORM_STAGE_2_BLOCK_COUNT;
+    for(start=newStart; start<stageCount;) {
+        prevEnd=(uint16_t)(newStart-1);
+        x=stage[start];
+        if(x==stage[prevEnd]) {
+            /* overlap by at least one */
+            for(i=1; i<_NORM_STAGE_2_BLOCK_COUNT && x==stage[start+i] && x==stage[prevEnd-i]; ++i) {}
+
+            /* overlap by i */
+            map[start>>_NORM_TRIE_SHIFT]=(uint16_t)(newStart-i);
+
+            /* move the non-overlapping indexes to their new positions */
+            start+=i;
+            for(i=(uint16_t)(_NORM_STAGE_2_BLOCK_COUNT-i); i>0; --i) {
+                stage[newStart++]=stage[start++];
+            }
+        } else if(newStart<start) {
+            /* move the indexes to their new positions */
+            map[start>>_NORM_TRIE_SHIFT]=newStart;
+            for(i=_NORM_STAGE_2_BLOCK_COUNT; i>0; --i) {
+                stage[newStart++]=stage[start++];
+            }
+        } else /* no overlap && newStart==start */ {
+            map[start>>_NORM_TRIE_SHIFT]=start;
+            newStart+=_NORM_STAGE_2_BLOCK_COUNT;
+            start=newStart;
+        }
+    }
+
+    /* now adjust the parent table */
+    for(i=0; i<parentCount; ++i) {
+        parent[i]=map[parent[i]>>_NORM_TRIE_SHIFT];
+    }
+
+    /* we saved some space */
+    printf("compacting trie: count of 32-bit words %lu->%lu\n",
+            (long)stageCount, (long)newStart);
+    return newStart;
 }
 
 extern void
@@ -1411,117 +1394,63 @@ processData() {
     /* add hangul/jamo specials */
     setHangulJamoSpecials();
 
-    /* store search tables and USerializedSets for canonical starters (after Hangul/Jamo specials!) */
-    enumTrie(makeCanonSetFn, NULL);
+    /* copy stage 1 for the FCD trie */
+    uprv_memcpy(fcdStage1, stage1, sizeof(stage1));
 
-    /* clone the normalization trie to make the FCD trie */
-    if( NULL==utrie_clone(&fcdTrie, &normTrie, NULL, 0) ||
-        NULL==utrie_clone(&auxTrie, &normTrie, NULL, 0)
-    ) {
-        fprintf(stderr, "error: unable to clone the normalization trie\n");
-        exit(U_MEMORY_ALLOCATION_ERROR);
-    }
+    /* --- finalize data for quick checks & normalization: stage1/norm32Table --- */
 
-    /* --- finalize data for quick checks & normalization --- */
-
-    /* turn the Norm structs (stage2, norms) into 32-bit data words */
+    /* turn the Norm structs (stage2, norms) into 32-bit data words (norm32Table) */
     makeAll32();
 
-    /* --- finalize data for FCD checks --- */
+    /* fold supplementary code points into lead surrogates */
+    stage1Top=foldSupplementary(stage1, _NORM_STAGE_1_BMP_COUNT, norm32Table, &norm32TableTop, TRUE);
+
+    /* compact stage 2 */
+    norm32TableTop=compact(stage1, stage1Top, norm32Table, norm32TableTop);
+
+    /* --- finalize data for FCD checks: fcdStage1/fcdTable --- */
 
     /* FCD data: take Norm.canonBothCCs and store them in the FCD table */
     makeFCD();
 
-    /* --- finalize auxiliary normalization data --- */
-    makeAux();
+    /* FCD: fold supplementary code points into lead surrogates */
+    fcdStage1Top=foldSupplementary(fcdStage1, _NORM_STAGE_1_BMP_COUNT, fcdTable, &fcdTableTop, FALSE);
 
-    if(beVerbose) {
+    /* FCD: compact stage 2 */
+    fcdTableTop=compact(fcdStage1, fcdStage1Top, fcdTable, fcdTableTop);
+
+    /* ### debug output */
 #if 0
-        printf("number of stage 2 entries: %ld\n", stage2Mem->index);
-        printf("size of stage 1 (BMP) & 2 (uncompacted) + extra data: %ld bytes\n", _NORM_STAGE_1_BMP_COUNT*2+stage2Mem->index*4+extraMem->index*2);
+    printf("number of stage 2 entries: %ld\n", stage2Mem->index);
+    printf("size of stage 1 (BMP) & 2 (uncompacted) + extra data: %ld bytes\n", _NORM_STAGE_1_BMP_COUNT*2+stage2Mem->index*4+extraMem->index*2);
 #endif
-        printf("combining CPs tops: fwd %u  both %u  back %u\n", combineFwdTop, combineBothTop, combineBackTop);
-        printf("combining table count: %u\n", combiningTableTop);
-    }
+    printf("combining CPs tops: fwd %u  both %u  back %u\n", combineFwdTop, combineBothTop, combineBackTop);
+    printf("combining table count: %u\n", combiningTableTop);
 }
 
 extern void
 generateData(const char *dataDir) {
-    static uint8_t normTrieBlock[100000], fcdTrieBlock[100000], auxTrieBlock[100000];
-
     UNewDataMemory *pData;
+    uint16_t *p16;
     UErrorCode errorCode=U_ZERO_ERROR;
-    int32_t size, normTrieSize, fcdTrieSize, auxTrieSize, dataLength;
-
-    normTrieSize=utrie_serialize(&normTrie, normTrieBlock, sizeof(normTrieBlock), getFoldedNormValue, FALSE, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        fprintf(stderr, "error: utrie_serialize(normalization properties) failed, %s\n", u_errorName(errorCode));
-        exit(errorCode);
-    }
-
-    fcdTrieSize=utrie_serialize(&fcdTrie, fcdTrieBlock, sizeof(fcdTrieBlock), getFoldedFCDValue, TRUE, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        fprintf(stderr, "error: utrie_serialize(FCD data) failed, %s\n", u_errorName(errorCode));
-        exit(errorCode);
-    }
-
-    auxTrieSize=utrie_serialize(&auxTrie, auxTrieBlock, sizeof(auxTrieBlock), getFoldedAuxValue, TRUE, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        fprintf(stderr, "error: utrie_serialize(auxiliary data) failed, %s\n", u_errorName(errorCode));
-        exit(errorCode);
-    }
-
-    /* move the parts of canonStartSets[] together into a contiguous block */
-    if(canonStartSetsTop<_NORM_MAX_CANON_SETS) {
-        uprv_memmove(canonStartSets+canonStartSetsTop,
-                     canonStartSets+_NORM_MAX_CANON_SETS,
-                     canonStartSets[_NORM_SET_INDEX_CANON_BMP_TABLE_LENGTH]*2);
-    }
-    canonStartSetsTop+=canonStartSets[_NORM_SET_INDEX_CANON_BMP_TABLE_LENGTH];
-
-    if(canonStartSetsTop<(_NORM_MAX_CANON_SETS+_NORM_MAX_SET_SEARCH_TABLE_LENGTH)) {
-        uprv_memmove(canonStartSets+canonStartSetsTop,
-                     canonStartSets+_NORM_MAX_CANON_SETS+_NORM_MAX_SET_SEARCH_TABLE_LENGTH,
-                     canonStartSets[_NORM_SET_INDEX_CANON_SUPP_TABLE_LENGTH]*2);
-    }
-    canonStartSetsTop+=canonStartSets[_NORM_SET_INDEX_CANON_SUPP_TABLE_LENGTH];
-
-    /* make sure that the FCD trie is 4-aligned */
-    if((extraMem->index+combiningTableTop)&1) {
-        combiningTable[combiningTableTop++]=0x1234; /* add one 16-bit word for an even number */
-    }
-
-    /* pad canonStartSets to 4-alignment, too */
-    if(canonStartSetsTop&1) {
-        canonStartSets[canonStartSetsTop++]=0x1235;
-    }
+    uint32_t size, dataLength;
+    uint16_t i;
 
     size=
-        _NORM_INDEX_TOP*4+
-        normTrieSize+
+        _NORM_INDEX_TOP*2+
+        stage1Top*2+
+        norm32TableTop*4+
         extraMem->index*2+
         combiningTableTop*2+
-        fcdTrieSize+
-        auxTrieSize+
-        canonStartSetsTop*2;
+        fcdStage1Top*2+
+        fcdTableTop*2;
 
-    if(beVerbose) {
-        printf("size of normalization trie              %5u bytes\n", normTrieSize);
-        printf("size of 16-bit extra memory             %5u UChars/uint16_t\n", extraMem->index);
-        printf("  of that: FC_NFKC_Closure size         %5u UChars/uint16_t\n", ((uint16_t *)utm_getStart(extraMem))[0]);
-        printf("size of combining table                 %5u uint16_t\n", combiningTableTop);
-        printf("size of FCD trie                        %5u bytes\n", fcdTrieSize);
-        printf("size of auxiliary trie                  %5u bytes\n", auxTrieSize);
-        printf("size of canonStartSets[]                %5u uint16_t\n", canonStartSetsTop);
-        printf("  number of indexes                     %5u uint16_t\n", _NORM_SET_INDEX_TOP);
-        printf("  size of sets                          %5u uint16_t\n", canonStartSets[_NORM_SET_INDEX_CANON_SETS_LENGTH]-_NORM_SET_INDEX_TOP);
-        printf("  number of sets                        %5d\n", canonSetsCount);
-        printf("  size of BMP search table              %5u uint16_t\n", canonStartSets[_NORM_SET_INDEX_CANON_BMP_TABLE_LENGTH]);
-        printf("  size of supplementary search table    %5u uint16_t\n", canonStartSets[_NORM_SET_INDEX_CANON_SUPP_TABLE_LENGTH]);
-        printf("size of " DATA_NAME "." DATA_TYPE " contents: %ld bytes\n", (long)size);
-    }
+    printf("size of " DATA_NAME "." DATA_TYPE " contents: %lu bytes\n", (long)size);
 
-    indexes[_NORM_INDEX_TRIE_SIZE]=normTrieSize;
+    indexes[_NORM_INDEX_COUNT]=_NORM_INDEX_TOP;
+    indexes[_NORM_INDEX_TRIE_SHIFT]=_NORM_TRIE_SHIFT;
+    indexes[_NORM_INDEX_TRIE_INDEX_COUNT]=stage1Top;
+    indexes[_NORM_INDEX_TRIE_DATA_COUNT]=norm32TableTop;
     indexes[_NORM_INDEX_UCHAR_COUNT]=(uint16_t)extraMem->index;
 
     indexes[_NORM_INDEX_COMBINE_DATA_COUNT]=combiningTableTop;
@@ -1529,11 +1458,26 @@ generateData(const char *dataDir) {
     indexes[_NORM_INDEX_COMBINE_BOTH_COUNT]=(uint16_t)(combineBothTop-combineFwdTop);
     indexes[_NORM_INDEX_COMBINE_BACK_COUNT]=(uint16_t)(combineBackTop-combineBothTop);
 
-    /* the quick check minimum code points are already set */
+    indexes[_NORM_INDEX_FCD_TRIE_INDEX_COUNT]=fcdStage1Top;
+    indexes[_NORM_INDEX_FCD_TRIE_DATA_COUNT]=fcdTableTop;
 
-    indexes[_NORM_INDEX_FCD_TRIE_SIZE]=fcdTrieSize;
-    indexes[_NORM_INDEX_AUX_TRIE_SIZE]=auxTrieSize;
-    indexes[_NORM_INDEX_CANON_SET_COUNT]=canonStartSetsTop;
+    /* adjust the stage 1 indexes to offset stage 2 from the beginning of stage 1 */
+
+    /* stage1/norm32Table */
+    for(i=0; i<stage1Top; ++i) {
+        stage1[i]+=stage1Top/2; /* stage 2 is 32-bit indexed */
+    }
+
+    /* fcdStage1/fcdTable */
+    for(i=0; i<fcdStage1Top; ++i) {
+        fcdStage1[i]+=fcdStage1Top; /* FCD stage 2 is 16-bit indexed */
+    }
+
+    /* reduce the contents of fcdTable from 32-bit values to 16-bit values, in-place (destructive!) */
+    p16=(uint16_t *)fcdTable;
+    for(i=0; i<fcdTableTop; ++i) {
+        p16[i]=(uint16_t)fcdTable[i];
+    }
 
     /* write the data */
     pData=udata_create(dataDir, DATA_TYPE, DATA_NAME, &dataInfo,
@@ -1544,12 +1488,12 @@ generateData(const char *dataDir) {
     }
 
     udata_writeBlock(pData, indexes, sizeof(indexes));
-    udata_writeBlock(pData, normTrieBlock, normTrieSize);
+    udata_writeBlock(pData, stage1, stage1Top*2);
+    udata_writeBlock(pData, norm32Table, norm32TableTop*4);
     udata_writeBlock(pData, utm_getStart(extraMem), extraMem->index*2);
     udata_writeBlock(pData, combiningTable, combiningTableTop*2);
-    udata_writeBlock(pData, fcdTrieBlock, fcdTrieSize);
-    udata_writeBlock(pData, auxTrieBlock, auxTrieSize);
-    udata_writeBlock(pData, canonStartSets, canonStartSetsTop*2);
+    udata_writeBlock(pData, fcdStage1, fcdStage1Top*2);
+    udata_writeBlock(pData, fcdTable, fcdTableTop*2);
 
     /* finish up */
     dataLength=udata_finish(pData, &errorCode);
@@ -1559,7 +1503,7 @@ generateData(const char *dataDir) {
     }
 
     if(dataLength!=size) {
-        fprintf(stderr, "gennorm error: data length %ld != calculated size %ld\n",
+        fprintf(stderr, "gennorm: data length %lu != calculated size %lu\n",
             (long)dataLength, (long)size);
         exit(U_INTERNAL_PROGRAM_ERROR);
     }
@@ -1567,20 +1511,14 @@ generateData(const char *dataDir) {
 
 extern void
 cleanUpData(void) {
-    int32_t i, count;
+    uprv_free(norm32Table);
+    uprv_free(fcdTable);
 
-    count=(int32_t)normMem->index;
-    for(i=0; i<count; ++i) {
-        uset_close(norms[i].canonStart);
-    }
-
+    utm_close(stage2Mem);
     utm_close(normMem);
     utm_close(utf32Mem);
     utm_close(extraMem);
     utm_close(combiningTriplesMem);
-    utrie_close(&normTrie);
-    utrie_close(&fcdTrie);
-    utrie_close(&auxTrie);
 }
 
 /*

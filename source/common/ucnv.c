@@ -64,7 +64,7 @@ typedef struct UAmbiguousConverter {
 static const UAmbiguousConverter ambiguousConverters[]={
     { "ibm-942_P120-2000", 0xa5 },
     { "ibm-943_P130-2000", 0xa5 },
-    { "ibm-33722_P120-2000", 0xa5 },
+    { "ibm-33722", 0xa5 },
     { "ibm-949_P110-2000", 0x20a9 },
     { "ibm-1363_P110-2000", 0x20a9 },
     { "ISO_2022,locale=ko,version=0", 0x20a9 }
@@ -559,9 +559,9 @@ ucnv_setToUCallBack (UConverter * converter,
 {
     if (U_FAILURE (*err))
         return;
-    if (oldAction) *oldAction = converter->fromCharErrorBehaviour;
+    *oldAction = converter->fromCharErrorBehaviour;
     converter->fromCharErrorBehaviour = newAction;
-    if (oldContext) *oldContext = converter->toUContext;
+    *oldContext = converter->toUContext;
     converter->toUContext = newContext;
 }
 
@@ -575,9 +575,9 @@ ucnv_setFromUCallBack (UConverter * converter,
 {
     if (U_FAILURE (*err))
         return;
-    if (oldAction) *oldAction = converter->fromUCharErrorBehaviour;
+    *oldAction = converter->fromUCharErrorBehaviour;
     converter->fromUCharErrorBehaviour = newAction;
-    if (oldContext) *oldContext = converter->fromUContext;
+    *oldContext = converter->fromUContext;
     converter->fromUContext = newContext;
 }
 
@@ -914,7 +914,7 @@ ucnv_getNextUChar(UConverter * converter,
     */
     if (converter->UCharErrorBufferLength > 0)
     {
-        int32_t i = 0;
+        UTextOffset i = 0;
         UChar32 myUChar;
         UTF_NEXT_CHAR(converter->UCharErrorBuffer, i, sizeof(converter->UCharErrorBuffer), myUChar);
         /*In this memmove we update the internal buffer by
@@ -1236,69 +1236,6 @@ ucnv_getInvalidUChars (const UConverter * converter,
     if ((*len = converter->invalidUCharLength) > 0)
     {
         uprv_memcpy (errChars, converter->invalidUCharBuffer, sizeof(UChar) * (*len));
-    }
-}
-
-#define SIG_MAX_LEN 4
-
-U_CAPI const char* U_EXPORT2
-ucnv_detectUnicodeSignature( const char* source,
-                             int32_t sourceLength,
-                             int32_t* signatureLength,
-                             UErrorCode* pErrorCode){
-    
-    /* initial 0xa5 bytes: make sure that if we read <4 
-     * bytes we don't misdetect something 
-     */
-    char start[SIG_MAX_LEN]={ '\xa5', '\xa5', '\xa5', '\xa5' };
-    int i = 0;
-
-    if((pErrorCode==NULL) || U_FAILURE(*pErrorCode)){
-        return NULL;
-    }
-    
-    if(source == NULL || signatureLength == NULL || sourceLength < -1){
-        *pErrorCode = U_ILLEGAL_ARGUMENT_ERROR;
-        return NULL;
-    }
-
-    if(sourceLength==-1){
-        sourceLength=uprv_strlen(source);
-    }
-
-    
-    while(i<sourceLength&& i<SIG_MAX_LEN){
-        start[i]=source[i];
-        i++;
-    }
-  
-    if(start[0] == '\xFE' && start[1] == '\xFF') {
-        *signatureLength=2;
-        return  "UTF-16BE";
-    } else if(start[0] == '\xFF' && start[1] == '\xFE') {
-        if(start[2] == '\x00' && start[3] =='\x00') {
-            *signatureLength=4;
-            return "UTF-32LE";
-        } else {
-            *signatureLength=2;
-            return  "UTF-16LE";
-        }
-    } else if(start[0] == '\xEF' && start[1] == '\xBB' && start[2] == '\xBF') {
-        *signatureLength=3;
-        return  "UTF-8";
-    } else if(start[0] == '\x00' && start[1] == '\x00' && 
-              start[2] == '\xFE' && start[3]=='\xFF') {
-        *signatureLength=4;
-        return  "UTF-32BE";
-    } else if(start[0] == '\x0E' && start[1] == '\xFE' && start[2] == '\xFF') {
-        *signatureLength=3;
-        return "SCSU";
-    } else if(start[0] == '\xFC' && start[1] == '\xEE' && start[2] == '\x27') {
-        *signatureLength=3;
-        return "BOCU-1";
-    } else {
-        *signatureLength=0;
-        return NULL;
     }
 }
 

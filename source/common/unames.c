@@ -1,4 +1,3 @@
-
 /*
 ******************************************************************************
 *
@@ -23,7 +22,6 @@
 #include "unicode/utypes.h"
 #include "unicode/uchar.h"
 #include "unicode/udata.h"
-#include "unicode/utf.h"
 #include "ustr_imp.h"
 #include "umutex.h"
 #include "cmemory.h"
@@ -106,10 +104,6 @@ enumGroupNames(UCharNames *names, Group *group,
                UCharNameChoice nameChoice);
 
 static UBool
-enumExtNames(UChar32 start, UChar32 end,
-             UEnumCharNamesFn *fn, void *context);
-
-static UBool
 enumNames(UCharNames *names,
           UChar32 start, UChar32 limit,
           UEnumCharNamesFn *fn, void *context,
@@ -139,31 +133,13 @@ findAlgName(AlgorithmicRange *range, UCharNameChoice nameChoice, const char *oth
 static UBool
 findNameDummy(void *context,
               UChar32 code, UCharNameChoice nameChoice,
-              const char *name, int32_t length);
+              const char *name, UTextOffset length);
 
-static uint16_t 
-getExtName(uint32_t code, char *buffer, uint16_t bufferLength);
-
-#define U_NONCHARACTER_CODE_POINT U_CHAR_CATEGORY_COUNT
-#define U_LEAD_SURROGATE U_CHAR_CATEGORY_COUNT + 1
-#define U_TRAIL_SURROGATE U_CHAR_CATEGORY_COUNT + 2
-
-#define U_CHAR_EXTENDED_CATEGORY_COUNT (U_CHAR_CATEGORY_COUNT + 3)
-
-static const char * const
-charCatNames[U_CHAR_EXTENDED_CATEGORY_COUNT];
-
-static uint8_t
-getCharCat(UChar32 cp);
-
-static const char *
-getCharCatName(UChar32 cp);
- 
 /* public API --------------------------------------------------------------- */
 
-U_CAPI int32_t U_EXPORT2
+U_CAPI UTextOffset U_EXPORT2
 u_charName(UChar32 code, UCharNameChoice nameChoice,
-           char *buffer, int32_t bufferLength,
+           char *buffer, UTextOffset bufferLength,
            UErrorCode *pErrorCode) {
     AlgorithmicRange *algRange;
     uint32_t *p;
@@ -180,7 +156,7 @@ u_charName(UChar32 code, UCharNameChoice nameChoice,
         return 0;
     }
 
-    if((uint32_t)code>UCHAR_MAX_VALUE || !isDataLoaded(pErrorCode)) {
+    if((uint32_t)code>0x10ffff || !isDataLoaded(pErrorCode)) {
         return u_terminateChars(buffer, bufferLength, 0, pErrorCode);
     }
 
@@ -200,16 +176,8 @@ u_charName(UChar32 code, UCharNameChoice nameChoice,
     }
 
     if(i==0) {
-        if (nameChoice == U_EXTENDED_CHAR_NAME) {
-            length = getName(uCharNames, (uint32_t )code, U_EXTENDED_CHAR_NAME, buffer, (uint16_t) bufferLength);
-            if (!length) {
-                /* extended character name */
-                length = getExtName((uint32_t) code, buffer, (uint16_t) bufferLength);
-            }
-        } else {
-            /* normal character name */
-            length=getName(uCharNames, (uint32_t)code, nameChoice, buffer, (uint16_t)bufferLength);
-        }
+        /* normal character name */
+        length=getName(uCharNames, (uint32_t)code, nameChoice, buffer, (uint16_t)bufferLength);
     }
 
     return u_terminateChars(buffer, bufferLength, length, pErrorCode);
@@ -219,106 +187,58 @@ U_CAPI UChar32 U_EXPORT2
 u_charFromName(UCharNameChoice nameChoice,
                const char *name,
                UErrorCode *pErrorCode) {
-    char upper[120], lower[120];
+    char upper[120];
     FindName findName;
     AlgorithmicRange *algRange;
     uint32_t *p;
     uint32_t i;
-    UChar32 cp = 0;
+    UChar32 c;
     char c0;
-    UChar32 error = 0xffff;     /* Undefined, but use this for backwards compatibility. */
 
     if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return error;
+        return 0xffff;
     }
 
     if(nameChoice>=U_CHAR_NAME_CHOICE_COUNT || name==NULL || *name==0) {
         *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
-        return error;
+        return 0xffff;
     }
 
     if(!isDataLoaded(pErrorCode)) {
-        return error;
+        return 0xffff;
     }
 
-    /* construct the uppercase and lowercase of the name first */
+    /* uppercase the name first */
     for(i=0; i<sizeof(upper); ++i) {
         if((c0=*name++)!=0) {
             upper[i]=uprv_toupper(c0);
-            lower[i]=uprv_tolower(c0);
         } else {
-            upper[i]=lower[i]=0;
+            upper[i]=0;
             break;
         }
     }
     if(i==sizeof(upper)) {
         /* name too long, there is no such character */
-        *pErrorCode = U_ILLEGAL_CHAR_FOUND;
-        return error;
+        return 0xffff;
     }
+    name=upper;
 
-    /* try extended names first */
-    if (lower[0] == '<') {
-        if (nameChoice == U_EXTENDED_CHAR_NAME) {
-            if (lower[--i] == '>') {
-                for (--i; lower[i] && lower[i] != '-'; --i);
-
-                if (lower[i] == '-') { /* We've got a category. */
-                    uint32_t cIdx;
-
-                    lower[i] = 0;
-
-                    for (++i; lower[i] != '>'; ++i) {
-                        if (lower[i] >= '0' && lower[i] <= '9') {
-                            cp = (cp << 4) + lower[i] - '0';
-                        } else if (lower[i] >= 'a' && lower[i] <= 'f') {
-                            cp = (cp << 4) + lower[i] - 'a' + 10;
-                        } else {
-                            *pErrorCode = U_ILLEGAL_CHAR_FOUND;
-                            return error;
-                        }
-                    }
-
-                    /* Now validate the category name.
-                       We could use a binary search, or a trie, if
-                       we really wanted to. */
-
-                    for (lower[i] = 0, cIdx = 0; cIdx < sizeof(charCatNames) / sizeof(*charCatNames); ++cIdx) {
-
-                        if (!uprv_strcmp(lower + 1, charCatNames[cIdx])) {
-                            if (getCharCat(cp) == cIdx) {
-                                return cp;
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        *pErrorCode = U_ILLEGAL_CHAR_FOUND;
-        return error;
-    }
-
-    /* try algorithmic names now */
+    /* try algorithmic names first */
     p=(uint32_t *)((uint8_t *)uCharNames+uCharNames->algNamesOffset);
     i=*p;
     algRange=(AlgorithmicRange *)(p+1);
     while(i>0) {
-        if((cp=findAlgName(algRange, nameChoice, upper))!=0xffff) {
-            return cp;
+        if((c=findAlgName(algRange, nameChoice, name))!=0xffff) {
+            return c;
         }
         algRange=(AlgorithmicRange *)((uint8_t *)algRange+algRange->size);
         --i;
     }
 
     /* normal character name */
-    findName.otherName=upper;
-    findName.code=error;
-    enumNames(uCharNames, 0, UCHAR_MAX_VALUE + 1, DO_FIND_NAME, &findName, nameChoice);
-    if (findName.code == error) {
-         *pErrorCode = U_ILLEGAL_CHAR_FOUND;
-    }
+    findName.otherName=name;
+    findName.code=0xffff;
+    enumNames(uCharNames, 0, 0x110000, DO_FIND_NAME, &findName, nameChoice);
     return findName.code;
 }
 
@@ -341,8 +261,8 @@ u_enumCharNames(UChar32 start, UChar32 limit,
         return;
     }
 
-    if((uint32_t) limit > UCHAR_MAX_VALUE + 1) {
-        limit = UCHAR_MAX_VALUE + 1;
+    if((uint32_t)limit>0x110000) {
+        limit=0x110000;
     }
     if((uint32_t)start>=(uint32_t)limit) {
         return;
@@ -596,7 +516,7 @@ expandName(UCharNames *names,
     uint8_t *tokenStrings=(uint8_t *)names+names->tokenStringOffset;
     uint8_t c;
 
-    if(nameChoice==U_UNICODE_10_CHAR_NAME) {
+    if(nameChoice!=U_UNICODE_CHAR_NAME) {
         /*
          * skip the modern name if it is not requested _and_
          * if the semicolon byte value is a character, not a token number
@@ -643,14 +563,6 @@ expandName(UCharNames *names,
                     /* explicit letter */
                     WRITE_CHAR(buffer, bufferLength, bufferPos, c);
                 } else {
-                    /* stop, but skip the semicolon if we are seeking
-                       extended names and there was no 2.0 name but there
-                       is a 1.0 name. */
-                    if(!bufferPos && nameChoice == U_EXTENDED_CHAR_NAME) {
-                        if ((uint8_t)';'>=tokenCount || tokens[(uint8_t)';']==(uint16_t)(-1)) {
-                            continue;
-                        }
-                    }
                     /* finished */
                     break;
                 }
@@ -685,9 +597,8 @@ compareName(UCharNames *names,
     uint16_t token, tokenCount=*tokens++;
     uint8_t *tokenStrings=(uint8_t *)names+names->tokenStringOffset;
     uint8_t c;
-    const char *origOtherName = otherName;
 
-    if(nameChoice==U_UNICODE_10_CHAR_NAME) {
+    if(nameChoice!=U_UNICODE_CHAR_NAME) {
         /*
          * skip the modern name if it is not requested _and_
          * if the semicolon byte value is a character, not a token number
@@ -738,14 +649,6 @@ compareName(UCharNames *names,
                         return FALSE;
                     }
                 } else {
-                    /* stop, but skip the semicolon if we are seeking
-                       extended names and there was no 2.0 name but there
-                       is a 1.0 name. */
-                    if(otherName == origOtherName && nameChoice == U_EXTENDED_CHAR_NAME) {
-                        if ((uint8_t)';'>=tokenCount || tokens[(uint8_t)';']==(uint16_t)(-1)) {
-                            continue;
-                        }
-                    }
                     /* finished */
                     break;
                 }
@@ -784,10 +687,8 @@ enumGroupNames(UCharNames *names, Group *group,
         uint16_t length;
 
         while(start<=end) {
-            length=expandName(names, s+offsets[start&GROUP_MASK], lengths[start&GROUP_MASK], nameChoice, buffer, sizeof(buffer));
-            if (!length && nameChoice == U_EXTENDED_CHAR_NAME) {
-                buffer[length = getExtName(start, buffer, sizeof(buffer))] = 0;
-            }
+            length=expandName(names, s+offsets[start&GROUP_MASK], lengths[start&GROUP_MASK], nameChoice,
+                              buffer, sizeof(buffer));
             /* here, we assume that the buffer is large enough */
             if(length>0) {
                 if(!fn(context, start, nameChoice, buffer, length)) {
@@ -806,35 +707,6 @@ enumGroupNames(UCharNames *names, Group *group,
             ++start;
         }
     }
-    return TRUE;
-}
-
-/*
- * enumExtNames enumerate extended names.
- * It only needs to do it if it is called with a real function and not
- * with the dummy DO_FIND_NAME, because u_charFromName() does a check
- * for extended names by itself.
- */ 
-static UBool
-enumExtNames(UChar32 start, UChar32 end,
-             UEnumCharNamesFn *fn, void *context)
-{
-    if(fn!=DO_FIND_NAME) {
-        char buffer[200];
-        uint16_t length;
-        
-        while(start<=end) {
-            buffer[length = getExtName(start, buffer, sizeof(buffer))] = 0;
-            /* here, we assume that the buffer is large enough */
-            if(length>0) {
-                if(!fn(context, start, U_EXTENDED_CHAR_NAME, buffer, length)) {
-                    return FALSE;
-                }
-            }
-            ++start;
-        }
-    }
-
     return TRUE;
 }
 
@@ -858,9 +730,6 @@ enumNames(UCharNames *names,
             return enumGroupNames(names, group, start, limit-1, fn, context, nameChoice);
         }
     } else {
-        groupCount=*(uint16_t *)((char *)names+names->groupsOffset);
-        groupLimit=(Group *)((char *)names+names->groupsOffset+2)+groupCount;
-
         if(startGroupMSB==group->groupMSB) {
             /* enumerate characters in the partial start group */
             if((start&GROUP_MASK)!=0) {
@@ -869,36 +738,21 @@ enumNames(UCharNames *names,
                                    fn, context, nameChoice)) {
                     return FALSE;
                 }
-                ++group; /* continue with the next group */
             }
+            ++group; /* continue with the next group */
         } else if(startGroupMSB>group->groupMSB) {
             /* make sure that we start enumerating with the first group after start */
-            if (group + 1 < groupLimit && (group + 1)->groupMSB > startGroupMSB && nameChoice == U_EXTENDED_CHAR_NAME) {
-                UChar32 end = (group + 1)->groupMSB << GROUP_SHIFT;
-                if (end > limit) {
-                    end = limit;
-                }
-                if (!enumExtNames(start, end - 1, fn, context)) {
-                    return FALSE;
-                }
-            }
             ++group;
         }
 
         /* enumerate entire groups between the start- and end-groups */
+        groupCount=*(uint16_t *)((char *)names+names->groupsOffset);
+        groupLimit=(Group *)((char *)names+names->groupsOffset+2)+groupCount;
+
         while(group<groupLimit && group->groupMSB<endGroupMSB) {
             start=(UChar32)group->groupMSB<<GROUP_SHIFT;
             if(!enumGroupNames(names, group, start, start+LINES_PER_GROUP-1, fn, context, nameChoice)) {
                 return FALSE;
-            }
-            if (group + 1 < groupLimit && (group + 1)->groupMSB > group->groupMSB + 1 && nameChoice == U_EXTENDED_CHAR_NAME) {
-                UChar32 end = (group + 1)->groupMSB << GROUP_SHIFT;
-                if (end > limit) {
-                    end = limit;
-                }
-                if (!enumExtNames((group->groupMSB + 1) << GROUP_SHIFT, end - 1, fn, context)) {
-                    return FALSE;
-                }
             }
             ++group;
         }
@@ -906,25 +760,8 @@ enumNames(UCharNames *names,
         /* enumerate within the end group (group->groupMSB==endGroupMSB) */
         if(group<groupLimit && group->groupMSB==endGroupMSB) {
             return enumGroupNames(names, group, (limit-1)&~GROUP_MASK, limit-1, fn, context, nameChoice);
-        } else if (nameChoice == U_EXTENDED_CHAR_NAME && group == groupLimit) {
-            UChar32 next = ((group - 1)->groupMSB + 1) << GROUP_SHIFT;
-            if (next > start) {
-                start = next;
-            }
-        } else {
-            return TRUE;
         }
     }
-
-    /* we have not found a group, which means everything is made of
-       extended names. */
-    if (nameChoice == U_EXTENDED_CHAR_NAME) {
-        if (limit > UCHAR_MAX_VALUE + 1) {
-            limit = UCHAR_MAX_VALUE + 1;
-        }
-        return enumExtNames(start, limit - 1, fn, context);
-    }
-    
     return TRUE;
 }
 
@@ -944,7 +781,7 @@ getAlgName(AlgorithmicRange *range, uint32_t code, UCharNameChoice nameChoice,
      * extension A was only introduced with Unicode 3.0, and
      * the Hangul syllable block was moved and changed around Unicode 1.1.5.
      */
-    if(nameChoice==U_UNICODE_10_CHAR_NAME) {
+    if(nameChoice!=U_UNICODE_CHAR_NAME) {
         /* zero-terminate */
         if(bufferLength>0) {
             *buffer=0;
@@ -1104,7 +941,7 @@ enumAlgNames(AlgorithmicRange *range,
     char buffer[200];
     uint16_t length;
 
-    if(nameChoice==U_UNICODE_10_CHAR_NAME) {
+    if(nameChoice!=U_UNICODE_CHAR_NAME) {
         return TRUE;
     }
 
@@ -1242,7 +1079,7 @@ static UChar32
 findAlgName(AlgorithmicRange *range, UCharNameChoice nameChoice, const char *otherName) {
     UChar32 code;
 
-    if(nameChoice==U_UNICODE_10_CHAR_NAME) {
+    if(nameChoice!=U_UNICODE_CHAR_NAME) {
         return 0xffff;
     }
 
@@ -1363,105 +1200,6 @@ findAlgName(AlgorithmicRange *range, UCharNameChoice nameChoice, const char *oth
 static UBool
 findNameDummy(void *context,
               UChar32 code, UCharNameChoice nameChoice,
-              const char *name, int32_t length) {
+              const char *name, UTextOffset length) {
     return FALSE;
 }
-
-static uint8_t getCharCat(UChar32 cp) {
-    uint8_t cat;
-
-    if (UTF_IS_UNICODE_NONCHAR(cp)) {
-        return U_NONCHARACTER_CODE_POINT;
-    }
-
-    if ((cat = u_charType(cp)) == U_SURROGATE) {
-        cat = UTF_IS_LEAD(cp) ? U_LEAD_SURROGATE : U_TRAIL_SURROGATE;
-    }
-
-    return cat;
-}
-
-static const char * const charCatNames[U_CHAR_EXTENDED_CATEGORY_COUNT] = {
-    "unassigned",
-    "uppercase letter",
-    "lowercase letter",
-    "titlecase letter",
-    "modifier letter",
-    "other letter",
-    "non spacing mark",
-    "enclosing mark",
-    "combining spacing mark",
-    "decimal digit number",
-    "letter number",
-    "other number",
-    "space separator",
-    "line separator",
-    "paragraph separator",
-    "control",
-    "format",
-    "private use area",
-    "surrogate",
-    "dash punctuation",   
-    "start punctuation",
-    "end punctuation",
-    "connector punctuation",
-    "other punctuation",
-    "math symbol",
-    "currency symbol",
-    "modifier symbol",
-    "other symbol",
-    "initial punctuation",
-    "final punctuation",
-    "noncharacter",
-    "lead surrogate",
-    "trail surrogate"
-};
-
-static const char *getCharCatName(UChar32 cp) {
-    uint8_t cat = getCharCat(cp);
-
-    /* Return unknown if the table of names above is not up to
-       date. */
-
-    if (cat >= sizeof(charCatNames) / sizeof(*charCatNames)) {
-        return "unknown";
-    } else {
-        return charCatNames[cat];
-    }
-}
-
-static uint16_t getExtName(uint32_t code, char *buffer, uint16_t bufferLength) {
-    const char *catname = getCharCatName(code);
-    uint16_t length = 0;
-
-    UChar32 cp;
-    int ndigits, i;
-    
-    WRITE_CHAR(buffer, bufferLength, length, '<');
-    while (catname[length - 1]) {
-        WRITE_CHAR(buffer, bufferLength, length, catname[length - 1]);
-    }
-    WRITE_CHAR(buffer, bufferLength, length, '-');
-    for (cp = code, ndigits = 0; cp; ++ndigits, cp >>= 4)
-        ;
-    if (ndigits < 4)
-        ndigits = 4;
-    for (cp = code, i = ndigits; (cp || i > 0) && bufferLength; cp >>= 4, bufferLength--) {
-        uint8_t v = (uint8_t)(cp & 0xf);
-        buffer[--i] = (v < 10 ? '0' + v : 'A' + v - 10);
-    }
-    buffer += ndigits;
-    length += ndigits;
-    WRITE_CHAR(buffer, bufferLength, length, '>');
-
-    return length;
-}
-
-/*
- * Hey, Emacs, please set the following:
- *
- * Local Variables:
- * indent-tabs-mode: nil
- * End:
- *
- */

@@ -75,9 +75,6 @@
  * <\ul>
  * <p>
  * A breakiterator can be used if only matches at logical breaks are desired.
- * Using a breakiterator will only give you results that exactly matches the
- * boundaries given by the breakiterator. For instance the pattern "e" will
- * not be found in the string "\u00e9" if a character break iterator is used.
  * <p>
  * Options are provided to handle overlapping matches. 
  * E.g. In English, overlapping matches produces the result 0 and 2 
@@ -88,8 +85,6 @@
  * performing matches, there are no APIs here for setting and getting the 
  * attributes. These attributes can be set by getting the collator
  * from <tt>usearch_getCollator</tt> and using the APIs in <tt>ucol.h</tt>.
- * Lastly to update String Search to the new collator attributes, 
- * usearch_reset() has to be called.
  * <p> 
  * Restriction: <br>
  * Currently there are no composite characters that consists of a
@@ -242,7 +237,7 @@ U_CAPI void U_EXPORT2 usearch_close(UStringSearch *strsrch);
 * @draft ICU 2.0
 */
 U_CAPI void U_EXPORT2 usearch_setOffset(UStringSearch *strsrch, 
-                                        int32_t    position,
+                                        UTextOffset    position,
                                         UErrorCode    *status);
 
 /**
@@ -252,7 +247,7 @@ U_CAPI void U_EXPORT2 usearch_setOffset(UStringSearch *strsrch,
 * @param strsrch search iterator data struct
 * @draft ICU 2.0
 */
-U_CAPI int32_t U_EXPORT2 usearch_getOffset(const UStringSearch *strsrch);
+U_CAPI UTextOffset U_EXPORT2 usearch_getOffset(const UStringSearch *strsrch);
     
 /**
 * Sets the text searching attributes located in the enum USearchAttribute
@@ -296,7 +291,7 @@ U_CAPI USearchAttributeValue U_EXPORT2 usearch_getAttribute(
 *         searched.
 * @draft ICU 2.0
 */
-U_CAPI int32_t U_EXPORT2 usearch_getMatchedStart(
+U_CAPI UTextOffset U_EXPORT2 usearch_getMatchedStart(
                                                const UStringSearch *strsrch);
     
 /**
@@ -472,7 +467,7 @@ U_CAPI const UChar * U_EXPORT2 usearch_getPattern(
 * <tt>USEARCH_DONE</tt> if there are no matches.
 * @draft ICU 2.0
 */
-U_CAPI int32_t U_EXPORT2 usearch_first(UStringSearch *strsrch, 
+U_CAPI UTextOffset U_EXPORT2 usearch_first(UStringSearch *strsrch, 
                                            UErrorCode    *status);
 
 /**
@@ -493,8 +488,8 @@ U_CAPI int32_t U_EXPORT2 usearch_first(UStringSearch *strsrch,
 *         or <tt>USEARCH_DONE</tt> if there are no matches.
 * @draft ICU 2.0
 */
-U_CAPI int32_t U_EXPORT2 usearch_following(UStringSearch *strsrch, 
-                                               int32_t    position, 
+U_CAPI UTextOffset U_EXPORT2 usearch_following(UStringSearch *strsrch, 
+                                               UTextOffset    position, 
                                                UErrorCode    *status);
     
 /**
@@ -510,7 +505,7 @@ U_CAPI int32_t U_EXPORT2 usearch_following(UStringSearch *strsrch,
 *         are no matches.
 * @draft ICU 2.0
 */
-U_CAPI int32_t U_EXPORT2 usearch_last(UStringSearch *strsrch, 
+U_CAPI UTextOffset U_EXPORT2 usearch_last(UStringSearch *strsrch, 
                                           UErrorCode    *status);
 
 /**
@@ -530,8 +525,8 @@ U_CAPI int32_t U_EXPORT2 usearch_last(UStringSearch *strsrch,
 *         or <tt>USEARCH_DONE</tt> if there are no matches.
 * @draft ICU 2.0
 */
-U_CAPI int32_t U_EXPORT2 usearch_preceding(UStringSearch *strsrch, 
-                                               int32_t    position, 
+U_CAPI UTextOffset U_EXPORT2 usearch_preceding(UStringSearch *strsrch, 
+                                               UTextOffset    position, 
                                                UErrorCode    *status);
     
 /**
@@ -549,7 +544,7 @@ U_CAPI int32_t U_EXPORT2 usearch_preceding(UStringSearch *strsrch,
 * @see #usearch_first
 * @draft ICU 2.0
 */
-U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch *strsrch, 
+U_CAPI UTextOffset U_EXPORT2 usearch_next(UStringSearch *strsrch, 
                                           UErrorCode    *status);
 
 /**
@@ -566,7 +561,7 @@ U_CAPI int32_t U_EXPORT2 usearch_next(UStringSearch *strsrch,
 *         or <tt>USEARCH_DONE</tt> if there are no more matches.
 * @draft ICU 2.0
 */
-U_CAPI int32_t U_EXPORT2 usearch_previous(UStringSearch *strsrch, 
+U_CAPI UTextOffset U_EXPORT2 usearch_previous(UStringSearch *strsrch, 
                                               UErrorCode    *status);
     
 /** 

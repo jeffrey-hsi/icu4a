@@ -209,7 +209,7 @@ UBool StringSearchTest::assertEqualWithStringSearch(StringSearch *strsrch,
 {
     int           count       = 0;
     UErrorCode    status      = U_ZERO_ERROR;
-    int32_t   matchindex  = search->offset[count];
+    UTextOffset   matchindex  = search->offset[count];
     UnicodeString matchtext;
     
     if (strsrch->getMatchedStart() != USEARCH_DONE ||
@@ -663,10 +663,10 @@ void StringSearchTest::TestStrength()
 void StringSearchTest::TestBreakIterator()
 {
     UChar temp[128];
-    u_unescape(BREAKITERATOREXACT[0].text, temp, 128);
+    u_unescape(BREAKITERATOR[0].text, temp, 128);
     UnicodeString text;
     text.setTo(temp, u_strlen(temp));
-    u_unescape(BREAKITERATOREXACT[0].pattern, temp, 128);
+    u_unescape(BREAKITERATOR[0].pattern, temp, 128);
     UnicodeString pattern;
     pattern.setTo(temp, u_strlen(temp));
 
@@ -698,8 +698,7 @@ void StringSearchTest::TestBreakIterator()
 
     int count = 0;
     while (count < 4) {
-        // special purposes for tests numbers 0-3
-        const SearchData        *search   = &(BREAKITERATOREXACT[count]);     
+        const SearchData        *search   = &(BREAKITERATOR[count]);     
               RuleBasedCollator *collator = getCollator(search->collator);
               BreakIterator     *breaker  = getBreakIterator(search->breaker);
               StringSearch      *strsrch; 
@@ -725,7 +724,7 @@ void StringSearchTest::TestBreakIterator()
             collator->setStrength(getECollationStrength(UCOL_TERTIARY));
             delete strsrch;
         }
-        search   = &(BREAKITERATOREXACT[count + 1]);
+        search   = &(BREAKITERATOR[count + 1]);
         breaker  = getBreakIterator(search->breaker);
         if (breaker != NULL) {
             breaker->setText(text);
@@ -744,8 +743,8 @@ void StringSearchTest::TestBreakIterator()
         count += 2;
     }
     count = 0;
-    while (BREAKITERATOREXACT[count].text != NULL) {
-         if (!assertEqual(&BREAKITERATOREXACT[count])) {
+    while (BREAKITERATOR[count].text != NULL) {
+         if (!assertEqual(&BREAKITERATOR[count])) {
              errln("Error at test number %d", count);
          }
          count ++;
@@ -1105,7 +1104,7 @@ void StringSearchTest::TestGetSetOffset()
         strsrch->setPattern(pattern, status);
 
         int count = 0;
-        int32_t matchindex  = search.offset[count];
+        UTextOffset matchindex  = search.offset[count];
         while (U_SUCCESS(status) && matchindex >= 0) {
             int32_t matchlength = search.size[count];
             strsrch->next(status);
@@ -1232,7 +1231,7 @@ void StringSearchTest::TestGetMatch()
     }
     
     int           count      = 0;
-    int32_t   matchindex = search.offset[count];
+    UTextOffset   matchindex = search.offset[count];
     UnicodeString matchtext;
     while (U_SUCCESS(status) && matchindex >= 0) {
         int32_t matchlength = search.size[count];
@@ -1508,7 +1507,6 @@ void StringSearchTest::TestBreakIteratorCanonical()
     int        count  = 0;
 
     while (count < 4) {
-        // special purposes for tests numbers 0-3
               UChar           temp[128];
         const SearchData     *search   = &(BREAKITERATORCANONICAL[count]);     
     
@@ -1540,7 +1538,7 @@ void StringSearchTest::TestBreakIteratorCanonical()
             delete strsrch;
             return;
         }
-        search  = &(BREAKITERATOREXACT[count + 1]);
+        search  = &(BREAKITERATOR[count + 1]);
         breaker = getBreakIterator(search->breaker);
         breaker->setText(strsrch->getText());
         strsrch->setBreakIterator(breaker, status);
@@ -1885,7 +1883,7 @@ void StringSearchTest::TestGetSetOffsetCanonical()
         strsrch->setPattern(pattern, status);
 
         int         count       = 0;
-        int32_t matchindex  = search.offset[count];
+        UTextOffset matchindex  = search.offset[count];
         while (U_SUCCESS(status) && matchindex >= 0) {
             int32_t matchlength = search.size[count];
             strsrch->next(status);
@@ -1984,12 +1982,12 @@ public:
     TempSearch();
     TempSearch(TempSearch &search);
     ~TempSearch();
-    void            setOffset(int32_t position, UErrorCode &status);
-    int32_t     getOffset() const;
+    void            setOffset(UTextOffset position, UErrorCode &status);
+    UTextOffset     getOffset() const;
     SearchIterator* safeClone() const;
 protected:
-    int32_t     handleNext(int32_t position, UErrorCode &status);
-    int32_t     handlePrev(int32_t position, UErrorCode &status);
+    UTextOffset     handleNext(UTextOffset position, UErrorCode &status);
+    UTextOffset     handlePrev(UTextOffset position, UErrorCode &status);
 };
 
 TempSearch::TempSearch() : SearchIterator()
@@ -2004,11 +2002,11 @@ TempSearch::~TempSearch()
 {
 }
 
-void TempSearch::setOffset(int32_t /*position*/, UErrorCode &/*status*/)
+void TempSearch::setOffset(UTextOffset /*position*/, UErrorCode &/*status*/)
 {
 }
 
-int32_t TempSearch::getOffset() const
+UTextOffset TempSearch::getOffset() const
 {
     return USEARCH_DONE;
 }
@@ -2018,12 +2016,12 @@ SearchIterator * TempSearch::safeClone() const
     return NULL;
 }
 
-int32_t TempSearch::handleNext(int32_t /*position*/, UErrorCode &/*status*/)
+UTextOffset TempSearch::handleNext(UTextOffset /*position*/, UErrorCode &/*status*/)
 {
     return USEARCH_DONE;
 }
 
-int32_t TempSearch::handlePrev(int32_t /*position*/, UErrorCode &/*status*/)
+UTextOffset TempSearch::handlePrev(UTextOffset /*position*/, UErrorCode &/*status*/)
 {
     return USEARCH_DONE;
 }

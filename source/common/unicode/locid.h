@@ -32,8 +32,10 @@
 
 #include "unicode/putil.h"
 
-/* all ULOC constants are now in uloc.h. */
-#include "unicode/uloc.h"
+
+#define ULOC_LANG_CAPACITY 12
+#define ULOC_COUNTRY_CAPACITY 4
+#define ULOC_FULLNAME_CAPACITY 50
 
 #ifdef XP_CPLUSPLUS
 
@@ -626,23 +628,6 @@ public:
      */
     int32_t         hashCode(void) const;
 
-    /** 
-     * Sets the locale to bogus 
-     * A bogus locale represents a non-existing locale associated 
-     * with services that can be instantiated from non-locale data 
-     * in addition to locale (for example, collation can be 
-     * instantiated from a locale and from a rule set). 
-     * @draft ICU 2.1
-     */
-    void setToBogus();
-
-    /**
-     * Gets the bogus state. Locale object can be bogus if it doesn't exist
-     * @return FALSE if it is a real locale, TRUE if it is a bogus locale
-     * @draft ICU 2.1
-     */
-    UBool isBogus(void) const;
-
     /**
      * Returns a list of all installed locales.
      * @param count Receives the number of locales in the list.
@@ -696,8 +681,6 @@ private:
     int32_t variantBegin;
     char* fullName;
     char fullNameBuffer[ULOC_FULLNAME_CAPACITY];
-
-    UBool fIsBogus;
     
 //    static Locale *localeList;
 //    static int32_t localeListCount;
@@ -741,11 +724,6 @@ inline const char *
 Locale::getName() const
 {
     return fullName;
-}
-
-inline UBool 
-Locale::isBogus(void) const {
-  return fIsBogus;
 }
 
 #ifndef ICU_LOCID_USE_DEPRECATES

@@ -101,7 +101,7 @@ void locale_set_default_internal(const char *id)
 #ifdef ICU_LOCID_USE_DEPRECATES
     Locale::fgDefaultLocale.init(id);
 #else
-    if (gLocaleCache == NULL) {
+if (gLocaleCache == NULL) {
         Locale::initLocaleCache();
     }
 
@@ -206,10 +206,10 @@ Locale::LocaleProxy::operator const Locale&(void) const
 
 Locale::~Locale()
 {   
-    /*if fullName is on the heap, we free it*/
+    /*if fullName is on the heap, we delete it*/
     if (fullName != fullNameBuffer) 
     {
-        uprv_free(fullName);
+        delete []fullName;
         fullName = NULL;
     }
 }
@@ -294,7 +294,7 @@ Locale::Locale( const   char * newLanguage,
         to go to the heap for temporary buffers*/
         if (size > ULOC_FULLNAME_CAPACITY)
         {
-            togo_heap = (char *)uprv_malloc(sizeof(char)*(size+1));
+            togo_heap = new char[size+1];
             togo = togo_heap;
         }
         else
@@ -336,9 +336,7 @@ Locale::Locale( const   char * newLanguage,
         // string.
         init(togo);
 
-        if (togo_heap) {
-            uprv_free(togo_heap);
-        }
+        delete [] togo_heap; /* If it was needed */
     }
 }
 
@@ -352,13 +350,13 @@ Locale &Locale::operator=(const Locale &other)
 {
     /* Free our current storage */
     if(fullName != fullNameBuffer) {
-        uprv_free(fullName);
+        delete [] fullName;
         fullName = fullNameBuffer;
     }
 
     /* Allocate the full name if necessary */
     if(other.fullName != other.fullNameBuffer) {
-        fullName = (char *)uprv_malloc(sizeof(char)*(uprv_strlen(other.fullName)+1));
+        fullName = new char[(uprv_strlen(other.fullName)+1)];
     }
 
     /* Copy the full name */
@@ -370,7 +368,6 @@ Locale &Locale::operator=(const Locale &other)
 
     /* The variantBegin is an offset into fullName, just copy it */
     variantBegin = other.variantBegin;
-    fIsBogus = other.fIsBogus;
     return *this;
 }
 
@@ -383,10 +380,9 @@ Locale::operator==( const   Locale& other) const
 /*This function initializes a Locale from a C locale ID*/
 Locale& Locale::init(const char* localeID)
 {
-    fIsBogus = FALSE;
     /* Free our current storage */
     if(fullName != fullNameBuffer) {
-        uprv_free(fullName);
+        delete [] fullName;
         fullName = fullNameBuffer;
     }
 
@@ -408,7 +404,7 @@ Locale& Locale::init(const char* localeID)
         length = uloc_getName(localeID, fullName, sizeof(fullNameBuffer), &err);
         if(U_FAILURE(err) || err == U_STRING_NOT_TERMINATED_WARNING) {
             /*Go to heap for the fullName if necessary*/
-            fullName = (char *)uprv_malloc(sizeof(char)*(length + 1));
+            fullName = new char[length + 1];
             if(fullName == 0) {
                 fullName = fullNameBuffer;
                 break;
@@ -423,13 +419,13 @@ Locale& Locale::init(const char* localeID)
 
         /* preset all fields to empty */
         language[0] = country[0] = 0;
-        variantBegin = (int32_t)uprv_strlen(fullName);
+        variantBegin = uprv_strlen(fullName);
 
         /* after uloc_getName() we know that only '_' are separators */
         separator = uprv_strchr(fullName, SEP_CHAR);
         if(separator != 0) {
             /* there is a country field */
-            length = (int32_t)(separator - fullName);
+            length = separator - fullName;
             if(length > 0) {
                 if(length >= (int32_t)sizeof(language)) {
                     break;
@@ -442,7 +438,7 @@ Locale& Locale::init(const char* localeID)
             separator = uprv_strchr(prev, SEP_CHAR);
             if(separator != 0) {
                 /* there is a variant field */
-                length = (int32_t)(separator - prev);
+                length = separator - prev;
                 if(length > 0) {
                     if(length >= (int32_t)sizeof(country)) {
                         break;
@@ -451,7 +447,7 @@ Locale& Locale::init(const char* localeID)
                 }
                 country[length] = 0;
 
-                variantBegin = (int32_t)((separator + 1) - fullName);
+                variantBegin = (separator + 1) - fullName;
             } else {
                 /* variantBegin==strlen(fullName), length==strlen(language)==prev-1-fullName */
                 if((variantBegin - length - 1) >= (int32_t)sizeof(country)) {
@@ -490,18 +486,6 @@ Locale::hashCode() const
     return uhash_hashChars(hashKey);
 }
 
-void 
-Locale::setToBogus() {
-  /* Free our current storage */
-  if(fullName != fullNameBuffer) {
-      uprv_free(fullName);
-      fullName = fullNameBuffer;
-  }
-  *fullNameBuffer = 0;
-  *language = 0;
-  *country = 0;
-  fIsBogus = TRUE;
-}
 
 const Locale&
 Locale::getDefault() 
@@ -844,7 +828,7 @@ Locale::getChinese(void)
 const Locale &
 Locale::getSimplifiedChinese(void)
 {
-    return getLocale(eCHINA);
+    return getLocale(eCHINESE);
 }
 
 const Locale &
@@ -887,13 +871,13 @@ Locale::getKorea(void)
 const Locale &
 Locale::getChina(void)
 {
-    return getLocale(eCHINA);
+    return getLocale(eCHINESE);
 }
 
 const Locale &
 Locale::getPRC(void)
 {
-    return getLocale(eCHINA);
+    return getLocale(eCHINESE);
 }
 
 const Locale &
@@ -923,7 +907,7 @@ Locale::getCanada(void)
 const Locale &
 Locale::getCanadaFrench(void)
 {
-    return getLocale(eCANADA_FRENCH);
+    return getLocale(eFRENCH);
 }
 
 const Locale &
@@ -990,7 +974,7 @@ Locale::initLocaleCache(void)
                 //
                 // This can be a memory leak for an extra long default locale,
                 // but this code shouldn't normally get executed.
-                localeCache[idx].fullName = (char *)uprv_malloc(sizeof(char)*(uprv_strlen(localeCache[idx].fullNameBuffer) + 1));
+                localeCache[idx].fullName = new char[uprv_strlen(localeCache[idx].fullNameBuffer) + 1];
                 uprv_strcpy(localeCache[idx].fullName, localeCache[idx].fullNameBuffer);
             }
         }

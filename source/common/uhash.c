@@ -372,7 +372,7 @@ uhash_find(const UHashtable *hash, const void* key) {
     UHashTok keyholder;
     const UHashElement *e;
     keyholder.pointer = (void*) key;
-    e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
+	e = _uhash_find(hash, keyholder, hash->keyHasher(keyholder));
     return IS_EMPTY_OR_DELETED(e->hashcode) ? NULL : e;
 }
 
@@ -445,7 +445,7 @@ uhash_tokp(void* p) {
     int32_t hash = 0;                         \
     const TYPE *p = (const TYPE*) STR;        \
     if (p != NULL) {                          \
-        int32_t len = (int32_t)(STRLEN);                 \
+        int32_t len = STRLEN;                 \
         int32_t inc = ((len - 32) / 32) + 1;  \
         const TYPE *limit = p + len;          \
         while (p<limit) {                     \
@@ -791,8 +791,7 @@ _uhash_put(UHashtable *hash,
         goto err;
     }
     assert(hash != NULL);
-    /* Cannot always check pointer here or iSeries sees NULL every time. */
-    if ((hint & HINT_VALUE_POINTER) && value.pointer == NULL) {
+    if (value.pointer == NULL) {
         /* Disallow storage of NULL values, since NULL is returned by
          * get() to indicate an absent key.  Storing NULL == removing.
          */
@@ -867,10 +866,11 @@ _uhash_setElement(UHashtable *hash, UHashElement* e,
                   int32_t hashcode,
                   UHashTok key, UHashTok value, int8_t hint) {
 
+    void* oldKeyPtr = e->key.pointer;
     UHashTok oldValue = e->value;
-    if (hash->keyDeleter != NULL && e->key.pointer != NULL &&
-        e->key.pointer != key.pointer) { /* Avoid double deletion */
-        (*hash->keyDeleter)(e->key.pointer);
+    if (hash->keyDeleter != NULL && oldKeyPtr != NULL &&
+        oldKeyPtr != key.pointer) { /* Avoid double deletion */
+        (*hash->keyDeleter)(oldKeyPtr);
     }
     if (hash->valueDeleter != NULL) {
         if (oldValue.pointer != NULL &&

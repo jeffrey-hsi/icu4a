@@ -21,12 +21,81 @@
 
 U_NAMESPACE_USE
 
+/*
+U_CAPI UDateFormat*
+udat_open(            UDateFormatStyle        timeStyle, 
+                UDateFormatStyle        dateStyle,
+                const   char*                locale,
+                const   UChar                    *tzID,
+		      int32_t tzIDLength,
+                UErrorCode*             status)
+{
+  if(U_FAILURE(*status)) return 0;
+  
+  DateFormat *fmt;
+  if(locale == 0)
+    fmt = DateFormat::createDateTimeInstance((DateFormat::EStyle)dateStyle,
+                         (DateFormat::EStyle)timeStyle);
+  else
+    fmt = DateFormat::createDateTimeInstance((DateFormat::EStyle)dateStyle,
+                         (DateFormat::EStyle)timeStyle,
+                                             Locale(locale));
+  
+  if(fmt == 0) {
+    *status = U_MEMORY_ALLOCATION_ERROR;
+    return 0;
+  }
+
+  if(tzID != 0) {
+    TimeZone *zone = 0;
+    int32_t length = (tzIDLength == -1 ? u_strlen(tzID) : tzIDLength);
+    zone = TimeZone::createTimeZone(UnicodeString((UChar*)tzID,
+						  length, length));
+    if(zone == 0) {
+      *status = U_MEMORY_ALLOCATION_ERROR;
+      delete fmt;
+      return 0;
+    }
+    fmt->adoptTimeZone(zone);
+  }
+  
+  return (UDateFormat*)fmt;
+}
+
+U_CAPI UDateFormat*
+udat_openPattern(    const   UChar           *pattern, 
+            int32_t         patternLength,
+            const   char         *locale,
+            UErrorCode      *status)
+{
+  if(U_FAILURE(*status)) return 0;
+
+  int32_t len = (patternLength == -1 ? u_strlen(pattern) : patternLength);
+  UDateFormat *retVal = 0;
+
+  if(locale == 0)
+    retVal = (UDateFormat*)new SimpleDateFormat(UnicodeString((UChar*)pattern,
+                                  len, len),
+                        *status);
+  else
+    retVal = (UDateFormat*)new SimpleDateFormat(UnicodeString((UChar*)pattern,
+                                  len, len),
+                        Locale(locale),
+                        *status);
+
+  if(retVal == 0) {
+    *status = U_MEMORY_ALLOCATION_ERROR;
+    return 0;
+  }
+  return retVal;
+}
+*/
 U_CAPI UDateFormat* U_EXPORT2
 udat_open(UDateFormatStyle  timeStyle,
           UDateFormatStyle  dateStyle,
           const char        *locale,
-          const UChar       *tzID,
-          int32_t           tzIDLength,
+	      const UChar       *tzID,
+	      int32_t           tzIDLength,
           const UChar       *pattern,
           int32_t           patternLength,
           UErrorCode        *status)
@@ -56,7 +125,7 @@ udat_open(UDateFormatStyle  timeStyle,
         TimeZone *zone = 0;
         int32_t length = (tzIDLength == -1 ? u_strlen(tzID) : tzIDLength);
         zone = TimeZone::createTimeZone(UnicodeString((UChar*)tzID,
-                                      length, length));
+						      length, length));
         if(zone == 0) {
           *status = U_MEMORY_ALLOCATION_ERROR;
           delete fmt;
@@ -172,38 +241,6 @@ udat_parse(    const    UDateFormat*        format,
   }
   
   return res;
-}
-
-U_CAPI void U_EXPORT2
-udat_parseCalendar(const    UDateFormat*    format,
-                            UCalendar*      calendar,
-                   const    UChar*          text,
-                            int32_t         textLength,
-                            int32_t         *parsePos,
-                            UErrorCode      *status)
-{
-
-  if(U_FAILURE(*status)) return;
-
-  int32_t len = (textLength == -1 ? u_strlen(text) : textLength);
-  const UnicodeString src((UChar*)text, len, len);
-  ParsePosition pp;
-
-  if(parsePos != 0)
-    pp.setIndex(*parsePos);
-
-  ((DateFormat*)format)->parse(src, *(Calendar*)calendar, pp);
-
-  if(parsePos != 0) {
-    if(pp.getErrorIndex() == -1)
-      *parsePos = pp.getIndex();
-    else {
-      *parsePos = pp.getErrorIndex();
-      *status = U_PARSE_ERROR;
-    }
-  }
-  
-  return;
 }
 
 U_CAPI UBool U_EXPORT2

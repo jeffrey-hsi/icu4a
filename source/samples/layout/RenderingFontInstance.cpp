@@ -22,7 +22,7 @@
 
 RenderingFontInstance::RenderingFontInstance(void *surface, le_int16 pointSize)
   : fSurface(surface), fPointSize(pointSize), fUnitsPerEM(0), fAscent(0), fDescent(), fLeading(0),
-    fDeviceScaleX(1), fDeviceScaleY(1), fTableCache(NULL), fTableCacheCurr(0), fTableCacheSize(0), fMapper(NULL)
+    fTableCache(NULL), fTableCacheCurr(0), fTableCacheSize(0), fMapper(NULL)
 {
     // we expect the subclass to call
     // initMapper() and initFontTableCache

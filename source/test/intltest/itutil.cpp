@@ -21,7 +21,6 @@
 #include "tsmutex.h"
 #include "tsmthred.h"
 #include "tsputil.h"
-#include "biditst.h"
 //#include "custrtest.h"
 //#include "ccitrtst.h"
 //#include "cloctest.h"
@@ -33,24 +32,6 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
     if (exec) logln("TestSuite Utilities: ");
     switch (index) {
         case 0:
-            name = "MutexTest"; 
-            if (exec) {
-                logln("MutexTest---"); logln("");
-                MutexTest test;
-                callTest( test, par );
-            }
-            break;
-
-        case 1:
-            name = "MultithreadTest"; 
-            if (exec) {
-                logln("MultithreadTest---"); logln("");
-                MultithreadTest test;
-                callTest( test, par );
-            }
-            break;
-
-        case 2:
             name = "StringTest"; 
             if (exec) {
                 logln("StringTest---"); logln("");
@@ -59,7 +40,7 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
             }
             break;
 
-        case 3:
+        case 1:
             name = "UnicodeStringTest"; 
             if (exec) {
                 logln("UnicodeStringTest---"); logln("");
@@ -68,7 +49,7 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
             }
             break;
 
-        case 4:
+        case 2:
             name = "LocaleTest"; 
             if (exec) {
                 logln("LocaleTest---"); logln("");
@@ -77,7 +58,7 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
             }
             break;
 
-        case 5:
+        case 3:
             name = "CharIterTest"; 
             if (exec) {
                 logln("CharIterTest---"); logln("");
@@ -86,7 +67,7 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
             }
             break;
 
-        case 6:
+        case 4:
             name = "UnicodeTest"; 
             if (exec) {
                 logln("UnicodeTest---"); logln("");
@@ -95,7 +76,7 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
             }
             break;
 
-        case 7:
+        case 5:
             name = "ResourceBundleTest"; 
             if (exec) {
                 logln("ResourceBundleTest---"); logln("");
@@ -103,11 +84,29 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
                 callTest( test, par );
             }
             break;
-        case 8:
+       case 6:
             name = "NewResourceBundleTest"; 
             if (exec) {
                 logln("NewResourceBundleTest---"); logln("");
                 NewResourceBundleTest test;
+                callTest( test, par );
+            }
+            break;
+
+        case 7:
+            name = "MutexTest"; 
+            if (exec) {
+                logln("MutexTest---"); logln("");
+                MutexTest test;
+                callTest( test, par );
+            }
+            break;
+
+        case 8:
+            name = "MultithreadTest"; 
+            if (exec) {
+                logln("MultithreadTest---"); logln("");
+                MultithreadTest test;
                 callTest( test, par );
             }
             break;
@@ -120,16 +119,6 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
                 callTest( test, par );
             }
             break;
-
-        case 10:
-            name = "BiDiTest";
-            if(exec){
-               logln("BiDiTest----"); logln("");
-               BiDiTest test;
-               callTest(test,par);
-            }
-            break;
-
         /*
         case 8:
             name = "LocaleTest"; 

@@ -54,12 +54,11 @@ supplied
 file, or from its standard output. It packages all the files from
 the list that are not bigger than
 .I maxsize
-bytes, except if
-.I maxsize
-is 0, which indicates that there is no size limit on files.
+bytes. Files that exceed this limit are quietly ignored, even in
+verbose mode.
 .SH OPTIONS
 .TP
-.BR "\-h\fP, \fB\-?\fP, \fB\-\-help"
+.BR \-h\fP, \fB\-?\fP, \fB\-\-help
 Print help about usage and exit.
 .TP
 .BR "\-v\fP, \fB\-\-verbose"
@@ -80,7 +79,7 @@ The default destination directory is specified by the environment variable
 .BR ICU_DATA .
 .TP
 .BI "\-n\fP, \fB\-\-name" " name"
-Set the data name to
+Sets the data name to
 .I name
 instead of the default. This name is also used as the base name of the
 output. The default name is made of the
@@ -104,7 +103,7 @@ the generated data file. The default type ie
 Write a C source file with the table of contents of the data.
 .TP
 .BI "\-e\fP, \fB\-\-entrypoint" " name"
-Set the data entry point (used for linking against the data in a
+Sets the data entry point (used for linking against the data in a
 shared library form) to
 .IR name .
 The default entry point name is made of the data (set by the
@@ -116,7 +115,7 @@ option).
 .TP 10
 .B ICU_DATA
 Specifies the directory containing ICU data. Defaults to
-.BR @thepkgicudatadir@/@PACKAGE@/@VERSION@/ .
+.BR @thedatadir@/icu/@VERSION@/ .
 Some tools in ICU depend on the presence of the trailing slash. It is thus
 important to make sure that it is present if
 .B ICU_DATA

@@ -3,7 +3,7 @@
 ## Copyright (c) 1999-2002, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ##
-## $Id: mh-aix,v 1.31 2002/05/13 23:50:12 grhoten-oss Exp $
+## $Id: mh-aix,v 1.24.2.2 2002/05/14 18:38:35 srl Exp $
 ##
 ## Please note: AIX does NOT have library versioning per se (there is no 'SONAME' capability). 
 ## So, we are using 'windows' style library names, that is, libicuuc20.1.so instead of libicuuc.so.20.1
@@ -12,21 +12,19 @@
 GEN_DEPS.c=	$(CC) -E -M $(DEFS) $(CPPFLAGS)
 GEN_DEPS.cc=	$(CXX) -E -M $(DEFS) $(CPPFLAGS)
 
-# Make the strings readonly. This helps in the common data library
-CFLAGS += -qroconst
-CXXFLAGS += -qroconst
-
-LDFLAGS += -brtl
+## Commands to compile
+COMPILE.c=	$(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS)  -qroconst -c
+COMPILE.cc=	$(CXX) $(DEFS) $(CPPFLAGS) $(CXXFLAGS) -qroconst -c
 
 ## Commands to link
 ## We need to use the C++ linker, even when linking C programs, since
 ##  our libraries contain C++ code (C++ static init not called)
-LINK.c=		$(CXX) $(CXXFLAGS) $(LDFLAGS)
-LINK.cc=	$(CXX) $(CXXFLAGS) $(LDFLAGS)
+LINK.c=		$(CXX) -brtl $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
+LINK.cc=	$(CXX) -brtl $(DEFS) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS)
 
 ## Commands to make a shared library
-SHLIB.c=	$(AIX_SHLIB) -p 5000 $(LDFLAGS)
-SHLIB.cc=	$(AIX_SHLIB) -p 5000 $(LDFLAGS)
+SHLIB.c=	makeC++SharedLib_r -p 5000 -brtl
+SHLIB.cc=	makeC++SharedLib_r -p 5000 -brtl
 
 ## Compiler switch to embed a runtime search path
 LD_RPATH=	-I
@@ -36,14 +34,18 @@ LD_RPATH_PRE=
 LDLIBRARYPATH_ENVVAR = LIBPATH
 
 ## Override Versioned target for a shared library.
-FINAL_SO_TARGET=  $(basename $(SO_TARGET))$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO)
-MIDDLE_SO_TARGET= $(basename $(SO_TARGET))$(SO_TARGET_VERSION_MAJOR)$(ICULIBSUFFIX).$(SO)
+FINAL_SO_TARGET=  $(basename $(SO_TARGET))$(SO_TARGET_VERSION).$(SO)
+MIDDLE_SO_TARGET= $(basename $(SO_TARGET))$(SO_TARGET_VERSION_MAJOR).$(SO)
 
-# The following is for Makefile.inc's use.
-ICULIBSUFFIX_VERSION = $(LIB_VERSION_MAJOR)
-
-# this one is for icudefs.mk's use
-SO_TARGET_VERSION_SUFFIX = $(SO_TARGET_VERSION_MAJOR)
+## Override the library calls because  AIX doesn't have library versioning. 
+LIBICUDT=       -L$(top_builddir)/data -L$(top_builddir)/stubdata -l$(ICUDATA_NAME)$(ICULIBSUFFIX)
+LIBICUUC=       -L$(top_builddir)/common -l$(ICUPREFIX)uc$(ICULIBSUFFIX)$(SO_TARGET_VERSION_MAJOR) $(LIBICUDT)
+LIBICUI18N=     -L$(top_builddir)/i18n -l$(ICUPREFIX)i18n$(ICULIBSUFFIX)$(SO_TARGET_VERSION_MAJOR)
+LIBICULE=       -L$(top_builddir)/layout -l$(ICUPREFIX)le$(ICULIBSUFFIX)$(SO_TARGET_VERSION_MAJOR)
+LIBCTESTFW=     -L$(top_builddir)/tools/ctestfw -l$(ICUPREFIX)ctestfw$(ICULIBSUFFIX)$(SO_TARGET_VERSION_MAJOR)
+LIBICUTOOLUTIL= -L$(top_builddir)/tools/toolutil -l$(ICUPREFIX)toolutil$(ICULIBSUFFIX)$(SO_TARGET_VERSION_MAJOR)
+LIBUSTDIO=      -L$(top_builddir)/extra/ustdio -lustdio$(ICULIBSUFFIX)$(SO_TARGET_VERSION_MAJOR)
+ICULIBSUFFIX_VERSION = $(SO_TARGET_VERSION_MAJOR)
 
 ## Compiler switch to embed a library name. Not present on AIX.
 LD_SONAME = 
@@ -86,19 +88,19 @@ STATIC_O = o
 		[ -s $@ ] || rm -f $@ ; rm -f $<'
 
 %.u : $(srcdir)/%.c
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.c) $< > /dev/null'
 
 %.u : $(srcdir)/%.cpp
-	@echo "generating dependency information for $<"
+	@echo "Generating dependency information for $<"
 	@$(SHELL) -ec '$(GEN_DEPS.cc) $< > /dev/null'
 
 
 ## Versioned libraries rules
-%$(SO_TARGET_VERSION_MAJOR).$(SO): %$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO)
-	$(RM) $@ && ln -s $*$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO) $@
-%.$(SO): %$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO)
-	$(RM) $@ && ln -s $*$(SO_TARGET_VERSION)$(ICULIBSUFFIX).$(SO) $@
+%$(SO_TARGET_VERSION_MAJOR).$(SO): %$(SO_TARGET_VERSION).$(SO)
+	$(RM) $@ && ln -s $*$(SO_TARGET_VERSION).$(SO) $@
+%.$(SO): %$(SO_TARGET_VERSION).$(SO)
+	$(RM) $@ && ln -s $*$(SO_TARGET_VERSION).$(SO) $@
 
 
 ## BIR  - bind with internal references [so app data and icu data doesn't collide]

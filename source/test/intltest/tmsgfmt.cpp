@@ -259,7 +259,7 @@ void TestMessageFormat::PatternTest()
         MessageFormat *form = 0;
         UErrorCode success = U_ZERO_ERROR;
         UnicodeString buffer;
-        form = new MessageFormat(testCases[i], Locale::getUS(), success);
+        form = new MessageFormat(testCases[i], Locale::US, success);
         if (U_FAILURE(success)) {
             errln("MessageFormat creation failed.#1");
             logln(((UnicodeString)"MessageFormat for ") + testCases[i] + " creation failed.\n");
@@ -341,7 +341,7 @@ void TestMessageFormat::sample()
     delete form;
 }
 
-/* Who knows what kind of static format we are talking about. */
+
 void TestMessageFormat::testStaticFormat(/* char* par */)
 {
     logln("running TestMessageFormat::testStaticFormat");
@@ -353,28 +353,28 @@ void TestMessageFormat::testStaticFormat(/* char* par */)
         Formattable(UDate(8.71068e+011), Formattable::kIsDate),
         "a disturbance in the Force"
         };
+   
+        UnicodeString result;
+        result = MessageFormat::format(
+            "At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.",
+            arguments,
+            3,
+            result,
+            err);
 
-    UnicodeString result;
-    result = MessageFormat::format(
-        "At {1,time} on {1,date}, there was {2} on planet {0,number,integer}.",
-        arguments,
-        3,
-        result,
-        err);
+        if (U_FAILURE(err)) {
+            errln("TestMessageFormat::testStaticFormat #1");
+            logln(UnicodeString("TestMessageFormat::testStaticFormat failed test #1 with error code ")+(int32_t)err);
+            return;
+        }
 
-    if (U_FAILURE(err)) {
-        errln("TestMessageFormat::testStaticFormat #1");
-        logln(UnicodeString("TestMessageFormat::testStaticFormat failed test #1 with error code ")+(int32_t)err);
-        return;
-    }
-
-    static const UnicodeString expected(
-            "At 12:20:00 PM on Aug 8, 1997, there was a disturbance in the Force on planet 7.", "");
-    if (result != expected) {
-        errln("TestMessageFormat::testStaticFormat failed on test");
-        logln( UnicodeString("     Result: ") + result );
-        logln( UnicodeString("   Expected: ") + expected );
-    }
+        static const UnicodeString expected = 
+                "At 12:20:00 PM on Aug 8, 1997, there was a disturbance in the Force on planet 7.";
+        if (result != expected) {
+            errln("TestMessageFormat::testStaticFormat failed on test");
+            logln( UnicodeString("     Result: ") + result );
+            logln( UnicodeString("   Expected: ") + expected );
+        }
 }
 
 
@@ -627,14 +627,14 @@ void TestMessageFormat::testSetLocale()
         errln("***  MSG format err.");
     }
 
-    msg.setLocale(Locale::getEnglish());
+    msg.setLocale(Locale::ENGLISH);
     UBool getLocale_ok = TRUE;
     if (msg.getLocale() != Locale::ENGLISH) {
         errln("*** MSG getLocal err.");
         getLocale_ok = FALSE;
     }
 
-    msg.setLocale(Locale::getGerman());
+    msg.setLocale(Locale::GERMAN);
 
     if (msg.getLocale() != Locale::GERMAN) {
         errln("*** MSG getLocal err.");

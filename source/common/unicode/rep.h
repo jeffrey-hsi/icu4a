@@ -77,7 +77,7 @@ public:
      * @return code unit of text at given offset
      * @draft ICU 1.8
      */
-    inline UChar charAt(int32_t offset) const;
+    inline UChar charAt(UTextOffset offset) const;
 
     /**
      * Return the Unicode code point that contains the code unit
@@ -88,21 +88,33 @@ public:
      * @return code point of text at given offset
      * @draft ICU 1.8
      */
-    inline UChar32 char32At(int32_t offset) const;
+    inline UChar32 char32At(UTextOffset offset) const;
 
     /**
-     * Copy the characters in the range [<tt>start</tt>, <tt>limit</tt>) 
-     * into the UnicodeString <tt>target</tt>.
-     * @param start offset of first character which will be copied
-     * @param limit offset immediately following the last character to
-     * be copied
-     * @param target UnicodeString into which to copy characters.
-     * @return A reference to <TT>target</TT>
-     * @draft ICU 2.1
+     * Copy characters from this object into the destination character
+     * array.  The first character to be copied is at index
+     * <code>srcStart</code>; the last character to be copied is at
+     * index <code>srcLimit-1</code> (thus the total number of
+     * characters to be copied is <code>srcLimit-srcStart</code>). The
+     * characters are copied into the subarray of <code>dst</code>
+     * starting at index <code>dstStart</code> and ending at index
+     * <code>dstStart + (srcLimit-srcStart) - 1</code>.
+     *
+     * @param srcStart the beginning index to copy, inclusive; <code>0
+     * <= srcStart <= srcLimit</code>.
+     * @param srcLimit the ending index to copy, exclusive;
+     * <code>srcStart <= srcLimit <= length()</code>.
+     * @param dst the destination array.
+     * @param dstStart the start offset in the destination array.  
+     * @draft
      */
-    virtual void extractBetween(int32_t start,
-                                int32_t limit,
-                                UnicodeString& target) const = 0;
+    /* THIS API IS NOT NEEDED, BUT KEPT HERE AS A COMMENT IN
+       CASE OF FUTURE NEED.  CURRENTLY INDIVIDUAL CHARACTER
+       ACCESS SUFFICES. */
+    /* virtual void extractBetween(UTextOffset srcStart,
+                                UTextOffset srcLimit,
+                                UChar* dst,
+                                UTextOffset dstStart = 0) const = 0; */
 
     /**
      * Replace a substring of this object with the given text.  If the
@@ -124,8 +136,8 @@ public:
      * to <code>limit - 1</code> 
      * @stable
      */
-    virtual void handleReplaceBetween(int32_t start,
-                                      int32_t limit,
+    virtual void handleReplaceBetween(UTextOffset start,
+                                      UTextOffset limit,
                                       const UnicodeString& text) = 0;
     // Note: All other methods in this class take the names of
     // existing UnicodeString methods.  This method is the exception.
@@ -175,12 +187,12 @@ protected:
     /**
      * Virtual version of charAt().
      */
-    virtual UChar getCharAt(int32_t offset) const = 0;
+    virtual UChar getCharAt(UTextOffset offset) const = 0;
 
     /**
      * Virtual version of char32At().
      */
-    virtual UChar32 getChar32At(int32_t offset) const = 0;
+    virtual UChar32 getChar32At(UTextOffset offset) const = 0;
 };
 
 inline Replaceable::Replaceable() {}
@@ -193,12 +205,12 @@ Replaceable::length() const {
 }
 
 inline UChar
-Replaceable::charAt(int32_t offset) const {
+Replaceable::charAt(UTextOffset offset) const {
     return getCharAt(offset);
 }
 
 inline UChar32
-Replaceable::char32At(int32_t offset) const {
+Replaceable::char32At(UTextOffset offset) const {
     return getChar32At(offset);
 }
 

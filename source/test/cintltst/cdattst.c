@@ -33,7 +33,6 @@ void addDateForTest(TestNode** root)
 {
     addTest(root, &TestDateFormat, "tsformat/cdattst/TestDateFormat");
     addTest(root, &TestSymbols, "tsformat/cdattst/TestSymbols");
-    addTest(root, &TestDateFormatCalendar, "tsformat/cdattst/TestDateFormatCalendar");
 }
 /* Testing the DateFormat API */
 static void TestDateFormat()
@@ -61,7 +60,6 @@ static void TestDateFormat()
     {
         log_err("FAIL: error in creating the dateformat using full time style with french locale\n %s\n", 
             myErrorName(status) );
-        return;
     }
     /* this is supposed to open default date format, but later on it treats it like it is "en_US" 
        - very bad if you try to run the tests on machine where default locale is NOT "en_US" */
@@ -71,21 +69,18 @@ static void TestDateFormat()
     {
         log_err("FAIL: error in creating the dateformat using short date and time style\n %s\n", 
             myErrorName(status) );
-        return;
     }
     it = udat_open(UDAT_DEFAULT, UDAT_MEDIUM, "it_IT", NULL, 0, NULL, 0,&status);
     if(U_FAILURE(status))
     {
         log_err("FAIL: error in creating the dateformat using medium date style with italian locale\n %s\n", 
             myErrorName(status) );
-        return;
     }
     de = udat_open(UDAT_LONG, UDAT_LONG, "de_DE", NULL, 0, NULL, 0,&status);
     if(U_FAILURE(status))
     {
         log_err("FAIL: error in creating the dateformat using long time and date styles with german locale\n %s\n",
             myErrorName(status));
-        return;
     }
     /*creating a default dateformat */
     def1 = udat_open(UDAT_SHORT, UDAT_SHORT, NULL, NULL, 0,NULL, 0, &status);
@@ -93,7 +88,6 @@ static void TestDateFormat()
     {
         log_err("FAIL: error in creating the dateformat using short date and time style\n %s\n", 
             myErrorName(status) );
-        return;
     }
 
 
@@ -114,7 +108,7 @@ static void TestDateFormat()
         log_err("Error in creating the clone using udat_clone: %s\n", myErrorName(status) );
     }
     /*if(def != copy)
-        log_err("Error in udat_clone");*/ /*how should i check for equality???? */
+        log_err("Error in udat_clone");*//*how should i check for equality????*/
     
     /*Testing udat_format()*/
     log_verbose("\nTesting the udat_format() function of date format\n");
@@ -332,7 +326,6 @@ static void TestSymbols()
     {
         log_err("error in creating the dateformat using full time style with french locale\n %s\n", 
             myErrorName(status) );
-        return;
     }
     /*creating a default dateformat */
     log_verbose("\ncreating a date format with default locale\n");
@@ -344,20 +337,17 @@ static void TestSymbols()
     {
         log_err("error in creating the dateformat using short date and time style\n %s\n", 
             myErrorName(status) );
-        return;
     }
     
     
     /*Testing countSymbols, getSymbols and setSymbols*/
     log_verbose("\nTesting countSymbols\n");
     /*since the month names has the last string empty and week names are 1 based 1.e first string in the weeknames array is empty */
-    if(udat_countSymbols(def, UDAT_ERAS)!=2 || udat_countSymbols(def, UDAT_MONTHS)!=12 || 
-        udat_countSymbols(def, UDAT_SHORT_MONTHS)!=12 || udat_countSymbols(def, UDAT_WEEKDAYS)!=8 ||
+    if(udat_countSymbols(def, UDAT_ERAS)!=2 || udat_countSymbols(def, UDAT_MONTHS)!=13 || 
+        udat_countSymbols(def, UDAT_SHORT_MONTHS)!=13 || udat_countSymbols(def, UDAT_WEEKDAYS)!=8 ||
         udat_countSymbols(def, UDAT_SHORT_WEEKDAYS)!=8 || udat_countSymbols(def, UDAT_AM_PMS)!=2 ||
         udat_countSymbols(def, UDAT_LOCALIZED_CHARS)!=1)
-    {
-        log_err("FAIL: error in udat_countSymbols\n");
-    }
+      log_err("FAIL: error in udat_countSymbols\n");
     else
         log_verbose("PASS: udat_countSymbols() successful\n");
 
@@ -530,97 +520,6 @@ uprv_free(pattern);
     }
     uprv_free(value);
     
-}
-
-/**
- * Test DateFormat(Calendar) API
- */
-static void TestDateFormatCalendar() {
-    UDateFormat *date=0, *time=0, *full=0;
-    UCalendar *cal=0;
-    UChar buf[256];
-    char cbuf[256];
-    int32_t pos;
-    UDate when;
-    UErrorCode ec = U_ZERO_ERROR;
-
-    /* Create a formatter for date fields. */
-    date = udat_open(UDAT_NONE, UDAT_SHORT, "en_US", NULL, 0, NULL, 0, &ec);
-    if (U_FAILURE(ec)) {
-        log_err("FAIL: udat_open(NONE, SHORT, en_US) failed with %s\n", 
-                u_errorName(ec));
-        goto FAIL;
-    }
-
-    /* Create a formatter for time fields. */
-    time = udat_open(UDAT_SHORT, UDAT_NONE, "en_US", NULL, 0, NULL, 0, &ec);
-    if (U_FAILURE(ec)) {
-        log_err("FAIL: udat_open(SHORT, NONE, en_US) failed with %s\n", 
-                u_errorName(ec));
-        goto FAIL;
-    }
-
-    /* Create a full format for output */
-    full = udat_open(UDAT_FULL, UDAT_FULL, "en_US", NULL, 0, NULL, 0, &ec);
-    if (U_FAILURE(ec)) {
-        log_err("FAIL: udat_open(FULL, FULL, en_US) failed with %s\n", 
-                u_errorName(ec));
-        goto FAIL;
-    }
-
-    /* Create a calendar */
-    cal = ucal_open(NULL, 0, "en_US", UCAL_GREGORIAN, &ec);
-    if (U_FAILURE(ec)) {
-        log_err("FAIL: ucal_open(en_US) failed with %s\n", 
-                u_errorName(ec));
-        goto FAIL;
-    }
-
-    /* Parse the date */
-    ucal_clear(cal);
-    u_uastrcpy(buf, "4/5/2001");
-    pos = 0;
-    udat_parseCalendar(date, cal, buf, -1, &pos, &ec);
-    if (U_FAILURE(ec)) {
-        log_err("FAIL: udat_parseCalendar(4/5/2001) failed at %d with %s\n",
-                pos, u_errorName(ec));
-        goto FAIL;
-    }
-
-    /* Parse the time */
-    u_uastrcpy(buf, "5:45 PM");
-    pos = 0;
-    udat_parseCalendar(time, cal, buf, -1, &pos, &ec);
-    if (U_FAILURE(ec)) {
-        log_err("FAIL: udat_parseCalendar(17:45) failed at %d with %s\n",
-                pos, u_errorName(ec));
-        goto FAIL;
-    }
-    
-    /* Check result */
-    when = ucal_getMillis(cal, &ec);
-    if (U_FAILURE(ec)) {
-        log_err("FAIL: ucal_getMillis() failed with %s\n", u_errorName(ec));
-        goto FAIL;
-    }
-    udat_format(full, when, buf, sizeof(buf), NULL, &ec);
-    if (U_FAILURE(ec)) {
-        log_err("FAIL: udat_format() failed with %s\n", u_errorName(ec));
-        goto FAIL;
-    }
-    u_austrcpy(cbuf, buf);
-    /* Thursday, April 5, 2001 5:45:00 PM PDT 986517900000 */
-    if (when == 986517900000.0) {
-        log_verbose("Ok: Parsed result: %s\n", cbuf);
-    } else {
-        log_err("FAIL: Parsed result: %s, exp 4/5/2001 5:45 PM", cbuf);
-    }
-
- FAIL:    
-    udat_close(date);
-    udat_close(time);
-    udat_close(full);
-    ucal_close(cal);
 }
 
 /*INTERNAL FUNCTIONS USED*/

@@ -15,8 +15,8 @@
 ******************************************************************************
 */
 
-#include "unicode/utypes.h"
 #include "unicode/ustring.h"
+#include "unicode/utypes.h"
 #include "unicode/putil.h"
 #include "unicode/ucnv.h"
 #include "cstring.h"
@@ -79,80 +79,15 @@ u_strstr(const UChar *s, const UChar *substring) {
   return NULL;                      /* No match */
 }
 
-/**
- * Check if there is an unmatched surrogate c in a string [start..limit[ at s.
- * start<=s<limit or limit==NULL
- * @return TRUE if *s is unmatched
- */
-static U_INLINE UBool
-uprv_isSingleSurrogate(const UChar *start, const UChar *s, UChar c, const UChar *limit) {
-    if(UTF_IS_SURROGATE_FIRST(c)) {
-        ++s;
-        return (UBool)(s==limit || !UTF_IS_TRAIL(*s));
-    } else {
-        return (UBool)(s==start || !UTF_IS_LEAD(*(s-1)));
-    }
-}
-
-U_CFUNC const UChar *
-uprv_strFindSurrogate(const UChar *s, int32_t length, UChar surrogate) {
-    const UChar *limit, *t;
-    UChar c;
-
-    if(length>=0) {
-        limit=s+length;
-    } else {
-        limit=NULL;
-    }
-
-    for(t=s; t!=limit && ((c=*t)!=0 || limit!=NULL); ++t) {
-        if(c==surrogate && uprv_isSingleSurrogate(s, t, c, limit)) {
-            return t;
-        }
-    }
-
-    return NULL;
-}
-
-U_CFUNC const UChar *
-uprv_strFindLastSurrogate(const UChar *s, int32_t length, UChar surrogate) {
-    const UChar *limit, *t;
-    UChar c;
-
-    if(length>=0) {
-        limit=s+length;
-    } else {
-        limit=s+u_strlen(s);
-    }
-
-    for(t=limit; t!=s;) {
-        c=*--t;
-        if(c==surrogate && uprv_isSingleSurrogate(s, t, c, limit)) {
-            return t;
-        }
-    }
-
-    return NULL;
-}
-
 U_CAPI UChar * U_EXPORT2
 u_strchr32(const UChar *s, UChar32 c) {
-  if(c < 0xd800) {
-    /* non-surrogate BMP code point */
-    return u_strchr(s, (UChar)c);
-  } else if(c <= 0xdfff) {
-    /* surrogate code point */
-    return (UChar *)uprv_strFindSurrogate(s, -1, (UChar)c);
-  } else if(c <= 0xffff) {
-    /* non-surrogate BMP code point */
+  if(!UTF_NEED_MULTIPLE_UCHAR(c)) {
     return u_strchr(s, (UChar)c);
   } else {
-    /* supplementary code point, search for string */
-    UChar buffer[3];
-
-    buffer[0] = UTF16_LEAD(c);
-    buffer[1] = UTF16_TRAIL(c);
-    buffer[2] = 0;
+    UChar buffer[UTF_MAX_CHAR_LENGTH + 1];
+    UTextOffset i = 0;
+    UTF_APPEND_CHAR_UNSAFE(buffer, i, c);
+    buffer[i] = 0;
     return u_strstr(s, buffer);
   }
 }
@@ -304,17 +239,13 @@ u_strtok_r(UChar    *src,
     UChar *nextToken;
     uint32_t nonDelimIdx;
 
-    /* If saveState is NULL, the user messed up. */
     if (src != NULL) {
         tokSource = src;
-        *saveState = src; /* Set to "src" in case there are no delimiters */
     }
-    else if (*saveState) {
+    else if (saveState && *saveState) {
         tokSource = *saveState;
     }
     else {
-        /* src == NULL && *saveState == NULL */
-        /* This shouldn't happen. We already finished tokenizing. */
         return NULL;
     }
 
@@ -330,7 +261,7 @@ u_strtok_r(UChar    *src,
             *saveState = nextToken;
             return tokSource;
         }
-        else if (*saveState) {
+        else if (saveState && *saveState) {
             /* Return the last token */
             *saveState = NULL;
             return tokSource;
@@ -402,146 +333,41 @@ u_strcmp(const UChar *s1,
     return (int32_t)c1 - (int32_t)c2;
 }
 
-U_CFUNC int32_t
-u_strCompareCodePointOrder(const UChar *s1, int32_t length1,
-                           const UChar *s2, int32_t length2,
-                           UBool strncmpStyle) {
-    const UChar *start1, *start2, *limit1, *limit2;
-    UChar c1, c2;
-
-    /* setup for fix-up */
-    start1=s1;
-    start2=s2;
-
-    /* compare identical prefixes - they do not need to be fixed up */
-    if(length1<0 && length2<0) {
-        /* strcmp style, both NUL-terminated */
-        if(s1==s2) {
-            return 0;
-        }
-
-        for(;;) {
-            c1=*s1;
-            c2=*s2;
-            if(c1!=c2) {
-                break;
-            }
-            if(c1==0) {
-                return 0;
-            }
-            ++s1;
-            ++s2;
-        }
-
-        /* setup for fix-up */
-        limit1=limit2=NULL;
-    } else if(strncmpStyle) {
-        /* special handling for strncmp, assume length1==length2>=0 but also check for NUL */
-        if(s1==s2) {
-            return 0;
-        }
-
-        limit1=start1+length1;
-
-        for(;;) {
-            /* both lengths are same, check only one limit */
-            if(s1==limit1) {
-                return 0;
-            }
-
-            c1=*s1;
-            c2=*s2;
-            if(c1!=c2) {
-                break;
-            }
-            if(c1==0) {
-                return 0;
-            }
-            ++s1;
-            ++s2;
-        }
-
-        /* setup for fix-up */
-        limit2=start2+length1; /* use length1 here, too, to enforce assumption */
-    } else {
-        /* memcmp/UnicodeString style, both length-specified */
-        int32_t lengthResult;
-
-        if(length1<0) {
-            length1=u_strlen(s1);
-        }
-        if(length2<0) {
-            length2=u_strlen(s2);
-        }
-
-        /* limit1=start1+min(lenght1, length2) */
-        if(length1<length2) {
-            lengthResult=-1;
-            limit1=start1+length1;
-        } else if(length1==length2) {
-            lengthResult=0;
-            limit1=start1+length1;
-        } else /* length1>length2 */ {
-            lengthResult=1;
-            limit1=start1+length2;
-        }
-
-        if(s1==s2) {
-            return lengthResult;
-        }
-
-        for(;;) {
-            /* check pseudo-limit */
-            if(s1==limit1) {
-                return lengthResult;
-            }
-
-            c1=*s1;
-            c2=*s2;
-            if(c1!=c2) {
-                break;
-            }
-            ++s1;
-            ++s2;
-        }
-
-        /* setup for fix-up */
-        limit1=start1+length1;
-        limit2=start2+length2;
-    }
-
-    /* if both values are in or above the surrogate range, fix them up */
-    if(c1>=0xd800 && c2>=0xd800) {
-        /* subtract 0x2800 from BMP code points to make them smaller than supplementary ones */
-        if(
-            (c1<=0xdbff && (s1+1)!=limit1 && UTF_IS_TRAIL(*(s1+1))) ||
-            (UTF_IS_TRAIL(c1) && start1!=s1 && UTF_IS_LEAD(*(s1-1)))
-        ) {
-            /* part of a surrogate pair, leave >=d800 */
-        } else {
-            /* BMP code point - may be surrogate code point - make <d800 */
-            c1-=0x2800;
-        }
-
-        if(
-            (c2<=0xdbff && (s2+1)!=limit2 && UTF_IS_TRAIL(*(s2+1))) ||
-            (UTF_IS_TRAIL(c2) && start2!=s2 && UTF_IS_LEAD(*(s2-1)))
-        ) {
-            /* part of a surrogate pair, leave >=d800 */
-        } else {
-            /* BMP code point - may be surrogate code point - make <d800 */
-            c2-=0x2800;
-        }
-    }
-
-    /* now c1 and c2 are in UTF-32-compatible order */
-    return (int32_t)c1-(int32_t)c2;
+/* rotate surrogates to the top to get code point order; assume c>=0xd800 */
+#define UTF16FIXUP(c) {                  \
+    if ((c) >= 0xe000) {                 \
+        (c) -= 0x800;                    \
+    } else {                             \
+        (c) += 0x2000;                   \
+    }                                    \
 }
+
 
 /* String compare in code point order - u_strcmp() compares in code unit order. */
 U_CAPI int32_t U_EXPORT2
 u_strcmpCodePointOrder(const UChar *s1, const UChar *s2) {
-    return u_strCompareCodePointOrder(s1, -1, s2, -1, FALSE);
+    UChar c1, c2;
+
+    /* compare identical prefixes - they do not need to be fixed up */
+    for(;;) {
+        c1=*s1++;
+        c2=*s2++;
+        if (c1 != c2) {
+            break;
+        }
+        if (c1 == 0) {
+            return 0;
+        }
+    }
+
+   /*  if both values are in or above the surrogate range, Fix them up. */
+   if (c1 >= 0xD800 && c2 >= 0xD800) {
+        UTF16FIXUP(c1);
+        UTF16FIXUP(c2);
+    }
+
+    /* now c1 and c2 are in UTF-32-compatible order */
+    return (int32_t)c1-(int32_t)c2;
 }
 
 U_CAPI int32_t   U_EXPORT2
@@ -566,7 +392,35 @@ u_strncmp(const UChar     *s1,
 
 U_CAPI int32_t U_EXPORT2
 u_strncmpCodePointOrder(const UChar *s1, const UChar *s2, int32_t n) {
-    return u_strCompareCodePointOrder(s1, n, s2, n, TRUE);
+    UChar c1, c2;
+
+    if(n<=0) {
+        return 0;
+    }
+
+    /* compare identical prefixes - they do not need to be fixed up */
+    for(;;) {
+        c1=*s1;
+        c2=*s2;
+        if(c1==c2) {
+            if(c1==0 || --n==0) {
+                return 0;
+            }
+            ++s1;
+            ++s2;
+        } else {
+            break;
+        }
+    }
+
+   /* c1!=c2, fix up each one if they're both in or above the surrogate range, then compare them */
+   if (c1 >= 0xD800 && c2 >= 0xD800) {
+        UTF16FIXUP(c1);
+        UTF16FIXUP(c2);
+    }
+
+    /* now c1 and c2 are in UTF-32-compatible order */
+    return (int32_t)c1-(int32_t)c2;
 }
 
 U_CAPI UChar* U_EXPORT2
@@ -675,9 +529,9 @@ u_memset(UChar *dest, UChar c, int32_t count) {
 }
 
 U_CAPI int32_t U_EXPORT2
-u_memcmp(const UChar *buf1, const UChar *buf2, int32_t count) {
+u_memcmp(UChar *buf1, UChar *buf2, int32_t count) {
     if(count > 0) {
-        const UChar *limit = buf1 + count;
+        UChar *limit = buf1 + count;
         int32_t result;
 
         while (buf1 < limit) {
@@ -694,18 +548,48 @@ u_memcmp(const UChar *buf1, const UChar *buf2, int32_t count) {
 
 U_CAPI int32_t U_EXPORT2
 u_memcmpCodePointOrder(const UChar *s1, const UChar *s2, int32_t count) {
-    return u_strCompareCodePointOrder(s1, count, s2, count, FALSE);
+    const UChar *limit;
+    UChar c1, c2;
+
+    if(count<=0) {
+        return 0;
+    }
+
+    limit=s1+count;
+
+    /* compare identical prefixes - they do not need to be fixed up */
+    for(;;) {
+        c1=*s1;
+        c2=*s2;
+        if(c1!=c2) {
+            break;
+        }
+        ++s1;
+        ++s2;
+        if(s1==limit) {
+            return 0;
+        }
+    }
+
+   /* c1!=c2, fix up each one if they're both in or above the surrogate range, then compare them */
+   if (c1 >= 0xD800 && c2 >= 0xD800) {
+        UTF16FIXUP(c1);
+        UTF16FIXUP(c2);
+    }
+
+    /* now c1 and c2 are in UTF-32-compatible order */
+    return (int32_t)c1-(int32_t)c2;
 }
 
 U_CAPI UChar * U_EXPORT2
-u_memchr(const UChar *src, UChar ch, int32_t count) {
+u_memchr(UChar *src, UChar ch, int32_t count) {
     if(count > 0) {
-        const UChar *ptr = src;
-        const UChar *limit = src + count;
+        UChar *ptr = src;
+        UChar *limit = src + count;
 
         do {
             if (*ptr == ch) {
-                return (UChar *)ptr;
+                return ptr;
             }
         } while (++ptr < limit);
     }
@@ -713,18 +597,12 @@ u_memchr(const UChar *src, UChar ch, int32_t count) {
 }
 
 U_CAPI UChar * U_EXPORT2
-u_memchr32(const UChar *src, UChar32 ch, int32_t count) {
+u_memchr32(UChar *src, UChar32 ch, int32_t count) {
     if(count<=0 || (uint32_t)ch>0x10ffff) {
         return NULL; /* no string, or illegal arguments */
     }
 
-    if(ch<0xd800) {
-        /* non-surrogate BMP code point */
-        return u_memchr(src, (UChar)ch, count); /* BMP, single UChar */
-    } else if(ch<=0xdfff) {
-        /* surrogate code point */
-        return (UChar *)uprv_strFindSurrogate(src, count, (UChar)ch);
-    } else if(ch<=0xffff) {
+    if(ch<=0xffff) {
         return u_memchr(src, (UChar)ch, count); /* BMP, single UChar */
     } else if(count<2) {
         return NULL; /* too short for a surrogate pair */
@@ -734,11 +612,300 @@ u_memchr32(const UChar *src, UChar32 ch, int32_t count) {
 
         do {
             if(*src==lead && *(src+1)==trail) {
-                return (UChar *)src;
+                return src;
             }
         } while(++src<limit);
         return NULL;
     }
+}
+
+/* string casing ------------------------------------------------------------ */
+
+/*
+ * Implement argument checking and buffer handling
+ * for string case mapping as a common function.
+ */
+enum {
+    TO_LOWER,
+    TO_UPPER,
+    FOLD_CASE
+};
+
+static int32_t
+u_strCaseMap(UChar *dest, int32_t destCapacity,
+             const UChar *src, int32_t srcLength,
+             const char *locale,
+             uint32_t options,
+             int32_t toWhichCase,
+             UErrorCode *pErrorCode) {
+    UChar buffer[300];
+    UChar *temp;
+    int32_t destLength;
+
+    /* check argument values */
+    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
+        return 0;
+    }
+    if( destCapacity<0 ||
+        (dest==NULL && destCapacity>0) ||
+        src==NULL ||
+        srcLength<-1
+    ) {
+        *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
+        return 0;
+    }
+
+    /* get the string length */
+    if(srcLength==-1) {
+        srcLength=u_strlen(src);
+    }
+
+    /* check for overlapping source and destination */
+    if( dest!=NULL &&
+        ((src>=dest && src<(dest+destCapacity)) ||
+         (dest>=src && dest<(src+srcLength)))
+    ) {
+        /* overlap: provide a temporary destination buffer and later copy the result */
+        if(destCapacity<=(sizeof(buffer)/U_SIZEOF_UCHAR)) {
+            /* the stack buffer is large enough */
+            temp=buffer;
+        } else {
+            /* allocate a buffer */
+            temp=(UChar *)uprv_malloc(destCapacity*U_SIZEOF_UCHAR);
+            if(temp==NULL) {
+                *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
+                return 0;
+            }
+        }
+    } else {
+        temp=dest;
+    }
+
+    if(toWhichCase==TO_LOWER) {
+        destLength=u_internalStrToLower(temp, destCapacity, src, srcLength,
+                                        locale, NULL, NULL, pErrorCode);
+    } else if(toWhichCase==TO_UPPER) {
+        destLength=u_internalStrToUpper(temp, destCapacity, src, srcLength,
+                                        locale, NULL, NULL, pErrorCode);
+    } else {
+        destLength=u_internalStrFoldCase(temp, destCapacity, src, srcLength,
+                                         options, NULL, NULL, pErrorCode);
+    }
+    if(temp!=dest) {
+        /* copy the result string to the destination buffer */
+        uprv_memcpy(dest, temp, destLength*U_SIZEOF_UCHAR);
+        if(temp!=buffer) {
+            uprv_free(temp);
+        }
+    }
+
+    /* zero-terminate if possible */
+    if(destLength<destCapacity) {
+        dest[destLength]=0;
+    }
+    return destLength;
+}
+
+U_CAPI int32_t U_EXPORT2
+u_strToLower(UChar *dest, int32_t destCapacity,
+             const UChar *src, int32_t srcLength,
+             const char *locale,
+             UErrorCode *pErrorCode) {
+    return u_strCaseMap(dest, destCapacity, src, srcLength, locale, 0, TO_LOWER, pErrorCode);
+}
+
+U_CAPI int32_t U_EXPORT2
+u_strToUpper(UChar *dest, int32_t destCapacity,
+             const UChar *src, int32_t srcLength,
+             const char *locale,
+             UErrorCode *pErrorCode) {
+    return u_strCaseMap(dest, destCapacity, src, srcLength, locale, 0, TO_UPPER, pErrorCode);
+}
+
+U_CAPI int32_t U_EXPORT2
+u_strFoldCase(UChar *dest, int32_t destCapacity,
+              const UChar *src, int32_t srcLength,
+              uint32_t options,
+              UErrorCode *pErrorCode) {
+    return u_strCaseMap(dest, destCapacity, src, srcLength, NULL, options, FOLD_CASE, pErrorCode);
+}
+
+/* case-insensitive string comparisons */
+
+U_CAPI int32_t U_EXPORT2
+u_strcasecmp(const UChar *s1, const UChar *s2, uint32_t options) {
+    UChar t1[32], t2[32]; /* temporary buffers holding case-folded parts of s1 and s2 */
+    UChar32 c;
+    UChar uc;
+    int32_t pos1, pos2, len1, len2, result;
+
+    if(!uprv_haveProperties()) {
+        /* hardcode ASCII strcasecmp() */
+        UChar c1, c2;
+
+        for(;;) {
+            c1=*s1++;
+            if((uint16_t)(c1-0x41)<26) {
+                c1+=0x20;
+            }
+            c2=*s2++;
+            if((uint16_t)(c2-0x41)<26) {
+                c2+=0x20;
+            }
+            result=(int32_t)c1-(int32_t)c2;
+            if(result!=0 || c1==0) {
+                return result;
+            }
+        }
+    }
+
+    pos1=pos2=len1=len2=0;
+    for(;;) {
+        /* make sure that the temporary buffers are not empty */
+        if(pos1>=len1) {
+            c=*s1++;
+            if(c!=0) {
+                if(UTF_IS_FIRST_SURROGATE(c) && UTF_IS_SECOND_SURROGATE(uc=*s1)) {
+                    c=UTF16_GET_PAIR_VALUE(c, uc);
+                    ++s1;
+                }
+                len1=u_internalFoldCase(c, t1, options);
+                pos1=0;
+            } else if(pos2>=len2 && *s2==0) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+        if(pos2>=len2) {
+            c=*s2++;
+            if(c!=0) {
+                if(UTF_IS_FIRST_SURROGATE(c) && UTF_IS_SECOND_SURROGATE(uc=*s2)) {
+                    c=UTF16_GET_PAIR_VALUE(c, uc);
+                    ++s2;
+                }
+                len2=u_internalFoldCase(c, t2, options);
+                pos2=0;
+            } else {
+                return 1;
+            }
+        }
+
+        /* compare the head code units from both folded strings */
+        result=(int32_t)t1[pos1++]-(int32_t)t2[pos2++];
+        if(result!=0) {
+            return result;
+        }
+    }
+}
+
+U_CFUNC int32_t
+u_internalStrcasecmp(const UChar *s1, int32_t length1,
+                     const UChar *s2, int32_t length2,
+                     uint32_t options) {
+    UChar t1[32], t2[32]; /* temporary buffers holding case-folded parts of s1 and s2 */
+    UChar32 c;
+    UChar uc;
+    int32_t pos1, pos2, len1, len2, result;
+
+    if(!uprv_haveProperties()) {
+        /* hardcode ASCII strcasecmp() */
+        UChar c1, c2;
+
+        for(;;) {
+            if(length1<=0) {
+                if(length2<=0) {
+                    return 0;
+                } else {
+                    return -1;
+                }
+            } else if(length2<=0) {
+                return 1;
+            }
+
+            c1=*s1++;
+            if((uint16_t)(c1-0x41)<26) {
+                c1+=0x20;
+            }
+            c2=*s2++;
+            if((uint16_t)(c2-0x41)<26) {
+                c2+=0x20;
+            }
+            result=(int32_t)c1-(int32_t)c2;
+            if(result!=0) {
+                return result;
+            }
+
+            --length1;
+            --length2;
+        }
+    }
+
+    pos1=pos2=len1=len2=0;
+    for(;;) {
+        /* make sure that the temporary buffers are not empty */
+        if(pos1>=len1) {
+            if(length1>0) {
+                c=*s1++;
+                if(UTF_IS_FIRST_SURROGATE(c) && length1>1 && UTF_IS_SECOND_SURROGATE(uc=*s1)) {
+                    c=UTF16_GET_PAIR_VALUE(c, uc);
+                    ++s1;
+                    length1-=2;
+                } else {
+                    --length1;
+                }
+                len1=u_internalFoldCase(c, t1, options);
+                pos1=0;
+            } else if(pos2>=len2 && length2<=0) {
+                return 0;
+            } else {
+                return -1;
+            }
+        }
+        if(pos2>=len2) {
+            if(length2>0) {
+                c=*s2++;
+                if(UTF_IS_FIRST_SURROGATE(c) && length2>1 && UTF_IS_SECOND_SURROGATE(uc=*s2)) {
+                    c=UTF16_GET_PAIR_VALUE(c, uc);
+                    ++s2;
+                    length2-=2;
+                } else {
+                    --length2;
+                }
+                len2=u_internalFoldCase(c, t2, options);
+                pos2=0;
+            } else {
+                return 1;
+            }
+        }
+
+        /* compare the head code units from both folded strings */
+        result=(int32_t)t1[pos1++]-(int32_t)t2[pos2++];
+        if(result!=0) {
+            return result;
+        }
+    }
+}
+
+U_CAPI int32_t U_EXPORT2
+u_memcasecmp(const UChar *s1, const UChar *s2, int32_t length, uint32_t options) {
+    return u_internalStrcasecmp(s1, length, s2, length, options);
+}
+
+U_CAPI int32_t U_EXPORT2
+u_strncasecmp(const UChar *s1, const UChar *s2, int32_t n, uint32_t options) {
+    /*
+     * This is a simple, sub-optimal implementation:
+     * Determine the actual lengths of the strings and call u_internalStrcasecmp().
+     * This saves us from having an additional variant of the above strcasecmp().
+     */
+    const UChar *s;
+    int32_t length1, length2;
+
+    for(s=s1, length1=0; length1<n && *s!=0; ++s, ++length1) {}
+    for(s=s2, length2=0; length2<n && *s!=0; ++s, ++length2) {}
+
+    return u_internalStrcasecmp(s1, length1, s2, length2, options);
 }
 
 /* conversions between char* and UChar* ------------------------------------- */

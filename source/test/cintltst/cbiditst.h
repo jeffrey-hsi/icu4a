@@ -63,9 +63,9 @@ charFromDirProp[dirPropCount];
 
 typedef struct {
     const uint8_t *text;
-    int32_t length;
+    UTextOffset length;
     UBiDiLevel paraLevel;
-    int32_t lineStart, lineLimit;
+    UTextOffset lineStart, lineLimit;
     UBiDiDirection direction;
     UBiDiLevel resultLevel;
     const UBiDiLevel *levels;
