@@ -47,6 +47,8 @@ static  void    createDirTables(void);
 
 char* _ucdVersion=NULL;
 
+const   UChar   MIN_VALUE = 0x0000;
+const   UChar   MAX_VALUE = 0xffff;
 static CompactByteArray *tables;
 static CompactShortArray *ulTables; 
 static CompactByteArray *dirTables;
@@ -4812,13 +4814,8 @@ const int16_t numCellWidthValues = 16;
 
 /* Checks if ch is a lower case letter.*/
 bool_t
-u_islower(UChar32 ch) 
+u_islower(UChar ch) 
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     /* Lazy evaluate the character type table; only instantiate when necessary.*/
     if (!tablesCreated) {
         createTables();
@@ -4828,13 +4825,8 @@ u_islower(UChar32 ch)
 
 /*Checks if ch is a upper case letter.*/
 bool_t
-u_isupper(UChar32 ch) 
+u_isupper(UChar ch) 
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -4843,13 +4835,8 @@ u_isupper(UChar32 ch)
 
 /* Checks if ch is a title case letter; usually upper case letters.*/
 bool_t
-u_istitle(UChar32 ch) 
+u_istitle(UChar ch) 
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -4858,26 +4845,16 @@ u_istitle(UChar32 ch)
 
 /* Checks if ch is a letter or a decimal digit */
 bool_t 
-u_isalnum(UChar32 ch)
+u_isalnum(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
 	return (u_isdigit(ch) || u_isalpha(ch));
 }
 
 
 /* Checks if ch is a decimal digit. */
 bool_t
-u_isdigit(UChar32 ch)
+u_isdigit(UChar ch)
 {    int8_t type;
-
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
 
     if (!tablesCreated) {
         createTables();
@@ -4888,13 +4865,8 @@ u_isdigit(UChar32 ch)
 
 /* Checks if ch is a unicode character with assigned character type.*/
 bool_t
-u_isdefined(UChar32 ch) 
+u_isdefined(UChar ch) 
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -4904,13 +4876,8 @@ u_isdefined(UChar32 ch)
 
 /* Gets the character's linguistic directionality.*/
 UCharDirection
-u_charDirection(UChar32 ch )
+u_charDirection(UChar ch )
 {   
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return U_BOUNDARY_NEUTRAL;
-    }
-
     /* Lazy evaluate the character directionality table; only instantiate when necessary.*/
     if (!dirTablesCreated) {
         createDirTables();
@@ -4920,15 +4887,10 @@ u_charDirection(UChar32 ch )
 
 /* Get the script associated with the character*/
 UCharScript
-u_charScript(UChar32 ch)
+u_charScript(UChar ch)
 {
     int32_t index, j;
     UCharScript returnValue = U_NO_SCRIPT;
-
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return U_NO_SCRIPT;
-    }
 
     index = -1;
     for( j = 0; index == -1 && fScriptIndex[j].fFirstCode != 0xFFFF; ++j )
@@ -4949,13 +4911,8 @@ u_charScript(UChar32 ch)
 
 /* Checks if the Unicode character is a base form character that can take a diacritic.*/
 bool_t
-u_isbase(UChar32 ch)
+u_isbase(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -4969,14 +4926,9 @@ u_isbase(UChar32 ch)
 
 /* Checks if the Unicode character is a control character.*/
 bool_t
-u_iscntrl(UChar32 ch)
+u_iscntrl(UChar ch)
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -4990,14 +4942,9 @@ u_iscntrl(UChar32 ch)
 
 /* Checks if the Unicode character is printable.*/
 bool_t
-u_isprint(UChar32 ch)
+u_isprint(UChar ch)
 {    
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5008,14 +4955,9 @@ u_isprint(UChar32 ch)
 
 /* Checks if the Unicode character is a letter.*/
 bool_t
-u_isalpha(UChar32 ch) 
+u_isalpha(UChar ch) 
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5026,27 +4968,17 @@ u_isalpha(UChar32 ch)
 
 /* Checks if the Unicode character can start a Unicode identifier.*/
 bool_t 
-u_isIDStart(UChar32 ch)
+u_isIDStart(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     return(u_isalpha(ch));
 }
 
 /* Checks if the Unicode character can be a Unicode identifier part other than starting the
  identifier.*/
 bool_t 
-u_isIDPart(UChar32 ch)
+u_isIDPart(UChar ch)
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5062,13 +4994,8 @@ u_isIDPart(UChar32 ch)
 
 /*Checks if the Unicode character can be ignorable in a Java or Unicode identifier.*/
 bool_t 
-u_isIDIgnorable(UChar32 ch)
+u_isIDIgnorable(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     return( ( ch <= 0x0008) ||
             (ch >= 0x000E && ch <= 0x001B) ||
             (ch >= 0x007F && ch <= 0x009F) ||
@@ -5077,14 +5004,9 @@ u_isIDIgnorable(UChar32 ch)
             (ch == 0xFEFF) );
 }
 /*Checks if the Unicode character can start a Java identifier.*/
-bool_t u_isJavaIDStart(UChar32 ch)
+bool_t u_isJavaIDStart(UChar ch)
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5097,14 +5019,9 @@ bool_t u_isJavaIDStart(UChar32 ch)
 /*Checks if the Unicode character can be a Java identifier part other than starting the
  * identifier.
  */
-bool_t u_isJavaIDPart(UChar32 ch)
+bool_t u_isJavaIDPart(UChar ch)
 {
     int8_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5119,15 +5036,10 @@ bool_t u_isJavaIDPart(UChar32 ch)
            u_isIDIgnorable(ch));
 }
 /* Transforms the Unicode character to its lower case equivalent.*/
-UChar32         
-u_tolower(UChar32 ch) 
+UChar         
+u_tolower(UChar ch) 
 {
     UChar up_ch;
-
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return ch;
-    }
 
     if (!ulTablesCreated) {
         createUlTables();
@@ -5159,15 +5071,10 @@ u_tolower(UChar32 ch)
 }
     
 /*Transforms the Unicode character to its upper case equivalent.*/
-UChar32 
-u_toupper(UChar32 ch) 
+UChar 
+u_toupper(UChar ch) 
 {
     UChar lw_ch; 
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return ch;
-    }
-
     if (!ulTablesCreated) {
         createUlTables();
     }
@@ -5178,14 +5085,9 @@ u_toupper(UChar32 ch)
 }
 
 /* Transforms the Unicode character to its title case equivalent.*/
-UChar32 
-u_totitle(UChar32 ch)
+UChar 
+u_totitle(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return ch;
-    }
-
     switch(ch) {
     case 0x01C4: case 0x01C5: case 0x01C6:
         return 0x01C5;
@@ -5202,14 +5104,9 @@ u_totitle(UChar32 ch)
 
 /* Checks if the Unicode character is a space character.*/
 bool_t
-u_isspace(UChar32 ch) 
+u_isspace(UChar ch) 
 {
     int32_t type;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return FALSE;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5221,13 +5118,8 @@ u_isspace(UChar32 ch)
 
 /* Gets if the Unicode character's character property.*/
 int8_t
-u_charType(UChar32 ch)
+u_charType(UChar ch)
 {
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return U_UNASSIGNED;
-    }
-
     if (!tablesCreated) {
         createTables();
     }
@@ -5238,15 +5130,10 @@ u_charType(UChar32 ch)
 
 /* Gets table cell width of the Unicode character.*/
 uint16_t
-u_charCellWidth(UChar32 ch)
+u_charCellWidth(UChar ch)
 {
     int16_t i;
     int32_t type = u_charType(ch);
-
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return U_ZERO_WIDTH;
-    }
 
     /* these Unicode character types are scattered throughout the Unicode range, so
      special-case for them*/
@@ -5272,15 +5159,10 @@ u_charCellWidth(UChar32 ch)
 }
 
 int32_t            
-u_charDigitValue(UChar32 ch)
+u_charDigitValue(UChar ch)
 {
     int32_t returnValue = -1;
     int32_t i = 0;
-    /* surrogate support is still incomplete */
-    if((uint32_t)ch>0xffff) {
-        return 0;
-    }
-
     while (u_isdefined(fCodeDigitTable[i].fUnicode)) {
         if ( ch == fCodeDigitTable[i].fUnicode ) {
             returnValue = fCodeDigitTable[i].fValue;

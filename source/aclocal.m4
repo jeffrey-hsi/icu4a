@@ -15,8 +15,6 @@ case "${host}" in
 *-*-solaris*) 	
 	if test "$ac_cv_prog_gcc" = yes; then	
 		icu_cv_host_frag=$srcdir/config/mh-solaris-gcc 
-        elif test "$host_cpu" = sparcv9; then         
-                icu_cv_host_frag=$srcdir/config/mh-solaris-sparcv9  
 	else
 		icu_cv_host_frag=$srcdir/config/mh-solaris 
 	fi ;;
@@ -24,7 +22,6 @@ case "${host}" in
 *-*-linux*) 	icu_cv_host_frag=$srcdir/config/mh-linux ;;
 *-*-freebsd*) 	icu_cv_host_frag=$srcdir/config/mh-freebsd ;;
 *-*-aix*) 	icu_cv_host_frag=$srcdir/config/mh-aix ;;
-*-sequent-*) 	icu_cv_host_frag=$srcdir/config/mh-ptx ;;
 *-*-hpux*)
 	case "$CXX" in 
 	*aCC)    icu_cv_host_frag=$srcdir/config/mh-hpux-acc ;;
@@ -71,57 +68,3 @@ if eval "test \"`echo $ac_ldflag_pthread`\" = yes"; then
 else
 	AC_MSG_RESULT(no)
 fi])
-
-dnl Strict compilation options.
-AC_DEFUN(AC_CHECK_STRICT_COMPILE,
-[
-    AC_MSG_CHECKING([whether strict compiling is on])
-    AC_ARG_ENABLE(strict,[  --enable-strict         compile with strict compiler options [default=no]], [
-    	if test "$enableval" = no
-    	then
-	    ac_use_strict_options=no
-        else
-	    ac_use_strict_options=yes
-        fi
-      ], [ac_use_strict_options=no])
-    AC_MSG_RESULT($ac_use_strict_options)
-
-    if test "$ac_use_strict_options" = yes
-    then
-        if test "$GCC" = yes
-        then
-	    CFLAGS="$CFLAGS -Wall -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings"
-        fi
-        if test "$GXX" = yes
-        then
-	    CXXFLAGS="$CXXFLAGS -Wall -pedantic -W -Wpointer-arith -Wmissing-prototypes -Wwrite-strings"
-        fi
-    fi
-])
-
-dnl Define a sizeof checking macro that is a bit better than autoconf's
-dnl builtin (and heavily based on it, of course). The new macro is
-dnl AC_DO_CHECK_SIZEOF(TYPE [, CROSS_SIZE [, INCLUDES])
-AC_DEFUN(AC_DO_CHECK_SIZEOF,
-[changequote(<<, >>)dnl
-dnl The name to #define.
-define(<<AC_TYPE_NAME>>, translit(sizeof_$1, [a-z *], [A-Z_P]))dnl
-dnl The cache variable name.
-define(<<AC_CV_NAME>>, translit(ac_cv_sizeof_$1, [ *], [_p]))dnl
-changequote([, ])dnl
-AC_MSG_CHECKING(size of $1)
-AC_CACHE_VAL(AC_CV_NAME,
-[AC_TRY_RUN($3
-[#include <stdio.h>
-main()
-{
-  FILE *f=fopen("conftestval", "w");
-  if (!f) exit(1);
-  fprintf(f, "%d\n", sizeof($1));
-  exit(0);
-}], AC_CV_NAME=`cat conftestval`, AC_CV_NAME=0, ifelse([$2], , , AC_CV_NAME=$2))])dnl
-AC_MSG_RESULT($AC_CV_NAME)
-AC_DEFINE_UNQUOTED(AC_TYPE_NAME, $AC_CV_NAME)
-undefine([AC_TYPE_NAME])dnl
-undefine([AC_CV_NAME])dnl
-])

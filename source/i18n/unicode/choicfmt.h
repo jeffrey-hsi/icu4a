@@ -127,7 +127,6 @@ public:
      * @param pattern   Pattern used to construct object.
      * @param status    Output param to receive success code.  If the
      *                  pattern cannot be parsed, set to failure code.
-     * @stable
      */
     ChoiceFormat(const UnicodeString& newPattern,
                  UErrorCode& status);
@@ -140,7 +139,6 @@ public:
      * @param limits    Array of limit values.
      * @param formats   Array of formats.
      * @param count     Size of 'limits' and 'formats' arrays.
-     * @stable
      */
     
     ChoiceFormat(const double* limits,
@@ -149,33 +147,28 @@ public:
 
     /**
      * Copy constructor.
-     * @stable
      */
     ChoiceFormat(const ChoiceFormat&);
 
     /**
      * Assignment operator.
-     * @stable
      */
     const ChoiceFormat& operator=(const ChoiceFormat&);
 
     /**
      * Destructor.
-     * @stable
      */
     virtual ~ChoiceFormat();
 
     /**
      * Clone this Format object polymorphically. The caller owns the
      * result and should delete it when done.
-     * @stable
      */
     virtual Format* clone(void) const;
 
     /**
      * Return true if the given Format objects are semantically equal.
      * Objects of different subclasses are considered unequal.
-     * @stable
      */
     virtual bool_t operator==(const Format& other) const;
 
@@ -185,14 +178,12 @@ public:
      * @param status    Output param set to success/failure code on
      *                  exit. If the pattern is invalid, this will be
      *                  set to a failure result.
-     * @stable
      */
     virtual void applyPattern(const UnicodeString& pattern,
                               UErrorCode& status);
 
     /**
      * Gets the pattern.
-     * @stable
      */
     virtual UnicodeString& toPattern(UnicodeString &pattern) const;
 
@@ -207,7 +198,6 @@ public:
      *                          &lt;= X &lt; limit[i+1].
      * @param formatsToAdopt    The format strings you want to use for each limit.
      * @param count             The size of the above arrays.
-     * @stable
      */
     virtual void adoptChoices(double* limitsToAdopt,
                               UnicodeString* formatsToAdopt,
@@ -223,7 +213,6 @@ public:
      *                          &lt;= X &lt; limit[i+1].
      * @param formatsToCopy     The format strings you want to use for each limit.
      * @param count             The size of the above arrays.
-     * @stable
      */
     virtual void setChoices(const double* limitsToCopy,
                             const UnicodeString* formatsToCopy,
@@ -231,14 +220,12 @@ public:
     /**
      * Get the limits passed in the constructor.
      * @return the limits.
-     * @stable
      */
     virtual const double* getLimits(int32_t& count) const;
 
     /**
      * Get the formats passed in the constructor.
      * @return the formats.
-     * @stable
      */
     virtual const UnicodeString* getFormats(int32_t& count) const;
 
@@ -251,34 +238,18 @@ public:
     * @param pos        On input: an alignment field, if desired.
     *                   On output: the offsets of the alignment field.
     * @return           A reference to 'toAppendTo'.
-    * @stable
     */
     virtual UnicodeString& format(double number,
                                   UnicodeString& toAppendTo,
                                   FieldPosition& pos) const;
-   /**
-    * Format a int_32t number using this object's choices.
-    *
-    * @stable
-    */
     virtual UnicodeString& format(int32_t number,
                                   UnicodeString& toAppendTo,
                                   FieldPosition& pos) const;
-   /**
-    * Format an array of objects using this object's choices.
-    *
-    * @stable
-    */
     virtual UnicodeString& format(const Formattable* objs,
                                   int32_t cnt,
                                   UnicodeString& toAppendTo,
                                   FieldPosition& pos,
                                   UErrorCode& success) const;
-   /**
-    * Format an object using this object's choices.
-    *
-    * @stable
-    */
     virtual UnicodeString& format(const Formattable& obj,
                                   UnicodeString& toAppendTo,
                                   FieldPosition& pos, 
@@ -286,7 +257,6 @@ public:
 
     /**
      * Redeclared NumberFormat method.
-     * @stable
      */
     UnicodeString& format(const Formattable& obj,
                           UnicodeString& result,
@@ -294,14 +264,12 @@ public:
 
     /**
      * Redeclared NumberFormat method.
-     * @stable
      */
     UnicodeString& format(  double number,
                             UnicodeString& output) const;
 
     /**
      * Redeclared NumberFormat method.
-     * @stable
      */
     UnicodeString& format(  int32_t number,
                             UnicodeString& output) const;
@@ -324,7 +292,6 @@ public:
     * @return               A Formattable object of numeric type.  The caller
     *                       owns this an must delete it.  NULL on failure.
     * @see                  NumberFormat::isParseIntegerOnly
-    * @stable
     */
     virtual void parse(const UnicodeString& text,
                        Formattable& result,
@@ -344,7 +311,6 @@ public:
      * @return          The class ID for this object. All objects of a
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
-     * @stable
      */
     virtual UClassID getDynamicClassID(void) const;
 
@@ -357,7 +323,6 @@ public:
      * .           Derived::getStaticClassID()) ...
      * </pre>
      * @return          The class ID for all objects of this class.
-     * @stable
      */
     static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
@@ -367,7 +332,6 @@ public:
      * If NaN, returns same value.
      * <P>
      * Does not affect floating-point flags,
-     * @stable
      */
     static double nextDouble(double d, bool_t positive);
 
@@ -376,7 +340,6 @@ public:
      * If NaN, returns same value.
      * Used to make half-open intervals.
      * @see ChoiceFormat::previousDouble
-     * @stable
      */
     static double nextDouble(double d );
 
@@ -384,7 +347,6 @@ public:
      * Finds the greatest double less than d.
      * If NaN, returns same value.
      * @see ChoiceFormat::nextDouble
-     * @stable
      */
     static double previousDouble(double d );
 

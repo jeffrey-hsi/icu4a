@@ -18,14 +18,11 @@
  * transformation.
  *
  * @see UnicodeFilterLogic
- * @draft
  */
 class U_I18N_API UnicodeFilter {
 
 public:
-    /**
-     * Destructor 
-     * @draft */
+
     virtual ~UnicodeFilter();
 
     /**
@@ -33,7 +30,6 @@ public:
      * subset.  In other words, if a character is <b>to be
      * filtered</b>, then <tt>contains()</tt> returns
      * <b><tt>false</tt></b>.
-     * @draft
      */
     virtual bool_t contains(UChar c) const = 0;
 
@@ -41,7 +37,6 @@ public:
      * Returns a copy of this object.  All UnicodeFilter objects have
      * to support cloning in order to allow classes using
      * UnicodeFilters, such as Transliterator, to implement cloning.
-     * @draft
      */
     virtual UnicodeFilter* clone() const = 0;
 

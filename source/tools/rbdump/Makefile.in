@@ -47,7 +47,7 @@ CLEANFILES = *~
 TARGET = rbdump
 
 DEFS = @DEFS@
-CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common
+CPPFLAGS = @CPPFLAGS@ -I$(top_srcdir)/common
 CFLAGS = @CFLAGS@
 CXXFLAGS = @CXXFLAGS@
 LDFLAGS = @LDFLAGS@ \
@@ -76,8 +76,8 @@ check: check-local
 all-local: $(TARGET)
 
 install-local: all-local
-	$(mkinstalldirs) $(DESTDIR)$(sbindir)
-	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)/$(TARGET)
+	$(mkinstalldirs) $(sbindir)
+	$(INSTALL) $(TARGET) $(sbindir)/$(TARGET)
 
 dist-local:
 
@@ -97,7 +97,7 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 $(TARGET) : $(OBJECTS)
 	$(LINK.c) -o $@ $^ $(LIBS)
 
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
 endif
 

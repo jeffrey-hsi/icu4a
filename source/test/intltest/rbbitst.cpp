@@ -1,9 +1,14 @@
-/********************************************************************
- * COPYRIGHT: 
- * Copyright (c) 1999-2000, International Business Machines Corporation and
- * others. All Rights Reserved.
- ********************************************************************/
-/************************************************************************
+/*
+*****************************************************************************************
+*                                                                                       *
+* COPYRIGHT:                                                                            *
+*   (C) Copyright International Business Machines Corporation,  1999-2000               *
+*   Licensed Material - Program-Property of IBM - All Rights Reserved.                  *
+*   US Government Users Restricted Rights - Use, duplication, or disclosure             *
+*   restricted by GSA ADP Schedule Contract with IBM Corp.                              *
+*                                                                                       *
+*****************************************************************************************
+************************************************************************
 *   Date        Name        Description
 *   12/15/99    Madhu        Creation.
 *   01/12/2000  Madhu        Updated for changed API and added new tests
@@ -112,6 +117,28 @@ public:
 /**
  * RBBITest is medium top level test class RuleBasedBreakIterator
  */
+
+
+// [HSYS] Just to make it easier to use with UChar array.
+static UnicodeString CharsToUnicodeString(const char* chars)
+{
+    int len = strlen(chars);
+    int i;
+    UnicodeString buffer;
+    for (i = 0; i < len;) {
+        if ((chars[i] == '\\') && (i+1 < len) && (chars[i+1] == 'u')) {
+            int unicode;
+            sscanf(&(chars[i+2]), "%4X", &unicode);
+            buffer += (UChar)unicode;
+            i += 6;
+        } else {
+            buffer += (UChar)chars[i++];
+        }
+    }
+    return buffer;
+}
+
+
 
 const UnicodeString  halfNA  = CharsToUnicodeString("\\u0928\\u094d\\u200d");  //halfform NA = devanigiri NA + virama(supresses inherent vowel)+ zero width joiner   
 const UnicodeString  halfSA  = CharsToUnicodeString("\\u0938\\u094d\\u200d"); 

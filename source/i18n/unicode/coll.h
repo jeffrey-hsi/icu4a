@@ -186,25 +186,21 @@ public:
   
   /**
    * Destructor
-   * @stable
    */
   virtual                         ~Collator();
 
   /**
    * Returns true if "other" is the same as "this"
-   * @stable
    */
   virtual     bool_t              operator==(const Collator& other) const;
 
   /**
    * Returns true if "other" is not the same as "this".
-   * @stable
    */
   virtual     bool_t              operator!=(const Collator& other) const;
 
   /**
    * Makes a shallow copy of the current object.
-   * @stable
    */
   virtual     Collator*           clone(void) const = 0;
   /**
@@ -222,7 +218,6 @@ public:
    * used; neither the requested locale nor any of its fall back locales
    * could be found.
    * The caller owns the returned object and is responsible for deleting it.
-   * @stable
    */
   static  Collator*           createInstance( UErrorCode&  err);
 
@@ -247,7 +242,6 @@ public:
    * used; neither the requested locale nor any of its fall back locales
    * could be found.
    * The caller owns the returned object and is responsible for deleting it.
-   * @stable
    */
   static  Collator*           createInstance( const Locale&   loc,
                           UErrorCode&      err);
@@ -276,7 +270,6 @@ public:
    * @return Returns a byte value. GREATER if source is greater
    * than target; EQUAL if source is equal to target; LESS if source is less
    * than target
-   * @stable
    **/
   virtual EComparisonResult   compare(    const   UnicodeString&  source, 
                       const   UnicodeString&  target) const = 0;
@@ -303,7 +296,6 @@ public:
    * @return Returns a byte value. GREATER if source (up to the specified length) is greater
    * than target; EQUAL if source (up to specified length) is equal to target; LESS if source
    * (up to the specified length) is less  than target.   
-   * @draft
    **/
 
   virtual EComparisonResult   compare(    const   UnicodeString&  source,
@@ -338,7 +330,6 @@ public:
    * @return Returns a byte value. GREATER if source is greater
    * than target; EQUAL if source is equal to target; LESS if source is less
    * than target
-   * @stable
    **/
   virtual EComparisonResult   compare(    const   UChar* source, 
                       int32_t sourceLength,
@@ -380,7 +371,6 @@ public:
    * @param key the collation key to be filled in
    * @return the collation key of the string based on the collation rules.
    * @see CollationKey#compare
-   * @draft
    */
   virtual CollationKey&       getCollationKey(const   UnicodeString&  source,
                           CollationKey&       key,
@@ -398,7 +388,6 @@ public:
    * @param key the collation key to be filled in
    * @return the collation key of the string based on the collation rules.
    * @see CollationKey#compare
-   * @draft
    */
   virtual CollationKey&       getCollationKey(const UChar *source,
 					      int32_t sourceLength,
@@ -406,7 +395,6 @@ public:
 					      UErrorCode&      status) const = 0;
   /**
    * Generates the hash code for the collation object
-   * @stable
    */
   virtual int32_t             hashCode(void) const = 0;
 
@@ -418,7 +406,6 @@ public:
    * @return true if the first string is greater than the second one,
    * according to the collation rules. false, otherwise.
    * @see Collator#compare
-   * @stable
    */
   bool_t              greater(    const   UnicodeString& source, 
                   const   UnicodeString& target) const;
@@ -430,7 +417,6 @@ public:
    * @return true if the first string is greater than or equal to the
    * second one, according to the collation rules. false, otherwise.
    * @see Collator#compare
-   * @stable
    */
   bool_t              greaterOrEqual( const   UnicodeString& source, 
                       const   UnicodeString& target) const;
@@ -442,7 +428,6 @@ public:
    * @return true if the strings are equal according to the collation
    * rules.  false, otherwise.
    * @see Collator#compare
-   * @stable
    */
   bool_t              equals( const   UnicodeString& source, 
                   const   UnicodeString& target) const;
@@ -452,7 +437,6 @@ public:
    * Get the decomposition mode of the collator object.
    * @return the decomposition mode
    * @see Collator#setDecomposition
-   * @stable
    */
   Normalizer::EMode  getDecomposition(void) const;
   /**
@@ -460,7 +444,6 @@ public:
    * to U_ILLEGAL_ARGUMENT_ERROR if error occurs.
    * @param the new decomposition mode
    * @see Collator#getDecomposition
-   * @stable
    */
   void                setDecomposition(Normalizer::EMode  mode);
   /**
@@ -471,7 +454,6 @@ public:
    * are ignored.
    * @return the current comparison level.
    * @see Collator#setStrength
-   * @stable
    */
   ECollationStrength  getStrength(void) const;
   /**
@@ -488,7 +470,6 @@ public:
    * </pre>
    * @see Collator#getStrength
    * @param newStrength the new comparison level.
-   * @stable
    */
   void                setStrength(    ECollationStrength  newStrength);
   /**
@@ -498,7 +479,6 @@ public:
    * @param name the fill-in parameter of the return value
    * @return display-able name of the object for the object locale in the
    * desired language
-   * @stable
    */
   static  UnicodeString&      getDisplayName( const   Locale&     objectLocale,
                           const   Locale&     displayLocale,
@@ -510,7 +490,6 @@ public:
    * @param name the fill-in parameter of the return value
    * @return name of the object for the desired locale in the default
    * language
-   * @stable
    */
   static  UnicodeString&      getDisplayName( const   Locale&         objectLocale,
                           UnicodeString&  name) ;
@@ -519,7 +498,6 @@ public:
    * Get the set of Locales for which Collations are installed
    * @param count the output parameter of number of elements in the locale list
    * @return the list of available locales which collations are installed
-   * @stable
    */
   static  const   Locale*     getAvailableLocales(int32_t& count);
 
@@ -538,7 +516,6 @@ public:
    * @return          The class ID for this object. All objects of a
    *                  given class have the same class ID.  Objects of
    *                  other classes have different class IDs.
-   * @stable
    */
   virtual UClassID getDynamicClassID(void) const = 0;
 

@@ -1,8 +1,11 @@
-/********************************************************************
- * COPYRIGHT: 
- * Copyright (c) 1998-1999, International Business Machines Corporation and
- * others. All Rights Reserved.
- ********************************************************************/
+/*
+*****************************************************************************************
+*                                                                                       *
+* COPYRIGHT:                                                                            *
+* Copyright (c) 1997-1999, International Business Machines Corporation and
+* others. All Rights Reserved.
+****************************************************************************************
+*/
 
 /**
  * MajorTestLevel is the top level test class for everything in the directory "IntlWork".

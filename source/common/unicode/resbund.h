@@ -49,6 +49,8 @@
 #include "unicode/utypes.h"
 #include "unicode/unistr.h"
 #include "unicode/locid.h"
+#include <wchar.h>
+
 
 class RBHashtable;
 class ResourceBundleData;
@@ -160,7 +162,6 @@ extern void getTaggedArrayUCharsImplementation(
  * .    myResources.getString("OkKey", button1Title, success );
  * .    myResources.getString("CancelKey", button2Title, success );
  * </pre>
- * @draft
  */
 class U_COMMON_API ResourceBundle {
 public:
@@ -189,7 +190,6 @@ public:
      * but nothing was found there, so 'de' was used. U_USING_DEFAULT_ERROR indicates that
      * the default locale data was used; neither the requested locale nor any of its
      * fall back locales could be found.
-     * @draft
      */
                         ResourceBundle( const UnicodeString&    path,
                                         const Locale&           locale,
@@ -211,7 +211,6 @@ public:
      * @param theString    Receives the actual data in the resource
      * @param err          Set to U_MISSING_RESOURCE_ERROR if a resource with the
      *                     specified tag couldn't be found.
-     * @draft
      */
     void                getString(  const char             *resourceTag,
                                     UnicodeString&          theString,
@@ -227,7 +226,6 @@ public:
      *                     specified tag couldn't be found.
      * @return A pointer to the string from the resource bundle, or NULL if there was
      *           an error.
-     * @draft
      */
     const UnicodeString*    getString(  const char                *resourceTag,
                                         UErrorCode&                err) const;
@@ -249,7 +247,6 @@ public:
      * @return               The resource requested, as a pointer to an array of
      *                       UnicodeStrings. The caller does not own the storage and
      *                       must not delete it.
-     * @draft
      */
     const UnicodeString*    getStringArray( const char             *resourceTag,
                                             int32_t&                numArrayItems,
@@ -268,7 +265,6 @@ public:
      * @param theArrayItem  Receives the actual text of the desired array item.
      * @param err           Set to U_MISSING_RESOURCE_ERROR if a resource with the
      *                      specified tag couldn't be found, or if the index was out of range.
-     * @draft
      */
     void                getArrayItem(   const char             *resourceTag,
                                         int32_t                 index,
@@ -287,7 +283,6 @@ public:
      * @param err           Set to U_MISSING_RESOURCE_ERROR if a resource with the
      *                      specified tag couldn't be found, or if the index was out of range.
      * @return A pointer to the text of the array item, or NULL is there was an error.
-     * @draft
      */
     const UnicodeString*    getArrayItem(   const char                *resourceTag,
                                             int32_t                    index,
@@ -309,7 +304,6 @@ public:
      *                     specified tag couldn't be found.
      * @return             The resource requested, as a UnicodeStrings**. The caller
      *                     does not own the storage and must not delete it.
-     * @draft
      */
     const UnicodeString**   get2dArray(const char          *resourceTag,
                                        int32_t&             rowCount,
@@ -332,7 +326,6 @@ public:
      * @param err           Set to U_MISSING_RESOURCE_ERROR if a resource with the
      *                      specified tag couldn't be found, if the resource data was in
      *                      the wrong format, or if either index is out of bounds.
-     * @draft
      */
     void                get2dArrayItem(const char          *resourceTag,
                                        int32_t              rowIndex,
@@ -355,7 +348,6 @@ public:
      *                      specified tag couldn't be found, if the resource data was in
      *                      the wrong format, or if either index is out of bounds.
      * @return A pointer to the text of the array item, or NULL is there was an error.
-     * @draft
      */
     const UnicodeString*    get2dArrayItem( const char                *resourceTag,
                                             int32_t                    rowIndex,
@@ -376,7 +368,6 @@ public:
      * @param err           Set to U_MISSING_RESOURCE_ERROR if a resource with the
      *                      specified resource tag couldn't be found, or if an item
      *                      with the specified item tag couldn't be found in the resource.
-     * @draft
      */
     void                getTaggedArrayItem( const char             *resourceTag,
                                             const UnicodeString&    itemTag,
@@ -396,7 +387,6 @@ public:
      *                      specified resource tag couldn't be found, or if an item
      *                      with the specified item tag coldn't be found in the resource.
      * @return A pointer to the text of the array item, or NULL is there was an error.
-     * @draft
      */
     const UnicodeString*    getTaggedArrayItem( const char             *resourceTag,
                                                 const UnicodeString&    itemTag,
@@ -423,7 +413,6 @@ public:
      *                      items and itemTags.
      * @param err           Set to U_MISSING_RESOURCE_ERROR if a resource with the
      *                      specified tag couldn't be found.
-     * @draft
      */
     void                getTaggedArray( const char             *resourceTag,
                                         UnicodeString*&         itemTags,
@@ -448,7 +437,6 @@ public:
      *          representing the code version, and n is the minor version number,
      *          representing the resource data file. The caller does not own this
      *          string.
-     * @draft
      */
     const char*         getVersionNumber(void) const;
 
@@ -456,7 +444,6 @@ public:
 	 * Return the Locale associated with this ResourceBundle. 
 	 *
 	 * @return a Locale object
-     * @draft
 	 */
 	const Locale &getLocale(void) const ;
 

@@ -22,7 +22,6 @@
 #ifndef GREGOCAL_H
 #define GREGOCAL_H
 
-
 #include "unicode/calendar.h"
 
 /**
@@ -146,7 +145,6 @@ public:
      *
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(UErrorCode& success);
 
@@ -158,7 +156,6 @@ public:
      * @param zoneToAdopt     The given timezone.
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(TimeZone* zoneToAdopt, UErrorCode& success);
 
@@ -169,7 +166,6 @@ public:
      * @param zone     The given timezone.
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(const TimeZone& zone, UErrorCode& success);
 
@@ -180,7 +176,6 @@ public:
      * @param aLocale  The given locale.
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(const Locale& aLocale, UErrorCode& success);
 
@@ -193,7 +188,6 @@ public:
      * @param aLocale  The given locale.
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(TimeZone* zoneToAdopt, const Locale& aLocale, UErrorCode& success);
 
@@ -205,7 +199,6 @@ public:
      * @param aLocale  The given locale.
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(const TimeZone& zone, const Locale& aLocale, UErrorCode& success);
 
@@ -219,7 +212,6 @@ public:
      * @param date     The value used to set the DATE time field in the calendar.
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(int32_t year, int32_t month, int32_t date, UErrorCode& success);
 
@@ -235,7 +227,6 @@ public:
      * @param minute   The value used to set the MINUTE time field in the calendar.
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(int32_t year, int32_t month, int32_t date, int32_t hour, int32_t minute, UErrorCode& success);
 
@@ -252,31 +243,26 @@ public:
      * @param second   The value used to set the SECOND time field in the calendar.
      * @param success  Indicates the status of GregorianCalendar object construction.
      *                 Returns U_ZERO_ERROR if constructed successfully.
-     * @stable
      */
     GregorianCalendar(int32_t year, int32_t month, int32_t date, int32_t hour, int32_t minute, int32_t second, UErrorCode& success);
 
     /**
      * Destructor
-     * @stable
      */
     virtual ~GregorianCalendar();
 
     /**
      * Copy constructor
-     * @stable
      */
     GregorianCalendar(const GregorianCalendar& source);
 
     /**
      * Default assignment operator
-     * @stable
      */
     GregorianCalendar& operator=(const GregorianCalendar& right);
 
     /**
      * Create and return a polymorphic copy of this calendar.
-     * @stable
      */
     virtual Calendar* clone(void) const;
 
@@ -287,7 +273,6 @@ public:
      *
      * @param date     The given Gregorian cutover date.
      * @param success  Output param set to success/failure code on exit.
-     * @stable
      */
     void setGregorianChange(UDate date, UErrorCode& success);
 
@@ -297,7 +282,6 @@ public:
      * 15, 1582. Previous to this time and date will be Julian dates.
      *
      * @return   The Gregorian cutover time for this calendar.
-     * @stable
      */
     UDate getGregorianChange(void) const;
 
@@ -314,7 +298,6 @@ public:
      *
      * @param year  The given year.
      * @return      True if the given year is a leap year; false otherwise.
-     * @stable
      */
     bool_t isLeapYear(int32_t year) const;
 
@@ -326,7 +309,6 @@ public:
      * @param that  The GregorianCalendar object to be compared with.
      * @return      True if the given GregorianCalendar is the same as this
      *              GregorianCalendar; false otherwise.
-     * @stable
      */
     virtual bool_t operator==(const Calendar& that) const;
 
@@ -334,7 +316,6 @@ public:
      * Calendar override.
      * Return true if another Calendar object is equivalent to this one.  An equivalent
      * Calendar will behave exactly as this one does, but may be set to a different time.
-     * @stable
      */
     virtual bool_t equivalentTo(const Calendar& other) const;
 
@@ -348,7 +329,6 @@ public:
      * @param status  Output param set to success/failure code on exit. If any value
      *                previously set in the time field is invalid, this will be set to
      *                an error status.
-     * @stable
      */
     virtual void add(EDateFields field, int32_t amount, UErrorCode& status);
 
@@ -361,42 +341,36 @@ public:
      * @param status  Output param set to success/failure code on exit. If any value
      *                previously set in the time field is invalid, this will be set to
      *                an error status.
-     * @stable
      */
     virtual void roll(EDateFields field, int32_t amount, UErrorCode& status);
 
     /**
      * (Overrides Calendar) Returns minimum value for the given field. e.g. for
      * Gregorian DAY_OF_MONTH, 1.
-     * @stable
      */
     virtual int32_t getMinimum(EDateFields field) const;
 
     /**
      * (Overrides Calendar) Returns maximum value for the given field. e.g. for
      * Gregorian DAY_OF_MONTH, 31.
-     * @stable
      */
     virtual int32_t getMaximum(EDateFields field) const;
 
     /**
      * (Overrides Calendar) Returns highest minimum value for the given field if varies.
      * Otherwise same as getMinimum(). For Gregorian, no difference.
-     * @stable
      */
     virtual int32_t getGreatestMinimum(EDateFields field) const;
 
     /**
      * (Overrides Calendar) Returns lowest maximum value for the given field if varies.
      * Otherwise same as getMaximum(). For Gregorian DAY_OF_MONTH, 28.
-     * @stable
      */
     virtual int32_t getLeastMaximum(EDateFields field) const;
 
     /**
      * Return the minimum value that this field could have, given the current date.
      * For the Gregorian calendar, this is the same as getMinimum() and getGreatestMinimum().
-     * @stable
      */
     int32_t getActualMinimum(EDateFields field) const;
 
@@ -405,7 +379,6 @@ public:
      * For example, with the date "Feb 3, 1997" and the DAY_OF_MONTH field, the actual
      * maximum would be 28; for "Feb 3, 1996" it s 29.  Similarly for a Hebrew calendar,
      * for some years the actual maximum for MONTH is 12, and for others 13.
-     * @stable
      */
     int32_t getActualMaximum(EDateFields field) const;
 
@@ -416,7 +389,6 @@ public:
      * @param status Fill-in parameter which receives the status of this operation.
      * @return   True if the current date for this Calendar is in Daylight Savings Time,
      *           false, otherwise.
-     * @stable
      */
     virtual bool_t inDaylightTime(UErrorCode& status) const;
 
@@ -430,7 +402,6 @@ public:
      *
      * @return   The class ID for this object. All objects of a given class have the
      *           same class ID. Objects of other classes have different class IDs.
-     * @stable
      */
     virtual UClassID getDynamicClassID(void) const { return (UClassID)&fgClassID; }
 
@@ -443,7 +414,6 @@ public:
      *          Derived::getStaticClassID()) ...
      *
      * @return   The class ID for all objects of this class.
-     * @stable
      */
     static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
@@ -451,7 +421,6 @@ protected:
 
     /**
      * (Overrides Calendar) Converts GMT as milliseconds to time field values.
-     * @stable
      */
     virtual void computeFields(UErrorCode& status);
 
@@ -462,12 +431,10 @@ protected:
      * @param status  Output param set to success/failure code on exit. If any value
      *                previously set in the time field is invalid, this will be set to
      *                an error status.
-     * @stable
      */
     virtual void computeTime(UErrorCode& status);
 
 private: 
-
     /**
      * Return the ERA.  We need a special method for this because the
      * default ERA is AD, but a zero (unset) ERA is BC.
@@ -615,7 +582,6 @@ private:
      * @return   Day number from 1..7 (SUN..SAT).
      */
     static uint8_t julianDayToDayOfWeek(double julian);
-
     /**
      * Divide two long integers, returning the floor of the quotient.
      * <p>

@@ -1,9 +1,15 @@
-/********************************************************************
- * COPYRIGHT: 
- * Copyright (c) 2000, International Business Machines Corporation and
- * others. All Rights Reserved.
- ********************************************************************/
-/************************************************************************
+/*
+*****************************************************************************************
+*                                                                                       *
+* COPYRIGHT:                                                                            *
+*                                                                                       *
+*   (C) Copyright International Business Machines Corporation,  2000                    *
+*   Licensed Material - Program-Property of IBM - All Rights Reserved.                  *
+*   US Government Users Restricted Rights - Use, duplication, or disclosure             *
+*   restricted by GSA ADP Schedule Contract with IBM Corp.                              *
+*                                                                                       *
+*****************************************************************************************
+************************************************************************
 *   Date        Name        Description
 *   1/03/2000   Madhu        Creation.
 ************************************************************************/
@@ -19,17 +25,42 @@
 #include <stdio.h>
 #include "unicode/rep.h"
 
+//Just to make it easier to use with UChar array.
+static UnicodeString CharsToUnicodeString(const char* chars)
+{
+    int len = strlen(chars);
+    int i;
+    UnicodeString buffer;
+    for (i = 0; i < len;) {
+        if ((chars[i] == '\\') && (i+1 < len) && (chars[i+1] == 'u')) {
+            int unicode;
+            sscanf(&(chars[i+2]), "%4X", &unicode);
+            buffer += (UChar)unicode;
+            i += 6;
+        } else {
+            buffer += (UChar)chars[i++];
+        }
+    }
+    return buffer;
+}
 int32_t getInt(UnicodeString str)
 {
-    char buffer[20];
 	int len=str.length();
-    if(len>=20) {
-        len=19;
-    }
-    str.extract(0, len, buffer, "");
-    buffer[len]=0;
+	char *alias;
+	char *buffer=new char[len+1];
+	alias=buffer;
+	for(int i=0; i< len; i++){
+		*alias=(char)str.charAt(i);
+		alias++;
+	}
+
+	*alias='\0';
+//	printf("this is buffer %s and value is %d", buffer, atoi(buffer));
 	return atoi(buffer);
 }
+
+	    
+          
 
 //---------------------------------------------
 // runIndexedTest
@@ -213,10 +244,7 @@ void TransliteratorAPITest::TestGetDisplayName() {
             doTest(message, name, dispNames[i+1]);
             name=""; 
 		    t->getDisplayName(t->getID(), Locale::US, name);
-			message.remove();
-			message.append("Display name for on english locale ID:");
-			message.append(t->getID());
-		//	message="Display name for on english locale ID:" + t->getID();
+			message="Display name for on english locale ID:" + t->getID();
 		    doTest(message, name, dispNames[i+1]);
 			name="";
 			
@@ -263,10 +291,7 @@ void TransliteratorAPITest::TestTransliterate1(){
             //doubt here
             temp=Data[i+1];
             t->transliterate(temp);
-            message.remove();
-            message.append(t->getID());
-            message.append("->transliterate(Replaceable) for \n\tSource:");
-            message.append(Data[i][1]);
+			message=t->getID() + "->transliterate(Replaceable) for \n\tSource:" +Data[i][1];
             doTest(message, temp, Data[i+2]);
 			
          }
@@ -352,7 +377,7 @@ void TransliteratorAPITest::TestSimpleKeyboardTransliterator(){
          Transliterator* t=Transliterator::createInstance("Unicode-Hex");
 		 if(t == 0)
 			 errln("FAIL : construction");
-         Transliterator::Position index(19,20,20);
+         Transliterator::Position index={19,20,20};
          UnicodeString rs= "Transliterate this-''";
          UnicodeString insertion="abc";
          UnicodeString expected="Transliterate this-'\\u0061\\u0062\\u0063'";
@@ -366,10 +391,10 @@ void TransliteratorAPITest::TestSimpleKeyboardTransliterator(){
          logln("try calling transliterate with invalid index values");
          Transliterator::Position index1[]={
              //START, LIMIT, CURSOR
-             Transliterator::Position(10, 10, 12),   //invalid since CURSOR>LIMIT valid:-START <= CURSOR <= LIMIT
-             Transliterator::Position(17, 16, 17),   //invalid since START>LIMIT valid:-0<=START<=LIMIT
-             Transliterator::Position(-1, 16, 14),   //invalid since START<0
-             Transliterator::Position(3,  50, 2 )    //invalid since LIMIT>text.length()
+             {10, 10, 12},   //invalid since CURSOR>LIMIT valid:-START <= CURSOR <= LIMIT
+             {17, 16, 17},   //invalid since START>LIMIT valid:-0<=START<=LIMIT
+             {-1, 16, 14},   //invalid since START<0
+             {3,  50, 2 }    //invalid since LIMIT>text.length()
          };
          for(int i=0; i<sizeof(index1)/sizeof(index1[0]); i++){
            status=U_ZERO_ERROR;
@@ -399,7 +424,7 @@ void TransliteratorAPITest::TestKeyboardTransliterator1(){
         };
 		Transliterator* t=Transliterator::createInstance("Unicode-Hex");
         //keyboardAux(t, Data);
-		Transliterator::Position index(0, 0);
+		Transliterator::Position index = {0, 0, 0};
 	    UErrorCode status=U_ZERO_ERROR;
         UnicodeString s;
 	int i;
@@ -497,7 +522,7 @@ void TransliteratorAPITest::TestKeyboardTransliterator3(){
 	};
 	
 	UErrorCode status=U_ZERO_ERROR;
-	Transliterator::Position index(0, 0);
+	Transliterator::Position index={0, 0, 0};
 	logln("Testing transliterate(Replaceable, int32_t, UErrorCode)");
 	Transliterator *t=Transliterator::createInstance("Unicode-Hex");
 	if(t == 0)
@@ -529,7 +554,7 @@ class TestFilter1 : public UnicodeFilter {
         return new TestFilter1(*this);
     }
     virtual bool_t contains(UChar c) const {
-       if(c==0x63 || c==0x61 || c==0x43 || c==0x41)
+       if(c=='c' || c=='a' || c=='C' || c=='A')
           return FALSE;
        else
           return TRUE;
@@ -540,7 +565,7 @@ class TestFilter2 : public UnicodeFilter {
         return new TestFilter2(*this);
     }
     virtual bool_t contains(UChar c) const {
-        if(c==0x65 || c==0x6c)
+        if(c=='e' || c=='l')
            return FALSE;
         else
            return TRUE;
@@ -551,7 +576,7 @@ class TestFilter3 : public UnicodeFilter {
         return new TestFilter3(*this);
     }
     virtual bool_t contains(UChar c) const {
-        if(c==0x6f || c==0x77)
+        if(c=='o' || c=='w')
            return FALSE;
         else
            return TRUE;
@@ -630,7 +655,7 @@ void TransliteratorAPITest::TestGetAdoptFilter(){
 
 
 void TransliteratorAPITest::keyboardAux(Transliterator *t, UnicodeString DATA[], UnicodeString& s, int32_t begin, int32_t end) {
-        Transliterator::Position index(0, 0);
+        Transliterator::Position index = {0, 0, 0};
 		UErrorCode status=U_ZERO_ERROR;
         for (int32_t i=begin; i<end; i=i+5) {
             UnicodeString log;
@@ -661,9 +686,9 @@ void TransliteratorAPITest::displayOutput(const UnicodeString& got, const Unicod
 			got.extractBetween(index.start, index.cursor, b);
 			got.extractBetween(index.cursor, got.length(), c);
 			log.append(a).
-				append((UChar)0x7b/*{*/).
+				append('{').
 				append(b).
-				append((UChar)0x7c/*|*/).
+				append('|').
 				append(c);
             if (got == expected) 
                 logln("OK:" + prettify(log));

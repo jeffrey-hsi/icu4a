@@ -180,7 +180,7 @@ DateFormatTest::TestTwoDigitYearDSTParse(void)
  
 // -------------------------------------
  
-UChar toHexString(int32_t i) { return i + (i < 10 ? 0x30 : (0x41 - 10)); }
+char toHexString(int32_t i) { return i + (i < 10 ? '0' : ('A' - 10)); }
 
 UnicodeString&
 DateFormatTest::escape(UnicodeString& s)
@@ -191,7 +191,7 @@ DateFormatTest::escape(UnicodeString& s)
         UChar c = s[(UTextOffset)i];
         if (c <= (UChar)0x7F) buf += c;
         else {
-            buf += (UChar)0x5c; buf += (UChar)0x55;
+            buf += '\\'; buf += 'U';
             buf += toHexString((c & 0xF000) >> 12);
             buf += toHexString((c & 0x0F00) >> 8);
             buf += toHexString((c & 0x00F0) >> 4);
@@ -257,7 +257,7 @@ DateFormatTest::TestFieldPosition(void)
         "", "1997", "August", "", "", "13", "", "Wednesday", "", "PM", "2", "", 
         "34", "12", "", "PDT", "", 
         /* Following two added by weiv for two new fields */ "", "", 
-        "", "1997", "#",/* # is a marker for "ao\xfbt" == "aou^t" */  "", "", "13", "", "mercredi", 
+        "", "1997", "ao\373t",/* 373 = 0xFB */  "", "", "13", "", "mercredi", 
         "", "", "", "14", "34", "", "", "GMT-07:00", "", 
         /* Following two added by weiv for two new fields */ "", "", 
         "AD", "97", "8", "33", "3", "13", "225", "Wed", "2", "PM", "2", 
@@ -287,14 +287,7 @@ DateFormatTest::TestFieldPosition(void)
         for (int32_t i = 0; i < Calendar::FIELD_COUNT;++i) {
             UnicodeString field;
             getFieldText(df, i, someDate, field);
-            UnicodeString expStr;
-            if(expected[exp][0]!='#') {
-                expStr=UnicodeString(expected[exp]);
-            } else {
-                /* we cannot have latin-1 characters in source code, therefore we fix up the string for "aou^t" */
-                expStr.append((UChar)0x61).append((UChar)0x6f).append((UChar32)0xfb).append((UChar)0x74);
-            }
-            
+            UnicodeString expStr(expected[exp]);
             if (!(field == expStr)) errln(UnicodeString("FAIL: field #") + i + " " +
                 fieldNames[i] + " = \"" + escape(field) + "\", expected \"" + escape(expStr) + "\"");
             ++exp;

@@ -559,14 +559,14 @@ char* rawData[27][7] = {
         //{   "English (United States)", "French (France)", "Croatian (Croatia)", "Greek (Greece)", "Norwegian (Norway,NY)", "Italian", "xx (YY)" },
 
         // display langage (French)
-        {   "anglais",  "fran\\u00E7ais",   "", "grec",    "norv\\u00E9gien",    "italien", "xx" },
+        {   "anglais",  "français",   "", "grec",    "norvégien",    "italien", "xx" },
         // display country (French)
-        {   "\\u00C9tats-Unis",    "France",   "",  "Gr\\u00E8ce",   "Norv\\u00E8ge", "",     "YY" },
+        {   "États-Unis",    "France",   "",  "Grèce",   "Norvège", "",     "YY" },
         // display variant (French)
         {   "",     "",     "",     "",     "Nynorsk",     "",     "" },
         // display name (French)
         //{   "anglais (États-Unis)", "français (France)", "", "grec (Grèce)", "norvégien (Norvège,Nynorsk)", "italien", "xx (YY)" },
-        {   "anglais (\\u00C9tats-Unis)", "fran\\u00E7ais (France)", "", "grec (Gr\\u00E8ce)", "norv\\u00E9gien (Norv\\u00E8ge, Nynorsk)", "italien", "xx (YY)" },
+        {   "anglais (États-Unis)", "français (France)", "", "grec (Grèce)", "norvégien (Norvège, Nynorsk)", "italien", "xx (YY)" },
 
         // display langage (Croatian)
         {   "",  "", "hrvatski", "",    "", "", "xx" },
@@ -600,7 +600,7 @@ char* rawData[27][7] = {
 UChar greekDisplayLanguage[] = { 0x03b5, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba, 0x03ac, 0 };
 UChar greekDisplayCountry[] = { 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, 0 };
 UChar greekDisplayName[] = { 0x03b5, 0x03bb, 0x03bb, 0x03b7, 0x03bd, 0x03b9, 0x03ba,
-    0x03ac, 0x20, 0x28, 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, 0x29, 0 };
+    0x03ac, ' ', '(', 0x0395, 0x03bb, 0x03bb, 0x03ac, 0x03b4, 0x03b1, ')', 0 };
     
 void LocaleTest::setUpDataTable()
 {
@@ -609,15 +609,15 @@ void LocaleTest::setUpDataTable()
 
         for (int32_t i = 0; i < 27; i++) {
             dataTable[i] = new UnicodeString[7];
-            for (int32_t j = 0; j < 7; j++) {
-                dataTable[i][j] = CharsToUnicodeString(rawData[i][j]);
-            }
+            for (int32_t j = 0; j < 7; j++)
+                dataTable[i][j] = rawData[i][j];
         }
         dataTable[DLANG_EL][GREEK] = greekDisplayLanguage;
         dataTable[DCTRY_EL][GREEK] = greekDisplayCountry;
         dataTable[DNAME_EL][GREEK] = greekDisplayName;
     }
 }
+
 
 // ====================
 
@@ -937,19 +937,19 @@ LocaleTest::TestAtypicalLocales()
                                      "anglais (France)",
                                      "espagnol (Allemagne)",
                                     "Croatia",
-                                    CharsToUnicodeString("Su\\u00E8de"),
+                                    "Suède",
                                     "Dominican Republic",
                                     "Belgique" };
     UnicodeString rus("Russian (M");
-    rus += (UChar32)0x00e9;
+    rus += 0x00e9;
     rus += "xico)";
 
     UnicodeString esp("espa");
-    esp += (UChar32)0x00f1;
+    esp += 0x00f1;
     esp += "ol (Germany)";
 
     UnicodeString dr("Rep");
-    dr += (UChar32)0x00fa;
+    dr += 0x00fa;
     dr += "blica Dominicana";
 
     UnicodeString spanishDisplayNames [] = { "German (Canada)",
@@ -1034,12 +1034,6 @@ LocaleTest::TestThaiCurrencyFormat()
                     Locale("th", "TH"), status);
     UChar posPrefix = 0x0e3f;
     UnicodeString temp;
-
-    if(U_FAILURE(status) || !thaiCurrency)
-    {
-        errln("Couldn't get th_TH currency -> " + UnicodeString(u_errorName(status)));
-        return;
-    }
     if (thaiCurrency->getPositivePrefix(temp) != UnicodeString(&posPrefix, 1, 1))
         errln("Thai currency prefix wrong: expected 0x0e3f, got \"" +
                         thaiCurrency->getPositivePrefix(temp) + "\"");
@@ -1264,7 +1258,7 @@ LocaleTest::Test4147552()
     };
     
     UnicodeString edn("Norwegian (Norway, Bokm");
-    edn += (UChar32)0x00e5;
+    edn += 0x00e5;
     edn += "l)";
     UnicodeString englishDisplayNames [] = { 
                                                 "Norwegian (Norway)",
@@ -1274,7 +1268,7 @@ LocaleTest::Test4147552()
                                                  "Norwegian (Norway, Nynorsk)" 
     };
     UnicodeString ndn("norsk (Norge, Bokm");
-    ndn += (UChar32)0x00e5;
+    ndn += 0x00e5;
     ndn += "l)";
     UnicodeString norwegianDisplayNames [] = { 
                                                 "norsk (Norge)",

@@ -26,7 +26,7 @@
 static UConverter *fgDefaultConverter = NULL;
 
 static UConverter*
-getDefaultConverter(void);
+getDefaultConverter();
 
 static void
 releaseDefaultConverter(UConverter *converter);
@@ -166,15 +166,15 @@ u_strncpy(UChar     *dst,
 int32_t  
 u_strlen(const UChar *s) 
 {
-# if U_SIZEOF_WCHAR_T == U_SIZEOF_UCHAR
+  if(U_SIZEOF_WCHAR_T == sizeof(UChar)) {
     return uprv_wcslen(s);
-# else
+  } else {
     const UChar *t = s;
     while(*t != 0) {
       ++t;
     }
     return t - s;
-#endif
+  }
 }
 
 /* conversions between char* and UChar* ------------------------------------- */
@@ -234,7 +234,6 @@ char* u_austrcpy(char *s1,
                   s1,
                   MAX_STRLEN,
                   ucs2,
-                  -1,
                   &err);
     releaseDefaultConverter(cnv);
     s1[len] = 0;

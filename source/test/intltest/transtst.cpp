@@ -13,19 +13,6 @@
 #include "unicode/rbt.h"
 #include "unicode/unifilt.h"
 #include "unicode/cpdtrans.h"
-#include "unicode/dtfmtsym.h"
-#include "unicode/hextouni.h"
-#include "unicode/unitohex.h"
-#include "unicode/ucnv.h"
-#include "unicode/ucnv_err.h"
-
-// Define character constants thusly to be EBCDIC-friendly
-enum {
-    LEFT_BRACE=((UChar)0x007B), /*{*/
-    PIPE      =((UChar)0x007C), /*|*/
-    ZERO      =((UChar)0x0030), /*0*/
-    UPPER_A   =((UChar)0x0041)  /*A*/
-};
 
 #define CASE(id,test) case id:                          \
                           name = #test;                 \
@@ -34,27 +21,24 @@ enum {
                               logln((UnicodeString)""); \
                               test();                   \
                           }                             \
-                          break
+                          break;
 
 void
 TransliteratorTest::runIndexedTest(int32_t index, bool_t exec,
                                    char* &name, char* par) {
     switch (index) {
-        CASE(0,TestInstantiation);
-        CASE(1,TestSimpleRules);
-        CASE(2,TestRuleBasedInverse);
-        CASE(3,TestKeyboard);
-        CASE(4,TestKeyboard2);
-        CASE(5,TestKeyboard3);
-        CASE(6,TestArabic);
-        CASE(7,TestCompoundKana);
-        CASE(8,TestCompoundHex);
-        CASE(9,TestFiltering);
-        CASE(10,TestInlineSet);
-        CASE(11,TestPatternQuoting);
-        CASE(12,TestJ277);
-        CASE(13,TestJ243);
-        CASE(14,TestJ329);
+        CASE(0,TestInstantiation)
+        CASE(1,TestSimpleRules)
+        CASE(2,TestRuleBasedInverse)
+        CASE(3,TestKeyboard)
+        CASE(4,TestKeyboard2)
+        CASE(5,TestKeyboard3)
+        CASE(6,TestArabic)
+        CASE(7,TestCompoundKana)
+        CASE(8,TestCompoundHex)
+        CASE(9,TestFiltering)
+        CASE(10,TestInlineSet)
+        CASE(11,TestPatternQuoting)
         default: name = ""; break;
     }
 }
@@ -69,17 +53,11 @@ void TransliteratorTest::TestInstantiation() {
                   i + ") returned empty string");
             continue;
         }
-        ParseError parseError;
-        Transliterator* t = Transliterator::createInstance(id,
-                              Transliterator::FORWARD, &parseError);
+        Transliterator* t = Transliterator::createInstance(id);
         name.truncate(0);
         Transliterator::getDisplayName(id, name);
         if (t == 0) {
-            errln(UnicodeString("FAIL: Couldn't create ") + id +
-                  ", parse error " + parseError.code +
-                  ", line " + parseError.line +
-                  ", offset " + parseError.offset +
-                  ", context " + prettify(parseError.context));
+            errln(UnicodeString("FAIL: Couldn't create ") + id);
             // When createInstance fails, it deletes the failing
             // entry from the available ID list.  We detect this
             // here by looking for a change in countAvailableIDs.
@@ -115,7 +93,7 @@ void TransliteratorTest::TestSimpleRules(void) {
      * [exz]|d   no match, copy d to transliterated buffer
      * [exzd]|   done
      */
-    expect(UnicodeString("ab>x|y;", "") +
+    expect(UnicodeString("ab>x|y;") +
            "yc>z",
            "eabcd", "exzd");        /* Another set of rules:
      *    1. ab>x|yzacw
@@ -140,17 +118,15 @@ void TransliteratorTest::TestSimpleRules(void) {
     UErrorCode status = U_ZERO_ERROR;
     RuleBasedTransliterator t(
         "<ID>",
-        UnicodeString("dummy=").append((UChar)0xE100) +
-        UnicodeString(
-        ";"
-        "          vowel = [aeiouAEIOU];"
-        "             lu = [:Lu:];"
+        UnicodeString("dummy=").append((UChar)0xE100) + ";" +
+        "          vowel = [aeiouAEIOU];" +
+        "             lu = [:Lu:];" +
 
-        " {vowel} ({lu}) > ! ;"
-        " {vowel}        > & ;"
-        "        !) {lu} > ^ ;"
-        "           {lu} > * ;"
-        "              a > ERROR", ""),
+        " {vowel} ({lu}) > ! ;" +
+        " {vowel}        > & ;" +
+        "        !) {lu} > ^ ;" +
+        "           {lu} > * ;" +
+        "              a > ERROR",
         status);
     if (U_FAILURE(status)) {
         errln("FAIL: RBT constructor failed");
@@ -166,13 +142,13 @@ void TransliteratorTest::TestInlineSet(void) {
     expect("[:Ll:] (x) > y; [:Ll:] > z;", "aAbxq", "zAyzz");
     expect("a[0-9]b > qrs", "1a7b9", "1qrs9");
     
-    expect(UnicodeString(
-           "digit = [0-9];"
-           "alpha = [a-zA-Z];"
-           "alphanumeric = [{digit}{alpha}];" // ***
-           "special = [^{alphanumeric}];"     // ***
-           "{alphanumeric} > -;"
-           "{special} > *;", ""),
+    expect((UnicodeString)
+           "digit = [0-9];" +
+           "alpha = [a-zA-Z];" +
+           "alphanumeric = [{digit}{alpha}];" + // ***
+           "special = [^{alphanumeric}];" +     // ***
+           "{alphanumeric} > -;" +
+           "{special} > *;",
            
            "thx-1138", "---*----");
 }
@@ -326,7 +302,7 @@ void TransliteratorTest::TestKeyboard3(void) {
 void TransliteratorTest::keyboardAux(const Transliterator& t,
                                      const char* DATA[], int32_t DATA_length) {
     UErrorCode status = U_ZERO_ERROR;
-    Transliterator::Position index(0, 0);
+    Transliterator::Position index = {0, 0, 0};
     UnicodeString s;
     for (int32_t i=0; i<DATA_length; i+=2) {
         UnicodeString log;
@@ -345,9 +321,9 @@ void TransliteratorTest::keyboardAux(const Transliterator& t,
         s.extractBetween(index.start, index.cursor, b);
         s.extractBetween(index.cursor, s.length(), c);
         log.append(a).
-            append((UChar)LEFT_BRACE).
+            append('{').
             append(b).
-            append((UChar)PIPE).
+            append('|').
             append(c);
         if (s == DATA[i+1] && U_SUCCESS(status)) {
             logln(log);
@@ -443,7 +419,7 @@ class TestFilter : public UnicodeFilter {
         return new TestFilter(*this);
     }
     virtual bool_t contains(UChar c) const {
-        return c != (UChar)0x0063 /*c*/;
+        return c != (UChar)'c';
     }
 };
 
@@ -481,147 +457,13 @@ void TransliteratorTest::TestPatternQuoting(void) {
     };
 
     for (int i=0; i<3; i+=3) {
-        logln(UnicodeString("Pattern: ") + prettify(DATA[i]));
+        logln(UnicodeString("Pattern: ") + escape(DATA[i]));
         UErrorCode status = U_ZERO_ERROR;
         RuleBasedTransliterator t("<ID>", DATA[i], status);
         if (U_FAILURE(status)) {
             errln("RBT constructor failed");
         } else {
             expect(t, DATA[i+1], DATA[i+2]);
-        }
-    }
-}
-
-/**
- * Regression test for bugs found in Greek transliteration.
- */
-void TransliteratorTest::TestJ277(void) {
-    UErrorCode status = U_ZERO_ERROR;
-    Transliterator *gl = Transliterator::createInstance("Greek-Latin");
-
-    UChar sigma = 0x3C3;
-    UChar upsilon = 0x3C5;
-    UChar nu = 0x3BD;
-    UChar PHI = 0x3A6;
-    UChar alpha = 0x3B1;
-    UChar omega = 0x3C9;
-    UChar omicron = 0x3BF;
-    UChar epsilon = 0x3B5;
-
-    // sigma upsilon nu -> syn
-    UnicodeString syn;
-    syn.append(sigma).append(upsilon).append(nu);
-    expect(*gl, syn, "syn");
-
-    // sigma alpha upsilon nu -> saun
-    UnicodeString sayn;
-    sayn.append(sigma).append(alpha).append(upsilon).append(nu);
-    expect(*gl, sayn, "saun");
-
-    // Again, using a smaller rule set
-    UnicodeString rules(
-                "alpha   = \\u03B1;"
-                "nu      = \\u03BD;"
-                "sigma   = \\u03C3;"
-                "ypsilon = \\u03C5;"
-                "vowel   = [aeiouAEIOU{alpha}{ypsilon}];"
-                "s <>           {sigma};"
-                "a <>           {alpha};"
-                "u <> ({vowel}) {ypsilon};"
-                "y <>           {ypsilon};"
-                "n <>           {nu};"
-                );
-    RuleBasedTransliterator mini("mini", rules, Transliterator::REVERSE, status);
-    if (U_FAILURE(status)) { errln("FAIL: Transliterator constructor failed"); return; }
-    expect(mini, syn, "syn");
-    expect(mini, sayn, "saun");
-
-    // Transliterate the Greek locale data
-    Locale el("el");
-    DateFormatSymbols syms(el, status);
-    if (U_FAILURE(status)) { errln("FAIL: Transliterator constructor failed"); return; }
-    int32_t i, count;
-    const UnicodeString* data = syms.getMonths(count);
-    for (i=0; i<count; ++i) {
-        if (data[i].length() == 0) {
-            continue;
-        }
-        UnicodeString out(data[i]);
-        gl->transliterate(out);
-        bool_t ok = TRUE;
-        if (data[i].length() >= 2 && out.length() >= 2 &&
-            u_isupper(data[i].charAt(0)) && u_islower(data[i].charAt(1))) {
-            if (!(u_isupper(out.charAt(0)) && u_islower(out.charAt(1)))) {
-                ok = FALSE;
-            }
-        }
-        if (ok) {
-            logln(prettify(data[i] + " -> " + out));
-        } else {
-            errln(UnicodeString("FAIL: ") + prettify(data[i] + " -> " + out));
-        }
-    }
-
-    delete gl;
-}
-
-/**
- * Prefix, suffix support in hex transliterators
- */
-void TransliteratorTest::TestJ243(void) {
-    UErrorCode status = U_ZERO_ERROR;
-    
-    // Test default Hex-Unicode, which should handle
-    // \u, \U, u+, and U+
-    HexToUnicodeTransliterator hex;
-    expect(hex, "\\u0041+\\U0042,u+0043uu+0044z", "A+B,CuDz");
-
-    // Try a custom Hex-Unicode
-    // \uXXXX and &#xXXXX;
-    status = U_ZERO_ERROR;
-    HexToUnicodeTransliterator hex2("\\\\u###0;&\\#x###0\\;", status); 
-    expect(hex2, "\\u61\\u062\\u0063\\u00645\\u66x&#x30;&#x031;&#x0032;&#x00033;",
-           "abcd5fx012&#x00033;");
-
-    // Try custom Unicode-Hex (default is tested elsewhere)
-    status = U_ZERO_ERROR;
-    UnicodeToHexTransliterator hex3("&\\#x###0;", status);
-    expect(hex3, "012", "&#x30;&#x31;&#x32;");
-}
-
-/**
- * Parsers need better syntax error messages.
- */
-void TransliteratorTest::TestJ329(void) {
-    
-    struct { bool_t containsErrors; const char* rule; } DATA[] = {
-        { FALSE, "a > b; c > d" },
-        { TRUE,  "a > b; no operator; c > d" },
-    };
-    int32_t DATA_length = sizeof(DATA) / sizeof(DATA[0]);
-
-    for (int32_t i=0; i<DATA_length; ++i) {
-        UErrorCode status = U_ZERO_ERROR;
-        ParseError parseError;
-        RuleBasedTransliterator rbt("<ID>",
-                                    DATA[i].rule,
-                                    Transliterator::FORWARD,
-                                    0,
-                                    parseError,
-                                    status);
-        bool_t gotError = U_FAILURE(status);
-        UnicodeString desc(DATA[i].rule);
-        desc.append(gotError ? " -> error" : " -> no error");
-        if (gotError) {
-            desc = desc + ", ParseError code=" + parseError.code +
-                " line=" + parseError.line +
-                " offset=" + parseError.offset +
-                " context=" + parseError.context;
-        }
-        if (gotError == DATA[i].containsErrors) {
-            logln(UnicodeString("Ok:   ") + desc);
-        } else {
-            errln(UnicodeString("FAIL: ") + desc);
         }
     }
 }
@@ -664,7 +506,7 @@ void TransliteratorTest::expect(const Transliterator& t,
     // Test keyboard (incremental) transliteration -- this result
     // must be the same after we finalize (see below).
     rsource.remove();
-    Transliterator::Position index(0, 0);
+    Transliterator::Position index = { 0, 0, 0 };
     UnicodeString log;
 
     for (int32_t i=0; i<source.length(); ++i) {
@@ -679,7 +521,7 @@ void TransliteratorTest::expect(const Transliterator& t,
         UnicodeString left, right;
         rsource.extractBetween(0, index.cursor, left);
         rsource.extractBetween(index.cursor, rsource.length(), right);
-        log.append(left).append((UChar)PIPE).append(right);
+        log.append(left).append((UChar)'|').append(right);
     }
     
     // As a final step in keyboard transliteration, we must call
@@ -706,12 +548,31 @@ void TransliteratorTest::expectAux(const UnicodeString& tag,
                                    const UnicodeString& summary, bool_t pass,
                                    const UnicodeString& expectedResult) {
     if (pass) {
-        logln(UnicodeString("(")+tag+") " + prettify(summary));
+        logln(UnicodeString("(")+tag+") " + escape(summary));
     } else {
         errln(UnicodeString("FAIL: (")+tag+") "
-              + prettify(summary)
-              + ", expected " + prettify(expectedResult));
+              + escape(summary)
+              + ", expected " + escape(expectedResult));
     }
 }
 
-static UChar toHexString(int32_t i) { return i + (i < 10 ? ZERO : (UPPER_A - 10)); }
+static UChar toHexString(int32_t i) { return i + (i < 10 ? '0' : ('A' - 10)); }
+
+UnicodeString
+TransliteratorTest::escape(const UnicodeString& s) {
+    UnicodeString buf;
+    for (int32_t i=0; i<s.length(); ++i)
+    {
+        UChar c = s[(UTextOffset)i];
+        if (' ' <= c && c <= (UChar)0x7F) {
+            buf += c;
+        } else {
+            buf += '\\'; buf += 'u';
+            buf += toHexString((c & 0xF000) >> 12);
+            buf += toHexString((c & 0x0F00) >> 8);
+            buf += toHexString((c & 0x00F0) >> 4);
+            buf += toHexString(c & 0x000F);
+        }
+    }
+    return buf;
+}

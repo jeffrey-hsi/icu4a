@@ -253,7 +253,6 @@ typedef enum UCalendarAMPMs UCalendarAMPMs;
 * @param status A pointer to an UErrorCode to receive any errors
 * @return The requested TimeZone ID, or 0 if not found
 * @see ucal_countAvailableTZIDs
-* @stable
 */
 U_CAPI const UChar*
 ucal_getAvailableTZIDs(        int32_t         rawOffset,
@@ -267,7 +266,6 @@ ucal_getAvailableTZIDs(        int32_t         rawOffset,
 * @param rawOffset The desired GMT offset.
 * @return The number of TimeZones with rawOffset.
 * @see ucal_getAvailableTZIDs
-* @stable
 */
 U_CAPI int32_t
 ucal_countAvailableTZIDs(int32_t rawOffset);
@@ -276,7 +274,6 @@ ucal_countAvailableTZIDs(int32_t rawOffset);
 * Get the current date and time.
 * The value returned is represented as milliseconds from the epoch.
 * @return The current date and time.
-* @stable
 */
 U_CAPI UDate 
 ucal_getNow(void);
@@ -291,7 +288,6 @@ ucal_getNow(void);
 * @param type The type of UCalendar to open.
 * @param status A pointer to an UErrorCode to receive any errors
 * @return A pointer to a UCalendar, or 0 if an error occurred.
-* @stable
 */
 U_CAPI UCalendar* 
 ucal_open(    const    UChar*          zoneID,
@@ -304,7 +300,6 @@ ucal_open(    const    UChar*          zoneID,
 * Close a UCalendar.
 * Once closed, a UCalendar may no longer be used.
 * @param cal The UCalendar to close.
-* @stable
 */
 U_CAPI void
 ucal_close(UCalendar *cal);
@@ -316,7 +311,6 @@ ucal_close(UCalendar *cal);
 * @param zoneID The desired TimeZone ID.  If 0, use the default time zone.
 * @param len The length of zoneID, or -1 if null-terminated.
 * @param status A pointer to an UErrorCode to receive any errors.
-* @stable
 */
 U_CAPI void 
 ucal_setTimeZone(        UCalendar*      cal,
@@ -350,7 +344,6 @@ typedef enum UCalendarDisplayNameType UCalendarDisplayNameType;
 * @param resultLengthNeeded If not 0, on output the number of characters actually
 * written to result.
 * @return The total buffer size needed; if greater than resultLength, the output was truncated.
-* @stable
 */
 U_CAPI int32_t
 ucal_getTimeZoneDisplayName(    const     UCalendar*                 cal,
@@ -366,7 +359,6 @@ ucal_getTimeZoneDisplayName(    const     UCalendar*                 cal,
 * @param cal The UCalendar to query.
 * @param status A pointer to an UErrorCode to receive any errors
 * @return TRUE if cal is currently in daylight savings time, FALSE otherwise
-* @stable
 */
 U_CAPI bool_t 
 ucal_inDaylightTime(    const    UCalendar*      cal, 
@@ -392,7 +384,6 @@ typedef enum UCalendarAttribute UCalendarAttribute;
 * or UCAL_MINIMAL_DAYS_IN_FIRST_WEEK
 * @return The value of attr.
 * @see ucal_setAttribute
-* @stable
 */
 U_CAPI int32_t
 ucal_getAttribute(    const    UCalendar*              cal,
@@ -407,7 +398,6 @@ ucal_getAttribute(    const    UCalendar*              cal,
 * or UCAL_MINIMAL_DAYS_IN_FIRST_WEEK
 * @param newValue The new value of attr.
 * @see ucal_getAttribute
-* @stable
 */
 U_CAPI void
 ucal_setAttribute(      UCalendar*              cal,
@@ -421,7 +411,6 @@ ucal_setAttribute(      UCalendar*              cal,
 * @param index The index of the desired locale.
 * @return A locale for which calendars are available, or 0 if none.
 * @see ucal_countAvailable
-* @stable
 */
 U_CAPI const char*
 ucal_getAvailable(int32_t index);
@@ -432,7 +421,6 @@ ucal_getAvailable(int32_t index);
 * calls to \Ref{ucal_getAvailable}.
 * @return The number of locales for which calendars are available.
 * @see ucal_getAvailable
-* @stable
 */
 U_CAPI int32_t
 ucal_countAvailable(void);
@@ -446,7 +434,6 @@ ucal_countAvailable(void);
 * @see ucal_setMillis
 * @see ucal_setDate
 * @see ucal_setDateTime
-* @stable
 */
 U_CAPI UDate 
 ucal_getMillis(    const    UCalendar*      cal,
@@ -461,7 +448,6 @@ ucal_getMillis(    const    UCalendar*      cal,
 * @see ucal_getMillis
 * @see ucal_setDate
 * @see ucal_setDateTime
-* @stable
 */
 U_CAPI void 
 ucal_setMillis(        UCalendar*      cal,
@@ -480,7 +466,6 @@ ucal_setMillis(        UCalendar*      cal,
 * @see ucal_getMillis
 * @see ucal_setMillis
 * @see ucal_setDateTime
-* @stable
 */
 U_CAPI void 
 ucal_setDate(        UCalendar*        cal,
@@ -504,7 +489,6 @@ ucal_setDate(        UCalendar*        cal,
 * @see ucal_getMillis
 * @see ucal_setMillis
 * @see ucal_setDate
-* @stable
 */
 U_CAPI void 
 ucal_setDateTime(    UCalendar*        cal,
@@ -523,7 +507,6 @@ ucal_setDateTime(    UCalendar*        cal,
 * @param cal1 The first of the UCalendars to compare.
 * @param cal2 The second of the UCalendars to compare.
 * @return TRUE if cal1 and cal2 represent the same date, FALSE otherwise.
-* @stable
 */
 U_CAPI bool_t 
 ucal_equivalentTo(    const UCalendar*      cal1,
@@ -542,7 +525,6 @@ ucal_equivalentTo(    const UCalendar*      cal1,
 * to preserve the magnitude of the change.
 * @param status A pointer to an UErrorCode to receive any errors
 * @see ucal_roll
-* @stable
 */
 U_CAPI void 
 ucal_add(    UCalendar*            cal,
@@ -563,7 +545,6 @@ ucal_add(    UCalendar*            cal,
 * value.
 * @param status A pointer to an UErrorCode to receive any errors
 * @see ucal_add
-* @stable
 */
 U_CAPI void 
 ucal_roll(        UCalendar*        cal,
@@ -585,7 +566,6 @@ ucal_roll(        UCalendar*        cal,
 * @see ucal_isSet
 * @see ucal_clearField
 * @see ucal_clear
-* @stable
 */
 U_CAPI int32_t 
 ucal_get(    const    UCalendar*            cal,
@@ -605,7 +585,6 @@ ucal_get(    const    UCalendar*            cal,
 * @see ucal_isSet
 * @see ucal_clearField
 * @see ucal_clear
-* @stable
 */
 U_CAPI void 
 ucal_set(    UCalendar*            cal,
@@ -625,7 +604,6 @@ ucal_set(    UCalendar*            cal,
 * @see ucal_set
 * @see ucal_clearField
 * @see ucal_clear
-* @stable
 */
 U_CAPI bool_t 
 ucal_isSet(    const    UCalendar*        cal,
@@ -643,7 +621,6 @@ ucal_isSet(    const    UCalendar*        cal,
 * @see ucal_set
 * @see ucal_isSet
 * @see ucal_clear
-* @stable
 */
 U_CAPI void 
 ucal_clearField(    UCalendar*        cal,
@@ -657,7 +634,6 @@ ucal_clearField(    UCalendar*        cal,
 * @see ucal_set
 * @see ucal_isSet
 * @see ucal_clearField
-* @stable
 */
 U_CAPI void 
 ucal_clear(UCalendar* calendar);
@@ -691,7 +667,6 @@ typedef enum UCalendarLimitType UCalendarLimitType;
 * UCAL_LEAST_MAXIMUM, UCAL_ACTUAL_MINIMUM, UCAL_ACTUAL_MAXIMUM
 * @param status A pointer to an UErrorCode to receive any errors.
 * @return The requested value.
-* @stable
 */
 U_CAPI int32_t 
 ucal_getLimit(    const    UCalendar*              cal,

@@ -93,8 +93,7 @@ compareConverters(const void *converter1, const void *converter2);
 extern int
 main(int argc, char *argv[]) {
     char line[512];
-    const char *path, *arg, *convfile = 0;
-    const char *destdir = 0;
+    const char *path, *arg;
     FileStream *in;
     UNewDataMemory *out;
     char *s;
@@ -120,28 +119,16 @@ main(int argc, char *argv[]) {
                 exit(-1);
                 break;
             }
-        } else if (!convfile) {
-	    convfile = arg;
-	} else {
-	   usage(argv[0]);
- 	}
-    }
-
-    if (!destdir) {
-	destdir = u_getDataDirectory();
-    }
-
-    if (convfile) {
-	path = convfile;
-    } else {
-        path=u_getDataDirectory();
-        if(path!=NULL) {
-            uprv_strcpy(line, path);
-            uprv_strcat(line, "convrtrs.txt");
-            path=line;
-        } else {
-            path="convrtrs.txt";
         }
+    }
+
+    path=u_getDataDirectory();
+    if(path!=NULL) {
+        uprv_strcpy(line, path);
+        uprv_strcat(line, "convrtrs.txt");
+        path=line;
+    } else {
+        path="convrtrs.txt";
     }
     in=T_FileStream_open(path, "r");
     if(in==NULL) {
@@ -170,7 +157,7 @@ main(int argc, char *argv[]) {
     qsort(aliases, aliasCount, sizeof(Alias), compareAliases);
 
     /* create the output file */
-    out=udata_create(destdir, DATA_TYPE, DATA_NAME, &dataInfo,
+    out=udata_create(DATA_TYPE, DATA_NAME, &dataInfo,
                      haveCopyright ? U_COPYRIGHT_STRING : NULL, &errorCode);
     if(U_FAILURE(errorCode)) {
         fprintf(stderr, "gencnval: unable to open output file - error %s\n", u_errorName(errorCode));
@@ -212,7 +199,7 @@ main(int argc, char *argv[]) {
 static void
 usage(char *progname) {
     fprintf(stderr,
-        "usage: %s [-c[+|-]] [convrtrs.txt]\n"
+        "usage: %s [-c[+|-]]\n"
         "\tread convrtrs.txt and create " DATA_NAME "." DATA_TYPE "\n"
         "\t\t-c[+|-]  do (not) include a copyright notice\n",
         progname);
@@ -332,12 +319,3 @@ static int
 compareAliases(const void *alias1, const void *alias2) {
     return uprv_stricmp(((Alias *)alias1)->alias, ((Alias *)alias2)->alias);
 }
-
-/*
- * Hey, Emacs, please set the following:
- *
- * Local Variables:
- * indent-tabs-mode: nil
- * End:
- *
- */

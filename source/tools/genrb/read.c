@@ -17,7 +17,8 @@
 
 #include "read.h"
 #include "error.h"
-#include "unicode/ustdio.h"
+#include "ufile.h"
+#include "ustdio.h"
 
 #define OPENBRACE    0x007B
 #define CLOSEBRACE   0x007D
@@ -112,9 +113,7 @@ static enum ETokenType getStringToken(UFILE *f,
       lastStringWasQuoted = TRUE;
       
       for(;;) {
-    c = u_fgetc(f);
-    /*	c = u_fgetc(f, status);*/
-
+	c = u_fgetc(f, status);
 	/* EOF reached */
 	if(c == (UChar)U_EOF)        return tok_EOF;
 	/* Unterminated quoted strings */
@@ -150,8 +149,7 @@ static enum ETokenType getStringToken(UFILE *f,
 	   || c == CLOSEBRACE
 	   || c == COMMA)
 	  {
-	    u_fungetc(c, f);
-	    /*u_fungetc(c, f, status);*/
+	    u_fungetc(c, f, status);
 	    break;
 	  }
 
@@ -171,8 +169,7 @@ static enum ETokenType getStringToken(UFILE *f,
       return tok_string;
     
     if(c == OPENBRACE || c == CLOSEBRACE || c == COMMA) {
-       u_fungetc(c, f);
-	   /*u_fungetc(c, f, status);*/
+      u_fungetc(c, f, status);
       return tok_string;
     }
   }
@@ -189,8 +186,7 @@ static UChar getNextChar(UFILE *f,
   if(U_FAILURE(*status)) return U_EOF;
   
   for(;;) {
-    c = u_fgetc(f);
-    /*c = u_fgetc(f, status);*/
+    c = u_fgetc(f, status);
     if(c == (UChar)U_EOF) return U_EOF;
     
     if(skipwhite && isWhitespace(c)) 
@@ -200,8 +196,7 @@ static UChar getNextChar(UFILE *f,
     if(c != SLASH)
       return c;
     
-    c = u_fgetc(f);
-    /*	c = u_fgetc(f, status);*/
+    c = u_fgetc(f, status);
     if(c == (UChar)U_EOF) return U_EOF;
     
     switch(c) {
@@ -215,8 +210,7 @@ static UChar getNextChar(UFILE *f,
       break;
       
     default:
-        u_fungetc(c, f);
-	    /*u_fungetc(c, f, status);*/
+      u_fungetc(c, f, status);
       /* If get() failed this is a NOP */
       return SLASH;
     }
@@ -231,8 +225,7 @@ void seekUntilNewline(UFILE *f,
   if(U_FAILURE(*status)) return;
   
   do {
-    c = u_fgetc(f);
-    /*	c = u_fgetc(f, status);*/
+    c = u_fgetc(f, status);
   } while(! isNewline(c) && c != (UChar)U_EOF && *status == U_ZERO_ERROR);
   
   /*if(U_FAILURE(*status))
@@ -247,14 +240,11 @@ void seekUntilEndOfComment(UFILE *f,
   if(U_FAILURE(*status)) return;
 
   do {
-    c = u_fgetc(f);
-    /*	c = u_fgetc(f, status);*/
+    c = u_fgetc(f, status);
     if(c == ASTERISK) {
-        d = u_fgetc(f);
-        /*	d = u_fgetc(f, status);*/
+      d = u_fgetc(f, status);
       if(d != SLASH)
-	    u_fungetc(d, f);
-	    /*u_fungetc(d, f, status);*/
+	u_fungetc(d, f, status);
       else
 	break;
     }
@@ -275,8 +265,7 @@ static UChar unescape(UFILE *f,
   
   if(U_FAILURE(*status)) return U_EOF;
   
-    c = u_fgetc(f);
-    /*	c = u_fgetc(f, status);*/
+  c = u_fgetc(f, status);
   if(c == (UChar)U_EOF || U_FAILURE(*status)) return U_EOF;
 
   switch (c) {
@@ -307,8 +296,7 @@ static UChar unescape(UFILE *f,
       maxChars = 4;
     out = 0;
     while(maxChars != 0 && *status == U_ZERO_ERROR) {
-    c = u_fgetc(f);
-    /*	c = u_fgetc(f, status);*/
+      c = u_fgetc(f, status);
       if(c == (UChar)U_EOF || U_FAILURE(*status)) return U_EOF;
       
       switch(c) {
@@ -331,8 +319,7 @@ static UChar unescape(UFILE *f,
 	break;
 	
       default:
-	    u_fungetc(c, f);
-	    /*u_fungetc(c, f, status);*/
+	u_fungetc(c, f, status);
 	maxChars = 1;   /* so we fall out of the loop */
 	break;
       }

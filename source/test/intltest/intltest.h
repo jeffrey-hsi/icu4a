@@ -4,9 +4,9 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
-
 /**
- * IntlTest is a base class for tests.  */
+ * IntlTest is a base class for tests.  
+ */
 
 #ifndef _INTLTEST
 #define _INTLTEST
@@ -18,12 +18,6 @@
 #include "unicode/fmtable.h" // liu
 
 #include <iostream.h>
-
-#ifdef OS390
-// avoid collision with math.h/log()
-// this must be after including utypes.h so that OS390 is actually defined
-#pragma map(IntlTest::log( const UnicodeString &message ),"logos390")
-#endif
 
 #define it_out (*IntlTest::gTest)
 
@@ -173,11 +167,5 @@ IntlTest& operator<<(IntlTest& test, const int32_t num);
 IntlTest& endl( IntlTest& test );
 IntlTest& operator<<(IntlTest& test,  IntlTest& ( * _f)(IntlTest&));
 
-/**
- * This is a variant of cintltst/ccolltst.c:CharsToUChars().
- * It converts a character string into a UnicodeString, with
- * unescaping \u sequences.
- */
-extern UnicodeString CharsToUnicodeString(const char* chars);
 
 #endif // _INTLTEST

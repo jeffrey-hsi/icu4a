@@ -182,7 +182,6 @@ public:
      * @param pattern   Pattern used to construct object.
      * @param status    Output param to receive success code.  If the
      *                  pattern cannot be parsed, set to failure code.
-     * @stable
      */
     MessageFormat(const UnicodeString& pattern,
                   UErrorCode &status);
@@ -193,7 +192,6 @@ public:
      * @param newLocale The locale to use for formatting dates and numbers.
      * @param status    Output param to receive success code.  If the
      *                  pattern cannot be parsed, set to failure code.
-     * @stable
      */
     MessageFormat(const UnicodeString& pattern,
                   const Locale& newLocale,
@@ -201,47 +199,40 @@ public:
 
     /**
      * Copy constructor.
-     * @stable
      */
     MessageFormat(const MessageFormat&);
 
     /**
      * Assignment operator.
-     * @stable
      */
     const MessageFormat& operator=(const MessageFormat&);
 
     /**
      * Destructor.
-     * @stable
      */
     virtual ~MessageFormat();
 
     /**
      * Clone this Format object polymorphically. The caller owns the
      * result and should delete it when done.
-     * @stable
      */
     virtual Format* clone(void) const;
 
     /**
      * Return true if the given Format objects are semantically equal.
      * Objects of different subclasses are considered unequal.
-     * @stable
      */
     virtual bool_t operator==(const Format& other) const;
 
     /**
      * Sets the locale. This locale is used for fetching default number or date
      * format information.
-     * @stable
      */
     virtual void setLocale(const Locale& theLocale);
 
     /**
      * Gets the locale. This locale is used for fetching default number or date
      * format information.
-     * @stable
      */
     virtual const Locale& getLocale(void) const;
 
@@ -252,14 +243,12 @@ public:
      * @param status    Output param set to success/failure code on
      *                  exit. If the pattern is invalid, this will be
      *                  set to a failure result.
-     * @stable
      */
     virtual void applyPattern(const UnicodeString& pattern,
                               UErrorCode& status);
 
     /**
      * Gets the pattern. See the class description.
-     * @stable
      */
     virtual UnicodeString& toPattern(UnicodeString& result) const;
 
@@ -267,14 +256,12 @@ public:
      * Sets formats to use on parameters.
      * See the class description about format numbering.
      * The caller should not delete the Format objects after this call.
-     * @draft HSYS: possible semantic change on limitation of the size of array
      */
     virtual void adoptFormats(Format** formatsToAdopt, int32_t count);
 
     /**
      * Sets formats to use on parameters.
      * See the class description about format numbering.
-     * @draft HSYS: possible semantic change on limitation of the size of array
      */
     virtual void setFormats(const Format** newFormats,int32_t cnt);
 
@@ -283,14 +270,12 @@ public:
      * Sets formats individually to use on parameters.
      * See the class description about format numbering.
      * The caller should not delete the Format object after this call.
-     * @draft HSYS: possible semantic change on limitation of the size of array
      */
     virtual void adoptFormat(int32_t formatNumber, Format* formatToAdopt);
 
     /**
      * Sets formats individually to use on parameters.
      * See the class description about format numbering.
-     * @stable
      */
     virtual void setFormat(int32_t variable, const Format& newFormat);
 
@@ -298,7 +283,6 @@ public:
     /**
      * Gets formats that were set with setFormats.
      * See the class description about format numbering.
-     * @draft HSYS: possible semantic change on limitation of the size of array
      */
     virtual const Format** getFormats(int32_t& count) const;
 
@@ -310,7 +294,6 @@ public:
      * @param source    An array of objects to be formatted & substituted.
      * @param result    Where text is appended.
      * @param ignore    No useful status is returned.
-     * @stable
      */
     UnicodeString& format(  const Formattable* source,
                             int32_t count,
@@ -321,7 +304,6 @@ public:
     /**
      * Convenience routine.  Avoids explicit creation of
      * MessageFormat, but doesn't allow future optimizations.
-     * @stable
      */
     static UnicodeString& format(   const UnicodeString& pattern,
                                     const Formattable* arguments,
@@ -342,7 +324,6 @@ public:
      * @param status        Output param filled with success/failure status.
      * @return              The value passed in as toAppendTo (this allows chaining,
      *                      as with UnicodeString::append())
-     * @stable
      */
     virtual UnicodeString& format(const Formattable& obj,
                                   UnicodeString& toAppendTo,
@@ -351,7 +332,6 @@ public:
 
     /**
      * Redeclared Format method.
-     * @stable
      */
     UnicodeString& format(const Formattable& obj,
                           UnicodeString& result,
@@ -386,7 +366,6 @@ public:
      * @param count     Output param to receive size of returned array.
      * @result          Array of Formattable objects, with length
      *                  'count', owned by the caller.
-     * @stable
      */
     virtual Formattable* parse( const UnicodeString& source,
                                 ParsePosition& status,
@@ -401,7 +380,6 @@ public:
      * @param status    Output param to receive success/error code.
      * @result          Array of Formattable objects, with length
      *                  'count', owned by the caller.
-     * @stable
      */
     virtual Formattable* parse( const UnicodeString& source,
                                 int32_t& count,
@@ -434,7 +412,6 @@ public:
      * @return          A newly created Formattable* object, or NULL
      *                  on failure.  The caller owns this and should
      *                  delete it when done.
-     * @stable
      */
     virtual void parseObject(const UnicodeString& source,
                              Formattable& result,
@@ -450,7 +427,6 @@ public:
      * @return          The class ID for this object. All objects of a
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
-     * @stable
      */
     virtual UClassID getDynamicClassID(void) const;
 
@@ -463,7 +439,6 @@ public:
      * .      Derived::getStaticClassID()) ...
      * </pre>
      * @return          The class ID for all objects of this class.
-     * @stable
      */
     static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 

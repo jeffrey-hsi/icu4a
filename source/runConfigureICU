@@ -12,14 +12,13 @@ usage()
     echo "          1. 'AIX4.1.5xlC' if you are using xlC on AIX4.1.5"
     echo "          2. 'SOLARISCC' if you are using native CC compiler on Solaris"
     echo "          3. 'SOLARISGCC' if you are using GNU C++ compiler on Solaris"
-    echo "          4. 'LinuxRedHat6.0' if you are using GNU C++ compiler on Linux"
+    echo "          4. 'LinuxRedHat5.2' if you are using GNU C++ compiler on Linux"
     echo "          5. 'HP/UX10.2CC' if you are using native C++ compiler on HP-UX10.2"
     echo "          6. 'HP/UX10.2ACC' if you are using Advanced C++ compiler on HP-UX10.2"
     echo "          7. 'HP/UX11CC' if you are using native C++ compiler on HP-UX11"
     echo "          8. 'HP/UX11ACC' if you are using Advanced C++ compiler on HP-UX11"
     echo "          9. 'AIX4.3xlC' if you are using xlC on AIX4.3"
     echo "          10. 'SOL2.7CC'if you are using native CC compiler on Solaris"
-    echo "          11. 'PTX' if you are using c++ on Dynix/PTX v4.5"
 
  }
 
@@ -69,7 +68,7 @@ case $platform in
                 CXX=/usr/local/SUNWspro/bin/CC; export CXX 
                 ./configure;;
 
-        LinuxRedHat6.0)
+        LinuxRedHat5.2)
                 echo Running configure for Linux using gcc compiler ...
                 CXX=g++; export CXX 
 		        CC=gcc; export CC
@@ -96,14 +95,6 @@ case $platform in
                 CC=cc; export CC
 				CXX=/opt/aCC/bin/aCC; export CXX
 			    ./configure;;
-        PTX)
-                echo Running configure for PTX using c++ compiler ...
-                CC=cc; export CC
-				CXX=c++; export CXX
-		if test ${XMLINSTALL}o = "o"; then 
-			XMLINSTALL=/usr/local; export XMLINSTALL
-		fi
-			    ./configure --prefix=$XMLINSTALL;;
         *)
                 echo I do not recognize the option \"$platform\". Please type ${0} -h for help.
                 exit 0;;

@@ -64,14 +64,12 @@ typedef struct UnicodeCompressor UnicodeCompressor;
  * Initialize a UnicodeCompressor.
  * Sets all windows to their default values.
  * @see #reset
- * @stable
  */
 U_CAPI void U_EXPORT2 scsu_init(UnicodeCompressor *comp);
 
 /**
  * Reset the compressor to its initial state. 
  * @param comp The UnicodeCompressor to reset.
- * @stable
  */
 U_CAPI void U_EXPORT2 scsu_reset(UnicodeCompressor *comp);
 
@@ -99,7 +97,6 @@ U_CAPI void U_EXPORT2 scsu_reset(UnicodeCompressor *comp);
  * @param status A pointer to an UErrorCode to receive any errors.
  *
  * @see #decompress
- * @stable
  */
 U_CAPI void U_EXPORT2 scsu_compress(UnicodeCompressor *comp,
 			uint8_t           **target,
@@ -134,7 +131,6 @@ U_CAPI void U_EXPORT2 scsu_compress(UnicodeCompressor *comp,
  * @return The number of Unicode characters writeten to <TT>target</TT>.
  *
  * @see #compress
- * @stable
  */
 U_CAPI void U_EXPORT2 scsu_decompress(UnicodeCompressor *comp,
 			  UChar             **target,

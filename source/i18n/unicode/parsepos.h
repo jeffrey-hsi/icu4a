@@ -38,7 +38,6 @@ class U_I18N_API ParsePosition {
 public:
     /**
      * Default constructor, the index starts with 0 as default.
-     * @stable
      */
     ParsePosition() 
       { this->index = 0; this->errorIndex = -1; }
@@ -46,7 +45,6 @@ public:
     /**
      * Create a new ParsePosition with the given initial index.
      * @param newIndex the new text offset.
-     * @stable
      */
     ParsePosition(UTextOffset newIndex) 
       {    this->index = newIndex; this->errorIndex = -1; } 
@@ -54,34 +52,29 @@ public:
     /**
      * Copy constructor
      * @param copy the object to be copied from.
-     * @stable
      */
     ParsePosition(const ParsePosition& copy) 
       {    this->index = copy.index; this->errorIndex = copy.errorIndex; }
 
     /**
      * Destructor
-     * @stable
      */
     ~ParsePosition() {}
 
     /**
      * Assignment operator
-     * @stable
      */
     ParsePosition&      operator=(const ParsePosition& copy);
 
     /** 
      * Equality operator.
      * @return TRUE if the two parse positions are equal, FALSE otherwise.
-     * @stable
      */
     bool_t              operator==(const ParsePosition& that) const;
 
     /** 
      * Equality operator.
      * @return TRUE if the two parse positions are not equal, FALSE otherwise.
-     * @stable
      */
     bool_t              operator!=(const ParsePosition& that) const;
 
@@ -90,14 +83,12 @@ public:
      * is the index of the character at which parsing will begin; on output, it
      * is the index of the character following the last character parsed.
      * @return the current index.
-     * @stable
      */
     UTextOffset getIndex(void) const;
 
     /**
      * Set the current parse position.
      * @param index the new index.
-     * @stable
      */
     void setIndex(UTextOffset index);
 
@@ -105,16 +96,12 @@ public:
      * Set the index at which a parse error occurred.  Formatters
      * should set this before returning an error code from their
      * parseObject method.  The default value is -1 if this is not
-     * set.  
-     * @stable
-     */
+     * set.  */
     void setErrorIndex(UTextOffset ei);
 
     /**
      * Retrieve the index at which an error occurred, or -1 if the
-     * error index has not been set.  
-     * @stable
-     */
+     * error index has not been set.  */
     UTextOffset getErrorIndex(void) const;
 
 private:

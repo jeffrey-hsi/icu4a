@@ -26,11 +26,8 @@
 
 #include "unicode/utypes.h"
 
-/* Define this to 1 if your platform supports IEEE 754 floating point,
-   to 0 if it does not. */
-#ifndef IEEE_754
-#   define IEEE_754 1
-#endif
+/* Define this if your platform supports IEEE 754 floating point */
+#define IEEE_754       
 
 /*===========================================================================*/
 /* Platform utilities                                                        */
@@ -41,9 +38,7 @@
  * libarary.  For each platform which this code is ported to, these
  * functions may have to be re-implemented.  */
 
-/* Floating point utilities 
- * @draft
- */
+/* Floating point utilities */
 U_CAPI bool_t  U_EXPORT2  uprv_isNaN(double);
 U_CAPI bool_t  U_EXPORT2 uprv_isInfinite(double);
 U_CAPI bool_t   U_EXPORT2 uprv_isPositiveInfinity(double);
@@ -85,7 +80,6 @@ U_CAPI void     U_EXPORT2 uprv_longBitsFromDouble(double d, int32_t *hi, uint32_
  *
  * @param d the double value to apply the common log function for.
  * @return the log of value d.
- * @draft
  */
 U_CAPI int16_t  U_EXPORT2 uprv_log10(double d);
 
@@ -93,7 +87,6 @@ U_CAPI int16_t  U_EXPORT2 uprv_log10(double d);
  * Returns the number of digits after the decimal point in a double number x.
  *
  * @param x the double number
- * @draft
  */
 U_CAPI int32_t  U_EXPORT2 uprv_digitsAfterDecimal(double x);
 
@@ -127,41 +120,25 @@ U_CAPI int32_t  U_EXPORT2 uprv_digitsAfterDecimal(double x);
  * information specified by the operating system. Under Windows NT
  * and Windows 95, this information is specified in the Control Panel’s
  * Date/Time application.
- * @draft
  */
 U_CAPI void     U_EXPORT2 uprv_tzset(void);
 U_CAPI int32_t  U_EXPORT2 uprv_timezone(void);
 U_CAPI char*    U_EXPORT2 uprv_tzname(int index);
 
-/**
- * Get UTC (GMT) time measured in seconds since 0:00 on 1/1/70. 
- * @draft
- */
+/* Get UTC (GMT) time measured in seconds since 0:00 on 1/1/70. */
 U_CAPI int32_t  U_EXPORT2 uprv_getUTCtime(void);
 
-/**
- * Return the data directory for this platform. 
- * @draft
- */
+/* Return the data directory for this platform. */
 U_CAPI const char* U_EXPORT2 u_getDataDirectory(void);
 
-/** 
- * Set the data directory. 
- * @draft
- */
+/* Set the data directory. */
 U_CAPI void U_EXPORT2 u_setDataDirectory(const char *directory);
 
-/**
- * Return the default codepage for this platform and locale 
- * @draft
- */
+/* Return the default codepage for this platform and locale */
 U_CAPI const char*  U_EXPORT2 uprv_getDefaultCodepage(void);
 
-/**
- * Return the default locale ID string by querying ths system, or
- *     zero if one cannot be found. 
- * @draft
- */
+/* Return the default locale ID string by querying ths system, or
+       zero if one cannot be found. */
 U_CAPI const char*  U_EXPORT2 uprv_getDefaultLocaleID(void);
 
 /*
@@ -171,14 +148,12 @@ U_CAPI const char*  U_EXPORT2 uprv_getDefaultLocaleID(void);
  * This is a special purpose function defined by the ChoiceFormat API
  * documentation.
  * It is not a general purpose function and not defined for NaN or Infinity
- * @draft
  */
 U_CAPI double           U_EXPORT2 uprv_nextDouble(double d, bool_t positive);
 
 /**
  * Filesystem file and path separator characters.
  * Example: '/' and ':' on Unix, '\\' and ';' on Windows.
- * @draft
  */
 #ifdef XP_MAC
 #   define U_FILE_SEP_CHAR ':'
@@ -211,7 +186,6 @@ U_CAPI double           U_EXPORT2 uprv_nextDouble(double d, bool_t positive);
  *           Unicode characters.
  * @param length The number of characters to convert; this may
  *               include the terminating <code>NUL</code>.
- * @stable
  */
 U_CAPI void U_EXPORT2
 u_charsToUChars(const char *cs, UChar *us, UTextOffset length);
@@ -231,7 +205,6 @@ u_charsToUChars(const char *cs, UChar *us, UTextOffset length);
  *           character bytes.
  * @param length The number of characters to convert; this may
  *               include the terminating <code>NUL</code>.
- * @stable
  */
 U_CAPI void U_EXPORT2
 u_UCharsToChars(const UChar *us, char *cs, UTextOffset length);
@@ -240,7 +213,6 @@ u_UCharsToChars(const UChar *us, char *cs, UTextOffset length);
  * Gets the ICU release version.  The version array stores the version information
  * for ICU.  For example, release "1.3.31.2" is then represented as 0x01031F02.
  * @param versionArray the version # information, the result will be filled in
- * @stable
  */
 
 U_CAPI void U_EXPORT2

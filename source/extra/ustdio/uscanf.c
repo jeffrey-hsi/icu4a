@@ -16,7 +16,6 @@
 *******************************************************************************
 */
 
-#include "unicode/utypes.h"
 #include "unicode/uchar.h"
 
 #include "uscanf.h"
@@ -34,6 +33,8 @@
 #include <stdlib.h>
 #include <float.h>
 #include <limits.h>
+#include <wchar.h>
+
 
 u_scanf_handler g_u_scanf_handlers     [256];
 u_scanf_info       g_u_scanf_infos     [256];
@@ -525,12 +526,11 @@ u_scanf_scidbl_handler(UFILE             *stream,
 {
   int32_t        len;
   double        *num         = (double*) (args[0].ptrValue);
-  UNumberFormat *scientificFormat, *genericFormat;
-  /*int32_t       scientificResult, genericResult;*/
-  double        scientificResult, genericResult;
-  int32_t       scientificParsePos = 0, genericParsePos = 0;
-  UErrorCode    scientificStatus = U_ZERO_ERROR;
-  UErrorCode    genericStatus = U_ZERO_ERROR;
+  UNumberFormat        *scientificFormat, *genericFormat;
+  int32_t        scientificResult, genericResult;
+  int32_t        scientificParsePos = 0, genericParsePos = 0;
+  UErrorCode         scientificStatus = U_ZERO_ERROR;
+  UErrorCode         genericStatus = U_ZERO_ERROR;
   bool_t        useScientific;
 
 

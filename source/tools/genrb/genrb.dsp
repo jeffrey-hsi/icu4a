@@ -111,6 +111,14 @@ SOURCE=.\read.c
 # End Source File
 # Begin Source File
 
+SOURCE=.\ufile.c
+# End Source File
+# Begin Source File
+
+SOURCE=.\ustdio.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\ustr.c
 # End Source File
 # Begin Source File
@@ -144,6 +152,14 @@ SOURCE=.\rblist.h
 # Begin Source File
 
 SOURCE=.\read.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ufile.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ustdio.h
 # End Source File
 # Begin Source File
 

@@ -11,6 +11,7 @@
  *
  */
 
+#include "uhash.h"
 #include "ucmp8.h"
 #include "ucmp16.h"
 #include "unicode/ucnv_bld.h"
@@ -47,7 +48,7 @@ static void   itou (UChar * buffer, int32_t i, int32_t radix, int32_t pad)
   int32_t j;
   UChar temp;
 
-  while (i >= radix)
+  while (i > radix)
     {
       num = i / radix;
       digit = (int8_t) (i - num * radix);

@@ -91,84 +91,62 @@ public:
   static const UChar    DONE;
 
   /**
-   * Destructor.  
-   * @stable
-   */
+   * Destructor.  */
   virtual ~CharacterIterator();
 
   /**
    * Returns true when both iterators refer to the same
-   * character in the same character-storage object.  
-   * @stable
-   */
+   * character in the same character-storage object.  */
   virtual bool_t          operator==(const CharacterIterator& that) const = 0;
         
   /**
    * Returns true when the iterators refer to different
    * text-storage objects, or to different characters in the
-   * same text-storage object.  
-   * @stable
-   */
+   * same text-storage object.  */
   bool_t                  operator!=(const CharacterIterator& that) const { return !operator==(that); }
 
   /**
    * Returns a pointer to a new CharacterIterator of the same
    * concrete class as this one, and referring to the same
    * character in the same text-storage object as this one.  The
-   * caller is responsible for deleting the new clone.  
-   * @stable
-   */
+   * caller is responsible for deleting the new clone.  */
   virtual CharacterIterator*
   clone(void) const = 0;
 
   /**
-   * Generates a hash code for this iterator.  
-   * @stable
-   */
+   * Generates a hash code for this iterator.  */
   virtual int32_t         hashCode(void) const = 0;
         
   /**
    * Sets the iterator to refer to the first character in its
-   * iteration range, and returns that character, 
-   * @draft
-   */
+   * iteration range, and returns that character, */
   virtual UChar         first(void) = 0;
         
   /**
    * Sets the iterator to refer to the last character in its
-   * iteration range, and returns that character.  
-   * @draft
-   */
+   * iteration range, and returns that character.  */
   virtual UChar         last(void) = 0;
         
   /**
    * Sets the iterator to refer to the "position"-th character
    * in the text-storage object the iterator refers to, and
-   * returns that character.  
-   * @draft
-   */
+   * returns that character.  */
   virtual UChar         setIndex(UTextOffset position) = 0;
 
   /**
-   * Returns the character the iterator currently refers to.  
-   * @draft
-   */
+   * Returns the character the iterator currently refers to.  */
   virtual UChar         current(void) const = 0;
         
   /**
    * Advances to the next character in the iteration range
    * (toward last()), and returns that character.  If there are
-   * no more characters to return, returns DONE.  
-   * @draft
-   */
+   * no more characters to return, returns DONE.  */
   virtual UChar         next(void) = 0;
         
   /**
    * Advances to the previous character in the iteration rance
    * (toward first()), and returns that character.  If there are
-   * no more characters to return, returns DONE.  
-   * @draft
-   */
+   * no more characters to return, returns DONE.  */
   virtual UChar         previous(void) = 0;
 
   /**
@@ -176,41 +154,31 @@ public:
    * object of the character returned by first().  Since it's
    * possible to create an iterator that iterates across only
    * part of a text-storage object, this number isn't
-   * necessarily 0.  
-   * @stable
-   */
+   * necessarily 0.  */
   virtual UTextOffset      startIndex(void) const = 0;
         
   /**
    * Returns the numeric index in the underlying text-storage
    * object of the position immediately BEYOND the character
-   * returned by last().  
-   * @stable
-   */
+   * returned by last().  */
   virtual UTextOffset      endIndex(void) const = 0;
         
   /**
    * Returns the numeric index in the underlying text-storage
    * object of the character the iterator currently refers to
-   * (i.e., the character returned by current()).  
-   * @stable
-   */
+   * (i.e., the character returned by current()).  */
   virtual UTextOffset      getIndex(void) const = 0;
 
   /**
    * Copies the text under iteration into the UnicodeString
-   * referred to by "result".  
-   * @param result Receives a copy of the text under iteration.  
-   * @stable
-   */
+   * referred to by "result".  @param result Receives a copy of
+   * the text under iteration.  */
   virtual void            getText(UnicodeString&  result) = 0;
 
   /**
    * Returns a UClassID for this CharacterIterator ("poor man's
    * RTTI").<P> Despite the fact that this function is public,
-   * DO NOT CONSIDER IT PART OF CHARACTERITERATOR'S API!  
-   * @stable
-   */
+   * DO NOT CONSIDER IT PART OF CHARACTERITERATOR'S API!  */
   virtual UClassID         getDynamicClassID(void) const = 0;
 
 protected:

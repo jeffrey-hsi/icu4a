@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1996-1999, International Business Machines Corporation and
+ * Copyright (c) 1997-1999, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -22,7 +22,6 @@ void addFormatTest(TestNode** root);
 void addConvert(TestNode** root);
 void addCollTest(TestNode** root);
 void addComplexTest(TestNode** root);
-void addUDataTest(TestNode** root);
 
 void addAllTests(TestNode** root)
 {
@@ -32,5 +31,4 @@ void addAllTests(TestNode** root)
     addConvert(root);
     addCollTest(root);
     addComplexTest(root);
-	addUDataTest(root);
 }

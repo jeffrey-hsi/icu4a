@@ -106,9 +106,38 @@ NumberFormatRegressionTest::failure(UErrorCode status, const UnicodeString& msg)
 /**
  * Convert Java-style strings with \u Unicode escapes into UnicodeString objects
  */
-inline UnicodeString str(const char *input)
+static UnicodeString str(const char *input)
 {
-  return CharsToUnicodeString(input);
+  static const UnicodeString digitString1("0123456789ABCDEF");
+  static const UnicodeString digitString2("0123456789abcdef");
+  
+  UnicodeString result(input);
+  int index = 0;
+  
+  while ((index = result.indexOf("\\u")) != -1)
+    {
+      if (index + 6 <= result.length())
+    {
+      UChar c = 0;
+      for (int i = index + 2; i < index + 6; i++) {
+        UTextOffset value = digitString1.indexOf(result[i]);
+        
+        if (value == -1) {
+          value = digitString2.indexOf(result[i]);
+        }
+        c = (UChar)(c * 16 + value);
+      }
+      UnicodeString replace;
+      replace += c;
+      result.replace(index, 6, replace);
+    }
+      index += 1;
+    }
+
+  //cout << "Converted |" << input << "| to ";
+  //print(result,"");
+
+  return result;
 }
 
 /* @bug 4075713
@@ -201,7 +230,7 @@ void NumberFormatRegressionTest::Test4087245 (void)
     FieldPosition pos(FieldPosition::DONT_CARE);
     logln(UnicodeString("format(") + n + ") = " + 
         df->format(n, buf1, pos));
-    symbols->setDecimalSeparator(0x70); // change value of field
+    symbols->setDecimalSeparator(UChar('p')); // change value of field
     logln(UnicodeString("format(") + n + ") = " +
         df->format(n, buf2, pos));
     if(buf1 != buf2)
@@ -392,11 +421,11 @@ void NumberFormatRegressionTest::Test4086575(void)
     // Space as group separator
 
     logln("...applyLocalizedPattern # ###,00;(# ###,00) ");
-    // nbsp = \u00a0
+    // nbsp = \u00a0 = ' '
     //nf->applyLocalizedPattern("#\u00a0###,00;(#\u00a0###,00)");
     UChar patChars[] = {
-             0x23, 0x00a0, 0x23, 0x23, 0x23, 0x2c, 0x30, 0x30, 0x3b, 
-        0x28, 0x23, 0x00a0, 0x23, 0x23, 0x23, 0x2c, 0x30, 0x30, 0x29
+             '#', 0x00a0, '#', '#', '#', ',', '0', '0', ';', 
+        '(', '#', 0x00a0, '#', '#', '#', ',', '0', '0', ')'
     };
     UnicodeString pat(patChars, 19, 19);
     nf->applyLocalizedPattern(pat, status);
@@ -407,7 +436,7 @@ void NumberFormatRegressionTest::Test4086575(void)
     buffer = nf->format((int32_t)1234, buffer, pos);
     //if (buffer != UnicodeString("1\u00a0234,00"))
     UChar c[] = {
-        0x31, 0x00a0, 0x32, 0x33, 0x34, 0x2c, 0x30, 0x30
+        '1', 0x00a0, '2', '3', '4', ',', '0', '0'
     };
     UnicodeString cc(c, 8, 8);
     if (buffer != cc)
@@ -416,7 +445,7 @@ void NumberFormatRegressionTest::Test4086575(void)
     buffer.remove();
     buffer = nf->format((int32_t)-1234, buffer, pos);
     UChar c1[] = {
-        0x28, 0x31, 0x00a0, 0x32, 0x33, 0x34, 0x2c, 0x30, 0x30, 0x29
+        '(', '1', 0x00a0, '2', '3', '4', ',', '0', '0', ')'
     };
     UnicodeString cc1(c1, 10, 10);
     if (buffer != cc1)
@@ -711,13 +740,13 @@ void NumberFormatRegressionTest::Test4070798 (void)
     String expectedPercent = "-578\u00a0998%";
     */
     UChar chars1 [] = {
-        0x2d, 0x35, 0x00a0, 0x37, 0x38, 0x39, 0x2c, 0x39, 0x38, 0x38
+        '-', '5', 0x00a0, '7', '8', '9', ',', '9', '8', '8'
     };
     UChar chars2 [] = {
-        0x35, 0x00a0, 0x37, 0x38, 0x39, 0x2c, 0x39, 0x39, 0x20, 0x46
+        '5', 0x00a0, '7', '8', '9', ',', '9', '9', ' ', 'F'
     };
     UChar chars3 [] = {
-        0x2d, 0x35, 0x37, 0x38, 0x00a0, 0x39, 0x39, 0x39, 0x25
+        '-', '5', '7', '8', 0x00a0, '9', '9', '9', '%'
     };
     UnicodeString expectedDefault(chars1, 10, 10);
     UnicodeString expectedCurrency(chars2, 10, 10);
@@ -779,13 +808,13 @@ void NumberFormatRegressionTest::Test4071005 (void)
     String expectedPercent = "-578\u00a0998%";
     */
     UChar chars1 [] = {
-        0x2d, 0x35, 0x00a0, 0x37, 0x38, 0x39, 0x2c, 0x39, 0x38, 0x38
+        '-', '5', 0x00a0, '7', '8', '9', ',', '9', '8', '8'
     };
     UChar chars2 [] = {
-        0x35, 0x00a0, 0x37, 0x38, 0x39, 0x2c, 0x39, 0x39, 0x20, 0x24
+        '5', 0x00a0, '7', '8', '9', ',', '9', '9', ' ', '$'
     };
     UChar chars3 [] = {
-        0x2d, 0x35, 0x37, 0x38, 0x00a0, 0x39, 0x39, 0x39, 0x25
+        '-', '5', '7', '8', 0x00a0, '9', '9', '9', '%'
     };
     UnicodeString expectedDefault(chars1, 10, 10);
     UnicodeString expectedCurrency(chars2, 10, 10);
@@ -1124,9 +1153,7 @@ void NumberFormatRegressionTest::Test4061302(void)
         monDecSeparator == 0x0000) {
         errln("getCurrencySymbols failed, got empty string.");
     }
-    UnicodeString monDecSeparatorStr;
-    monDecSeparatorStr.append(monDecSeparator);
-    logln((UnicodeString)"Before set ==> Currency : " + currency +(UnicodeString)" Intl Currency : " + intlCurrency + (UnicodeString)" Monetary Decimal Separator : " + monDecSeparatorStr);
+    logln("Before set ==> Currency : " + currency + " Intl Currency : " + intlCurrency + " Monetary Decimal Separator : " + monDecSeparator);
     fmt->setCurrencySymbol(UnicodeString("XYZ"));
     fmt->setInternationalCurrencySymbol(UnicodeString("ABC"));
     fmt->setMonetaryDecimalSeparator(0x002A/*'*'*/);
@@ -1138,9 +1165,7 @@ void NumberFormatRegressionTest::Test4061302(void)
         monDecSeparator != 0x002A/*'*'*/) {
         errln("setCurrencySymbols failed.");
     }
-    monDecSeparatorStr.remove();
-    monDecSeparatorStr.append(monDecSeparator);
-    logln("After set ==> Currency : " + currency + " Intl Currency : " + intlCurrency + " Monetary Decimal Separator : " + monDecSeparatorStr);
+    logln("After set ==> Currency : " + currency + " Intl Currency : " + intlCurrency + " Monetary Decimal Separator : " + monDecSeparator);
 
     delete fmt;
 }
@@ -1338,20 +1363,14 @@ void NumberFormatRegressionTest::Test4106667(void)
 /* @bug 4110936
  * DecimalFormat.setMaximumIntegerDigits() works incorrectly.
  */
-#ifdef OS390
-#   define MAX_INT_DIGITS 70
-#else
-#   define MAX_INT_DIGITS 128
-#endif
-
 void NumberFormatRegressionTest::Test4110936(void)
 {
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *nf = NumberFormat::createInstance(status);
     failure(status, "NumberFormat::createInstance");
-    nf->setMaximumIntegerDigits(MAX_INT_DIGITS);
-    logln("setMaximumIntegerDigits(MAX_INT_DIGITS)");
-    if (nf->getMaximumIntegerDigits() != MAX_INT_DIGITS)
+    nf->setMaximumIntegerDigits(128);
+    logln("setMaximumIntegerDigits(128)");
+    if (nf->getMaximumIntegerDigits() != 128)
         errln("getMaximumIntegerDigits() returns " +
             nf->getMaximumIntegerDigits());
 
@@ -1764,15 +1783,15 @@ void
 NumberFormatRegressionTest::Test4162198(void) 
 {
     // for some reason, DBL_MAX will not round trip. (bug in sprintf/atof)
-    double dbl = INT32_MAX * 1000.0;
+    double dbl = LONG_MAX * 1000.0;
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *f = NumberFormat::createInstance(status);
     if(U_FAILURE(status)) {
         errln("Couldn't create number format");
         return;
     }
-    f->setMaximumFractionDigits(INT32_MAX);
-    f->setMaximumIntegerDigits(INT32_MAX);
+    f->setMaximumFractionDigits(LONG_MAX);
+    f->setMaximumIntegerDigits(LONG_MAX);
     UnicodeString s;
     f->format(dbl,s);
     logln(UnicodeString("The number ") + dbl + " formatted to " + s);
@@ -1821,11 +1840,7 @@ NumberFormatRegressionTest::Test4162852(void)
         logln(UnicodeString("") +
               d + " -> " +
               '"' + s + '"' + " -> " + e);
-#if !defined(OS390) || IEEE_754
         if (e != 0.0 || 1.0/e > 0.0) {
-#else
-        if (e != 0.0) {
-#endif
             logln("Failed to parse negative zero");
         }
         delete f;
@@ -1980,47 +1995,47 @@ void NumberFormatRegressionTest::Test4212072(void) {
     UnicodeString s;
     FieldPosition pos;
 
-    sym.setMinusSign(0x5e);
+    sym.setMinusSign('^');
     fmt.setDecimalFormatSymbols(sym);
     s.remove();
-    if (fmt.format((int32_t)-1, s, pos) != UNICODE_STRING("^1", 2)) {
+    if (fmt.format((int32_t)-1, s, pos) != UnicodeString("^1")) {
         errln(UnicodeString("FAIL: -1 x (minus=^) -> ") + s +
               ", exp ^1");
     }
     s.remove();
-    if (fmt.getNegativePrefix(s) != UnicodeString((UChar)0x5e)) {
+    if (fmt.getNegativePrefix(s) != UnicodeString("^")) {
         errln(UnicodeString("FAIL: (minus=^).getNegativePrefix -> ") +
               s + ", exp ^");
     }
-    sym.setMinusSign(0x2d);
+    sym.setMinusSign('-');
 
     fmt.applyPattern(UnicodeString("#%"), status);
     failure(status, "applyPattern percent");
-    sym.setPercent(0x5e);
+    sym.setPercent('^');
     fmt.setDecimalFormatSymbols(sym);
     s.remove();
-    if (fmt.format(0.25, s, pos) != UNICODE_STRING("25^", 3)) {
+    if (fmt.format(0.25, s, pos) != UnicodeString("25^")) {
         errln(UnicodeString("FAIL: 0.25 x (percent=^) -> ") + s +
               ", exp 25^");
     }
     s.remove();
-    if (fmt.getPositiveSuffix(s) != UnicodeString((UChar)0x5e)) {
+    if (fmt.getPositiveSuffix(s) != UnicodeString("^")) {
         errln(UnicodeString("FAIL: (percent=^).getPositiveSuffix -> ") +
               s + ", exp ^");
     }
-    sym.setPercent(0x25);
+    sym.setPercent('%');
 
     fmt.applyPattern(str("#\\u2030"), status);
     failure(status, "applyPattern permill");
-    sym.setPerMill(0x5e);
+    sym.setPerMill('^');
     fmt.setDecimalFormatSymbols(sym);
     s.remove();
-    if (fmt.format(0.25, s, pos) != UNICODE_STRING("250^", 4)) {
+    if (fmt.format(0.25, s, pos) != UnicodeString("250^")) {
         errln(UnicodeString("FAIL: 0.25 x (permill=^) -> ") + s +
               ", exp 250^");
     }
     s.remove();
-    if (fmt.getPositiveSuffix(s) != UnicodeString((UChar)0x5e)) {
+    if (fmt.getPositiveSuffix(s) != UnicodeString("^")) {
         errln(UnicodeString("FAIL: (permill=^).getPositiveSuffix -> ") +
               s + ", exp ^");
     }
@@ -2138,7 +2153,7 @@ void NumberFormatRegressionTest::Test4216742(void) {
     UErrorCode status = U_ZERO_ERROR;
     DecimalFormat *fmt = (DecimalFormat*) NumberFormat::createInstance(Locale::US, status);
     failure(status, "createInstance");
-    int32_t DATA[] = { INT32_MIN, INT32_MAX, -100000000, 100000000 };
+    int32_t DATA[] = { LONG_MIN, LONG_MAX, -100000000, 100000000 };
     int DATA_length = sizeof(DATA) / sizeof(DATA[0]);
     for (int i=0; i<DATA_length; ++i) {
         char buf[64];

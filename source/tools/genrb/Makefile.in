@@ -48,15 +48,15 @@ CLEANFILES = *~
 TARGET = genrb
 
 DEFS = @DEFS@
-CPPFLAGS = @CPPFLAGS@ -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I$(top_srcdir)/extra/ustdio -I$(srcdir)/../toolutil
+CPPFLAGS = @CPPFLAGS@ -I$(top_srcdir)/common -I$(top_srcdir)/i18n -I../toolutil
 CFLAGS = @CFLAGS@
 CXXFLAGS = @CXXFLAGS@
 LDFLAGS = @LDFLAGS@ \
-$(LD_RPATH)$(LD_RPATH_PRE)$(libdir)@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/common@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/i18n@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/tools/toolutil@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/extra/ustdio
-LIBS = $(LIBICU-UC) $(LIBICU-I18N) @LIBS@ @LIB_M@  $(LIBICU-TOOLUTIL) $(LIBUSTDIO)
+$(LD_RPATH)$(LD_RPATH_PRE)$(libdir)@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/common@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/i18n@ld_rpath_suf@$(LD_RPATH_PRE)$(top_builddir)/tools/toolutil
+LIBS = $(LIBICU-UC) $(LIBICU-I18N) @LIBS@ @LIB_M@  $(LIBICU-TOOLUTIL)
 
 OBJECTS = error.o genrb.o ustr.o parse.o read.o write.o list.o	\
-rblist.o  util.o
+rblist.o ufile.o ustdio.o util.o
 
 DEPS = $(OBJECTS:.o=.d)
 
@@ -89,16 +89,16 @@ lgreek.txt fullhalf.txt lhebrew.txt lkana.txt lcyril.txt       \
 quotes.txt ucname.txt index.txt ljamo.txt
 
 TXT_FILES = $(TXT_SOURCE:%=$(top_srcdir)/../data/%)
-RES_FILES = $(TXT_FILES:$(top_srcdir)/../data/%.txt=@DATABUILDDIR@/%.res)
+RES_FILES = $(TXT_FILES:.txt=.res)
 TRANSLIT_FILES = $(TRANSLIT_SOURCE:%=$(top_srcdir)/../data/translit/%)
-TRANSLIT_RES = $(TRANSLIT_SOURCE:%.txt=@DATABUILDDIR@/translit/%.res)
-TEST_FILES = @DATABUILDDIR@/../source/test/testdata/default.res \
-@DATABUILDDIR@/../source/test/testdata/te.res \
-@DATABUILDDIR@/../source/test/testdata/te_IN.res
+TRANSLIT_RES = $(TRANSLIT_FILES:.txt=.res)
+TEST_FILES = $(top_srcdir)/test/testdata/default.res \
+$(top_srcdir)/test/testdata/te.res \
+$(top_srcdir)/test/testdata/te_IN.res
 
 ## List of phony targets
 .PHONY : all all-local install install-local clean clean-local		\
-distclean distclean-local dist dist-local check	\
+distclean distclean-local target-clean-local dist dist-local check	\
 check-local
 
 ## Clear suffix list
@@ -114,28 +114,31 @@ check: check-local
 
 all-local: $(TARGET) $(RES_FILES) $(TRANSLIT_RES) $(TEST_FILES)
 
-install-local: all-local
-	$(mkinstalldirs) $(DESTDIR)$(sbindir)
-	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)/$(TARGET)
-	$(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/$(VERSION)
+install-local: target-clean-local all-local
+	$(mkinstalldirs) $(sbindir)
+	$(INSTALL) $(TARGET) $(sbindir)/$(TARGET)
+	$(mkinstalldirs) $(pkgdatadir)/$(VERSION)
 	@list='$(notdir $(RES_FILES))'; for file in $$list; do \
-		echo $(INSTALL_DATA) @DATABUILDDIR@/$$file $(DESTDIR)$(pkgdatadir)/$(VERSION)/$$file; \
-		$(INSTALL_DATA) @DATABUILDDIR@/$$file $(DESTDIR)$(pkgdatadir)/$(VERSION)/$$file; \
+		echo $(INSTALL_DATA) $(top_srcdir)/../data/$$file $(pkgdatadir)/$(VERSION)/$$file; \
+		$(INSTALL_DATA) $(top_srcdir)/../data/$$file $(pkgdatadir)/$(VERSION)/$$file; \
 	done
-	$(mkinstalldirs) $(DESTDIR)$(pkgdatadir)/$(VERSION)/translit
+	$(mkinstalldirs) $(pkgdatadir)/$(VERSION)/translit
 	@list='$(notdir $(TRANSLIT_RES))'; for file in $$list; do \
-		echo $(INSTALL_DATA) @DATABUILDDIR@/translit/$$file $(DESTDIR)$(pkgdatadir)/$(VERSION)/translit/$$file; \
-		$(INSTALL_DATA) @DATABUILDDIR@/translit/$$file $(DESTDIR)$(pkgdatadir)/$(VERSION)/translit/$$file; \
+		echo $(INSTALL_DATA) $(top_srcdir)/../data/translit/$$file $(pkgdatadir)/$(VERSION)/translit/$$file; \
+		$(INSTALL_DATA) $(top_srcdir)/../data/translit/$$file $(pkgdatadir)/$(VERSION)/translit/$$file; \
 	done
 
 dist-local:
 
-clean-local: 
+target-clean-local:
+	rm -f $(TARGET)
+
+clean-local: target-clean-local
 	test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
-	rm -f $(TARGET) $(OBJECTS)
+	rm -f $(OBJECTS)
 
 distclean-local: clean-local
-	rm -f Makefile $(DEPS) $(RES_FILES) $(TRANSLIT_RES) $(TEST_FILES)
+	rm -f Makefile $(DEPS) $(RES_FILES) $(TEST_FILES)
 
 check-local:
 
@@ -144,34 +147,16 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 $(TARGET) : $(OBJECTS)
-	$(LINK.c) -o $@ $^ $(LIBS) 
+	$(LINK.c) -o $@ $^ $(LIBS)
 
-## Rule to build a compiled res file.
-## Note the order of the next three rules here is important!
-
-@DATABUILDDIR@/../source/test/testdata/%.res : $(top_srcdir)/test/testdata/%.txt
-	@echo "Creating testdata resource file for $<"
-	@ICU_DATA=@DATABUILDDIR@ ./genrb -D@DATABUILDDIR@/../source/test/testdata/ $<
-
-@DATABUILDDIR@/translit/%.res : $(top_srcdir)/../data/translit/%.txt
-	@echo "Creating translit resource file for $<"
-	@ICU_DATA=@DATABUILDDIR@ ./genrb -D@DATABUILDDIR@/translit/ $<
-
-@DATABUILDDIR@/%.res : $(top_srcdir)/../data/%.txt
+## Rule to build a compiled cnv file
+%.res : %.txt
 	@echo "Creating compiled resource file for $<"
-	@ICU_DATA=@DATABUILDDIR@ ./genrb -D@DATABUILDDIR@/ $<
+	@ICU_DATA=$(top_builddir)/../data/ ./genrb $< > /dev/null 2>&1
 
-
-# the 'mv' will always fail if you are building in the source dir
-
-
-ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
+ifneq ($(MAKECMDGOALS),distclean)
 -include $(DEPS)
 endif
-
-
-all-local:
-install-local:
 
 
 

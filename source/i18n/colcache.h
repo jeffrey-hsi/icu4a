@@ -28,10 +28,9 @@
 #ifndef COLCACHE_H
 #define COLCACHE_H
 
-#include "hash.h"
+#include "uhash.h"
 #include "unicode/unistr.h"
 
-class Hashtable;
 class TableCollationData;
 
 // Tell the VC++ compiler not to warn about DLL interface
@@ -54,11 +53,10 @@ public:
      * Default constructor.
      */
     CollationCache();
-
     /**
      * Destructor.
      */
-    inline ~CollationCache() {}
+    virtual ~CollationCache();
 
     /** 
      * ::Add and ::Find use a UnicodeString as the key to Collation objects in the
@@ -72,21 +70,12 @@ public:
      * @param data the collation data object.
      * @return the found collation data object
      */
-    void                Add(const UnicodeString& key, TableCollationData* adoptedData);
+    void                Add(const UnicodeString& key, TableCollationData* data);
     TableCollationData* Find(const UnicodeString& key);
 
 private:
-    Hashtable   fHashtable;
+    UHashtable*   fHashtable;
 };
-
-inline void CollationCache::Add(const UnicodeString& key, TableCollationData* adoptedValue) {
-    UErrorCode status = U_ZERO_ERROR;
-    fHashtable.put(key, adoptedValue, status);
-}
-
-inline TableCollationData* CollationCache::Find(const UnicodeString& keyString) {
-    return (TableCollationData*) fHashtable.get(keyString);
-}
 
 #endif
 //eof

@@ -25,6 +25,7 @@
 
 #include "unicode/utypes.h"
 #include "unicode/datefmt.h"
+
 class DateFormatSymbols;
 class DateFormat;
 
@@ -171,7 +172,6 @@ public:
      * <P>
      * [Note:] Not all locales support SimpleDateFormat; for full generality,
      * use the factory methods in the DateFormat class.
-     * @stable
      */
     SimpleDateFormat(UErrorCode& status);
 
@@ -182,7 +182,6 @@ public:
      * <P>
      * [Note:] Not all locales support SimpleDateFormat; for full generality,
      * use the factory methods in the DateFormat class.
-     * @stable
      */
     SimpleDateFormat(const UnicodeString& pattern,
                      UErrorCode& status);
@@ -194,7 +193,6 @@ public:
      * <P>
      * [Note:] Not all locales support SimpleDateFormat; for full generality,
      * use the factory methods in the DateFormat class.
-     * @stable
      */
     SimpleDateFormat(const UnicodeString& pattern,
                      const Locale& locale,
@@ -204,7 +202,6 @@ public:
      * Construct a SimpleDateFormat using the given pattern and locale-specific
      * symbol data.  The formatter takes ownership of the DateFormatSymbols object;
      * the caller is no longer responsible for deleting it.
-     * @stable
      */
     SimpleDateFormat(const UnicodeString& pattern,
                      DateFormatSymbols* formatDataToAdopt,
@@ -214,7 +211,6 @@ public:
      * Construct a SimpleDateFormat using the given pattern and locale-specific
      * symbol data.  The DateFormatSymbols object is NOT adopted; the caller
      * remains responsible for deleting it.
-     * @stable
      */
     SimpleDateFormat(const UnicodeString& pattern,
                      const DateFormatSymbols& formatData,
@@ -222,33 +218,28 @@ public:
 
     /**
      * Copy constructor.
-     * @stable
      */
     SimpleDateFormat(const SimpleDateFormat&);
 
     /**
      * Assignment operator.
-     * @stable
      */
     SimpleDateFormat& operator=(const SimpleDateFormat&);
 
     /**
      * Destructor.
-     * @stable
      */
     virtual ~SimpleDateFormat();
 
     /**
      * Clone this Format object polymorphically. The caller owns the result and
      * should delete it when done.
-     * @stable
      */
     virtual Format* clone(void) const;
 
     /**
      * Return true if the given Format objects are semantically equal. Objects
      * of different subclasses are considered unequal.
-     * @stable
      */
     virtual bool_t operator==(const Format& other) const;
 
@@ -265,7 +256,6 @@ public:
      * @param pos           The formatting position. On input: an alignment field,
      *                      if desired. On output: the offsets of the alignment field.
      * @return              A reference to 'toAppendTo'.
-     * @stable
      */
     virtual UnicodeString& format(  UDate date,
                                     UnicodeString& toAppendTo,
@@ -287,7 +277,6 @@ public:
      * @param pos           The formatting position. On input: an alignment field,
      *                      if desired. On output: the offsets of the alignment field.
      * @return              A reference to 'toAppendTo'.
-     * @stable
      */
     virtual UnicodeString& format(  const Formattable& obj,
                                     UnicodeString& toAppendTo,
@@ -296,7 +285,6 @@ public:
 
     /**
      * Redeclared DateFormat method.
-     * @stable
      */
     UnicodeString& format(const Formattable& obj,
                           UnicodeString& result,
@@ -304,7 +292,6 @@ public:
 
     /**
      * Redeclared DateFormat method.
-     * @stable
      */
     UnicodeString& format(UDate date, UnicodeString& result) const;
 
@@ -325,7 +312,6 @@ public:
      *              output, the position at which parsing terminated, or the
      *              start position if the parse failed.
      * @return      A valid UDate if the input could be parsed.
-     * @stable
      */
     virtual UDate parse( const UnicodeString& text,
                         ParsePosition& pos) const;
@@ -344,7 +330,6 @@ public:
      * @param status Filled in with U_ZERO_ERROR if the parse was successful, and with
      *              an error value if there was a parse error.
      * @return      A valid UDate if the input could be parsed.
-     * @stable
      */
     virtual UDate parse( const UnicodeString& text,
                         UErrorCode& status) const;
@@ -360,7 +345,6 @@ public:
      * <P>
      * By default, the two digit start date is set to 80 years before the current
      * time at which a SimpleDateFormat object is created.
-     * @stable
      */
     virtual void set2DigitYearStart(UDate d, UErrorCode& status);
 
@@ -375,13 +359,11 @@ public:
      * <P>
      * By default, the two digit start date is set to 80 years before the current
      * time at which a SimpleDateFormat object is created.
-     * @stable
      */
     UDate get2DigitYearStart(UErrorCode& status) const;
 
     /**
      * Return a pattern string describing this date format.
-     * @stable
      */
     virtual UnicodeString& toPattern(UnicodeString& result) const;
 
@@ -398,7 +380,6 @@ public:
      * @param status    Output param set to success/failure code on
      *                  exit. If the pattern is invalid, this will be
      *                  set to a failure result.
-     * @stable
      */
     virtual UnicodeString& toLocalizedPattern(UnicodeString& result,
                                               UErrorCode& status) const;
@@ -409,7 +390,6 @@ public:
      * the new pattern)
      *
      * @param pattern   The pattern to be applied.
-     * @stable
      */
     virtual void applyPattern(const UnicodeString& pattern);
 
@@ -421,7 +401,6 @@ public:
      * @param status    Output param set to success/failure code on
      *                  exit. If the pattern is invalid, this will be
      *                  set to a failure result.
-     * @stable
      */
     virtual void applyLocalizedPattern(const UnicodeString& pattern,
                                        UErrorCode& status);
@@ -432,7 +411,6 @@ public:
      * names and abbreviations, time zone names, AM/PM strings, etc.)
      * @return a copy of the date-time formatting data associated
      * with this date-time formatter.
-     * @stable
      */
     virtual const DateFormatSymbols* getDateFormatSymbols(void) const;
 
@@ -440,14 +418,12 @@ public:
      * Set the date/time formatting symbols.  The caller no longer owns the
      * DateFormatSymbols object and should not delete it after making this call.
      * @param newFormatData the given date-time formatting data.
-     * @stable
      */
     virtual void adoptDateFormatSymbols(DateFormatSymbols* newFormatSymbols);
 
     /**
      * Set the date/time formatting data.
      * @param newFormatData the given date-time formatting data.
-     * @stable
      */
     virtual void setDateFormatSymbols(const DateFormatSymbols& newFormatSymbols);
 
@@ -479,7 +455,6 @@ public:
      * .       erived::getStaticClassID()) ...
      * </pre>
      * @return          The class ID for all objects of this class.
-     * @stable
      */
     static UClassID getStaticClassID(void) { return (UClassID)&fgClassID; }
 
@@ -492,7 +467,6 @@ public:
      * @return          The class ID for this object. All objects of a
      *                  given class have the same class ID.  Objects of
      *                  other classes have different class IDs.
-     * @stable
      */
     virtual UClassID getDynamicClassID(void) const { return getStaticClassID(); }
 
@@ -547,7 +521,6 @@ private:
      * @param status    Receives a status code, which will be U_ZERO_ERROR if the operation
      *                  succeeds.
      * @return A reference to "result".
-     * @draft
      */
     UnicodeString& subFormat(   UnicodeString& result,
                                 UChar ch,
@@ -612,7 +585,6 @@ private:
      * @param obeyCount if true then the count is strictly obeyed.
      * @return the new start position if matching succeeded; a negative number
      * indicating matching failure, otherwise.
-     * @draft
      */
     int32_t subParse(const UnicodeString& text, int32_t& start, UChar ch, int32_t count,
                  bool_t obeyCount, bool_t ambiguousYear[]) const;

@@ -15,12 +15,11 @@
 
 void RuleBasedTransliterator::_construct(const UnicodeString& rules,
                                          Direction direction,
-                                         UErrorCode& status,
-                                         ParseError* parseError) {
+                                         UErrorCode& status) {
     data = 0;
     isDataOwned = TRUE;
     if (U_SUCCESS(status)) {
-        data = TransliterationRuleParser::parse(rules, direction, parseError);
+        data = TransliterationRuleParser::parse(rules, direction);
         if (data == 0) {
             status = U_ILLEGAL_ARGUMENT_ERROR;
         } else {
@@ -92,26 +91,9 @@ RuleBasedTransliterator::handleTransliterate(Replaceable& text, Position& index,
     int32_t limit = index.limit;
     int32_t cursor = index.cursor;
 
-    /* A rule like
-     *   a>b|a
-     * creates an infinite loop. To prevent that, we put an arbitrary
-     * limit on the number of iterations that we take, one that is
-     * high enough that any reasonable rules are ok, but low enough to
-     * prevent a server from hanging.  The limit is 16 times the
-     * number of characters n, unless n is so large that 16n exceeds a
-     * uint32_t.
-     */
-    uint32_t loopCount = 0;
-    uint32_t loopLimit = limit - cursor;
-    if (loopLimit >= 0x10000000) {
-        loopLimit = 0xFFFFFFFF;
-    } else {
-        loopLimit <<= 4;
-    }
-
     bool_t isPartial = FALSE;
 
-    while (cursor < limit && loopCount <= loopLimit) {
+    while (cursor < limit) {
         TransliterationRule* r = isIncremental ?
             data->ruleSet.findIncrementalMatch(text, start, limit, cursor,
                                                *data, isPartial,
@@ -139,7 +121,6 @@ RuleBasedTransliterator::handleTransliterate(Replaceable& text, Position& index,
                                       r->getOutput());
             limit += r->getOutput().length() - r->getKeyLength();
             cursor += r->getCursorPos();
-            ++loopCount;
         }
     }
 

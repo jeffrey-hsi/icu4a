@@ -5,12 +5,12 @@ dnl others. All Rights Reserved.
 dnl Stephen F. Booth
 
 dnl Process this file with autoconf to produce a configure script
-AC_INIT(common/unicode/utypes.h)
+AC_INIT(common/utypes.h)
 
 AC_CONFIG_HEADER(common/icucfg.h)
 PACKAGE="icu"
 AC_SUBST(PACKAGE)
-VERSION="1.4.2"
+VERSION="1.4.0"
 AC_SUBST(VERSION)
 UNICODE_VERSION="3.0.0"
 AC_SUBST(UNICODE_VERSION)
@@ -25,9 +25,6 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_CHECK_PROG(AUTOCONF, autoconf, autoconf, true)
 AC_CHECK_PROG(STRIP, strip, strip, true)
-
-dnl Determine how strict we want to be when compiling
-AC_CHECK_STRICT_COMPILE
 
 dnl Determine the host system and Makefile fragment
 AC_CANONICAL_HOST
@@ -166,14 +163,7 @@ if test $HAVE_DLOPEN = 0; then
         fi
 fi
 
-dnl added for s/390 DLL loading detection
 
-if test $HAVE_DLOPEN = 0; then
-   AC_CHECK_FUNC(dllload)
-   if test $ac_cv_func_dllload = yes; then
-       HAVE_DLOPEN=1
-   fi
-fi
 AC_SUBST(HAVE_DLOPEN)
 
 dnl Checks for header files
@@ -194,30 +184,6 @@ U_IS_BIG_ENDIAN=1
 fi
 AC_SUBST(U_IS_BIG_ENDIAN)
 
-dnl Do various wchar_t related checks
-AC_CHECK_HEADER(wchar.h)
-if test "$ac_cv_header_wchar_h" = no
-then
-    U_HAVE_WCHAR_H=0
-else
-    AC_DEFINE(HAVE_WCHAR_H)
-    U_HAVE_WCHAR_H=1
-fi
-AC_SUBST(U_HAVE_WCHAR_H)
-
-ac_default_sizeof_wchar_t=4
-AC_DO_CHECK_SIZEOF(wchar_t,$ac_default_sizeof_wchar_t,[
-#if STDC_HEADERS
-#include <stddef.h>
-#endif
-#if HAVE_WCHAR_H
-#include <wchar.h>
-#endif])
-dnl We could set ac_cv_sizeof_wchar_t to the default if the check returned
-dnl 0 (unknown) but we'd rather do it in the headers, so we know we had no
-dnl clue at configure time.
-U_SIZEOF_WCHAR_T=$ac_cv_sizeof_wchar_t
-AC_SUBST(U_SIZEOF_WCHAR_T)
 
 dnl Checks for typedefs
 AC_CHECK_TYPE(int8_t,signed char)
@@ -364,7 +330,7 @@ case "${host}" in
 		  tools/makeconv/makeconv tools/genrb/genrb \
 		  tools/rbdump/read tools/genccode/genccode \
 		  tools/gencmn/gencmn tools/gencnval/gencnval \
-		  tools/gennames/gennames tools/gentest/gentest
+		  tools/gennames/gennames
 		do
 		  if test -f $file.c; then
 		    mv $file.c $file.cpp
@@ -390,66 +356,22 @@ dnl END special
 if test "$ac_cv_lib_dld_shl_load" = "yes"; then
 	CPPFLAGS="${CPPFLAGS} -DICU_USE_SHL_LOAD"
 fi
-
-if test -f ./configure.in
-then
-        # they are normal. Build is in .. (note this is mostly for the top level script)
-        DATABUILDDIR=`pwd`/../data/
-        RELATIVEDATADIR=../data/
-else
-        DATABUILDDIR=`pwd`/data/
-        RELATIVEDATADIR=data/
-fi
-
-AC_SUBST(DATABUILDDIR)
-AC_SUBST(RELATIVEDATADIR)
-
-dnl added for s/390 DLL loading detection
-
-if test "$ac_cv_func_dllload" = "yes"; then
-    CPPFLAGS="${CPPFLAGS} -DICU_USE_SHL_LOAD"
-fi
+	
 
 dnl output the Makefiles
 AC_OUTPUT([Makefile \
-		common/Makefile config/Makefile i18n/Makefile \
+		common/Makefile common/unicode/platform.h config/Makefile i18n/Makefile \
 		extra/Makefile extra/ustdio/Makefile \
 		tools/Makefile tools/ctestfw/Makefile tools/makeconv/Makefile \
 		tools/genrb/Makefile tools/gencol/Makefile \
 		tools/rbdump/Makefile tools/genccode/Makefile tools/gencmn/Makefile tools/gencnval/Makefile tools/gentz/Makefile \
-	        tools/gennames/Makefile tools/toolutil/Makefile tools/gentest/Makefile \
+	        tools/gennames/Makefile tools/toolutil/Makefile \
 		test/Makefile test/intltest/Makefile test/cintltst/Makefile \
 		test/ieeetest/Makefile \
 		samples/Makefile samples/date/Makefile samples/cal/Makefile \
-		samples/XMLConverter/Makefile \
-		common/unicode/platform.h])
-
-
-dnl create the data directory
-if test -d $DATABUILDDIR
-then
-    :
-else
-    echo creating $DATABUILDDIR
-    mkdir -p $DATABUILDDIR
-fi
-
-if test -d $DATABUILDDIR/translit
-then
-    :
-else
-    echo creating $DATABUILDDIR/translit
-    mkdir $DATABUILDDIR/translit
-fi
-
-if test -d $DATABUILDDIR/../source/test/testdata
-then
-    :
-else
-    echo creating $DATABUILDDIR/../source/test/testdata
-    mkdir -p $DATABUILDDIR/../source/test/testdata
-fi
+		samples/XMLConverter/Makefile])
 
 if test $ICU_USE_THREADS = 0; then
   echo  " *** Note: configuring the ICU without pthread support or testing. If this isn't what you want, then run configure with --enable-threads=yes or check the messages [above] to see why we couldn't find pthread_create()" 1>&6
 fi
+
