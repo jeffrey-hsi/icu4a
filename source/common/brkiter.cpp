@@ -29,7 +29,6 @@
 #include "cstring.h"
 #include "mutex.h"
 #include "iculserv.h"
-#include "locbased.h"
 
 // *****************************************************************************
 // class BreakIterator
@@ -307,7 +306,6 @@ BreakIterator::getDisplayName(const Locale& objectLocale,
 BreakIterator::BreakIterator()
 {
     fBufferClone = FALSE;
-    *validLocale = *actualLocale = 0;
 }
 
 BreakIterator::~BreakIterator()
@@ -402,22 +400,9 @@ BreakIterator::createInstance(const Locale& loc, UBreakIteratorType kind, UError
     
     u_init(&status);
     if (hasService()) {
-        Locale actualLoc;
-        BreakIterator *result = (BreakIterator*)gService->get(loc, kind, &actualLoc, status);
-        // TODO: The way the service code works in ICU 2.8 is that if
-        // there is a real registered break iterator, the actualLoc
-        // will be populated, but if the handleDefault path is taken
-        // (because nothing is registered that can handle the
-        // requested locale) then the actualLoc comes back empty.  In
-        // that case, the returned object already has its actual/valid
-        // locale data populated (by makeInstance, which is what
-        // handleDefault calls), so we don't touch it.  YES, A COMMENT
-        // THIS LONG is a sign of bad code -- so the action item is to
-        // revisit this in ICU 3.0 and clean it up/fix it/remove it.
-        if (*actualLoc.getName() != 0) {
-            U_LOCALE_BASED(locBased, *result);
-            locBased.setLocaleIDs(actualLoc.getName(), actualLoc.getName());
-        }
+        Locale validLoc;
+        BreakIterator *result = (BreakIterator*)gService->get(loc, kind, &validLoc, status);
+        uprv_strcpy(result->validLocale, validLoc.getName());
         return result;
     } else {
         return makeInstance(loc, kind, status);
@@ -492,23 +477,47 @@ BreakIterator::makeInstance(const Locale& loc, int32_t kind, UErrorCode& status)
     // this is more of a placeholder. All the break iterators have the same actual locale: root
     // except the Thai one
     ResourceBundle res(NULL, loc, status);
-    U_LOCALE_BASED(locBased, *result);
-    locBased.setLocaleIDs(res.getLocale(ULOC_VALID_LOCALE, status).getName(),
-                          (uprv_strcmp(loc.getLanguage(), "th") == 0) ?
-                          "th" : "root");
+    uprv_strcpy(result->validLocale, res.getLocale(ULOC_VALID_LOCALE, status).getName());
+    if(uprv_strcmp(loc.getLanguage(), "th") == 0) {
+        uprv_strcpy(result->actualLocale, "th");
+    } else {
+        uprv_strcpy(result->actualLocale, "root");
+    }
     return result;
 }
 
 Locale 
-BreakIterator::getLocale(ULocDataLocaleType type, UErrorCode& status) const {
-    U_LOCALE_BASED(locBased, *this);
-    return locBased.getLocale(type, status);
+BreakIterator::getLocale(ULocDataLocaleType type, UErrorCode& status) const
+{
+    switch(type) {
+    case ULOC_VALID_LOCALE:
+        // TODO: need bufferClone problems fixed before this code can work.
+        return Locale(validLocale);
+        break;
+    case ULOC_ACTUAL_LOCALE:
+        return Locale(actualLocale);
+        break;
+    default:
+        status = U_UNSUPPORTED_ERROR;
+        return Locale("");
+    }
 }
 
 const char *
-BreakIterator::getLocaleID(ULocDataLocaleType type, UErrorCode& status) const {
-    U_LOCALE_BASED(locBased, *this);
-    return locBased.getLocaleID(type, status);
+BreakIterator::getLocaleInternal(ULocDataLocaleType type, UErrorCode& status) const
+{
+    switch(type) {
+    case ULOC_VALID_LOCALE:
+        // TODO: need bufferClone problems fixed before this code can work.
+        return validLocale;
+        break;
+    case ULOC_ACTUAL_LOCALE:
+        return actualLocale;
+        break;
+    default:
+        status = U_UNSUPPORTED_ERROR;
+        return NULL;
+    }
 }
 
 U_NAMESPACE_END

@@ -41,7 +41,6 @@
 #include "iculserv.h"
 #include "ucln_in.h"
 #include "cstring.h"
-#include "locbased.h"
 
 U_NAMESPACE_BEGIN
 
@@ -600,8 +599,8 @@ Calendar::createInstance(const Locale& aLocale, UErrorCode& success)
 Calendar*
 Calendar::createInstance(TimeZone* zone, const Locale& aLocale, UErrorCode& success)
 {
-  Locale actualLoc;
-  UObject* u = getService()->get(aLocale, LocaleKey::KIND_ANY, &actualLoc, success);
+  Locale validLoc;
+  UObject* u = getService()->get(aLocale, LocaleKey::KIND_ANY, &validLoc, success);
   Calendar* c = NULL;
 
   if(U_FAILURE(success) || !u) {
@@ -611,7 +610,7 @@ Calendar::createInstance(TimeZone* zone, const Locale& aLocale, UErrorCode& succ
     }
     return NULL;
   }
-
+  
   if(u->getDynamicClassID() == UnicodeString::getStaticClassID()) {
     // It's a unicode string telling us what type of calendar to load ("gregorian", etc)
     char tmp[200];
@@ -630,15 +629,12 @@ Calendar::createInstance(TimeZone* zone, const Locale& aLocale, UErrorCode& succ
 #endif
 
     // Create a Locale over this string
-    Locale l(tmp), actualLoc2;
+    Locale l(tmp);
 
     delete u;
     u = NULL;
     
-    // Don't overwrite actualLoc, since the actual loc from this call
-    // may be something like "@calendar=gregorian" -- TODO investigate
-    // further...
-    c = (Calendar*)getService()->get(l, LocaleKey::KIND_ANY, &actualLoc2, success);
+    c = (Calendar*)getService()->get(l, LocaleKey::KIND_ANY, &validLoc, success);
 
     if(U_FAILURE(success) || !c) {
       delete zone;
@@ -671,10 +667,8 @@ Calendar::createInstance(TimeZone* zone, const Locale& aLocale, UErrorCode& succ
   // Now, reset calendar to default state:
   c->adoptTimeZone(zone); //  Set the correct time zone
   c->setTimeInMillis(getNow(), success); // let the new calendar have the current time.
-  
-  // pull up actual locale from registration
-  U_LOCALE_BASED(locBased, *c);
-  locBased.setLocaleIDs(0, actualLoc.getName());
+  // pull up valid locale from registration
+  uprv_strcpy(c->validLocale, validLoc.getName());
   return c;
 }
 
@@ -2913,9 +2907,8 @@ Calendar::setWeekCountData(const Locale& desiredLocale, UErrorCode& status)
 
     //dateTimeElements = resource.getStringArray(kDateTimeElements, count, status);
     UResourceBundle *dateTimeElements = ures_getByKey(resource, kDateTimeElements, NULL, &status);  // TODO: should be per calendar?!
-    U_LOCALE_BASED(locBased, *this);
-    locBased.setLocaleIDs(ures_getLocaleByType(resource, ULOC_VALID_LOCALE, &status),
-                          ures_getLocaleByType(resource, ULOC_ACTUAL_LOCALE, &status));
+    uprv_strcpy(validLocale, ures_getLocaleByType(resource, ULOC_VALID_LOCALE, &status));
+    uprv_strcpy(actualLocale, ures_getLocaleByType(resource, ULOC_ACTUAL_LOCALE, &status));
     if (U_SUCCESS(status)) {
         int32_t arrLen;
         const int32_t *dateTimeElementsArr = ures_getIntVector(dateTimeElements, &arrLen, &status);
@@ -2957,16 +2950,39 @@ Calendar::updateTime(UErrorCode& status)
     fIsTimeSet = TRUE;
 }
 
+
 Locale 
-Calendar::getLocale(ULocDataLocaleType type, UErrorCode& status) const {
-    U_LOCALE_BASED(locBased, *this);
-    return locBased.getLocale(type, status);
+Calendar::getLocale(ULocDataLocaleType type, UErrorCode &status) const
+{
+  switch(type) {
+  case ULOC_VALID_LOCALE:
+    return Locale(validLocale);
+    break;
+  case ULOC_ACTUAL_LOCALE:
+    return Locale(actualLocale);
+    break;
+  default:
+    status = U_UNSUPPORTED_ERROR;
+    return Locale("");
+    break;
+  }
 }
 
-const char *
-Calendar::getLocaleID(ULocDataLocaleType type, UErrorCode& status) const {
-    U_LOCALE_BASED(locBased, *this);
-    return locBased.getLocaleID(type, status);
+const char* 
+Calendar::getLocaleInternal(ULocDataLocaleType type, UErrorCode &status) const
+{
+  switch(type) {
+  case ULOC_VALID_LOCALE:
+    return validLocale;
+    break;
+  case ULOC_ACTUAL_LOCALE:
+    return actualLocale;
+    break;
+  default:
+    status = U_UNSUPPORTED_ERROR;
+    return NULL;
+    break;
+  }
 }
 
 U_NAMESPACE_END

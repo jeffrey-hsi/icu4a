@@ -29,7 +29,6 @@
 #include "mutex.h"
 #include "cmemory.h"
 #include "cstring.h"
-#include "locbased.h"
  
 // *****************************************************************************
 // class DateFormatSymbols
@@ -644,11 +643,10 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
 
     // if we make it to here, the resource data is cool, and we can get everything out
     // of it that we need except for the time-zone and localized-pattern data, which
-    // are stored in a separate file
+    // are stoerd in a separate file
     ResourceBundle data = getData(resource, gErasTag, type, status);
-    U_LOCALE_BASED(locBased, *this);
-    locBased.setLocaleIDs(data.getLocale(ULOC_VALID_LOCALE, status).getName(),
-                          data.getLocale(ULOC_ACTUAL_LOCALE, status).getName());
+    uprv_strcpy(validLocale, data.getLocale(ULOC_VALID_LOCALE, status).getName());
+    uprv_strcpy(actualLocale, data.getLocale(ULOC_ACTUAL_LOCALE, status).getName());
     initField(&fEras, fErasCount, data, status);
     initField(&fMonths, fMonthsCount, getData(resource, gMonthNamesTag, type, status), status);
     initField(&fShortMonths, fShortMonthsCount, getData(resource, gMonthAbbreviationsTag, type, status), status);
@@ -765,12 +763,6 @@ int32_t DateFormatSymbols::_getZoneIndex(const UnicodeString& ID) const
     }
 
     return -1;
-}
-
-Locale 
-DateFormatSymbols::getLocale(ULocDataLocaleType type, UErrorCode& status) const {
-    U_LOCALE_BASED(locBased, *this);
-    return locBased.getLocale(type, status);
 }
 
 U_NAMESPACE_END

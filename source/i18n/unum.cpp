@@ -661,13 +661,10 @@ unum_getLocaleByType(const UNumberFormat *fmt,
                      ULocDataLocaleType type,
                      UErrorCode* status)
 {
-    if (fmt == NULL) {
-        if (U_SUCCESS(*status)) {
-            *status = U_ILLEGAL_ARGUMENT_ERROR;
-        }
-        return NULL;
-    }
-    return ((Format*)fmt)->getLocaleID(type, *status);
+  if(fmt==NULL){
+      return NULL;
+  }
+  return ((Format *)fmt)->getLocaleInternal(type, *status);
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

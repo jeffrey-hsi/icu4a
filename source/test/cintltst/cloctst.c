@@ -12,28 +12,22 @@
 *     Madhu Katragadda            Ported for C API
 *********************************************************************************
 */
-#include "cloctst.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "cintltst.h"
-#include "cmemory.h"
-#include "cstring.h"
-#include "locmap.h"
-#include "unicode/putil.h"
-#include "unicode/ubrk.h"
-#include "unicode/uchar.h"
-#include "unicode/ucol.h"
-#include "unicode/udat.h"
-#include "unicode/uloc.h"
-#include "unicode/ulocdata.h"
-#include "unicode/umsg.h"
-#include "unicode/ures.h"
-#include "unicode/uscript.h"
-#include "unicode/uset.h"
-#include "unicode/ustring.h"
 #include "unicode/utypes.h"
-#include "unicode/uversion.h"
+#include "unicode/putil.h"
+#include "cloctst.h"
+#include "unicode/uloc.h"
+#include "unicode/uscript.h"
+#include "unicode/uchar.h"
+#include "unicode/ustring.h"
+#include "unicode/uset.h"
+#include "unicode/ulocdata.h"
+#include "cintltst.h"
+#include "cstring.h"
+#include "unicode/ures.h"
+#include "locmap.h"
 
 #define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
@@ -215,7 +209,6 @@ void addLocaleTest(TestNode** root)
     addTest(root, &TestDisplayKeywords,      "tsutil/cloctst/TestDisplayKeywords");
     addTest(root, &TestDisplayKeywordValues, "tsutil/cloctst/TestDisplayKeywordValues");
     addTest(root, &TestGetBaseName,          "tsutil/cloctst/TestGetBaseName");
-    addTest(root, &TestGetLocale,            "tsutil/cloctst/TestGetLocale");
 }
 
 
@@ -2650,199 +2643,4 @@ static void TestGetBaseName(void) {
 }
 
 
-/**
- * Compare the ICU version against the given major/minor version.
- */
-static int32_t _cmpversion(const char* version) {
-    UVersionInfo x, icu;
-    u_versionFromString(x, version);
-    u_getVersion(icu);
-    return uprv_memcmp(icu, x, U_MAX_VERSION_LENGTH);
-}
 
-/**
- * Compare two locale IDs.  If they are equal, return 0.  If `string'
- * starts with `prefix' plus an additional element, that is, string ==
- * prefix + '_' + x, then return 1.  Otherwise return a value < 0.
- */
-static UBool _loccmp(const char* string, const char* prefix) {
-    int32_t slen = uprv_strlen(string),
-            plen = uprv_strlen(prefix);
-    int32_t c = uprv_strncmp(string, prefix, plen);
-    /* 'root' is less than everything */
-    if (uprv_strcmp(prefix, "root") == 0) {
-        return (uprv_strcmp(string, "root") == 0) ? 0 : 1;
-    }
-    if (c) return -1; /* mismatch */
-    if (slen == plen) return 0;
-    if (string[plen] == '_') return 1;
-    return -2; /* false match, e.g. "en_USX" cmp "en_US" */
-}
-
-static void _checklocs(const char* label,
-                       const char* req,
-                       const char* valid,
-                       const char* actual) {
-    /* We want the valid to be strictly > the bogus requested locale,
-       and the valid to be >= the actual. */
-    if (_loccmp(req, valid) > 0 &&
-        _loccmp(valid, actual) >= 0) {
-        log_verbose("%s; req=%s, valid=%s, actual=%s\n",
-                    label, req, valid, actual);
-    } else {
-        log_err("FAIL: %s; req=%s, valid=%s, actual=%s\n",
-                label, req, valid, actual);
-    }
-}
-
-static void TestGetLocale(void) {
-    UErrorCode ec = U_ZERO_ERROR;
-    UParseError pe;
-    UChar EMPTY[1] = {0};
-
-    /* === udat === */
-    {
-        UDateFormat *obj;
-        const char *req = "en_US_REDWOODSHORES", *valid, *actual;
-        obj = udat_open(UDAT_DEFAULT, UDAT_DEFAULT,
-                        req,
-                        NULL, 0,
-                        NULL, 0, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("udat_open failed\n");
-            return;
-        }
-        valid = udat_getLocaleByType(obj, ULOC_VALID_LOCALE, &ec);
-        actual = udat_getLocaleByType(obj, ULOC_ACTUAL_LOCALE, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("udat_getLocaleByType() failed\n");
-            return;
-        }
-        _checklocs("udat", req, valid, actual);
-        udat_close(obj);
-    }
-
-    /* === ucal === */
-    {
-        UCalendar *obj;
-        const char *req = "fr_FR_PROVENCAL", *valid, *actual;
-        obj = ucal_open(NULL, 0,
-                        req,
-                        UCAL_GREGORIAN,
-                        &ec);
-        if (U_FAILURE(ec)) {
-            log_err("ucal_open failed\n");
-            return;
-        }
-        valid = ucal_getLocaleByType(obj, ULOC_VALID_LOCALE, &ec);
-        actual = ucal_getLocaleByType(obj, ULOC_ACTUAL_LOCALE, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("ucal_getLocaleByType() failed\n");
-            return;
-        }
-        _checklocs("ucal", req, valid, actual);
-        ucal_close(obj);
-    }
-
-    /* === unum === */
-    {
-        UNumberFormat *obj;
-        const char *req = "zh_TW_TAINAN", *valid, *actual;
-        obj = unum_open(UNUM_DECIMAL,
-                        NULL, 0,
-                        req,
-                        &pe, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("unum_open failed\n");
-            return;
-        }
-        valid = unum_getLocaleByType(obj, ULOC_VALID_LOCALE, &ec);
-        actual = unum_getLocaleByType(obj, ULOC_ACTUAL_LOCALE, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("unum_getLocaleByType() failed\n");
-            return;
-        }
-        _checklocs("unum", req, valid, actual);
-        unum_close(obj);
-    }
-
-    /* === umsg === */
-    {
-        UMessageFormat *obj;
-        const char *req = "ja_JP_TAKAYAMA", *valid, *actual;
-        UBool test;
-        obj = umsg_open(EMPTY, 0,
-                        req,
-                        &pe, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("umsg_open failed\n");
-            return;
-        }
-        valid = umsg_getLocaleByType(obj, ULOC_VALID_LOCALE, &ec);
-        actual = umsg_getLocaleByType(obj, ULOC_ACTUAL_LOCALE, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("umsg_getLocaleByType() failed\n");
-            return;
-        }
-        /* We want the valid to be strictly > the bogus requested locale,
-           and the valid to be >= the actual. */
-        /* TODO MessageFormat is currently just storing the locale it is given.
-           As a result, it will return whatever it was given, even if the
-           locale is invalid. */
-        test = (_cmpversion("2.8") <= 0) ?
-            /* Here is the weakened test for 2.8: */
-            (_loccmp(req, valid) >= 0) :
-            /* Here is what the test line SHOULD be: */
-            (_loccmp(req, valid) > 0);
-
-        if (test &&
-            _loccmp(valid, actual) >= 0) {
-            log_verbose("umsg; req=%s, valid=%s, actual=%s\n", req, valid, actual);
-        } else {
-            log_err("FAIL: umsg; req=%s, valid=%s, actual=%s\n", req, valid, actual);
-        }
-        umsg_close(obj);
-    }
-
-    /* === ubrk === */
-    {
-        UBreakIterator *obj;
-        const char *req = "ar_KW_ABDALI", *valid, *actual;
-        obj = ubrk_open(UBRK_WORD,
-                        req,
-                        EMPTY,
-                        0,
-                        &ec);
-        if (U_FAILURE(ec)) {
-            log_err("ubrk_open failed\n");
-            return;
-        }
-        valid = ubrk_getLocaleByType(obj, ULOC_VALID_LOCALE, &ec);
-        actual = ubrk_getLocaleByType(obj, ULOC_ACTUAL_LOCALE, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("ubrk_getLocaleByType() failed\n");
-            return;
-        }
-        _checklocs("ubrk", req, valid, actual);
-        ubrk_close(obj);
-    }
-
-    /* === ucol === */
-    {
-        UCollator *obj;
-        const char *req = "es_AR_BUENOSAIRES", *valid, *actual;
-        obj = ucol_open(req, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("ucol_open failed\n");
-            return;
-        }
-        valid = ucol_getLocaleByType(obj, ULOC_VALID_LOCALE, &ec);
-        actual = ucol_getLocaleByType(obj, ULOC_ACTUAL_LOCALE, &ec);
-        if (U_FAILURE(ec)) {
-            log_err("ucol_getLocaleByType() failed\n");
-            return;
-        }
-        _checklocs("ucol", req, valid, actual);
-        ucol_close(obj);
-    }
-}

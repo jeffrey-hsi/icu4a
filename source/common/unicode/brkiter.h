@@ -531,7 +531,7 @@ public:
 
     /**
      * Register a new break iterator of the indicated kind, to use in the given locale.
-     * The break iterator will be adopted.  Clones of the iterator will be returned
+     * The break iterator will be adoped.  Clones of the iterator will be returned
      * if a request for a break iterator of the given kind matches or falls back to
      * this locale.
      * @param toAdopt the BreakIterator instance to be adopted
@@ -565,9 +565,9 @@ public:
     /**
      * Returns the locale for this break iterator. Two flavors are available: valid and 
      * actual locale. 
-     * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
+     * @draft ICU 2.8
      */
-    Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
+    virtual Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
 
     /** Get the locale for this break iterator object. You can choose between valid and actual locale.
      *  @param type type of the locale we're looking for (valid or actual) 
@@ -575,8 +575,7 @@ public:
      *  @return the locale
      *  @internal
      */
-    const char *getLocaleID(ULocDataLocaleType type, UErrorCode& status) const;
-
+    virtual const char *getLocaleInternal(ULocDataLocaleType type, UErrorCode& status) const;
  private:
     static BreakIterator* makeCharacterInstance(const Locale& loc, UErrorCode& status);
     static BreakIterator* makeWordInstance(const Locale& loc, UErrorCode& status);
@@ -598,12 +597,10 @@ protected:
     /** @internal */
     BreakIterator (const BreakIterator &other) : UObject(other), fBufferClone(FALSE) {}
 
-private:
-
     /** @internal */
     char actualLocale[ULOC_FULLNAME_CAPACITY];
     char validLocale[ULOC_FULLNAME_CAPACITY];
-
+private:
     /**
      * The assignment operator has no real implementation.
      * It's provided to make the compiler happy. Do not call.

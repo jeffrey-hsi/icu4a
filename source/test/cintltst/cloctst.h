@@ -89,8 +89,6 @@ static  void TestDisplayNames(void);
 
  static void TestGetBaseName(void);
 
-static void TestGetLocale(void);
-
 /**
  * additional intialization for datatables storing expected values
  */

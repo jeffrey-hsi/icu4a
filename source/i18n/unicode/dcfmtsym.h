@@ -203,13 +203,6 @@ public:
     inline Locale getLocale() const;
 
     /**
-     * Returns the locale for this object. Two flavors are available:
-     * valid and actual locale.
-     * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
-     */
-    Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
-
-    /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
      * @stable ICU 2.2
@@ -294,8 +287,6 @@ private:
 
     Locale locale;
 
-    char actualLocale[ULOC_FULLNAME_CAPACITY];
-    char validLocale[ULOC_FULLNAME_CAPACITY];
 };
 
 // -------------------------------------

@@ -410,7 +410,7 @@ public:
     * @param status the error code status.
     * @return locale where the collation data lives. If the collator
     *         was instantiated from rules, locale is empty.
-    * @deprecated ICU 2.8 likely to change in ICU 3.0, based on feedback
+    * @stable ICU 2.1
     */
     virtual const Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
 

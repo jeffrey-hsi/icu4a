@@ -1862,14 +1862,6 @@ InputPath=.\unicode\uidna.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=.\locbased.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\locbased.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\locid.cpp
 # End Source File
 # Begin Source File
