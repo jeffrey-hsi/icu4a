@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 2001-2005, International Business Machines Corporation and
+ * Copyright (c) 2001-2003, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /************************************************************************
@@ -92,18 +92,18 @@ public:
     }
 
     /**
-     * ICU "poor man's RTTI", returns a UClassID for this class.
-     *
-     * @draft ICU 2.2
-     */
-    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
-
-    /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
      * @draft ICU 2.2
      */
     virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+
+    /**
+     * ICU "poor man's RTTI", returns a UClassID for this class.
+     *
+     * @draft ICU 2.2
+     */
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 protected:
     virtual int32_t getLength() const {
@@ -117,6 +117,15 @@ protected:
     virtual UChar32 getChar32At(int32_t offset) const{
         return chars.char32At(offset);
     }
+
+    virtual void handleReplaceBetween(int32_t start, int32_t limit, const UnicodeString& text) {
+        UnicodeString s;
+        this->extractBetween(start, limit, s);
+        if (s == text) return; // NO ACTION!
+        this->chars.replaceBetween(start, limit, text);
+        fixStyles(start, limit, text.length());
+    }
+    
 
     void fixStyles(int32_t start, int32_t limit, int32_t newLen) {
         UChar newStyle = NO_STYLE;
@@ -141,15 +150,6 @@ protected:
         }
         styles.replaceBetween(start, limit, s);
     }
-
-    virtual void handleReplaceBetween(int32_t start, int32_t limit, const UnicodeString& text) {
-        UnicodeString s;
-        this->extractBetween(start, limit, s);
-        if (s == text) return; // NO ACTION!
-        this->chars.replaceBetween(start, limit, text);
-        fixStyles(start, limit, text.length());
-    }
-    
 
     virtual void copy(int32_t start, int32_t limit, int32_t dest) {
         chars.copy(start, limit, dest);
@@ -201,8 +201,8 @@ public:
         /* do nothing */
     }
 
-    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
     virtual inline UClassID getDynamicClassID() const { return getStaticClassID(); }
+    static inline UClassID getStaticClassID() { return (UClassID)&fgClassID; }
 
 private:
     static const char fgClassID;

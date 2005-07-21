@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -100,8 +100,7 @@ _uErrorName[U_STANDARD_ERROR_LIMIT]={
     "U_INVARIANT_CONVERSION_ERROR",
     "U_INVALID_STATE_ERROR",
     "U_COLLATOR_VERSION_MISMATCH",
-    "U_USELESS_COLLATOR_ERROR",
-    "U_NO_WRITE_PERMISSION"
+    "U_USELESS_COLLATOR_ERROR"
 };
 static const char * const
 _uFmtErrorName[U_FMT_PARSE_ERROR_LIMIT - U_FMT_PARSE_ERROR_START] = {
@@ -156,20 +155,17 @@ _uRegexErrorName[U_REGEX_ERROR_LIMIT - U_REGEX_ERROR_START] = {
     "U_REGEX_LOOK_BEHIND_LIMIT",
     "U_REGEX_SET_CONTAINS_STRING"
 };
-/* TODO: replace the definition with _uIDNAErrorName[U_IDNA_ERROR_LIMIT - U_IDNA_ERROR_START ]
- * in ICU 3.6
- */
+
 static const char * const
-_uIDNAErrorName[U_IDNA_ERROR_LIMIT - U_IDNA_ERROR_START + 1] = {
-     "U_IDNA_ERROR_START",
-     "U_STRINGPREP_PROHIBITED_ERROR",
-     "U_STRINGPREP_UNASSIGNED_ERROR",
-     "U_STRINGPREP_CHECK_BIDI_ERROR",
-     "U_IDNA_STD3_ASCII_RULES_ERROR",
-     "U_IDNA_ACE_PREFIX_ERROR",
-     "U_IDNA_VERIFICATION_ERROR",
-     "U_IDNA_LABEL_TOO_LONG_ERROR",
-     "U_IDNA_ZERO_LENGTH_LABEL_ERROR"
+_uIDNAErrorName[U_IDNA_ERROR_LIMIT - U_IDNA_ERROR_START] = {
+      "U_IDNA_ERROR_START",
+      "U_IDNA_PROHIBITED_ERROR",
+      "U_IDNA_UNASSIGNED_ERROR",
+      "U_IDNA_CHECK_BIDI_ERROR",
+      "U_IDNA_STD3_ASCII_RULES_ERROR",
+      "U_IDNA_ACE_PREFIX_ERROR",
+      "U_IDNA_VERIFICATION_ERROR",
+      "U_IDNA_LABEL_TOO_LONG_ERROR"
 };
 
 U_CAPI const char * U_EXPORT2

@@ -1,5 +1,5 @@
 ## Makefile.in for ICU - tools/gennames
-## Copyright (c) 1999-2005, International Business Machines Corporation and
+## Copyright (c) 1999-2004, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ## Steven R. Loomi
 
@@ -31,7 +31,7 @@ CLEANFILES = *~ $(DEPS) $(ALL_MAN_FILES)
 TARGET = $(BINDIR)/$(TARGET_STUB_NAME)$(EXEEXT)
 
 CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcdir)/../toolutil
-LIBS = $(LIBICUTOOLUTIL) $(LIBICUI18N) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
+LIBS = $(LIBICUTOOLUTIL) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
 
 OBJECTS = gennames.o
 
@@ -40,7 +40,7 @@ DEPS = $(OBJECTS:.o=.d)
 ## List of phony targets
 .PHONY : all all-local install install-local clean clean-local\
 distclean distclean-local dist dist-local check	\
-check-local install-man
+check-local install-man install-manx
 
 ## Clear suffix list
 .SUFFIXES :
@@ -56,13 +56,14 @@ check: all check-local
 all-local: $(TARGET) $(ALL_MAN_FILES)
 
 install-local: all-local install-man
-#	$(MKINSTALLDIRS) $(DESTDIR)$(sbindir)
-#	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)
+	$(MKINSTALLDIRS) $(DESTDIR)$(sbindir)
+	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)
 
 # man page
-install-man: $(MANX_FILES)
-#	$(MKINSTALLDIRS) $(DESTDIR)$(mandir)/man$(SECTION)
-#	$(INSTALL_DATA) $? $(DESTDIR)$(mandir)/man$(SECTION)
+install-man: install-manx
+install-manx: $(MANX_FILES)
+	$(MKINSTALLDIRS) $(DESTDIR)$(mandir)/man$(SECTION)
+	$(INSTALL_DATA) $? $(DESTDIR)$(mandir)/man$(SECTION)
 
 %.$(SECTION): $(srcdir)/%.$(SECTION).in
 	cd $(top_builddir) \

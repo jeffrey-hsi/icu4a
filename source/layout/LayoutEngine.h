@@ -1,7 +1,7 @@
 
 /*
  *
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved
  *
  */
 
@@ -9,11 +9,6 @@
 #define __LAYOUTENGINE_H
 
 #include "LETypes.h"
-
-/**
- * \file 
- * \brief C++ API: Virtual base class for complex text layout.
- */
 
 U_NAMESPACE_BEGIN
 
@@ -101,28 +96,19 @@ protected:
     le_int32 fLanguageCode;
 
     /**
-     * The typographic control flags
-     *
-     * @internal
-     */
-    le_int32 fTypoFlags;
-
-    /**
      * This constructs an instance for a given font, script and language. Subclass constructors
      * must call this constructor.
      *
      * @param fontInstance - the font for the text
      * @param scriptCode - the script for the text
      * @param languageCode - the language for the text
-     * @param typoFlags - the typographic control flags for the text.  Set bit 1 if kerning
-     * is desired, set bit 2 if ligature formation is desired.  Others are reserved.
      *
      * @see LEFontInstance
      * @see ScriptAndLanguageTags.h
      *
      * @internal
      */
-    LayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode, le_int32 typoFlags);
+    LayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode);
 
     /**
      * This overrides the default no argument constructor to make it
@@ -451,12 +437,6 @@ public:
      * @stable ICU 2.8
      */
     static LayoutEngine *layoutEngineFactory(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode, LEErrorCode &success);
-
-    /**
-     * Override of existing call that provides flags to control typography.
-     * @draft ICU 3.4
-     */
-    static LayoutEngine *layoutEngineFactory(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode, le_int32 typo_flags, LEErrorCode &success);
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.

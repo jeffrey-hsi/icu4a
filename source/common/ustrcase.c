@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2001-2005, International Business Machines
+*   Copyright (C) 2001-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -121,18 +121,18 @@ UCaseMapFull(const UCaseProps *csp, UChar32 c,
              const char *locale, int32_t *locCache);
 
 /*
- * Case-maps [srcStart..srcLimit[ but takes
+ * Lowercases [srcStart..srcLimit[ but takes
  * context [0..srcLength[ into account.
  */
 static int32_t
-_caseMap(const UCaseProps *csp, UCaseMapFull *map,
+_caseMap(UCaseProps *csp, UCaseMapFull *map,
          UChar *dest, int32_t destCapacity,
          const UChar *src, UCaseContext *csc,
          int32_t srcStart, int32_t srcLimit,
          const char *locale, int32_t *locCache,
          UErrorCode *pErrorCode) {
     const UChar *s;
-    UChar32 c, c2;
+    UChar32 c;
     int32_t srcIndex, destIndex;
 
     /* case mapping loop */
@@ -143,12 +143,7 @@ _caseMap(const UCaseProps *csp, UCaseMapFull *map,
         U16_NEXT(src, srcIndex, srcLimit, c);
         csc->cpLimit=srcIndex;
         c=map(csp, c, utf16_caseContextIterator, csc, &s, locale, locCache);
-        if((destIndex<destCapacity) && (c<0 ? (c2=~c)<=0xffff : UCASE_MAX_STRING_LENGTH<c && (c2=c)<=0xffff)) {
-            /* fast path version of appendResult() for BMP results */
-            dest[destIndex++]=(UChar)c2;
-        } else {
-            destIndex=appendResult(dest, destIndex, destCapacity, c, s);
-        }
+        destIndex=appendResult(dest, destIndex, destCapacity, c, s);
     }
 
     if(destIndex>destCapacity) {
@@ -165,7 +160,7 @@ _caseMap(const UCaseProps *csp, UCaseMapFull *map,
  * Must get titleIter!=NULL.
  */
 static int32_t
-_toTitle(const UCaseProps *csp,
+_toTitle(UCaseProps *csp,
          UChar *dest, int32_t destCapacity,
          const UChar *src, UCaseContext *csc,
          int32_t srcLength,
@@ -228,7 +223,7 @@ _toTitle(const UCaseProps *csp,
 }
 
 U_CFUNC int32_t
-ustr_toTitle(const UCaseProps *csp,
+ustr_toTitle(UCaseProps *csp,
              UChar *dest, int32_t destCapacity,
              const UChar *src, int32_t srcLength,
              UBreakIterator *titleIter,
@@ -252,7 +247,7 @@ ustr_toTitle(const UCaseProps *csp,
 /* functions available in the common library (for unistr_case.cpp) */
 
 U_CFUNC int32_t
-ustr_toLower(const UCaseProps *csp,
+ustr_toLower(UCaseProps *csp,
              UChar *dest, int32_t destCapacity,
              const UChar *src, int32_t srcLength,
              const char *locale,
@@ -271,7 +266,7 @@ ustr_toLower(const UCaseProps *csp,
 }
 
 U_CFUNC int32_t
-ustr_toUpper(const UCaseProps *csp,
+ustr_toUpper(UCaseProps *csp,
              UChar *dest, int32_t destCapacity,
              const UChar *src, int32_t srcLength,
              const char *locale,
@@ -290,7 +285,7 @@ ustr_toUpper(const UCaseProps *csp,
 }
 
 U_CFUNC int32_t
-ustr_foldCase(const UCaseProps *csp,
+ustr_foldCase(UCaseProps *csp,
               UChar *dest, int32_t destCapacity,
               const UChar *src, int32_t srcLength,
               uint32_t options,
@@ -298,19 +293,14 @@ ustr_foldCase(const UCaseProps *csp,
     int32_t srcIndex, destIndex;
 
     const UChar *s;
-    UChar32 c, c2;
+    UChar32 c;
 
     /* case mapping loop */
     srcIndex=destIndex=0;
     while(srcIndex<srcLength) {
         U16_NEXT(src, srcIndex, srcLength, c);
         c=ucase_toFullFolding(csp, c, &s, options);
-        if((destIndex<destCapacity) && (c<0 ? (c2=~c)<=0xffff : UCASE_MAX_STRING_LENGTH<c && (c2=c)<=0xffff)) {
-            /* fast path version of appendResult() for BMP results */
-            dest[destIndex++]=(UChar)c2;
-        } else {
-            destIndex=appendResult(dest, destIndex, destCapacity, c, s);
-        }
+        destIndex=appendResult(dest, destIndex, destCapacity, c, s);
     }
 
     if(destIndex>destCapacity) {
@@ -343,7 +333,7 @@ caseMap(UChar *dest, int32_t destCapacity,
     UChar buffer[300];
     UChar *temp;
 
-    const UCaseProps *csp;
+    UCaseProps *csp;
 
     int32_t destLength;
     UBool ownTitleIter;
@@ -537,7 +527,7 @@ u_strcmpFold(const UChar *s1, int32_t length1,
              const UChar *s2, int32_t length2,
              uint32_t options,
              UErrorCode *pErrorCode) {
-    const UCaseProps *csp;
+    UCaseProps *csp;
 
     /* current-level start/limit - s1/s2 as current */
     const UChar *start1, *start2, *limit1, *limit2;

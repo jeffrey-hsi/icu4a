@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ***************************************************************************/
 /*******************************************************************************
@@ -250,7 +250,7 @@ static UBool testConvertFromUnicode(const UChar *source, int sourceLen,  const u
     {
         log_err("Expected %d chars out, got %d %s\n", expectLen, targ-junkout, gNuConvTestName);
         log_verbose("Expected %d chars out, got %d %s\n", expectLen, targ-junkout, gNuConvTestName);
-        printSeqErr((const unsigned char*)junkout, (int32_t)(targ-junkout));
+        printSeqErr((const unsigned char*)junkout, targ-junkout);
         printSeqErr((const unsigned char*)expect, expectLen);
         return FALSE;
     }
@@ -261,7 +261,7 @@ static UBool testConvertFromUnicode(const UChar *source, int sourceLen,  const u
         if(uprv_memcmp(junokout,expectOffsets,(targ-junkout) * sizeof(int32_t) )){
             log_err("\ndid not get the expected offsets while %s \n", gNuConvTestName);
             log_err("Got  : ");
-            printSeqErr((const unsigned char*)junkout, (int32_t)(targ-junkout));
+            printSeqErr((const unsigned char*)junkout, targ-junkout);
             for(p=junkout;p<targ;p++)
                 log_err("%d, ", junokout[p-junkout]); 
             log_err("\nExpected: ");
@@ -521,7 +521,6 @@ static void TestConvertFallBackWithBufferSizes(int32_t outsize, int32_t insize )
         "ibm-367",
         "ibm-437",
         "ibm-850",
-        "ibm-878",
         "ibm-1051",
         "ibm-1089",
         "ibm-1250",
@@ -532,7 +531,8 @@ static void TestConvertFallBackWithBufferSizes(int32_t outsize, int32_t insize )
         "ibm-1256",
         "ibm-1257",
         "ibm-1258",
-        "ibm-1276"
+        "ibm-1276",
+        "ibm-1277"
     };
 
     int32_t i=0;

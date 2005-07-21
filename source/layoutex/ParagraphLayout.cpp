@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 2002-2005, International Business Machines
+ *   Copyright (C) 2002-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
  */
@@ -139,7 +139,7 @@ static const le_bool complexTable[] = {
     TRUE,   /* Beng */
     FALSE,  /* Bopo */
     FALSE,  /* Cher */
-    FALSE,  /* Copt=Qaac */
+    FALSE,  /* Qaac */
     FALSE,  /* Cyrl */
     FALSE,  /* Dsrt */
     TRUE,   /* Deva */
@@ -186,14 +186,7 @@ static const le_bool complexTable[] = {
     FALSE,  /* Shaw */
     FALSE,  /* Tale */
     FALSE,  /* Ugar */
-    FALSE,  /* Hrkt */
-    FALSE,  /* Bugi */
-    FALSE,  /* Glag */
-    FALSE,  /* Khar */
-    FALSE,  /* Sylo */
-    FALSE,  /* Talu */
-    FALSE,  /* Tfng */
-    FALSE   /* Xpeo */
+    FALSE   /* Hrkt */
 };
 
 

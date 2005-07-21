@@ -1,6 +1,6 @@
 /***********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation
+ * Copyright (c) 1997-2004, International Business Machines Corporation
  * and others. All Rights Reserved.
  ***********************************************************************/
 
@@ -90,21 +90,18 @@ NumberFormatRoundTripTest::start()
     logln("Default Locale");
 
     fmt = NumberFormat::createInstance(status);
-    if (!failure(status, "NumberFormat::createInstance")){
-        test(fmt);
-    }
+    failure(status, "NumberFormat::createInstance");
+    test(fmt);
     delete fmt;
 
     fmt = NumberFormat::createCurrencyInstance(status);
-    if (!failure(status, "NumberFormat::createCurrencyInstance")){
-        test(fmt);
-    }
+    failure(status, "NumberFormat::createCurrencyInstance");
+    test(fmt);
     delete fmt;
 
     fmt = NumberFormat::createPercentInstance(status);
-    if (!failure(status, "NumberFormat::createPercentInstance")){
-        test(fmt);
-    }
+    failure(status, "NumberFormat::createPercentInstance");
+    test(fmt);
     delete fmt;
 
 

@@ -1,7 +1,7 @@
 
 /*
  *
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved
  *
  */
 
@@ -44,12 +44,12 @@ public:
      *
      * @see LayoutEngine::layoutEngineFactory
      * @see OpenTypeLayoutEngine
-     * @see ScriptAndLanguageTags.h for script and language codes
+     * @see ScriptAndLangaugeTags.h for script and language codes
      *
      * @internal
      */
     ArabicOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode,
-                            le_int32 typoFlags, const GlyphSubstitutionTableHeader *gsubTable);
+                            const GlyphSubstitutionTableHeader *gsubTable);
 
     /**
      * This constructor is used when the font requires a "canned" GSUB table which can't be known
@@ -60,12 +60,11 @@ public:
      * @param langaugeCode - the language
      *
      * @see OpenTypeLayoutEngine
-     * @see ScriptAndLanguageTags.h for script and language codes
+     * @see ScriptAndLangaugeTags.h for script and language codes
      *
      * @internal
      */
-    ArabicOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode,
-			       le_int32 typoFlags);
+    ArabicOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode);
 
     /**
      * The destructor, virtual for correct polymorphic invocation.
@@ -165,8 +164,7 @@ public:
      *
      * @internal
      */
-    UnicodeArabicOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode,
-		le_int32 typoFlags);
+    UnicodeArabicOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode);
 
     /**
      * The destructor, virtual for correct polymorphic invocation.

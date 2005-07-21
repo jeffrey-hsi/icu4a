@@ -83,7 +83,7 @@ class U_I18N_API NormalizationTransliterator : public Transliterator {
      * @param incremental   if true, assume more text may be coming after
      *                      pos.contextLimit. Otherwise, assume the text is complete.
      */
-    virtual void handleTransliterate(Replaceable& text, UTransPosition& offset,
+    void handleTransliterate(Replaceable& text, UTransPosition& offset,
                              UBool isIncremental) const;
  public:
 

@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-*   Copyright (C) 2000-2005, International Business Machines
+*   Copyright (C) 2000-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ***************************************************************************
@@ -133,7 +133,7 @@ pkg_mak_writeFooter(FileStream *f, const UPKGOptions *o)
     T_FileStream_write(f, buf, (int32_t)uprv_strlen(buf));
 }
 
-#else   /* #ifdef U_MAKE_IS_NMAKE */
+#else   /* #ifdef WIN32 */
 
 #include "cmemory.h"
 #include "filestrm.h"
@@ -393,7 +393,7 @@ pkg_mak_writeObjRules(UPKGOptions *o,  FileStream *makefile, CharList **objects,
         commands = pkg_appendToList(commands, NULL, uprv_strdup(stanza));
       }
       
-      sprintf(stanza, "@$(COMPILE.c) $(DYNAMICCPPFLAGS) $(DYNAMICCXXFLAGS) -o $@ $(TEMP_DIR)/%s", cfile+genFileOffset); /* for AS/400 */
+      sprintf(stanza, "@$(COMPILE.c) -o $@ $(TEMP_DIR)/%s", cfile+genFileOffset); /* for AS/400 */
       commands = pkg_appendToList(commands, NULL, uprv_strdup(stanza));
       
       sprintf(stanza, "@$(RMV) $(TEMP_DIR)/%s", cfile+genFileOffset);
@@ -410,7 +410,7 @@ pkg_mak_writeObjRules(UPKGOptions *o,  FileStream *makefile, CharList **objects,
     }   
 }
 
-#endif  /* #ifdef U_MAKE_IS_NMAKE */
+#endif  /* #ifdef WIN32 */
 
 void
 pkg_mak_writeAssemblyHeader(FileStream *f, const UPKGOptions *o)

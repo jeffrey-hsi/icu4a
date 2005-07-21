@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2003-2005, International Business Machines
+*   Copyright (C) 2003, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -24,8 +24,6 @@
 #include "ucnv_ext.h"
 #include "filestrm.h"
 #include <stdio.h>
-
-#if !UCONFIG_NO_CONVERSION
 
 U_CDECL_BEGIN
 
@@ -282,6 +280,3 @@ ucm_separateMappings(UCMFile *ucm, UBool isSISO);
 U_CDECL_END
 
 #endif
-
-#endif
-

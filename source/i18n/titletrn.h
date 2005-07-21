@@ -15,6 +15,7 @@
 #if !UCONFIG_NO_TRANSLITERATION
 
 #include "unicode/translit.h"
+#include "unicode/locid.h"
 #include "ucase.h"
 #include "casetrn.h"
 
@@ -34,7 +35,7 @@ class U_I18N_API TitlecaseTransliterator : public CaseMapTransliterator {
      * Constructs a transliterator.
      * @param loc the given locale.
      */
-    TitlecaseTransliterator();
+    TitlecaseTransliterator(const Locale& loc = Locale::getDefault());
 
     /**
      * Destructor.

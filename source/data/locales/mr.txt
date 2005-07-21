@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/mr.xml
+// * Source File: ../../../locale/common/main/mr.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/mr.xml
+ *  ICU <specials> source: ../../../locale/icu/main/mr.xml
  */
 mr{
     Countries{
@@ -19,7 +19,7 @@ mr{
             "INR",
         }
     }
-    ExemplarCharacters{"[ँ-ह़-्ॐ-॔ॠ-ॣ०-९ॽ‌‍]"}
+    ExemplarCharacters{"[[:Deva:]-[क़-य़]‌‍]"}
     Languages{
         aa{"अफार"}
         ab{"अबखेजियन"}
@@ -166,7 +166,7 @@ mr{
     LocaleScript{
         "Deva",
     }
-    Version{"1.32"}
+    Version{"1.2"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -193,12 +193,6 @@ mr{
                         "शुक्रवार",
                         "शनिवार",
                     }
-                }
-            }
-            eras{
-                abbreviated{
-                    "ईसापूर्व",
-                    "सन",
                 }
             }
             monthNames{
@@ -242,7 +236,6 @@ mr{
             "IST",
             "भारतीय समय",
             "IST",
-            "Calcutta",
         }
     }
 }

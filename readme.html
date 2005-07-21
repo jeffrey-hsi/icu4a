@@ -2,9 +2,10 @@
 
 <html lang="en-US">
   <head>
+    <meta name="generator" content="HTML Tidy, see www.w3.org">
     <title>ReadMe for ICU</title>
     <meta name="COPYRIGHT" content=
-    "Copyright (c) 1997-2005 IBM Corporation and others. All Rights Reserved.">
+    "Copyright (c) 1997-2004 IBM Corporation and others. All Rights Reserved.">
     <meta name="KEYWORDS" content=
     "ICU; International Components for Unicode; what's new; readme; read me; introduction; downloads; downloading; building; installation;">
     <meta name="DESCRIPTION" content=
@@ -26,10 +27,10 @@
 
   <body>
     <h1>International Components for Unicode<br>
-     <abbr title="International Components for Unicode">ICU</abbr> 3.4
+     <abbr title="International Components for Unicode">ICU</abbr> 3.2.1
     ReadMe</h1>
 
-    <p>Version: 2005-July-15<br>
+    <p>Version: 2005-Jul-22<br>
      Copyright &copy; 1997-2005 International Business Machines Corporation and
     others. All Rights Reserved.</p>
     <!-- Remember that there is a copyright at the end too -->
@@ -56,6 +57,8 @@
 
           <li><a href="#HowToBuildWindows">Windows</a></li>
 
+          <li><a href="#HowToBuildWindowsXP64">Windows XP on IA64</a></li>
+
           <li><a href="#HowToBuildCygwin">Cygwin</a></li>
 
           <li><a href="#HowToBuildUNIX">UNIX</a></li>
@@ -72,7 +75,7 @@
         <a href="#ImportantNotes">Important Notes About Using ICU</a> 
 
         <ul class="TOC">
-          <li><a href="#ImportantNotesMultithreaded">Using ICU in a Multithreaded
+          <li><a href="#ImportantNotesCPlusPlus">Using ICU in a Multithreaded
           Environment</a></li>
 
           <li><a href="#ImportantNotesWindows">Windows Platform</a></li>
@@ -90,6 +93,9 @@
 
           <li><a href="#PlatformDependenciesImpl">Platform Dependent
           Implementations</a></li>
+
+          <li><a href="#PlatformDependenciesBuildOrder">Build Order Without
+          Using ICU's Makefiles</a></li>
         </ul>
       </li>
     </ul>
@@ -216,20 +222,27 @@
     <h2><a name="News" href="#News" id="News">What is new in this
     release?</a></h2>
 
+    <p>This is a maintenance release, mostly concentrated on bug and porting fixes.</p>
     <p>The following list concentrates on <em>changes that affect existing
     applications migrating from previous ICU releases</em>. For more news about
     this release, see the <a href=
-    "http://www.ibm.com/software/globalization/icu/downloads.jsp">ICU 3.4
+    "http://www.ibm.com/software/globalization/icu/downloads.jsp">ICU 3.2
     download page</a>.</p>
 
-    <h3><a name="News_u_init" id="News_u_init">Changes to thread safety
-    initialization and data loading</a></h3>
+    <h3><a name="News_putil_h" id="News_putil_h">Changes to putil.h and
+    utypes.h</a></h3>
 
-    <p>Previously, in order to ensure that ICU was thread safe, applications
-    had to use u_init() before using ICU in multiple threads. This requirement
-    is no longer needed. Please refer to the readme section called <a
-    href="#ImportantNotesMultithreaded">Using ICU in a Multithreaded
-    Environment</a> for details.</p>
+    <p>Starting in ICU 3.2, the unicode/utypes.h and unicode/putil.h headers
+    are no longer circularly dependent on each other. This means that if you
+    use any of the functions from unicode/putil.h and only included
+    unicode/utypes.h, you will now have to include unicode/putil.h too. No
+    stable API functions have been removed from these headers, but some
+    internal function declarations (marked with @internal) have been moved to
+    internal headers.</p>
+
+    <p>This change was announced on the icu mailing list, and it was done to
+    fix some header dependency issues that appeared while trying to make some
+    changes to the utf.h header macros.</p>
 
     <h2><a name="Download" href="#Download" id="Download">How To Download the
     Source Code</a></h2>
@@ -508,6 +521,14 @@
       </tr>
 
       <tr>
+        <td>Windows 2000 with Cygwin</td>
+
+        <td>Microsoft Visual C++ 6.0</td>
+
+        <td>Reference platform</td>
+      </tr>
+
+      <tr>
         <td>Windows XP</td>
 
         <td>Microsoft Visual C++ .NET 2003 (7.1)</td>
@@ -516,9 +537,9 @@
       </tr>
 
       <tr>
-        <td>Red Hat Enterprise Linux 3 Update 4</td>
+        <td>Red Hat Linux 9</td>
 
-        <td>gcc 3.2.3</td>
+        <td>gcc 3.2.2</td>
 
         <td>Reference platform</td>
       </tr>
@@ -532,9 +553,9 @@
       </tr>
 
       <tr>
-        <td>Solaris 9 (SunOS 5.9)</td>
+        <td>Solaris 7 (SunOS 5.7)</td>
 
-        <td>Sun Studio 8 (Sun C++ 5.5)</td>
+        <td>Workshop Pro (Forte) CC 6.0</td>
 
         <td>Reference platform</td>
       </tr>
@@ -549,30 +570,6 @@
       </tr>
 
       <tr>
-        <td>Red Hat Linux 7.2</td>
-
-        <td>gcc 2.96</td>
-
-        <td>Regularly tested</td>
-      </tr>
-
-      <tr>
-        <td>Red Hat Linux 9.0</td>
-
-        <td>gcc 3.2.2</td>
-
-        <td>Regularly tested</td>
-      </tr>
-
-      <tr>
-        <td>Windows 2000/XP with Cygwin</td>
-
-        <td>Microsoft Visual C++ 6.0</td>
-
-        <td>Regularly tested</td>
-      </tr>
-
-      <tr>
         <td>Windows XP with Cygwin</td>
 
         <td>Microsoft Visual C++ .NET 2002 (7.0)</td>
@@ -581,17 +578,43 @@
       </tr>
 
       <tr>
-        <td>Mac OS X (10.2)</td>
+        <td>Windows 98/2000/XP</td>
 
-        <td>gcc 3.1</td>
+        <td>Microsoft Visual C++ 6.0</td>
 
         <td>Regularly tested</td>
       </tr>
 
       <tr>
-        <td>Solaris 7 (SunOS 5.7)</td>
+        <td>Red Hat Linux 7.2</td>
 
-        <td>Workshop Pro (Forte) CC 6.0</td>
+        <td>gcc 2.96</td>
+
+        <td>Regularly tested</td>
+      </tr>
+
+      <tr>
+        <td>Red Hat Linux 8.0</td>
+
+        <td>gcc 3.2</td>
+
+        <td>Regularly tested</td>
+      </tr>
+
+      <tr>
+        <td>Mac OS X (10.2)</td>
+
+        <td>gcc 3.1<br>
+         (Developer Tools, July 2002)</td>
+
+        <td>Regularly tested</td>
+      </tr>
+
+      <tr>
+        <td>Solaris 8 (SunOS 5.8)</td>
+
+        <td>Workshop Pro CC 4.2<br>
+         (use 'runConfigureICU SOLARISCC/W4.2')</td>
 
         <td>Regularly tested</td>
       </tr>
@@ -605,6 +628,14 @@
       </tr>
 
       <tr>
+        <td>FreeBSD 4.8</td>
+
+        <td>gcc 2.95.4</td>
+
+        <td>Regularly tested</td>
+      </tr>
+
+      <tr>
         <td>AIX 5.1.0 L</td>
 
         <td>Visual Age C++ 5.0</td>
@@ -613,9 +644,17 @@
       </tr>
 
       <tr>
-        <td>FreeBSD 4.8</td>
+        <td>AIX 4.3.3</td>
 
-        <td>gcc 2.95.4</td>
+        <td>Visual Age C++ 6.0</td>
+
+        <td>Regularly tested</td>
+      </tr>
+
+      <tr>
+        <td>z/OS 1.3</td>
+
+        <td>cxx 1.3</td>
 
         <td>Regularly tested</td>
       </tr>
@@ -629,14 +668,6 @@
       </tr>
 
       <tr>
-        <td>z/OS 1.4</td>
-
-        <td>cxx 1.4</td>
-
-        <td>Regularly tested</td>
-      </tr>
-
-      <tr>
         <td>Cygwin</td>
 
         <td>gcc 2.95.3</td>
@@ -645,15 +676,15 @@
       </tr>
 
       <tr>
-        <td>SUSE Linux Enterprise Server 9 SP1</td>
+        <td>Red Hat Linux Advanced Server 2.1</td>
 
-        <td>Intel C++ Compiler 8.1</td>
+        <td>Intel C++ Compiler 6.0.1</td>
 
         <td>Rarely tested</td>
       </tr>
 
       <tr>
-        <td>SUSE Linux Enterprise Server 9 (PowerPC)</td>
+        <td>SuSE Linux Enterprise Server 9 (PPC)</td>
 
         <td>Visual Age 7.0</td>
 
@@ -661,17 +692,27 @@
       </tr>
 
       <tr>
-        <td>Windows 98</td>
+        <td>Red Hat Alpha Linux 7.2</td>
 
-        <td>Microsoft Visual C++ 6.0</td>
+        <td>gcc 2.96</td>
 
         <td>Rarely tested</td>
       </tr>
 
       <tr>
-        <td>MinGW</td>
+        <td>Red Hat Alpha Linux 7.2</td>
 
-        <td>gcc</td>
+        <td>Compaq C++ Compiler 3.2<br>
+         Compaq C Compiler 6.5.6</td>
+
+        <td>Rarely tested</td>
+      </tr>
+
+      <tr>
+        <td>HP-UX 11.01</td>
+
+        <td>aCC A.03.13<br>
+         cc A.11.01.00</td>
 
         <td>Rarely tested</td>
       </tr>
@@ -717,6 +758,14 @@
       </tr>
 
       <tr>
+        <td>HP-UX 11.01</td>
+
+        <td>CC A.03.10</td>
+
+        <td>Rarely tested</td>
+      </tr>
+
+      <tr>
         <td>MP-RAS</td>
 
         <td>NCR MP-RAS C/C++ Compiler</td>
@@ -751,14 +800,15 @@
     <p>Building International Components for Unicode requires:</p>
 
     <ul>
-      <li>Microsoft Windows 2000 or above</li>
+      <li>Microsoft NT 4.0 and above, or Windows 98 and above</li>
 
-      <li>Microsoft Visual C++ 2003</li>
-
-      <li><a href="#HowToBuildCygwin">Cygwin</a> is required when other
-      versions of Microsoft Visual C++ and other compilers are used to build
-      ICU.</li>
+      <li>Microsoft Visual C++ 6.0 (Service Pack 2 is required to work with the
+      release build of max speed optimization).</li>
     </ul>
+
+    <p>(If you want to build with Microsoft Visual C++ 6, please refer to the
+    <a href="#HowToBuildWindowsMSVC6">note about building with Visual C++ 6</a>
+    below.)</p>
 
     <p>The steps are:</p>
 
@@ -775,8 +825,8 @@
       file in Microsoft Visual Studio .NET 2003. (This solution includes all
       the International Components for Unicode libraries, necessary ICU
       building tools, and the test suite projects). Please see the <a href=
-      "#HowToBuildWindowsCommandLine">command line note below</a> if you want
-      to build from the command line instead.</li>
+      "HowToBuildWindowsCommandLine">command line note below</a> if you want to
+      build from the command line instead.</li>
 
       <li>Set the active configuration to "Debug" or "Release" (See <a href=
       "#HowToBuildWindowsConfig">Windows configuration note</a> below).</li>
@@ -835,6 +885,69 @@
     you want to build the Debug and Release configurations at the same time,
     choose "Build" menu, and select "Batch Build...". Click the "Select All"
     button, and then click the "Rebuild" button.</p>
+
+    <p><a name="HowToBuildWindowsMSVC6" id=
+    "HowToBuildWindowsMSVC6"><strong>Microsoft Visual Studio 6.0
+    Note:</strong></a> ICU will build with Microsoft Visual Studio 6. It is
+    recommended that you use the
+    "<i>&lt;ICU&gt;</i>\source\allinone\allinone.dsw" workspace to build ICU.
+    The instructions for building with Visual Studio 6 are similar to the
+    instructions for Visual Studio .NET. If you have Microsoft Visual Studio
+    .NET 2002, it is recommended that you build from the command line with
+    Cygwin. The Cygwin building instructions are in <a href=
+    "#HowToBuildCygwin">How To Build And Install On Windows with Cygwin</a>
+    section of this document.</p>
+
+    <h3><a name="HowToBuildWindowsXP64" href="#HowToBuildWindowsXP64" id=
+    "HowToBuildWindowsXP64">How To Build And Install On Windows XP on
+    IA64</a></h3>
+
+    <p>Building International Components for Unicode requires:</p>
+
+    <ul>
+      <li>Microsoft XP on an IA64 (Itanium&reg;) machine</li>
+
+      <li>Microsoft Visual C++ 6.0 (Service Pack 2 is required to work with the
+      release build of max speed optimization).</li>
+
+      <li>Microsoft Platform SDK.</li>
+    </ul>
+
+    <p>The steps are:</p>
+
+    <ol>
+      <li>Follow steps 1-3 in the <a href="#HowToBuildWindows">in the previous
+      section</a>.</li>
+
+      <li>Open the "Set Windows XP 64-bit Build Environment (Retail)" command
+      window from the Microsoft Platform SDK.</li>
+
+      <li>If your computer is not set up to do command line builds, then run
+      "set PATH=C:\Program Files (x86)\Microsoft Visual
+      Studio\Common\MSDev98\Bin;%PATH%" or include the path where MSDEV.EXE is
+      located.</li>
+
+      <li>Use cd to get into the <i>&lt;ICU&gt;</i> directory.</li>
+
+      <li>Run this command: 'msdev /USEENV
+      <i>&lt;ICU&gt;</i>\source\allinone\allinone.dsw /MAKE "all - Win64
+      Release"'</li>
+
+      <li>Run "cd source\test\intltest\Release"</li>
+
+      <li>Run the C++ test suite, "intltest". There should be no errors.</li>
+
+      <li>Run "cd ..\..\iotest\Release"</li>
+
+      <li>Run the I/O test suite, "iotest". There should be no errors.</li>
+
+      <li>Run "cd ..\..\cintltst\Release"</li>
+
+      <li>Run the C test suite, "cintltst". There should be no errors.</li>
+
+      <li>Follow the last step in the <a href="#HowToBuildWindows">in the
+      previous section</a>.</li>
+    </ol>
 
     <h3><a name="HowToBuildCygwin" href="#HowToBuildCygwin" id=
     "HowToBuildCygwin">How To Build And Install On Windows with Cygwin</a></h3>
@@ -1288,7 +1401,7 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
     products. Usually only the libraries need to be considered for
     packaging.</p>
 
-    <p>On UNIX, you should use "<tt>gmake install</tt>" to make it easier
+    <p>On UNIX, you should have used "<tt>gmake install</tt>" to make it easier
     to develop and package ICU. The bin, lib and include directories are needed
     to develop applications that use ICU. These directories will be created
     relative to the "<tt>--prefix=</tt><i>dir</i>" configure option (See the <a
@@ -1422,61 +1535,16 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
     <h2><a name="ImportantNotes" href="#ImportantNotes" id=
     "ImportantNotes">Important Notes About Using ICU</a></h2>
 
-    <h3><a name="ImportantNotesMultithreaded" href="#ImportantNotesMultithreaded" id=
-    "ImportantNotesMultithreaded">Using ICU in a Multithreaded Environment</a></h3>
+    <h3><a name="ImportantNotesCPlusPlus" href="#ImportantNotesCPlusPlus" id=
+    "ImportantNotesCPlusPlus">Using ICU in a Multithreaded Environment</a></h3>
 
-    <p>Some versions of ICU require calling the <code>u_init()</code> function
-    from <code>uclean.h</code> to ensure that ICU is initialized properly. In
-    those ICU versions, <code>u_init()</code> must be called before ICU is used
-    from multiple threads. There is no harm in calling <code>u_init()</code> in
-    a single-threaded application, on a single-CPU machine, or in other cases
-    where <code>u_init()</code> is not required.</p>
-
-    <p>In addition to ensuring thread safety, <code>u_init()</code> also
-    attempts to load at least one ICU data file. Assuming that all data files
-    are packaged together (or are in the same folder in files mode), a failure
-    code from <code>u_init()</code> usually means that the data cannot be
-    found. In this case, the data may not be installed properly, or the
-    application may have failed to call <code>udata_setCommonData()</code> or
-    <code>u_setDataDirectory()</code> which specify to ICU where it can find
-    its data.</p>
-
-    <p>Since <code>u_init()</code> will load only one or two data files, it
-    cannot guarantee that all of the data that an application needs is
-    available. It cannot check for all data files because the set of files is
-    customizable, and some ICU services work without loading any data at all.
-    An application should always check for error codes when opening ICU service
-    objects (using <code>ucnv_open()</code>, <code>ucol_open()</code>, C++
-    constructors, etc.).</p>
-
-    <h4>ICU 3.4 and later</h4>
-
-    <p>ICU 3.4 self-initializes properly for multi-threaded use. It achieves
-    this without performance penalty by hardcoding the core Unicode properties
-    data, at the cost of some flexibility. (For details see Jitterbug
-    4497.)</p>
-
-    <p><code>u_init()</code> can be used to check for data loading. It tries to
-    load the converter alias table (<code>cnvalias.icu</code>).</p>
-
-    <h4>ICU 2.6..3.2</h4>
-
-    <p>These ICU versions require a call to <code>u_init()</code> before
-    multi-threaded use. The services that are directly affected are those that
-    don't have a service object and need to be fast: normalization and
-    character properties.</p>
-
-    <p><code>u_init()</code> loads and initializes the data files for
-    normalization and character properties (<code>unorm.icu</code> and
-    <code>uprops.icu</code>) and can therefore also be used to check for data
-    loading.</p>
-
-    <h4>ICU 2.4 and earlier</h4>
-
-    <p>ICU 2.4 and earlier versions were not prepared for multithreaded use on
-    multi-CPU platforms where the CPUs implement weak memory coherency. These
-    CPUs include: Power4, Power5, Alpha, Itanium. <code>u_init()</code> was not
-    defined yet.</p>
+    <p>Upon the first usage of most ICU APIs, the global mutex will get
+    initialized properly, but you can use the <code>u_init()</code> function
+    from uclean.h to ensure that it is initialized properly. Without calling
+    this function from a single thread, the data caches inside ICU may get
+    initialized more than once from multiple threads, which may cause memory
+    leaks and other problems. There is no harm in calling <code>u_init()</code>
+    in a single threaded application.</p>
 
     <h4><a name="ImportantNotesHPUX" href="#ImportantNotesHPUX" id=
     "ImportantNotesHPUX">Using ICU in a Multithreaded Environment on
@@ -1519,17 +1587,15 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
     <h5>Solaris Deadlock Issues in Solaris 8 (2.8) and Earlier</h5>
 
     <p>Solaris 8, and earlier, has outstanding thread deadlocking issues that
-    <strong>may</strong> be problematic for applications using either native,
-    or POSIX, threading on these platforms. Sun states that Solaris 9
-    <strong>does not</strong> have the deadlock problems. Deadlocks
-    <strong>may</strong> occur either during initialization of the Solaris
-    threading library, or at any other time.</p>
+    <strong>may</strong> be problematic for applications using either native, or POSIX,
+    threading on these platforms. Sun states that Solaris 9 <strong>does not</strong> have the
+    deadlock problems. Deadlocks <strong>may</strong> occur either during initialization of the
+    Solaris threading library, or at any other time.</p>
 
     <p>Sun Microsystems has provided a Sun Alert Notification regarding the
-    issue. Users <strong>should</strong> consider applying the latest OS
-    patches to their Solaris installations in order to help avoid deadlock.
-    Further information regarding the issue, and links to applicable patches,
-    may be found at:</p>
+    issue. Users <strong>should</strong> consider applying the latest OS patches to their
+    Solaris installations in order to help avoid deadlock. Further information
+    regarding the issue, and links to applicable patches, may be found at:</p>
 
     <p>[1] "<i>Applications Linked to libthread May Hang</i>", Sun Alert
     Notification, Sun Microsystems, Inc., 04-Sep-2002<br>
@@ -1537,25 +1603,23 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
     "http://sunsolve.sun.com/pub-cgi/retrieve.pl?doc=fsalert%2F46867&amp;zone_32=4663077">
     http://sunsolve.sun.com/pub-cgi/retrieve.pl?doc=fsalert%2F46867&amp;zone_32=4663077</a></p>
 
-    <p>Sun is <strong>not</strong> providing patches for Solaris 6 (2.6), or
-    earlier.</p>
+    <p>Sun is <strong>not</strong> providing patches for Solaris 6 (2.6), or earlier.</p>
 
     <p>Sun states that by applying the patch users will avoid the deadlock
-    issues. However, with all applicable patches applied, deadlock
-    <strong>may</strong> still be seen, as demonstrated by the ICU Mutex unit
-    tests. The unit test will hang indefinitely. No bug exists in ICU. However,
-    a latent bug still exists in Solaris, which Sun Microsystems has yet to
-    resolve. In order to avoid this, users are <strong>suggested</strong> to
-    modify their LD_LIBRARY_PATH according to the guidelines specified by Sun
-    Microsystems in the Sun Alert Notification.</p>
+    issues. However, with all applicable patches applied, deadlock <strong>may</strong> still be
+    seen, as demonstrated by the ICU Mutex unit tests. The unit test will hang
+    indefinitely. No bug exists in ICU. However, a latent bug still exists in
+    Solaris, which Sun Microsystems has yet to resolve. In order to avoid this,
+    users are <strong>suggested</strong> to modify their LD_LIBRARY_PATH according to the
+    guidelines specified by Sun Microsystems in the Sun Alert Notification.</p>
 
     <h5>Linking on Solaris</h5>
 
     <p>In order to avoid synchronization and threading issues, developers are
-    <strong>suggested</strong> to strictly follow the compiling and linking
-    guidelines for multithreaded applications, specified in the following
-    document from Sun Microsystems. Most notably, pay strict attention to the
-    following statements from Sun:</p>
+    <strong>suggested</strong> to strictly follow the compiling and linking guidelines for
+    multithreaded applications, specified in the following document from Sun
+    Microsystems. Most notably, pay strict attention to the following
+    statements from Sun:</p>
 
     <blockquote>
       <p>To use libthread, specify -lthread before -lc on the ld command line,
@@ -1593,11 +1657,18 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
     "ImportantNotesWindowsPath">Changing your PATH</a></h4>
 
     <ul>
-      <li><strong>Windows 2000/XP</strong>: Use the System Icon in the Control
+      <li><strong>Windows 2000</strong>: Use the System Icon in the Control
       Panel. Pick the "Advanced" tab. Select the "Environment Variables..."
       button. Select the variable PATH in the lower box, and select the lower
       "Edit..." button. In the "Variable Value" box, append the string
       ";<i>&lt;ICU&gt;</i>\bin" to the end of the path string. If there is
+      nothing there, just type in "<i>&lt;ICU&gt;</i>\bin". Click the Set
+      button, then the OK button.</li>
+
+      <li><strong>Windows NT</strong>: Use the System Icon in the Control
+      Panel. Pick the "Environment" tab, and select the variable PATH in the
+      lower box. In the "value" box, append the string
+      ";<i>&lt;ICU&gt;</i>\bin" at the end of the path string. If there is
       nothing there, just type in "<i>&lt;ICU&gt;</i>\bin". Click the Set
       button, then the OK button.</li>
 
@@ -1634,8 +1705,8 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
     rpath also means that when building a new version of ICU you should not
     have an older version installed in the same place as the new version's
     installation directory, as the older libraries will used during the build,
-    instead of the new ones, likely leading to an incorrectly build ICU. This
-    is the proper behavior of rpath.</p>
+    instead of the new ones, likely leading to an incorrectly build ICU. (This
+    is the proper behavior of rpath.)</p>
 
     <h2><a name="PlatformDependencies" href="#PlatformDependencies" id=
     "PlatformDependencies">Platform Dependencies</a></h2>
@@ -1788,6 +1859,63 @@ ADDENVVAR ENVVAR(OUTPUTDIR) VALUE('<i>libraryname</i>')</samp>
       of the scope of these files. When the source code gets updated in the
       future, these #ifdef's can cause testing problems for your platform.</li>
     </ul>
+
+    <h3><a name="PlatformDependenciesBuildOrder" href=
+    "#PlatformDependenciesBuildOrder" id="PlatformDependenciesBuildOrder">Build
+    Order Without Using ICU's Makefiles</a></h3>
+
+    <p>It is possible to build each library individually without our Makefiles.
+    They must be built in the following order:<br>
+    </p>
+
+    <ol>
+      <li>stubdata</li>
+
+      <li>common</li>
+
+      <li>i18n</li>
+
+      <li>toolutil</li>
+
+      <li>makeconv</li>
+
+      <li>gencnval</li>
+
+      <li>genprops</li>
+
+      <li>gencase</li>
+
+      <li>gennames</li>
+
+      <li>genpname</li>
+
+      <li>gennorm</li>
+
+      <li>gensprep</li>
+
+      <li>genbrk</li>
+
+      <li>genuca</li>
+
+      <li>genrb</li>
+
+      <li>genccode</li>
+
+      <li>gencmn</li>
+
+      <li>pkgdata</li>
+
+      <li>makedata (a project on Windows, or source/data/Makefile on UNIX)</li>
+
+      <li>layout (optional)</li>
+
+      <li>layoutex (optional)</li>
+
+      <li>ctestfw, intltest, iotest and cintltst, if you want to run the test
+      suite.</li>
+
+      <li>uconv, icuswap, derb and icuio can also be optionally built.</li>
+    </ol>
     <hr>
 
     <p>Copyright &copy; 1997-2005 International Business Machines Corporation

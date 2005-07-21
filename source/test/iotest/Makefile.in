@@ -1,5 +1,5 @@
 ## Makefile.in for ICU - test/iotest
-## Copyright (c) 2002-2005, International Business Machines Corporation and
+## Copyright (c) 2002-2004, International Business Machines Corporation and
 ## others. All Rights Reserved.
 
 ## Source directory information
@@ -20,19 +20,15 @@ CLEANFILES = *~ $(DEPS)
 TARGET = iotest$(EXEEXT)
 
 BUILDDIR := $(CURR_SRCCODE_FULL_DIR)/../../
-# Simplify the path for Unix
 BUILDDIR := $(BUILDDIR:test/iotest/../../=)
-# Simplify the path for Windows
-BUILDDIR := $(BUILDDIR:test\\iotest/../../=)
-# Simplify the path for Windows 98
-BUILDDIR := $(BUILDDIR:TEST\\IOTEST/../../=)
+BUILDDIR := $(BUILDDIR:test\\\\iotest/../../=)
 
 CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(top_srcdir)/i18n \
 -I$(top_srcdir)/tools/ctestfw -I$(top_srcdir)/io
 DEFS += -D'U_TOPSRCDIR="$(top_srcdir)/"' -D'U_TOPBUILDDIR="$(BUILDDIR)"'
-LIBS = $(LIBCTESTFW) $(LIBICUTOOLUTIL) $(LIBICUIO) $(LIBICUI18N) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
+LIBS = $(LIBCTESTFW) $(LIBICUIO) $(LIBICUI18N) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
 
-OBJECTS = iotest.o strtst.o filetst.o trnstst.o
+OBJECTS = iotest.o strtst.o filetst.o
 
 DEPS = $(OBJECTS:.o=.d)
 

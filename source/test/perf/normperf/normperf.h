@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (c) 2002-2005, International Business Machines
+* Copyright (c) 2002-2003, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 **********************************************************************
@@ -8,15 +8,13 @@
 #ifndef _NORMPERF_H
 #define _NORMPERF_H
 
+#include "uperf.h"
 #include "unicode/unorm.h"
 #include "unicode/ustring.h"
 
-#include "unicode/uperf.h"
-#include <stdlib.h>
-
 //  Stubs for Windows API functions when building on UNIXes.
 //
-#if defined(U_WINDOWS)
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
 // do nothing
 #else
 #define _UNICODE
@@ -315,7 +313,7 @@ int32_t ICUIsNormalized(const UChar* src,int32_t srcLen, UNormalizationMode mode
 }
 #endif
 
-#if defined(U_WINDOWS)
+#if defined(WIN32) || defined(_WIN32) || defined(WIN64) || defined(_WIN64)
 
 int32_t WinNormNFD(const UChar* src, int32_t srcLen, UChar* dest, int32_t dstLen, int32_t options, UErrorCode* status) {
     return FoldStringW(MAP_COMPOSITE,src,srcLen,dest,dstLen);

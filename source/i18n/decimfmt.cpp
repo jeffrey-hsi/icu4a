@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2005, International Business Machines Corporation and    *
+* Copyright (C) 1997-2004, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -2711,6 +2711,13 @@ DecimalFormat::appendAffixPattern(UnicodeString& appendTo,
 }
 
 //------------------------------------------------------------------------------
+
+/* Tell the VC++ compiler not to spew out the warnings about integral size conversion */
+/*
+#ifdef _WIN32
+#pragma warning( disable : 4761 )
+#endif
+*/
 
 UnicodeString&
 DecimalFormat::toPattern(UnicodeString& result, UBool localized) const

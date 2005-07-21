@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -85,7 +85,7 @@
  * code point values (0..U+10ffff). They are indicated with negative values instead.
  *
  * For more information see the ICU User Guide Strings chapter
- * (http://icu.sourceforge.net/userguide/strings.html).
+ * (http://oss.software.ibm.com/icu/userguide/).
  *
  * <em>Usage:</em>
  * ICU coding guidelines for if() statements should be followed when using these macros.
@@ -163,7 +163,7 @@
  * Is this code point a BMP code point (U+0000..U+ffff)?
  * @param c 32-bit code point
  * @return TRUE or FALSE
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 #define U_IS_BMP(c) ((uint32_t)(c)<=0xffff)
 
@@ -171,7 +171,7 @@
  * Is this code point a supplementary code point (U+10000..U+10ffff)?
  * @param c 32-bit code point
  * @return TRUE or FALSE
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 #define U_IS_SUPPLEMENTARY(c) ((uint32_t)((c)-0x10000)<=0xfffff)
 

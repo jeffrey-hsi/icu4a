@@ -1,5 +1,5 @@
 ﻿#--------------------------------------------------------------------
-# Copyright (c) 1999-2005, International Business Machines
+# Copyright (c) 1999-2004, International Business Machines
 # Corporation and others. All Rights Reserved.
 #--------------------------------------------------------------------
 
@@ -21,7 +21,7 @@
 # Paste in hebrew text in Input, and hit Transliterate.
 #
 # For more information, see"
-#   http://icu.sourceforge.net/userguide/Transform.html
+#   http://oss.software.ibm.com/icu/userguide/Transliteration.html
 
 :: [[:Hebrew:] [:^ccc=0:] [\u05B0-\u05B9\u05BB-\u05BC\u05C1-\u05C2\u2135-\u2138̄\u05BF] - [\u05BD]] ;
 :: nfkd (nfc) ;

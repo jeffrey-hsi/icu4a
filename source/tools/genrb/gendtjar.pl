@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #  ********************************************************************
 #  * COPYRIGHT:
-#  * Copyright (c) 2002-2005, International Business Machines Corporation and
+#  * Copyright (c) 2002-2004, International Business Machines Corporation and
 #  * others. All Rights Reserved.
 #  ********************************************************************
 
@@ -22,189 +22,47 @@ use File::Copy;
 use Getopt::Long;
 use File::Path;
 use File::Copy;
-use Cwd;
-use Cwd 'abs_path'; 
+
 
 main();
 
 #------------------------------------------------------------------
 sub main(){
 
-    GetOptions(
-             "--icu-root=s" => \$icuRootDir,
-             "--jar=s" => \$jarDir,
-             "--icu4j-root=s" => \$icu4jDir,
-             "--version=s" => \$version,
-             "--verbose"   => \$verbose
-             );
-    $cwd = abs_path(getcwd);
-    unless (defined $icuRootDir){
-        $icuRootDir =abs_path($cwd."/../../..");
-    }
-    unless (defined $icu4jDir){
-        $icu4jDir =abs_path($icuRootDir."/../icu4j");
-    }
-    unless (defined $jarDir){
-        if(defined $ENV{'JAVA_HOME'}){
-            $jarDir=$ENV{'JAVA_HOME'}."/bin";
-        }else{
-            print("ERROR: JAVA_HOME enviroment variable undefined and --jar argument not specifed.\n");
-            usage(); 
-        }
-    }
-    
-    $platform = getPlatform();
-    $icuBinDir = $icuRootDir;
-    
-    $path=$ENV{'PATH'};
-    
-    if($platform eq "cygwin" ){
-        $icuBinDir .= "/source/bin";
-        $icuLibDir = abs_path($icuBinDir."/../lib");
-        $path .=":$icuBinDir:$icuLibDir";
-        
-        $libpath = $ENV{'LD_LIBRARY_PATH'}.":$icuLibDir";
-        $ENV{'LD_LIBRARY_PATH'} = $libpath;
-        
-        #print ("#####  LD_LIBRARY_PATH = $ENV{'LD_LIBRARY_PATH'}\n");
-    
-    }elsif($platform eq "aix"){
-    
-        $icuBinDir .= "/source/bin";
-        $icuLibDir = abs_path($icuBinDir."/../lib");
-        $path .=":$icuBinDir:$icuLibDir";
+GetOptions(
+         "--icu-root=s" => \$icuRootDir,
+         "--jar=s" => \$jarDir,
+         "--icu4j-root=s" => \$icu4jDir,
+         "--version=s" => \$version
+         );
+usage() unless defined $icuRootDir;
+usage() unless defined $jarDir;
+  #usage() unless defined $icu4jRootDir;
+  $icuswap = $icuRootDir."/bin/icuswap -tb";
+  $tempDir =cwd();
+  $tempDir .= "/temp";
+  $version =~ s/\.//;
+  $icu4jDataDir ="com/ibm/icu/impl/data/icudt".$version."b";
+  $icu4jTestDataDir = "com/ibm/icu/dev/data/testdata";
+  $icuDataDir =$icuRootDir."/source/data/out/build/icudt".$version.checkPlatform();
+  $icuTestDataDir =$icuRootDir."/source/test/testdata/out/build/";
+  convertData($icuDataDir, $icuswap, $tempDir, $icu4jDataDir);
+  #convertData($icuDataDir."/coll/", $icuswap, $tempDir, $icu4jDataDir."/coll");
+  createJar("$jarDir/jar", "icudata.jar", $tempDir, $icu4jDataDir);
 
-        $libpath = $ENV{'LIBPATH'}.":$icuLibDir";
-        $ENV{'LIBPATH'} = $libpath;
-        #print ("#####  LIBPATH = $ENV{'LIBPATH'}\n");
-    }elsif($platform eq "darwin"){ 
-        $icuBinDir .= "/source/bin";
-        $icuLibDir = abs_path($icuBinDir."/../lib");
-        $path .=":$icuBinDir:$icuLibDir";
-        
-        $libpath = $ENV{'DYLD_LIBRARY_PATH'}.":$icuLibDir";
-        $ENV{'DYLD_LIBRARY_PATH'} = $libpath;
-       
-    }elsif($platform eq "MSWin32"){
-        $icuBinDir =$icuRootDir."/bin";
-        $path .=$icuBinDir;
-        
-    }
-    $ENV{'PATH'} = $path;
-    #print ("#####  PATH = $ENV{'PATH'}\n");
-    # TODO add more platforms and test on Linux and Unix
-    
-    $icuBuildDir =$icuRootDir."/source/data/out/build";
-    $icuTestDataDir =$icuRootDir."/source/test/testdata/out/build/";    
-    
-    # now build ICU
-    buildICU($platform, $icuRootDir, $icuTestDataDir, $verbose);
-    
-    #figure out the version and endianess
-    unless (defined $version){
-        ($version, $endian) = getVersion();
-        #print "#################### $version, $endian ######\n";
-    }
-    
-    $icuswap = $icuBinDir."/icuswap -tb";
-    $tempDir = $cwd."/temp";
-    $version =~ s/\.//;
-    $icu4jImpl = "com/ibm/icu/impl/data/";
-    $icu4jDataDir = $icu4jImpl."/icudt".$version."b";
-    $icu4jDevDataDir = "com/ibm/icu/dev/data/";
-    $icu4jTestDataDir = "$icu4jDevDataDir/testdata";
-    
-    $icuDataDir =$icuBuildDir."/icudt".$version.checkPlatformEndianess();
-
-    convertData($icuDataDir, $icuswap, $tempDir, $icu4jDataDir, $verbose);
-    #convertData($icuDataDir."/coll/", $icuswap, $tempDir, $icu4jDataDir."/coll");
-    createJar("$jarDir/jar", "icudata.jar", $tempDir, $icu4jDataDir, $verbose);
-    
-    convertTestData($icuTestDataDir, $icuswap, $tempDir, $icu4jTestDataDir, $verbose);
-    createJar("$jarDir/jar", "testdata.jar", $tempDir, $icu4jTestDataDir, $verbose);
-    copyData($icu4jDir, $icu4jImpl, $icu4jDevDataDir, $tempDir, $verbose);
+  convertTestData($icuTestDataDir, $icuswap, $tempDir, $icu4jTestDataDir);
+  createJar("$jarDir/jar", "testdata.jar", $tempDir, $icu4jTestDataDir);
 }
 
-#-----------------------------------------------------------------------
-sub buildICU{
-    local($platform, $icuRootDir, $icuTestDataDir, $verbose) = @_;
-    $icuSrcDir = $icuRootDir."/source";
-    $icuSrcDataDir = $icuSrcDir."/data";
-    
-    chdir($icuSrcDir);
-    # clean the data directories
-    unlink($icuBuildDir."../"); 
-    unlink($icuTestDataDir."../"); 
-    
-    if(($platform eq "cygwin")||($platform eq "darwin")){
-        # make all in ICU
-        cmd("make all", $verbose);
-        chdir($icuSrcDataDir);
-        cmd("make uni-core-data", $verbose);
-        chdir($icuTestDataDir."../../");
-        #print($icuTestDataDir."../../\n");
-        cmd("make", $verbose);
-    }elsif($platform eq "aix"){
-        # make all in ICU
-        cmd("gmake all", $verbose);
-        chdir($icuSrcDataDir);
-        cmd("gmake uni-core-data", $verbose);
-        chdir($icuTestDataDir."../../");
-        cmd("gmake", $verbose);
-    }elsif($platform eq "MSWin32"){
-        #devenv.com $projectFileName \/build $configurationName > \"$cLogFile\" 2>&1
-        cmd("devenv.com allinone/allinone.sln /useenv /build Debug", $verbose);
-        # build required data. this is required coz building icu will not build all the data
-        chdir($icuSrcDataDir);
-        cmd("NMAKE /f makedata.mak ICUMAKE=\"$icuSrcDataDir\" CFG=debug uni-core-data", $verbose);
-
-    }else{
-        print "ERROR: Could not build ICU unknown platform $platform. \n";
-        exit(-1);
-    }
-    
-    chdir($cwd);    
-}
-#-----------------------------------------------------------------------
-sub getVersion{
-    my @list;
-    opendir(DIR,$icuBuildDir);
-    
-    @list =  readdir(DIR);
-    closedir(DIR);
-    
-    if(scalar(@list)>3){
-        print("ERROR: More than 1 directory in build. Can't decide the version");
-        exit(-1);
-    }
-    foreach $item (@list){
-        next if($item eq "." || $item eq "..");
-        my ($ver, $end) =$item =~ m/icudt(.*)(l|b|e)$/;
-        return $ver,$end;
-    }
-}
-
-#-----------------------------------------------------------------------
-sub getPlatform{
-    $platform = $^O;
-    return $platform;
-}
 #-----------------------------------------------------------------------
 sub createJar{
-    local($jar, $jarFile, $tempDir, $dirToJar, $verbose) = @_;
+    local($jar, $jarFile, $tempDir, $dirToJar) = @_;
     chdir($tempDir);
-    $command="";
-    print "INFO: Creating $jarFile\n";
-    if(defined $verbose){
-        $command = "$jar cvf $jarFile -C $tempDir $dirToJar";
-    }else{
-        $command = "$jar cf $jarFile -C $tempDir $dirToJar";
-    }
-    
-    cmd($command, $verbose);
+    $command = "$jar cvf $jarFile -C $tempDir $dirToJar";
+    cmd($command);
 }
 #-----------------------------------------------------------------------
-sub checkPlatformEndianess {
+sub checkPlatform {
     my $is_big_endian = unpack("h*", pack("s", 1)) =~ /01/;
     if ($is_big_endian) {
         return "b";
@@ -213,13 +71,7 @@ sub checkPlatformEndianess {
     }
 }
 #-----------------------------------------------------------------------
-sub copyData{
-    local($icu4jDir, $icu4jImpl, $icu4jDevDataDir, $tempDir) =@_;
-    print("INFO: Copying $tempDir/icudata.jar to $icu4jDir/src/$icu4jImpl\n");
-    copy("$tempDir/icudata.jar", "$icu4jDir/src/$icu4jImpl"); 
-    print("INFO: Copying $tempDir/testData.jar $icu4jDir/src/$icu4jDevDataDir\n");
-    copy("$tempDir/testData.jar","$icu4jDir/src/$icu4jDevDataDir");
-}
+
 #-----------------------------------------------------------------------
 sub convertData{
     local($icuDataDir, $icuswap, $tempDir, $icu4jDataDir)  =@_;
@@ -228,20 +80,14 @@ sub convertData{
     mkpath("$tempDir/$icu4jDataDir");
     # cd to the temp directory
     chdir($tempDir);
-    my $endian = checkPlatformEndianess();
+
     my @list;
     opendir(DIR,$icuDataDir);
-    #print $icuDataDir;
+    print $icuDataDir;
     @list =  readdir(DIR);
     closedir(DIR);
+    print "{Command: $op*.*}\n";
     my $op = $icuswap;
-    
-    if($endianess eq "l"){
-        print "INFO: {Command: $op $icuDataDir/*.*}\n";
-    }else{
-       print "INFO: {Command: copy($icuDataDir/*.*, $tempDir/$icu4jDataDir/*)}\n";
-    } 
-    
     $i=0;
     # now convert
     foreach $item (@list){
@@ -254,16 +100,12 @@ sub convertData{
             convertData("$icuDataDir/$item/", $icuswap, $tempDir, "$icu4jDataDir./$item/");
             next;
         }
-        if($endianess eq "l"){
-           $command = $icuswap." $icuDataDir/$item $tempDir/$icu4jDataDir/$item";
-           cmd($command, $verbose);
-        }else{
-           copy("$icuDataDir/$item", "$tempDir/$icu4jDataDir/$item");
-        }
+        $command = $icuswap." $icuDataDir/$item $tempDir/$icu4jDataDir/$item";
+        cmd($command);
 
     }
     chdir("..");
-    print "INFO: DONE\n";
+    print "\nDONE\n";
 }
 #-----------------------------------------------------------------------
 sub convertTestData{
@@ -273,11 +115,11 @@ sub convertTestData{
     mkpath("$tempDir/$icu4jDataDir");
     # cd to the temp directory
     chdir($tempDir);
+    print "{Command: $op*.*}\n";
     my $op = $icuswap;
-    print "INFO: {Command: $op $icuDataDir/*.*}\n";
     my @list;
     opendir(DIR,$icuDataDir);
-    #print $icuDataDir;
+    print $icuDataDir;
     @list =  readdir(DIR);
     closedir(DIR);
 
@@ -293,34 +135,28 @@ sub convertTestData{
             $file = $item;
             $file =~ s/testdata_//g;
             $command = "$icuswap $icuDataDir/$item $tempDir/$icu4jDataDir/$file";
-            cmd($command, $verbose);
+            cmd($command);
         }
 
     }
     chdir("..");
-    print "INFO: DONE\n";
+    print "\nDONE\n";
 }
 #------------------------------------------------------------------------------------------------
 sub cmd {
     my $cmd = shift;
-    my $verbose = shift;
     my $prompt = shift;
-    
     $prompt = "Command: $cmd.." unless ($prompt);
-    if(defined $verbose){
-        print $prompt."\n";
-    }
+    print $prompt."\n";
     system($cmd);
     my $exit_value  = $? >> 8;
     #my $signal_num  = $? & 127;
     #my $dumped_core = $? & 128;
     if ($exit_value == 0) {
-        if(defined $verbose){
-            print "ok\n";
-        }
+        print "ok\n";
     } else {
         ++$errCount;
-        print "ERROR: Execution of $prompt returned ($exit_value)\n";
+        print "ERROR ($exit_value)\n";
         exit(1);
     }
 }
@@ -334,7 +170,6 @@ Options:
         --jar=<directory where jar.exe lives>
         --icu4j-root=<directory>
         --version=<ICU4C version>
-        --verbose
 e.g:
 gendtjar.pl --icu-root=\\work\\icu --jar=\\jdk1.4.1\\bin --icu4j-root=\\work\\icu4j --version=3.0
 END

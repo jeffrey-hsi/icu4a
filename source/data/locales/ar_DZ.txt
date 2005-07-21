@@ -1,9 +1,9 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/ar_DZ.xml
+// * Source File: ../../../locale/common/main/ar_DZ.xml
 // *
 // ***************************************************************************
 ar_DZ{
@@ -21,5 +21,5 @@ ar_DZ{
         "�",
         "+",
     }
-    Version{"1.28"}
+    Version{"1.2"}
 }

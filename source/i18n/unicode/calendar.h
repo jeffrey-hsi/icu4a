@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -27,10 +27,6 @@
 
 #include "unicode/utypes.h"
 
-/**
- * \file 
- * \brief C++ API: Calendar object
- */
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/uobject.h"
@@ -52,7 +48,7 @@ typedef const void* URegistryKey;
  */
 typedef int32_t UFieldResolutionTable[12][8];
 
-/**.
+/**
  * <code>Calendar</code> is an abstract base class for converting between
  * a <code>UDate</code> object and a set of integer fields such as
  * <code>YEAR</code>, <code>MONTH</code>, <code>DAY</code>, <code>HOUR</code>,
@@ -1800,7 +1796,7 @@ protected:
      *              {@link #getMinimalDaysInFirstWeek getMinimalDaysInFirstWeek}
      *              is more than one.
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     int32_t weekNumber(int32_t desiredDay, int32_t dayOfPeriod, int32_t dayOfWeek);
 
@@ -1899,6 +1895,17 @@ private:
      *                leniency, this will be set to an error status.
      */
     void updateTime(UErrorCode& status);
+
+    /**
+     * The resource tag for the resource where the week-count data is stored.
+     */
+    static const char kDateTimeElements[];
+
+    /**
+     * The resource tag where the default calendar is stored.
+     */
+    static const char kDefaultCalendar[];
+
 
     /**
      * The Gregorian year, as computed by computeGregorianFields() and
@@ -2091,7 +2098,7 @@ private:
      *  @param type type of the locale we're looking for (valid or actual)
      *  @param status error code for the operation
      *  @return the locale
-     *  @draft ICU 2.8 likely to change after ICU 3.0, based on feedback
+     *  @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
      */
     Locale getLocale(ULocDataLocaleType type, UErrorCode &status) const;
 

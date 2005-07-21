@@ -22,7 +22,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				ImproveFloatingPointConsistency="TRUE"
-				AdditionalIncludeDirectories="..\..\..\include;..\..\tools\ctestfw;..\..\common;..\..\i18n;..\..\tools\toolutil"
+				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories="..\..\..\include,..\..\tools\ctestfw,..\..\common,..\..\i18n,..\..\tools\toolutil"
 				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -82,8 +83,10 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="2"
 				ImproveFloatingPointConsistency="TRUE"
-				AdditionalIncludeDirectories="..\..\..\include;..\..\tools\ctestfw;..\..\common;..\..\i18n;..\..\tools\toolutil"
+				AdditionalIncludeDirectories="..\..\..\include,..\..\tools\ctestfw,..\..\common,..\..\i18n,..\..\tools\toolutil"
 				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -160,6 +163,12 @@
 			<File
 				RelativePath=".\cbkittst.c">
 			</File>
+			<File
+				RelativePath=".\cregrtst.c">
+			</File>
+			<File
+				RelativePath=".\cregrtst.h">
+			</File>
 		</Filter>
 		<Filter
 			Name="collation"
@@ -187,6 +196,12 @@
 			</File>
 			<File
 				RelativePath=".\ccurrtst.h">
+			</File>
+			<File
+				RelativePath=".\cdantst.c">
+			</File>
+			<File
+				RelativePath=".\cdantst.h">
 			</File>
 			<File
 				RelativePath=".\cdetst.c">
@@ -343,6 +358,9 @@
 			Name="formatting"
 			Filter="">
 			<File
+				RelativePath=".\calltest.c">
+			</File>
+			<File
 				RelativePath=".\ccaltst.c">
 			</File>
 			<File
@@ -391,9 +409,6 @@
 				RelativePath=".\cnumtst.h">
 			</File>
 			<File
-				RelativePath=".\currtest.c">
-			</File>
-			<File
 				RelativePath=".\utmstest.c">
 			</File>
 		</Filter>
@@ -428,9 +443,6 @@
 		<Filter
 			Name="misc"
 			Filter="">
-			<File
-				RelativePath=".\calltest.c">
-			</File>
 			<File
 				RelativePath=".\cintltst.c">
 			</File>
@@ -496,9 +508,6 @@
 			</File>
 			<File
 				RelativePath=".\custrtst.c">
-			</File>
-			<File
-				RelativePath=".\utexttst.c">
 			</File>
 			<File
 				RelativePath=".\utf16tst.c">

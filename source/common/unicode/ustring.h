@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1998-2005, International Business Machines
+*   Copyright (C) 1998-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -65,7 +65,7 @@
  * their occurrence is rare. Almost all characters in modern use require only
  * a single UChar code unit (i.e., their code point values are <=0xffff).
  *
- * For more details see the User Guide Strings chapter (http://icu.sourceforge.net/userguide/strings.html).
+ * For more details see the User Guide Strings chapter (http://oss.software.ibm.com/icu/userguide/strings.html).
  * For a discussion of the handling of unpaired surrogates see also
  * Jitterbug 2145 and its icu mailing list proposal on 2002-sep-18.
  */
@@ -898,22 +898,22 @@ u_memrchr32(const UChar *s, UChar32 c, int32_t count);
  *
  * Usage:
  * <pre>
- *    U_STRING_DECL(ustringVar1, "Quick-Fox 2", 11);
- *    U_STRING_DECL(ustringVar2, "jumps 5%", 8);
- *    static UBool didInit=FALSE;
- * 
- *    int32_t function() {
- *        if(!didInit) {
- *            U_STRING_INIT(ustringVar1, "Quick-Fox 2", 11);
- *            U_STRING_INIT(ustringVar2, "jumps 5%", 8);
- *            didInit=TRUE;
- *        }
- *        return u_strcmp(ustringVar1, ustringVar2);
- *    }
+ * &#32;   U_STRING_DECL(ustringVar1, "Quick-Fox 2", 11);
+ * &#32;   U_STRING_DECL(ustringVar2, "jumps 5%", 8);
+ * &#32;   static UBool didInit=FALSE;
+ * &#32;
+ * &#32;   int32_t function() {
+ * &#32;       if(!didInit) {
+ * &#32;           U_STRING_INIT(ustringVar1, "Quick-Fox 2", 11);
+ * &#32;           U_STRING_INIT(ustringVar2, "jumps 5%", 8);
+ * &#32;           didInit=TRUE;
+ * &#32;       }
+ * &#32;       return u_strcmp(ustringVar1, ustringVar2);
+ * &#32;   }
  * </pre>
  * @stable ICU 2.0
  */
-#if U_SIZEOF_WCHAR_T==U_SIZEOF_UCHAR && (U_CHARSET_FAMILY==U_ASCII_FAMILY || (U_SIZEOF_UCHAR == 2 && defined(U_WCHAR_IS_UTF16)))
+#if U_SIZEOF_WCHAR_T==U_SIZEOF_UCHAR && U_CHARSET_FAMILY==U_ASCII_FAMILY
 #   define U_STRING_DECL(var, cs, length) static const wchar_t var[(length)+1]={ L ## cs }
     /**@stable ICU 2.0 */
 #   define U_STRING_INIT(var, cs, length)

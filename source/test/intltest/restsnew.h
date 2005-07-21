@@ -34,8 +34,6 @@ public:
 
     void TestNewTypes(void);
 
-    void TestGetByFallback(void);
-
 private:
     /**
      * The assignment operator has no real implementation.

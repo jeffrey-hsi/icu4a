@@ -2,7 +2,7 @@
 //
 //  file:  rbbiscan.cpp
 //
-//  Copyright (C) 2002-2005, International Business Machines Corporation and others.
+//  Copyright (C) 2002-2004, International Business Machines Corporation and others.
 //  All Rights Reserved.
 //
 //  This file contains the Rule Based Break Iterator Rule Builder functions for
@@ -71,7 +71,7 @@ static const UChar kAny[] = {0x61, 0x6e, 0x79, 0x00};  // "any"
 
 
 U_CDECL_BEGIN
-static void U_CALLCONV RBBISetTable_deleter(void *p) {
+static void  U_EXPORT2 U_CALLCONV RBBISetTable_deleter(void *p) {
     RBBISetTableEl *px = (RBBISetTableEl *)p;
     delete px->key;
     // Note:  px->val is owned by the linked list "fSetsListHead" in scanner.
@@ -289,13 +289,6 @@ UBool RBBIRuleScanner::doParseActions(EParseAction action)
 
             // Make a symbol table entry for the $variableRef node.
             fSymbolTable->addEntry(varRefNode->fText, varRefNode, *fRB->fStatus);
-			if (U_FAILURE(*fRB->fStatus)) { 
-				// This is a round-about way to get the parse position set
-				//  so that duplicate symbols error messages include a line number.
-				UErrorCode t = *fRB->fStatus;
-				*fRB->fStatus = U_ZERO_ERROR;
-				error(t);  
-			}
 
             // Clean up the stack.
             delete startExprNode;
@@ -309,9 +302,7 @@ UBool RBBIRuleScanner::doParseActions(EParseAction action)
         if (U_FAILURE(*fRB->fStatus)) {       //   parse tree rooted in TOS node.
             break;
         }
-#ifdef RBBI_DEBUG
         if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "rtree")) {printNodeStack("end of rule");}
-#endif
         U_ASSERT(fNodeStackPtr == 1);
 
         // If this rule includes a look-ahead '/', add a endMark node to the
@@ -948,9 +939,7 @@ void RBBIRuleScanner::parse() {
         #endif
 
         for (;;) {
-            #ifdef RBBI_DEBUG
-                if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "scan")) { RBBIDebugPrintf(".");}
-            #endif
+            if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "scan")) { RBBIDebugPrintf(".");}
             if (tableEl->fCharClass < 127 && fC.fEscaped == FALSE &&   tableEl->fCharClass == fC.fChar) {
                 // Table row specified an individual character, not a set, and
                 //   the input character is not escaped, and
@@ -989,7 +978,7 @@ void RBBIRuleScanner::parse() {
             // No match on this row, advance to the next  row for this state,
             tableEl++;
         }
-        if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "scan")) { RBBIDebugPuts("");}
+        if (fRB->fDebugEnv && uprv_strstr(fRB->fDebugEnv, "scan")) { RBBIDebugPrintf("\n");}
 
         //
         // We've found the row of the state table that matches the current input
@@ -1073,6 +1062,8 @@ void RBBIRuleScanner::parse() {
 //
 //---------------------------------------------------------------------------------
 #ifdef RBBI_DEBUG
+void RBBIRuleScanner::printNodeStack(const char *) {}
+#else
 void RBBIRuleScanner::printNodeStack(const char *title) {
     int i;
     RBBIDebugPrintf("%s.  Dumping node stack...\n", title);
@@ -1139,9 +1130,7 @@ void RBBIRuleScanner::scanSet() {
     if (U_FAILURE(localStatus)) {
         //  TODO:  Get more accurate position of the error from UnicodeSet's return info.
         //         UnicodeSet appears to not be reporting correctly at this time.
-        #ifdef RBBI_DEBUG
-            RBBIDebugPrintf("UnicodeSet parse postion.ErrorIndex = %d\n", pos.getIndex());
-        #endif
+        RBBIDebugPrintf("UnicodeSet parse postion.ErrorIndex = %d\n", pos.getIndex());
         error(localStatus);
         delete uset;
         return;

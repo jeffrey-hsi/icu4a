@@ -1,7 +1,7 @@
 /*
  ********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1996-2005, International Business Machines Corporation and
+ * Copyright (c) 1996-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************
  */
@@ -11,11 +11,6 @@
 
 #include "unicode/utypes.h"
 
-/**
- * \file 
- * \brief C++ API: Unicode Normalization
- */
- 
 #if !UCONFIG_NO_NORMALIZATION
 
 #include "unicode/uobject.h"
@@ -23,12 +18,12 @@
 #include "unicode/chariter.h"
 #include "unicode/unorm.h"
 
-
 struct UCharIterator;
 typedef struct UCharIterator UCharIterator; /**< C typedef for struct UCharIterator. @stable ICU 2.1 */
 
 U_NAMESPACE_BEGIN
 /**
+ * \brief C++ API: Unicode Normalization
  *
  * The Normalizer class consists of two parts:
  * - static functions that normalize strings or test if strings are normalized

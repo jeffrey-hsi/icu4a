@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/sq.xml
+// * Source File: ../../../locale/common/main/sq.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/sq.xml
+ *  ICU <specials> source: ../../../locale/icu/main/sq.xml
  */
 sq{
     Countries{
@@ -28,7 +28,6 @@ sq{
         BH{"Bahrein"}
         BN{"Brunej"}
         BO{"Bolivi"}
-        BR{"Brazili"}
         BT{"Butan"}
         BW{"Botsvana"}
         BY{"Bjellorusi"}
@@ -42,7 +41,6 @@ sq{
         CN{"Kinë"}
         CO{"Kolumbi"}
         CR{"Kosta Rika"}
-        CS{"Serbië en Montenegro"}
         CU{"Kubë"}
         CV{"Kap Verde"}
         CY{"Qipro"}
@@ -142,6 +140,7 @@ sq{
         SK{"Sllovaki"}
         SL{"Siera Leone"}
         SO{"Somali"}
+        SP{"Serbië"}
         ST{"Sao Tome e Prinsipe"}
         SY{"Siri"}
         SZ{"Svazilandë"}
@@ -170,53 +169,10 @@ sq{
             "Lek",
             "ALL",
         }
-        BRL{
-            "BRL",
-            "Real Brazilian",
-        }
-        CNY{
-            "CNY",
-            "Renminbi(Yuan) Kinez",
-        }
-        EUR{
-            "€",
-            "Euro",
-        }
-        GBP{
-            "£",
-            "Paund Sterlina Britanike",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "Rupee indiane",
-        }
-        JPY{
-            "¥",
-            "Jeni Japonez",
-        }
-        RUB{
-            "RUB",
-            "Rubla ruse",
-        }
-        USD{
-            "$",
-            "Dollar amerikan",
-        }
     }
     ExemplarCharacters{"[a-zçë{dh}{gj}{ll}{nj}{rr}{sh}{th}{xh}{zh}]"}
     Languages{
-        ar{"Arabisht"}
-        de{"Gjermanisht"}
-        en{"Anglisht"}
-        es{"Spanjisht"}
-        fr{"Frengjisht"}
-        hi{"Hindi"}
-        it{"Italisht"}
-        ja{"Japanisht"}
-        pt{"Portugeze"}
-        ru{"Rusisht"}
         sq{"shqipe"}
-        zh{"Kineze"}
     }
     LocaleScript{
         "Latn",
@@ -235,10 +191,7 @@ sq{
         "�",
         "+",
     }
-    Scripts{
-        Latn{"Latine"}
-    }
-    Version{"1.40"}
+    Version{"1.2"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -281,17 +234,6 @@ sq{
                         "e shtunë",
                     }
                 }
-                stand-alone{
-                    narrow{
-                        "D",
-                        "H",
-                        "M",
-                        "M",
-                        "E",
-                        "P",
-                        "S",
-                    }
-                }
             }
             eras{
                 abbreviated{
@@ -330,24 +272,8 @@ sq{
                         "dhjetor",
                     }
                 }
-                stand-alone{
-                    narrow{
-                        "J",
-                        "S",
-                        "M",
-                        "P",
-                        "M",
-                        "Q",
-                        "K",
-                        "G",
-                        "S",
-                        "T",
-                        "N",
-                        "D",
-                    }
-                }
             }
         }
     }
-    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
+    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZ"}
 }

@@ -1,5 +1,5 @@
 ## Makefile.in for ICU - tools/genprops
-## Copyright (c) 1999-2005, International Business Machines Corporation and
+## Copyright (c) 1999-2004, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ## Steven R. Loomis
 
@@ -29,7 +29,7 @@ CLEANFILES = *~ $(DEPS) $(MAN_FILES)
 TARGET = $(BINDIR)/$(TARGET_STUB_NAME)$(EXEEXT)
 
 CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcdir)/../toolutil
-LIBS = $(LIBICUTOOLUTIL) $(LIBICUI18N) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
+LIBS = $(LIBICUTOOLUTIL) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
 
 OBJECTS = genprops.o props2.o store.o
 
@@ -54,13 +54,13 @@ check: all check-local
 all-local: $(TARGET) $(MAN_FILES)
 
 install-local: all-local install-man
-#	$(MKINSTALLDIRS) $(DESTDIR)$(sbindir)
-#	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)
+	$(MKINSTALLDIRS) $(DESTDIR)$(sbindir)
+	$(INSTALL) $(TARGET) $(DESTDIR)$(sbindir)
 
 # man page
 install-man: $(MAN_FILES)
-#	$(MKINSTALLDIRS) $(DESTDIR)$(mandir)/man$(SECTION)
-#	$(INSTALL_DATA) $< $(DESTDIR)$(mandir)/man$(SECTION)
+	$(MKINSTALLDIRS) $(DESTDIR)$(mandir)/man$(SECTION)
+	$(INSTALL_DATA) $< $(DESTDIR)$(mandir)/man$(SECTION)
 
 %.$(SECTION): $(srcdir)/%.$(SECTION).in
 	cd $(top_builddir) \

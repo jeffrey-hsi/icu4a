@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2003-2005, International Business Machines
+*   Copyright (C) 2003-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -40,7 +40,6 @@
 #include "ucnv_io.h"
 #include "uprops.h"
 #include "ucase.h"
-#include "ubidi_props.h"
 #include "ucol_swp.h"
 #include "ucnv_bld.h"
 #include "unormimp.h"
@@ -90,7 +89,7 @@ fileSize(FILE *f) {
  * @see UDataSwapFn
  * @see udata_openSwapper
  * @see udata_openSwapperForInputData
- * @internal ICU 2.8
+ * @draft ICU 2.8
  */
 static int32_t
 udata_swap(const UDataSwapper *ds,
@@ -315,9 +314,6 @@ static const struct {
 
     { { UCASE_FMT_0, UCASE_FMT_1, UCASE_FMT_2, UCASE_FMT_3 },
                                   ucase_swap },         /* dataFormat="cAsE" */
-
-    { { UBIDI_FMT_0, UBIDI_FMT_1, UBIDI_FMT_2, UBIDI_FMT_3 },
-                                  ubidi_swap },         /* dataFormat="BiDi" */
 
 #if !UCONFIG_NO_NORMALIZATION
     { { 0x4e, 0x6f, 0x72, 0x6d }, unorm_swap },         /* dataFormat="Norm" */
@@ -708,9 +704,6 @@ udata_swapPackage(const UDataSwapper *ds,
                 table[itemCount-1].length+=(uint32_t)delta;
             }
 
-            /* Save the offset before we sort the TOC. */
-            offset=table[0].inOffset;
-            /* sort the TOC entries */
             uprv_sortArray(table, (int32_t)itemCount, (int32_t)sizeof(ToCEntry),
                            compareToCEntries, outBytes, FALSE, pErrorCode);
 
@@ -720,6 +713,7 @@ udata_swapPackage(const UDataSwapper *ds,
              */
 
             /* assign outOffset values */
+            offset=table[0].inOffset;
             for(i=0; i<itemCount; ++i) {
                 table[i].outOffset=offset;
                 offset+=table[i].length;

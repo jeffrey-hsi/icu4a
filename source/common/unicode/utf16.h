@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -23,7 +23,7 @@
  * and some common definitions.
  *
  * For more information see utf.h and the ICU User Guide Strings chapter
- * (http://icu.sourceforge.net/userguide/strings.html).
+ * (http://oss.software.ibm.com/icu/userguide/).
  *
  * <em>Usage:</em>
  * ICU coding guidelines for if() statements should be followed when using these macros.

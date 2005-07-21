@@ -1,16 +1,15 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/fa.xml
+// * Source File: ../../../locale/common/main/fa.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/fa.xml
+ *  ICU <specials> source: ../../../locale/icu/main/fa.xml
  */
 fa{
-    AuxExemplarCharacters{"[\u0656\u0670]"}
     Countries{
         AD{"آندورا"}
         AE{"امارات متحده‌ی عربی"}
@@ -206,6 +205,7 @@ fa{
         SM{"سان مارینو"}
         SN{"سنگال"}
         SO{"سومالی"}
+        SP{"صربستان"}
         SR{"سورینام"}
         ST{"سائو تومه و پرینسیپه"}
         SV{"السالوادور"}
@@ -244,6 +244,7 @@ fa{
         WS{"ساموا"}
         YE{"یمن"}
         YT{"مایوت"}
+        YU{"یوگسلاوی"}
         ZA{"افریقای جنوبی"}
         ZM{"زامبیا"}
         ZW{"زیمبابوه"}
@@ -253,29 +254,9 @@ fa{
             "افغانی",
             "افغانی",
         }
-        EUR{
-            "€",
-            "EUR",
-        }
-        GBP{
-            "£",
-            "GBP",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "INR",
-        }
         IRR{
             "﷼",
             "IRR",
-        }
-        JPY{
-            "¥",
-            "JPY",
-        }
-        USD{
-            "$",
-            "USD",
         }
     }
     ExemplarCharacters{"[ء-ؤئ-غفقل-وً-ْٰٔپچژکگی‌‍‏‎]"}
@@ -525,7 +506,7 @@ fa{
         Yiii{"یی"}
         Zyyy{"مشترک"}
     }
-    Version{"1.43"}
+    Version{"1.2"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -535,8 +516,8 @@ fa{
             DateTimePatterns{
                 "HH:mm:ss (z)",
                 "HH:mm:ss (z)",
-                "H:mm:ss",
-                "H:mm",
+                "HH:mm:ss",
+                "HH:mm",
                 "EEEE، d MMMM yyyy",
                 "d MMMM yyyy",
                 "yyyy/MM/d",

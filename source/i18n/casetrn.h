@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2001-2005, International Business Machines
+*   Copyright (C) 2001-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -24,6 +24,7 @@
 #if !UCONFIG_NO_TRANSLITERATION
 
 #include "unicode/translit.h"
+#include "unicode/locid.h"
 #include "ucase.h"
 
 U_CDECL_BEGIN
@@ -50,7 +51,7 @@ public:
      * @param id  the transliterator ID.
      * @param map the full case mapping function (see ucase.h)
      */
-    CaseMapTransliterator(const UnicodeString &id, UCaseMapFull *map);
+    CaseMapTransliterator(const Locale &loc, const UnicodeString &id, UCaseMapFull *map);
 
     /**
      * Destructor.
@@ -97,7 +98,9 @@ protected:
                                      UTransPosition& offsets, 
                                      UBool isIncremental) const;
 
-    const UCaseProps *fCsp;
+    Locale fLoc;
+    const char *fLocName;
+    UCaseProps *fCsp;
     UCaseMapFull *fMap;
 };
 

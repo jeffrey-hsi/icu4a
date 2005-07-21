@@ -1,9 +1,9 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/pt_PT.xml
+// * Source File: ../../../locale/common/main/pt_PT.xml
 // *
 // ***************************************************************************
 pt_PT{
@@ -66,6 +66,7 @@ pt_PT{
         VI{"Ilhas Virgin E.U.A."}
         VN{"Vietname"}
         YE{"Iémen"}
+        YU{"Jugoslávia"}
     }
     Currencies{
         PTE{
@@ -85,12 +86,12 @@ pt_PT{
         sl{"esloveno"}
     }
     NumberPatterns{
-        "#,##0.###",
-        "#,##0.00 ¤",
+        "#,##0.###;-#,##0.###",
+        "#,##0.00 ¤;-#,##0.00 ¤",
         "#,##0%",
         "#E0",
     }
-    Version{"1.36"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimePatterns{
@@ -105,11 +106,5 @@ pt_PT{
                 "{1} {0}",
             }
         }
-    }
-    delimiters{
-        alternateQuotationEnd{"”"}
-        alternateQuotationStart{"“"}
-        quotationEnd{"’"}
-        quotationStart{"‘"}
     }
 }

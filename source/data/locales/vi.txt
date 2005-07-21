@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/vi.xml
+// * Source File: ../../../locale/common/main/vi.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/vi.xml
+ *  ICU <specials> source: ../../../locale/icu/main/vi.xml
  */
 vi{
     Countries{
@@ -164,6 +164,7 @@ vi{
         SM{"Xan Ma-ri-nô"}
         SN{"Xê-nê-gan"}
         SO{"Xô-ma-li"}
+        SP{"Séc-bia"}
         SR{"Xu-ri-nam"}
         ST{"Xao Tô-mê và Prin-xi-pê"}
         SV{"En-san-va-đo"}
@@ -193,6 +194,7 @@ vi{
         VU{"Va-nu-a-tu"}
         WS{"Xa-moa"}
         YE{"Y-ê-men"}
+        YU{"Nam Tư"}
         ZA{"Nam Phi"}
         ZM{"Dăm-bi-a"}
         ZW{"Dim-ba-bu-ê"}
@@ -284,12 +286,12 @@ vi{
         "+",
     }
     NumberPatterns{
-        "#,##0.###",
-        "#,##0.00 ¤",
+        "#,##0.###;-#,##0.###",
+        "#,##0.00 ¤;-#,##0.00 ¤",
         "#,##0%",
         "#E0",
     }
-    Version{"1.36"}
+    Version{"1.2"}
     calendar{
         gregorian{
             AmPmMarkers{

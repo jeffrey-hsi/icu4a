@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2001-2005, International Business Machines
+*   Copyright (c) 2001-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -73,6 +73,12 @@ public:
      */
     static UClassID U_EXPORT2 getStaticClassID();
 
+ private:
+
+    /**
+     * Factory method
+     */
+    static Transliterator* _create(const UnicodeString& ID, Token context);
 };
 
 U_NAMESPACE_END

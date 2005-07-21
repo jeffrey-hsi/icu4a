@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  *
- *   Copyright (C) 2003-2005, International Business Machines
+ *   Copyright (C) 2003-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *
  *******************************************************************************
@@ -27,7 +27,6 @@
 #include "unicode/udata.h"
 #include "utrie.h"
 #include "udataswp.h"
-#include "ubidi_props.h"
 
 #define _SPREP_DATA_TYPE "spp"
 
@@ -88,7 +87,6 @@ struct UStringPrepProfile{
     UTrie sprepTrie;
     const uint16_t* mappingData;
     UDataMemory* sprepData;
-    const UBiDiProps *bdp; /* used only if checkBiDi is set */
     UBool isDataLoaded;
     int32_t refCount;
     UBool doNFKC;

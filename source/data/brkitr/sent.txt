@@ -1,5 +1,5 @@
 #
-#   Copyright (C) 2002-2005, International Business Machines Corporation and others.
+#   Copyright (C) 2002-2004, International Business Machines Corporation and others.
 #       All Rights Reserved.
 #
 #   file:  sent.txt
@@ -13,18 +13,23 @@
 #
 # Character categories as defined in TR 29
 #
-$Sep       = [\p{Sentence_Break = Sep}];
-$Format    = [\p{Sentence_Break = Format}];
-$Sp        = [\p{Sentence_Break = Sp}];
-$Lower     = [\p{Sentence_Break = Lower}];
-$Upper     = [\p{Sentence_Break = Upper}];
-$OLetter   = [\p{Sentence_Break = OLetter}];
-$Numeric   = [\p{Sentence_Break = Numeric}];
-$ATerm     = [\p{Sentence_Break = ATerm}];
-$Term      = [\p{Sentence_Break = STerm}];
-$Close     = [\p{Sentence_Break = Close}];
+$Sep     = [\u000a \u000d \u0085 \u2028 \u2029];
+$Format  = [[:Format:] - [:Grapheme_Extend:]];
+$Sp      = [[:Whitespace:] - $Sep];
+$Lower   = [[:Lowercase:]];
+$Upper   = [[:TitleCase_Letter:] [:Uppercase:]];
+$OLetter = [[:Alphabetic:] [:name = HEBREW PUNCTUATION GERESH:] - [$Lower $Upper]];
+$Numeric = [:LineBreak = Numeric:];
 
-#
+$ATerm = [.];
+
+$Term  = [:STerm:];
+
+$Close   = [[:Open_Punctuation:] [:Close_Punctuation:] [:Linebreak = Quotation:] -
+           [[:name = HEBREW PUNCTUATION GERESH:] $ATerm $Term]];
+
+
+
 # Define extended forms of the character classes,
 #   incorporate grapheme cluster + format chars.
 
@@ -106,12 +111,10 @@ $End? $Join [$RULE12 - $Sp - $Close];
 
 # forces a break at the beginning of text "$Sp blah blah blah"
 # remember the break iterators takes the longest match
-$NOT_T_A_S_C = [^$Term $ATerm $Sp $Close];
-$End? $Join $Sp / [$NOT_T_A_S_C {eof}];
+$End? $Join $Sp / [^$Term $ATerm $Sp $Close];
 
 # forces a break at the beginning of text "$Close blah blah blah"
-$NOT_T_A_C = [^$Term $ATerm $Close];
-$End? $Join $Close / [$NOT_T_A_C {eof}];
+$End? $Join $Close / [^$Term $ATerm $Close];
 
 ## -------------------------------------------------
 

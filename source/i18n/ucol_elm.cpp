@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2001-2005, International Business Machines
+*   Copyright (C) 2001-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -41,7 +41,7 @@ U_NAMESPACE_BEGIN
 static uint32_t uprv_uca_processContraction(CntTable *contractions, UCAElements *element, uint32_t existingCE, UErrorCode *status);
 
 U_CDECL_BEGIN
-static int32_t U_CALLCONV
+static int32_t U_EXPORT2 U_CALLCONV
 prefixLookupHash(const UHashTok e) {
   UCAElements *element = (UCAElements *)e.pointer;
   UChar buf[256];
@@ -54,7 +54,7 @@ prefixLookupHash(const UHashTok e) {
   return uhash_hashUChars(key);
 }
 
-static int8_t U_CALLCONV
+static int8_t U_EXPORT2 U_CALLCONV
 prefixLookupComp(const UHashTok e1, const UHashTok e2) {
   UCAElements *element1 = (UCAElements *)e1.pointer;
   UCAElements *element2 = (UCAElements *)e2.pointer;
@@ -281,7 +281,6 @@ uprv_uca_cloneTempTable(tempUCATable *t, UErrorCode *status) {
     r->maxExpansions->position = t->maxExpansions->position;
     if(t->maxExpansions->endExpansionCE != NULL) {
       r->maxExpansions->endExpansionCE = (uint32_t *)uprv_malloc(sizeof(uint32_t)*t->maxExpansions->size);
-      uprv_memset(r->maxExpansions->endExpansionCE, 0xDB, sizeof(uint32_t)*t->maxExpansions->size);
       /* test for NULL */
       if (r->maxExpansions->endExpansionCE == NULL) {
           *status = U_MEMORY_ALLOCATION_ERROR;
@@ -293,7 +292,6 @@ uprv_uca_cloneTempTable(tempUCATable *t, UErrorCode *status) {
     }
     if(t->maxExpansions->expansionCESize != NULL) {
       r->maxExpansions->expansionCESize = (uint8_t *)uprv_malloc(sizeof(uint8_t)*t->maxExpansions->size);
-      uprv_memset(r->maxExpansions->expansionCESize, 0xDB, sizeof(uint8_t)*t->maxExpansions->size);
       /* test for NULL */
       if (r->maxExpansions->expansionCESize == NULL) {
           *status = U_MEMORY_ALLOCATION_ERROR;
@@ -1018,7 +1016,14 @@ uprv_uca_addAnElement(tempUCATable *t, UCAElements *element, UErrorCode *status)
   element->mapCE = 0; // clear mapCE so that we can catch expansions
 
   if(element->noOfCEs == 1) {
-    element->mapCE = element->CEs[0];      
+    if(element->isThai == FALSE) {
+          element->mapCE = element->CEs[0];      
+    } else { /* add thai - totally bad here */
+      expansion = (uint32_t)(UCOL_SPECIAL_FLAG | (THAI_TAG<<UCOL_TAG_SHIFT) 
+        | ((uprv_uca_addExpansion(expansions, element->CEs[0], status)+(headersize>>2))<<4) 
+        | 0x1);
+      element->mapCE = expansion;
+    }
   } else {     
     /* ICU 2.1 long primaries */
     /* unfortunately, it looks like we have to look for a long primary here */
@@ -1420,15 +1425,15 @@ uprv_uca_assembleTable(tempUCATable *t, UErrorCode *status) {
 
     /* copy max expansion table */
     myData->endExpansionCE      = tableOffset;
-    myData->endExpansionCECount = maxexpansion->position - 1;
+    myData->endExpansionCECount = maxexpansion->position;
     /* not copying the first element which is a dummy */
     uprv_memcpy(dataStart + tableOffset, maxexpansion->endExpansionCE + 1, 
-                (maxexpansion->position - 1) * sizeof(uint32_t));
-    tableOffset += (uint32_t)(paddedsize((maxexpansion->position)* sizeof(uint32_t)));
+                maxexpansion->position * sizeof(uint32_t));
+    tableOffset += (uint32_t)(paddedsize(maxexpansion->position * sizeof(uint32_t)));
     myData->expansionCESize = tableOffset;
     uprv_memcpy(dataStart + tableOffset, maxexpansion->expansionCESize + 1, 
-                (maxexpansion->position - 1) * sizeof(uint8_t));
-    tableOffset += (uint32_t)(paddedsize((maxexpansion->position)* sizeof(uint8_t)));
+                maxexpansion->position * sizeof(uint8_t));
+    tableOffset += (uint32_t)(paddedsize(maxexpansion->position * sizeof(uint8_t)));
 
     /* Unsafe chars table.  Finish it off, then copy it. */
     uprv_uca_unsafeCPAddCCNZ(t, status);
@@ -1541,6 +1546,12 @@ _enumCategoryRangeClosureCategory(const void *context, UChar32 start, UChar32 li
             // Since unsafeCPSet is static in ucol_elm, we are going
             // to wrap it up in the uprv_uca_unsafeCPAddCCNZ function
           }
+          if(UCOL_ISTHAIPREVOWEL(el.cPoints[0])) {
+            el.isThai = TRUE;
+          } else {
+            el.isThai = FALSE;
+          }
+
           uprv_uca_addAnElement(t, &el, status);
         }
       }

@@ -29,11 +29,11 @@
  * <em>Important: </em>The ICU collation service has been reimplemented 
  * in order to achieve better performance and UCA compliance. 
  * For details, see the 
- * <a href="http://dev.icu-project.org/cgi-bin/viewcvs.cgi/~checkout~/icuhtml/design/collation/ICU_collation_design.htm">
+ * <a href="http://icu.sourceforge.net/cvs/icu/~checkout~/icuhtml/design/collation/ICU_collation_design.htm">
  * collation design document</a>.
  * <p>
  * For more information about the collation service see 
- * <a href="http://icu.sourceforge.net/userguide/Collate_Intro.html">the users guide</a>.
+ * <a href="http://icu.sourceforge.net/icu/userguide/Collate_Intro.html">the users guide</a>.
  * <p>
  * Collation service provides correct sorting orders for most locales supported in ICU. 
  * If specific data for a locale is not available, the orders eventually falls back
@@ -41,7 +41,7 @@
  * <p>
  * Sort ordering may be customized by providing your own set of rules. For more on
  * this subject see the 
- * <a href="http://icu.sourceforge.net/userguide/Collate_Customization.html">
+ * <a href="http://icu.sourceforge.net/icu/userguide/Collate_Customization.html">
  * Collation customization</a> section of the users guide.
  * <p>
  * @see         UCollationResult
@@ -49,6 +49,15 @@
  * @see         UCollationStrength
  * @see         UCollationElements
  */
+
+/** A collation element iterator.
+*  For usage in C programs.
+*/
+struct collIterate;
+/** structure representing collation element iterator instance 
+ * @stable ICU 2.0
+ */
+typedef struct collIterate collIterate;
 
 /** A collator.
 *  For usage in C programs.
@@ -140,7 +149,7 @@ typedef enum {
  * Diacritical differences on the same base letter represent a secondary
  * difference.  Set comparison level to UCOL_SECONDARY to ignore tertiary
  * differences. Use this to set the strength of a Collator object.
- * Example of secondary difference, "&auml;" >> "a".
+ * Example of secondary difference, "ä" >> "a".
  *
  * Uppercase and lowercase versions of the same character represents a
  * tertiary difference.  Set comparison level to UCOL_TERTIARY to include
@@ -150,7 +159,7 @@ typedef enum {
  *
  * Two characters are considered "identical" when they have the same
  * unicode spellings.  UCOL_IDENTICAL.
- * For example, "&auml;" == "&auml;".
+ * For example, "ä" == "ä".
  *
  * UCollationStrength is also used to determine the strength of sort keys 
  * generated from UCollator objects
@@ -296,7 +305,7 @@ ucol_openRules( const UChar        *rules,
  * Open a collator defined by a short form string.
  * The structure and the syntax of the string is defined in the "Naming collators"
  * section of the users guide: 
- * http://icu.sourceforge.net/userguide/Collate_Concepts.html#Naming_Collators
+ * http://icu.sourceforge.net/icu/userguide/Collate_Concepts.html#Naming_Collators
  * Attributes are overriden by the subsequent attributes. So, for "S2_S3", final
  * strength will be 3. 3066bis locale overrides individual locale parts.
  * The call to this function is equivalent to a call to ucol_open, followed by a 
@@ -343,28 +352,13 @@ ucol_openFromShortString( const char *definition,
  * @param status to hold the error code
  * @return the size of the contraction set
  *
- * @deprecated ICU 3.4, use ucol_getContractionsAndExpansions instead
+ * @draft ICU 3.0
  */
 U_CAPI int32_t U_EXPORT2
 ucol_getContractions( const UCollator *coll,
                   USet *conts,
                   UErrorCode *status);
 
-/**
- * Get a set containing the expansions defined by the collator. The set includes
- * both the UCA expansions and the expansions defined by the tailoring
- * @param coll collator
- * @param contractions if not NULL, the set to hold the contractions
- * @param expansions if not NULL, the set to hold the expansions
- * @param addPrefixes add the prefix contextual elements to contractions
- * @param status to hold the error code
- *
- * @draft ICU 3.4
- */
-U_CAPI void U_EXPORT2
-ucol_getContractionsAndExpansions( const UCollator *coll,
-                  USet *contractions, USet *expansions,
-                  UBool addPrefixes, UErrorCode *status);
 
 /** 
  * Close a UCollator.
@@ -595,7 +589,7 @@ ucol_getKeywordValues(const char *keyword, UErrorCode *status);
  * applications who wish to cache collators, or otherwise reuse
  * collators when possible.  The functional equivalent may change
  * over time.  For more information, please see the <a
- * href="http://icu.sourceforge.net/userguide/locale.html#services">
+ * href="http://icu.sourceforge.net/icu/userguide/locale.html#services">
  * Locales and Services</a> section of the ICU User Guide.
  * @param result fillin for the functionally equivalent locale
  * @param resultCapacity capacity of the fillin buffer
@@ -635,7 +629,7 @@ ucol_getRules(    const    UCollator    *coll,
  *  This string will be normalized.
  *  The structure and the syntax of the string is defined in the "Naming collators"
  *  section of the users guide: 
- *  http://icu.sourceforge.net/userguide/Collate_Concepts.html#Naming_Collators
+ *  http://icu.sourceforge.net/icu/userguide/Collate_Concepts.html#Naming_Collators
  *  This API supports preflighting.
  *  @param coll a collator
  *  @param locale a locale that will appear as a collators locale in the resulting
@@ -810,7 +804,7 @@ ucol_getVersion(const UCollator* coll, UVersionInfo info);
  * UCA version number (3.1.1, 4.0).
  * @param coll The UCollator to query.
  * @param info the version # information, the result will be filled in
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 U_DRAFT void U_EXPORT2
 ucol_getUCAVersion(const UCollator* coll, UVersionInfo info);
@@ -998,7 +992,7 @@ ucol_getLocale(const UCollator *coll, ULocDataLocaleType type, UErrorCode *statu
  * @return real locale name from which the collation data comes. 
  *         If the collator was instantiated from rules, returns
  *         NULL.
- * @draft ICU 2.8 likely to change after ICU 3.0, based on feedback
+ * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
  */
 U_DRAFT const char * U_EXPORT2
 ucol_getLocaleByType(const UCollator *coll, ULocDataLocaleType type, UErrorCode *status);

@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -504,11 +504,6 @@ LocaleTest::TestDisplayNames()
     if(s.isEmpty()) {
         errln("unable to get any default-locale display string for the country of fr_FR\n");
     }
-    s.remove();
-    Locale("zh", "Hant").getDisplayScript(s);
-    if(s.isEmpty()) {
-        errln("unable to get any default-locale display string for the country of zh_Hant\n");
-    }
 }
 
 /*
@@ -877,8 +872,8 @@ LocaleTest::TestGetLangsAndCountries()
       ;
 
     /* TODO: Change this test to be more like the cloctst version? */
-    if (testCount != 473)
-        errln("Expected getISOLanguages() to return 473 languages; it returned %d", testCount);
+    if (testCount != 468)
+        errln("Expected getISOLanguages() to return 468 languages; it returned %d", testCount);
     else {
         for (i = 0; i < 15; i++) {
             int32_t j;
@@ -908,8 +903,8 @@ LocaleTest::TestGetLangsAndCountries()
     for(testCount=0;test[testCount];testCount++)
       ;
 
-    if (testCount != 240)
-        errln("Expected getISOLanguages to return 240 languages; it returned" + testCount);
+    if (testCount != 239)
+        errln("Expected getISOLanguages to return 238 languages; it returned" + testCount);
     else {
         for (i = 0; i < spot2Len; i++) {
             int32_t j;
@@ -1051,19 +1046,18 @@ LocaleTest::TestAtypicalLocales()
                                      CharsToUnicodeString("B\\u00E9lgica") };
     // De-Anglicizing root required the change from
     // English display names to ISO Codes - ram 2003/09/26
-    UnicodeString invDisplayNames [] = { "German (Canada)",
-                                     "Japanese (South Africa)",
-                                     "Russian (Mexico)",
-                                     "English (France)",
-                                     "Spanish (Germany)",
-                                     "Croatia",
-                                     "Sweden",
-                                     "Dominican Republic",
-                                     "Belgium" };
+    UnicodeString bengaliDisplayNames [] = { "de (CA)",
+                                     "ja (ZA)",
+                                     "ru (MX)",
+                                     "en (FR)",
+                                     "es (DE)",
+                                     "HR",
+                                     "SE",
+                                     "DO",
+                                     "BE" };
 
     int32_t i;
     UErrorCode status = U_ZERO_ERROR;
-    Locale saveLocale;
     Locale::setDefault(Locale::getUS(), status);
     for (i = 0; i < 9; ++i) {
         UnicodeString name;
@@ -1097,18 +1091,17 @@ LocaleTest::TestAtypicalLocales()
 
     for (i = 0; i < 9; i++) {
         UnicodeString name;
-        localesToTest[i].getDisplayName(Locale("inv", "IN"), name);
+        localesToTest[i].getDisplayName(Locale("be", "ES"), name);
         logln(name + " Locale fallback to be, and data fallback to root");
-        if (name != invDisplayNames[i])
-            errln("Lookup in INV failed: expected \"" + prettify(invDisplayNames[i])
-                        + "\", got \"" + prettify(name) + "\"");
-        localesToTest[i].getDisplayName(Locale("inv", "BD"), name);
+        if (name != bengaliDisplayNames[i])
+            errln("Lookup in Bengali failed: expected \"" + bengaliDisplayNames[i]
+                        + "\", got \"" + name + "\"");
+        localesToTest[i].getDisplayName(Locale("be", "EG"), name);
         logln(name + " Data fallback to root");
-        if (name != invDisplayNames[i])
-            errln("Lookup in INV failed: expected \"" + prettify(invDisplayNames[i])
-                        + "\", got \"" + prettify(name )+ "\"");
+        if (name != bengaliDisplayNames[i])
+            errln("Lookup in Bengali failed: expected \"" + bengaliDisplayNames[i]
+                        + "\", got \"" + name + "\"");
     }
-    Locale::setDefault(saveLocale, status);
 }
 
 #if !UCONFIG_NO_FORMATTING
@@ -1193,12 +1186,6 @@ LocaleTest::TestEuroSupport()
         UnicodeString temp;
         NumberFormat *nf = NumberFormat::createCurrencyInstance(loc, status);
         UnicodeString pos;
-
-        if (U_FAILURE(status)) {
-            dataerrln("Error calling NumberFormat::createCurrencyInstance(%s)", *locales);
-            continue;
-        }
-
         nf->format(271828.182845, pos);
         UnicodeString neg;
         nf->format(-271828.182845, neg);
@@ -1318,10 +1305,6 @@ LocaleTest::Test4139940()
     UDate mydate = date(98,3,13); // A Monday
     UErrorCode status = U_ZERO_ERROR;
     SimpleDateFormat df_full("EEEE", mylocale, status);
-    if(U_FAILURE(status)){
-        errln(UnicodeString("Could not create SimpleDateFormat object for locale hu. Error: " )+ UnicodeString(u_errorName(status)));
-        return;
-    }
     UnicodeString str;
     FieldPosition pos(FieldPosition::DONT_CARE);
     df_full.format(mydate, str, pos);
@@ -1441,10 +1424,7 @@ LocaleTest::Test4147552()
                                                  "norsk (Noreg, NY)"
                                                  //"Norsk (Noreg, Nynorsk)"
     };
-    UErrorCode status = U_ZERO_ERROR;
 
-    Locale saveLocale;
-    Locale::setDefault(Locale::getEnglish(), status);
     for (int32_t i = 0; i < 3; ++i) {
         Locale loc = locales[i];
         UnicodeString temp;
@@ -1456,7 +1436,6 @@ LocaleTest::Test4147552()
                    norwegianDisplayNames[i] + ", got " +
                    loc.getDisplayName(loc, temp));
     }
-    Locale::setDefault(saveLocale, status);
 }
 
 void
@@ -1652,16 +1631,6 @@ LocaleTest::TestKeywordVariants(void) {
                         }
                     }
                 }
-                keywords->reset(status); // Make sure that reset works.
-                for(j = 0;;) {
-                    if((keyword = keywords->next(&keywordLen, status)) == NULL) {
-                        break;
-                    }
-                    if(strcmp(keyword, testCases[i].expectedKeywords[j]) != 0) {
-                        err("Expected to get keyword value %s, got %s\n", testCases[i].expectedKeywords[j], keyword);
-                    }
-                    j++;
-                }
             }
             delete keywords;
         }
@@ -1801,12 +1770,6 @@ void LocaleTest::TestGetLocale(void) {
         } else {
             _checklocs("Calendar", req, valid, actual);
         }
-        /* Make sure that it fails correctly */
-        ec = U_FILE_ACCESS_ERROR;
-        if (cal->getLocale(ULOC_VALID_LOCALE, ec).getName()[0] != 0) {
-            errln("FAIL: Calendar::getLocale() failed to fail correctly. It should have returned \"\"");
-        }
-        ec = U_ZERO_ERROR;
     }
     delete cal;
 #endif
@@ -1815,11 +1778,11 @@ void LocaleTest::TestGetLocale(void) {
 #if !UCONFIG_NO_FORMATTING
     req = "fr_FR_NICE";
     DecimalFormat* dec = (DecimalFormat*)
-    NumberFormat::createInstance(Locale::createFromName(req), ec);
+        NumberFormat::createInstance(Locale::createFromName(req), ec);
+    U_ASSERT(dec->getDynamicClassID() == DecimalFormat::getStaticClassID());
     if (U_FAILURE(ec)) {
         errln("FAIL: NumberFormat::createInstance failed");
     } else {
-        U_ASSERT(dec->getDynamicClassID() == DecimalFormat::getStaticClassID());
         valid = dec->getLocale(ULOC_VALID_LOCALE, ec);
         actual = dec->getLocale(ULOC_ACTUAL_LOCALE, ec);
         if (U_FAILURE(ec)) {
@@ -1847,28 +1810,25 @@ void LocaleTest::TestGetLocale(void) {
     SimpleDateFormat* dat = (SimpleDateFormat*)
         DateFormat::createDateInstance(DateFormat::kDefault,
                                        Locale::createFromName(req));
-    if (dat == 0){
-        dataerrln("Error calling DateFormat::createDateInstance()");
+    U_ASSERT(dat != 0);
+    U_ASSERT(dat->getDynamicClassID() == SimpleDateFormat::getStaticClassID());
+    valid = dat->getLocale(ULOC_VALID_LOCALE, ec);
+    actual = dat->getLocale(ULOC_ACTUAL_LOCALE, ec);
+    if (U_FAILURE(ec)) {
+        errln("FAIL: SimpleDateFormat::getLocale() failed");
     } else {
-        U_ASSERT(dat->getDynamicClassID() == SimpleDateFormat::getStaticClassID());
-        valid = dat->getLocale(ULOC_VALID_LOCALE, ec);
-        actual = dat->getLocale(ULOC_ACTUAL_LOCALE, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: SimpleDateFormat::getLocale() failed");
-        } else {
-            _checklocs("SimpleDateFormat", req, valid, actual);
-        }
-    
-        const DateFormatSymbols* sym = dat->getDateFormatSymbols();
-        U_ASSERT(sym != 0);
-        valid = sym->getLocale(ULOC_VALID_LOCALE, ec);
-        actual = sym->getLocale(ULOC_ACTUAL_LOCALE, ec);
-        if (U_FAILURE(ec)) {
-            errln("FAIL: DateFormatSymbols::getLocale() failed");
-        } else {
-            _checklocs("DateFormatSymbols", req, valid, actual);
-        }        
+        _checklocs("SimpleDateFormat", req, valid, actual);
     }
+    
+    const DateFormatSymbols* sym = dat->getDateFormatSymbols();
+    U_ASSERT(sym != 0);
+    valid = sym->getLocale(ULOC_VALID_LOCALE, ec);
+    actual = sym->getLocale(ULOC_ACTUAL_LOCALE, ec);
+    if (U_FAILURE(ec)) {
+        errln("FAIL: DateFormatSymbols::getLocale() failed");
+    } else {
+        _checklocs("DateFormatSymbols", req, valid, actual);
+    }        
     delete dat;
 #endif
 
@@ -2071,7 +2031,7 @@ void LocaleTest::TestCanonicalization(void)
         { "hi__DIRECT", "hi__DIRECT", "hi@collation=direct" },
         { "ja_JP_TRADITIONAL", "ja_JP_TRADITIONAL", "ja_JP@calendar=japanese" },
         { "th_TH_TRADITIONAL", "th_TH_TRADITIONAL", "th_TH@calendar=buddhist" },
-        { "zh_TW_STROKE", "zh_TW_STROKE", "zh_Hant_TW@collation=stroke" },
+        { "zh_TW_STROKE", "zh_TW_STROKE", "zh_TW@collation=stroke" },
         { "zh__PINYIN", "zh__PINYIN", "zh@collation=pinyin" },
         { "zh@collation=pinyin", "zh@collation=pinyin", "zh@collation=pinyin" },
         { "zh_CN@collation=pinyin", "zh_CN@collation=pinyin", "zh_CN@collation=pinyin" },
@@ -2092,7 +2052,7 @@ void LocaleTest::TestCanonicalization(void)
         { "uz-UZ-Cyrl", "uz_UZ_CYRL", "uz_Cyrl_UZ" }, /* .NET name */
         { "uz-UZ-Latn", "uz_UZ_LATN", "uz_Latn_UZ" }, /* .NET name */
         { "zh-CHS", "zh_CHS", "zh_Hans" }, /* .NET name */
-        { "zh-CHT", "zh_CHT", "zh_Hant" }, /* .NET name This may change back to zh_Hant */
+        { "zh-CHT", "zh_CHT", "zh_TW" }, /* .NET name This may change back to zh_Hant */
 
         /* posix behavior that used to be performed by getName */
         { "mr.utf8", "mr.utf8", "mr" },

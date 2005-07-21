@@ -1,5 +1,5 @@
 ## Makefile.in for ICU - tools/gensprep
-## Copyright (c) 2001-2005, International Business Machines Corporation and
+## Copyright (c) 2001-2004, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ## Steven R. Loomis/Markus W. Scherer
 
@@ -29,7 +29,7 @@ CLEANFILES = *~ $(DEPS) $(MAN_FILES)
 TARGET = $(BINDIR)/$(TARGET_STUB_NAME)$(EXEEXT)
 
 CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcdir)/../toolutil
-LIBS = $(LIBICUTOOLUTIL) $(LIBICUI18N) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
+LIBS = $(LIBICUTOOLUTIL) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
 
 OBJECTS = gensprep.o store.o
 

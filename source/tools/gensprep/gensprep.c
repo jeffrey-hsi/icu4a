@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2003-2005, International Business Machines
+*   Copyright (C) 2003-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -39,6 +39,10 @@
 U_CDECL_BEGIN
 #include "gensprep.h"
 U_CDECL_END
+
+#ifdef WIN32
+#   pragma warning(disable: 4100)
+#endif
 
 UBool beVerbose=FALSE, haveCopyright=TRUE;
 

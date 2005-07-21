@@ -15,6 +15,7 @@
 #if !UCONFIG_NO_TRANSLITERATION
 
 #include "unicode/translit.h"
+#include "unicode/locid.h"
 #include "casetrn.h"
 
 U_NAMESPACE_BEGIN
@@ -32,7 +33,7 @@ class U_I18N_API UppercaseTransliterator : public CaseMapTransliterator {
      * Constructs a transliterator.
      * @param loc the given locale.
      */
-    UppercaseTransliterator();
+    UppercaseTransliterator(const Locale& loc = Locale::getDefault());
 
     /**
      * Destructor.

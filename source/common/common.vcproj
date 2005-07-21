@@ -21,8 +21,10 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
 				ImproveFloatingPointConsistency="TRUE"
-				PreprocessorDefinitions="WIN32;NDEBUG;U_COMMON_IMPLEMENTATION"
+				OptimizeForProcessor="2"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_USRDLL;U_COMMON_IMPLEMENTATION"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
@@ -33,16 +35,16 @@
 				ProgramDataBaseFileName=".\Release/"
 				BrowseInformation="1"
 				WarningLevel="3"
-				SuppressStartupBanner="TRUE"/>
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\bin\icuuc34.dll"
+				OutputFile="..\..\bin\icuuc32.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\..\..\lib\icuuc34.pdb"
-				EnableCOMDATFolding="2"
+				ProgramDatabaseFile=".\..\..\lib\icuuc32.pdb"
 				BaseAddress="0x4a800000"
 				ImportLibrary="..\..\lib\icuuc.lib"/>
 			<Tool
@@ -85,10 +87,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				ImproveFloatingPointConsistency="TRUE"
-				PreprocessorDefinitions="WIN32;_DEBUG;U_COMMON_IMPLEMENTATION;RBBI_DEBUG"
+				OptimizeForProcessor="2"
+				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_USRDLL;U_COMMON_IMPLEMENTATION;RBBI_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				BufferSecurityCheck="TRUE"
 				DisableLanguageExtensions="TRUE"
 				PrecompiledHeaderFile=".\Debug/common.pch"
 				AssemblerListingLocation=".\Debug/"
@@ -102,11 +104,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\bin\icuuc34d.dll"
+				OutputFile="..\..\bin\icuuc32d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\..\..\lib\icuuc34d.pdb"
+				ProgramDatabaseFile=".\..\..\lib\icuuc32d.pdb"
 				BaseAddress="0x4a800000"
 				ImportLibrary="..\..\lib\icuucd.lib"/>
 			<Tool
@@ -165,12 +167,6 @@
 "
 						Outputs="..\..\include\unicode\$(InputFileName)"/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\ubidi_props.c">
-			</File>
-			<File
-				RelativePath=".\ubidi_props.h">
 			</File>
 			<File
 				RelativePath=".\ubidiimp.h">
@@ -481,23 +477,10 @@
 				RelativePath=".\cpputils.h">
 			</File>
 			<File
-				RelativePath=".\unicode\docmain.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode
-"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode
-"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
-				</FileConfiguration>
+				RelativePath=".\filestrm.c">
+			</File>
+			<File
+				RelativePath=".\filestrm.h">
 			</File>
 			<File
 				RelativePath=".\locmap.c">
@@ -1169,12 +1152,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\locutil.cpp">
-			</File>
-			<File
-				RelativePath=".\locutil.h">
-			</File>
-			<File
 				RelativePath=".\resbund.cpp">
 			</File>
 			<File
@@ -1605,34 +1582,22 @@
 			Name="registration"
 			Filter="">
 			<File
-				RelativePath=".\serv.cpp">
+				RelativePath=".\iculserv.cpp">
 			</File>
 			<File
-				RelativePath=".\serv.h">
+				RelativePath=".\iculserv.h">
 			</File>
 			<File
-				RelativePath=".\servlk.cpp">
+				RelativePath=".\icunotif.cpp">
 			</File>
 			<File
-				RelativePath=".\servlkf.cpp">
+				RelativePath=".\icunotif.h">
 			</File>
 			<File
-				RelativePath=".\servloc.h">
+				RelativePath=".\icuserv.cpp">
 			</File>
 			<File
-				RelativePath=".\servls.cpp">
-			</File>
-			<File
-				RelativePath=".\servnotf.cpp">
-			</File>
-			<File
-				RelativePath=".\servnotf.h">
-			</File>
-			<File
-				RelativePath=".\servrbf.cpp">
-			</File>
-			<File
-				RelativePath=".\servslkf.cpp">
+				RelativePath=".\icuserv.h">
 			</File>
 		</Filter>
 		<Filter
@@ -1728,28 +1693,6 @@
 			</File>
 			<File
 				RelativePath=".\unicode\schriter.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode
-"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode
-"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\ucasemap.c">
-			</File>
-			<File
-				RelativePath=".\unicode\ucasemap.h">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -1906,28 +1849,6 @@
 			</File>
 			<File
 				RelativePath=".\ustrtrns.c">
-			</File>
-			<File
-				RelativePath=".\utext.cpp">
-			</File>
-			<File
-				RelativePath=".\unicode\utext.h">
-				<FileConfiguration
-					Name="Release|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode
-"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32">
-					<Tool
-						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode
-"
-						Outputs="..\..\include\unicode\$(InputFileName)"/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\unicode\utf.h">

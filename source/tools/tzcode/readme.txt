@@ -1,5 +1,5 @@
 **********************************************************************
-* Copyright (c) 2003-2005, International Business Machines
+* Copyright (c) 2003-2004, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 * Author: Alan Liu
@@ -19,7 +19,7 @@ behavior, as well as the full set of Olson compatibility IDs.
 
 References:
 
-ICU4C:  http://icu.sourceforge.net/
+ICU4C:  http://oss.software.ibm.com/icu/
 Olson:  ftp://elsie.nci.nih.gov/pub/
 
 ----------------------------------------------------------------------

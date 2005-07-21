@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/om.xml
+// * Source File: ../../../locale/common/main/om.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/om.xml
+ *  ICU <specials> source: ../../../locale/icu/main/om.xml
  */
 om{
     Countries{
@@ -15,29 +15,9 @@ om{
         KE{"Keeniyaa"}
     }
     Currencies{
-        EUR{
-            "€",
-            "EUR",
-        }
-        GBP{
-            "£",
-            "GBP",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "INR",
-        }
-        JPY{
-            "¥",
-            "JPY",
-        }
         KES{
             "Ksh",
             "KES",
-        }
-        USD{
-            "$",
-            "USD",
         }
     }
     ExemplarCharacters{"[a-z]"}
@@ -47,7 +27,7 @@ om{
     LocaleScript{
         "Latn",
     }
-    Version{"1.29"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimeElements:intvector{

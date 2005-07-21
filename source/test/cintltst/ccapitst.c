@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -26,7 +26,7 @@
 #include "ccapitst.h"
 
 /* for not including "cstring.h" -begin*/    
-#ifdef U_WINDOWS
+#ifdef WIN32
 #   define ctest_stricmp(str1, str2) U_STANDARD_CPP_NAMESPACE _stricmp(str1, str2)
 #elif defined(POSIX) 
 #   define ctest_stricmp(str1, str2) U_STANDARD_CPP_NAMESPACE strcasecmp(str1, str2) 
@@ -105,8 +105,7 @@ static void TestEBCDICSwapLFNL(void);
 static void TestConvertEx(void);
 static void TestConvertAlgorithmic(void);
        void TestDefaultConverterError(void);    /* defined in cctest.c */
-static void TestToUCountPending(void);
-static void TestFromUCountPending(void);       
+
 void addTestConvert(TestNode** root);
 
 void addTestConvert(TestNode** root)
@@ -126,8 +125,6 @@ void addTestConvert(TestNode** root)
     addTest(root, &TestConvertEx,               "tsconv/ccapitst/TestConvertEx");
     addTest(root, &TestConvertAlgorithmic,      "tsconv/ccapitst/TestConvertAlgorithmic");
     addTest(root, &TestDefaultConverterError,   "tsconv/ccapitst/TestDefaultConverterError");
-    addTest(root, &TestToUCountPending,         "tsconv/ccapitst/TestToUCountPending");
-    addTest(root, &TestFromUCountPending,       "tsconv/ccapitst/TestFromUCountPending");
 }
 
 static void ListNames(void) {
@@ -713,36 +710,27 @@ static void TestConvert()
         /*getDisplayName*/
         log_verbose("\n---Testing ucnv_getDisplayName()...\n");
         locale=CodePagesLocale[codepage_index];
+        displayname=(UChar*)malloc(1 * sizeof(UChar));
         len=0;
-        displayname=NULL;
-        disnamelen = ucnv_getDisplayName(myConverter, locale, displayname, len, &err); 
-        if(err==U_BUFFER_OVERFLOW_ERROR) {    
+        disnamelen = ucnv_getDisplayName(myConverter,locale,displayname, len, &err); 
+        if(err==U_BUFFER_OVERFLOW_ERROR)
+        {    
             err=U_ZERO_ERROR;
-            displayname=(UChar*)malloc((disnamelen+1) * sizeof(UChar));
+            displayname=(UChar*)realloc(displayname, (disnamelen+1) * sizeof(UChar));
             ucnv_getDisplayName(myConverter,locale,displayname,disnamelen+1, &err);
-            if(U_FAILURE(err)) {
-                log_err("getDisplayName failed. The error is  %s\n", myErrorName(err));
+            if(U_FAILURE(err))
+            {
+                log_err("getDisplayName failed the error is  %s\n", myErrorName(err));
             }
-            else {
+            else
                 log_verbose(" getDisplayName o.k.\n");
-            }
-            free(displayname);
-            displayname=NULL;
-        }
-        else {
-            log_err("getDisplayName preflight doesn't work. Error is  %s\n", myErrorName(err));
         }
         /*test ucnv_getDiaplayName with error condition*/
+        log_verbose("\n---Testing ucnv_getDisplayName()...\n");
         err= U_ILLEGAL_ARGUMENT_ERROR;
-        len=ucnv_getDisplayName(myConverter,locale,NULL,0, &err);  
+        len=ucnv_getDisplayName(myConverter,locale,displayname,disnamelen+1, &err);  
         if( len !=0 ){
             log_err("ucnv_getDisplayName() with err != U_ZERO_ERROR is supposed to return 0\n");
-        }
-        /*test ucnv_getDiaplayName with error condition*/
-        err=U_ZERO_ERROR;
-        len=ucnv_getDisplayName(NULL,locale,NULL,0, &err);  
-        if( len !=0 || U_SUCCESS(err)){
-            log_err("ucnv_getDisplayName(NULL) with cnv == NULL is supposed to return 0\n");
         }
         err=U_ZERO_ERROR;
 
@@ -1058,6 +1046,7 @@ static void TestConvert()
 
         fclose(ucs_file_in);
         ucnv_close(myConverter);
+        free(displayname);
         if (uchar1 != 0) free(uchar1);
         if (uchar2 != 0) free(uchar2);
         if (uchar3 != 0) free(uchar3);
@@ -1315,7 +1304,7 @@ static void TestAlias() {
     for (i = 0; i < CONVERTERS_NAMES_LENGTH; ++i) {
         const char* mapBack = ucnv_getAlias(CONVERTERS_NAMES[i].alias, 0, &status);
         if(!mapBack) {
-          log_data_err("Couldn't get alias for %s. You probably have no data\n", CONVERTERS_NAMES[i].name);
+          log_data_err("Couldn't get alias for %s. You probably have no data\n", CONVERTERS_NAMES[i]);
           continue;
         }
         if (0 != strcmp(mapBack, CONVERTERS_NAMES[i].name)) {
@@ -2786,219 +2775,4 @@ TestEBCDICSwapLFNL() {
     for(i=0; i<LENGTHOF(tests); ++i) {
         testSwap(tests[i].name, tests[i].swap);
     }
-}
-static const UVersionInfo ICU_34 = {3,4,0,0};
-
-static void TestFromUCountPending(){
-
-    UErrorCode status = U_ZERO_ERROR;
-/*       const UChar expectedUnicode[] = { 0x20ac, 0x0005, 0x0006, 0x000b, 0xdbc4, 0xde34, 0xd84d, 0xdc56, 0xfffd}; */
-    static const struct {
-        UChar input[6];
-        int32_t len;
-        int32_t exp;
-    }fromUnicodeTests[] = {
-        /*m:n conversion*/
-        {{0xdbc4},1,1},
-        {{ 0xdbc4, 0xde34, 0xd84d},3,1},
-        {{ 0xdbc4, 0xde34, 0xd900},3,3},
-    };
-    int i;
-    UConverter* cnv = ucnv_openPackage(loadTestData(&status), "test3", &status);
-    if(U_FAILURE(status)){
-        log_err("Could not create converter for test3. Error: %s\n", u_errorName(status));
-        return;
-    }
-    for(i=0; i<LENGTHOF(fromUnicodeTests); ++i) {
-        char tgt[10];
-        char* target = tgt;
-        char* targetLimit = target + 10;
-        const UChar* source = fromUnicodeTests[i].input;
-        const UChar* sourceLimit = source + fromUnicodeTests[i].len; 
-        int32_t len = 0;
-        ucnv_reset(cnv);
-        ucnv_fromUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
-        len = ucnv_fromUCountPending(cnv, &status);
-        if(U_FAILURE(status)){
-            log_err("ucnv_fromUnicode call did not succeed. Error: %s\n", u_errorName(status));
-            status = U_ZERO_ERROR;
-            continue;
-        }
-        if(len != fromUnicodeTests[i].exp){
-            log_err("Did not get the expeced output for ucnv_fromUInputConsumed.\n");
-        }
-    }
-    status = U_ZERO_ERROR;
-    {
-        /*
-         * The converter has to read the tail before it knows that
-         * only head alone matches.
-         * At the end, the output for head will overflow the target,
-         * middle will be pending, and tail will not have been consumed.
-         */
-        /* 
-        \U00101234  -> x (<U101234>   \x07 |0)
-        \U00101234\U00050005 -> y (<U101234>+<U50005>          \x07+\x00+\x01\x02\x0e+\x05 |0)
-        \U00101234\U00050005\U00060006 -> z (<U101234>+<U50005>+<U60006> \x07+\x00+\x01\x02\x0f+\x09 |0)
-        \U00060007 -> unassigned
-        */
-        static const UChar head[] = {0xDBC4,0xDE34,0xD900,0xDC05,0x0000};/* \U00101234\U00050005 */
-        static const UChar middle[] = {0xD940,0x0000};     /* first half of \U00060006 or \U00060007 */
-        static const UChar tail[] = {0xDC07,0x0000};/* second half of \U00060007 */
-        char tgt[10];
-        char* target = tgt;
-        char* targetLimit = target + 2; /* expect overflow from converting \U00101234\U00050005 */
-        const UChar* source = head;
-        const UChar* sourceLimit = source + u_strlen(head); 
-        int32_t len = 0;
-        ucnv_reset(cnv);
-        ucnv_fromUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
-        len = ucnv_fromUCountPending(cnv, &status);
-        if(U_FAILURE(status)){
-            log_err("ucnv_fromUnicode call did not succeed. Error: %s\n", u_errorName(status));
-            status = U_ZERO_ERROR;
-        }
-        if(len!=4){
-            log_err("ucnv_fromUInputHeld did not return correct length for head\n");
-        }
-        source = middle;
-        sourceLimit = source + u_strlen(middle);
-        ucnv_fromUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
-        len = ucnv_fromUCountPending(cnv, &status);
-        if(U_FAILURE(status)){
-            log_err("ucnv_fromUnicode call did not succeed. Error: %s\n", u_errorName(status));
-            status = U_ZERO_ERROR;
-        }
-        if(len!=5){
-            log_err("ucnv_fromUInputHeld did not return correct length for middle\n");
-        }
-        source = tail;
-        sourceLimit = source + u_strlen(tail);
-        ucnv_fromUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
-        if(status != U_BUFFER_OVERFLOW_ERROR){
-            log_err("ucnv_fromUnicode call did not succeed. Error: %s\n", u_errorName(status));
-        }
-        status = U_ZERO_ERROR;
-        len = ucnv_fromUCountPending(cnv, &status);
-        /* middle[1] is pending, tail has not been consumed */
-        if(U_FAILURE(status)){
-            log_err("ucnv_fromUInputHeld call did not succeed. Error: %s\n", u_errorName(status));
-        }
-        if(len!=1){
-            log_err("ucnv_fromUInputHeld did not return correct length for tail\n");
-        }
-    }
-    ucnv_close(cnv);
-}
-
-static void
-TestToUCountPending(){
-    UErrorCode status = U_ZERO_ERROR;
-    static const struct {
-        char input[6];
-        int32_t len;
-        int32_t exp;
-    }toUnicodeTests[] = {
-        /*m:n conversion*/
-        {{0x05, 0x01, 0x02},3,3},
-        {{0x01, 0x02},2,2},
-        {{0x07,  0x00, 0x01, 0x02},4,4},
-    };
-
-    int i;
-    UConverterToUCallback *oldToUAction= NULL;
-    UConverter* cnv = ucnv_openPackage(loadTestData(&status), "test3", &status);
-    if(U_FAILURE(status)){
-        log_err("Could not create converter for test3. Error: %s\n", u_errorName(status));
-        return;
-    }
-    ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, oldToUAction, NULL, &status);
-    for(i=0; i<LENGTHOF(toUnicodeTests); ++i) {
-        UChar tgt[10];
-        UChar* target = tgt;
-        UChar* targetLimit = target + 20;
-        const char* source = toUnicodeTests[i].input;
-        const char* sourceLimit = source + toUnicodeTests[i].len; 
-        int32_t len = 0;
-        ucnv_reset(cnv);
-        ucnv_toUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
-        len = ucnv_toUCountPending(cnv,&status);
-        if(U_FAILURE(status)){
-            log_err("ucnv_toUnicode call did not succeed. Error: %s\n", u_errorName(status));
-            status = U_ZERO_ERROR;
-            continue;
-        }
-        if(len != toUnicodeTests[i].exp){
-            log_err("Did not get the expeced output for ucnv_toUInputConsumed.\n");
-        }
-    }
-    status = U_ZERO_ERROR;    
-    ucnv_close(cnv);
-
-    {
-        /*
-         * The converter has to read the tail before it knows that
-         * only head alone matches.
-         * At the end, the output for head will overflow the target,
-         * mid will be pending, and tail will not have been consumed.
-         */
-        char head[] = { 0x01, 0x02, 0x03, 0x0a , 0x00};
-        char mid[] = { 0x01, 0x02, 0x03, 0x0b, 0x00 };
-        char tail[] = {  0x01, 0x02, 0x03, 0x0d, 0x00 };
-        /* 
-        0x01, 0x02, 0x03, 0x0a  -> x (<U23456>    \x01\x02\x03\x0a |0)
-        0x01, 0x02, 0x03, 0x0b  -> y (<U000b>     \x01\x02\x03\x0b |0)
-        0x01, 0x02, 0x03, 0x0d  -> z (<U34567>    \x01\x02\x03\x0d |3)
-        0x01, 0x02, 0x03, 0x0a + 0x01, 0x02, 0x03, 0x0b + 0x01 + many more -> z (see test4 "many bytes, and bytes per UChar")
-        */
-        UChar tgt[10];
-        UChar* target = tgt;
-        UChar* targetLimit = target + 1; /* expect overflow from converting */
-        const char* source = head;
-        const char* sourceLimit = source + strlen(head); 
-        int32_t len = 0;
-        cnv = ucnv_openPackage(loadTestData(&status), "test4", &status);
-        if(U_FAILURE(status)){
-            log_err("Could not create converter for test3. Error: %s\n", u_errorName(status));
-            return;
-        }
-        ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, oldToUAction, NULL, &status);
-        ucnv_toUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
-        len = ucnv_toUCountPending(cnv,&status);
-        if(U_FAILURE(status)){
-            log_err("ucnv_toUnicode call did not succeed. Error: %s\n", u_errorName(status));
-        }
-        if(len != 4){
-            log_err("Did not get the expected len for head.\n");
-        }
-        source=mid;
-        sourceLimit = source+strlen(mid);
-        ucnv_toUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
-        len = ucnv_toUCountPending(cnv,&status);
-        if(U_FAILURE(status)){
-            log_err("ucnv_toUnicode call did not succeed. Error: %s\n", u_errorName(status));
-        }
-        if(len != 8){
-            log_err("Did not get the expected len for mid.\n");
-        }
-        
-        source=tail;
-        sourceLimit = source+strlen(tail);
-        targetLimit = target;
-        ucnv_toUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
-        if(status != U_BUFFER_OVERFLOW_ERROR){
-            log_err("ucnv_toUnicode call did not succeed. Error: %s\n", u_errorName(status));
-        }
-        status = U_ZERO_ERROR;
-        len = ucnv_toUCountPending(cnv,&status);
-        /* mid[4] is pending, tail has not been consumed */
-        if(U_FAILURE(status)){
-            log_err("ucnv_toUCountPending call did not succeed. Error: %s\n", u_errorName(status));
-        }
-        if(len != 4){
-            log_err("Did not get the expected len for tail.\n");
-        }
-        ucnv_close(cnv);
-    }
-
 }

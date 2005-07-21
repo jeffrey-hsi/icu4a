@@ -20,12 +20,14 @@
 #include "cintltst.h"
 
 void addBrkIterAPITest(TestNode**);
+void addBrkIterRegrTest(TestNode**);
 
 void addBreakIter(TestNode** root);
 
 void addBreakIter(TestNode** root)
 {
     addBrkIterAPITest(root);
+    addBrkIterRegrTest(root);
 }
 
 #endif /* #if !UCONFIG_NO_BREAK_ITERATION */

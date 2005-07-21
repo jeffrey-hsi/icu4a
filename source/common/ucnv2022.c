@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2000-2005, International Business Machines
+*   Copyright (C) 2000-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   file name:  ucnv2022.c
@@ -83,14 +83,6 @@ static const char SHIFT_OUT_STR[] = "\x0E";
 #define H_TAB   0x09
 #define V_TAB   0x0B
 #define SPACE   0x20
-
-/*
- * ISO 2022 control codes must not be converted from Unicode
- * because they would mess up the byte stream.
- * The bit mask 0x0800c000 has bits set at bit positions 0xe, 0xf, 0x1b
- * corresponding to SO, SI, and ESC.
- */
-#define IS_2022_CONTROL(c) (((c)<0x20) && (((uint32_t)1<<(c))&0x0800c000)!=0)
 
 /* for ISO-2022-JP and -CN implementations */
 typedef enum  {
@@ -435,7 +427,7 @@ _ISO2022Open(UConverter *cnv, const char *name, const char *locale,uint32_t opti
         version = options & UCNV_OPTIONS_VERSION_MASK;
         if(myLocale[0]=='j' && (myLocale[1]=='a'|| myLocale[1]=='p') && 
             (myLocale[2]=='_' || myLocale[2]=='\0')){
-            size_t len=0;
+            int len=0;
             /* open the required converters and cache them */
             if(jpCharsetMasks[version]&CSM(ISO8859_7)) {
                 myConverterData->myConverterArray[ISO8859_7]= ucnv_loadSharedData("ISO8859_7", NULL, errorCode);
@@ -720,7 +712,7 @@ changeState_2022(UConverter* _this,
     UCNV_TableStates_2022 value;
     UConverterDataISO2022* myData2022 = ((UConverterDataISO2022*)_this->extraInfo);
     uint32_t key = myData2022->key;
-    int32_t offset = 0;
+    int32_t offset;
     char c;
 
     value = VALID_NON_TERMINAL_2022;
@@ -1250,10 +1242,6 @@ static const StateEnum jpCharsetPref[]={
     HWKANA_7BIT
 };
 
-/*
- * The escape sequences must be in order of the enum constants like JISX201  = 3,
- * not in order of jpCharsetPref[]!
- */
 static const char escSeqChars[][6] ={
     "\x1B\x28\x42",         /* <ESC>(B  ASCII       */
     "\x1B\x2E\x41",         /* <ESC>.A  ISO-8859-1  */
@@ -1309,7 +1297,7 @@ UConverter_fromUnicode_ISO_2022_JP_OFFSETS_LOGIC(UConverterFromUnicodeArgs* args
     int32_t len, outLen;
     int8_t choices[10];
     int32_t choiceCount;
-    uint32_t targetValue = 0;
+    uint32_t targetValue;
     UBool useFallback;
 
     int32_t i;
@@ -1332,7 +1320,7 @@ UConverter_fromUnicode_ISO_2022_JP_OFFSETS_LOGIC(UConverterFromUnicodeArgs* args
 
             sourceChar  = *(source++);
             /*check if the char is a First surrogate*/
-            if(UTF_IS_SURROGATE(sourceChar)) {
+             if(UTF_IS_SURROGATE(sourceChar)) {
                 if(UTF_IS_SURROGATE_FIRST(sourceChar)) {
 getTrail:
                     /*look ahead to find the trail surrogate*/
@@ -1364,14 +1352,6 @@ getTrail:
                     args->converter->fromUChar32=sourceChar;
                     break;
                 }
-            }
-
-            /* do not convert SO/SI/ESC */
-            if(IS_2022_CONTROL(sourceChar)) {
-                /* callback(illegal) */
-                *err=U_ILLEGAL_CHAR_FOUND;
-                args->converter->fromUChar32=sourceChar;
-                break;
             }
 
             /* do the conversion */
@@ -1555,7 +1535,7 @@ getTrail:
             if(outLen == 1) {
                 *target++ = buffer[0];
                 if(offsets) {
-                    *offsets++ = (int32_t)(source - args->source - 1); /* -1: known to be ASCII */
+                    *offsets++ = source - args->source - 1; /* -1: known to be ASCII */
                 }
             } else if(outLen == 2 && (target + 2) <= targetLimit) {
                 *target++ = buffer[0];
@@ -1801,7 +1781,7 @@ getTrailByte:
             }
             if(targetUniChar < (missingCharMarker-1/*0xfffe*/)){
                 if(args->offsets){
-                    args->offsets[myTarget - args->target] = (int32_t)(mySource - args->source - (mySourceChar <= 0xff ? 1 : 2));
+                    args->offsets[myTarget - args->target]= mySource - args->source - (mySourceChar <= 0xff ? 1 : 2);
                 }
                 *(myTarget++)=(UChar)targetUniChar;
             }
@@ -1810,13 +1790,13 @@ getTrailByte:
                 targetUniChar-=0x0010000;
                 *myTarget = (UChar)(0xd800+(UChar)(targetUniChar>>10));
                 if(args->offsets){
-                    args->offsets[myTarget - args->target] = (int32_t)(mySource - args->source - (mySourceChar <= 0xff ? 1 : 2));
+                    args->offsets[myTarget - args->target]= mySource - args->source - (mySourceChar <= 0xff ? 1 : 2);
                 }
                 ++myTarget;
                 if(myTarget< args->targetLimit){ 
                     *myTarget = (UChar)(0xdc00+(UChar)(targetUniChar&0x3ff));
                     if(args->offsets){
-                        args->offsets[myTarget - args->target] = (int32_t)(mySource - args->source - (mySourceChar <= 0xff ? 1 : 2));
+                        args->offsets[myTarget - args->target]= mySource - args->source - (mySourceChar <= 0xff ? 1 : 2);
                     }
                     ++myTarget;
                 }else{
@@ -1917,15 +1897,6 @@ UConverter_fromUnicode_ISO_2022_KR_OFFSETS_LOGIC(UConverterFromUnicodeArgs* args
 
         if(target < (unsigned char*) args->targetLimit){
             sourceChar = *source++;
-
-            /* do not convert SO/SI/ESC */
-            if(IS_2022_CONTROL(sourceChar)) {
-                /* callback(illegal) */
-                *err=U_ILLEGAL_CHAR_FOUND;
-                args->converter->fromUChar32=sourceChar;
-                break;
-            }
-
            /* length= ucnv_MBCSFromUChar32(converterData->currentConverter->sharedData,
                 sourceChar,&targetByteUnit,args->converter->useFallback);*/
             MBCS_FROM_UCHAR32_ISO2022(sharedData,sourceChar,&targetByteUnit,useFallback,&length,MBCS_OUTPUT_2);
@@ -1946,14 +1917,14 @@ UConverter_fromUnicode_ISO_2022_KR_OFFSETS_LOGIC(UConverterFromUnicodeArgs* args
                     else 
                         *target++ = UCNV_SI;
                     if(offsets)
-                        *(offsets++) = (int32_t)(source - args->source-1);
+                        *(offsets++)=   source - args->source-1;
                 }
                 /* write the targetUniChar  to target */
                 if(targetByteUnit <= 0x00FF){
                     if( target < targetLimit){
                         *(target++) = (unsigned char) targetByteUnit;
                         if(offsets){
-                            *(offsets++) = (int32_t)(source - args->source-1);
+                            *(offsets++) = source - args->source-1;
                         }
 
                     }else{
@@ -1964,12 +1935,12 @@ UConverter_fromUnicode_ISO_2022_KR_OFFSETS_LOGIC(UConverterFromUnicodeArgs* args
                     if(target < targetLimit){
                         *(target++) =(unsigned char) ((targetByteUnit>>8) -0x80);
                         if(offsets){
-                            *(offsets++) = (int32_t)(source - args->source-1);
+                            *(offsets++) = source - args->source-1;
                         }
                         if(target < targetLimit){
                             *(target++) =(unsigned char) (targetByteUnit -0x80);
                             if(offsets){
-                                *(offsets++) = (int32_t)(source - args->source-1);
+                                *(offsets++) = source - args->source-1;
                             }
                         }else{
                             args->converter->charErrorBuffer[args->converter->charErrorBufferLength++] = (unsigned char) (targetByteUnit -0x80);
@@ -2022,6 +1993,7 @@ getTrail:
                 }
 
                 args->converter->fromUChar32=sourceChar;
+                args->converter->fromUnicodeStatus = (int32_t)isTargetByteDBCS;
                 break;
             }
         } /* end if(myTargetIndex<myTargetLength) */
@@ -2270,7 +2242,7 @@ getTrailByte:
             }
             if(targetUniChar < 0xfffe){
                 if(args->offsets) {
-                    args->offsets[myTarget - args->target] = (int32_t)(mySource - args->source - (mySourceChar <= 0xff ? 1 : 2));
+                    args->offsets[myTarget - args->target]= mySource - args->source - (mySourceChar <= 0xff ? 1 : 2);
                 }
                 *(myTarget++)=(UChar)targetUniChar;
             }
@@ -2410,7 +2382,7 @@ UConverter_fromUnicode_ISO_2022_CN_OFFSETS_LOGIC(UConverterFromUnicodeArgs* args
     int32_t len;
     int8_t choices[3];
     int32_t choiceCount;
-    uint32_t targetValue = 0;
+    uint32_t targetValue;
     UBool useFallback;
 
     /* set up the state */
@@ -2466,14 +2438,6 @@ getTrail:
 
             /* do the conversion */
             if(sourceChar <= 0x007f ){
-                /* do not convert SO/SI/ESC */
-                if(IS_2022_CONTROL(sourceChar)) {
-                    /* callback(illegal) */
-                    *err=U_ILLEGAL_CHAR_FOUND;
-                    args->converter->fromUChar32=sourceChar;
-                    break;
-                }
-
                 /* US-ASCII */
                 if(pFromU2022State->g == 0) {
                     buffer[0] = (char)sourceChar;
@@ -2627,7 +2591,7 @@ getTrail:
             if(len == 1) {
                 *target++ = buffer[0];
                 if(offsets) {
-                    *offsets++ = (int32_t)(source - args->source - 1); /* -1: known to be ASCII */
+                    *offsets++ = source - args->source - 1; /* -1: known to be ASCII */
                 }
             } else if(len == 2 && (target + 2) <= targetLimit) {
                 *target++ = buffer[0];
@@ -2822,7 +2786,7 @@ getTrailByte:
             }
             if(targetUniChar < (missingCharMarker-1/*0xfffe*/)){
                 if(args->offsets){
-                    args->offsets[myTarget - args->target] = (int32_t)(mySource - args->source - (mySourceChar <= 0xff ? 1 : 2));
+                    args->offsets[myTarget - args->target]= mySource - args->source - (mySourceChar <= 0xff ? 1 : 2);
                 }
                 *(myTarget++)=(UChar)targetUniChar;
             }
@@ -2831,13 +2795,13 @@ getTrailByte:
                 targetUniChar-=0x0010000;
                 *myTarget = (UChar)(0xd800+(UChar)(targetUniChar>>10));
                 if(args->offsets){
-                    args->offsets[myTarget - args->target] = (int32_t)(mySource - args->source - (mySourceChar <= 0xff ? 1 : 2));
+                    args->offsets[myTarget - args->target]= mySource - args->source - (mySourceChar <= 0xff ? 1 : 2);
                 }
                 ++myTarget;
                 if(myTarget< args->targetLimit){ 
                     *myTarget = (UChar)(0xdc00+(UChar)(targetUniChar&0x3ff));
                     if(args->offsets){
-                        args->offsets[myTarget - args->target] = (int32_t)(mySource - args->source - (mySourceChar <= 0xff ? 1 : 2));
+                        args->offsets[myTarget - args->target]= mySource - args->source - (mySourceChar <= 0xff ? 1 : 2);
                     }
                     ++myTarget;
                 }else{
@@ -3015,7 +2979,7 @@ _ISO_2022_SafeClone(
 
 static void
 _ISO_2022_GetUnicodeSet(const UConverter *cnv,
-                    const USetAdder *sa,
+                    USetAdder *sa,
                     UConverterUnicodeSet which,
                     UErrorCode *pErrorCode)
 {
@@ -3060,18 +3024,17 @@ _ISO_2022_GetUnicodeSet(const UConverter *cnv,
         /* there is only one converter for KR, and it is not in the myConverterArray[] */
         cnvData->currentConverter->sharedData->impl->getUnicodeSet(
                 cnvData->currentConverter, sa, which, pErrorCode);
-        /* the loop over myConverterArray[] will simply not find another converter */
-        break;
+        return;
     default:
         break;
     }
 
     /*
-     * Version-specific for CN:
+     * TODO: need to make this version-specific for CN.
      * CN version 0 does not map CNS planes 3..7 although
      * they are all available in the CNS conversion table;
      * CN version 1 does map them all.
-     * The two versions create different Unicode sets.
+     * The two versions need to create different Unicode sets.
      */
     for (i=0; i<UCNV_2022_MAX_CONVERTERS; i++) {
         if(cnvData->myConverterArray[i]!=NULL) {
@@ -3089,15 +3052,6 @@ _ISO_2022_GetUnicodeSet(const UConverter *cnv,
             }
         }
     }
-
-    /*
-     * ISO 2022 converters must not convert SO/SI/ESC despite what
-     * sub-converters do by themselves.
-     * Remove these characters from the set.
-     */
-    sa->remove(sa->set, 0x0e);
-    sa->remove(sa->set, 0x0f);
-    sa->remove(sa->set, 0x1b);
 }
 
 static const UConverterImpl _ISO2022Impl={

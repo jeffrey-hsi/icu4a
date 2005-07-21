@@ -1,6 +1,6 @@
 /*  
 ********************************************************************************
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -25,11 +25,6 @@
 #include "unicode/uobject.h"
 #include "unicode/locid.h"
 #include "unicode/ures.h"
-
-/**
- * \file 
- * \brief C++ API: Symbols for formatting dates.
- */
 
 U_NAMESPACE_BEGIN
 
@@ -193,15 +188,6 @@ public:
     void setEras(const UnicodeString* eras, int32_t count);
 
     /**
-     * Gets era name strings. For example: "Anno Domini" and "Before Christ".
-     *
-     * @param count    Filled in with length of the array.
-     * @return         the era name strings.
-     * @draft ICU 3.4
-     */
-    const UnicodeString* getEraNames(int32_t& count) const;
-
-    /**
      * Gets month strings. For example: "January", "February", etc.
      * @param count Filled in with length of the array.
      * @return the month strings. (DateFormatSymbols retains ownership.)
@@ -235,47 +221,6 @@ public:
      */
     void setShortMonths(const UnicodeString* shortMonths, int32_t count);
 
-    enum DtContextType {
-        /**
-         * Selector for format date context
-         * @draft ICU 3.4
-         */
-         FORMAT = 0,
-       /**
-         * Selector for standalone date context
-         * @draft ICU 3.4
-         */
-         STANDALONE = 1
-    };
-
-    enum DtWidthType {
-        /**
-         * Selector for wide strings
-         * @draft ICU 3.4
-         */
-         WIDE = 4,
-       /**
-         * Selector for abbreviated strings
-         * @draft ICU 3.4
-         */
-         ABBREVIATED = 3,
-       /**
-         * Selector for narrow strings
-         * @draft ICU 3.4
-         */
-         NARROW = 5
-    };
-
-    /**
-     * Gets month strings by width and context. For example: "January", "February", etc.
-     * @param count Filled in with length of the array.
-     * @param context The day formatting context, either FORMAT or STANDALONE
-     * @param width   The width of returned strings, either WIDE, ABBREVIATED, or NARROW.
-     * @return the month strings. (DateFormatSymbols retains ownership.)
-     * @draft ICU 3.4
-     */
-    const UnicodeString* getMonths(int32_t& count, DtContextType context, DtWidthType width) const;
-
     /**
      * Gets weekday strings. For example: "Sunday", "Monday", etc.
      * @param count        Filled in with length of the array.
@@ -283,7 +228,6 @@ public:
      * @stable ICU 2.0
      */
     const UnicodeString* getWeekdays(int32_t& count) const;
-
 
     /**
      * Sets weekday strings. For example: "Sunday", "Monday", etc.
@@ -308,16 +252,6 @@ public:
      * @stable ICU 2.0
      */
     void setShortWeekdays(const UnicodeString* shortWeekdays, int32_t count);
-
-    /**
-     * Gets weekday strings by width and context. For example: "Sunday", "Monday", etc.
-     * @param count   Filled in with length of the array.
-     * @param context The day formatting context, either FORMAT or STANDALONE
-     * @param width   The width of returned strings, either WIDE, ABBREVIATED, or NARROW.
-     * @return the month strings. (DateFormatSymbols retains ownership.)
-     * @draft ICU 3.4
-     */
-    const UnicodeString* getWeekdays(int32_t& count, DtContextType context, DtWidthType width) const;
 
     /**
      * Gets AM/PM strings. For example: "AM" and "PM".
@@ -379,7 +313,7 @@ public:
     /**
      * Returns the locale for this object. Two flavors are available:
      * valid and actual locale.
-     * @draft ICU 2.8 likely to change after ICU 3.0, based on feedback
+     * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
      */
     Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
 
@@ -409,12 +343,6 @@ private:
     int32_t         fErasCount;
 
     /**
-     * Era name strings. For example: "Anno Domini" and "Before Christ".
-     */
-    UnicodeString*  fEraNames;
-    int32_t         fEraNamesCount;
-
-    /**
      * Month strings. For example: "January", "February", etc.
      */
     UnicodeString*  fMonths;
@@ -427,30 +355,6 @@ private:
     int32_t         fShortMonthsCount;
 
     /**
-     * Narrow month strings. For example: "J", "F", etc.
-     */
-    UnicodeString*  fNarrowMonths;
-    int32_t         fNarrowMonthsCount;
-
-    /**
-     * Standalone Month strings. For example: "January", "February", etc.
-     */
-    UnicodeString*  fStandaloneMonths;
-    int32_t         fStandaloneMonthsCount;
-
-    /**
-     * Standalone Short month strings. For example: "Jan", "Feb", etc.
-     */
-    UnicodeString*  fStandaloneShortMonths;
-    int32_t         fStandaloneShortMonthsCount;
-
-    /**
-     * Standalone Narrow month strings. For example: "J", "F", etc.
-     */
-    UnicodeString*  fStandaloneNarrowMonths;
-    int32_t         fStandaloneNarrowMonthsCount;
-
-    /**
      * Weekday strings. For example: "Sunday", "Monday", etc.
      */
     UnicodeString*  fWeekdays;
@@ -461,30 +365,6 @@ private:
      */
     UnicodeString*  fShortWeekdays;
     int32_t         fShortWeekdaysCount;
-
-    /**
-     * Narrow weekday strings. For example: "Sun", "Mon", etc.
-     */
-    UnicodeString*  fNarrowWeekdays;
-    int32_t         fNarrowWeekdaysCount;
-
-    /**
-     * Standalone Weekday strings. For example: "Sunday", "Monday", etc.
-     */
-    UnicodeString*  fStandaloneWeekdays;
-    int32_t         fStandaloneWeekdaysCount;
-
-    /**
-     * Standalone Short weekday strings. For example: "Sun", "Mon", etc.
-     */
-    UnicodeString*  fStandaloneShortWeekdays;
-    int32_t         fStandaloneShortWeekdaysCount;
-
-    /**
-     * Standalone Narrow weekday strings. For example: "Sun", "Mon", etc.
-     */
-    UnicodeString*  fStandaloneNarrowWeekdays;
-    int32_t         fStandaloneNarrowWeekdaysCount;
 
     /**
      * Ampm strings. For example: "AM" and "PM".
@@ -511,7 +391,29 @@ private:
     char validLocale[ULOC_FULLNAME_CAPACITY];
     char actualLocale[ULOC_FULLNAME_CAPACITY];
 
+
+    /* Sizes for the last resort string arrays */
+    typedef enum LastResortSize {
+        kMonthNum = 13,
+        kMonthLen = 3,
+
+        kDayNum = 8,
+        kDayLen = 2,
+
+        kAmPmNum = 2,
+        kAmPmLen = 3,
+
+        kEraNum = 2,
+        kEraLen = 3,
+
+        kZoneNum = 5,
+        kZoneLen = 4
+    } LastResortSize;
+
     DateFormatSymbols(); // default constructor not implemented
+
+    void initField(UnicodeString **field, int32_t& length, const UResourceBundle *data, UErrorCode &status);
+    void initField(UnicodeString **field, int32_t& length, const UChar *data, LastResortSize numStr, LastResortSize strLen, UErrorCode &status);
 
     /**
      * Called by the constructors to actually load data from the resources

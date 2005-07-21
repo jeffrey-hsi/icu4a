@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1998-2005, International Business Machines Corporation and
+ * Copyright (c) 1998-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*
@@ -20,7 +20,6 @@
 #include "unicode/ucnv.h"
 #include "unicode/ures.h"
 #include "unicode/ustring.h"
-#include "unicode/uclean.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "filestrm.h"
@@ -33,7 +32,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef U_WINDOWS
+#ifdef WIN32
 #include <io.h>
 #else
 #include <unistd.h>
@@ -68,10 +67,6 @@ static void TestErrorConditions(void);
 static void TestAppData(void);
 static void TestICUDataName(void);
 static void TestSwapData(void);
-static void PointerTableOfContents(void);
-static void SetBadCommonData(void);
-static void TestUDataFileAccess(void);
-
 
 void addUDataTest(TestNode** root);
 
@@ -88,9 +83,6 @@ addUDataTest(TestNode** root)
     addTest(root, &TestAppData, "udatatst/TestAppData" );
     addTest(root, &TestICUDataName, "udatatst/TestICUDataName" );
     addTest(root, &TestSwapData, "udatatst/TestSwapData" );
-    addTest(root, &PointerTableOfContents, "udatatst/PointerTableOfContents" );
-    addTest(root, &SetBadCommonData, "udatatst/SetBadCommonData" );
-    addTest(root, &TestUDataFileAccess, "udatatst/TestUDataFileAccess" );
 }
 
 #if 0
@@ -111,7 +103,7 @@ static void TestUDataOpen(){
     UErrorCode status=U_ZERO_ERROR;
     const char* memMap[][2]={
         {"root", "res"},
-        {"pnames", "icu"},
+        {"unorm", "icu"},
         {"cnvalias", "icu"},
         {"unames",   "icu"},
         {"ibm-37_P100-1995",   "cnv"}
@@ -358,7 +350,7 @@ static void TestUDataSetAppData(){
 
     log_verbose("Testing udata_setAppData() with %s\n", filePath);
 
-#if defined(U_WINDOWS) || defined(U_CYGWIN)
+#if defined(WIN32) || defined(U_CYGWIN)
     fileHandle = open( filePath, O_RDONLY | O_BINARY );
 #else
     fileHandle = open( filePath, O_RDONLY);
@@ -390,21 +382,6 @@ static void TestUDataSetAppData(){
         log_err("FAIL: TestUDataSetAppData() error reading file \"%s\" size=%d read=%d.\n", filePath, fileSize, i);
         goto cleanupAndReturn;
     }
-
-    /*
-     * First we try some monkey business and try to do bad things.
-     */
-
-    status=U_ZERO_ERROR;
-    udata_setAppData("appData1", NULL, &status);
-    if (status != U_ILLEGAL_ARGUMENT_ERROR) {
-        log_err("FAIL: TestUDataSetAppData(): udata_setAppData(\"appData1\", NULL, status) should have failed."
-                " It returned status of %s\n", u_errorName(status));
-        goto cleanupAndReturn;
-    }
-    /* The following call should fail.
-       If the following works with a bad UErrorCode, then later calls to appData1 should fail. */
-    udata_setAppData("appData1", fileBuf, &status);
 
     /*
      * Got testdata.dat into memory, now we try setAppData using the memory image.
@@ -449,62 +426,6 @@ cleanupAndReturn:
     }
     free(filePath);
     return;
-}
-
-static char *safeGetICUDataDirectory() {
-    const char *dataDir = u_getDataDirectory();  /* Returned string vanashes with u_cleanup */
-    char *retStr = NULL;
-    if (dataDir != NULL) {
-        retStr = (char *)malloc(strlen(dataDir)+1);
-        strcpy(retStr, dataDir);
-    }
-    return retStr;
-}
-    
-static void TestUDataFileAccess(){
-    UErrorCode status;
-    char            *icuDataDir;
-    icuDataDir = safeGetICUDataDirectory();   /* save icu data dir, so we can put it back
-                                               *  after doing u_cleanup().                */
-
-    /** UDATA_NO_FILES, ICU does not access the file system for data loading. */
-    status=U_ZERO_ERROR;
-    u_cleanup();
-    udata_setFileAccess(UDATA_NO_FILES,&status);
-    u_init(&status);
-    if(U_FAILURE(status) && *icuDataDir == 0){
-        log_data_err("udata_setFileAccess(UDATA_NO_FILES) failed with ICU_DATA=\"\" err=%s\n", u_errorName(status));
-    }
-
-    /** UDATA_ONLY_PACKAGES, ICU only loads data from packages, not from single files. */
-    status=U_ZERO_ERROR;
-    u_cleanup();
-    udata_setFileAccess(UDATA_ONLY_PACKAGES,&status);
-    u_init(&status);
-
-    /** UDATA_PACKAGES_FIRST, ICU loads data from packages first, and only from single files
-        if the data cannot be found in a package. */
-    status=U_ZERO_ERROR;
-    u_cleanup();
-    udata_setFileAccess(UDATA_PACKAGES_FIRST,&status);
-    u_init(&status);
-
-    /** UDATA_FILES_FIRST, ICU looks for data in single files first, then in packages. (default) */
-    status=U_ZERO_ERROR;
-    u_cleanup();
-    udata_setFileAccess(UDATA_FILES_FIRST,&status);
-    u_init(&status);
-
-    /** An alias for the default access mode. */
-    status=U_ZERO_ERROR;
-    u_cleanup();
-    udata_setFileAccess(UDATA_DEFAULT_ACCESS,&status);
-    u_setDataDirectory(icuDataDir);
-    u_init(&status);
-    if(U_FAILURE(status)){
-        log_err("%s\n", u_errorName(status));
-    }
-    free(icuDataDir);
 }
 
 
@@ -1159,26 +1080,13 @@ static const struct {
     /* the last item should not be #if'ed so that it can reliably omit the last comma */
 
     /* Unicode properties */
+    {"unames",                   "icu", uchar_swapNames},
     {"pnames",                   "icu", upname_swap},
-#if 0
-    /*
-     * Starting with ICU4C 3.4, the core Unicode properties files
-     * (uprops.icu, ucase.icu, ubidi.icu, unorm.icu)
-     * are hardcoded in the common DLL and therefore not included
-     * in the data package any more.
-     * Their swapping code is moved from the common DLL to the icuswap tool so that
-     * we need not jump through hoops (like adding snapshots of these files
-     * to testdata) for code coverage in tests.
-     * See Jitterbug 4497.
-     */
 #if !UCONFIG_NO_NORMALIZATION
     {"unorm",                    "icu", unorm_swap},
 #endif
     {"uprops",                   "icu", uprops_swap},
-    {"ucase",                    "icu", ucase_swap},
-    {"ubidi",                    "icu", ubidi_swap},
-#endif
-    {"unames",                   "icu", uchar_swapNames}
+    {"ucase",                    "icu", ucase_swap}
 };
 
 #define SWAP_BUFFER_SIZE 1000000
@@ -1186,7 +1094,6 @@ static const struct {
 static void U_CALLCONV
 printError(void *context, const char *fmt, va_list args) {
     vlog_info("[swap] ", fmt, args);
-    log_err("\n");  /* Register error */
 }
 
 static void
@@ -1202,21 +1109,6 @@ TestSwapCase(UDataMemory *pData, const char *name,
     UBool inEndian, oppositeEndian;
     uint8_t inCharset, oppositeCharset;
 
-    /* First we check that swapFn handles failures as expected. */
-    errorCode = U_UNSUPPORTED_ERROR;
-    length = swapFn(NULL, NULL, 0, buffer, &errorCode);
-    if (length != 0 || errorCode != U_UNSUPPORTED_ERROR) {
-        log_err("%s() did not fail as expected - %s\n", name, u_errorName(errorCode));
-    }
-    errorCode = U_ZERO_ERROR;
-    length = swapFn(NULL, NULL, 0, buffer, &errorCode);
-    if (length != 0 || errorCode != U_ILLEGAL_ARGUMENT_ERROR) {
-        log_err("%s() did not fail as expected with bad arguments - %s\n", name, u_errorName(errorCode));
-    }
-
-
-    /* Continue with the rest of the tests. */
-    errorCode = U_ZERO_ERROR;
     inData=udata_getMemory(pData);
 
     /*
@@ -1393,18 +1285,13 @@ TestSwapCase(UDataMemory *pData, const char *name,
     }
 }
 
-static void U_CALLCONV
-printErrorToString(void *context, const char *fmt, va_list args) {
-    vsprintf((char *)context, fmt, args);
-}
-
 static void
 TestSwapData() {
     char name[100];
-    UDataSwapper *ds;
     UDataMemory *pData;
     uint8_t *buffer;
     const char *pkg, *nm;
+
     UErrorCode errorCode;
     int32_t i;
 
@@ -1413,32 +1300,6 @@ TestSwapData() {
         log_err("unable to allocate %d bytes\n", 2*SWAP_BUFFER_SIZE);
         return;
     }
-
-    /* Test that printError works as expected. */
-    errorCode=U_ZERO_ERROR;
-    ds=udata_openSwapper(U_IS_BIG_ENDIAN, U_ASCII_FAMILY,
-                         !U_IS_BIG_ENDIAN, U_ASCII_FAMILY,
-                         &errorCode);
-    ds->printError=printErrorToString;
-    ds->printErrorContext=name;
-    udata_printError(ds, "This %s a %s", "is", "test");
-    udata_closeSwapper(ds);
-    if (strcmp(name, "This is a test") != 0) {
-        log_err("udata_printError can't properly print error messages. Got = %s\n", name);
-    }
-    errorCode = U_USELESS_COLLATOR_ERROR;
-    if (udata_openSwapperForInputData(NULL, 0,
-                         !U_IS_BIG_ENDIAN, U_ASCII_FAMILY,
-                         &errorCode) != NULL) {
-        log_err("udata_openSwapperForInputData should have returned NULL with bad argument\n", name);
-    }
-    ds=udata_openSwapperForInputData(NULL, 0,
-                         !U_IS_BIG_ENDIAN, U_ASCII_FAMILY,
-                         &errorCode);
-    if (ds != NULL || errorCode != U_USELESS_COLLATOR_ERROR) {
-        log_err("udata_openSwapperForInputData should have returned NULL with bad argument\n", name);
-    }
-    errorCode=U_ZERO_ERROR;
 
     for(i=0; i<LENGTHOF(swapCases); ++i) {
         /* build the name for logging */
@@ -1469,173 +1330,3 @@ TestSwapData() {
 
     uprv_free(buffer);
 }
-
-
-#ifdef OS400
-/* See comments in genccode.c on when this special implementation can be removed. */
-static const struct {
-    double bogus;
-    const char *bytes;
-} gOffsetTOCAppDataItem1={ 0.0, /* alignment bytes */
-    "\x00\x14" /* sizeof(UDataInfo) *//* MappedData { */
-    "\xda"
-    "\x27"                            /* } */
-    "\x00\x14" /* sizeof(UDataInfo) *//* UDataInfo  { */
-    "\0\0"
-    "\1"       /* U_IS_BIG_ENDIAN   */
-    "\1"       /* U_CHARSET_FAMILY  */
-    "\2"       /* U_SIZEOF_WHAR_T   */
-    "\0"
-    "\x31\x31\x31\x31"
-    "\0\0\0\0"
-    "\0\0\0\0"                        /* } */
-};
-#else
-static const struct {
-    double bogus;
-    MappedData bytes1;
-    UDataInfo bytes2;
-    uint8_t bytes3;
-} gOffsetTOCAppDataItem1={
-    0.0,                            /* alignment bytes */
-    { sizeof(UDataInfo), 0xda, 0x27 },  /* MappedData */
-
-    {sizeof(UDataInfo),
-    0,
-
-    U_IS_BIG_ENDIAN,
-    U_CHARSET_FAMILY,
-    sizeof(UChar),
-    0,
-
-    {0x31, 0x31, 0x31, 0x31},     /* dataFormat="1111" */
-    {0, 0, 0, 0},                 /* formatVersion */
-    {0, 0, 0, 0}}                 /* dataVersion */
-};
-#endif
-
-static const UChar gOffsetTOCGarbage[] = { /* "I have been very naughty!" */
-    0x49, 0x20, 0x68, 0x61, 0x76, 0x65, 0x20, 0x62, 0x65, 0x65, 0x6E,
-    0x20, 0x76, 0x65, 0x72, 0x79, 0x20, 0x6E, 0x61, 0x75, 0x67, 0x68, 0x74, 0x79, 0x21
-};
-
-/* Original source: icu/source/tools/genccode */
-static const struct {
-    uint16_t headerSize;
-    uint8_t magic1, magic2;
-    UDataInfo info;
-    char padding[8];
-    uint32_t count, reserved;
-    const struct {
-        const char *const name; 
-        const void *const data;
-    } toc[3];
-} gOffsetTOCAppData_dat = {
-    32,          /* headerSize */
-    0xda,        /* magic1,  (see struct MappedData in udata.c)  */
-    0x27,        /* magic2     */
-    {            /*UDataInfo   */
-        sizeof(UDataInfo),      /* size        */
-        0,                      /* reserved    */
-        U_IS_BIG_ENDIAN,
-        U_CHARSET_FAMILY,
-        sizeof(UChar),   
-        0,               /* reserved      */
-        {                /* data format identifier */
-           0x54, 0x6f, 0x43, 0x50}, /* "ToCP" */
-           {1, 0, 0, 0},   /* format version major, minor, milli, micro */
-           {0, 0, 0, 0}    /* dataVersion   */
-    },
-    {0,0,0,0,0,0,0,0},  /* Padding[8]   */ 
-    3,                  /* count        */
-    0,                  /* Reserved     */
-    {                   /*  TOC structure */
-        { "OffsetTOCAppData/a/b", &gOffsetTOCAppDataItem1 },
-        { "OffsetTOCAppData/gOffsetTOCAppDataItem1", &gOffsetTOCAppDataItem1 },
-        { "OffsetTOCAppData/gOffsetTOCGarbage", &gOffsetTOCGarbage }
-    }
-};
-
-
-static void PointerTableOfContents() {
-    UDataMemory      *dataItem;
-    UErrorCode        status=U_ZERO_ERROR;
-       
-    /*
-     * Got testdata.dat into memory, now we try setAppData using the memory image.
-     */
-
-    status=U_ZERO_ERROR;
-    udata_setAppData("OffsetTOCAppData", &gOffsetTOCAppData_dat, &status); 
-    if (status != U_ZERO_ERROR) {
-        log_err("FAIL: TestUDataSetAppData(): udata_setAppData(\"appData1\", fileBuf, status) \n"
-                " returned status of %s\n", u_errorName(status));
-        return;
-    }
-
-    dataItem = udata_open("OffsetTOCAppData", "", "gOffsetTOCAppDataItem1", &status);
-    if (U_FAILURE(status)) {
-        log_err("FAIL: gOffsetTOCAppDataItem1 could not be opened. status = %s\n", u_errorName(status));
-    }
-    if (udata_getMemory(dataItem) != NULL) {
-        log_verbose("FAIL: udata_getMemory(dataItem) passed\n");
-    }
-    else {
-        log_err("FAIL: udata_getMemory returned NULL\n", u_errorName(status));
-    }
-    udata_close(dataItem);
-
-    dataItem = udata_open("OffsetTOCAppData-a", "", "b", &status);
-    if (U_FAILURE(status)) {
-        log_err("FAIL: gOffsetTOCAppDataItem1 in tree \"a\" could not be opened. status = %s\n", u_errorName(status));
-    }
-    if (udata_getMemory(dataItem) != NULL) {
-        log_verbose("FAIL: udata_getMemory(dataItem) in tree \"a\" passed\n");
-    }
-    else {
-        log_err("FAIL: udata_getMemory returned NULL\n", u_errorName(status));
-    }
-    udata_close(dataItem);
-
-    dataItem = udata_open("OffsetTOCAppData", "", "gOffsetTOCGarbage", &status);
-    if (U_SUCCESS(status)) {
-        log_err("FAIL: gOffsetTOCGarbage should not be opened. status = %s\n", u_errorName(status));
-    }
-    dataItem = udata_open("OffsetTOCAppData", "", "gOffsetTOCNonExistent", &status);
-    if (U_SUCCESS(status)) {
-        log_err("FAIL: gOffsetTOCNonExistent should not be found. status = %s\n", u_errorName(status));
-    }
-
-}
-
-static void SetBadCommonData(void) {
-    /* It's difficult to test that udata_setCommonData really works within the test framework.
-       So we just test that foolish people can't do bad things. */
-    UErrorCode status;
-
-    /* Check that we don't do anything */
-    status = U_FILE_ACCESS_ERROR;
-    udata_setCommonData(&gOffsetTOCAppData_dat, &status);
-    if (status != U_FILE_ACCESS_ERROR) {
-        log_err("FAIL: udata_setCommonData changed the failure code.\n");
-    }
-    /* Check that we fail correctly */
-    status = U_ZERO_ERROR;
-    udata_setCommonData(NULL, &status);
-    if (status != U_ILLEGAL_ARGUMENT_ERROR) {
-        log_err("FAIL: udata_setCommonData did not fail with bad arguments.\n");
-    }
-    if (u_getDataDirectory() == NULL || u_getDataDirectory()[0] == 0) {
-        /* Check that we don't change the common data. Many ICU tests will fail after this test, if this works. */
-        /* We could do a better test, if we called u_cleanup and udata_setCommonData returned the last value. */
-        status = U_ZERO_ERROR;
-        udata_setCommonData(&gOffsetTOCAppData_dat, &status);
-        if (status != U_USING_DEFAULT_WARNING) {
-            log_err("FAIL: udata_setCommonData allowed the data to be changed after initialization!\n");
-        }
-    }
-    else {
-        log_verbose("Can't test setting common data because files mode may have been used.\n");
-    }
-}
-

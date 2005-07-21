@@ -1,7 +1,7 @@
 /*  
 *******************************************************************************
 *
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2003, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -29,6 +29,11 @@
 
 #ifdef UCOL_DEBUG
 #   include <stdio.h>
+#endif
+
+#if defined(UCOL_DEBUG) && defined(WIN32)
+    /* turn off "unreferenced formal parameter" */
+#   pragma warning(disable: 4100)
 #endif
 
 /* collation element weight allocation -------------------------------------- */

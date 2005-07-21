@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2000-2005, International Business Machines
+*   Copyright (C) 2000-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -27,7 +27,6 @@
 #include "unicode/udata.h"
 #include "uoptions.h"
 #include "cstring.h"
-#include "toolutil.h"
 
 static uint8_t buffer[100000], buffer2[128*1024];
 
@@ -39,7 +38,6 @@ static UOption options[]={
 /*2*/ UOPTION_DESTDIR,
 /*3*/ UOPTION_DEF(0, 'n', UOPT_NO_ARG),
 /*4*/ UOPTION_DEF("comment", 'C', UOPT_NO_ARG),
-/*5*/ UOPTION_DEF("pkgdata", 0, UOPT_NO_ARG),
 };
 
 static int
@@ -57,8 +55,7 @@ static int
 copyFile(FILE *in, int32_t offset, int32_t size, const char *dir, const char *name) {
     FILE *out;
     int32_t length;
-    char path[512], *p, *endDir;
-    UErrorCode status = U_ZERO_ERROR;
+    char path[512], *p;
 
     if(0!=fseek(in, offset, SEEK_SET)) {
         fprintf(stderr, "%s: cannot seek to position %ld for file \"%s\"\n", pname,
@@ -66,32 +63,6 @@ copyFile(FILE *in, int32_t offset, int32_t size, const char *dir, const char *na
         return 4;
     }
 
-    /* Make sure that subdirectories are created first */
-    uprv_strcpy(path, dir);
-    p = path + strlen(path);
-    if (p[-1] != U_FILE_SEP_CHAR) {
-        *p++ = U_FILE_SEP_CHAR;
-    }
-    uprv_strcpy(p, name);
-    endDir = uprv_strrchr(p, U_TREE_ENTRY_SEP_CHAR);
-    if (endDir != NULL) {
-        /* Create the parent directories before creating the current directory. */
-        for (;;) {
-            p = uprv_strchr(p, U_TREE_ENTRY_SEP_CHAR);
-            if (p == NULL) {
-                break;
-            }
-            *p = 0;
-            uprv_mkdir(path, &status);
-            if (U_FAILURE(status)) {
-                fprintf(stderr, "%s: unable to create directory \"%s\"\n", pname, path);
-                return 5;
-            }
-            *(p++) = U_FILE_SEP_CHAR;
-        }
-    }
-
-    /* Set up the path with the real name now */
     uprv_strcpy(path, dir);
     p = path + strlen(path);
     if (p[-1] != U_FILE_SEP_CHAR) {
@@ -146,14 +117,14 @@ main(int argc, char *argv[]) {
     uint8_t *base;
     int32_t *p;
     int32_t i, length, count, baseOffset;
-    int result, ishelp = 0, usePkgdataFormat = 0;
+    int result, ishelp = 0;
 
     U_MAIN_INIT_ARGS(argc, argv);
 
     pname = uprv_strchr(*argv, U_FILE_SEP_CHAR);
-#if (U_FILE_SEP_CHAR != U_FILE_ALT_SEP_CHAR)
+#ifdef WIN32
     if (!pname) {
-        pname = uprv_strchr(*argv, U_FILE_ALT_SEP_CHAR);
+        pname = uprv_strchr(*argv, '/');
     }
 #endif
     if (pname) {
@@ -168,20 +139,16 @@ main(int argc, char *argv[]) {
     ishelp = options[0].doesOccur || options[1].doesOccur;
     if (ishelp || argc != 2) {
         fprintf(stderr,
-                "%csage: %s [ -h, -?, --help ] [ -n ] [ -C, --comment ] [ --pkgdata ] [ -d, --destdir destination ] archive\n", ishelp ? 'U' : 'u', pname);
+                "%csage: %s [ -h, -?, --help ] [ -n ] [ -C, --comment ] [ -d, --destdir destination ] archive\n", ishelp ? 'U' : 'u', pname);
         if (ishelp) {
-            fprintf(stderr, "\nOptions:\n"
-                    "    -h, -?, --help   print this message and exit\n"
-                    "    -n               do not create files\n"
-                    "    -C, --comment    print the comment embedded in the file and exit\n"
-                    "        --pkgdata    Display the files in the package in a format for pkgdata\n"
-                    "    -d, --destdir destination    create files in destination\n");
+            fprintf(stderr, "\nOptions: -h, -?, --help    print this message and exit\n"
+                    "         -n                do not create files\n"
+                    "         -C, --comment     print the comment embedded in the file and exit\n"
+                    "         -d, --destdir destination    create files in destination\n");
         }
 
         return ishelp ? 0 : 1;
     }
-
-    usePkgdataFormat = options[5].doesOccur;
 
     in=fopen(argv[1], "rb");
     if(in==NULL) {
@@ -245,12 +212,7 @@ main(int argc, char *argv[]) {
     count=*p++;
     /* printf("files[%ld]\n", (long)count); */
     for(i=0; i<count; ++i) {
-        if (usePkgdataFormat) {
-            printf("%s\n", uprv_strchr((const char *)(base+*p), U_TREE_ENTRY_SEP_CHAR)+1);
-        }
-        else {
-            printf("%s%c%s\n", options[2].value, U_FILE_SEP_CHAR, base+*p);
-        }
+        printf("%s%c%s\n", options[2].value, U_FILE_SEP_CHAR, base+*p);
         p+=2;
     }
     /* puts("endfiles"); */

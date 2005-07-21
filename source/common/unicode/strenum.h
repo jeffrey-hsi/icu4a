@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2002-2005, International Business Machines
+*   Copyright (C) 2002-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -13,11 +13,6 @@
 #include "unicode/uobject.h"
 #include "unicode/unistr.h"
 
-/**
- * \file 
- * \brief C++ API: String Enumeration
- */
- 
 U_NAMESPACE_BEGIN
 
 /**
@@ -73,7 +68,7 @@ public:
      * @return a clone of this object
      *
      * @see getDynamicClassID
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     virtual StringEnumeration *clone() const;
 
@@ -187,29 +182,29 @@ public:
 protected:
     /**
      * UnicodeString field for use with default implementations and subclasses.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     UnicodeString unistr;
     /**
      * char * default buffer for use with default implementations and subclasses.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     char charsBuffer[32];
     /**
      * char * buffer for use with default implementations and subclasses.
      * Allocated in constructor and in ensureCharsCapacity().
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     char *chars;
     /**
      * Capacity of chars, for use with default implementations and subclasses.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     int32_t charsCapacity;
 
     /**
      * Default constructor for use with default implementations and subclasses.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     StringEnumeration();
 
@@ -219,7 +214,7 @@ protected:
      *
      * @param capacity Requested capacity.
      * @param status ICU in/out error code.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     void ensureCharsCapacity(int32_t capacity, UErrorCode &status);
 
@@ -243,7 +238,7 @@ protected:
      * @param length Length of the string.
      * @param status ICU in/out error code.
      * @return A pointer to unistr.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     UnicodeString *setChars(const char *s, int32_t length, UErrorCode &status);
 };

@@ -20,9 +20,10 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
 				ImproveFloatingPointConsistency="TRUE"
-				AdditionalIncludeDirectories="..\..\..\include,..\..\common"
-				PreprocessorDefinitions="WIN32;NDEBUG;U_TOOLUTIL_IMPLEMENTATION"
+				AdditionalIncludeDirectories="..\..\common"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_USRDLL"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
@@ -37,12 +38,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\..\bin\icutu34.dll"
+				OutputFile="..\..\..\bin\icutu32.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\..\lib"
-				ProgramDatabaseFile=".\..\..\..\lib\icutu34.pdb"
-				EnableCOMDATFolding="2"
+				ProgramDatabaseFile=".\..\..\..\lib\icutu32.pdb"
 				BaseAddress="0x4ac00000"
 				ImportLibrary="..\..\..\lib\icutu.lib"/>
 			<Tool
@@ -84,12 +84,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				ImproveFloatingPointConsistency="TRUE"
-				AdditionalIncludeDirectories="..\..\..\include,..\..\common"
-				PreprocessorDefinitions="WIN32;_DEBUG;U_TOOLUTIL_IMPLEMENTATION"
+				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories="..\..\common"
+				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_USRDLL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				BufferSecurityCheck="TRUE"
 				PrecompiledHeaderFile=".\Debug/toolutil.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
@@ -102,12 +101,12 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\..\bin\icutu34d.dll"
+				OutputFile="..\..\..\bin\icutu32d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\..\lib"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\..\..\..\lib\icutu34d.pdb"
+				ProgramDatabaseFile=".\..\..\..\lib\icutu32d.pdb"
 				BaseAddress="0x4ac00000"
 				ImportLibrary="..\..\..\lib\icutud.lib"/>
 			<Tool
@@ -146,9 +145,6 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath=".\filestrm.c">
-			</File>
-			<File
 				RelativePath=".\propsvec.c">
 			</File>
 			<File
@@ -159,6 +155,9 @@
 			</File>
 			<File
 				RelativePath=".\ucm.c">
+			</File>
+			<File
+				RelativePath=".\ucmpwrit.c">
 			</File>
 			<File
 				RelativePath=".\ucmstate.c">
@@ -173,18 +172,12 @@
 				RelativePath=".\uparse.c">
 			</File>
 			<File
-				RelativePath=".\writesrc.c">
-			</File>
-			<File
-				RelativePath=".\xmlparser.cpp">
+				RelativePath=".\uperf.cpp">
 			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
-			<File
-				RelativePath=".\filestrm.h">
-			</File>
 			<File
 				RelativePath=".\propsvec.h">
 			</File>
@@ -198,6 +191,9 @@
 				RelativePath=".\ucm.h">
 			</File>
 			<File
+				RelativePath=".\ucmpwrit.h">
+			</File>
+			<File
 				RelativePath=".\unewdata.h">
 			</File>
 			<File
@@ -207,10 +203,10 @@
 				RelativePath=".\uparse.h">
 			</File>
 			<File
-				RelativePath=".\writesrc.h">
+				RelativePath=".\uperf.h">
 			</File>
 			<File
-				RelativePath=".\xmlparser.h">
+				RelativePath=".\utimer.h">
 			</File>
 		</Filter>
 		<Filter

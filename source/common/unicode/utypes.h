@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1996-2005, International Business Machines
+*   Copyright (C) 1996-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -37,10 +37,6 @@
 #include "unicode/utf.h"
 #include "unicode/uversion.h"
 #include "unicode/uconfig.h"
-
-#if !U_DEFAULT_SHOW_DRAFT && !defined(U_SHOW_DRAFT_API)
-#define U_HIDE_DRAFT_API 1
-#endif
 
 #ifdef U_HIDE_DRAFT_API
 #include "unicode/udraft.h"
@@ -360,13 +356,6 @@ typedef void* UClassID;
  * @stable ICU 2.0
  */
 
-/**
- * \def U_TOOLUTIL_API
- * Set to export library symbols from inside the toolutil library,
- * and to import them from outside.
- * @draft ICU 3.4
- */
-
 #if defined(U_COMBINED_IMPLEMENTATION)
 #define U_DATA_API     U_EXPORT
 #define U_COMMON_API   U_EXPORT
@@ -374,7 +363,6 @@ typedef void* UClassID;
 #define U_LAYOUT_API   U_EXPORT
 #define U_LAYOUTEX_API U_EXPORT
 #define U_IO_API       U_EXPORT
-#define U_TOOLUTIL_API U_EXPORT
 #elif defined(U_STATIC_IMPLEMENTATION)
 #define U_DATA_API
 #define U_COMMON_API
@@ -382,7 +370,6 @@ typedef void* UClassID;
 #define U_LAYOUT_API
 #define U_LAYOUTEX_API
 #define U_IO_API
-#define U_TOOLUTIL_API
 #elif defined(U_COMMON_IMPLEMENTATION)
 #define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_EXPORT
@@ -390,7 +377,6 @@ typedef void* UClassID;
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_IMPORT
 #define U_IO_API       U_IMPORT
-#define U_TOOLUTIL_API U_IMPORT
 #elif defined(U_I18N_IMPLEMENTATION)
 #define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
@@ -398,7 +384,6 @@ typedef void* UClassID;
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_IMPORT
 #define U_IO_API       U_IMPORT
-#define U_TOOLUTIL_API U_IMPORT
 #elif defined(U_LAYOUT_IMPLEMENTATION)
 #define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
@@ -406,7 +391,6 @@ typedef void* UClassID;
 #define U_LAYOUT_API   U_EXPORT
 #define U_LAYOUTEX_API U_IMPORT
 #define U_IO_API       U_IMPORT
-#define U_TOOLUTIL_API U_IMPORT
 #elif defined(U_LAYOUTEX_IMPLEMENTATION)
 #define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
@@ -414,7 +398,6 @@ typedef void* UClassID;
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_EXPORT
 #define U_IO_API       U_IMPORT
-#define U_TOOLUTIL_API U_IMPORT
 #elif defined(U_IO_IMPLEMENTATION)
 #define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
@@ -422,15 +405,6 @@ typedef void* UClassID;
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_IMPORT
 #define U_IO_API       U_EXPORT
-#define U_TOOLUTIL_API U_IMPORT
-#elif defined(U_TOOLUTIL_IMPLEMENTATION)
-#define U_DATA_API     U_IMPORT
-#define U_COMMON_API   U_IMPORT
-#define U_I18N_API     U_IMPORT
-#define U_LAYOUT_API   U_IMPORT
-#define U_LAYOUTEX_API U_IMPORT
-#define U_IO_API       U_IMPORT
-#define U_TOOLUTIL_API U_EXPORT
 #else
 #define U_DATA_API     U_IMPORT
 #define U_COMMON_API   U_IMPORT
@@ -438,7 +412,6 @@ typedef void* UClassID;
 #define U_LAYOUT_API   U_IMPORT
 #define U_LAYOUTEX_API U_IMPORT
 #define U_IO_API       U_IMPORT
-#define U_TOOLUTIL_API U_IMPORT
 #endif
 
 /**
@@ -478,7 +451,7 @@ typedef void* UClassID;
  * some Linux/Unix compilers have problems with defining global new/delete.
  * On Windows, WIN32 is defined, and it is _MSC_Ver>=1200 for MSVC 6.0 and higher.
  */
-#if defined(XP_CPLUSPLUS) && defined(U_WINDOWS) && (_MSC_Ver>=1200) && (defined(U_COMMON_IMPLEMENTATION) || defined(U_I18N_IMPLEMENTATION) || defined(U_LAYOUT_IMPLEMENTATION) || defined(U_USTDIO_IMPLEMENTATION))
+#if defined(XP_CPLUSPLUS) && defined(WIN32) && (_MSC_Ver>=1200) && (defined(U_COMMON_IMPLEMENTATION) || defined(U_I18N_IMPLEMENTATION) || defined(U_LAYOUT_IMPLEMENTATION) || defined(U_USTDIO_IMPLEMENTATION))
 
 /**
  * Global operator new, defined only inside ICU4C, must not be used.
@@ -605,7 +578,6 @@ typedef enum UErrorCode {
     U_INVALID_STATE_ERROR     = 27,     /**< Requested operation can not be completed with ICU in its current state */
     U_COLLATOR_VERSION_MISMATCH = 28,   /**< Collator version is not compatible with the base version */
     U_USELESS_COLLATOR_ERROR  = 29,     /**< Collator is options only and no base is specified */
-    U_NO_WRITE_PERMISSION     = 30,     /**< Attempt to modify read-only or constant data. */
 
     U_STANDARD_ERROR_LIMIT,             /**< This must always be the last value to indicate the limit for standard errors */
     /*

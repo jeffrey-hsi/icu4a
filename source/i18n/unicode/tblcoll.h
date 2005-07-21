@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-* Copyright (C) 1996-2005, International Business Machines Corporation and
+* Copyright (C) 1996-2004, International Business Machines Corporation and
 * others. All Rights Reserved.
 ******************************************************************************
 */
@@ -56,11 +56,6 @@
 
 #include "unicode/utypes.h"
 
-/**
- * \file 
- * \brief C++ API: RuleBasedCollator class provides the simple implementation of Collator.
- */
- 
 #if !UCONFIG_NO_COLLATION
 
 #include "unicode/coll.h"
@@ -87,20 +82,20 @@ class CollationElementIterator;
  * <em>Important: </em>The ICU collation service has been reimplemented 
  * in order to achieve better performance and UCA compliance. 
  * For details, see the 
- * <a href="http://dev.icu-project.org/cgi-bin/viewcvs.cgi/~checkout~/icuhtml/design/collation/ICU_collation_design.htm">
+ * <a href="http://oss.software.ibm.com/cvs/icu/~checkout~/icuhtml/design/collation/ICU_collation_design.htm">
  * collation design document</a>.
  * <p>
  * RuleBasedCollator is a thin C++ wrapper over the C implementation.
  * <p>
  * For more information about the collation service see 
- * <a href="http://icu.sourceforge.net/userguide/Collate_Intro.html">the users guide</a>.
+ * <a href="http://oss.software.ibm.com/icu/userguide/Collate_Intro.html">the users guide</a>.
  * <p>
  * Collation service provides correct sorting orders for most locales supported in ICU. 
  * If specific data for a locale is not available, the orders eventually falls back
  * to the <a href="http://www.unicode.org/unicode/reports/tr10/">UCA sort order</a>. 
  * <p>
  * Sort ordering may be customized by providing your own set of rules. For more on
- * this subject see the <a href="http://icu.sourceforge.net/userguide/Collate_Customization.html">
+ * this subject see the <a href="http://oss.software.ibm.com/icu/userguide/Collate_Customization.html">
  * Collation customization</a> section of the users guide.
  * <p>
  * Note, RuleBasedCollator is not to be subclassed.
@@ -176,27 +171,6 @@ public:
      */
     RuleBasedCollator(const RuleBasedCollator& other);
 
-
-    /** Opens a collator from a collator binary image created using
-    *  cloneBinary. Binary image used in instantiation of the 
-    *  collator remains owned by the user and should stay around for 
-    *  the lifetime of the collator. The API also takes a base collator
-    *  which usualy should be UCA.
-    *  @param bin binary image owned by the user and required through the
-    *             lifetime of the collator
-    *  @param length size of the image. If negative, the API will try to
-    *                figure out the length of the image
-    *  @param base fallback collator, usually UCA. Base is required to be
-    *              present through the lifetime of the collator. Currently 
-    *              it cannot be NULL.
-    *  @param status for catching errors
-    *  @return newly created collator
-    *  @see cloneBinary
-    *  @draft ICU 3.4
-    */
-    RuleBasedCollator(const uint8_t *bin, int32_t length, 
-                    const RuleBasedCollator *base, 
-                    UErrorCode &status);
     // destructor --------------------------------------------------------------
 
     /**
@@ -501,19 +475,6 @@ public:
      * @stable ICU 2.2
      */
     uint8_t *cloneRuleData(int32_t &length, UErrorCode &status);
-
-
-    /** Creates a binary image of a collator. This binary image can be stored and 
-    *  later used to instantiate a collator using ucol_openBinary.
-    *  This API supports preflighting.
-    *  @param buffer a fill-in buffer to receive the binary image
-    *  @param capacity capacity of the destination buffer
-    *  @param status for catching errors
-    *  @return size of the image
-    *  @see ucol_openBinary
-    *  @draft ICU 3.4
-    */
-    int32_t cloneBinary(uint8_t *buffer, int32_t capacity, UErrorCode &status);
 
     /**
      * Returns current rules. Delta defines whether full rules are returned or

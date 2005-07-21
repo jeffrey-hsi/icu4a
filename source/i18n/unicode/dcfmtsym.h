@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -31,12 +31,6 @@
 
 #include "unicode/uobject.h"
 #include "unicode/locid.h"
-
-/**
- * \file 
- * \brief C++ API: Symbols for formatting numbers.
- */
-
 
 U_NAMESPACE_BEGIN
 
@@ -214,7 +208,7 @@ public:
     /**
      * Returns the locale for this object. Two flavors are available:
      * valid and actual locale.
-     * @draft ICU 2.8 likely to change after ICU 3.0, based on feedback
+     * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
      */
     Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
 

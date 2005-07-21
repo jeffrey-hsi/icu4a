@@ -34,7 +34,7 @@ AC_SUBST(LIB_VERSION)
 AC_SUBST(LIB_VERSION_MAJOR)
 AC_MSG_RESULT([release $VERSION, library $LIB_VERSION])
 
-UNICODE_VERSION="4.1"
+UNICODE_VERSION="4.0.1"
 AC_SUBST(UNICODE_VERSION)
 
 AC_SUBST(CPPFLAGS)
@@ -156,24 +156,6 @@ AC_ARG_ENABLE(release,
 AC_MSG_RESULT($enabled)
 AC_SUBST(ENABLE_RELEASE)
 
-dnl Check whether to enabled draft APIs
-AC_MSG_CHECKING([whether to enable draft APIs])
-enabled=yes
-U_DEFAULT_SHOW_DRAFT=1
-AC_ARG_ENABLE(draft,
-    [  --enable-draft         enable draft APIs [default=yes]],
-    [ case "${enableval}" in
-         no) enabled=no; U_DEFAULT_SHOW_DRAFT=0 ;;
-         *) ;;
-    esac],
-)
-AC_MSG_RESULT($enabled)
-dnl Make sure that we can use draft API in ICU.
-if test "$U_DEFAULT_SHOW_DRAFT" = 0; then
-    CPPFLAGS="$CPPFLAGS -DU_SHOW_DRAFT_API"
-fi
-AC_SUBST(U_DEFAULT_SHOW_DRAFT)
-
 AC_PROG_RANLIB
 AC_PATH_PROG(AR,ar,[echo archiver ar not found re-run configure ; false],$PATH:/bin:/usr/bin:/usr/ccs/bin)
 
@@ -258,52 +240,52 @@ if test $threads = true; then
  
   AC_CHECK_LIB(pthread, pthread_attr_init)
   if test $ac_cv_lib_pthread_pthread_attr_init = yes; then
-    ICU_USE_THREADS=1
+   ICU_USE_THREADS=1
   else
-    dnl Locate the right library for POSIX threads. We look for the
-    dnl symbols in the libraries first, because on Solaris libc provides
-    dnl pthread_create but libpthread has the real code :(
-    dnl AIX uses libpthreads instead of libpthread, and HP/UX uses libpthread
-    dnl FreeBSD users may need libpthread if they do not have libc_r.
+   dnl Locate the right library for POSIX threads. We look for the
+   dnl symbols in the libraries first, because on Solaris libc provides
+   dnl pthread_create but libpthread has the real code :(
+   dnl AIX uses libpthreads instead of libpthread, and HP/UX uses libpthread
+   dnl FreeBSD users may need libpthread if they do not have libc_r.
 
-    AC_SEARCH_LIBS_FIRST(pthread_mutex_destroy, pthread pthreads c_r )
+   AC_SEARCH_LIBS_FIRST(pthread_mutex_destroy, pthread pthreads c_r )
 
-    if test "$ac_cv_search_pthread_mutex_destroy" != no; then
-      ICU_USE_THREADS=1
-    else
-      dnl For HP 11
-      AC_CHECK_LIB(pthread, pthread_mutex_init)
-      if test $ac_cv_lib_pthread_pthread_mutex_init = yes; then
-        ICU_USE_THREADS=1
-      fi
-    fi
-
-    AC_CHECK_FUNC(pthread_mutex_lock)
-
-    if test $ac_cv_func_pthread_mutex_lock = yes; then
+   if test "$ac_cv_search_pthread_mutex_destroy" != no; then
+    ICU_USE_THREADS=1
+   else
+    dnl For HP 11
+    AC_CHECK_LIB(pthread, pthread_mutex_init)
+    if test $ac_cv_lib_pthread_pthread_mutex_init = yes; then
       ICU_USE_THREADS=1
     fi
-  fi
-  dnl Check to see if we are using CygWin with MSVC
-  case "${host}" in
-  *-pc-cygwin*|*-pc-mingw*)
-    if test "$ac_cv_prog_gcc" = no; then
-      dnl We're using normal windows compilers. Threading is available.
-      ICU_USE_THREADS=1
-    fi ;;
-  *-*-hpux*)
-    dnl Add -mt because it does several nice things on newer compilers.
-    case "${icu_cv_host_frag}" in
-      mh-hpux-acc)
-        OLD_CXXFLAGS="${CXXFLAGS}"
-        CXXFLAGS="${CXXFLAGS} -mt"
-        if test x"`${CXX} ${CXXFLAGS} 2>&1`" != x""; then
+   fi
+
+   AC_CHECK_FUNC(pthread_mutex_lock)
+
+   if test $ac_cv_func_pthread_mutex_lock = yes; then
+     ICU_USE_THREADS=1
+   fi
+   dnl Check to see if we are using CygWin with MSVC
+   case "${host}" in
+   *-pc-cygwin*|*-pc-mingw*)
+     if test "$ac_cv_prog_gcc" = no; then
+       dnl We're using normal windows compilers. Threading is available.
+       ICU_USE_THREADS=1
+     fi ;;
+   *-*-hpux*)
+     dnl Add -mt because it does several nice things on newer compilers.
+     case "${icu_cv_host_frag}" in
+       mh-hpux-acc)
+         OLD_CXXFLAGS="${CXXFLAGS}"
+         CXXFLAGS="${CXXFLAGS} -mt"
+         if test x"`${CXX} ${CXXFLAGS} 2>&1`" != x""; then
            CXXFLAGS="${OLD_CXXFLAGS}"
-       fi
-      ;;
-    esac
-    ;;
-  esac
+         fi
+       ;;
+     esac
+     ;;
+   esac
+  fi
 fi
 
 AC_SUBST(ICU_USE_THREADS)
@@ -337,14 +319,11 @@ AC_SUBST(HAVE_MMAP)
 dnl Check to see if genccode can generate simple assembly.
 GENCCODE_ASSEMBLY=
 case "${host}" in
-i*86-*-linux*|x86_64-*-linux*|powerpc*-*-linux*|i*86-*-*bsd*|i*86-*-solaris*)
+i*86-*-*bsd*|i*86-*-linux*|x86_64-*-linux*|powerpc*-*-linux*)
     if test "$GCC" = yes; then
         dnl We're using gcc, and the simple -a gcc command line works for genccode
         GENCCODE_ASSEMBLY="-a gcc"
     fi ;;
-sparc-*-solaris*)
-    GENCCODE_ASSEMBLY="-a sun"
-    ;;
 esac
 AC_SUBST(GENCCODE_ASSEMBLY)
 
@@ -968,7 +947,6 @@ case "${host}" in
 			  tools/gennames/gennames tools/gentest/gentest \
 			  tools/pkgdata/pkgdata tools/genprops/genprops \
                           tools/gencase/gencase \
-                          tools/genbidi/genbidi \
 			  tools/gensprep/gensprep
 			do
 			  if test -f $file.c; then
@@ -1032,7 +1010,6 @@ AC_OUTPUT([icudefs.mk \
 		tools/gennorm/Makefile \
 		tools/genprops/Makefile \
 		tools/gencase/Makefile \
-		tools/genbidi/Makefile \
 		tools/genpname/Makefile \
 		tools/genbrk/Makefile \
 		tools/gensprep/Makefile \

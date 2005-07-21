@@ -88,9 +88,7 @@ private:
     void        findSetFor(const UnicodeString &s, RBBINode *node, UnicodeSet *setToAdopt = NULL);
 
     UChar32     nextCharLL();
-#ifdef RBBI_DEBUG
     void        printNodeStack(const char *title);
-#endif
     RBBINode    *pushNewNode(RBBINode::NodeType  t);
     void        scanSet();
 

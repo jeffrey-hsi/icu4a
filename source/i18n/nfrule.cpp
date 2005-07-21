@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ******************************************************************************
 *   file name:  nfrule.cpp
@@ -29,6 +29,9 @@
 
 U_NAMESPACE_BEGIN
 
+extern const UChar* CSleftBracket;
+extern const UChar* CSrightBracket;
+
 NFRule::NFRule(const RuleBasedNumberFormat* _rbnf)
   : baseValue((int32_t)0)
   , radix(0)
@@ -54,7 +57,6 @@ static const UChar gNine = 0x0039;
 static const UChar gSpace = 0x0020;
 static const UChar gSlash = 0x002f;
 static const UChar gGreaterThan = 0x003e;
-static const UChar gLessThan = 0x003c;
 static const UChar gComma = 0x002c;
 static const UChar gDot = 0x002e;
 static const UChar gTick = 0x0027;
@@ -421,17 +423,8 @@ NFRule::extractSubstitution(const NFRuleSet* ruleSet,
         // otherwise the substitution token ends with the same character
         // it began with
     } else {
-        UChar c = ruleText.charAt(subStart);
-        subEnd = ruleText.indexOf(c, subStart + 1);
-        // special case for '<%foo<<'
-        if (c == gLessThan && subEnd != -1 && subEnd < ruleText.length() - 1 && ruleText.charAt(subEnd+1) == c) {
-            // ordinals use "=#,##0==%abbrev=" as their rule.  Notice that the '==' in the middle
-            // occurs because of the juxtaposition of two different rules.  The check for '<' is a hack
-            // to get around this.  Having the duplicate at the front would cause problems with
-            // rules like "<<%" to format, say, percents...
-            ++subEnd;
-        }
-   }
+        subEnd = ruleText.indexOf(ruleText.charAt(subStart), subStart + 1);
+    }
 
     // if we don't find the end of the token (i.e., if we're on a single,
     // unmatched token character), create a null substitution positioned
@@ -579,7 +572,7 @@ static void util_append64(UnicodeString& result, int64_t n)
 }
 
 void
-NFRule::_appendRuleText(UnicodeString& result) const
+NFRule::appendRuleText(UnicodeString& result) const
 {
     switch (getType()) {
     case kNegativeNumberRule: result.append(gMinusX); break;
@@ -773,7 +766,7 @@ NFRule::doParse(const UnicodeString& text,
     fprintf(stderr, "doParse %x ", this);
     {
         UnicodeString rt;
-        _appendRuleText(rt);
+        appendRuleText(rt);
         dumpUS(stderr, rt);
     }
 

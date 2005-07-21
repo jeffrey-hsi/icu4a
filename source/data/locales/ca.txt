@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/ca.xml
+// * Source File: ../../../locale/common/main/ca.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/ca.xml
+ *  ICU <specials> source: ../../../locale/icu/main/ca.xml
  */
 ca{
     Countries{
@@ -52,7 +52,6 @@ ca{
         CN{"Xina"}
         CO{"Colòmbia"}
         CR{"Costa Rica"}
-        CS{"Sèrbia i Montenegro"}
         CU{"Cuba"}
         CV{"Cap Verd"}
         CY{"Xipre"}
@@ -87,7 +86,6 @@ ca{
         GT{"Guatemala"}
         GW{"Guinea Bissau"}
         GY{"Guyana"}
-        HK{"Hong Kong"}
         HN{"Hondures"}
         HR{"Croàcia"}
         HT{"Haití"}
@@ -173,6 +171,7 @@ ca{
         SL{"Sierra Leone"}
         SN{"Senegal"}
         SO{"Somàlia"}
+        SP{"Sèrbia"}
         SR{"Surinam"}
         SV{"El Salvador"}
         SY{"Síria"}
@@ -204,19 +203,12 @@ ca{
         VU{"Vanuatu"}
         YE{"Iemen"}
         YT{"Mayotte"}
+        YU{"Iugoslàvia"}
         ZA{"Sud-àfrica"}
         ZM{"Zàmbia"}
         ZW{"Zimbabwe"}
     }
     Currencies{
-        BRL{
-            "BRL",
-            "Real brasiler",
-        }
-        CNY{
-            "CNY",
-            "Iuan renmimbi xinès",
-        }
         ESP{
             "₧",
             "ESP",
@@ -225,30 +217,6 @@ ca{
                 ",",
                 ".",
             }
-        }
-        EUR{
-            "€",
-            "Euro",
-        }
-        GBP{
-            "£",
-            "Lliura esterlina britànica",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "Rupia índia",
-        }
-        JPY{
-            "¥",
-            "Ien japonès",
-        }
-        RUB{
-            "RUB",
-            "Ruble rus",
-        }
-        USD{
-            "$",
-            "Dòlar EUA",
         }
     }
     ExemplarCharacters{"[a-z é í ó ú à è ò ï ü ŀ ç ñ]"}
@@ -410,26 +378,12 @@ ca{
         "�",
         "+",
     }
-    Scripts{
-        Latn{"Llatí"}
-    }
-    Version{"1.48"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
                 2,
                 1,
-            }
-            DateTimePatterns{
-                "H:mm:ss z",
-                "H:mm:ss z",
-                "H:mm:ss",
-                "H:mm",
-                "EEEE d 'de' MMMM 'de' yyyy",
-                "d 'de' MMMM 'de' yyyy",
-                "dd/MM/yyyy",
-                "dd/MM/yy",
-                "{1} {0}",
             }
             dayNames{
                 format{
@@ -453,17 +407,11 @@ ca{
                     }
                 }
             }
-            eras{
-                abbreviated{
-                    "aC",
-                    "dC",
-                }
-            }
             monthNames{
                 format{
                     abbreviated{
                         "gen.",
-                        "febr.",
+                        "feb.",
                         "març",
                         "abr.",
                         "maig",
@@ -493,5 +441,5 @@ ca{
             }
         }
     }
-    localPatternChars{"GuMtkHmsSEDFwWahKzUeygAZvcL"}
+    localPatternChars{"GuMtkHmsSEDFwWahKzUeygAZ"}
 }

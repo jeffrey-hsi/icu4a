@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -39,13 +39,11 @@ sequences(status)
 {
   driver = TestDataModule::getTestDataModule("DataDrivenCollationTest", *this, status);
   sequences.setDeleter(deleteSeqElement);
-  UCA = (RuleBasedCollator*)Collator::createInstance("root", status);
 }
 
 DataDrivenCollatorTest::~DataDrivenCollatorTest() 
 {
   delete driver;
-  delete UCA;
 }
 
 void DataDrivenCollatorTest::runIndexedTest( int32_t index, UBool exec, const char* &name, char* /*par */)
@@ -164,7 +162,7 @@ DataDrivenCollatorTest::processArguments(Collator *col, const UChar *start, int3
   }
 }
 
-void
+void 
 DataDrivenCollatorTest::processTest(TestData *testData) {
   Collator *col = NULL;
   const UChar *arguments = NULL;
@@ -203,21 +201,7 @@ DataDrivenCollatorTest::processTest(TestData *testData) {
         errln("No collator definition!");
       }
     }
-    
-    int32_t cloneSize = 0;
-    uint8_t* cloneBuf = NULL;
-    RuleBasedCollator* clone = NULL;
-    if(col != NULL){
-      RuleBasedCollator* rbc = (RuleBasedCollator*)col;
-      cloneSize = rbc->cloneBinary(NULL, 0, intStatus);
-      intStatus = U_ZERO_ERROR;
-      cloneBuf = (uint8_t*) malloc(cloneSize);
-      cloneSize = rbc->cloneBinary(cloneBuf, cloneSize, intStatus);
-      clone = new RuleBasedCollator(cloneBuf, cloneSize, UCA, intStatus);
-      if(U_FAILURE(intStatus)){
-          errln("Could not clone the RuleBasedCollator. Error: %s", u_errorName(intStatus));
-          intStatus= U_ZERO_ERROR;
-      }
+    if(col != NULL) {
       // get attributes
       testSetting = settings->getString("Arguments", intStatus);
       if(U_SUCCESS(intStatus)) {
@@ -225,9 +209,6 @@ DataDrivenCollatorTest::processTest(TestData *testData) {
         argLen = testSetting.length();
         arguments = testSetting.getBuffer();
         processArguments(col, arguments, argLen);
-        if(clone != NULL){
-            processArguments(clone, arguments, argLen);
-        }
         if(U_FAILURE(status)) {
           errln("Couldn't process arguments");
           break;
@@ -240,21 +221,15 @@ DataDrivenCollatorTest::processTest(TestData *testData) {
         UnicodeString sequence = currentCase->getString("sequence", status);
         if(U_SUCCESS(status)) {
             processSequence(col, sequence);
-            if(clone != NULL){
-                processSequence(clone, sequence);
-            }
         }
       }
     } else {
       errln("Couldn't instantiate a collator!");
     }
-    delete clone;
-    free(cloneBuf);
     delete col;
     col = NULL;
   }
 }
-
 
 void 
 DataDrivenCollatorTest::processSequence(Collator* col, const UnicodeString &sequence) {

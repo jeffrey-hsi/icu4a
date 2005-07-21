@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2001-2005, International Business Machines
+*   Copyright (C) 2001-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -62,7 +62,6 @@ _strToWCS(wchar_t *dest,
            int32_t srcLength,
            UErrorCode *pErrorCode){
 
-#if !UCONFIG_NO_CONVERSION && !UCONFIG_NO_LEGACY_CONVERSION
     char stackBuffer [_STACK_BUFFER_CAPACITY];
     char* tempBuf = stackBuffer;
     int32_t tempBufCapacity = _STACK_BUFFER_CAPACITY;
@@ -215,12 +214,6 @@ cleanup:
     u_releaseDefaultConverter(conv);
 
     return dest;
-#else
-    if(pErrorCode!=NULL && U_SUCCESS(*pErrorCode)){
-        *pErrorCode = U_UNSUPPORTED_ERROR;
-    }
-    return NULL;
-#endif
 }
 #endif
 
@@ -231,7 +224,7 @@ u_strToWCS(wchar_t *dest,
            const UChar *src, 
            int32_t srcLength,
            UErrorCode *pErrorCode){
-
+    
     /* args check */
     if(pErrorCode==NULL || U_FAILURE(*pErrorCode)){
         return NULL;
@@ -281,7 +274,6 @@ _strFromWCS( UChar   *dest,
              int32_t srcLength,
              UErrorCode *pErrorCode){
 
-#if (!UCONFIG_NO_CONVERSION && !UCONFIG_NO_LEGACY_CONVERSION)
     int32_t retVal =0, count =0 ;
     UConverter* conv = NULL;
     UChar* pTarget = NULL;
@@ -474,12 +466,6 @@ cleanup:
     u_releaseDefaultConverter(conv);
 
     return dest;
-#else
-    if(pErrorCode!=NULL && U_SUCCESS(*pErrorCode)){
-        *pErrorCode = U_UNSUPPORTED_ERROR;
-    }
-    return NULL;
-#endif
 }
 #endif
 

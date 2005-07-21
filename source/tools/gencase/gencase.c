@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2004-2005, International Business Machines
+*   Copyright (C) 2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -104,17 +104,6 @@ derCorePropsBinaries={
     "DerivedCoreProperties", derCorePropsNames, LENGTHOF(derCorePropsNames)
 };
 
-/* treat Word_Break=MidLetter as a binary property (we ignore all other Word_Break values) */
-static const Binary
-wordBreakNames[]={
-    { "MidLetter",                          1, U_MASK(UGENCASE_IS_MID_LETTER_SHIFT), U_MASK(UGENCASE_IS_MID_LETTER_SHIFT) }
-};
-
-static const Binaries
-wordBreakBinaries={
-    "WordBreakProperty", wordBreakNames, LENGTHOF(wordBreakNames)
-};
-
 static void U_CALLCONV
 binariesLineFn(void *context,
                char *fields[][2], int32_t fieldCount,
@@ -187,8 +176,7 @@ enum
     DESTDIR,
     SOURCEDIR,
     UNICODE_VERSION,
-    ICUDATADIR,
-    CSOURCE
+    ICUDATADIR
 };
 
 /* Keep these values in sync with the above enums */
@@ -199,9 +187,8 @@ static UOption options[]={
     UOPTION_COPYRIGHT,
     UOPTION_DESTDIR,
     UOPTION_SOURCEDIR,
-    UOPTION_DEF("unicode", 'u', UOPT_REQUIRES_ARG),
-    UOPTION_ICUDATADIR,
-    UOPTION_DEF("csource", 'C', UOPT_NO_ARG)
+    { "unicode", NULL, NULL, NULL, 'u', UOPT_REQUIRES_ARG, 0 },
+    UOPTION_ICUDATADIR
 };
 
 extern int
@@ -243,8 +230,7 @@ main(int argc, char* argv[]) {
             "\t-h or -? or --help  this usage text\n"
             "\t-v or --verbose     verbose output\n"
             "\t-c or --copyright   include a copyright notice\n"
-            "\t-u or --unicode     Unicode version, followed by the version like 3.0.0\n"
-            "\t-C or --csource     generate a .c source file rather than the .icu binary\n");
+            "\t-u or --unicode     Unicode version, followed by the version like 3.0.0\n");
         fprintf(stderr,
             "\t-d or --destdir     destination directory, followed by the path\n"
             "\t-s or --sourcedir   source directory, followed by the path\n"
@@ -286,7 +272,7 @@ main(int argc, char* argv[]) {
     }
 
     /* initialize */
-    pv=upvec_open(2, 10000);
+    pv=upvec_open(1, 10000);
     caseSensitive=uset_open(1, 0); /* empty set (start>end) */
 
     /* process SpecialCasing.txt */
@@ -304,10 +290,6 @@ main(int argc, char* argv[]) {
 
     parseBinariesFile(filename, basename, suffix, &derCorePropsBinaries, &errorCode);
 
-    if(ucdVersion>=UNI_4_1) {
-        parseBinariesFile(filename, basename, suffix, &wordBreakBinaries, &errorCode);
-    }
-
     /* process UnicodeData.txt */
     writeUCDFilename(basename, "UnicodeData", suffix);
     parseDB(filename, &errorCode);
@@ -319,7 +301,7 @@ main(int argc, char* argv[]) {
 
     if(U_SUCCESS(errorCode)) {
         /* write the properties data file */
-        generateData(destDir, options[CSOURCE].doesOccur);
+        generateData(destDir);
     }
 
     u_cleanup();

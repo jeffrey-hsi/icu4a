@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-*   Copyright (C) 2004-2005, International Business Machines
+*   Copyright (C) 1996-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *******************************************************************************
 *   file name:  regex.cpp
@@ -159,6 +159,32 @@ ErrorExit:
 
 }
 
+
+
+
+//----------------------------------------------------------------------------------------
+//
+//    uregex_openC
+//
+//----------------------------------------------------------------------------------------
+U_CAPI URegularExpression * U_EXPORT2
+uregex_openC( const char           *pattern,
+                    uint32_t        flags,
+                    UParseError    *pe,
+                    UErrorCode     *status) {
+    if (U_FAILURE(*status)) {
+        return NULL;
+    }
+    if (pattern == NULL) {
+        *status = U_ILLEGAL_ARGUMENT_ERROR;
+        return NULL;
+    }
+
+    UnicodeString patString(pattern);
+    URegularExpression *re = uregex_open(patString.getBuffer(), patString.length(), flags, pe, status);
+    return re;
+}
+
 //----------------------------------------------------------------------------------------
 //
 //    uregex_close
@@ -209,16 +235,16 @@ uregex_clone(const URegularExpression *source, UErrorCode *status)  {
     // Note:  fText is not cloned.
 
     return clone;
-}
+};
 
 
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_pattern
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI const UChar * U_EXPORT2 
 uregex_pattern(const  URegularExpression *regexp,
                int32_t            *patLength,
@@ -231,14 +257,14 @@ uregex_pattern(const  URegularExpression *regexp,
         *patLength = regexp->fPatStringLen;
     }
     return regexp->fPatString;
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_flags
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI int32_t U_EXPORT2 
 uregex_flags(const URegularExpression *regexp, UErrorCode *status)  {
     if (validateRE(regexp, status, FALSE) == FALSE) {
@@ -246,14 +272,14 @@ uregex_flags(const URegularExpression *regexp, UErrorCode *status)  {
     }
     int32_t flags = regexp->fPat->flags();
     return flags;
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_setText
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI void U_EXPORT2 
 uregex_setText(URegularExpression *regexp,
                const UChar        *text,
@@ -272,15 +298,15 @@ uregex_setText(URegularExpression *regexp,
 
     regexp->fTextString.setTo(isTerminated, text, textLength);
     regexp->fMatcher->reset(regexp->fTextString);
-}
+};
 
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_getText
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI const UChar * U_EXPORT2 
 uregex_getText(URegularExpression *regexp,
                int32_t            *textLength,
@@ -292,14 +318,14 @@ uregex_getText(URegularExpression *regexp,
         *textLength = regexp->fTextLength;
     }
     return regexp->fText;
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_matches
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI UBool U_EXPORT2 
 uregex_matches(URegularExpression *regexp,
                 int32_t            startIndex,
@@ -309,15 +335,15 @@ uregex_matches(URegularExpression *regexp,
     }
     UBool result = regexp->fMatcher->matches(startIndex, *status);
     return result;
-}
+};
 
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_lookingAt
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI UBool U_EXPORT2 
 uregex_lookingAt(URegularExpression *regexp,
                  int32_t             startIndex,
@@ -327,15 +353,15 @@ uregex_lookingAt(URegularExpression *regexp,
     }
     UBool result = regexp->fMatcher->lookingAt(startIndex, *status);
     return result;
-}
+};
 
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_find
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI UBool U_EXPORT2 
 uregex_find(URegularExpression *regexp,
             int32_t             startIndex, 
@@ -345,13 +371,13 @@ uregex_find(URegularExpression *regexp,
     }
     UBool result = regexp->fMatcher->find(startIndex, *status);
     return result;
-}
+};
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_findNext
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI UBool U_EXPORT2 
 uregex_findNext(URegularExpression *regexp,
                 UErrorCode         *status)  {
@@ -360,13 +386,13 @@ uregex_findNext(URegularExpression *regexp,
     }
     UBool result = regexp->fMatcher->find();
     return result;
-}
+};
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_groupCount
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI int32_t U_EXPORT2 
 uregex_groupCount(URegularExpression *regexp,
                   UErrorCode         *status)  {
@@ -375,14 +401,14 @@ uregex_groupCount(URegularExpression *regexp,
     }
     int32_t  result = regexp->fMatcher->groupCount();
     return result;
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_group
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI int32_t U_EXPORT2 
 uregex_group(URegularExpression *regexp,
              int32_t             groupNum,
@@ -427,14 +453,14 @@ uregex_group(URegularExpression *regexp,
         u_memcpy(dest, &regexp->fText[startIx], copyLength);
     }
     return fullLength;
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_start
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI int32_t U_EXPORT2 
 uregex_start(URegularExpression *regexp,
              int32_t             groupNum,
@@ -444,14 +470,14 @@ uregex_start(URegularExpression *regexp,
     }
     int32_t result = regexp->fMatcher->start(groupNum, *status);
     return result;
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_end
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI int32_t U_EXPORT2 
 uregex_end(URegularExpression   *regexp,
            int32_t               groupNum,
@@ -461,13 +487,13 @@ uregex_end(URegularExpression   *regexp,
     }
     int32_t result = regexp->fMatcher->end(groupNum, *status);
     return result;
-}
+};
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_reset
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI void U_EXPORT2 
 uregex_reset(URegularExpression    *regexp,
              int32_t               index,
@@ -476,17 +502,17 @@ uregex_reset(URegularExpression    *regexp,
         return;
     }
     regexp->fMatcher->reset(index, *status);
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_replaceAll
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI int32_t U_EXPORT2 
 uregex_replaceAll(URegularExpression    *regexp,
-                  const UChar           *replacementText,
+                  UChar                 *replacementText,
                   int32_t                replacementLength,
                   UChar                 *destBuf,
                   int32_t                destCapacity,
@@ -510,17 +536,17 @@ uregex_replaceAll(URegularExpression    *regexp,
     len += uregex_appendTail(regexp, &destBuf, &destCapacity, status);
 
     return len;
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_replaceFirst
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI int32_t U_EXPORT2 
 uregex_replaceFirst(URegularExpression  *regexp,
-                    const UChar         *replacementText,
+                    UChar               *replacementText,
                     int32_t              replacementLength,
                     UChar               *destBuf,
                     int32_t              destCapacity,
@@ -546,14 +572,14 @@ uregex_replaceFirst(URegularExpression  *regexp,
     len += uregex_appendTail(regexp, &destBuf, &destCapacity, status);
 
     return len;
-}
+};
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_appendReplacement
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
 
 //
@@ -564,7 +590,7 @@ U_NAMESPACE_BEGIN
 class RegexCImpl {
  public:
    inline static  int32_t appendReplacement(URegularExpression    *regexp,
-                      const UChar           *replacementText,
+                      UChar                 *replacementText,
                       int32_t                replacementLength,
                       UChar                **destBuf,
                       int32_t               *destCapacity,
@@ -611,7 +637,7 @@ static inline void appendToBuf(UChar c, int32_t *idx, UChar *buf, int32_t bufCap
 //  appendReplacement, the actual implementation.
 //
 int32_t RegexCImpl::appendReplacement(URegularExpression    *regexp,
-                  const UChar           *replacementText,
+                  UChar                 *replacementText,
                   int32_t                replacementLength,
                   UChar                **destBuf,
                   int32_t               *destCapacity,
@@ -694,7 +720,7 @@ int32_t RegexCImpl::appendReplacement(URegularExpression    *regexp,
                     u_unescapeAt(unescape_charAt,
                        &replIdx,                   // Index is updated by unescapeAt 
                        replacementLength,          // Length of replacement text
-                       (void *)replacementText);
+                       replacementText);
 
                 if (escapedChar != (UChar32)0xFFFFFFFF) {
                     if (escapedChar <= 0xffff) {
@@ -810,7 +836,7 @@ int32_t RegexCImpl::appendReplacement(URegularExpression    *regexp,
 //
 U_CAPI int32_t U_EXPORT2 
 uregex_appendReplacement(URegularExpression    *regexp,
-                  const UChar           *replacementText,
+                  UChar                 *replacementText,
                   int32_t                replacementLength,
                   UChar                **destBuf,
                   int32_t               *destCapacity,
@@ -820,11 +846,11 @@ uregex_appendReplacement(URegularExpression    *regexp,
 }
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_appendTail
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 int32_t RegexCImpl::appendTail(URegularExpression    *regexp,
                   UChar                **destBuf,
                   int32_t               *destCapacity,
@@ -922,7 +948,7 @@ int32_t RegexCImpl::appendTail(URegularExpression    *regexp,
     }
 
     return destIdx;
-}
+};
 
 
 U_CAPI int32_t U_EXPORT2 
@@ -934,14 +960,14 @@ uregex_appendTail(URegularExpression    *regexp,
 }
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    copyString     Internal utility to copy a string to an output buffer,
 //                   while managing buffer overflow and preflight size
 //                   computation.  NUL termination is added to destination,
 //                   and the NUL is counted in the output size.
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 static void copyString(UChar        *destBuffer,    //  Destination buffer.
                        int32_t       destCapacity,  //  Total capacity of dest buffer
                        int32_t      *destIndex,     //  Index into dest buffer.  Updated on return.
@@ -968,11 +994,11 @@ static void copyString(UChar        *destBuffer,    //  Destination buffer.
 }
 
 
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //    uregex_split
 //
-//------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 U_CAPI int32_t U_EXPORT2 
 uregex_split(   URegularExpression      *regexp,
                   UChar                 *destBuf,
@@ -1098,5 +1124,8 @@ uregex_split(   URegularExpression      *regexp,
 }
 
 
-#endif   // !UCONFIG_NO_REGULAR_EXPRESSIONS
 
+
+
+
+#endif   // !UCONFIG_NO_REGULAR_EXPRESSIONS

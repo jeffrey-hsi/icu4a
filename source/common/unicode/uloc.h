@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -267,36 +267,36 @@
 /**
  * Useful constant for the maximum size of the script part of a locale ID
  * (including the terminating NULL).
- * @internal ICU 2.8
+ * @draft ICU 2.8
  */
 #define ULOC_SCRIPT_CAPACITY 6
 
 /**
  * Useful constant for the maximum size of keywords in a locale
- * @internal ICU 2.8
+ * @draft ICU 2.8
  */
 #define ULOC_KEYWORDS_CAPACITY 50
 
 /**
  * Useful constant for the maximum size of keywords in a locale
- * @internal ICU 2.8
+ * @draft ICU 2.8
  */
 #define ULOC_KEYWORD_AND_VALUES_CAPACITY 100
 
 /**
  * Character separating keywords from the locale string
  * different for EBCDIC - TODO
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 #define ULOC_KEYWORD_SEPARATOR '@'
 /**
  * Character for assigning value to a keyword
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 #define ULOC_KEYWORD_ASSIGN '='
 /**
  * Character separating keywords
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 #define ULOC_KEYWORD_ITEM_SEPARATOR ';'
 
@@ -400,9 +400,9 @@ uloc_getLanguage(const char*    localeID,
  * @param err error information if retrieving the language code failed
  * @return the actual buffer size needed for the language code.  If it's greater 
  * than scriptCapacity, the returned language code will be truncated.  
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 uloc_getScript(const char*    localeID,
          char* script,
          int32_t scriptCapacity,
@@ -482,9 +482,9 @@ uloc_getName(const char*    localeID,
  * @param err error information if retrieving the full name failed
  * @return the actual buffer size needed for the full name.  If it's greater 
  * than nameCapacity, the returned full name will be truncated.  
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 uloc_canonicalize(const char*    localeID,
          char* name,
          int32_t nameCapacity,
@@ -559,9 +559,9 @@ uloc_getDisplayLanguage(const char* locale,
  * @param status error information if retrieving the displayable script code failed
  * @return the actual buffer size needed for the displayable script code.  If it's greater 
  * than scriptCapacity, the returned displayable script code will be truncated.  
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 uloc_getDisplayScript(const char* locale,
             const char* displayLocale,
             UChar* script,
@@ -653,9 +653,9 @@ uloc_getDisplayVariant(const char* locale,
  *                          Should not be NULL and should not indicate failure on entry.
  * @return the actual buffer size needed for the displayable variant code.  
  * @see #uloc_openKeywords
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 uloc_getDisplayKeyword(const char* keyword,
                        const char* displayLocale,
                        UChar* dest,
@@ -679,9 +679,9 @@ uloc_getDisplayKeyword(const char* keyword,
  * @param status            error information if retrieving the displayable string failed. 
  *                          Should not be NULL and must not indicate failure on entry.
  * @return the actual buffer size needed for the displayable variant code.  
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 uloc_getDisplayKeywordValue(   const char* locale,
                                const char* keyword,
                                const char* displayLocale,
@@ -796,9 +796,9 @@ uloc_getParent(const char*    localeID,
  * @param err error information if retrieving the full name failed
  * @return the actual buffer size needed for the full name.  If it's greater 
  * than nameCapacity, the returned full name will be truncated.  
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 uloc_getBaseName(const char*    localeID,
          char* name,
          int32_t nameCapacity,
@@ -811,9 +811,9 @@ uloc_getBaseName(const char*    localeID,
  * @param localeID the locale to get the variant code with
  * @param status error information if retrieving the keywords failed
  * @return enumeration of keywords or NULL if there are no keywords.
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE UEnumeration* U_EXPORT2
+U_DRAFT UEnumeration* U_EXPORT2
 uloc_openKeywords(const char* localeID,
                         UErrorCode* status);
 
@@ -826,9 +826,9 @@ uloc_openKeywords(const char* localeID,
  * @param bufferCapacity capacity of receiving buffer
  * @param status containing error code - buffer not big enough.
  * @return the length of keyword value
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 uloc_getKeywordValue(const char* localeID,
                      const char* keywordName,
                      char* buffer, int32_t bufferCapacity,
@@ -876,12 +876,9 @@ typedef enum {
 
 
 /**
- * Based on a HTTP header from a web browser and a list of available locales,
- * determine an acceptable locale for the user.
+ * @param httpAcceptLanguage - "Accept-Language:" header as per HTTP.
  * @param result - buffer to accept the result locale
  * @param resultAvailable the size of the result buffer.
- * @param outResult - An out parameter that contains the fallback status
- * @param httpAcceptLanguage - "Accept-Language:" header as per HTTP.
  * @param availableLocales - list of available locales to match
  * @param status Error status, may be BUFFER_OVERFLOW_ERROR
  * @return length needed for the locale.
@@ -895,13 +892,10 @@ uloc_acceptLanguageFromHTTP(char *result, int32_t resultAvailable,
                             UErrorCode *status);
 
 /**
- * Based on a list of available locales,
- * determine an acceptable locale for the user.
+ * @param acceptList -list of acceptable languages
+ * @param acceptListCount - count of acceptList items
  * @param result - buffer to accept the result locale
  * @param resultAvailable the size of the result buffer.
- * @param outResult - An out parameter that contains the fallback status
- * @param acceptList - list of acceptable languages
- * @param acceptListCount - count of acceptList items
  * @param availableLocales - list of available locales to match
  * @param status Error status, may be BUFFER_OVERFLOW_ERROR
  * @return length needed for the locale.
@@ -914,7 +908,10 @@ uloc_acceptLanguage(char *result, int32_t resultAvailable,
                     UEnumeration* availableLocales,
                     UErrorCode *status);
 
+/*eof*/
+
 
 #endif /*_ULOC*/
+
 
 

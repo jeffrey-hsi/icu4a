@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2002-2005, International Business Machines
+*   Copyright (C) 2002-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -62,20 +62,15 @@ uset_addRange(USet* set, UChar32 start, UChar32 end) {
 
 U_CAPI void U_EXPORT2
 uset_addString(USet* set, const UChar* str, int32_t strLen) {
-    // WRONG! Do not alias, it will stay aliased, even after 
-    // copying. TODO: do we need a copy ctor that unaliases
+  // WRONG! Do not alias, it will stay aliased, even after 
+  // copying. TODO: do we need a copy ctor that unaliases
     //UnicodeString s(strLen==-1, str, strLen);
-
-    // UnicodeString handles -1 for strLen
+  // We promised -1 for zero terminated
+    if(strLen == -1) {
+      strLen = u_strlen(str);
+    }
     UnicodeString s(str, strLen);
     ((UnicodeSet*) set)->add(s);
-}
-
-U_CAPI void U_EXPORT2
-uset_addAllCodePoints(USet* set, const UChar *str, int32_t strLen) {
-    // UnicodeString handles -1 for strLen
-    UnicodeString s(str, strLen);
-    ((UnicodeSet*) set)->addAll(s);
 }
 
 U_CAPI void U_EXPORT2
@@ -153,13 +148,6 @@ uset_containsString(const USet* set, const UChar* str, int32_t strLen) {
 U_CAPI UBool U_EXPORT2
 uset_containsAll(const USet* set1, const USet* set2) {
     return ((const UnicodeSet*) set1)->containsAll(* (const UnicodeSet*) set2);
-}
-
-U_CAPI UBool U_EXPORT2
-uset_containsAllCodePoints(const USet* set, const UChar *str, int32_t strLen) {
-    // Create a string alias, since nothing is being added to the set.
-    UnicodeString s(strLen==-1, str, strLen);
-    return ((const UnicodeSet*) set)->containsAll(s);
 }
 
 U_CAPI UBool U_EXPORT2
@@ -264,18 +252,6 @@ uset_getItem(const USet* uset, int32_t itemIndex,
 //    *pEnd = us->getRangeEnd(rangeIndex);
 //    return TRUE;
 //}
-
-U_CAPI USet* U_EXPORT2
-uprv_openRuleWhiteSpaceSet(UErrorCode* ec) {
-    if(U_FAILURE(*ec)) {
-        return NULL;
-    }
-    // create a set with the Pattern_White_Space characters,
-    // without a pattern for fewer code dependencies
-    UnicodeSet *set=new UnicodeSet(9, 0xd);
-    set->add(0x20).add(0x85).add(0x200e, 0x200f).add(0x2028, 0x2029);
-    return (USet *)set;
-}
 
 /*
  * Serialize a USet into 16-bit units.

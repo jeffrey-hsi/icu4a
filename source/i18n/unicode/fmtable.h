@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -17,10 +17,6 @@
 
 #include "unicode/utypes.h"
 #include "unicode/unistr.h"
-/**
- * \file 
- * \brief C++ API: Formattable is a thin wrapper for primitive numeric types.
- */
 
 #if !UCONFIG_NO_FORMATTING
 
@@ -88,11 +84,10 @@ public:
     /**
      * Creates a Formattable object with an int64_t number
      * @param ll the int64_t number.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     Formattable(int64_t ll);
 
-#if !UCONFIG_NO_CONVERSION
     /**
      * Creates a Formattable object with a char string pointer.
      * Assumes that the char string is null terminated.
@@ -100,7 +95,6 @@ public:
      * @stable ICU 2.0
      */
     Formattable(const char* strToCopy);
-#endif
 
     /**
      * Creates a Formattable object with a UnicodeString object to copy from.
@@ -176,7 +170,7 @@ public:
      * @return a clone of this object
      *
      * @see getDynamicClassID
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     Formattable *clone() const;
 
@@ -225,7 +219,7 @@ public:
         /**
          * Selector indicating a 64-bit integer value.  Use getInt64
          * to retrieve the value.
-         * @stable ICU 2.8
+         * @draft ICU 2.8
          */
         kInt64,
 
@@ -304,7 +298,7 @@ public:
      * Gets the int64 value of this object. If this object is not of type
      * kInt64 then the result is undefined.
      * @return    the int64 value of this object.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */ 
     int64_t         getInt64(void) const { return fValue.fInt64; }
 
@@ -460,7 +454,7 @@ public:
      * Sets the int64 value of this object and changes the type to
      * kInt64.
      * @param ll    the new int64 value to be set.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */ 
     void            setInt64(int64_t ll);
 

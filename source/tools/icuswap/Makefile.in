@@ -1,5 +1,5 @@
 ## Makefile.in for ICU - tools/icuswap
-## Copyright (c) 1999-2005, International Business Machines Corporation and
+## Copyright (c) 1999-2004, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ## Steven R. Loomis
 
@@ -31,9 +31,9 @@ CLEANFILES = *~ $(DEPS) $(ALL_MAN_FILES)
 TARGET = $(BINDIR)/$(TARGET_STUB_NAME)$(EXEEXT)
 
 CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcdir)/../toolutil $(BIR_CPPFLAGS)
-LIBS = $(LIBICUTOOLUTIL) $(LIBICUI18N) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
+LIBS = $(LIBICUTOOLUTIL) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
 
-OBJECTS = icuswap.o swapimpl.o
+OBJECTS = icuswap.o
 
 DEPS = $(OBJECTS:.o=.d)
 

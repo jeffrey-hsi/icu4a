@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (c) 2002-2005, International Business Machines
+* Copyright (c) 2002-2004, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -8,12 +8,6 @@
 #define _UCURR_H_
 
 #include "unicode/utypes.h"
-#include "unicode/uenum.h"
-
-/**
- * \file 
- * \brief C API: Encapsulates information about a currency.
- */
 
 #if !UCONFIG_NO_FORMATTING
 
@@ -47,9 +41,9 @@
  * @return length of the currency string. It should always be 3. If 0,
  *                currency couldn't be found or the input values are 
  *                invalid. 
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 ucurr_forLocale(const char* locale,
                 UChar* buff,
                 int32_t buffCapacity,
@@ -163,62 +157,6 @@ ucurr_getDefaultFractionDigits(const UChar* currency,
 U_DRAFT double U_EXPORT2
 ucurr_getRoundingIncrement(const UChar* currency,
                            UErrorCode* ec);
-
-/**
- * Selector constants for ucurr_openCurrencies().
- *
- * @see ucurr_openCurrencies
- * @draft ICU 3.2
- */
-typedef enum UCurrCurrencyType {
-    /**
-     * Select all ISO-4217 currency codes.
-     * @draft ICU 3.2
-     */
-    UCURR_ALL = INT32_MAX,
-    /**
-     * Select only ISO-4217 commonly used currency codes.
-     * These currencies can be found in common use, and they usually have
-     * bank notes or coins associated with the currency code.
-     * This does not include fund codes, precious metals and other
-     * various ISO-4217 codes limited to special financial products.
-     * @draft ICU 3.2
-     */
-    UCURR_COMMON = 1,
-    /**
-     * Select ISO-4217 uncommon currency codes.
-     * These codes respresent fund codes, precious metals and other
-     * various ISO-4217 codes limited to special financial products.
-     * A fund code is a monetary resource associated with a currency.
-     * @draft ICU 3.2
-     */
-    UCURR_UNCOMMON = 2,
-    /**
-     * Select only deprecated ISO-4217 codes.
-     * These codes are no longer in general public use.
-     * @draft ICU 3.2
-     */
-    UCURR_DEPRECATED = 4,
-    /**
-     * Select only non-deprecated ISO-4217 codes.
-     * These codes are in general public use.
-     * @draft ICU 3.2
-     */
-    UCURR_NON_DEPRECATED = 8
-} UCurrCurrencyType;
-
-/**
- * Provides a UEnumeration object for listing ISO-4217 codes.
- * @param currType You can use one of several UCurrCurrencyType values for this
- *      variable. You can also | (or) them together to get a specific list of
- *      currencies. Most people will want to use the (UCURR_CURRENCY|UCURR_NON_DEPRECATED) value to
- *      get a list of current currencies.
- * @param pErrorCode Error code
- * @draft ICU 3.2
- */
-U_DRAFT UEnumeration * U_EXPORT2
-ucurr_openISOCurrencies(uint32_t currType, UErrorCode *pErrorCode);
-
 
 #ifdef XP_CPLUSPLUS
 #include "unicode/unistr.h"

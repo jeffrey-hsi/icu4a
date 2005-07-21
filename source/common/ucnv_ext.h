@@ -384,7 +384,7 @@ ucnv_extContinueMatchFromU(UConverter *cnv,
 
 U_CFUNC void
 ucnv_extGetUnicodeSet(const UConverterSharedData *sharedData,
-                      const USetAdder *sa,
+                      USetAdder *sa,
                       UConverterUnicodeSet which,
                       UErrorCode *pErrorCode);
 

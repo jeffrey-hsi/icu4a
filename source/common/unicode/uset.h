@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2002-2005, International Business Machines
+*   Copyright (C) 2002-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -57,25 +57,6 @@ enum {
      * will match 'a', 'A', 'b', and 'B'.  "[^ab]" with this flag will
      * match all except 'a', 'A', 'b', and 'B'. This performs a full
      * closure over case mappings, e.g. U+017F for s.
-     *
-     * The resulting set is a superset of the input for the code points but
-     * not for the strings.
-     * It performs a case mapping closure of the code points and adds
-     * full case folding strings for the code points, and reduces strings of
-     * the original set to their full case folding equivalents.
-     *
-     * This is designed for case-insensitive matches, for example
-     * in regular expressions. The full code point case closure allows checking of
-     * an input character directly against the closure set.
-     * Strings are matched by comparing the case-folded form from the closure
-     * set with an incremental case folding of the string in question.
-     *
-     * The closure set will also contain single code points if the original
-     * set contained case-equivalent strings (like U+00DF for "ss" or "Ss" etc.).
-     * This is not necessary (that is, redundant) for the above matching method
-     * but results in the same closure sets regardless of whether the original
-     * set contained the code point or a string.
-     *
      * @stable ICU 2.4
      */
     USET_CASE_INSENSITIVE = 2,  
@@ -216,9 +197,9 @@ uset_set(USet* set,
  *                          If the status code indicates failure, then the return value 
  *                          is the index of the error in the source.
  *                                  
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2 
+U_DRAFT int32_t U_EXPORT2 
 uset_applyPattern(USet *set,
                   const UChar *pattern, int32_t patternLength,
                   uint32_t options,
@@ -265,8 +246,7 @@ uset_applyIntPropertyValue(USet* set,
  * matched loosely and correspond to the following sets:
  *
  * "ANY" = [\\u0000-\\U0010FFFF],
- * "ASCII" = [\\u0000-\\u007F],
- * "Assigned" = [:^Cn:].
+ * "ASCII" = [\\u0000-\\u007F].
  *
  * @param propLength the length of the prop, or -1 if NULL
  *
@@ -368,17 +348,6 @@ uset_addRange(USet* set, UChar32 start, UChar32 end);
  */
 U_STABLE void U_EXPORT2
 uset_addString(USet* set, const UChar* str, int32_t strLen);
-
-/**
- * Adds each of the characters in this string to the set. Thus "ch" => {"c", "h"}
- * If this set already any particular character, it has no effect on that character.
- * @param set the object to which to add the character
- * @param str the source string
- * @param strLen the length of the string or -1 if null terminated.
- * @draft ICU 3.4
- */
-U_DRAFT void U_EXPORT2
-uset_addAllCodePoints(USet* set, const UChar *str, int32_t strLen);
 
 /**
  * Removes the given character from the given USet.  After this call,
@@ -622,19 +591,6 @@ uset_getItem(const USet* set, int32_t itemIndex,
  */
 U_DRAFT UBool U_EXPORT2
 uset_containsAll(const USet* set1, const USet* set2);
-
-/**
- * Returns true if this set contains all the characters
- * of the given string. This is does not check containment of grapheme
- * clusters, like uset_containsString.
- * @param set set of characters to be checked for containment
- * @param str string containing codepoints to be checked for containment
- * @param strLen the length of the string or -1 if null terminated.
- * @return true if the test condition is met
- * @draft ICU 3.4
- */
-U_DRAFT UBool U_EXPORT2
-uset_containsAllCodePoints(const USet* set, const UChar *str, int32_t strLen);
 
 /**
  * Returns true if set1 contains none of the characters and strings

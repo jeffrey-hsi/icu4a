@@ -24,11 +24,10 @@
 #include "ustr_cnv.h"
 #include "iotest.h"
 #include "unicode/tstdtmod.h"
-#include "putilimp.h"
 
 #if U_IOSTREAM_SOURCE >= 199711
 #include <iostream>
-#if defined(U_LINUX) || defined(U_CYGWIN)
+#ifdef U_LINUX
 #define USE_SSTREAM 1
 #include <sstream>
 #else
@@ -45,7 +44,7 @@ using namespace std;
 #include <stdlib.h>
 
 U_CDECL_BEGIN
-#ifdef U_WINDOWS
+#ifdef WIN32
 const UChar NEW_LINE[] = {0x0d,0x0a,0};
 const char C_NEW_LINE[] = {0x0d,0x0a,0};
 #define UTF8_NEW_LINE "\x0d\x0a"
@@ -293,7 +292,7 @@ static void U_CALLCONV DataDrivenPrintf(void)
                     uFileBufferLenReturned = u_fprintf_u(testFile, format, i64);
                     break;
                 case 0x73:  // 's' char *
-                    u_austrncpy(cBuffer, argument, sizeof(cBuffer));
+                    u_austrncpy(cBuffer, uBuffer, sizeof(cBuffer));
                     uBufferLenReturned = u_sprintf_u(uBuffer, format, cBuffer);
                     uFileBufferLenReturned = u_fprintf_u(testFile, format, cBuffer);
                     break;
@@ -767,7 +766,6 @@ U_CDECL_END
 static void addAllTests(TestNode** root) {
     addFileTest(root);
     addStringTest(root);
-    addTranslitTest(root);
 
 #if !UCONFIG_NO_FORMATTING
     addTest(root, &DataDrivenPrintf, "datadriv/DataDrivenPrintf");
@@ -868,10 +866,6 @@ int main(int argc, char* argv[])
     int32_t nerrors = 0;
     TestNode *root = NULL;
     UErrorCode errorCode = U_ZERO_ERROR;
-    UDate startTime, endTime;
-    int32_t diffTime;
-
-    startTime = uprv_getUTCtime();
 
     /* Check whether ICU will initialize without forcing the build data directory into
     *  the ICU_DATA path.  Success here means either the data dll contains data, or that
@@ -923,14 +917,5 @@ int main(int argc, char* argv[])
     cleanUpTestTree(root);
     DataDrivenLogger::cleanUp();
     u_cleanup();
-
-    endTime = uprv_getUTCtime();
-    diffTime = (int32_t)(endTime - startTime);
-    printf("Elapsed Time: %02d:%02d:%02d.%03d\n",
-        (int)((diffTime%U_MILLIS_PER_DAY)/U_MILLIS_PER_HOUR),
-        (int)((diffTime%U_MILLIS_PER_HOUR)/U_MILLIS_PER_MINUTE),
-        (int)((diffTime%U_MILLIS_PER_MINUTE)/U_MILLIS_PER_SECOND),
-        (int)(diffTime%U_MILLIS_PER_SECOND));
-
     return nerrors;
 }

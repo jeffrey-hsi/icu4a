@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 2003-2005, International Business Machines Corporation and
+ * Copyright (c) 200-20043, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*
@@ -123,7 +123,6 @@ static void TestHeapFunctions() {
     UErrorCode       status = U_ZERO_ERROR;
     UResourceBundle *rb     = NULL;
     char            *icuDataDir;
-    UVersionInfo unicodeVersion = {0,0,0,0};
 
     UTraceEntry   *traceEntryFunc;           /* Tracing function ptrs.  We need to save    */
     UTraceExit    *traceExitFunc;            /*  and restore them across calls to          */
@@ -188,10 +187,6 @@ static void TestHeapFunctions() {
     utrace_setFunctions(traceContext, traceEntryFunc, traceExitFunc, traceDataFunc);
     utrace_setLevel(traceLevel);
     u_setDataDirectory(icuDataDir);
-    u_getUnicodeVersion(unicodeVersion);
-    if (unicodeVersion[0] <= 0) {
-        log_err("Properties doesn't reinitialize without u_init.\n");
-    }
     status = U_ZERO_ERROR;
     u_init(&status);
     TEST_STATUS(status, U_ZERO_ERROR);
@@ -377,12 +372,11 @@ static void TestMutexFunctions() {
 int         gIncCount             = 0;
 int         gDecCount             = 0;
 const void *gIncDecContext;
-const void *gExpectedContext = &gIncDecContext;
 
 
 static int32_t U_CALLCONV myIncFunc(const void *context, int32_t *p) {
     int32_t  retVal;
-    TEST_ASSERT(context == gExpectedContext);
+    TEST_ASSERT(context == gIncDecContext);
     gIncCount++;
     retVal = ++(*p);
     return retVal;
@@ -390,7 +384,7 @@ static int32_t U_CALLCONV myIncFunc(const void *context, int32_t *p) {
 
 static int32_t U_CALLCONV myDecFunc(const void *context, int32_t *p) {
     int32_t  retVal;
-    TEST_ASSERT(context == gExpectedContext);
+    TEST_ASSERT(context == gIncDecContext);
     gDecCount++;
     retVal = --(*p);
     return retVal;
@@ -432,10 +426,8 @@ static void TestIncDecFunctions() {
 
     /* u_setIncDecFunctions() should work with null or non-null context pointer */
     status = U_ZERO_ERROR;
-    gExpectedContext = NULL;
     u_setAtomicIncDecFunctions(NULL, myIncFunc, myDecFunc,  &status);
     TEST_STATUS(status, U_ZERO_ERROR);
-    gExpectedContext = &gIncDecContext;
     u_setAtomicIncDecFunctions(&gIncDecContext, myIncFunc, myDecFunc,  &status);
     TEST_STATUS(status, U_ZERO_ERROR);
 
@@ -445,7 +437,6 @@ static void TestIncDecFunctions() {
     u_setDataDirectory(dataDir);
     u_init(&status);
     TEST_STATUS(status, U_ZERO_ERROR);
-    gExpectedContext = &gIncDecContext;
     u_setAtomicIncDecFunctions(&gIncDecContext, myIncFunc, myDecFunc,  &status);
     TEST_STATUS(status, U_INVALID_STATE_ERROR);
 

@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/eu.xml
+// * Source File: ../../../locale/common/main/eu.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/eu.xml
+ *  ICU <specials> source: ../../../locale/icu/main/eu.xml
  */
 eu{
     Countries{
@@ -30,7 +30,6 @@ eu{
         CM{"Kamerun"}
         CN{"Txina"}
         CO{"Kolonbia"}
-        CS{"Serbia eta Montenegro"}
         CU{"Kuba"}
         CV{"Cabo Verde"}
         CY{"Zipre"}
@@ -105,6 +104,7 @@ eu{
         SI{"Eslovenia"}
         SK{"Eslovakia"}
         SL{"Sierra Leona"}
+        SP{"Serbia"}
         SR{"Surinam"}
         ST{"Sao Tomé eta Principe"}
         SY{"Siria"}
@@ -153,7 +153,7 @@ eu{
         "�",
         "+",
     }
-    Version{"1.36"}
+    Version{"1.2"}
     calendar{
         gregorian{
             dayNames{

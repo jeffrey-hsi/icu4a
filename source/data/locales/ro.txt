@@ -1,42 +1,17 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/ro.xml
+// * Source File: ../../../locale/common/main/ro.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/ro.xml
+ *  ICU <specials> source: ../../../locale/icu/main/ro.xml
  */
 ro{
     Countries{
-        001{"Lume"}
-        005{"America de Sud"}
-        011{"Africa occidentală"}
-        013{"America centrală"}
-        014{"Africa orientală"}
-        015{"Africa septentrională"}
-        017{"Africa centrală"}
-        018{"Africa australă"}
-        019{"Americi"}
-        021{"America de Nord"}
-        029{"Caraibe"}
-        030{"Asia orientală"}
-        035{"Asia de Sud-Est"}
-        039{"Europa meridională"}
-        053{"Australia și Noua Zeelandă"}
-        054{"Melanezia"}
-        057{"Micronezia"}
-        061{"Polinezia"}
-        062{"Asia centrala şi de Sud"}
-        145{"Asia occidentală"}
-        150{"Europa"}
-        151{"Europa de Est"}
-        154{"Europa septentrională"}
-        155{"Europa occidentală"}
-        830{"Insulele Anglo-Normande"}
-        AD{"Andora"}
+        AD{"Andorra"}
         AE{"Emiratele Arabe Unite"}
         AF{"Afganistan"}
         AG{"Antigua şi Barbuda"}
@@ -51,7 +26,6 @@ ro{
         AT{"Austria"}
         AU{"Australia"}
         AW{"Aruba"}
-        AX{"Insulele Aland"}
         AZ{"Azerbaidjan"}
         BA{"Bosnia şi Herzegovina"}
         BB{"Barbados"}
@@ -85,7 +59,6 @@ ro{
         CN{"China"}
         CO{"Columbia"}
         CR{"Costa Rica"}
-        CS{"Serbia şi Muntenegru"}
         CU{"Cuba"}
         CV{"Capul Verde"}
         CX{"Insula Christmas"}
@@ -217,7 +190,6 @@ ro{
         PW{"Palau"}
         PY{"Paraguay"}
         QA{"Qatar"}
-        QO{"Altă Oceania"}
         RE{"Reunion"}
         RO{"România"}
         RU{"Federaţia Rusă"}
@@ -236,6 +208,7 @@ ro{
         SM{"San Marino"}
         SN{"Senegal"}
         SO{"Somalia"}
+        SP{"Serbia"}
         SR{"Surinam"}
         ST{"Sao Tome şi Principe"}
         SV{"El Salvador"}
@@ -255,7 +228,6 @@ ro{
         TR{"Turcia"}
         TT{"Trinidad şi Tobago"}
         TV{"Tuvalu"}
-        TW{"Taiwan"}
         TZ{"Tanzania"}
         UA{"Ucraina"}
         UG{"Uganda"}
@@ -274,30 +246,15 @@ ro{
         WS{"Samoa"}
         YE{"Yemen"}
         YT{"Mayotte"}
+        YU{"Iugoslavia"}
         ZA{"Africa de Sud"}
         ZM{"Zambia"}
         ZW{"Zimbabwe"}
     }
     Currencies{
-        GBP{
-            "£",
-            "GBP",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "INR",
-        }
-        JPY{
-            "¥",
-            "JPY",
-        }
         ROL{
             "lei",
             "ROL",
-        }
-        USD{
-            "$",
-            "USD",
         }
     }
     ExemplarCharacters{"[a-z â î ă ş ţ]"}
@@ -350,7 +307,7 @@ ro{
         "�",
         "+",
     }
-    Version{"1.46"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -387,17 +344,6 @@ ro{
                         "joi",
                         "vineri",
                         "sîmbătă",
-                    }
-                }
-                stand-alone{
-                    narrow{
-                        "D",
-                        "L",
-                        "M",
-                        "M",
-                        "J",
-                        "V",
-                        "S",
                     }
                 }
             }
@@ -438,24 +384,8 @@ ro{
                         "decembrie",
                     }
                 }
-                stand-alone{
-                    narrow{
-                        "I",
-                        "F",
-                        "M",
-                        "A",
-                        "M",
-                        "I",
-                        "I",
-                        "A",
-                        "S",
-                        "O",
-                        "N",
-                        "D",
-                    }
-                }
             }
         }
     }
-    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
+    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZ"}
 }

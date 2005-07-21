@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (c) 2004-2005, International Business Machines
+* Copyright (c) 2004, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 * Author: Alan Liu
@@ -17,11 +17,6 @@
 
 #include "unicode/measunit.h"
 
-/**
- * \file 
- * \brief C++ API: Currency Unit Information.
- */
- 
 U_NAMESPACE_BEGIN
 
 /**

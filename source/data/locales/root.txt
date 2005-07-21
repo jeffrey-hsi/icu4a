@@ -1,16 +1,15 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/root.xml
+// * Source File: ../../../locale/common/main/root.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/root.xml
+ *  ICU <specials> source: ../../../locale/icu/main/root.xml
  */
 root{
-    AuxExemplarCharacters{"[]"}
     Currencies{
         EUR{
             "€",
@@ -57,8 +56,8 @@ root{
         "+",
     }
     NumberPatterns{
-        "#,##0.###",
-        "¤ #,##0.00",
+        "#,##0.###;-#,##0.###",
+        "¤ #,##0.00;-¤ #,##0.00",
         "#,##0%",
         "#E0",
     }
@@ -66,7 +65,7 @@ root{
         297,
         210,
     }
-    Version{"1.52"}
+    Version{"1.2"}
     boundaries{
         grapheme{"char"}
         line{"line"}
@@ -110,49 +109,7 @@ root{
                 "*",
             }
         }
-        coptic{
-            monthNames{
-                format{
-                    wide{
-                        "Tout",
-                        "Baba",
-                        "Hator",
-                        "Kiahk",
-                        "Toba",
-                        "Amshir",
-                        "Baramhat",
-                        "Baramouda",
-                        "Bashans",
-                        "Paona",
-                        "Epep",
-                        "Mesra",
-                        "Nasie",
-                    }
-                }
-            }
-        }
         default{"gregorian"}
-        ethiopic{
-            monthNames{
-                format{
-                    wide{
-                        "Meskerem",
-                        "Tekemt",
-                        "Hedar",
-                        "Tahsas",
-                        "Ter",
-                        "Yekatit",
-                        "Megabit",
-                        "Miazia",
-                        "Genbot",
-                        "Sene",
-                        "Hamle",
-                        "Nehasse",
-                        "Pagumen",
-                    }
-                }
-            }
-        }
         gregorian{
             AmPmMarkers{
                 "AM",
@@ -186,6 +143,15 @@ root{
                         "7",
                     }
                     default{"wide"}
+                    narrow{
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                    }
                     wide{
                         "1",
                         "2",
@@ -197,7 +163,26 @@ root{
                     }
                 }
                 stand-alone{
+                    abbreviated{
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                    }
+                    default{"wide"}
                     narrow{
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                    }
+                    wide{
                         "1",
                         "2",
                         "3",
@@ -232,6 +217,20 @@ root{
                         "12",
                     }
                     default{"wide"}
+                    narrow{
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "10",
+                        "11",
+                        "12",
+                    }
                     wide{
                         "1",
                         "2",
@@ -248,7 +247,36 @@ root{
                     }
                 }
                 stand-alone{
+                    abbreviated{
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "10",
+                        "11",
+                        "12",
+                    }
+                    default{"wide"}
                     narrow{
+                        "1",
+                        "2",
+                        "3",
+                        "4",
+                        "5",
+                        "6",
+                        "7",
+                        "8",
+                        "9",
+                        "10",
+                        "11",
+                        "12",
+                    }
+                    wide{
                         "1",
                         "2",
                         "3",
@@ -280,7 +308,7 @@ root{
             monthNames{
                 default{"format"}
                 format{
-                    abbreviated:alias{"/LOCALE/calendar/hebrew/monthNames/format/wide"}
+                    abbreviated:alias{"root/calendar/hebrew/monthNames/format/wide"}
                     default{"wide"}
                     wide{
                         "Tishri",
@@ -309,7 +337,7 @@ root{
             monthNames{
                 default{"format"}
                 format{
-                    abbreviated:alias{"/LOCALE/calendar/islamic/monthNames/format/wide"}
+                    abbreviated:alias{"root/calendar/islamic/monthNames/format/wide"}
                     default{"wide"}
                     wide{
                         "Muharram",
@@ -328,7 +356,7 @@ root{
                 }
             }
         }
-        islamic-civil:alias{"/LOCALE/calendar/islamic"}
+        islamic-civil:alias{"root/calendar/islamic"}
         japanese{
             DateTimePatterns{
                 "h:mm:ss a z",
@@ -582,26 +610,10 @@ root{
                 }
             }
         }
-        persian{
-            monthNames{
-                default{"format"}
-                format{
-                    default{"wide"}
-                }
-            }
-        }
     }
-    delimiters{
-        alternateQuotationEnd{"’"}
-        alternateQuotationStart{"‘"}
-        quotationEnd{"”"}
-        quotationStart{"“"}
-    }
-    localPatternChars{"GyMdkHmsSEDFwWahKzYeugAZvcL"}
+    localPatternChars{"GyMdkHmsSEDFwWahKzYeugAZ"}
     zoneStrings{
         {
-            "",
-            "",
             "",
             "",
             "",

@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 2004 - 2005, International Business Machines Corporation and
+* Copyright (C) 2004, International Business Machines Corporation and
 * others. All Rights Reserved.
 *******************************************************************************
 */
@@ -39,62 +39,62 @@
  *  </tr>
  *
  *  <tr>
- *    <td>UDTS_JAVA_TIME</td>
+ *    <td>JAVA_TIME</td>
  *    <td>int64_t</td>
  *    <td>milliseconds</td>
  *    <td>Jan 1, 1970</td>
  *  </tr>
  *  <tr>
  *
- *    <td>UDTS_UNIX_TIME</td>
+ *    <td>UNIX_TIME</td>
  *    <td>int32_t or int64_t</td>
  *    <td>seconds</td>
  *    <td>Jan 1, 1970</td>
  *  </tr>
  *  <tr>
- *    <td>UDTS_ICU4C_TIME</td>
+ *    <td>ICU4C_TIME</td>
  *
  *    <td>double</td>
  *    <td>milliseconds</td>
  *    <td>Jan 1, 1970</td>
  *  </tr>
  *  <tr>
- *    <td>UDTS_WINDOWS_FILE_TIME</td>
+ *    <td>WINDOWS_FILE_TIME</td>
  *    <td>int64_t</td>
  *
  *    <td>ticks (100 nanoseconds)</td>
  *    <td>Jan 1, 1601</td>
  *  </tr>
  *  <tr>
- *    <td>UDTS_DOTNET_DATE_TIME</td>
+ *    <td>WINDOWS_DATE_TIME</td>
  *    <td>int64_t</td>
  *    <td>ticks (100 nanoseconds)</td>
  *
  *    <td>Jan 1, 0001</td>
  *  </tr>
  *  <tr>
- *    <td>UDTS_MAC_OLD_TIME</td>
+ *    <td>MAC_OLD_TIME</td>
  *    <td>int32_t</td>
  *    <td>seconds</td>
  *    <td>Jan 1, 1904</td>
  *
  *  </tr>
  *  <tr>
- *    <td>UDTS_MAC_TIME</td>
+ *    <td>MAC_TIME</td>
  *    <td>double</td>
  *    <td>seconds</td>
  *    <td>Jan 1, 2001</td>
  *  </tr>
  *
  *  <tr>
- *    <td>UDTS_EXCEL_TIME</td>
+ *    <td>EXCEL_TIME</td>
  *    <td>?</td>
  *    <td>days</td>
  *    <td>Dec 31, 1899</td>
  *  </tr>
  *  <tr>
  *
- *    <td>UDTS_DB2_TIME</td>
+ *    <td>DB2_TIME</td>
  *    <td>?</td>
  *    <td>days</td>
  *    <td>Dec 31, 1899</td>
@@ -161,12 +161,12 @@
  *
  *<p>
  * So what to use for this pivot? Java time has plenty of range, but cannot represent
- * .NET <code>System.DateTime</code> values without severe loss of precision. ICU4C time addresses this by using a
+ * Windows datetimes without severe loss of precision. ICU4C time addresses this by using a
  * <code>double</code> that is otherwise equivalent to the Java time. However, there are disadvantages
  * with <code>doubles</code>. They provide for much more graceful degradation in arithmetic operations.
  * But they only have 53 bits of accuracy, which means that they will lose precision when
  * converting back and forth to ticks. What would really be nice would be a
- * <code>long double</code> (80 bits -- 64 bit mantissa), but that is not supported on most systems.
+ * long double (80 bits -- 64 bit mantissa), but that is not supported on most systems.
  *
  *<p>
  * The Unix extended time uses a structure with two components: time in seconds and a
@@ -177,12 +177,12 @@
  * have a fixed size.
  *
  *<p>
- * Because of these issues, we ended up concluding that the .NET framework's
- * <code>System.DateTime</code> would be the best pivot. However, we use the full range
- * allowed by the datatype, allowing for datetimes back to 29,000 BC and up to 29,000 AD.
- * This time scale is very fine grained, does not lose precision, and covers a range that
- * will meet almost all requirements. It will not handle the range that Java times do,
- * but frankly, being able to handle dates before 29,000 BC or after 29,000 AD is of very limited interest.
+ * Because of these issues, we ended up concluding that the Windows datetime would be the
+ * best pivot. However, we use the full range allowed by the datatype, allowing for
+ * datetimes back to 29,000 BC and up to 29,000 AD. This time scale is very fine grained,
+ * does not lose precision, and covers a range that will meet almost all requirements.
+ * It will not handle the range that Java times do, but frankly, being able to handle dates
+ * before 29,000 BC or after 29,000 AD is of very limited interest.
  *
  */
 
@@ -226,12 +226,12 @@ typedef enum UDateTimeScale {
     UDTS_WINDOWS_FILE_TIME,
     
     /**
-     * Used in the .NET framework's <code>System.DateTime</code> structure. Data is an <code>int64_t</code>. Value
+     * Used in Windows for dates and times (?). Data is an <code>int64_t</code>. Value
      * is ticks (1 tick == 100 nanoseconds) since January 1, 0001.
      *
      * @draft ICU 3.2
      */
-    UDTS_DOTNET_DATE_TIME,
+    UDTS_WINDOWS_DATE_TIME,
     
     /**
      * Used in older Macintosh systems. Data is an <code>int32_t</code>. Value
@@ -273,20 +273,12 @@ typedef enum UDateTimeScale {
     UDTS_MAX_SCALE
 } UDateTimeScale;
 
-/**
- * <code>UTimeScaleValue</code> values are used to specify the time scale values
- * to <code>utmscale_getTimeScaleValue</code>.
- *
- * @see utmscale_getTimeScaleValue
- *
- * @draft ICU 3.2
- */
 typedef enum UTimeScaleValue {
     /**
      * The constant used to select the units vale
      * for a time scale.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @draft ICU 3.2
      */
@@ -296,7 +288,7 @@ typedef enum UTimeScaleValue {
      * The constant used to select the epoch offset value
      * for a time scale.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @draft ICU 3.2
      */
@@ -306,7 +298,7 @@ typedef enum UTimeScaleValue {
      * The constant used to select the minimum from value
      * for a time scale.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @draft ICU 3.2
      */
@@ -316,7 +308,7 @@ typedef enum UTimeScaleValue {
      * The constant used to select the maximum from value
      * for a time scale.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @draft ICU 3.2
      */
@@ -326,7 +318,7 @@ typedef enum UTimeScaleValue {
      * The constant used to select the minimum to value
      * for a time scale.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @draft ICU 3.2
      */
@@ -336,7 +328,7 @@ typedef enum UTimeScaleValue {
      * The constant used to select the maximum to value
      * for a time scale.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @draft ICU 3.2
      */
@@ -349,7 +341,7 @@ typedef enum UTimeScaleValue {
      * NOTE: This is an internal value. DO NOT USE IT. May not
      * actually be equal to the epoch offset value plus one.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @draft ICU 3.2
      */
@@ -362,7 +354,7 @@ typedef enum UTimeScaleValue {
      * NOTE: This is an internal value. DO NOT USE IT. May not
      * actually be equal to the epoch offset value plus one.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @draft ICU 3.2
      */
@@ -374,7 +366,7 @@ typedef enum UTimeScaleValue {
      * 
      * NOTE: This is an internal value. DO NOT USE IT.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @internal
      */
@@ -386,7 +378,7 @@ typedef enum UTimeScaleValue {
      * 
      * NOTE: This is an internal value. DO NOT USE IT.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @internal
      */
@@ -398,7 +390,7 @@ typedef enum UTimeScaleValue {
      * 
      * NOTE: This is an internal value. DO NOT USE IT.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @internal
      */
@@ -409,7 +401,7 @@ typedef enum UTimeScaleValue {
      * 
      * NOTE: This is an internal value. DO NOT USE IT.
      * 
-     * @see utmscale_getTimeScaleValue
+     * @see utms_getTimeScaleValue
      *
      * @internal
      */

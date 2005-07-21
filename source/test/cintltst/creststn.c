@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -127,19 +127,7 @@ typedef enum E_Where E_Where;
 #define CONFIRM_INT_EQ(actual,expected) if ((expected)==(actual)) { record_pass(); } else { record_fail(); log_err("%s returned %d instead of %d\n",  action, actual, expected); }
 #define CONFIRM_INT_GE(actual,expected) if ((actual)>=(expected)) { record_pass(); } else { record_fail(); log_err("%s returned %d instead of x >= %d\n",  action, actual, expected); }
 #define CONFIRM_INT_NE(actual,expected) if ((expected)!=(actual)) { record_pass(); } else { record_fail(); log_err("%s returned %d instead of x != %d\n",  action, actual, expected); }
-/*#define CONFIRM_ErrorCode(actual,expected) if ((expected)==(actual)) { record_pass(); } else { record_fail();  log_err("%s returned  %s  instead of %s\n", action, myErrorName(actual), myErrorName(expected)); } */
-static void 
-CONFIRM_ErrorCode(UErrorCode actual,UErrorCode expected) 
-{
-  if ((expected)==(actual)) 
-  { 
-    record_pass(); 
-  } else { 
-    record_fail();  
-    /*log_err("%s returned  %s  instead of %s\n", action, myErrorName(actual), myErrorName(expected)); */
-    log_err("returned  %s  instead of %s\n", myErrorName(actual), myErrorName(expected)); 
-  }
-}
+#define CONFIRM_ErrorCode(actual,expected) if ((expected)==(actual)) { record_pass(); } else { record_fail();  log_err("%s returned  %s  instead of %s\n", action, myErrorName(actual), myErrorName(expected)); }
 
 
 /* Array of our test objects */
@@ -173,8 +161,7 @@ static int32_t bundles_count = sizeof(param) / sizeof(param[0]);
 static void TestDecodedBundle(void);
 static void TestGetKeywordValues(void);
 static void TestGetFunctionalEquivalent(void);
-static void TestCLDRStyleAliases(void);
-static void TestFallbackCodes(void);
+
 /***************************************************************************************/
 
 /* Array of our test objects */
@@ -200,9 +187,7 @@ void addNEWResourceBundleTest(TestNode** root)
     addTest(root, &TestGetKeywordValues,      "tsutil/creststn/TestGetKeywordValues"); 
     addTest(root, &TestGetFunctionalEquivalent,"tsutil/creststn/TestGetFunctionalEquivalent");
     addTest(root, &TestJB3763,                "tsutil/creststn/TestJB3763");
-    addTest(root, &TestXPath,                 "tsutil/creststn/TestXPath"); 
-    addTest(root, &TestCLDRStyleAliases,      "tsutil/creststn/TestCLDRStyleAliases");
-    addTest(root, &TestFallbackCodes,         "tsutil/creststn/TestFallbackCodes");    
+
 }
 
 
@@ -989,33 +974,13 @@ static void TestAPI() {
     utestdatapath = (UChar*) malloc((len+10)*sizeof(UChar));
 
     u_charsToUChars(testdatapath, utestdatapath, (int32_t)strlen(testdatapath)+1);
-#if (U_FILE_SEP_CHAR != U_FILE_ALT_SEP_CHAR) && U_FILE_SEP_CHAR == '\\'
-    {
-        /* Convert all backslashes to forward slashes so that we can make sure that ures_openU
-           can handle invariant characters. */
-        UChar *backslash;
-        while ((backslash = u_strchr(utestdatapath, 0x005C))) {
-            *backslash = 0x002F;
-        }
-    }
-#endif
+    /*u_uastrcpy(utestdatapath, testdatapath);*/
 
     /*Test ures_openU */
 
-    ures_close(ures_openU(NULL, "root", &status));
-    if(U_FAILURE(status)){
-        log_err("ERROR: ures_openU() failed path = NULL with %s\n", myErrorName(status));
-    }
-
-    status = U_ILLEGAL_ARGUMENT_ERROR;
-    if(ures_openU(NULL, "root", &status) != NULL){
-        log_err("ERROR: ures_openU() worked with error status with %s\n", myErrorName(status));
-    }
-
-    status = U_ZERO_ERROR;
     teRes=ures_openU(utestdatapath, "te", &status);
     if(U_FAILURE(status)){
-        log_err("ERROR: ures_openU() failed path =%s with %s\n", austrdup(utestdatapath), myErrorName(status));
+        log_err("ERROR: ures_openU() failed path =%s with %s", austrdup(utestdatapath), myErrorName(status));
         return;
     }
     /*Test ures_getLocale() */
@@ -1044,8 +1009,7 @@ static void TestAPI() {
     }
     key=ures_getKey(teFillin);
     /*if(strcmp(key, "%%CollationBin") != 0){*/
-    /*if(strcmp(key, "array_2d_in_Root_te") != 0){*/ /* added "aliasClient" that goes first */
-    if(strcmp(key, "a") != 0){
+    if(strcmp(key, "array_2d_in_Root_te") != 0){
         log_err("ERROR: ures_getNextResource() failed\n");
     }
 #endif
@@ -1163,7 +1127,7 @@ static void TestErrorConditions(){
     status=U_ZERO_ERROR;
     teRes=ures_openU(utestdatapath, "te", &status);
     if(U_FAILURE(status)){
-        log_err("ERROR: ures_openU() failed path =%s with %s\n", austrdup(utestdatapath), myErrorName(status));
+        log_err("ERROR: ures_openU() failed path =%s with %s", austrdup(utestdatapath), myErrorName(status));
         return;
     }
     status=U_ILLEGAL_ARGUMENT_ERROR;
@@ -1409,9 +1373,9 @@ static void TestGetVersionColl(){
             return;
         }
         /* test NUL termination of UCARules */
-        rules = ures_getStringByKey(resB,"UCARules",&len, &status);
+        rules = ures_getStringByKey(resB,"%%UCARULES",&len, &status);
         if(!rules || U_FAILURE(status)) {
-          log_data_err("Could not load UCARules for locale %s\n", locName);
+          log_data_err("Could not load %%UCARULES for locale %s\n", locName);
           continue;
         }
         if(u_strlen(rules) != len){
@@ -2030,7 +1994,7 @@ static void TestFallback()
         UResourceBundle* myResB = ures_open(NULL,"no_NO_NY",&err);
         UResourceBundle* resLocID = ures_getByKey(myResB, "Version", NULL, &err);
         UResourceBundle* tResB;
-        static const UChar versionStr[] = { 0x0031, 0x002E, 0x0032, 0x0037, 0x0000};
+        static const UChar versionStr[] = { 0x0031, 0x002E, 0x0032, 0};
 
         if(err != U_ZERO_ERROR){
             log_data_err("Expected U_ZERO_ERROR when trying to test no_NO_NY aliased to nn_NO for Version err=%s\n",u_errorName(err));
@@ -2077,18 +2041,12 @@ static void TestResourceLevelAliasing(void) {
     }
     
     aliasB = ures_open(testdatapath, "testaliases", &status);
-
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testaliases.res %s \n",myErrorName(status));
-        return;
-    }
+    
     /* this should fail - circular alias */
     tb = ures_getByKey(aliasB, "aaa", tb, &status);
     if(status != U_TOO_MANY_ALIASES_ERROR) {
         log_err("Failed to detect circular alias\n");
-    }
-    else {
+    } else {
         status = U_ZERO_ERROR;
     }
     tb = ures_getByKey(aliasB, "aab", tb, &status);
@@ -2107,6 +2065,7 @@ static void TestResourceLevelAliasing(void) {
       } else {
         status = U_ZERO_ERROR;
       }
+      
       /* testing referencing/composed alias */
       uk = ures_findResource("ja/LocaleScript/2", uk, &status);
       if((uk == NULL) || U_FAILURE(status)) {
@@ -2151,7 +2110,7 @@ static void TestResourceLevelAliasing(void) {
       
       if(U_FAILURE(status)) {
         log_err("%s trying to read binary BreakDictionaryData\n");
-      } else if(binSeqLen != binLen || memcmp(binSequence, binary, binSeqLen) != 0) {
+      } else if(binSeqLen != binLen || uprv_memcmp(binSequence, binary, binSeqLen) != 0) {
         log_err("Referencing alias didn't get the right data\n");
       }
       
@@ -2495,15 +2454,7 @@ static void TestGetFunctionalEquivalent(void) {
         "t",    "hi@collation=direct",      "hi@collation=direct",
         "f",    "hi_AU@collation=direct;currency=CHF;calendar=buddhist",   "hi@collation=direct",
         "f",    "hi_AU@collation=standard;currency=CHF;calendar=buddhist",   "hi",
-        "t",    "de_DE@collation=pinyin",      "de", /* bug 4582 tests */
-        "f",    "de_DE_BONN@collation=pinyin", "de",
-        "t",    "nl",                          "root",
-        "t",    "nl_NL",                       "root",
-        "f",    "nl_NL_EEXT",                  "root",
-        "t",    "nl@collation=stroke",         "root",
-        "t",    "nl_NL@collation=stroke",      "root",
-        "f",    "nl_NL_EEXT@collation=stroke", "root",
-       NULL
+        NULL
   };
 
   static const char *calCases[] = {
@@ -2543,145 +2494,3 @@ static void TestGetFunctionalEquivalent(void) {
 #endif
 }
 
-static void TestXPath(void) {
-    UErrorCode status = U_ZERO_ERROR;
-    UResourceBundle *rb = NULL, *alias = NULL;
-    int32_t len = 0;
-    const UChar* result = NULL;
-    const UChar expResult[] = { 0x0063, 0x006F, 0x0072, 0x0072, 0x0065, 0x0063, 0x0074, 0x0000 }; /* "correct" */
-    /*const UChar expResult[] = { 0x0074, 0x0065, 0x0069, 0x006E, 0x0064, 0x0065, 0x0073, 0x0074, 0x0000 }; *//*teindest*/
-    
-    const char *testdatapath=loadTestData(&status);
-    if(U_FAILURE(status))
-    {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
-    
-    log_verbose("Testing ures_open()......\n");
-
-    rb = ures_open(testdatapath, "te_IN", &status);
-    if(U_FAILURE(status)) {
-      log_err("Could not open te_IN (%s)\n", myErrorName(status));
-      return;
-    }
-    alias = ures_getByKey(rb, "rootAliasClient", alias, &status);
-    if(U_FAILURE(status)) {
-      log_err("Couldn't find the aliased resource (%s)\n", myErrorName(status));
-      ures_close(rb);
-      return;
-    }
-
-    result = ures_getString(alias, &len, &status);
-    if(U_FAILURE(status) || result == NULL || u_strcmp(result, expResult)) {
-      log_err("Couldn't get correct string value (%s)\n", myErrorName(status));
-    }
-
-    alias = ures_getByKey(rb, "aliasClient", alias, &status);
-    if(U_FAILURE(status)) {
-      log_err("Couldn't find the aliased resource (%s)\n", myErrorName(status));
-      ures_close(rb);
-      return;
-    }
-
-    result = ures_getString(alias, &len, &status);
-    if(U_FAILURE(status) || result == NULL || u_strcmp(result, expResult)) {
-      log_err("Couldn't get correct string value (%s)\n", myErrorName(status));
-    }
-
-    alias = ures_getByKey(rb, "nestedRootAliasClient", alias, &status);
-    if(U_FAILURE(status)) {
-      log_err("Couldn't find the aliased resource (%s)\n", myErrorName(status));
-      ures_close(rb);
-      return;
-    }
-
-    result = ures_getString(alias, &len, &status);
-    if(U_FAILURE(status) || result == NULL || u_strcmp(result, expResult)) {
-      log_err("Couldn't get correct string value (%s)\n", myErrorName(status));
-    }
-
-    ures_close(alias);
-    ures_close(rb);
-}
-static void TestCLDRStyleAliases(void) {
-    UErrorCode status = U_ZERO_ERROR;
-    UResourceBundle *rb = NULL, *alias = NULL, *a=NULL;
-    int32_t i, len;
-    char resource[256];
-    const UChar *result = NULL;
-    UChar expected[256];
-    const char *expects[7] = { "", "a41", "a12", "a03", "ar4" };
-    const char *testdatapath=loadTestData(&status);
-    if(U_FAILURE(status)) {
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
-    log_verbose("Testing CLDR style aliases......\n");
-
-    rb = ures_open(testdatapath, "te_IN_REVISED", &status);
-    if(U_FAILURE(status)) {
-      log_err("Could not open te_IN (%s)\n", myErrorName(status));
-      return;
-    }
-    alias = ures_getByKey(rb, "a", alias, &status);
-    if(U_FAILURE(status)) {
-      log_err("Couldn't find the aliased with name \"a\" resource (%s)\n", myErrorName(status));
-      ures_close(rb);
-      return;
-    }
-    for(i = 1; i < 5 ; i++) {
-      resource[0]='a';
-      resource[1]='0'+i;
-      resource[2]=0;
-      /* instead of sprintf(resource, "a%i", i); */
-      a = ures_getByKeyWithFallback(alias, resource, a, &status);
-      result = ures_getString(a, &len, &status);
-      u_charsToUChars(expects[i], expected, strlen(expects[i])+1);
-      if(U_FAILURE(status) || !result || u_strcmp(result, expected)) {
-        log_err("CLDR style aliases failed resource with name \"%s\" resource, exp %s, got %S (%s)\n", resource, expects[i], result, myErrorName(status)); 
-        status = U_ZERO_ERROR;
-      }
-    }
-
-  ures_close(a);
-  ures_close(alias);
-  ures_close(rb);
-}
-
-static void TestFallbackCodes(void) {
-  UErrorCode status = U_ZERO_ERROR;
-  const char *testdatapath=loadTestData(&status);
-
-  UResourceBundle *res = ures_open(testdatapath, "te_IN", &status);
-
-  UResourceBundle *r = NULL, *fall = NULL;
-
-  r = ures_getByKey(res, "tagged_array_in_Root_te_te_IN", r, &status);
-
-  status = U_ZERO_ERROR;
-  fall = ures_getByKeyWithFallback(r, "tag2", fall, &status);
-
-  if(status != U_ZERO_ERROR) {
-    log_err("Expected error code to be U_ZERO_ERROR, got %s\n", u_errorName(status));
-    status = U_ZERO_ERROR;
-  }
-
-  fall = ures_getByKeyWithFallback(r, "tag7", fall, &status);
-
-  if(status != U_USING_FALLBACK_WARNING) {
-    log_err("Expected error code to be U_USING_FALLBACK_WARNING, got %s\n", u_errorName(status));
-  }
-  status = U_ZERO_ERROR;
-
-  fall = ures_getByKeyWithFallback(r, "tag1", fall, &status);
-
-  if(status != U_USING_DEFAULT_WARNING) {
-    log_err("Expected error code to be U_USING_DEFAULT_WARNING, got %s\n", u_errorName(status));
-  }
-  status = U_ZERO_ERROR;
-
-  ures_close(fall);
-  ures_close(r);
-  ures_close(res);
-}

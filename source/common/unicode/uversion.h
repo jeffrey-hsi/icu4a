@@ -15,10 +15,6 @@
 *  Gets included by utypes.h and Windows .rc files
 */
 
-/**
- * \file
- * \brief C API: Contains all the important version numbers for ICU. 
- */
 /*===========================================================================*/
 /* Main ICU version information                                              */
 /*===========================================================================*/
@@ -26,22 +22,20 @@
 #ifndef UVERSION_H
 #define UVERSION_H
 
-/**
- * IMPORTANT: When updating version, the following things need to be done:
- * source/common/unicode/uversion.h - this file: update major, minor,
- *        patchlevel, suffix, version, short version constants, namespace,
- *                                                             and copyright
- * source/common/common.vcproj - update 'Output file name' on the link tab so
- *                   that it contains the new major/minor combination
- * source/i18n/i18n.vcproj - same as for the common.vcproj
- * source/layout/layout.vcproj - same as for the common.vcproj
- * source/stubdata/stubdata.vcproj - same as for the common.vcproj
- * source/io/io.vcproj - same as for the common.vcproj
- * source/data/makedata.mak - change U_ICUDATA_NAME so that it contains
- *                            the new major/minor combination
- * source/tools/genren/genren.pl - use this script according to the README
- *                    in that folder                                         
- */
+/** IMPORTANT: When updating version, the following things need to be done:   */
+/** source/common/unicode/uversion.h - this file: update major, minor,        */
+/**        patchlevel, suffix, version, short version constants, namespace,   */
+/**                                                             and copyright */
+/** source/common/common.dsp - update 'Output file name' on the link tab so   */
+/**                   that it contains the new major/minor combination        */
+/** source/i18n/i18n.dsp - same as for the common.dsp                         */
+/** source/layout/layout.dsp - same as for the common.dsp                     */
+/** source/stubdata/stubdata.dsp - same as for the common.dsp                 */
+/** source/extra/ustdio/ustdio.dsp - same as for the common.dsp               */
+/** source/data/makedata.mak - change U_ICUDATA_NAME so that it contains      */
+/**                            the new major/minor combination                */
+/** source/tools/genren/genren.pl - use this script according to the README   */
+/**                    in that folder                                         */
 
 #include "unicode/umachine.h"
 
@@ -50,7 +44,7 @@
  *  @stable ICU 2.4
  */
 #define U_COPYRIGHT_STRING \
-  " Copyright (C) 2005, International Business Machines Corporation and others. All Rights Reserved. "
+  " Copyright (C) 2004, International Business Machines Corporation and others. All Rights Reserved. "
 
 /** Maximum length of the copyright string.
  *  @stable ICU 2.4
@@ -67,32 +61,32 @@
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_MINOR_NUM 4
+#define U_ICU_VERSION_MINOR_NUM 2
 
 /** The current ICU patchlevel version as an integer.  
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.4
  */
-#define U_ICU_VERSION_PATCHLEVEL_NUM 0
+#define U_ICU_VERSION_PATCHLEVEL_NUM 1
 
 /** Glued version suffix for renamers 
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_SUFFIX _3_4
+#define U_ICU_VERSION_SUFFIX _3_2
 
 /** The current ICU library version as a dotted-decimal string. The patchlevel
  *  only appears in this string if it non-zero. 
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.4
  */
-#define U_ICU_VERSION "3.4"
+#define U_ICU_VERSION "3.2.1"
 
 /** The current ICU library major/minor version as a string without dots, for library name suffixes. 
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_SHORT "34"
+#define U_ICU_VERSION_SHORT "32"
 
 /** An ICU version consists of up to 4 numbers from 0..255.
  *  @stable ICU 2.4
@@ -119,7 +113,7 @@ typedef uint8_t UVersionInfo[U_MAX_VERSION_LENGTH];
 #define U_ICU_NAMESPACE icu
 namespace U_ICU_NAMESPACE { }
 #else
-#define U_ICU_NAMESPACE icu_3_4
+#define U_ICU_NAMESPACE icu_3_2
 namespace U_ICU_NAMESPACE { }
 namespace icu = U_ICU_NAMESPACE;
 #endif
@@ -186,11 +180,10 @@ u_getVersion(UVersionInfo versionArray);
  * version 4 - ICU 2.2 - tracking UCA changes, ignore completely ignorables 
  * in contractions, ignore primary ignorables after shifted 
  * version 5 - ICU 2.8 - changed implicit generation code
- * version 6 - ICU 3.4 - with the UCA 4.1, Thai tag is no longer generated or used
  * This value may change in the subsequent releases of ICU
  * @stable ICU 2.4
  */
-#define UCOL_RUNTIME_VERSION 6
+#define UCOL_RUNTIME_VERSION 5
 
 /** Builder code version. When this is different, same tailoring might result
  * in assigning different collation elements to code points                  
@@ -198,13 +191,11 @@ u_getVersion(UVersionInfo versionArray);
  * closure. However, the tailorings should probably get same CEs assigned    
  * version 5 - ICU 2.2 - fixed some bugs, renamed some indirect values.      
  * version 6 - ICU 2.8 - fixed bug in builder that allowed 0xFF in primary values
- * version 7 - ICU 3.4 - with the UCA 4.1 Thai tag is no longer processed, complete ignorables
- *                       now break contractions
  * Backward compatible with the old rules. 
  * This value may change in the subsequent releases of ICU
  * @stable ICU 2.4
  */
-#define UCOL_BUILDER_VERSION 7
+#define UCOL_BUILDER_VERSION 6
 
 /** *** Removed *** Instead we use the data we read from FractionalUCA.txt
  * This is the version of FractionalUCA.txt tailoring rules

@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2004-2005, International Business Machines
+*   Copyright (C) 2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   file name:  regex.h
@@ -47,9 +47,7 @@ typedef struct URegularExpression URegularExpression;
  * @stable ICU 2.4
  */
 typedef enum URegexpFlag{
-    /** Forces normalization of pattern and strings. 
-    Not implemented yet, just a placeholder, hence draft. 
-    @draft ICU 2.4 */
+    /** Forces normalization of pattern and strings.  @draft ICU 2.4 */
     UREGEX_CANON_EQ         = 128,
 
     /**  Enable case insensitive matching.  @stable ICU 2.4 */
@@ -73,7 +71,7 @@ typedef enum URegexpFlag{
       *     Warning: Unicode word boundaries are quite different from
       *     traditional regular expression word boundaries.  See
       *     http://unicode.org/reports/tr29/#Word_Boundaries
-      *     @stable ICU 2.8
+      *     @draft ICU 2.8
       */
     UREGEX_UWORD            = 256
 }  URegexpFlag;
@@ -129,13 +127,12 @@ uregex_open( const  UChar          *pattern,
   *
   * @draft ICU 3.0
   */
-#if !UCONFIG_NO_CONVERSION
 U_DRAFT URegularExpression * U_EXPORT2
 uregex_openC( const char           *pattern,
                     uint32_t        flags,
                     UParseError    *pe,
                     UErrorCode     *status);
-#endif
+
 
 
 
@@ -436,7 +433,7 @@ uregex_reset(URegularExpression    *regexp,
   */
 U_DRAFT int32_t U_EXPORT2 
 uregex_replaceAll(URegularExpression    *regexp,
-                  const UChar           *replacementText,
+                  UChar                 *replacementText,
                   int32_t                replacementLength,
                   UChar                 *destBuf,
                   int32_t                destCapacity,
@@ -469,7 +466,7 @@ uregex_replaceAll(URegularExpression    *regexp,
   */
 U_DRAFT int32_t U_EXPORT2 
 uregex_replaceFirst(URegularExpression  *regexp,
-                    const UChar         *replacementText,
+                    UChar               *replacementText,
                     int32_t              replacementLength,
                     UChar               *destBuf,
                     int32_t              destCapacity,
@@ -524,7 +521,7 @@ uregex_replaceFirst(URegularExpression  *regexp,
   */
 U_DRAFT int32_t U_EXPORT2 
 uregex_appendReplacement(URegularExpression    *regexp,
-                  const UChar           *replacementText,
+                  UChar                 *replacementText,
                   int32_t                replacementLength,
                   UChar                **destBuf,
                   int32_t               *destCapacity,

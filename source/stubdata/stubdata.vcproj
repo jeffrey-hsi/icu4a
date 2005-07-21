@@ -20,9 +20,10 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
 				ImproveFloatingPointConsistency="TRUE"
 				AdditionalIncludeDirectories="..\common"
-				PreprocessorDefinitions="WIN32;NDEBUG"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;STUBDATA_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
@@ -38,11 +39,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\bin\icudt34.dll"
+				OutputFile="..\..\bin\icudt32.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\Release/icudt34.pdb"
-				ResourceOnlyDLL="TRUE"
+				ProgramDatabaseFile=".\Release/icudt32.pdb"
 				ImportLibrary="..\..\lib\icudt.lib"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -85,11 +85,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				ImproveFloatingPointConsistency="TRUE"
+				OptimizeForProcessor="2"
 				AdditionalIncludeDirectories="..\common"
-				PreprocessorDefinitions="WIN32;_DEBUG"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;STUBDATA_EXPORTS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				BufferSecurityCheck="TRUE"
 				DisableLanguageExtensions="TRUE"
 				PrecompiledHeaderFile=".\Debug/stubdata.pch"
 				AssemblerListingLocation=".\Debug/"
@@ -103,11 +103,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\bin\icudt34.dll"
+				OutputFile="..\..\bin\icudt32.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\Debug/icudt34.pdb"
-				ResourceOnlyDLL="TRUE"
+				ProgramDatabaseFile=".\Debug/icudt32.pdb"
 				ImportLibrary="..\..\lib\icudt.lib"/>
 			<Tool
 				Name="VCMIDLTool"

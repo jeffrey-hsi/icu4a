@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1996-2005, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) 1996-2004, International Business Machines Corporation and others. All Rights Reserved.
 *******************************************************************************
 */
 
@@ -341,29 +341,7 @@ typedef enum UDateFormatField {
      */
     UDAT_TIMEZONE_RFC_FIELD = 23,
 
-     /**
-     * FieldPosition and UFieldPosition selector for 'v' field alignment,
-     * corresponding to the UCAL_ZONE_OFFSET field.
-     * @draft ICU 3.4
-     */
-    UDAT_TIMEZONE_GENERIC_FIELD = 24,
     /**
-     * FieldPosition selector for 'c' field alignment,
-     * corresponding to the {@link Calendar#DAY} field. 
-     * This displays the stand alone day name, if available.
-     * @draft ICU 3.4
-     */
-    UDAT_STANDALONE_DAY_FIELD = 25,
-    
-    /**
-     * FieldPosition selector for 'L' field alignment,
-     * corresponding to the {@link Calendar#MONTH} field.  
-     * This displays the stand alone month name, if available.
-     * @draft ICU 3.4
-     */
-    UDAT_STANDALONE_MONTH_FIELD = 26,
-
-   /**
      * Number of FieldPosition and UFieldPosition selectors for 
      * DateFormat and UDateFormat.
      * Valid selectors range from 0 to UDAT_FIELD_COUNT-1.
@@ -371,7 +349,7 @@ typedef enum UDateFormatField {
      * in the future.
      * @draft ICU 3.0
      */
-    UDAT_FIELD_COUNT = 27
+    UDAT_FIELD_COUNT = 24
 
 } UDateFormatField;
 
@@ -673,21 +651,7 @@ typedef enum UDateFormatSymbolType {
     /** The AM/PM names, for example AM */
     UDAT_AM_PMS,
     /** The localized characters */
-    UDAT_LOCALIZED_CHARS,
-    /** The long era names, for example Anno Domini */
-    UDAT_ERA_NAMES,
-    /** The narrow month names, for example F */
-    UDAT_NARROW_MONTHS,
-    /** The narrow weekday names, for example N */
-    UDAT_NARROW_WEEKDAYS,
-    /** Standalone context versions of months */
-    UDAT_STANDALONE_MONTHS,
-    UDAT_STANDALONE_SHORT_MONTHS,
-    UDAT_STANDALONE_NARROW_MONTHS,
-    /** Standalone context versions of weekdays */
-    UDAT_STANDALONE_WEEKDAYS,
-    UDAT_STANDALONE_SHORT_WEEKDAYS,
-    UDAT_STANDALONE_NARROW_WEEKDAYS
+    UDAT_LOCALIZED_CHARS
 } UDateFormatSymbolType;
 
 struct UDateFormatSymbols;
@@ -767,7 +731,7 @@ udat_setSymbols(    UDateFormat             *format,
  * @param type type of the locale we're looking for (valid or actual) 
  * @param status error code for the operation
  * @return the locale name
- * @draft ICU 2.8 likely to change after ICU 3.0, based on feedback
+ * @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
  */
 U_DRAFT const char* U_EXPORT2
 udat_getLocaleByType(const UDateFormat *fmt,

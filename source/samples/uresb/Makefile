@@ -1,4 +1,4 @@
-# Copyright (c) 2000-2005 IBM, Inc. and others
+# Copyright (c) 2000-2004 IBM, Inc. and others
 # conversion sample code
 # Usage:
 #  - configure, build, install ICU
@@ -16,13 +16,13 @@ ifeq ($(strip $(ICU_PATH)),)
   ICU_PATH=$(ICU_DEFAULT_PATH)
 endif
 
-GENRBOPT = -s. -d.
+GENRBOPT = -s. -d. --package-name $(PKG)
 
 # Name of your target
 TARGET=uresb
 PKG=$(TARGET)
 RES_SRC=root.txt en.txt sr.txt
-RESOURCES=$(RES_SRC:%.txt=%.res)
+RESOURCES=$(RES_SRC:%.txt=$(PKG)_%.res)
 
 # All object files (C or C++)
 OBJECTS=uresb.o
@@ -45,16 +45,16 @@ LDFLAGS += -L$(ICU_PATH)/source/tools/toolutil $(shell icu-config --ldflags-tool
 
 distclean clean:
 	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
-	-$(RMV) $(OBJECTS) $(TARGET) $(RESOURCES)
+	-$(RMV) $(OBJECTS) $(TARGET)
 
 
 ## resources
-%.res: %.txt
+$(PKG)_%.res: %.txt
 	@echo "generating $@"
 	$(GENRB) $(GENRBOPT) $^
 
 ## Special for a special codepage
-sr.res : sr.txt
+$(PKG)_sr.res : sr.txt
 	@echo "generating $@"
 	$(GENRB) $(GENRBOPT) -e cp1251 $?
 
@@ -72,6 +72,17 @@ report: $(TARGET).report
 
 $(TARGET).report: check $(TARGET).cpp
 	more $(TARGET).cpp $(TARGET).out > $@
+
+
+
+
+
+
+
+
+
+
+
 
 
 

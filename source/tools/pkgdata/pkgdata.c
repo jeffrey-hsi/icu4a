@@ -1,6 +1,6 @@
 /******************************************************************************
 *
-*   Copyright (C) 2000-2005, International Business Machines
+*   Copyright (C) 2000-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -385,11 +385,7 @@ main(int argc, char* argv[]) {
 
     /* Makefile pathname */
     uprv_strcpy(tmp, o.tmpDir);
-#ifdef U_MAKE_IS_NMAKE
     uprv_strcat(tmp, U_FILE_SEP_STRING);
-#else
-    uprv_strcat(tmp, U_FILE_ALT_SEP_STRING);
-#endif
     uprv_strcat(tmp, o.shortName);
     uprv_strcat(tmp, "_");
     uprv_strcat(tmp, o.mode);
@@ -436,7 +432,7 @@ static int executeMakefile(const UPKGOptions *o)
     }
 
     /*getcwd(pwd, 1024);*/
-#ifdef U_WINDOWS
+#ifdef WIN32
     sprintf(cmd, "%s %s%s -f \"%s\" %s %s %s %s",
         make,
         o->install ? "INSTALLTO=" : "",
@@ -446,8 +442,8 @@ static int executeMakefile(const UPKGOptions *o)
         o->rebuild ? "rebuild"    : "",
         o->install ? "install"    : "",
         o->makeArgs);
-#elif defined(OS400)
-    sprintf(cmd, "CALL GNU/GMAKE PARM(%s%s%s '-f' '%s' %s %s %s %s%s%s)",
+#elif OS400
+    sprintf(cmd, "CALL GNU/GMAKE PARM(%s%s%s '-f' '%s' %s %s %s %s)",
         o->install ? "'INSTALLTO=" : "",
         o->install ? o->install    : "",
         o->install ? "'"           : "",
@@ -455,9 +451,7 @@ static int executeMakefile(const UPKGOptions *o)
         o->clean   ? "'clean'"     : "",
         o->rebuild ? "'rebuild'"   : "",
         o->install ? "'install'"   : "",
-        o->makeArgs && *o->makeArgs ? "'"          : "",
-        o->makeArgs && *o->makeArgs ? o->makeArgs  : "",
-        o->makeArgs && *o->makeArgs ? "'"          : "");
+        o->makeArgs);
 #else
     sprintf(cmd, "%s %s%s -f %s %s %s %s %s",
         make,
@@ -568,7 +562,7 @@ static void loadLists(UPKGOptions *o, UErrorCode *status)
                   if(*lineNext) {
                     if(*lineNext != ' ') {
                       fprintf(stderr, "%s:%d - malformed quoted line at position %d, expected ' ' got '%c'\n",
-                              l->str, (int)ln, (int)(lineNext-line), (*lineNext)?*lineNext:'0');
+                              l->str, (int)ln,  lineNext-line, (*lineNext)?*lineNext:'0');
                       exit(1);
                     }
                     *lineNext = 0;
@@ -670,7 +664,7 @@ static void fillInMakefileFromICUConfig(UOption *option)
     option->doesOccur = TRUE;
 #else  /* ! U_HAVE_POPEN */
 
-#ifdef U_WINDOWS
+#ifdef WIN32
     char pathbuffer[_MAX_PATH] = {0};
     char *fullEXEpath = NULL;
     char *pathstuff = NULL;

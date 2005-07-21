@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 1999-2005, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) {1999-2003}, International Business Machines Corporation and others. All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
 *   11/17/99    aliu        Creation.
@@ -11,7 +11,6 @@
 #include "unicode/utypes.h"
 
 #if !UCONFIG_NO_TRANSLITERATION
-#ifdef XP_CPLUSPLUS
 
 #include "unicode/uobject.h"
 #include "unicode/parseerr.h"
@@ -26,7 +25,6 @@ class ParseData;
 class RuleHalf;
 class ParsePosition;
 class UVector;
-class Hashtable;
 class StringMatcher;
 
 class TransliteratorParser : public UMemory {
@@ -34,16 +32,27 @@ class TransliteratorParser : public UMemory {
  public:
 
     /**
-     * A Vector of TransliterationRuleData objects, one for each discrete group
-     * of rules in the rule set
+     * PUBLIC data member containing the parsed data object, or null if
+     * there were no rules.
      */
-    UVector* dataVector;
+    TransliterationRuleData* data;
 
     /**
      * PUBLIC data member.
-     * A Vector of UnicodeStrings containing all of the ID blocks in the rule set
+     * The block of ::IDs, both at the top and at the bottom.
+     * Inserted into these may be additional rules at the
+     * idSplitPoint.
      */
-    UVector* idBlockVector;
+    UnicodeString idBlock;
+
+    /**
+     * PUBLIC data member.
+     * In a compound RBT, the index at which the RBT rules are
+     * inserted into the ID block.  Index 0 means before any IDs
+     * in the block.  Index idBlock.length() means after all IDs
+     * in the block.  Index is a string index.
+     */
+    int32_t idSplitPoint;
 
     /**
      * PUBLIC data member containing the parsed compound filter, if any.
@@ -52,10 +61,10 @@ class TransliteratorParser : public UMemory {
 
  private:
 
-    /**
-     * The current data object for which we are parsing rules
-     */
-    TransliterationRuleData* curData;
+    // The number of rules parsed.  This tells us if there were
+    // any actual transliterator rules, or if there were just ::ID
+    // block IDs.
+    int32_t ruleCount;
 
     UTransDirection direction;
 
@@ -82,12 +91,6 @@ class TransliteratorParser : public UMemory {
      */
     UVector* variablesVector;
 
-    /**
-     * Temporary table of variable names.  When parsing is complete, this is
-     * copied into data.variableNames.
-     */
-    Hashtable* variableNames;    
-    
     /**
      * String of standins for segments.  Used during the parsing of a single
      * rule.  segmentStandins.charAt(0) is the standin for "$1" and corresponds
@@ -172,6 +175,12 @@ public:
      * @return the compound filter parsed by parse().
      */ 
     UnicodeSet* orphanCompoundFilter();
+
+    /**
+     * Return the data object parsed by parse().  Caller owns result.
+     * @return the data object parsed by parse().
+     */
+    TransliterationRuleData* orphanData();
 
 private:
 
@@ -334,21 +343,6 @@ private:
 };
 
 U_NAMESPACE_END
-
-#endif /* #ifdef XP_CPLUSPLUS */
-
-/**
- * Strip/convert the following from the transliterator rules:
- * comments
- * newlines
- * white space at the beginning and end of a line
- * unescape \u notation
- *
- * The target must be equal in size as the source.
- * @internal
- */
-U_CAPI int32_t
-utrans_stripRules(const UChar *source, int32_t sourceLen, UChar *target, UErrorCode *status);
 
 #endif /* #if !UCONFIG_NO_TRANSLITERATION */
 

@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2002-2005, International Business Machines
+*   Copyright (C) 2002-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -64,7 +64,6 @@ void addUStringTest(TestNode** root)
 #endif
     addTest(root, &TestCaseFolding, "tsutil/custrtst/TestCaseFolding");
     addTest(root, &TestCaseCompare, "tsutil/custrtst/TestCaseCompare");
-    addTest(root, &TestUCaseMap, "tsutil/custrtst/TestUCaseMap");
 }
 
 /* test data for TestStringFunctions ---------------------------------------- */
@@ -1555,14 +1554,6 @@ compareIterNoIndexes(UCharIterator *iter1, const char *n1,
     int32_t i;
     UChar32 c1, c2;
     UErrorCode errorCode;
-
-    /* code coverage for unorm_it.c/unormIteratorGetIndex() */
-    if(
-        iter2->getIndex(iter2, UITER_START)!=0 ||
-        iter2->getIndex(iter2, UITER_LENGTH)!=UITER_UNKNOWN_INDEX
-    ) {
-        log_err("UNormIterator.getIndex() failed\n");
-    }
 
     /* set into the middle */
     iter1->move(iter1, middle, UITER_ZERO);

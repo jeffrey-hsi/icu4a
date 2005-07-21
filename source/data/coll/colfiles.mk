@@ -1,4 +1,4 @@
-# *   Copyright (C) 1998-2005, International Business Machines
+# *   Copyright (C) 1997-2004, International Business Machines
 # *   Corporation and others.  All Rights Reserved.
 # A list of txt's to build
 # Note: 
@@ -57,8 +57,7 @@ COLLATION_EMPTY_SOURCE = ar_AE.txt ar_BH.txt ar_DZ.txt ar_EG.txt\
  nb_NO.txt nl.txt nl_BE.txt nl_NL.txt nn_NO.txt\
  om_ET.txt om_KE.txt pa_IN.txt pl_PL.txt ps_AF.txt\
  pt.txt pt_BR.txt pt_PT.txt ro_RO.txt ru_RU.txt\
- ru_UA.txt sh_BA.txt sh_YU.txt sk_SK.txt sl_SI.txt\
- sq_AL.txt sr_BA.txt sr_Cyrl.txt sr_Cyrl_BA.txt sr_Cyrl_YU.txt\
+ ru_UA.txt sh_YU.txt sk_SK.txt sl_SI.txt sq_AL.txt\
  sr_YU.txt sv_FI.txt sv_SE.txt ta_IN.txt te_IN.txt\
  th_TH.txt tr_TR.txt uk_UA.txt vi_VN.txt zh_CN.txt\
  zh_SG.txt

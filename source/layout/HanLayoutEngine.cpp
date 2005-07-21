@@ -1,7 +1,7 @@
 /*
  * HanLayoutEngine.cpp: OpenType processing for Han fonts.
  *
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved.
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved.
  */
 
 #include "LETypes.h"
@@ -19,8 +19,8 @@ U_NAMESPACE_BEGIN
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(HanOpenTypeLayoutEngine)
 
 HanOpenTypeLayoutEngine::HanOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode,
-                        le_int32 typoFlags, const GlyphSubstitutionTableHeader *gsubTable)
-    : OpenTypeLayoutEngine(fontInstance, scriptCode, languageCode, typoFlags, gsubTable)
+                        const GlyphSubstitutionTableHeader *gsubTable)
+    : OpenTypeLayoutEngine(fontInstance, scriptCode, languageCode, gsubTable)
 {
     // nothing else to do...
 }

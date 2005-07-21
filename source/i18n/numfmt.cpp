@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2005, International Business Machines Corporation and    *
+* Copyright (C) 1997-2004, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -36,7 +36,7 @@
 #include "unicode/curramt.h"
 #include "uhash.h"
 #include "cmemory.h"
-#include "servloc.h"
+#include "iculserv.h"
 #include "ucln_in.h"
 #include "cstring.h"
 #include "putilimp.h"
@@ -71,20 +71,6 @@ static const UChar gLastResortPercentPat[] = {
 static const UChar gLastResortScientificPat[] = {
     0x23, 0x45, 0x30, 0 /* "#E0" */
 };
-
-// If the maximum base 10 exponent were 4, then the largest number would
-// be 99,999 which has 5 digits.
-static const int32_t gMaxIntegerDigits = DBL_MAX_10_EXP + 1; // Should be ~40 ? --srl
-static const int32_t gMinIntegerDigits = 127;
-
-static const UChar * const gLastResortNumberPatterns[] =
-{
-    gLastResortDecimalPat,
-    gLastResortCurrencyPat,
-    gLastResortPercentPat,
-    gLastResortScientificPat
-};
-
 // *****************************************************************************
 // class NumberFormat
 // *****************************************************************************
@@ -92,6 +78,20 @@ static const UChar * const gLastResortNumberPatterns[] =
 U_NAMESPACE_BEGIN
 
 UOBJECT_DEFINE_ABSTRACT_RTTI_IMPLEMENTATION(NumberFormat)
+// If the maximum base 10 exponent were 4, then the largest number would
+// be 99,999 which has 5 digits.
+const int32_t NumberFormat::fgMaxIntegerDigits = DBL_MAX_10_EXP + 1; // Should be ~40 ? --srl
+const int32_t NumberFormat::fgMinIntegerDigits = 127;
+
+const int32_t NumberFormat::fgNumberPatternsCount = 3;
+
+const UChar * const NumberFormat::fgLastResortNumberPatterns[] =
+{
+    gLastResortDecimalPat,
+    gLastResortCurrencyPat,
+    gLastResortPercentPat,
+    gLastResortScientificPat
+};
 
 #if !UCONFIG_NO_SERVICE
 // -------------------------------------
@@ -99,8 +99,8 @@ UOBJECT_DEFINE_ABSTRACT_RTTI_IMPLEMENTATION(NumberFormat)
 NumberFormatFactory::~NumberFormatFactory() {}
 SimpleNumberFormatFactory::SimpleNumberFormatFactory(const Locale& locale, UBool visible)
     : _visible(visible)
+    , _id(locale.getName())
 {
-    LocaleUtility::initNameFromLocale(locale, _id);
 }
 
 SimpleNumberFormatFactory::~SimpleNumberFormatFactory() {}
@@ -125,7 +125,7 @@ SimpleNumberFormatFactory::getSupportedIDs(int32_t &count, UErrorCode& status) c
 // default constructor
 NumberFormat::NumberFormat()
 :   fGroupingUsed(TRUE),
-    fMaxIntegerDigits(gMaxIntegerDigits),
+    fMaxIntegerDigits(fgMaxIntegerDigits),
     fMinIntegerDigits(1),
     fMaxFractionDigits(3), // invariant, >= minFractionDigits
     fMinFractionDigits(0),
@@ -555,7 +555,7 @@ protected:
 class ICUNumberFormatService : public ICULocaleService {
 public:
     ICUNumberFormatService()
-        : ICULocaleService(UNICODE_STRING_SIMPLE("Number Format"))
+        : ICULocaleService("Number Format")
     {
         UErrorCode status = U_ZERO_ERROR;
         registerFactory(new ICUNumberFormatFactory(), status);
@@ -706,7 +706,7 @@ int32_t NumberFormat::getMaximumIntegerDigits() const
 void
 NumberFormat::setMaximumIntegerDigits(int32_t newValue)
 {
-    fMaxIntegerDigits = uprv_max(0, uprv_min(newValue, gMaxIntegerDigits));
+    fMaxIntegerDigits = uprv_max(0, uprv_min(newValue, fgMaxIntegerDigits));
     if(fMinIntegerDigits > fMaxIntegerDigits)
         fMinIntegerDigits = fMaxIntegerDigits;
 }
@@ -728,7 +728,7 @@ NumberFormat::getMinimumIntegerDigits() const
 void
 NumberFormat::setMinimumIntegerDigits(int32_t newValue)
 {
-    fMinIntegerDigits = uprv_max(0, uprv_min(newValue, gMinIntegerDigits));
+    fMinIntegerDigits = uprv_max(0, uprv_min(newValue, fgMinIntegerDigits));
     if(fMinIntegerDigits > fMaxIntegerDigits)
         fMaxIntegerDigits = fMinIntegerDigits;
 }
@@ -750,7 +750,7 @@ NumberFormat::getMaximumFractionDigits() const
 void
 NumberFormat::setMaximumFractionDigits(int32_t newValue)
 {
-    fMaxFractionDigits = uprv_max(0, uprv_min(newValue, gMaxIntegerDigits));
+    fMaxFractionDigits = uprv_max(0, uprv_min(newValue, fgMaxIntegerDigits));
     if(fMaxFractionDigits < fMinFractionDigits)
         fMinFractionDigits = fMaxFractionDigits;
 }
@@ -772,7 +772,7 @@ NumberFormat::getMinimumFractionDigits() const
 void
 NumberFormat::setMinimumFractionDigits(int32_t newValue)
 {
-    fMinFractionDigits = uprv_max(0, uprv_min(newValue, gMinIntegerDigits));
+    fMinFractionDigits = uprv_max(0, uprv_min(newValue, fgMinIntegerDigits));
     if (fMaxFractionDigits < fMinFractionDigits)
         fMaxFractionDigits = fMinFractionDigits;
 }
@@ -838,12 +838,12 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
         symbolsToAdopt = new DecimalFormatSymbols(status);
 
         // Creates a DecimalFormat instance with the last resort number patterns.
-        pattern.setTo(TRUE, gLastResortNumberPatterns[style], -1);
+        pattern.setTo(TRUE, fgLastResortNumberPatterns[style], -1);
     }
     else {
         // If not all the styled patterns exists for the NumberFormat in this locale,
         // sets the status code to failure and returns nil.
-        if (ures_getSize(numberPatterns) < (int32_t)(sizeof(gLastResortNumberPatterns)/sizeof(gLastResortNumberPatterns[0]))) {
+        if (ures_getSize(numberPatterns) < fgNumberPatternsCount) {
             status = U_INVALID_FORMAT_ERROR;
             goto cleanup;
         }

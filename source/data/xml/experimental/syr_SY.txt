@@ -1,27 +1,17 @@
-﻿// ***************************************************************************
+// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
-// * Corporation and others.  All Rights Reserved.
-// * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../../ICU4J/cldr/common/main/syr_SY.xml
+// *   Copyright (C) 2001-2003, International Business Machines
+// *   Corporation and others.  All Rights Reserved.
 // *
 // ***************************************************************************
-/**
- *  ICU <specials> source: ./xml/main/syr_SY.xml
- */
+
 syr_SY{
-    NumberPatterns{
-        "#,##0.###;#,##0.###-",
-        "¤ #,##0.00;¤ #,##0.00-",
-        "#,##0%",
-        "#E0",
-    }
-    Version{"1.17"}
+    Version{ "x0.3" }
     calendar{
         gregorian{
-            DateTimeElements:intvector{
+            DateTimeElements:intvector {
                 5,
-                1,
+                1
             }
             DateTimePatterns{
                 "h:mm:ss a",
@@ -36,4 +26,11 @@ syr_SY{
             }
         }
     }
+    NumberPatterns { 
+        "#,##0.###;#,##0.###-",
+        "\u00A4 #,##0.00;\u00A4 #,##0.00-",
+        "#,##0%",
+        "#E0",
+    }
+
 }

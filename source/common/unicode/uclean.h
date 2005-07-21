@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *                                                                            *
-* Copyright (C) 2001-2005, International Business Machines                   *
+* Copyright (C) 2001-2004, International Business Machines                   *
 *                Corporation and others. All Rights Reserved.                *
 *                                                                            *
 ******************************************************************************
@@ -18,26 +18,9 @@
 #define __UCLEAN_H__
 
 #include "unicode/utypes.h"
+
 /**
- * \file
- * \brief C API: Initialize and clean up ICU
- */
- 
-/**
- *  Initialize ICU. The description further below applies to ICU 2.6 to ICU 3.4.
- *  Starting with ICU 3.4, u_init() needs not be called any more for
- *  ensuring thread safety, but it can give an indication for whether ICU
- *  can load its data. In ICU 3.4, it will try to load the converter alias table
- *  (cnvalias.icu) and give an error code if that fails.
- *  This may change in the future.
- *  <p>
- *  For ensuring the availability of necessary data, an application should
- *  open the service objects (converters, collators, etc.) that it will use
- *  and check for error codes there.
- *  <p>
- *  Documentation for ICU 2.6 to ICU 3.4:
- *  <p>
- *  This function loads and initializes data items
+ *  Initialize ICU.  This function loads and initializes data items
  *  that are required internally by various ICU functions.  Use of this explicit
  *  initialization is required in multi-threaded applications; in 
  *  single threaded apps, use is optional, but incurs little additional
@@ -123,7 +106,7 @@ u_cleanup(void);
   * An opaque pointer type that represents an ICU mutex.
   * For user-implemented mutexes, the value will typically point to a
   *  struct or object that implements the mutex.
-  * @stable ICU 2.8
+  * @draft ICU 2.8
   * @system
   */
 typedef void *UMTX;
@@ -141,7 +124,7 @@ typedef void *UMTX;
   *                 identify the mutex by the UMTX value.
   *  @param status  Error status.  Report errors back to ICU by setting this variable
   *                 with an error code.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   *  @system
   */
 typedef void U_CALLCONV UMtxInitFn (const void *context, UMTX  *mutex, UErrorCode* status);
@@ -153,7 +136,7 @@ typedef void U_CALLCONV UMtxInitFn (const void *context, UMTX  *mutex, UErrorCod
   *  whenever ICU needs to lock, unlock, or destroy a mutex.
   *  @param context user supplied value, obtained from from u_setMutexFunctions().
   *  @param mutex   specify the mutex on which to operate.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   *  @system
   */
 typedef void U_CALLCONV UMtxFn   (const void *context, UMTX  *mutex);
@@ -175,10 +158,10 @@ typedef void U_CALLCONV UMtxFn   (const void *context, UMTX  *mutex);
   *  @param lock    pointer to the mutex lock function.  Must be non-null.
   *  @param unlock  Pointer to the mutex unlock function.  Must be non-null.
   *  @param status  Receives error values.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   *  @system
   */  
-U_STABLE void U_EXPORT2 
+U_DRAFT void U_EXPORT2 
 u_setMutexFunctions(const void *context, UMtxInitFn *init, UMtxFn *destroy, UMtxFn *lock, UMtxFn *unlock,
                     UErrorCode *status);
 
@@ -188,7 +171,7 @@ u_setMutexFunctions(const void *context, UMtxInitFn *init, UMtxFn *destroy, UMtx
   *  @param context user supplied value, obtained from from u_setAtomicIncDecFunctions().
   *  @param p   Pointer to a 32 bit int to be incremented or decremented
   *  @return    The value of the variable after the inc or dec operation.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   *  @system
   */
 typedef int32_t U_CALLCONV UMtxAtomicFn(const void *context, int32_t *p);
@@ -205,10 +188,10 @@ typedef int32_t U_CALLCONV UMtxAtomicFn(const void *context, int32_t *p);
  *  @param inc     Pointer to a function to do an atomic increment operation.  Must be non-null.
  *  @param dec     Pointer to a function to do an atomic decrement operation.  Must be non-null.
  *  @param status  Receives error values.
- *  @stable ICU 2.8
+ *  @draft ICU 2.8
  *  @system
  */  
-U_STABLE void U_EXPORT2 
+U_DRAFT void U_EXPORT2 
 u_setAtomicIncDecFunctions(const void *context, UMtxAtomicFn *inc, UMtxAtomicFn *dec,
                     UErrorCode *status);
 
@@ -219,7 +202,7 @@ u_setAtomicIncDecFunctions(const void *context, UMtxAtomicFn *inc, UMtxAtomicFn 
   *  @param context user supplied value, obtained from from u_setMemoryFunctions().
   *  @param size    The number of bytes to be allocated
   *  @return        Pointer to the newly allocated memory, or NULL if the allocation failed.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   *  @system
   */
 typedef void *U_CALLCONV UMemAllocFn(const void *context, size_t size);
@@ -228,7 +211,7 @@ typedef void *U_CALLCONV UMemAllocFn(const void *context, size_t size);
   *  @param context user supplied value, obtained from from u_setMemoryFunctions().
   *  @param size    The number of bytes to be allocated
   *  @return        Pointer to the newly allocated memory, or NULL if the allocation failed.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   *  @system
   */
 typedef void *U_CALLCONV UMemReallocFn(const void *context, void *mem, size_t size);
@@ -239,7 +222,7 @@ typedef void *U_CALLCONV UMemReallocFn(const void *context, void *mem, size_t si
   *  @param mem     Pointer to the memory block to be resized
   *  @param size    The new size for the block
   *  @return        Pointer to the resized memory block, or NULL if the resizing failed.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   *  @system
   */
 typedef void  U_CALLCONV UMemFreeFn (const void *context, void *mem);
@@ -257,10 +240,10 @@ typedef void  U_CALLCONV UMemFreeFn (const void *context, void *mem);
  *  @param r       Pointer to a user-supplied realloc function.
  *  @param f       Pointer to a user-supplied free function.
  *  @param status  Receives error values.
- *  @stable ICU 2.8
+ *  @draft ICU 2.8
  *  @system
  */  
-U_STABLE void U_EXPORT2 
+U_DRAFT void U_EXPORT2 
 u_setMemoryFunctions(const void *context, UMemAllocFn *a, UMemReallocFn *r, UMemFreeFn *f, 
                     UErrorCode *status);
 

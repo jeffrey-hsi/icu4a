@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2005, International Business Machines Corporation and    *
+* Copyright (C) 1997-2004, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -29,7 +29,7 @@
 #include "ucln_cmn.h"
 #include "cstring.h"
 #include "mutex.h"
-#include "servloc.h"
+#include "iculserv.h"
 #include "locbased.h"
 #include "uresimp.h"
 
@@ -41,6 +41,8 @@
 // *****************************************************************************
 
 U_NAMESPACE_BEGIN
+
+const int32_t BreakIterator::DONE = (int32_t)-1;
 
 // -------------------------------------
 
@@ -370,7 +372,7 @@ BreakIterator::createInstance(const Locale& loc, UBreakIteratorType kind, UError
     u_init(&status);
 #if !UCONFIG_NO_SERVICE
     if (hasService()) {
-        Locale actualLoc("");
+        Locale actualLoc;
         BreakIterator *result = (BreakIterator*)gService->get(loc, kind, &actualLoc, status);
         // TODO: The way the service code works in ICU 2.8 is that if
         // there is a real registered break iterator, the actualLoc

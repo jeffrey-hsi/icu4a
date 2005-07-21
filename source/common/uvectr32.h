@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -69,7 +69,7 @@ public:
 
     UVector32(int32_t initialCapacity, UErrorCode &status);
 
-    virtual ~UVector32();
+    ~UVector32();
 
     /**
      * Assign this object to another (make this a copy of 'other').
@@ -264,7 +264,7 @@ inline UBool UVector32::operator!=(const UVector32& other) {
 
 inline int32_t *UVector32::getBuffer() const {
     return elements;
-}
+};
 
 
 // UStack inlines

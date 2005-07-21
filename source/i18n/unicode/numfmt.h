@@ -1,5 +1,5 @@
 /*
-* Copyright (C) {1997-2005}, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) {1997-2004}, International Business Machines Corporation and others. All Rights Reserved.
 ********************************************************************************
 *
 * File NUMFMT.H
@@ -22,11 +22,6 @@
 
 #include "unicode/utypes.h"
 
-/**
- * \file 
- * \brief C++ API: Abstract base class for all number formats.
- */
- 
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/unistr.h"
@@ -47,7 +42,6 @@ typedef const void* URegistryKey;
 #endif
 
 /**
- *
  * Abstract base class for all number formats.  Provides interface for
  * formatting and parsing a number.  Also provides methods for
  * determining which locales have number formats, and what their names
@@ -271,7 +265,7 @@ public:
      * @param appendTo  Output parameter to receive result.
      *                  Result is appended to existing contents.
      * @return          Reference to 'appendTo' parameter.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     UnicodeString& format(  int64_t number,
                             UnicodeString& appendTo) const;
@@ -318,7 +312,7 @@ public:
      * @param pos       On input: an alignment field, if desired.
      *                  On output: the offsets of the alignment field.
      * @return          Reference to 'appendTo' parameter.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
     */
     virtual UnicodeString& format(int64_t number,
                                   UnicodeString& appendTo,
@@ -714,6 +708,10 @@ protected:
     virtual void getEffectiveCurrency(UChar* result, UErrorCode& ec) const;
 
 private:
+    static const int32_t fgMaxIntegerDigits;
+    static const int32_t fgMinIntegerDigits;
+
+private:
 
     enum EStyles {
         kNumberStyle,
@@ -742,6 +740,8 @@ private:
      * @return                 A new NumberFormat instance.
      */
     static NumberFormat* makeInstance(const Locale& desiredLocale, EStyles choice, UErrorCode& success);
+    static const int32_t    fgNumberPatternsCount;
+    static const UChar* const fgLastResortNumberPatterns[];
 
     UBool      fGroupingUsed;
     int32_t     fMaxIntegerDigits;

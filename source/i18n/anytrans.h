@@ -1,11 +1,11 @@
 /*
-***********************************************************************
-* Copyright (c) 2002-2005, International Business Machines Corporation
+*****************************************************************
+* Copyright (c) 2002-2004, International Business Machines Corporation
 * and others.  All Rights Reserved.
-***********************************************************************
+*****************************************************************
 * Date        Name        Description
 * 06/06/2002  aliu        Creation.
-***********************************************************************
+*****************************************************************
 */
 #ifndef _ANYTRANS_H_
 #define _ANYTRANS_H_
@@ -124,6 +124,12 @@ private:
     static void registerIDs();
 
     friend class Transliterator; // for registerIDs()
+
+    /**
+     * Return the script code for a given name, or
+     * USCRIPT_INVALID_CODE if not found.
+     */
+    static UScriptCode scriptNameToCode(const UnicodeString& name);
 };
 
 U_NAMESPACE_END

@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1996-2005, International Business Machines
+*   Copyright (C) 1996-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -80,11 +80,11 @@
  * <P>
  * The third constructor requires a third argument--the <STRONG>Variant.</STRONG>
  * The Variant codes are vendor and browser-specific.
- * For example, use REVISED for a langauge's revised script orthography, and POSIX for POSIX.
+ * For example, use WIN for Windows, MAC for Macintosh, and POSIX for POSIX.
  * Where there are two variants, separate them with an underscore, and
  * put the most important one first. For
  * example, a Traditional Spanish collation might be referenced, with
- * "ES", "ES", "Traditional_POSIX".
+ * "ES", "ES", "Traditional_WIN".
  *
  * <P>
  * Because a <code>Locale</code> object is just an identifier for a region,
@@ -315,7 +315,7 @@ public:
      * @return a clone of this object
      *
      * @see getDynamicClassID
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     Locale *clone() const;
 
@@ -384,7 +384,7 @@ public:
      * @return      An alias to the code
      * @see uscript_getShortName
      * @see uscript_getCode
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     inline const char *  getScript( ) const;
 
@@ -417,7 +417,7 @@ public:
      * but without keywords.
      * @return      A pointer to "name".
      * @see getName
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     const char * getBaseName() const;
 
@@ -427,7 +427,7 @@ public:
      *
      * @return pointer to StringEnumeration class. Client must dispose of it by calling delete.
      * @param status Returns any error information while performing this operation.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     StringEnumeration * createKeywords(UErrorCode &status) const;
 
@@ -440,7 +440,7 @@ public:
      * @param bufferCapacity The capacity of receiving buffer
      * @return the length of keyword value
      *
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     int32_t getKeywordValue(const char* keywordName, char *buffer, int32_t bufferCapacity, UErrorCode &status) const;
 
@@ -502,7 +502,7 @@ public:
      * dispScript to "Latin".
      * @param dispScript    Receives the scripts's display name.
      * @return              A reference to "dispScript".
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     UnicodeString&  getDisplayScript(          UnicodeString& dispScript) const;
 
@@ -518,7 +518,7 @@ public:
      *                      "".
      * @param dispScript    Receives the scripts's display name.
      * @return              A reference to "dispScript".
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     UnicodeString&  getDisplayScript(  const   Locale&         displayLocale,
                                                UnicodeString&  dispScript) const;
@@ -538,10 +538,10 @@ public:
      * Fills in "dispCountry" with the name of this locale's country in a format suitable
      * for user display in the locale specified by "displayLocale".  For example, if the locale's
      * country code is "US" and displayLocale's language code is "fr", this function would set
-     * dispCountry to "&Eacute;tats-Unis".
+     * dispCountry to "Etats-Unis".
      * @param displayLocale      Specifies the locale to be used to display the name.  In other
      *                      words, if the locale's country code is "US", passing
-     *                      Locale::getFrench() for displayLocale would result in "&Eacute;tats-Unis", while
+     *                      Locale::getFrench() for displayLocale would result in "États-Unis", while
      *                      passing Locale::getGerman() for displayLocale would result in
      *                      "Vereinigte Staaten".
      * @param dispCountry   Receives the country's display name.
@@ -589,8 +589,8 @@ public:
      * in the locale specfied by "displayLocale".  This function uses getDisplayLanguage(),
      * getDisplayCountry(), and getDisplayVariant() to do its work, and outputs the display
      * name in the format "language (country[,variant])".  For example, if displayLocale is
-     * fr_FR, then en_US's display name would be "Anglais (&Eacute;tats-Unis)", and no_NO_NY's
-     * display name would be "norv&eacute;gien (Norv&egrave;ge,NY)".
+     * fr_FR, then en_US's display name would be "Anglais (États-Unis)", and no_NO_NY's
+     * display name would be "norvégien (Norvège,NY)".
      * @param displayLocale  Specifies the locale to be used to display the name.
      * @param name      Receives the locale's display name.
      * @return          A reference to "name".

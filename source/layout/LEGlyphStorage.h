@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 1998-2005, International Business Machines
+ *   Copyright (C) 1998-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
  */
@@ -10,11 +10,6 @@
 
 #include "LETypes.h"
 #include "LEInsertionList.h"
-
-/**
- * \file 
- * \brief C++ API: This class encapsulates the per-glyph storage used by the ICU LayoutEngine.
- */
 
 U_NAMESPACE_BEGIN
 
@@ -130,7 +125,10 @@ public:
      *
      * @draft ICU 3.0
      */
-    inline le_int32 getGlyphCount() const;
+    le_int32 getGlyphCount() const
+    {
+        return fGlyphCount;
+    };
 
     /**
      * This method copies the glyph array into a caller supplied array.
@@ -306,7 +304,7 @@ public:
      *
      * @draft ICU 3.0
      */
-    inline LEGlyphID &operator[](le_int32 glyphIndex) const;
+    LEGlyphID &operator[](le_int32 glyphIndex) const;
 
     /**
      * Call this method to replace a single glyph in the glyph array
@@ -489,11 +487,6 @@ public:
      */
     static UClassID getStaticClassID();
 };
-
-inline le_int32 LEGlyphStorage::getGlyphCount() const
-{
-    return fGlyphCount;
-}
 
 inline LEGlyphID &LEGlyphStorage::operator[](le_int32 glyphIndex) const
 {

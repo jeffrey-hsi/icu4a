@@ -13,8 +13,8 @@
 * 03/12/2004  weiv      Creation
 */
 
-#include "unicode/ustring.h"
 
+#include "unicode/ustring.h"
 #include "utracimp.h"
 #include "ucol_imp.h"
 #include "ucol_tok.h"
@@ -426,10 +426,9 @@ ucol_sit_calculateWholeLocale(CollatorSpec *s) {
     }
 }
 
-
 U_CAPI void U_EXPORT2
 ucol_prepareShortStringOpen( const char *definition,
-                          UBool,
+                          UBool forceDefaults,
                           UParseError *parseError,
                           UErrorCode *status)
 {
@@ -488,6 +487,7 @@ ucol_prepareShortStringOpen( const char *definition,
 }
 
 
+
 U_CAPI UCollator* U_EXPORT2
 ucol_openFromShortString( const char *definition,
                           UBool forceDefaults,
@@ -525,7 +525,7 @@ ucol_openFromShortString( const char *definition,
     uprv_memset(buffer, 0, internalBufferSize);
     uloc_canonicalize(s.locale, buffer, internalBufferSize, status);
 
-    UCollator *result = ucol_open(buffer, status);
+    UCollator *result = ucol_open(s.locale, status);
     int32_t i = 0;
 
     for(i = 0; i < UCOL_ATTRIBUTE_COUNT; i++) {
@@ -946,96 +946,50 @@ ucol_getAttributeOrDefault(const UCollator *coll, UColAttribute attr, UErrorCode
 struct contContext {
     const UCollator *coll;
     USet            *conts;
-    USet            *expansions;
     USet            *removedContractions;
-    UBool           addPrefixes;
     UErrorCode      *status;
 };
 
 
 
 static void
-addSpecial(contContext *context, UChar *buffer, int32_t bufLen, 
-               uint32_t CE, int32_t leftIndex, int32_t rightIndex, UErrorCode *status) 
+addContraction(const UCollator *coll, USet *contractions, UChar *buffer, int32_t bufLen, 
+               uint32_t CE, int32_t rightIndex, UErrorCode *status) 
 {
-  const UCollator *coll = context->coll;
-  USet *contractions = context->conts;
-  USet *expansions = context->expansions;
-  UBool addPrefixes = context->addPrefixes;
-
+    if(rightIndex == bufLen-1) {
+        *status = U_INTERNAL_PROGRAM_ERROR;
+        return;
+    }
     const UChar *UCharOffset = (UChar *)coll->image+getContractOffset(CE);
     uint32_t newCE = *(coll->contractionCEs + (UCharOffset - coll->contractionIndex));
     // we might have a contraction that ends from previous level
-    if(newCE != UCOL_NOT_FOUND) {
-      if(isSpecial(CE) && getCETag(CE) == CONTRACTION_TAG && isSpecial(newCE) && getCETag(newCE) == SPEC_PROC_TAG && addPrefixes) {
-        addSpecial(context, buffer, bufLen, newCE, leftIndex, rightIndex, status);
-      }
-      if(contractions && rightIndex-leftIndex > 1) {
-            uset_addString(contractions, buffer+leftIndex, rightIndex-leftIndex);
-            if(expansions && isSpecial(CE) && getCETag(CE) == EXPANSION_TAG) {
-              uset_addString(expansions, buffer+leftIndex, rightIndex-leftIndex);
-            }
-      }
-    }    
-
-    UCharOffset++;
-    // check whether we're doing contraction or prefix
-    if(getCETag(CE) == SPEC_PROC_TAG && addPrefixes) {
-      if(leftIndex == 0) {
-          *status = U_INTERNAL_PROGRAM_ERROR;
-          return;
-      }
-      --leftIndex;
-      while(*UCharOffset != 0xFFFF) {
-          newCE = *(coll->contractionCEs + (UCharOffset - coll->contractionIndex));
-          buffer[leftIndex] = *UCharOffset;
-          if(isSpecial(newCE) && (getCETag(newCE) == CONTRACTION_TAG || getCETag(newCE) == SPEC_PROC_TAG)) {
-              addSpecial(context, buffer, bufLen, newCE, leftIndex, rightIndex, status);
-          } else {
-            if(contractions) {
-                uset_addString(contractions, buffer+leftIndex, rightIndex-leftIndex);
-            }
-            if(expansions && isSpecial(newCE) && getCETag(newCE) == EXPANSION_TAG) {
-              uset_addString(expansions, buffer+leftIndex, rightIndex-leftIndex);
-            }
-          }
-          UCharOffset++;
-      }
-    } else if(getCETag(CE) == CONTRACTION_TAG) {
-      if(rightIndex == bufLen-1) {
-          *status = U_INTERNAL_PROGRAM_ERROR;
-          return;
-      }
-      while(*UCharOffset != 0xFFFF) {
-          newCE = *(coll->contractionCEs + (UCharOffset - coll->contractionIndex));
-          buffer[rightIndex] = *UCharOffset;
-          if(isSpecial(newCE) && (getCETag(newCE) == CONTRACTION_TAG || getCETag(newCE) == SPEC_PROC_TAG)) {
-              addSpecial(context, buffer, bufLen, newCE, leftIndex, rightIndex+1, status);
-          } else {
-            if(contractions) {
-              uset_addString(contractions, buffer+leftIndex, rightIndex+1-leftIndex);
-            }
-            if(expansions && isSpecial(newCE) && getCETag(newCE) == EXPANSION_TAG) {
-              uset_addString(expansions, buffer+leftIndex, rightIndex+1-leftIndex);
-            }
-          }
-          UCharOffset++;
-      }
+    if(newCE != UCOL_NOT_FOUND && rightIndex > 1) {
+            uset_addString(contractions, buffer, rightIndex);
     }
 
+    UCharOffset++;
+    while(*UCharOffset != 0xFFFF) {
+        newCE = *(coll->contractionCEs + (UCharOffset - coll->contractionIndex));
+        buffer[rightIndex] = *UCharOffset;
+        if(isSpecial(newCE) && getCETag(newCE) == CONTRACTION_TAG) {
+            addContraction(coll, contractions, buffer, bufLen, newCE, rightIndex + 1, status);
+        } else {
+            uset_addString(contractions, buffer, rightIndex + 1);
+        }
+        UCharOffset++;
+    }
 }
 
 U_CDECL_BEGIN
 static UBool U_CALLCONV
-_processSpecials(const void *context, UChar32 start, UChar32 limit, uint32_t CE) 
+_processContractions(const void *context, UChar32 start, UChar32 limit, uint32_t CE) 
 {
     UErrorCode *status = ((contContext *)context)->status;
-    USet *expansions = ((contContext *)context)->expansions;
+    USet *unsafe = ((contContext *)context)->conts;
     USet *removed = ((contContext *)context)->removedContractions;
-    UBool addPrefixes = ((contContext *)context)->addPrefixes;
+    const UCollator *coll = ((contContext *)context)->coll;
     UChar contraction[internalBufferSize];
-    if(isSpecial(CE)) {
-      if(((getCETag(CE) == SPEC_PROC_TAG && addPrefixes) || getCETag(CE) == CONTRACTION_TAG)) {
+    if(isSpecial(CE) && getCETag(CE) == CONTRACTION_TAG) {
         while(start < limit && U_SUCCESS(*status)) {
             // if there are suppressed contractions, we don't 
             // want to add them.
@@ -1045,15 +999,10 @@ _processSpecials(const void *context, UChar32 start, UChar32 limit, uint32_t CE)
             }
             // we start our contraction from middle, since we don't know if it
             // will grow toward right or left
-            contraction[internalBufferSize/2] = (UChar)start;
-            addSpecial(((contContext *)context), contraction, internalBufferSize, CE, internalBufferSize/2, internalBufferSize/2+1, status);
+            contraction[0] = (UChar)start;
+            addContraction(coll, unsafe, contraction, internalBufferSize, CE, 1, status);
             start++;
         }
-      } else if(expansions && getCETag(CE) == EXPANSION_TAG) {
-        while(start < limit && U_SUCCESS(*status)) {
-          uset_add(expansions, start++);
-        }
-      }
     }
     if(U_FAILURE(*status)) {
         return FALSE;
@@ -1086,61 +1035,45 @@ ucol_getContractions( const UCollator *coll,
                   USet *contractions,
                   UErrorCode *status)
 {
-  ucol_getContractionsAndExpansions(coll, contractions, NULL, FALSE, status);
-  return uset_getItemCount(contractions);
-}
-
-/**
- * Get a set containing the expansions defined by the collator. The set includes
- * both the UCA expansions and the expansions defined by the tailoring
- * @param coll collator
- * @param conts the set to hold the result
- * @param addPrefixes add the prefix contextual elements to contractions
- * @param status to hold the error code
- *
- * @draft ICU 3.4
- */
-U_CAPI void U_EXPORT2
-ucol_getContractionsAndExpansions( const UCollator *coll,
-                  USet *contractions,
-                  USet *expansions,
-                  UBool addPrefixes,
-                  UErrorCode *status)
-{
     if(U_FAILURE(*status)) {
-        return;
+        return 0;
     }
-    if(coll == NULL) {
+    if(coll == NULL || contractions == NULL) {
         *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return;
+        return 0;
     }
 
-    if(contractions) {
-      uset_clear(contractions);
-    }
-    if(expansions) {
-      uset_clear(expansions);
-    }
+    uset_clear(contractions);
     int32_t rulesLen = 0;
     const UChar* rules = ucol_getRules(coll, &rulesLen);
     UColTokenParser src;
     ucol_tok_initTokenList(&src, rules, rulesLen, coll->UCA, status);
 
-    contContext c = { NULL, contractions, expansions, src.removeSet, addPrefixes, status };
+    contContext c = { NULL, contractions, src.removeSet, status };
 
     coll->mapping->getFoldingOffset = _getTrieFoldingOffset;
 
+    // TODO: if you're supressing contractions in the tailoring
+    // you want to remove (or rather not include) contractions
+    // from the UCA.
+    // Probably want to pass a set of contraction starters that
+    // are suppressed. However, we don't want a dependency on 
+    // the builder, so this is going to be hard to pull off.
 
     // Add the UCA contractions
     c.coll = coll->UCA;
-    utrie_enum(coll->UCA->mapping, NULL, _processSpecials, &c);
+    utrie_enum(coll->UCA->mapping, NULL, _processContractions, &c);
     
     // This is collator specific. Add contractions from a collator
     c.coll = coll;
     c.removedContractions =  NULL;
-    utrie_enum(coll->mapping, NULL, _processSpecials, &c);
+    utrie_enum(coll->mapping, NULL, _processContractions, &c);
     ucol_tok_closeTokenList(&src);
+
+    return uset_getItemCount(contractions);
+
 }
+
 
 U_CAPI int32_t U_EXPORT2
 ucol_getUnsafeSet( const UCollator *coll,

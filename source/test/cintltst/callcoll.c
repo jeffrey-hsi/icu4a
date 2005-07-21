@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -126,62 +126,6 @@ const UCollationResult results[] = {
     UCOL_LESS                                        /* 37 */
 };
 
-
-static
-void uprv_appendByteToHexString(char *dst, uint8_t val) {
-  uint32_t len = (uint32_t)uprv_strlen(dst);
-  *(dst+len) = T_CString_itosOffset((val >> 4));
-  *(dst+len+1) = T_CString_itosOffset((val & 0xF));
-  *(dst+len+2) = 0;
-}
-
-/* this function makes a string with representation of a sortkey */
-static char* U_EXPORT2 sortKeyToString(const UCollator *coll, const uint8_t *sortkey, char *buffer, uint32_t *len) {
-  int32_t strength = UCOL_PRIMARY;
-  uint32_t res_size = 0;
-  UBool doneCase = FALSE;
-
-  char *current = buffer;
-  const uint8_t *currentSk = sortkey;
-
-  uprv_strcpy(current, "[");
-
-  while(strength <= UCOL_QUATERNARY && strength <= coll->strength) {
-    if(strength > UCOL_PRIMARY) {
-      uprv_strcat(current, " . ");
-    }
-    while(*currentSk != 0x01 && *currentSk != 0x00) { /* print a level */
-      uprv_appendByteToHexString(current, *currentSk++);
-      uprv_strcat(current, " ");
-    }
-    if(coll->caseLevel == UCOL_ON && strength == UCOL_SECONDARY && doneCase == FALSE) {
-        doneCase = TRUE;
-    } else if(coll->caseLevel == UCOL_OFF || doneCase == TRUE || strength != UCOL_SECONDARY) {
-      strength ++;
-    }
-    uprv_appendByteToHexString(current, *currentSk++); /* This should print '01' */
-    if(strength == UCOL_QUATERNARY && coll->alternateHandling == UCOL_NON_IGNORABLE) {
-      break;
-    }
-  }
-
-  if(coll->strength == UCOL_IDENTICAL) {
-    uprv_strcat(current, " . ");
-    while(*currentSk != 0) {
-      uprv_appendByteToHexString(current, *currentSk++);
-      uprv_strcat(current, " ");
-    }
-
-    uprv_appendByteToHexString(current, *currentSk++);
-  }
-  uprv_strcat(current, "]");
-
-  if(res_size > *len) {
-    return NULL;
-  }
-
-  return buffer;
-}
 
 void addAllCollTest(TestNode** root)
 {
@@ -389,11 +333,11 @@ static void doTestVariant(UCollator* myCollation, const UChar source[], const UC
     gSortklen2 = uprv_strlen((const char *)sortKey2)+1;
     if(sortklen1 != gSortklen1){
         log_err("SortKey length does not match Expected: %i Got: %i\n",sortklen1, gSortklen1);
-        log_verbose("Generated sortkey: %s\n", sortKeyToString(myCollation, sortKey1, buffer, &len));
+        log_verbose("Generated sortkey: %s\n", ucol_sortKeyToString(myCollation, sortKey1, buffer, &len));
     }
     if(sortklen2!= gSortklen2){
         log_err("SortKey length does not match Expected: %i Got: %i\n", sortklen2, gSortklen2);
-        log_verbose("Generated sortkey: %s\n", sortKeyToString(myCollation, sortKey2, buffer, &len));
+        log_verbose("Generated sortkey: %s\n", ucol_sortKeyToString(myCollation, sortKey2, buffer, &len));
     }
 
     if(temp < 0) {

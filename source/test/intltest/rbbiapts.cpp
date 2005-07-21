@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1999-2005, International Business Machines Corporation and
+ * Copyright (c) 1999-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /************************************************************************
@@ -21,7 +21,6 @@
 #include "rbbidata.h"
 #include "cstring.h"
 #include "unicode/ustring.h"
-#include "unicode/utext.h"
 
 /**
  * API Test the RuleBasedBreakIterator class
@@ -76,7 +75,7 @@ void RBBIAPITest::TestCloneEquals()
     //    source and dest iterator produce the same next() after assignment.
     //    deleting one doesn't disable the other.
     logln("Testing assignment");
-    RuleBasedBreakIterator *bix = (RuleBasedBreakIterator *)BreakIterator::createLineInstance(Locale::getDefault(), status);
+    RuleBasedBreakIterator *bix = (RuleBasedBreakIterator *)BreakIterator::createLineInstance(Locale::getEnglish(), status);
     if(U_FAILURE(status)){
         errln((UnicodeString)"FAIL : in construction");
         return;
@@ -292,64 +291,6 @@ void RBBIAPITest::TestGetSetAdoptText()
     if(rb->following(11) != BreakIterator::DONE) {
         errln((UnicodeString)"ERROR:4 error in adoptText ");
     }
-
-    // UText API
-    //
-    //   Quick test to see if UText is working at all.
-    //
-    const char *s1 = "\x68\x65\x6C\x6C\x6F\x20\x77\x6F\x72\x6C\x64"; /* "hello world" in UTF-8 */
-    const char *s2 = "\x73\x65\x65\x20\x79\x61"; /* "see ya" in UTF-8 */
-    //                012345678901
-
-    status = U_ZERO_ERROR;
-    UText *ut = utext_openUTF8(NULL, s1, -1, &status);
-    wordIter1->setText(ut, status);
-    TEST_ASSERT_SUCCESS(status);
-
-    int32_t pos;
-    pos = wordIter1->first();
-    TEST_ASSERT(pos==0);
-    pos = wordIter1->next();
-    TEST_ASSERT(pos==5);
-    pos = wordIter1->next();
-    TEST_ASSERT(pos==6);
-    pos = wordIter1->next();
-    TEST_ASSERT(pos==11);
-    pos = wordIter1->next();
-    TEST_ASSERT(pos==UBRK_DONE);
-
-    status = U_ZERO_ERROR;
-    UText *ut2 = utext_openUTF8(NULL, s2, -1, &status);
-    TEST_ASSERT_SUCCESS(status);
-    wordIter1->setText(ut2, status);
-    TEST_ASSERT_SUCCESS(status);
-
-    pos = wordIter1->first();
-    TEST_ASSERT(pos==0);
-    pos = wordIter1->next();
-    TEST_ASSERT(pos==3);
-    pos = wordIter1->next();
-    TEST_ASSERT(pos==4);
-
-    pos = wordIter1->last();
-    TEST_ASSERT(pos==6);
-    pos = wordIter1->previous();
-    TEST_ASSERT(pos==4);
-    pos = wordIter1->previous();
-    TEST_ASSERT(pos==3);
-    pos = wordIter1->previous();
-    TEST_ASSERT(pos==0);
-    pos = wordIter1->previous();
-    TEST_ASSERT(pos==UBRK_DONE);
-
-    status = U_ZERO_ERROR;
-    UText *gut2 = utext_openUnicodeString(NULL,NULL,&status);
-    wordIter1->getUText(gut2, status);
-    TEST_ASSERT_SUCCESS(status);
-    utext_close(gut2);
-
-    utext_close(ut);
-    utext_close(ut2);
 
     delete wordIter1;
     delete charIter1;
@@ -649,7 +590,7 @@ void RBBIAPITest::TestRuleStatus() {
 
      UErrorCode status=U_ZERO_ERROR;
      
-     RuleBasedBreakIterator *bi = (RuleBasedBreakIterator *)BreakIterator::createWordInstance(Locale::getEnglish(), status);
+     RuleBasedBreakIterator *bi = (RuleBasedBreakIterator *)BreakIterator::createWordInstance(Locale::getDefault(), status);
      if(U_FAILURE(status)) {
          errln("FAIL : in construction");
      } else {
@@ -938,7 +879,7 @@ void RBBIAPITest::TestRegistration() {
     }
     
     {
-        BreakIterator* result = BreakIterator::createWordInstance("en_US", status);
+        BreakIterator* result = BreakIterator::createWordInstance("xx", status);
         BreakIterator* root = BreakIterator::createWordInstance("", status);
         UBool fail = TRUE;
         if(root){
@@ -1050,14 +991,16 @@ void RBBIAPITest::runIndexedTest( int32_t index, UBool exec, const char* &name, 
         case  2: name = "TestHashCode"; if (exec) TestHashCode(); break;
         case  3: name = "TestGetSetAdoptText"; if (exec) TestGetSetAdoptText(); break;
         case  4: name = "TestIteration"; if (exec) TestIteration(); break;
-        case  5: name = "TestBuilder"; if (exec) TestBuilder(); break;
-        case  6: name = "TestQuoteGrouping"; if (exec) TestQuoteGrouping(); break;
-        case  7: name = "TestRuleStatus"; if (exec) TestRuleStatus(); break;
-        case  8: name = "TestRuleStatusVec"; if (exec) TestRuleStatusVec(); break;
-        case  9: name = "TestBug2190"; if (exec) TestBug2190(); break;
-        case 10: name = "TestRegistration"; if (exec) TestRegistration(); break;
-        case 11: name = "TestBoilerPlate"; if (exec) TestBoilerPlate(); break;
-        case 12: name = "TestRoundtripRules"; if (exec) TestRoundtripRules(); break;
+        case  5: name = "extra"; break;   // Extra
+        case  6: name = "extra"; break;   // Extra
+        case  7: name = "TestBuilder"; if (exec) TestBuilder(); break;
+        case  8: name = "TestQuoteGrouping"; if (exec) TestQuoteGrouping(); break;
+        case  9: name = "TestRuleStatus"; if (exec) TestRuleStatus(); break;
+        case 10: name = "TestRuleStatusVec"; if (exec) TestRuleStatusVec(); break;
+        case 11: name = "TestBug2190"; if (exec) TestBug2190(); break;
+        case 12: name = "TestRegistration"; if (exec) TestRegistration(); break;
+        case 13: name = "TestBoilerPlate"; if (exec) TestBoilerPlate(); break;
+        case 14: name = "TestRoundtripRules"; if (exec) TestRoundtripRules(); break;
 
         default: name = ""; break; // needed to end loop
     }

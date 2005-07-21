@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -16,27 +16,15 @@
 ******************************************************************************
 */
 
- /**
-  * \file
-  * \brief Configuration constants for the Windows platform
-  */
-  
 /* Define the platform we're on. */
-#ifndef U_WINDOWS
-#define U_WINDOWS
+#ifndef WIN32
+#define WIN32
 #endif
 
 #if defined(__BORLANDC__)
 #define U_HAVE_PLACEMENT_NEW 0
 #define U_HAVE_INTTYPES_H 1
 #define __STDC_CONSTANT_MACROS
-#endif
-
-/* _MSC_VER is used to detect the Microsoft compiler. */
-#if defined(_MSC_VER)
-#define U_INT64_IS_LONG_LONG 0
-#else
-#define U_INT64_IS_LONG_LONG 1
 #endif
 
 /* Define whether inttypes.h is available */
@@ -96,11 +84,8 @@
 #endif
 
 /* Define 64 bit limits */
-#if !U_INT64_IS_LONG_LONG
 #define INT64_C(x) ((int64_t)x)
 #define UINT64_C(x) ((uint64_t)x)
-/* else use the umachine.h definition */
-#endif
 
 /*===========================================================================*/
 /* Generic data types                                                        */
@@ -137,18 +122,20 @@ typedef unsigned int uint32_t;
 #endif
 
 #if ! U_HAVE_INT64_T
-#if U_INT64_IS_LONG_LONG
-    typedef signed long long int64_t;
-#else
+/* _MSC_VER is used to detect the Microsoft compiler. */
+#ifdef _MSC_VER
     typedef signed __int64 int64_t;
+#else
+    typedef signed long long int64_t;
 #endif
 #endif
 
 #if ! U_HAVE_UINT64_T
-#if U_INT64_IS_LONG_LONG
-    typedef unsigned long long uint64_t;
-#else
+/* _MSC_VER is used to detect the Microsoft compiler. */
+#ifdef _MSC_VER
     typedef unsigned __int64 uint64_t;
+#else
+    typedef unsigned long long uint64_t;
 #endif
 #endif
 #endif
@@ -186,7 +173,6 @@ typedef unsigned int uint32_t;
 #define U_RELEASE 0
 #endif
 #endif
-
 /* Determine whether to disable renaming or not. This overrides the
    setting in umachine.h which is for all platforms. */
 #ifndef U_DISABLE_RENAMING
@@ -201,19 +187,10 @@ typedef unsigned int uint32_t;
 #ifndef U_HAVE_PLACEMENT_NEW
 #define U_HAVE_PLACEMENT_NEW 1
 #endif
-/* Determine whether to override new and delete for MFC. */
-#if !defined(U_HAVE_DEBUG_LOCATION_NEW) && defined(_MSC_VER)
-#define U_HAVE_DEBUG_LOCATION_NEW 1
-#endif
 
 /* Determine whether to enable tracing. */
 #ifndef U_ENABLE_TRACING
 #define U_ENABLE_TRACING 1
-#endif
-
-/* Do we allow ICU users to use the draft APIs by default? */
-#ifndef U_DEFAULT_SHOW_DRAFT
-#define U_DEFAULT_SHOW_DRAFT 1
 #endif
 
 /* Define the library suffix in a C syntax. */
@@ -234,15 +211,12 @@ typedef unsigned int uint32_t;
 /* Information about POSIX support                                           */
 /*===========================================================================*/
 
-#if 1
 #define U_TZSET         _tzset
+#define U_HAVE_TIMEZONE 1
+#if U_HAVE_TIMEZONE
+#   define U_TIMEZONE   _timezone
 #endif
-#if 1
-#define U_TIMEZONE      _timezone
-#endif
-#if 1
 #define U_TZNAME        _tzname
-#endif
 
 #define U_HAVE_MMAP 0
 #define U_HAVE_POPEN 0
@@ -264,11 +238,7 @@ typedef unsigned int uint32_t;
 /*===========================================================================*/
 
 #ifndef U_INLINE
-#   ifdef __cplusplus
-#       define U_INLINE inline
-#   else
-#       define U_INLINE __inline
-#   endif
+#define U_INLINE __inline
 #endif
 
 #if defined(_MSC_VER) && defined(_M_IX86)
@@ -276,7 +246,7 @@ typedef unsigned int uint32_t;
 #else
 #define U_ALIGN_CODE(val)
 #endif
-
+      
 
 /*===========================================================================*/
 /* Programs used by ICU code                                                 */

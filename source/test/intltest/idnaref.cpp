@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  *
- *   Copyright (C) 2003-2005, International Business Machines
+ *   Copyright (C) 2003-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *
  *******************************************************************************
@@ -238,13 +238,8 @@ CLEANUP:
 
     return destLen;   
 }
-			
 
-#if U_ICU_VERSION_MAJOR_NUM>3 || (U_ICU_VERSION_MAJOR_NUM==3 && U_ICU_VERSION_MINOR_NUM>4)
-#   error Time bomb: Remove the definition of U_IDNA_ZERO_LENGTH_LABEL_ERROR from __FILE__
-#else
-#   define U_IDNA_ZERO_LENGTH_LABEL_ERROR U_IDNA_ERROR_LIMIT
-#endif
+
 
 U_CFUNC int32_t U_EXPORT2
 idnaref_toASCII(const UChar* src, int32_t srcLength, 
@@ -263,7 +258,7 @@ idnaref_toASCII(const UChar* src, int32_t srcLength,
     UChar b1Stack[MAX_LABEL_BUFFER_SIZE], b2Stack[MAX_LABEL_BUFFER_SIZE];
     //initialize pointers to stack buffers
     UChar  *b1 = b1Stack, *b2 = b2Stack;
-    int32_t b1Len=0, b2Len=0, 
+    int32_t b1Len, b2Len, 
             b1Capacity = MAX_LABEL_BUFFER_SIZE, 
             b2Capacity = MAX_LABEL_BUFFER_SIZE ,
             reqLength=0;
@@ -279,18 +274,7 @@ idnaref_toASCII(const UChar* src, int32_t srcLength,
     // assume the source contains all LDH codepoints
     UBool srcIsLDH = TRUE; 
     int32_t j=0;
-
-    if(srcLength == -1){
-        srcLength = u_strlen(src);
-    }
-
-    // step 1 
-    for( j=0;j<srcLength;j++){
-        if(src[j] > 0x7F){
-            srcIsASCII = FALSE;
-        }
-        b1[b1Len++] = src[j];
-    }
+//    UParseError parseError;
     // step 2
     NamePrepTransform* prep = TestIDNA::getInstance(*status);
 
@@ -316,17 +300,11 @@ idnaref_toASCII(const UChar* src, int32_t srcLength,
     // error bail out
     if(U_FAILURE(*status)){
         goto CLEANUP;
-    }		
+    }
 
-    if(b1Len == 0){
-        *status = U_IDNA_ZERO_LENGTH_LABEL_ERROR;
-        goto CLEANUP;
-    }		  
-
-    srcIsASCII = TRUE;
     // step 3 & 4
     for( j=0;j<b1Len;j++){
-        if(b1[j] > 0x7F){// check if output of usprep_prepare is all ASCII 
+        if(b1[j] > 0x7F){
             srcIsASCII = FALSE;
         }else if(prep->isLDHChar(b1[j])==FALSE){  // if the char is in ASCII range verify that it is an LDH character{
             srcIsLDH = FALSE;
@@ -709,29 +687,26 @@ idnaref_IDNToASCII(  const UChar* src, int32_t srcLength,
             }
 
             labelLen = getNextSeparator(labelStart, -1, prep, &delimiter, &done, status);
-            b1Len = 0;
-            if(!(labelLen==0 && done)){// make sure this is not a root label separator.
             
-                b1Len = idnaref_toASCII(labelStart, labelLen, b1, b1Capacity, 
-                                        options, parseError, status);
+            b1Len = idnaref_toASCII(labelStart, labelLen, b1, b1Capacity, 
+                                    options, parseError, status);
 
-                if(*status == U_BUFFER_OVERFLOW_ERROR){
-                    // redo processing of string
-                    /* we do not have enough room so grow the buffer*/
-                    b1 = (UChar*) uprv_malloc(b1Len * U_SIZEOF_UCHAR);
-                    if(b1==NULL){
-                        *status = U_MEMORY_ALLOCATION_ERROR;
-                        goto CLEANUP;
-                    }
-
-                    *status = U_ZERO_ERROR; // reset error
-                    
-                    b1Len = idnaref_toASCII(labelStart, labelLen, b1, b1Len,
-                                            options, parseError, status);
-                    
+            if(*status == U_BUFFER_OVERFLOW_ERROR){
+                // redo processing of string
+                /* we do not have enough room so grow the buffer*/
+                b1 = (UChar*) uprv_malloc(b1Len * U_SIZEOF_UCHAR);
+                if(b1==NULL){
+                    *status = U_MEMORY_ALLOCATION_ERROR;
+                    goto CLEANUP;
                 }
-            }	  
 
+                *status = U_ZERO_ERROR; // reset error
+                
+                b1Len = idnaref_toASCII(labelStart, labelLen, b1, b1Len,
+                                        options, parseError, status);
+                
+            }
+        
             if(U_FAILURE(*status)){
                 goto CLEANUP;
             }
@@ -863,10 +838,7 @@ idnaref_IDNToUnicode(  const UChar* src, int32_t srcLength,
             }
 
             labelLen = getNextSeparator(labelStart, -1, prep, &delimiter, &done, status);
-           
-           if(labelLen==0 && done==FALSE){ 
-                *status = U_IDNA_ZERO_LENGTH_LABEL_ERROR;
-            }
+            
             b1Len = idnaref_toUnicode(labelStart, labelLen, b1, b1Capacity,
                                       options, parseError, status);
 
@@ -914,10 +886,6 @@ idnaref_IDNToUnicode(  const UChar* src, int32_t srcLength,
             }
 
             labelLen = getNextSeparator(labelStart, remainingLen, prep, &delimiter, &done, status);
-           
-            if(labelLen==0 && done==FALSE){ 
-                *status = U_IDNA_ZERO_LENGTH_LABEL_ERROR;
-            }            
             
             b1Len = idnaref_toUnicode( labelStart,labelLen, b1, b1Capacity,
                                        options, parseError, status);

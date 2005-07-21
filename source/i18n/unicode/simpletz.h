@@ -1,5 +1,5 @@
 /*
-* Copyright (C) {1997-2005}, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) {1997-2004}, International Business Machines Corporation and others. All Rights Reserved.
 *                                                                              *
 ********************************************************************************
 *
@@ -25,11 +25,6 @@
 
 #include "unicode/utypes.h"
 
-/**
- * \file 
- * \brief C++ API: SimpleTimeZone is a concrete subclass of TimeZone.
- */
- 
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/timezone.h"
@@ -605,7 +600,7 @@ public:
     /**
      * Redeclared TimeZone method.  This implementation simply calls
      * the base class method, which otherwise would be hidden.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     virtual void getOffset(UDate date, UBool local, int32_t& rawOffset,
                            int32_t& dstOffset, UErrorCode& ec) const;

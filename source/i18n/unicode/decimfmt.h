@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -25,11 +25,7 @@
 #define DECIMFMT_H
  
 #include "unicode/utypes.h"
-/**
- * \file 
- * \brief C++ API: Formats decimal numbers.
- */
- 
+
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/dcfmtsym.h"
@@ -807,7 +803,7 @@ public:
      * @param pos       On input: an alignment field, if desired.
      *                  On output: the offsets of the alignment field.
      * @return          Reference to 'appendTo' parameter.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     virtual UnicodeString& format(int64_t number,
                                   UnicodeString& appendTo,
@@ -881,7 +877,7 @@ public:
      * @param appendTo  Output parameter to receive result.
      *                  Result is appended to existing contents.
      * @return          Reference to 'appendTo' parameter.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     UnicodeString& format(int64_t number,
                           UnicodeString& appendTo) const;
@@ -1618,7 +1614,7 @@ public:
     /**
      * The resource tags we use to retrieve decimal format data from
      * locale resource bundles.
-     * @deprecated ICU 3.4. This string has no public purpose. Please don't use it.
+     * @stable ICU 2.0
      */
     static const char fgNumberPatterns[];
 
@@ -1863,7 +1859,7 @@ protected:
      * this number, it wouldn't make sense anyway, and this is just to make sure
      * that someone turning on scientific mode with default settings doesn't
      * end up with lots of zeroes.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     static const int32_t  kMaxScientificIntegerDigits;
 };

@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2000-2005, International Business Machines
+*   Copyright (c) 2000-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -13,12 +13,6 @@
 #include "unicode/utypes.h"
 #include "unicode/uobject.h"
 
-/**
- * \file 
- * \brief C++ API: An interface that defines both lookup protocol and parsing of
- * symbolic names.
- */
- 
 U_NAMESPACE_BEGIN
 
 class ParsePosition;
@@ -49,20 +43,20 @@ class UnicodeString;
  * with the position immediately following the SYMBOL_REF.  The symbol
  * table parses the name, if there is one, and returns it.
  *
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 class U_COMMON_API SymbolTable /* not : public UObject because this is an interface/mixin class */ {
 public:
 
     /**
      * The character preceding a symbol reference name.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     enum { SYMBOL_REF = 0x0024 /*$*/ };
 
     /**
      * Destructor.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     virtual ~SymbolTable();
 
@@ -73,7 +67,7 @@ public:
      * @param s the symbolic name to lookup
      * @return a string containing the name's value, or <tt>NULL</tt> if
      * there is no mapping for s.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     virtual const UnicodeString* lookup(const UnicodeString& s) const = 0;
 
@@ -83,7 +77,7 @@ public:
      * @param ch a 32-bit code point from 0 to 0x10FFFF inclusive.
      * @return the UnicodeMatcher object represented by the given
      * character, or NULL if there is no mapping for ch.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     virtual const UnicodeFunctor* lookupMatcher(UChar32 ch) const = 0;
 
@@ -102,7 +96,7 @@ public:
      * @param limit the index after the last character to be parsed.
      * @return the parsed name, or an empty string if there is no
      * valid symbolic name at the given position.
-     * @stable ICU 2.8
+     * @draft ICU 2.8
      */
     virtual UnicodeString parseReference(const UnicodeString& text,
                                          ParsePosition& pos, int32_t limit) const = 0;

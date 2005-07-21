@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2003, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -21,9 +21,7 @@
 #include "tsmthred.h"
 #include "tsputil.h"
 #include "uobjtest.h"
-#include "utxttest.h"
 #include "v32test.h"
-#include "uvectest.h"
 //#include "custrtest.h"
 //#include "ccitrtst.h"
 //#include "cloctest.h"
@@ -131,25 +129,6 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
                 callTest( test, par );
             }
             break;;
-
-        case 11:
-            name = "UVectorTest";
-            if(exec) {
-                logln ("UVectorTest---"); logln("");
-                UVectorTest test;
-                callTest( test, par );
-            }
-            break;;
-
-        case 12:
-            name = "UTextTest";
-            if(exec) {
-                logln ("UTextTest---"); logln("");
-                UTextTest test;
-                callTest( test, par );
-            }
-            break;;
-
 
         /*
         case 8:

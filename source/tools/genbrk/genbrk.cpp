@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2002-2005, International Business Machines
+*   Copyright (C) 2002-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -37,8 +37,6 @@
 #include "uoptions.h"
 #include "unewdata.h"
 #include "ucmndata.h"
-#include "rbbidata.h"
-#include "cmemory.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,10 +108,8 @@ DataHeader dh ={
         0,                          //     reserved
 
     { 0x42, 0x72, 0x6b, 0x20 },     //     dataFormat="Brk "
-    { 0xff, 0, 0, 0 },              //     formatVersion.  Filled in later with values
-                                    //      from the RBBI rule builder.  The  values declared
-                                    //      here should never appear in any real RBBI data.
-        { 4, 1, 0, 0 }              //   dataVersion (Unicode version)
+    { 3, 0, 0, 0 },                 //     formatVersion
+        { 4, 0, 0, 0 }                //   dataVersion (Unicode version)
     }};
 
 #endif
@@ -322,8 +318,6 @@ int  main(int argc, char **argv) {
     const uint8_t  *outData;
     outData = bi->getBinaryRules(outDataSize);
 
-    // Copy the data format version numbers from the RBBI data header into the UDataMemory header.
-    uprv_memcpy(dh.info.formatVersion, ((RBBIDataHeader *)outData)->fFormatVersion, sizeof(dh.info.formatVersion));
 
     //
     //  Create the output file
@@ -336,8 +330,6 @@ int  main(int argc, char **argv) {
                          outFileName, u_errorName(status));
         exit(status);
     }
-
-
     //  Write the data itself.
     udata_writeBlock(pData, outData, outDataSize);
     // finish up 

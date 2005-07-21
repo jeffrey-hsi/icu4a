@@ -887,7 +887,7 @@ static UBool convertFromU( const UChar *source, int sourceLen,  const uint8_t *e
     {
         log_err("Expected %d chars out, got %d FROM Unicode to %s\n", expectLen, targ-buffer, codepage);
         log_verbose("Expected %d chars out, got %d FROM Unicode to %s\n", expectLen, targ-buffer, codepage);
-        printSeqErr((const unsigned char *)buffer, (int32_t)(targ-buffer));
+        printSeqErr((const unsigned char *)buffer, targ-buffer);
         printSeqErr((const unsigned char*)expect, expectLen);
         return FALSE;
     }
@@ -909,7 +909,7 @@ static UBool convertFromU( const UChar *source, int sourceLen,  const uint8_t *e
         if(memcmp(offsetBuffer,expectOffsets,(targ-buffer) * sizeof(int32_t) )){
             log_err("did not get the expected offsets. for FROM Unicode to %s\n", codepage);
             log_info("\nGot  : ");
-            printSeqErr((const unsigned char*)buffer, (int32_t)(targ-buffer));
+            printSeqErr((const unsigned char*)buffer, targ-buffer);
             for(p=buffer;p<targ;p++)
                 log_info("%d, ", offsetBuffer[p-buffer]); 
             log_info("\nExpected: ");
@@ -1151,7 +1151,7 @@ static UBool testConvertFromU( const UChar *source, int sourceLen,  const uint8_
         log_err("Expected %d chars out, got %d %s\n", expectLen, targ-junkout, gNuConvTestName);
         log_verbose("Expected %d chars out, got %d %s\n", expectLen, targ-junkout, gNuConvTestName);
         log_info("\nGot:");
-        printSeqErr((const unsigned char*)junkout, (int32_t)(targ-junkout));
+        printSeqErr((const unsigned char*)junkout, targ-junkout);
         log_info("\nExpected:");
         printSeqErr((const unsigned char*)expect, expectLen);
         return FALSE;
@@ -1163,7 +1163,7 @@ static UBool testConvertFromU( const UChar *source, int sourceLen,  const uint8_
         if(memcmp(junokout,expectOffsets,(targ-junkout) * sizeof(int32_t) )){
             log_err("did not get the expected offsets. %s", gNuConvTestName);
             log_err("Got  : ");
-            printSeqErr((const unsigned char*)junkout, (int32_t)(targ-junkout));
+            printSeqErr((const unsigned char*)junkout, targ-junkout);
             for(p=junkout;p<targ;p++)
                 log_err("%d, ", junokout[p-junkout]); 
             log_err("\nExpected: ");
@@ -1863,18 +1863,6 @@ TestUnicodeSet() {
         }
 
         ucnv_close(cnv);
-    }
-
-    errorCode = U_ZERO_ERROR;
-    ucnv_getUnicodeSet(NULL, set, UCNV_ROUNDTRIP_SET, &errorCode);
-    if (errorCode != U_ILLEGAL_ARGUMENT_ERROR) {
-        log_err("error: ucnv_getUnicodeSet(NULL) returned wrong status code %s\n", u_errorName(errorCode));
-    }
-    errorCode = U_PARSE_ERROR;
-    /* Make sure that it does nothing if an error is passed in. Difficult to proper test for. */
-    ucnv_getUnicodeSet(NULL, NULL, UCNV_ROUNDTRIP_SET, &errorCode);
-    if (errorCode != U_PARSE_ERROR) {
-        log_err("error: ucnv_getUnicodeSet(NULL) returned wrong status code %s\n", u_errorName(errorCode));
     }
 
     uset_close(set);

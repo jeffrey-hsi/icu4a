@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/et.xml
+// * Source File: ../../../locale/common/main/et.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/et.xml
+ *  ICU <specials> source: ../../../locale/icu/main/et.xml
  */
 et{
     Countries{
@@ -208,6 +208,7 @@ et{
         SM{"San Marino"}
         SN{"Senegal"}
         SO{"Somaalia"}
+        SP{"Serbia"}
         SR{"Suriname"}
         ST{"Sao Tomé ja Principe"}
         SV{"El Salvador"}
@@ -246,6 +247,7 @@ et{
         WS{"Samoa"}
         YE{"Jeemen"}
         YT{"Mayotte"}
+        YU{"Jugoslaavia"}
         ZA{"Lõuna-Aafrika Vabariik"}
         ZM{"Sambia"}
         ZW{"Zimbabwe"}
@@ -254,17 +256,6 @@ et{
         EEK{
             "kr",
             "EEK",
-            {
-                /**
-                 * Duplicated from NumberPatterns resource
-                 */
-                "¤ #,##0.00",
-                ".",
-                /**
-                 * Duplicated from NumberElements resource
-                 */
-                " ",
-            }
         }
     }
     ExemplarCharacters{"[a-z õ ä ö ü š ž]"}
@@ -317,7 +308,7 @@ et{
         "�",
         "+",
     }
-    Version{"1.40"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -397,5 +388,5 @@ et{
             }
         }
     }
-    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
+    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZ"}
 }

@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -121,7 +121,9 @@ isDataLoaded(UErrorCode *pErrorCode) {
     UBool isCached;
 
     /* do this because double-checked locking is broken */
-    UMTX_CHECK(NULL, (uCharNames!=NULL), isCached);
+    umtx_lock(NULL);
+    isCached=uCharNames!=NULL;
+    umtx_unlock(NULL);
 
     if(!isCached) {
         UCharNames *names;
@@ -1716,7 +1718,7 @@ uprv_getMaxISOCommentLength() {
  * @param uset USet to receive characters. Existing contents are deleted.
  */
 static void
-charSetToUSet(uint32_t cset[8], const USetAdder *sa) {
+charSetToUSet(uint32_t cset[8], USetAdder *sa) {
     UChar us[256];
     char cs[256];
 
@@ -1753,7 +1755,7 @@ charSetToUSet(uint32_t cset[8], const USetAdder *sa) {
  * @param set USet to receive characters.
  */
 U_CAPI void U_EXPORT2
-uprv_getCharNameCharacters(const USetAdder *sa) {
+uprv_getCharNameCharacters(USetAdder *sa) {
     charSetToUSet(gNameSet, sa);
 }
 
@@ -1767,7 +1769,7 @@ urename.h and uprops.h changed accordingly.
  * @param set USetAdder to receive characters.
  */
 U_CAPI void U_EXPORT2
-uprv_getISOCommentCharacters(const USetAdder *sa) {
+uprv_getISOCommentCharacters(USetAdder *sa) {
     charSetToUSet(gISOCommentSet, sa);
 }
 #endif
@@ -1818,8 +1820,8 @@ makeTokenMap(const UDataSwapper *ds,
                 c1=(uint8_t)i;
                 ds->swapInvChars(ds, &c1, 1, &c2, pErrorCode);
                 if(U_FAILURE(*pErrorCode)) {
-                    udata_printError(ds, "unames/makeTokenMap() finds variant character 0x%02x used (input charset family %d)\n",
-                                     i, ds->inCharset);
+                    udata_printError(ds, "unames/makeTokenMap() finds variant character 0x%02x used (input charset family %d) - %s\n",
+                                     i, ds->inCharset, u_errorName(*pErrorCode));
                     return;
                 }
 
@@ -1998,7 +2000,8 @@ uchar_swapNames(const UDataSwapper *ds,
         udata_swapInvStringBlock(ds, inBytes+tokenStringOffset, (int32_t)(groupsOffset-tokenStringOffset),
                                     outBytes+tokenStringOffset, pErrorCode);
         if(U_FAILURE(*pErrorCode)) {
-            udata_printError(ds, "uchar_swapNames(token strings) failed\n");
+            udata_printError(ds, "uchar_swapNames(token strings) failed - %s\n",
+                             u_errorName(*pErrorCode));
             return 0;
         }
 
@@ -2077,8 +2080,8 @@ uchar_swapNames(const UDataSwapper *ds,
                 ds->swapInvChars(ds, inRange+1, (int32_t)uprv_strlen((const char *)(inRange+1)),
                                     outRange+1, pErrorCode);
                 if(U_FAILURE(*pErrorCode)) {
-                    udata_printError(ds, "uchar_swapNames(prefix string of algorithmic range %u) failed\n",
-                                     i);
+                    udata_printError(ds, "uchar_swapNames(prefix string of algorithmic range %u) failed - %s\n",
+                                     i, u_errorName(*pErrorCode));
                     return 0;
                 }
                 break;

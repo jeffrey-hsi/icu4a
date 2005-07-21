@@ -1,6 +1,6 @@
 /*
 ***************************************************************************
-*   Copyright (C) 1999-2005 International Business Machines Corporation   *
+*   Copyright (C) 1999-2004 International Business Machines Corporation   *
 *   and others. All rights reserved.                                      *
 ***************************************************************************
 */
@@ -330,8 +330,7 @@ int32_t RuleBasedBreakIterator::first(void) {
     if (fText == NULL)
         return BreakIterator::DONE;
 
-    //fText->first();
-    fText->setToStart();
+    fText->first();
     return fText->getIndex();
 }
 
@@ -563,25 +562,15 @@ int32_t RuleBasedBreakIterator::preceding(int32_t offset) {
     // to carry out this operation
 
     if (fData->fSafeFwdTable != NULL) {
+        /// todo synwee
         // new rule syntax
         fText->setIndex(offset);
-
-        int32_t newOffset = fText->getIndex();  
-        if (newOffset != offset) {
-            // Will come here if specified offset was not a code point boundary AND
-            //   the underlying implmentation is using UText, which snaps any non-code-point-boundary
-            //   indices to the containing code point.
-            // For breakitereator::preceding only, these non-code-point indices need to be moved
-            //   up to refer to the following codepoint.
-            fText->next32();
-            offset = fText->getIndex();
-        }
-
-        // TODO:  (synwee) would it be better to just check for being in the middle of a surrogate pair,
+        // move backwards one codepoint to prepare for moving forwards to a
+        // safe point.
+        // this handles offset being between a supplementary character
+        // TODO:  would it be better to just check for being in the middle of a surrogate pair,
         //        rather than adjusting the position unconditionally?
         //        (Change would interact with safe rules.)
-        // TODO:  change RBBI behavior for off-boundary indices to match that of UText?
-        //        affects only preceding(), seems cleaner, but is slightly different.
         fText->previous32();
         handleNext(fData->fSafeFwdTable);
         int32_t result = fText->getIndex();
@@ -661,7 +650,7 @@ UBool RuleBasedBreakIterator::isBoundary(int32_t offset) {
  * @return The current iteration position.
  */
 int32_t RuleBasedBreakIterator::current(void) const {
-    return (fText != NULL) ? fText->getIndex() : (int32_t)BreakIterator::DONE;
+    return (fText != NULL) ? fText->getIndex() : BreakIterator::DONE;
 }
 
 //=======================================================================
@@ -848,11 +837,9 @@ continueOn:
 
     // Leave the iterator at our result position.
     fText->setIndex(result);
-    #ifdef RBBI_DEBUG
-        if (fTrace) {
-            RBBIDebugPrintf("result = %d\n\n", result);
-        }
-    #endif
+    if (fTrace) {
+        RBBIDebugPrintf("result = %d\n\n", result);
+    }
     return result;
 }
 
@@ -993,8 +980,12 @@ continueOn:
 //
 //  handlePrevious()
 //
-//      Iterate backwards, according to the logic of the reverse rules.
-//      This version handles the exact style backwards rules.
+//      This method backs the iterator back up to a "safe position" in the text.
+//      This is a position that we know, without any context, may be any position
+//      not more than 2 breaks away. Occasionally, the position may be less than
+//      one break away.
+//      The various calling methods then iterate forward from this safe position to
+//      the appropriate position to return.
 //
 //      The logic of this function is very similar to handleNext(), above.
 //
@@ -1012,12 +1003,14 @@ int32_t RuleBasedBreakIterator::handlePrevious(const RBBIStateTable *statetable)
 
     int32_t            state              = START_STATE;
     int32_t            category;
+    int32_t            lastCategory       = 0;
     UBool              hasPassedStartText = !fText->hasPrevious();
     UChar32            c                  = fText->previous32();
     // previous character
     int32_t            result             = fText->getIndex();
     int32_t            lookaheadStatus    = 0;
     int32_t            lookaheadResult    = 0;
+    int32_t            lookaheadTagIdx    = 0;
     UBool              lookAheadHardBreak = (statetable->fFlags & RBBI_LOOKAHEAD_HARD_BREAK) != 0;
 
     RBBIStateTableRow *row;
@@ -1036,24 +1029,19 @@ int32_t RuleBasedBreakIterator::handlePrevious(const RBBIStateTable *statetable)
 
     // loop until we reach the beginning of the text or transition to state 0
     for (;;) {
+        // if (c == CharacterIterator::DONE && fText->hasPrevious()==FALSE) {
         if (hasPassedStartText) {
-            // Ran off the beginning of text.
-            if (*(int32_t *)fData->fHeader->fFormatVersion == 1) {
-                // This is the old (ICU 3.2 and earlier) format data.
-                //   No explicit support for matching {eof}.  Did have hack, though...
-                if (row->fLookAhead != 0 && lookaheadResult == 0) {
-                    result = 0;
-                }
-                break;
+            // if we have already considered the start of the text
+            if (row->fLookAhead != 0 && lookaheadResult == 0) {
+                result = 0;
             }
-            // Newer data format, with support for {eof}.
-            //    end of input is hardwired by rule builder as category/column  1.
-            category = 1;
-        } else {
-            // Not at {eof}.
-            //  look up the current character's category (the table column)
-            UTRIE_GET16(&fData->fTrie, c, category);
+            break;
         }
+
+        // save the last character's category and look up the current
+        // character's category
+        lastCategory = category;
+        UTRIE_GET16(&fData->fTrie, c, category);
 
         // Check the dictionary bit in the character's category.
         //    Counter is only used by dictionary based iterators.
@@ -1083,6 +1071,8 @@ int32_t RuleBasedBreakIterator::handlePrevious(const RBBIStateTable *statetable)
         if (row->fAccepting == -1) {
             // Match found, common case, could have lookahead so we move on to check it
             result = fText->getIndex();
+            /// added
+            fLastRuleStatusIndex   = row->fTagIdx;   // Remember the break status (tag) value.
         }
 
         if (row->fLookAhead != 0) {
@@ -1091,6 +1081,7 @@ int32_t RuleBasedBreakIterator::handlePrevious(const RBBIStateTable *statetable)
                 // Lookahead match is completed.  Set the result accordingly, but only
                 // if no other rule has matched further in the mean time.
                 result               = lookaheadResult;
+                fLastRuleStatusIndex = lookaheadTagIdx;
                 lookaheadStatus      = 0;
                 /// i think we have to back up to read the lookahead character again
                 /// fText->setIndex(lookaheadResult);
@@ -1107,6 +1098,7 @@ int32_t RuleBasedBreakIterator::handlePrevious(const RBBIStateTable *statetable)
                     fText->setIndex(result);
                     return result;
                 }
+                category = lastCategory;
                 fText->setIndex(result);
 
                 goto continueOn;
@@ -1115,6 +1107,7 @@ int32_t RuleBasedBreakIterator::handlePrevious(const RBBIStateTable *statetable)
             int32_t    r         = fText->getIndex();
             lookaheadResult      = r;
             lookaheadStatus      = row->fLookAhead;
+            fLastRuleStatusIndex = row->fTagIdx;
             goto continueOn;
         }
 
@@ -1124,33 +1117,21 @@ int32_t RuleBasedBreakIterator::handlePrevious(const RBBIStateTable *statetable)
             goto continueOn;
         }
 
-
-        // This is a plain (non-look-ahead) accepting state
-        if (!lookAheadHardBreak) {
-            lookaheadStatus = 0;     // clear out any pending look-ahead matches.
-                                     //  But only if not doing the lookAheadHardBreak option,
-                                     //  which needs to force a break no matter what is going
-                                     //  on with the rest of the match, i.e. we can't abandon
-                                     //  a partially completed look-ahead match because some
-                                     //  other rule matched further than the '/' position
-                                     //  in the look-ahead match.
-        }
+        lookaheadStatus = 0;     // clear out any pending look-ahead matches.
 
 continueOn:
         if (state == STOP_STATE) {
             break;
         }
 
-        if (hasPassedStartText) {
-            break;
-        }
-
-        // Advance one character backwards
+        // then advance one character backwards
         hasPassedStartText = !fText->hasPrevious();
         c = fText->previous32();
     }
 
-
+    // Note:  the result postion isn't what is returned to the user by previous(),
+    //        but where the implementation of previous() turns around and
+    //        starts iterating forward again.
     fText->setIndex(result);
 
     return result;
@@ -1358,246 +1339,6 @@ UBool RuleBasedBreakIterator::isDictionaryChar(UChar32   c) {
     return (category & 0x4000) != 0;
 }
 
-
-//-------------------------------------------------------------------------------
-//
-//  UText functions      As a temporary implementation, create a type of CharacterIterator
-//                       that works over UText, and let the RBBI engine continue to
-//                       work on CharacterIterator, which it always has.
-//
-//                       The permanent solution is to rework the RBBI engine to use
-//                       UText directly, which will be more efficient for all input
-//                       sources.
-//
-//                       This CharacterIterator implementation over UText is not complete,
-//                       it has only what is needed for RBBI, and is not intended
-//                       to ever become public.
-//
-//-------------------------------------------------------------------------------
-
-class CharacterIteratorUT: public CharacterIterator {
-public:
-    CharacterIteratorUT(UText  *ut);
-    virtual ~CharacterIteratorUT();
-
-    virtual CharacterIterator *clone() const;
-    virtual UBool       operator==(const ForwardCharacterIterator& that) const;
-    virtual UChar       setIndex(int32_t position);
-    virtual UChar32     previous32(void);
-    virtual UChar32     next32(void);
-    virtual UBool       hasNext();
-    virtual UChar32     current32(void) const;
-    virtual UBool       hasPrevious();
-    virtual int32_t     move(int32_t delta, EOrigin origin);
-    static  UClassID    getStaticClassID(void);
-    virtual UClassID    getDynamicClassID(void) const;
-
-    UText   *fUText;
-    virtual void        resetTo(const UText *ut, UErrorCode *status);
-
-private:
-    CharacterIteratorUT();
-
-    // The following functions are not needed by RBBI,
-    //   but are pure virtual in CharacterIterator, so must be defined.
-    //   Only stubs are provided in this implementation.
-    virtual int32_t       hashCode(void) const                   {U_ASSERT(FALSE); return 0;};
-    virtual UChar         nextPostInc(void)                      {U_ASSERT(FALSE); return 0;};
-    virtual UChar32       next32PostInc(void)                    {U_ASSERT(FALSE); return 0;};
-    virtual UChar         first(void)                            {U_ASSERT(FALSE); return 0;};
-    virtual UChar32       first32(void)                          {U_ASSERT(FALSE); return 0;};
-    virtual UChar         last(void)                             {U_ASSERT(FALSE); return 0;};
-    virtual UChar32       last32(void)                           {U_ASSERT(FALSE); return 0;};
-    virtual UChar32       setIndex32(int32_t)                    {U_ASSERT(FALSE); return 0;};
-    virtual UChar         current(void) const                    {U_ASSERT(FALSE); return 0;};
-    virtual UChar         next(void)                             {U_ASSERT(FALSE); return 0;};
-    virtual UChar         previous(void)                         {U_ASSERT(FALSE); return 0;};
-    virtual int32_t       move32(int32_t, EOrigin)               {U_ASSERT(FALSE); return 0;};
-    virtual void          getText(UnicodeString        &)        {U_ASSERT(FALSE);};
-};
-
-
-
-//
-//  The following fields are inherited from CharacterIterator.
-//  This implementation __MUST__ keep them current because of non-virtual inline
-//  functions defined in CharacterIterator.
-//    int32_t  textLength;       // length of the text.
-//    int32_t  pos;              // current index position
-//    int32_t  begin;            // starting index.  Always 0 for us.
-//    int32_t  end;              // ending index
-//
-// CharacterIterator was designed assuming that utf-16 indexing would be used,
-// but native indexing will pass through OK.  This partial implementation only
-// provides the '32' flavored code point access, not UChar access.
-//
-
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CharacterIteratorUT)
-
-CharacterIteratorUT::CharacterIteratorUT(UText *ut) {
-    UErrorCode status = U_ZERO_ERROR;
-    fUText = utext_clone(NULL, ut, FALSE, &status);
-    
-    // Set the inherited CharacterItertor fields
-    textLength = utext_nativeLength(ut);
-    pos = 0;
-    begin = 0;
-    end = textLength;
-}
-
-CharacterIteratorUT::CharacterIteratorUT() {
-    fUText     = NULL;
-    textLength = 0;
-    pos        = 0;
-    begin      = 0;
-    end        = 0;
-}
-
-CharacterIteratorUT::~CharacterIteratorUT() {
-    utext_close(fUText);
-}
-
-
-CharacterIterator *CharacterIteratorUT::clone() const {
-    UErrorCode status = U_ZERO_ERROR;
-    CharacterIteratorUT *result = new  CharacterIteratorUT();
-    result->fUText = utext_clone(NULL, fUText, TRUE, &status);
-    if (U_SUCCESS(status)) {
-        result->textLength = utext_nativeLength(fUText);
-        result->pos = 0;
-        result->begin = 0;
-        result->end = textLength;
-    }
-    return result;
-}
-
-UBool CharacterIteratorUT::operator==(const ForwardCharacterIterator& that) const {
-    if (this->getDynamicClassID() != that.getDynamicClassID()) {
-        return FALSE;
-    }
-    const CharacterIteratorUT *realThat = (const CharacterIteratorUT *)&that;
-    UBool result = this->fUText->context == realThat->fUText->context;
-    return result;
-}
-
-UChar CharacterIteratorUT::setIndex(int32_t position) {
-    pos = position;
-    if (pos < 0) {
-        pos = 0;
-    } else if (pos > end) {
-        pos = end;
-    }
-    utext_setNativeIndex(fUText, pos);
-    pos = utext_getNativeIndex(fUText);  // because utext snaps to code point boundary.
-    return 0x0000ffff;  // RBBI doesn't use return value, and UText can't return a UChar easily.
-}
-
-UChar32 CharacterIteratorUT::previous32(void) {
-    UChar32 result = UTEXT_PREVIOUS32(fUText);
-    pos = utext_getNativeIndex(fUText);  // TODO:  maybe optimize common case?
-    if (result < 0) {
-        result = 0x0000ffff;
-    }
-    return result;
-}
-
-UChar32 CharacterIteratorUT::next32(void) {
-    // TODO: optimize.
-    UTEXT_NEXT32(fUText);
-    pos = utext_getNativeIndex(fUText);
-    UChar32 result = UTEXT_NEXT32(fUText);
-    if (result < 0) {
-        result = 0x0000ffff;
-    } else {
-        UTEXT_PREVIOUS32(fUText);
-    }
-    return result;
-}
-
-UBool CharacterIteratorUT::hasNext() {
-    // What would really be best for RBBI is a hasNext32()
-    UBool result = TRUE;
-    if (pos >= end) { 
-        result  = FALSE;
-    }
-    return result;
-}
-
-UChar32 CharacterIteratorUT::current32(void) const {
-    UChar32 result = utext_current32(fUText);
-    if (result < 0) {
-        result = 0x0000ffff;
-    }
-    return result;
-}
-
-UBool CharacterIteratorUT::hasPrevious() {
-    UBool result = pos > 0;
-    return result;
-}
-
-int32_t CharacterIteratorUT::move(int32_t delta, EOrigin origin) {
-    // only needed for the inherited inline implementation of setToStart().
-    int32_t result = pos;
-    switch (origin) {
-case kStart:
-    result = delta;
-    break;
-case kCurrent: 
-    result = pos + delta;
-    break;
-case kEnd:
-    result = end + delta;
-    break;
-default:
-    U_ASSERT(FALSE);
-    }
-    utext_setNativeIndex(fUText, result);
-    pos = utext_getNativeIndex(fUText);  // align to cp boundary
-    return result;
-}
-
-
-
-void  CharacterIteratorUT::resetTo(const UText *ut, UErrorCode *status) {
-    // Reset this CharacterIteratorUT to use a new UText.
-    fUText = utext_clone(fUText, ut, FALSE, status);
-    utext_setNativeIndex(fUText, 0);
-    textLength = utext_nativeLength(fUText);
-    pos = 0;
-    end = textLength;
-}
-
-void RuleBasedBreakIterator::setText(UText *ut, UErrorCode &status) {
-    if (U_FAILURE(status)) {
-        return;
-    }
-    reset();
-    if (fText != NULL && 
-        fText->getDynamicClassID() == CharacterIteratorUT::getStaticClassID()) 
-    {
-        // The break iterator is already using a UText based character iterator.
-        //  Copy the new UText into the existing character iterator's UText.
-        CharacterIteratorUT *utcr = (CharacterIteratorUT *)fText;
-        utcr->resetTo(ut, &status);
-    } else {
-        delete fText;
-        fText = new CharacterIteratorUT(ut);
-    }
-    this->first();
-}
-
-
-UText *RuleBasedBreakIterator::getUText(UText *fillIn, UErrorCode &status) const {
-    UText *result = NULL;
-    if (U_SUCCESS(status) && fText!=NULL && 
-        fText->getDynamicClassID() == CharacterIteratorUT::getStaticClassID()) 
-    {
-        CharacterIteratorUT *utcr = (CharacterIteratorUT *)fText;
-        result = utext_clone(fillIn, utcr->fUText, FALSE, &status);
-    }
-    return result;
-}
 
 
 U_NAMESPACE_END

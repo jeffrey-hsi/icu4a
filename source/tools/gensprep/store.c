@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -27,6 +27,10 @@
 #include "gensprep.h"
 #include "uhash.h"
 
+
+#ifdef WIN32
+#   pragma warning(disable: 4100)
+#endif
 
 #define DO_DEBUG_OUT 0
 

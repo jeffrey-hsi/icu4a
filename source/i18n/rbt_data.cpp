@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -23,7 +23,7 @@ U_NAMESPACE_BEGIN
 
 TransliterationRuleData::TransliterationRuleData(UErrorCode& status)
  : UMemory(), ruleSet(status),
-    variableNames(0), variables(0), variablesAreOwned(TRUE)
+    variableNames(0), variables(0)
 {
     if (U_FAILURE(status)) {
         return;
@@ -43,7 +43,6 @@ TransliterationRuleData::TransliterationRuleData(UErrorCode& status)
 
 TransliterationRuleData::TransliterationRuleData(const TransliterationRuleData& other) :
     UMemory(other), ruleSet(other.ruleSet),
-    variablesAreOwned(TRUE),
     variablesBase(other.variablesBase),
     variablesLength(other.variablesLength)
 {
@@ -79,12 +78,12 @@ TransliterationRuleData::TransliterationRuleData(const TransliterationRuleData& 
 
 TransliterationRuleData::~TransliterationRuleData() {
     delete variableNames;
-    if (variablesAreOwned && variables != 0) {
+    if (variables != 0) {
         for (int32_t i=0; i<variablesLength; ++i) {
             delete variables[i];
         }
+        uprv_free(variables);
     }
-    uprv_free(variables);
 }
 
 UnicodeFunctor*

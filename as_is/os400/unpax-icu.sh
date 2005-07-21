@@ -1,5 +1,5 @@
 #!/usr/bin/qsh
-#   Copyright (C) 2000-2005, International Business Machines
+#   Copyright (C) 2000-2004, International Business Machines
 #   Corporation and others.  All Rights Reserved.
 #
 # Authors:
@@ -39,27 +39,16 @@ fi
 echo ""
 echo "Extracting from $1 ..."
 echo ""
-
-# determine which directories in the data_files list
-# are included in the provided archive
-for data_dir in $data_files
-do
-    if (pax -f $1 $data_dir >/dev/null 2>&1)
-    then
-        ebcdic_data="$ebcdic_data `echo $data_dir`";
-    fi
-done
-
 # extract everything as iso-8859-1 except these directories
-pax -C 819 -rcvf $1 $ebcdic_data
+pax -C 819 -rcvf $1 $data_files
 
 # extract files while converting them to EBCDIC
 echo ""
 echo "Extracting files which must be in ibm-37 ..."
 echo ""
-pax -C 37 -rvf $1 $ebcdic_data
+pax -C 37 -rvf $1 $data_files
 
-if [ $# -gt 1 ]; then
+if [ $# -gt 1 ]; then 
   if [ $2 -eq strip ]; then
     echo ""
     echo "Stripping hex 0d characters ..."
@@ -102,6 +91,7 @@ for file in `find ./icu \( -name \*.txt -print \)`; do
           cut -f2-4 -d ' '|\
           tr 'A-Z' 'a-z'`;
 #    echo "bom8 is" $bom8 "for" $file
+#    bom8=`head -c 3 $file|od -t x1|head -n 1|cut -d ' ' -f2-4`;
     #Find a converted UTF-8 BOM
     if [ "$bom8" = "057 08b 0ab" -o "$bom8" = "57 8b ab" ]
     then

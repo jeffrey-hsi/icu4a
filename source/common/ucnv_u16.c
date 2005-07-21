@@ -1,6 +1,6 @@
 /*  
 **********************************************************************
-*   Copyright (C) 2002-2005, International Business Machines
+*   Copyright (C) 2002-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   file name:  ucnv_u16.c
@@ -23,10 +23,6 @@
 #include "ucnv_cnv.h"
 #include "cmemory.h"
 
-enum {
-    UCNV_NEED_TO_WRITE_BOM=1
-};
-
 /* UTF-16BE ----------------------------------------------------------------- */
 
 #if U_IS_BIG_ENDIAN
@@ -43,36 +39,24 @@ _UTF16BEFromUnicodeWithOffsets(UConverterFromUnicodeArgs *pArgs,
     uint8_t *target;
     int32_t *offsets;
 
-    int32_t targetCapacity, length, sourceIndex;
+    int32_t targetCapacity, length, count, sourceIndex;
     UChar c, trail;
     char overflow[4];
 
     source=pArgs->source;
-    length=(int32_t)(pArgs->sourceLimit-source);
+    length=pArgs->sourceLimit-source;
     if(length<=0) {
         /* no input, nothing to do */
         return;
     }
 
-    cnv=pArgs->converter;
-
-    /* write the BOM if necessary */
-    if(cnv->fromUnicodeStatus==UCNV_NEED_TO_WRITE_BOM) {
-        static const char bom[]={ (char)0xfe, (char)0xff };
-        ucnv_fromUWriteBytes(cnv,
-                             bom, 2,
-                             &pArgs->target, pArgs->targetLimit,
-                             &pArgs->offsets, -1,
-                             pErrorCode);
-        cnv->fromUnicodeStatus=0;
-    }
-
-    targetCapacity=(int32_t)(pArgs->targetLimit-pArgs->target);
+    targetCapacity=pArgs->targetLimit-pArgs->target;
     if(targetCapacity<=0) {
         *pErrorCode=U_BUFFER_OVERFLOW_ERROR;
         return;
     }
 
+    cnv=pArgs->converter;
     target=(uint8_t *)pArgs->target;
     offsets=pArgs->offsets;
     sourceIndex=0;
@@ -99,13 +83,13 @@ _UTF16BEFromUnicodeWithOffsets(UConverterFromUnicodeArgs *pArgs,
         cnv->fromUChar32=c=0;
     }
 
+    /* copy an even number of bytes for complete UChars */
+    count=2*length;
+    if(count>targetCapacity) {
+        count=targetCapacity&~1;
+    }
+    /* count is even */
     if(c==0) {
-        /* copy an even number of bytes for complete UChars */
-        int32_t count=2*length;
-        if(count>targetCapacity) {
-            count=targetCapacity&~1;
-        }
-        /* count is even */
         targetCapacity-=count;
         count>>=1;
         length-=count;
@@ -226,7 +210,7 @@ _UTF16BEFromUnicodeWithOffsets(UConverterFromUnicodeArgs *pArgs,
                              (char **)&target, pArgs->targetLimit,
                              &offsets, sourceIndex,
                              pErrorCode);
-        targetCapacity=(int32_t)(pArgs->targetLimit-(char *)target);
+        targetCapacity=pArgs->targetLimit-(char *)target;
     }
 
     if(U_SUCCESS(*pErrorCode) && source<pArgs->sourceLimit && targetCapacity==0) {
@@ -252,13 +236,13 @@ _UTF16BEToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
 
     cnv=pArgs->converter;
     source=(const uint8_t *)pArgs->source;
-    length=(int32_t)((const uint8_t *)pArgs->sourceLimit-source);
+    length=(const uint8_t *)pArgs->sourceLimit-source;
     if(length<=0 && cnv->toUnicodeStatus==0) {
         /* no input, nothing to do */
         return;
     }
 
-    targetCapacity=(int32_t)(pArgs->targetLimit-pArgs->target);
+    targetCapacity=pArgs->targetLimit-pArgs->target;
     if(targetCapacity<=0) {
         *pErrorCode=U_BUFFER_OVERFLOW_ERROR;
         return;
@@ -567,7 +551,7 @@ static const UConverterImpl _UTF16BEImpl={
     NULL,
     NULL,
     NULL,
-    ucnv_getNonSurrogateUnicodeSet
+    ucnv_getCompleteUnicodeSet
 };
 
 static const UConverterStaticData _UTF16BEStaticData={
@@ -597,36 +581,24 @@ _UTF16LEFromUnicodeWithOffsets(UConverterFromUnicodeArgs *pArgs,
     uint8_t *target;
     int32_t *offsets;
 
-    int32_t targetCapacity, length, sourceIndex;
+    int32_t targetCapacity, length, count, sourceIndex;
     UChar c, trail;
     char overflow[4];
 
     source=pArgs->source;
-    length=(int32_t)(pArgs->sourceLimit-source);
+    length=pArgs->sourceLimit-source;
     if(length<=0) {
         /* no input, nothing to do */
         return;
     }
 
-    cnv=pArgs->converter;
-
-    /* write the BOM if necessary */
-    if(cnv->fromUnicodeStatus==UCNV_NEED_TO_WRITE_BOM) {
-        static const char bom[]={ (char)0xff, (char)0xfe };
-        ucnv_fromUWriteBytes(cnv,
-                             bom, 2,
-                             &pArgs->target, pArgs->targetLimit,
-                             &pArgs->offsets, -1,
-                             pErrorCode);
-        cnv->fromUnicodeStatus=0;
-    }
-
-    targetCapacity=(int32_t)(pArgs->targetLimit-pArgs->target);
+    targetCapacity=pArgs->targetLimit-pArgs->target;
     if(targetCapacity<=0) {
         *pErrorCode=U_BUFFER_OVERFLOW_ERROR;
         return;
     }
 
+    cnv=pArgs->converter;
     target=(uint8_t *)pArgs->target;
     offsets=pArgs->offsets;
     sourceIndex=0;
@@ -653,13 +625,13 @@ _UTF16LEFromUnicodeWithOffsets(UConverterFromUnicodeArgs *pArgs,
         cnv->fromUChar32=c=0;
     }
 
+    /* copy an even number of bytes for complete UChars */
+    count=2*length;
+    if(count>targetCapacity) {
+        count=targetCapacity&~1;
+    }
+    /* count is even */
     if(c==0) {
-        /* copy an even number of bytes for complete UChars */
-        int32_t count=2*length;
-        if(count>targetCapacity) {
-            count=targetCapacity&~1;
-        }
-        /* count is even */
         targetCapacity-=count;
         count>>=1;
         length-=count;
@@ -780,7 +752,7 @@ _UTF16LEFromUnicodeWithOffsets(UConverterFromUnicodeArgs *pArgs,
                              (char **)&target, pArgs->targetLimit,
                              &offsets, sourceIndex,
                              pErrorCode);
-        targetCapacity=(int32_t)(pArgs->targetLimit-(char *)target);
+        targetCapacity=pArgs->targetLimit-(char *)target;
     }
 
     if(U_SUCCESS(*pErrorCode) && source<pArgs->sourceLimit && targetCapacity==0) {
@@ -806,13 +778,13 @@ _UTF16LEToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
 
     cnv=pArgs->converter;
     source=(const uint8_t *)pArgs->source;
-    length=(int32_t)((const uint8_t *)pArgs->sourceLimit-source);
+    length=(const uint8_t *)pArgs->sourceLimit-source;
     if(length<=0 && cnv->toUnicodeStatus==0) {
         /* no input, nothing to do */
         return;
     }
 
-    targetCapacity=(int32_t)(pArgs->targetLimit-pArgs->target);
+    targetCapacity=pArgs->targetLimit-pArgs->target;
     if(targetCapacity<=0) {
         *pErrorCode=U_BUFFER_OVERFLOW_ERROR;
         return;
@@ -1121,7 +1093,7 @@ static const UConverterImpl _UTF16LEImpl={
     NULL,
     NULL,
     NULL,
-    ucnv_getNonSurrogateUnicodeSet
+    ucnv_getCompleteUnicodeSet
 };
 
 
@@ -1172,7 +1144,14 @@ _UTF16Reset(UConverter *cnv, UConverterResetChoice choice) {
     }
     if(choice!=UCNV_RESET_TO_UNICODE) {
         /* reset fromUnicode: prepare to output the UTF-16PE BOM */
-        cnv->fromUnicodeStatus=UCNV_NEED_TO_WRITE_BOM;
+        cnv->charErrorBufferLength=2;
+#if U_IS_BIG_ENDIAN
+        cnv->charErrorBuffer[0]=0xfe;
+        cnv->charErrorBuffer[1]=0xff;
+#else
+        cnv->charErrorBuffer[0]=0xff;
+        cnv->charErrorBuffer[1]=0xfe;
+#endif
     }
 }
 
@@ -1227,10 +1206,10 @@ _UTF16ToUnicodeWithOffsets(UConverterToUnicodeArgs *pArgs,
                 ++source;
                 if(state==1) {
                     state=8; /* detect UTF-16BE */
-                    offsetDelta=(int32_t)(source-pArgs->source);
+                    offsetDelta=source-pArgs->source;
                 } else if(state==5) {
                     state=9; /* detect UTF-16LE */
-                    offsetDelta=(int32_t)(source-pArgs->source);
+                    offsetDelta=source-pArgs->source;
                 }
             } else {
                 /* switch to UTF-16BE and pass the previous bytes */
@@ -1343,13 +1322,13 @@ static const UConverterImpl _UTF16Impl = {
     NULL,
     NULL,
     NULL,
-    ucnv_getNonSurrogateUnicodeSet
+    ucnv_getCompleteUnicodeSet
 };
 
 static const UConverterStaticData _UTF16StaticData = {
     sizeof(UConverterStaticData),
     "UTF-16",
-    1204, /* CCSID for BOM sensitive UTF-16 */
+    0, /* ### TODO review correctness of all Unicode CCSIDs */
     UCNV_IBM, UCNV_UTF16, 2, 2,
 #if U_IS_BIG_ENDIAN
     { 0xff, 0xfd, 0, 0 }, 2,

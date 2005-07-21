@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2001-2005 IBM and others. All rights reserved.
+*   Copyright (C) 2001-2004 IBM and others. All rights reserved.
 **********************************************************************
 *   Date        Name        Description
 *  07/02/2001   synwee      Creation.
@@ -19,8 +19,6 @@
 #include "usrchimp.h"
 #include "cmemory.h"
 #include "ucln_in.h"
-
-#define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
 // internal definition ---------------------------------------------------
 
@@ -120,7 +118,7 @@ inline void initializeFCD(UErrorCode *status)
 * @return fcd value
 */
 static
-uint16_t getFCD(const UChar   *str, int32_t *offset, 
+inline uint16_t getFCD(const UChar   *str, int32_t *offset, 
                              int32_t  strlength)
 {
     int32_t temp = *offset;
@@ -434,7 +432,7 @@ inline void initialize(UStringSearch *strsrch, UErrorCode *status)
 * @param end target text end offset
 */
 static
-UBool isBreakUnit(const UStringSearch *strsrch, int32_t start, 
+inline UBool isBreakUnit(const UStringSearch *strsrch, int32_t start, 
                                int32_t    end)
 {
 #if !UCONFIG_NO_BREAK_ITERATION
@@ -898,50 +896,32 @@ static
 inline UBool checkIdentical(const UStringSearch *strsrch, int32_t start, 
                                   int32_t    end) 
 {
-    UChar t2[32], p2[32];
     int32_t length = end - start;
     if (strsrch->strength != UCOL_IDENTICAL) {
         return TRUE;
     }
 
-    UErrorCode status = U_ZERO_ERROR, status2 = U_ZERO_ERROR;
-    int32_t decomplength = unorm_decompose(t2, LENGTHOF(t2), 
+    UErrorCode status = U_ZERO_ERROR;
+    int decomplength = unorm_decompose(NULL, -1, 
                                        strsrch->search->text + start, length, 
                                        FALSE, 0, &status);
-    // use separate status2 in case of buffer overflow
-    if (decomplength != unorm_decompose(p2, LENGTHOF(p2),
-                                        strsrch->pattern.text, 
+    if (decomplength != unorm_decompose(NULL, -1, strsrch->pattern.text, 
                                         strsrch->pattern.textLength,
-                                        FALSE, 0, &status2)) {
-        return FALSE; // lengths are different
+                                        FALSE, 0, &status)) {
+        return FALSE;
     }
-
-    // compare contents
-    UChar *text, *pattern;
-    if(U_SUCCESS(status)) {
-        text = t2;
-        pattern = p2;
-    } else if(status==U_BUFFER_OVERFLOW_ERROR) {
-        status = U_ZERO_ERROR;
-        // allocate one buffer for both decompositions
-        text = (UChar *)uprv_malloc(decomplength * 2 * U_SIZEOF_UCHAR);
-        pattern = text + decomplength;
-        unorm_decompose(text, decomplength, strsrch->search->text + start, 
-                        length, FALSE, 0, &status);
-        unorm_decompose(pattern, decomplength, strsrch->pattern.text, 
-                        strsrch->pattern.textLength, FALSE, 0, &status);
-    } else {
-        // NFD failed, make sure that u_memcmp() does not overrun t2 & p2
-        // and that we don't uprv_free() an undefined text pointer
-        text = pattern = t2;
-        decomplength = 0;
-    }
-    UBool result = (UBool)(u_memcmp(pattern, text, decomplength) == 0);
-    if(text != t2) {
-        uprv_free(text);
-    }
-    // return FALSE if NFD failed
-    return U_SUCCESS(status) && result;
+    decomplength ++;
+    UChar *text    = (UChar *)uprv_malloc(decomplength * sizeof(UChar));
+    UChar *pattern = (UChar *)uprv_malloc(decomplength * sizeof(UChar));
+    unorm_decompose(text, decomplength, strsrch->search->text + start, 
+                    length, FALSE, 0, &status);
+    unorm_decompose(pattern, decomplength, strsrch->pattern.text, 
+                    strsrch->pattern.textLength, FALSE, 0, &status);
+    UBool result = (uprv_memcmp(pattern, text, decomplength * sizeof(UChar)) 
+                    == 0);
+    uprv_free(text);
+    uprv_free(pattern);
+    return result;
 }
 
 /**

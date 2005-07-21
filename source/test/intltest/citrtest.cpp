@@ -1,12 +1,12 @@
-/****************************************************************************************
+/********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  * Modification History:
  *
  *   Date          Name        Description
  *   05/22/2000    Madhu       Added tests for testing new API for utf16 support and more
- ****************************************************************************************/
+ **********************************************************************/
 
 #include <string.h>
 #include "unicode/chariter.h"
@@ -40,13 +40,13 @@ public:
     virtual void getText(UnicodeString& result) {
         text.extract(0,text.length(),result);
     }
-    static UClassID getStaticClassID(void){ 
-        return (UClassID)(&fgClassID); 
-    }
     virtual UClassID getDynamicClassID(void) const{ 
         return getStaticClassID(); 
     }
 
+    static UClassID getStaticClassID(void){ 
+        return (UClassID)(&fgClassID); 
+    }
     virtual UBool operator==(const ForwardCharacterIterator& /*that*/) const{
         return TRUE;
     }
@@ -1102,12 +1102,12 @@ public:
     }
 
     // RTTI
-    static UClassID getStaticClassID() {
-        return (UClassID)(&fgClassID);
-    }
-
     virtual UClassID getDynamicClassID() const {
         return getStaticClassID();
+    }
+
+    static UClassID getStaticClassID() {
+        return (UClassID)(&fgClassID);
     }
 
 private:

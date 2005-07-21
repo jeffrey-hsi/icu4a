@@ -1,17 +1,16 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/he.xml
+// * Source File: ../../../locale/common/main/he.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/he.xml
+ *  ICU <specials> source: ../../../locale/icu/main/he.xml
  */
 he{
     Countries{
-        009{"אוקיניה"}
         AD{"אנדורה"}
         AE{"איחוד האמירויות הערביות"}
         AF{"אפגניסטן"}
@@ -247,34 +246,15 @@ he{
         WS{"סמואה"}
         YE{"תימן"}
         YT{"מיוטה"}
+        YU{"יוגוסלביה"}
         ZA{"דרום אפריקה"}
         ZM{"זמביה"}
         ZW{"זימבבווה"}
     }
     Currencies{
-        EUR{
-            "€",
-            "EUR",
-        }
-        GBP{
-            "£",
-            "GBP",
-        }
         ILS{
             "₪",
             "ש\"ח",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "רופי הודית",
-        }
-        JPY{
-            "¥",
-            "JPY",
-        }
-        USD{
-            "$",
-            "USD",
         }
     }
     ExemplarCharacters{"[ְ-ֹֻ-ֽֿׁ-ׂׄא-ת]"}
@@ -370,7 +350,7 @@ he{
             hebrew{"לוח שנה עברי"}
         }
     }
-    Version{"1.51"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimePatterns{
@@ -395,17 +375,6 @@ he{
                         "ו",
                         "ש",
                     }
-                    wide{
-                        "יום ראשון",
-                        "יום שני",
-                        "יום שלישי",
-                        "יום רביעי",
-                        "יום חמישי",
-                        "יום שישי",
-                        "שבת",
-                    }
-                }
-                stand-alone{
                     narrow{
                         "א",
                         "ב",
@@ -414,6 +383,15 @@ he{
                         "ה",
                         "ו",
                         "ש",
+                    }
+                    wide{
+                        "יום ראשון",
+                        "יום שני",
+                        "יום שלישי",
+                        "יום רביעי",
+                        "יום חמישי",
+                        "יום שישי",
+                        "שבת",
                     }
                 }
             }
@@ -470,7 +448,7 @@ he{
             }
             monthNames{
                 format{
-                    abbreviated:alias{"/LOCALE/calendar/hebrew/monthNames/format/wide"}
+                    abbreviated:alias{"he/calendar/hebrew/monthNames/format/wide"}
                     wide{
                         "תשרי",
                         "חשון",
@@ -497,7 +475,7 @@ he{
             }
             monthNames{
                 format{
-                    abbreviated:alias{"/LOCALE/calendar/islamic/monthNames/format/wide"}
+                    abbreviated:alias{"he/calendar/islamic/monthNames/format/wide"}
                     wide{
                         "מוחרם",
                         "ספר",
@@ -515,7 +493,7 @@ he{
                 }
             }
         }
-        islamic-civil:alias{"/LOCALE/calendar/islamic"}
+        islamic-civil:alias{"he/calendar/islamic"}
     }
-    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
+    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZ"}
 }

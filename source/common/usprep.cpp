@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  *
- *   Copyright (C) 2003-2005, International Business Machines
+ *   Copyright (C) 2003-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *
  *******************************************************************************
@@ -33,7 +33,6 @@
 #include "udataswp.h"
 #include "ucln_cmn.h"
 #include "unormimp.h"
-#include "ubidi_props.h"
 
 U_CDECL_BEGIN
 
@@ -83,7 +82,7 @@ getSPrepFoldingOffset(uint32_t data) {
 }
 
 /* hashes an entry  */
-static int32_t U_CALLCONV 
+static int32_t U_EXPORT2 U_CALLCONV 
 hashEntry(const UHashTok parm) {
     UStringPrepKey *b = (UStringPrepKey *)parm.pointer;
     UHashTok namekey, pathkey;
@@ -93,7 +92,7 @@ hashEntry(const UHashTok parm) {
 }
 
 /* compares two entries */
-static UBool U_CALLCONV 
+static UBool U_EXPORT2 U_CALLCONV 
 compareEntries(const UHashTok p1, const UHashTok p2) {
     UStringPrepKey *b1 = (UStringPrepKey *)p1.pointer;
     UStringPrepKey *b2 = (UStringPrepKey *)p2.pointer;
@@ -372,19 +371,6 @@ usprep_getProfile(const char* path,
         /* get the options */
         profile->doNFKC            = (UBool)((profile->indexes[_SPREP_OPTIONS] & _SPREP_NORMALIZATION_ON) > 0);
         profile->checkBiDi         = (UBool)((profile->indexes[_SPREP_OPTIONS] & _SPREP_CHECK_BIDI_ON) > 0);
-
-        if(profile->checkBiDi) {
-            profile->bdp = ubidi_getSingleton(status);
-            if(U_FAILURE(*status)) {
-                usprep_unload(profile);
-                uprv_free(key->path);
-                uprv_free(key);
-                uprv_free(profile);
-                return NULL;
-            }
-        } else {
-            profile->bdp = NULL;
-        }
         
         umtx_lock(&usprepMutex);
         /* add the data object to the cache */
@@ -766,19 +752,17 @@ usprep_prepare(   const UStringPrepProfile* profile,
             goto CLEANUP;
         }
 
-        if(profile->checkBiDi) {
-            direction = ubidi_getClass(profile->bdp, ch);
-            if(firstCharDir == U_CHAR_DIRECTION_COUNT){
-                firstCharDir = direction;
-            }
-            if(direction == U_LEFT_TO_RIGHT){
-                leftToRight = TRUE;
-                ltrPos = b2Index-1;
-            }
-            if(direction == U_RIGHT_TO_LEFT || direction == U_RIGHT_TO_LEFT_ARABIC){
-                rightToLeft = TRUE;
-                rtlPos = b2Index-1;
-            }
+        direction = u_charDirection(ch);
+        if(firstCharDir == U_CHAR_DIRECTION_COUNT){
+            firstCharDir = direction;
+        }
+        if(direction == U_LEFT_TO_RIGHT){
+            leftToRight = TRUE;
+            ltrPos = b2Index-1;
+        }
+        if(direction == U_RIGHT_TO_LEFT || direction == U_RIGHT_TO_LEFT_ARABIC){
+            rightToLeft = TRUE;
+            rtlPos = b2Index-1;
         }
     }           
     if(profile->checkBiDi == TRUE){

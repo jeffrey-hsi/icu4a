@@ -25,6 +25,7 @@
 #define CMEMORY_H
 
 #include "unicode/utypes.h"
+#include <stdlib.h>
 #include <string.h>
 
 

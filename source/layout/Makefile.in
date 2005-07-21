@@ -1,4 +1,4 @@
-## Copyright (c) 1999-2005, International Business Machines Corporation and
+## Copyright (c) 1999-2004, International Business Machines Corporation and
 ## others. All Rights Reserved.
 ## Makefile.in for ICU - layout
 
@@ -50,7 +50,8 @@ CPPFLAGS += -I$(srcdir) -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcd
 DEFS += -DU_LAYOUT_IMPLEMENTATION
 LIBS = $(LIBICUUC) $(DEFAULT_LIBS)
 
-OBJECTS =  LEFontInstance.o \
+OBJECTS =  loengine.o \
+LEFontInstance.o \
 OpenTypeLayoutEngine.o \
 ThaiLayoutEngine.o \
 ThaiShaping.o \
@@ -77,7 +78,6 @@ AlternateSubstSubtables.o \
 AnchorTables.o \
 ArabicShaping.o \
 CanonData.o \
-CanonShaping.o \
 ClassDefinitionTables.o \
 ContextualSubstSubtables.o \
 CoverageTables.o \
@@ -90,7 +90,6 @@ GlyphDefinitionTables.o \
 GlyphIterator.o \
 GlyphLookupTables.o \
 GlyphPosnLookupProc.o \
-GlyphPositionAdjustments.o \
 GlyphPositioningTables.o \
 GlyphSubstLookupProc.o \
 GlyphSubstitutionTables.o \
@@ -105,7 +104,6 @@ MarkArrays.o \
 MarkToBasePosnSubtables.o \
 MarkToLigaturePosnSubtables.o \
 MarkToMarkPosnSubtables.o \
-MirroredCharData.o \
 MPreFixups.o \
 MultipleSubstSubtables.o \
 OpenTypeUtilities.o \
@@ -115,10 +113,7 @@ ScriptAndLanguageTags.o \
 SinglePositioningSubtables.o \
 SingleSubstitutionSubtables.o \
 SubstitutionLookups.o \
-ValueRecords.o \
-KhmerLayoutEngine.o \
-KhmerReordering.o \
-KernTable.o
+ValueRecords.o 
 
 STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
 
@@ -126,6 +121,7 @@ DEPS = $(OBJECTS:.o=.d)
 
 ## Header files to install
 HEADERS= $(srcdir)/LayoutEngine.h $(srcdir)/LE*.h
+LOHEADERS= $(srcdir)/unicode/loengine.h
 
 ## List of phony targets
 .PHONY : all all-local install install-local clean clean-local	\
@@ -177,6 +173,10 @@ install-headers:
 	@for file in $(HEADERS); do \
 	 echo "$(INSTALL_DATA) $$file $(DESTDIR)$(includedir)/layout"; \
 	 $(INSTALL_DATA) $$file $(DESTDIR)$(includedir)/layout || exit; \
+	done
+	@for file in $(LOHEADERS); do \
+	 echo "$(INSTALL_DATA) $$file $(DESTDIR)$(includedir)/unicode"; \
+	 $(INSTALL_DATA) $$file $(DESTDIR)$(includedir)/unicode || exit; \
 	done
 
 dist-local:

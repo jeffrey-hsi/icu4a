@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -114,7 +114,6 @@ void addCollAPITest(TestNode** root)
     /*addTest(root, &TestGetDefaultRules, "tscoll/capitst/TestGetDefaultRules");*/
     addTest(root, &TestDecomposition, "tscoll/capitst/TestDecomposition");
     addTest(root, &TestSafeClone, "tscoll/capitst/TestSafeClone");
-    addTest(root, &TestCloneBinary, "tscoll/capitst/TestCloneBinary");
     addTest(root, &TestGetSetAttr, "tscoll/capitst/TestGetSetAttr");
     addTest(root, &TestBounds, "tscoll/capitst/TestBounds");
     addTest(root, &TestGetLocale, "tscoll/capitst/TestGetLocale");    
@@ -124,7 +123,6 @@ void addCollAPITest(TestNode** root)
     addTest(root, &TestMergeSortKeys, "tscoll/capitst/TestMergeSortKeys");
     addTest(root, &TestShortString, "tscoll/capitst/TestShortString");
     addTest(root, &TestGetContractionsAndUnsafes, "tscoll/capitst/TestGetContractionsAndUnsafes");
-    addTest(root, &TestOpenBinary, "tscoll/capitst/TestOpenBinary");
 }
 
 void TestGetSetAttr(void) {
@@ -280,10 +278,9 @@ void TestProperty()
       ICU 2.2 currVersionArray = {0x21, 0x40, 0x04, 0x04};
       ICU 2.4 currVersionArray = {0x21, 0x40, 0x04, 0x04};
       ICU 2.6 currVersionArray = {0x21, 0x40, 0x03, 0x03};
-      ICU 2.8 currVersionArray = {0x29, 0x80, 0x00, 0x04};
     */
-    UVersionInfo currVersionArray = {0x31, 0xC0, 0x00, 0x04};
-    UVersionInfo currUCAVersionArray = {4, 1, 0, 0};
+    UVersionInfo currVersionArray = {0x29, 0x80, 0x00, 0x04};
+    UVersionInfo currUCAVersionArray = {4, 0, 0, 0};
     UVersionInfo versionArray = {0, 0, 0, 0};
     UVersionInfo versionUCAArray = {0, 0, 0, 0};
     
@@ -758,58 +755,6 @@ void TestSafeClone() {
     free(test2);
 }
 
-void TestCloneBinary(){
-    UErrorCode err = U_ZERO_ERROR;
-    UCollator * col = ucol_open("en_US", &err);
-    UCollator * c;
-    int32_t size;
-    uint8_t * buffer;
-
-    if (U_FAILURE(err)) {
-        log_data_err("Couldn't open collator. Error: %s\n", u_errorName(err));
-        return;
-    }
-
-    size = ucol_cloneBinary(col, NULL, 0, &err);
-    if(size==0 || err!=U_BUFFER_OVERFLOW_ERROR) {
-        log_err("ucol_cloneBinary - couldn't check size. Error: %s\n", u_errorName(err));
-        return;
-    }
-    err = U_ZERO_ERROR;
-
-    buffer = (uint8_t *) malloc(size);
-    ucol_cloneBinary(col, buffer, size, &err);
-    if(U_FAILURE(err)) {
-        log_err("ucol_cloneBinary - couldn't clone.. Error: %s\n", u_errorName(err));
-        free(buffer);
-        return;
-    }
-
-    /* how to check binary result ? */
-
-    c = ucol_openBinary(buffer, size, col, &err);
-    if(U_FAILURE(err)) {
-        log_err("ucol_openBinary failed. Error: %s\n", u_errorName(err));
-    } else {
-        UChar t[] = {0x41, 0x42, 0x43, 0};  /* ABC */
-        uint8_t  *k1, *k2;
-        int l1, l2;
-        l1 = ucol_getSortKey(col, t, -1, NULL,0);
-        l2 = ucol_getSortKey(c, t, -1, NULL,0);
-        k1 = (uint8_t *) malloc(sizeof(uint8_t) * l1);
-        k2 = (uint8_t *) malloc(sizeof(uint8_t) * l2);
-        ucol_getSortKey(col, t, -1, k1, l1);
-        ucol_getSortKey(col, t, -1, k2, l2);
-        if (strcmp((char *)k1,(char *)k2) != 0){
-            log_err("ucol_openBinary - new collator should equal to old one\n");
-        };
-        free(k1);
-        free(k2);
-    }
-    free(buffer);
-    ucol_close(c);
-    ucol_close(col);
-}
 /*
 ----------------------------------------------------------------------------
  ctor -- Tests the getSortKey
@@ -818,12 +763,10 @@ void TestSortKey()
 {   
     uint8_t *sortk1 = NULL, *sortk2 = NULL, *sortk3 = NULL, *sortkEmpty = NULL;
     uint8_t sortk2_compat[] = { 
-        /* 3.4 key, UCA 4.1 */
-        0x28, 0x2a, 0x2c, 0x2e, 0x28, 0x01, 
-        0x09, 0x01, 0x09, 0x01, 0x27, 0x01, 
-        0x92, 0x93, 0x94, 0x95, 0x92, 0x00        
-        /* 2.6.1 key */
-        /* 0x26, 0x28, 0x2A, 0x2C, 0x26, 0x01, 0x09, 0x01, 0x09, 0x01, 0x25, 0x01, 0x92, 0x93, 0x94, 0x95, 0x92, 0x00 */
+      /* 2.6.1 key */
+        0x26, 0x28, 0x2A, 0x2C, 0x26, 0x01, 
+        0x09, 0x01, 0x09, 0x01, 0x25, 0x01, 
+        0x92, 0x93, 0x94, 0x95, 0x92, 0x00 
         /* 2.2 key */
         /*0x1D, 0x1F, 0x21, 0x23, 0x1D, 0x01, 0x09, 0x01, 0x09, 0x01, 0x1C, 0x01, 0x92, 0x93, 0x94, 0x95, 0x92, 0x00*/
         /* 2.0 key */
@@ -1788,7 +1731,7 @@ static void TestShortString(void)
         int32_t    expectedOffset;
         uint32_t   expectedIdentifier;
     } testCases[] = {
-        {"LDE_RDE_KPHONEBOOK_T0041_ZLATN","B2800_KPHONEBOOK_LDE", "de@collation=phonebook", U_USING_FALLBACK_WARNING, 0, 0 },
+        {"LDE_RDE_KPHONEBOOK_T0041_ZLATN","B2600_KPHONEBOOK_LDE", "de@collation=phonebook", U_USING_FALLBACK_WARNING, 0, 0 },
         {"LEN_RUS_NO_AS_S4","AS_LEN_NO_S4", NULL, U_USING_FALLBACK_WARNING, 0, 0 },
         {"LDE_VPHONEBOOK_EO_SI","EO_KPHONEBOOK_LDE_SI", "de@collation=phonebook", U_ZERO_ERROR, 0, 0 },
         {"LDE_Kphonebook","KPHONEBOOK_LDE", "de@collation=phonebook", U_ZERO_ERROR, 0, 0 },
@@ -1865,11 +1808,11 @@ static void TestShortString(void)
 
                 if(idFromSS != identifier) {
                     log_err("FD = %i, id didn't round trip. %08X vs %08X (%s)\n", 
-                        j, idFromSS, identifier, testCases[i].input);
+                        j, idFromSS, identifier, testCases[i]);
                 }
                 if(strcmp(fromIDBuffer, fromIDRoundtrip)) {
                     log_err("FD = %i, SS didn't round trip. %s vs %s (%s)\n", 
-                        j, fromIDBuffer, fromIDRoundtrip, testCases[i].input);
+                        j, fromIDBuffer, fromIDRoundtrip, testCases[i]);
                 }
             }
 
@@ -1924,16 +1867,12 @@ TestGetContractionsAndUnsafes(void)
         const char* locale;
         const char* inConts;
         const char* outConts;
-        const char* inExp;
-        const char* outExp;
         const char* unsafeCodeUnits;
         const char* safeCodeUnits;
     } tests[] = {
         { "ru", 
             "[{\\u0474\\u030F}{\\u0475\\u030F}{\\u04D8\\u0308}{\\u04D9\\u0308}{\\u04E8\\u0308}{\\u04E9\\u0308}]", 
             "[{\\u0430\\u0306}{\\u0410\\u0306}{\\u0430\\u0308}{\\u0410\\u0306}{\\u0433\\u0301}{\\u0413\\u0301}]",
-            "[\\u00e6]",
-            "[a]",
             "[\\u0474\\u0475\\u04d8\\u04d9\\u04e8\\u04e9]",
             "[aAbB\\u0430\\u0410\\u0433\\u0413]"
         },
@@ -1941,26 +1880,20 @@ TestGetContractionsAndUnsafes(void)
             "[{\\u0474\\u030F}{\\u0475\\u030F}{\\u04D8\\u0308}{\\u04D9\\u0308}{\\u04E8\\u0308}{\\u04E9\\u0308}" 
             "{\\u0430\\u0306}{\\u0410\\u0306}{\\u0430\\u0308}{\\u0410\\u0306}{\\u0433\\u0301}{\\u0413\\u0301}]",
             "[]",
-            "[\\u00e6]",
-            "[a]",
             "[\\u0474\\u0475\\u04D8\\u04D9\\u04E8\\u04E9\\u0430\\u0410\\u0433\\u0413]",
             "[aAbBxv]",
+        },
+        { "ja",
+            "[{\\u309d\\u3099}{\\u30fd\\u3099}]",
+            "[{lj}{nj}]",
+            "[\\u3099\\u309d\\u30fd]",
+            "[\\u30a6\\u3044\\uff73]"
         },
         { "sh",
             "[{C\\u0301}{C\\u030C}{C\\u0341}{DZ\\u030C}{Dz\\u030C}{D\\u017D}{D\\u017E}{lj}{nj}]",
             "[{\\u309d\\u3099}{\\u30fd\\u3099}]",
-            "[\\u00e6]",
-            "[a]",
             "[nlcdzNLCDZ]",
             "[jabv]"
-        },
-        { "ja",
-          "[{\\u3053\\u3099\\u309D}{\\u3053\\u3099\\u309D\\u3099}{\\u3053\\u3099\\u309E}{\\u3053\\u3099\\u30FC}{\\u3053\\u309D}{\\u3053\\u309D\\u3099}{\\u3053\\u309E}{\\u3053\\u30FC}{\\u30B3\\u3099\\u30FC}{\\u30B3\\u3099\\u30FD}{\\u30B3\\u3099\\u30FD\\u3099}{\\u30B3\\u3099\\u30FE}{\\u30B3\\u30FC}{\\u30B3\\u30FD}{\\u30B3\\u30FD\\u3099}{\\u30B3\\u30FE}]",
-          "[{\\u30FD\\u3099}{\\u309D\\u3099}{\\u3053\\u3099}{\\u30B3\\u3099}{lj}{nj}]",
-            "[\\u30FE\\u00e6]",
-            "[a]",
-            "[\\u3099]",
-            "[]"
         }
     };
 
@@ -1972,103 +1905,31 @@ TestGetContractionsAndUnsafes(void)
     int32_t i = 0;
     int32_t noConts = 0;
     USet *conts = uset_open(0,0);
-    USet *exp = uset_open(0, 0);
     USet *set  = uset_open(0,0);
-    int32_t setBufferLen = 65536;
-    UChar buffer[65536];
+    UChar buffer[32768];
     int32_t setLen = 0;
 
     for(i = 0; i < sizeof(tests)/sizeof(tests[0]); i++) {
         log_verbose("Testing locale: %s\n", tests[i].locale);
         coll = ucol_open(tests[i].locale, &status);
-        ucol_getContractionsAndExpansions(coll, conts, exp, TRUE, &status);
+        noConts = ucol_getContractions(coll, conts, &status);
         doSetsTest(conts, set, tests[i].inConts, tests[i].outConts, &status);
-        setLen = uset_toPattern(conts, buffer, setBufferLen, TRUE, &status);
+        setLen = uset_toPattern(conts, buffer, 32768, TRUE, &status);
         if(U_SUCCESS(status)) {
-            /*log_verbose("Contractions %i: %s\n", uset_getItemCount(conts), aescstrdup(buffer, setLen));*/
+            log_verbose("%i: %s\n", noConts, aescstrdup(buffer, setLen));
         } else {
             log_err("error %s. %i\n", u_errorName(status), setLen);
-            status = U_ZERO_ERROR;
-        }
-        doSetsTest(exp, set, tests[i].inExp, tests[i].outExp, &status);
-        setLen = uset_toPattern(exp, buffer, setBufferLen, TRUE, &status);
-        if(U_SUCCESS(status)) {
-            /*log_verbose("Expansions %i: %s\n", uset_getItemCount(exp), aescstrdup(buffer, setLen));*/
-        } else {
-            log_err("error %s. %i\n", u_errorName(status), setLen);
-            status = U_ZERO_ERROR;
         }
 
         noConts = ucol_getUnsafeSet(coll, conts, &status);
         doSetsTest(conts, set, tests[i].unsafeCodeUnits, tests[i].safeCodeUnits, &status);
-        setLen = uset_toPattern(conts, buffer, setBufferLen, TRUE, &status);
-        if(U_SUCCESS(status)) {
-            log_verbose("Unsafe %i: %s\n", uset_getItemCount(exp), aescstrdup(buffer, setLen));
-        } else {
-            log_err("error %s. %i\n", u_errorName(status), setLen);
-            status = U_ZERO_ERROR;
-        }
 
         ucol_close(coll);
     }
 
 
     uset_close(conts);
-    uset_close(exp);
     uset_close(set);
-}
-
-static void 
-TestOpenBinary(void) 
-{
-  UErrorCode status = U_ZERO_ERROR;
-  /*
-  char rule[] = "&h < d < c < b";
-  char *wUCA[] = { "a", "h", "d", "c", "b", "i" };
-  char *noUCA[] = {"d", "c", "b", "a", "h", "i" };
-  */
-  /* we have to use Cyrillic letters because latin-1 always gets copied */
-  const char rule[] = "&\\u0452 < \\u0434 < \\u0433 < \\u0432"; /* &dje < d < g < v */
-  const char *wUCA[] = { "\\u0430", "\\u0452", "\\u0434", "\\u0433", "\\u0432", "\\u0435" }; /* a, dje, d, g, v, e */
-  const char *noUCA[] = {"\\u0434", "\\u0433", "\\u0432", "\\u0430", "\\u0435", "\\u0452" }; /* d, g, v, a, e, dje */
-
-  UChar uRules[256];
-  int32_t uRulesLen = u_unescape(rule, uRules, 256);
-
-  UCollator *coll = ucol_openRules(uRules, uRulesLen, UCOL_DEFAULT, UCOL_DEFAULT, NULL, &status);
-  UCollator *UCA = ucol_open("root", &status);
-  UCollator *cloneNOUCA = NULL, *cloneWUCA = NULL;
-
-  uint8_t imageBuffer[32768];
-  uint8_t *image = imageBuffer;
-  int32_t imageBufferCapacity = 32768;
-
-  int32_t imageSize = ucol_cloneBinary(coll, image, imageBufferCapacity, &status);
-  if(U_FAILURE(status)) {
-    image = (uint8_t *)malloc(imageSize*sizeof(uint8_t));
-    status = U_ZERO_ERROR;
-    imageSize = ucol_cloneBinary(coll, imageBuffer, imageSize, &status);
-  }
-
-
-  cloneWUCA = ucol_openBinary(image, imageSize, UCA, &status);
-  cloneNOUCA = ucol_openBinary(image, imageSize, NULL, &status);
-
-  genericOrderingTest(coll, wUCA, sizeof(wUCA)/sizeof(wUCA[0]));
-
-  genericOrderingTest(cloneWUCA, wUCA, sizeof(wUCA)/sizeof(wUCA[0]));
-  genericOrderingTest(cloneNOUCA, noUCA, sizeof(noUCA)/sizeof(noUCA[0]));
-
-
-
-  if(image != imageBuffer) {
-    free(image);
-  }
-  ucol_close(coll);
-  ucol_close(cloneNOUCA);
-  ucol_close(cloneWUCA);
-  ucol_close(UCA);
-
 }
 
 #endif /* #if !UCONFIG_NO_COLLATION */

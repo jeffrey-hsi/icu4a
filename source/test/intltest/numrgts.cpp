@@ -1,6 +1,6 @@
 /***********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation
+ * Copyright (c) 1997-2004, International Business Machines Corporation
  * and others. All Rights Reserved.
  ***********************************************************************/
  
@@ -20,74 +20,6 @@
 #include "unicode/calendar.h"
 #include "unicode/datefmt.h"
 #include "putilimp.h"
-
-class MyNumberFormatTest : public NumberFormat 
-{
-public:
-
-    virtual UClassID getDynamicClassID(void) const;
-  
-    virtual UnicodeString& format(    double            number, 
-                    UnicodeString&        toAppendTo, 
-                    FieldPosition&        pos,
-                    UErrorCode& status) const
-    {
-        return NumberFormat::format(number, toAppendTo, pos, status);
-    }
-
-    /* Just keep this here to make some of the compilers happy */
-    virtual UnicodeString& format(const Formattable& obj,
-                                  UnicodeString& toAppendTo,
-                                  FieldPosition& pos,
-                                  UErrorCode& status) const
-    {
-        return NumberFormat::format(obj, toAppendTo, pos, status);
-    }
-
-    /* Just use one of the format functions */
-    virtual UnicodeString& format(    double            /* number */, 
-                    UnicodeString&        toAppendTo, 
-                    FieldPosition&        /* pos */) const
-    {
-        toAppendTo = "";
-        return toAppendTo;
-    }
-  
-    /*
-    public Number parse(String text, ParsePosition parsePosition) 
-    { return new Integer(0); }
-    */
-  
-    /* Just use one of the parse functions */
-    virtual void parse(    const UnicodeString&    /* text */, 
-            Formattable&            result, 
-            ParsePosition&          /* parsePosition */) const
-    {
-        result.setLong((int32_t)0);
-    }
-  
-    virtual void parse(    const UnicodeString&    text, 
-            Formattable&            result, 
-            UErrorCode&            status) const 
-    {
-        NumberFormat::parse(text, result, status);
-    }
-    virtual Format* clone() const 
-    { return NULL; }
-
-    virtual UnicodeString& format(int32_t, 
-                UnicodeString& foo, 
-                FieldPosition&) const
-    { return foo.remove(); }
-
-    virtual UnicodeString& format(int64_t, 
-                UnicodeString& foo, 
-                FieldPosition&) const
-    { return foo.remove(); }
-
-    virtual void applyPattern(const UnicodeString&, UParseError&, UErrorCode&){
-    }
-};
 
 int32_t gMyNumberFormatTestClassID;
 UClassID MyNumberFormatTest::getDynamicClassID()  const
@@ -380,10 +312,7 @@ NumberFormatRegressionTest::assignFloatValue(float returnfloat)
     logln(UnicodeString(" VALUE ") + returnfloat);
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *nfcommon =  NumberFormat::createCurrencyInstance(Locale::getUS(), status);
-    if (failure(status, "NumberFormat::createCurrencyInstance", Locale::getUS())){
-        delete nfcommon;
-        return returnfloat;
-    }
+    failure(status, "NumberFormat::createCurrencyInstance", Locale::getUS());
     nfcommon->setGroupingUsed(FALSE);
 
     UnicodeString stringValue;
@@ -454,10 +383,7 @@ void NumberFormatRegressionTest::Test4071492 (void)
     double x = 0.00159999;
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *nf = NumberFormat::createInstance(status);
-    if (failure(status, "NumberFormat::createInstance", Locale::getUS())) {
-        delete nf;
-        return;
-    }
+    failure(status, "NumberFormat::createInstance", Locale::getUS());
     nf->setMaximumFractionDigits(4);
     UnicodeString out;
     FieldPosition pos(FieldPosition::DONT_CARE);
@@ -962,10 +888,7 @@ void NumberFormatRegressionTest::Test4071005 (void)
 
     UErrorCode status = U_ZERO_ERROR;
     formatter = NumberFormat::createInstance(Locale::getCanadaFrench(), status);
-    if (failure(status, "NumberFormat::createNumberInstance", Locale::getCanadaFrench())){
-        delete formatter;
-        return;
-    };
+    failure(status, "NumberFormat::createNumberInstance", Locale::getCanadaFrench());
     tempString = formatter->format (-5789.9876, tempString);
 
     if (tempString == expectedDefault) {
@@ -1027,10 +950,7 @@ void NumberFormatRegressionTest::Test4071014 (void)
     char loc[256]={0};
     uloc_canonicalize("de_DE_PREEURO", loc, 256, &status);
     formatter = NumberFormat::createInstance(Locale(loc), status);
-    if (failure(status, "NumberFormat::createNumberInstance", loc)){
-        delete formatter;
-        return;
-    }
+    failure(status, "NumberFormat::createNumberInstance", loc);
     tempString.remove();
     tempString = formatter->format (-5789.9876, tempString);
 
@@ -1093,10 +1013,7 @@ void NumberFormatRegressionTest::Test4071859 (void)
     char loc[256]={0};
     uloc_canonicalize("it_IT_PREEURO", loc, 256, &status);
     formatter = NumberFormat::createInstance(Locale(loc), status);
-    if (failure(status, "NumberFormat::createNumberInstance")){
-        delete formatter;
-        return;
-    };
+    failure(status, "NumberFormat::createNumberInstance");
     tempString = formatter->format (-5789.9876, tempString);
 
     if (tempString == expectedDefault) {
@@ -1185,12 +1102,6 @@ void NumberFormatRegressionTest::Test4098741(void)
     //try {
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *fmt = NumberFormat::createPercentInstance(status);
-    if (U_FAILURE(status)) {
-        dataerrln("Error calling NumberFormat::createPercentInstance");
-        delete fmt;
-        return;
-    }
-
         fmt->setMaximumFractionDigits(20);
         UnicodeString temp;
         logln(fmt->format(.001, temp));
@@ -1866,10 +1777,7 @@ void NumberFormatRegressionTest::Test4145457() {
     //try {
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *nff = NumberFormat::createInstance(status);
-    if (failure(status, "NumberFormat::createInstance")){
-        delete nff;
-        return;
-    };
+    failure(status, "NumberFormat::createInstance");
     if(nff->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
         errln("DecimalFormat needed to continue");
         return;
@@ -2104,10 +2012,7 @@ static double _u_abs(double a) { return a<0?-a:a; }
 void NumberFormatRegressionTest::Test4167494(void) {
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *fmt = NumberFormat::createInstance(Locale::getUS(), status);
-    if (failure(status, "NumberFormat::createInstance")){
-        delete fmt;
-        return;
-    };
+    failure(status, "NumberFormat::createInstance");
 
     double a = DBL_MAX * 0.99; // DBL_MAX itself overflows to +Inf
     UnicodeString s;
@@ -2140,10 +2045,7 @@ void NumberFormatRegressionTest::Test4167494(void) {
 void NumberFormatRegressionTest::Test4170798(void) {
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *nf = NumberFormat::createInstance(Locale::getUS(), status);
-    if (failure(status, "NumberFormat::createInstance")){
-        delete nf;
-        return;
-    };
+    failure(status, "NumberFormat::createInstance");
     if(nf->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
         errln("DecimalFormat needed to continue");
         return;
@@ -2407,10 +2309,7 @@ void NumberFormatRegressionTest::Test4212072(void) {
 void NumberFormatRegressionTest::Test4216742(void) {
     UErrorCode status = U_ZERO_ERROR;
     DecimalFormat *fmt = (DecimalFormat*) NumberFormat::createInstance(Locale::getUS(), status);
-    if (failure(status, "createInstance", Locale::getUS())){
-        delete fmt;
-        return;
-    };
+    failure(status, "createInstance", Locale::getUS());
     int32_t DATA[] = { INT32_MIN, INT32_MAX, -100000000, 100000000 };
     int DATA_length = (int)(sizeof(DATA) / sizeof(DATA[0]));
     for (int i=0; i<DATA_length; ++i) {
@@ -2449,10 +2348,7 @@ void NumberFormatRegressionTest::Test4217661(void) {
     int D_length = (int)(sizeof(D) / sizeof(D[0]));
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *fmt = NumberFormat::createInstance(Locale::getUS(), status);
-    if (failure(status, "createInstance", Locale::getUS())){
-        delete fmt;
-        return;
-    };
+    failure(status, "createInstance", Locale::getUS());
     fmt->setMaximumFractionDigits(2);
     for (int i=0; i<D_length; i++) {
         UnicodeString s;
@@ -2470,10 +2366,7 @@ void NumberFormatRegressionTest::Test4217661(void) {
 void NumberFormatRegressionTest::Test4161100(void) {
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *nf = NumberFormat::createInstance(Locale::getUS(), status);
-    if (failure(status, "createInstance", Locale::getUS())){
-        delete nf;
-        return;
-    };
+    failure(status, "createInstance", Locale::getUS());
     nf->setMinimumFractionDigits(1);
     nf->setMaximumFractionDigits(1);
     double a = -0.09;

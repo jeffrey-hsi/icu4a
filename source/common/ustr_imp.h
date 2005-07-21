@@ -1,6 +1,6 @@
 /*  
 **********************************************************************
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   file name:  ustr_imp.h
@@ -102,7 +102,7 @@ u_growBufferFromStatic(void *context,
  * @internal
  */
 U_CFUNC int32_t
-ustr_toLower(const UCaseProps *csp,
+ustr_toLower(UCaseProps *csp,
              UChar *dest, int32_t destCapacity,
              const UChar *src, int32_t srcLength,
              const char *locale,
@@ -112,7 +112,7 @@ ustr_toLower(const UCaseProps *csp,
  * @internal
  */
 U_CFUNC int32_t
-ustr_toUpper(const UCaseProps *csp,
+ustr_toUpper(UCaseProps *csp,
              UChar *dest, int32_t destCapacity,
              const UChar *src, int32_t srcLength,
              const char *locale,
@@ -124,7 +124,7 @@ ustr_toUpper(const UCaseProps *csp,
  * @internal
  */
 U_CFUNC int32_t
-ustr_toTitle(const UCaseProps *csp,
+ustr_toTitle(UCaseProps *csp,
              UChar *dest, int32_t destCapacity,
              const UChar *src, int32_t srcLength,
              UBreakIterator *titleIter,
@@ -138,7 +138,7 @@ ustr_toTitle(const UCaseProps *csp,
  * @internal
  */
 U_CFUNC int32_t
-ustr_foldCase(const UCaseProps *csp,
+ustr_foldCase(UCaseProps *csp,
               UChar *dest, int32_t destCapacity,
               const UChar *src, int32_t srcLength,
               uint32_t options,

@@ -1,7 +1,7 @@
 /*
  * %W% %E%
  *
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved
  *
  */
 
@@ -16,27 +16,22 @@
 #include "LETypes.h"
 #include "LEFontInstance.h"
 #include "OpenTypeTables.h"
-//#include "Lookups.h"
-//#include "Features.h"
+#include "Lookups.h"
+#include "Features.h"
+#include "GlyphDefinitionTables.h"
+#include "GlyphPositionAdjustments.h"
+#include "GlyphIterator.h"
 
 U_NAMESPACE_BEGIN
 
-class  LEFontInstance;
-class  LEGlyphStorage;
-class  GlyphIterator;
-class  GlyphPositionAdjustments;
-struct FeatureTable;
-struct FeatureListTable;
-struct GlyphDefinitionTableHeader;
-struct LookupSubtable;
-struct LookupTable;
+class LEGlyphStorage;
 
 class LookupProcessor : public UMemory {
 public:
     static const LETag notSelected;
     static const LETag defaultFeature;
 
-    le_int32 process(LEGlyphStorage &glyphStorage, GlyphPositionAdjustments *glyphPositionAdjustments,
+    le_int32 process(LEGlyphStorage &glyphStorage, GlyphPositionAdjustment *glyphPositionAdjustments,
                  le_bool rightToLeft, const GlyphDefinitionTableHeader *glyphDefinitionTableHeader, const LEFontInstance *fontInstance) const;
 
     le_uint32 applyLookupTable(const LookupTable *lookupTable, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;

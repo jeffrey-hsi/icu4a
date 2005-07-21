@@ -403,7 +403,7 @@ static ETestConvertResult testConvertFromU( const UChar *source, int sourceLen, 
       log_err("Expected %d chars out, got %d %s\n", expectLen, targ-junkout, gNuConvTestName);
       log_verbose("Expected %d chars out, got %d %s\n", expectLen, targ-junkout, gNuConvTestName);
       printf("\nGot:");
-      printSeqErr((const unsigned char*)junkout, (int32_t)(targ-junkout));
+      printSeqErr((const unsigned char*)junkout, targ-junkout);
       printf("\nExpected:");
       printSeqErr((const unsigned char*)expect, expectLen);
       return TC_MISMATCH;
@@ -413,7 +413,7 @@ static ETestConvertResult testConvertFromU( const UChar *source, int sourceLen, 
       log_verbose("comparing %d offsets..\n", targ-junkout);
       if(memcmp(junokout,expectOffsets,(targ-junkout) * sizeof(int32_t) )){
         log_err("did not get the expected offsets. %s\n", gNuConvTestName);
-        printSeqErr((const unsigned char*)junkout, (int32_t)(targ-junkout));
+        printSeqErr((const unsigned char*)junkout, targ-junkout);
         log_err("\n");
         log_err("Got  :     ");
         for(p=junkout;p<targ;p++) {
@@ -614,85 +614,85 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
 {
 /** test chars #1 */
     /*  1 2 3  1Han 2Han 3Han .  */
-    static const UChar   sampleText[] =
-     { 0x0031, 0x0032, 0x0033, 0x0000, 0x4e00, 0x4e8c, 0x4e09, 0x002E };
+    UChar    sampleText[] =
+     { 0x0031, 0x0032, 0x0033, 0x0000, 0x4e00, 0x4e8c, 0x4e09,  0x002E  };
 
 
-    static const uint8_t expectedUTF8[] =
+    const uint8_t expectedUTF8[] =
      { 0x31, 0x32, 0x33, 0x00, 0xe4, 0xb8, 0x80, 0xe4, 0xba, 0x8c, 0xe4, 0xb8, 0x89, 0x2E };
-    static const int32_t toUTF8Offs[] =
+    int32_t  toUTF8Offs[] =
      { 0x00, 0x01, 0x02, 0x03, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x06, 0x06, 0x06, 0x07};
-    static const int32_t fmUTF8Offs[] =
+    int32_t fmUTF8Offs[] =
      { 0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0007, 0x000a, 0x000d };
 
 #ifdef U_ENABLE_GENERIC_ISO_2022
     /* Same as UTF8, but with ^[%B preceeding */
-    static const const uint8_t expectedISO2022[] =
+    const uint8_t expectedISO2022[] =
      { 0x1b, 0x25, 0x42, 0x31, 0x32, 0x33, 0x00, 0xe4, 0xb8, 0x80, 0xe4, 0xba, 0x8c, 0xe4, 0xb8, 0x89, 0x2E };
-    static const int32_t toISO2022Offs[]     =
+    int32_t  toISO2022Offs[]     =
      { -1, -1, -1, 0x00, 0x01, 0x02, 0x03, 0x04, 0x04,
        0x04, 0x05, 0x05, 0x05, 0x06, 0x06, 0x06, 0x07 }; /* right? */
-    static const int32_t fmISO2022Offs[] =
+    int32_t fmISO2022Offs[] =
      { 0x0003, 0x0004, 0x0005, 0x0006, 0x0007, 0x000a, 0x000d, 0x0010 }; /* is this right? */
 #endif
 
     /*  1 2 3 0, <SO> h1 h2 h3 <SI> . EBCDIC_STATEFUL */
-    static const uint8_t expectedIBM930[] =
+    const uint8_t expectedIBM930[] =
      { 0xF1, 0xF2, 0xF3, 0x00, 0x0E, 0x45, 0x41, 0x45, 0x42, 0x45, 0x43, 0x0F, 0x4B };
-    static const int32_t toIBM930Offs[] =
+    int32_t  toIBM930Offs[] =
      { 0x00, 0x01, 0x02, 0x03, 0x04, 0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07, };
-    static const int32_t fmIBM930Offs[] =
+    int32_t fmIBM930Offs[] =
      { 0x0000, 0x0001, 0x0002, 0x0003, 0x0005, 0x0007, 0x0009, 0x000c};
 
     /* 1 2 3 0 h1 h2 h3 . MBCS*/
-    static const uint8_t expectedIBM943[] =
+    const uint8_t expectedIBM943[] =
      {  0x31, 0x32, 0x33, 0x00, 0x88, 0xea, 0x93, 0xf1, 0x8e, 0x4f, 0x2e };
-    static const int32_t toIBM943Offs    [] =
+    int32_t  toIBM943Offs    [] =
      {  0x00, 0x01, 0x02, 0x03, 0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07 };
-    static const int32_t fmIBM943Offs[] =
+    int32_t fmIBM943Offs[] =
      { 0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0006, 0x0008, 0x000a};
 
     /* 1 2 3 0 h1 h2 h3 . DBCS*/
-    static const uint8_t expectedIBM9027[] =
+    const uint8_t expectedIBM9027[] =
      {  0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0x4c, 0x41, 0x4c, 0x48, 0x4c, 0x55, 0xfe, 0xfe};
-    static const int32_t toIBM9027Offs    [] =
+    int32_t  toIBM9027Offs    [] =
      {  0x00, 0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03, 0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07};
 
      /* 1 2 3 0 <?> <?> <?> . SBCS*/
-    static const uint8_t expectedIBM920[] =
+    const uint8_t expectedIBM920[] =
      {  0x31, 0x32, 0x33, 0x00, 0x1a, 0x1a, 0x1a, 0x2e };
-    static const int32_t toIBM920Offs    [] =
+    int32_t  toIBM920Offs    [] =
      {  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 };
 
     /* 1 2 3 0 <?> <?> <?> . SBCS*/
-    static const uint8_t expectedISO88593[] =
+    const uint8_t expectedISO88593[] =
      { 0x31, 0x32, 0x33, 0x00, 0x1a, 0x1a, 0x1a, 0x2E };
-    static const int32_t toISO88593Offs[]     =
+    int32_t  toISO88593Offs[]     =
      { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
 
-    /* 1 2 3 0 <?> <?> <?> . <?> LATIN_1*/
-    static const uint8_t expectedLATIN1[] =
+    /* 1 2 3 0 <?> <?> <?> . LATIN_1*/
+    const uint8_t expectedLATIN1[] =
      { 0x31, 0x32, 0x33, 0x00, 0x1a, 0x1a, 0x1a, 0x2E };
-    static const int32_t toLATIN1Offs[]     =
+    int32_t  toLATIN1Offs[]     =
      { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
 
 
     /*  etc */
-    static const uint8_t expectedUTF16BE[] =
+    const uint8_t expectedUTF16BE[] =
      { 0x00, 0x31, 0x00, 0x32, 0x00, 0x33, 0x00, 0x00, 0x4e, 0x00, 0x4e, 0x8c, 0x4e, 0x09, 0x00, 0x2e };
-    static const int32_t toUTF16BEOffs[]=
+    int32_t      toUTF16BEOffs[]=
      { 0x00, 0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03, 0x04, 0x04, 0x05, 0x05, 0x06, 0x06, 0x07, 0x07};
-    static const int32_t fmUTF16BEOffs[] =
+    int32_t fmUTF16BEOffs[] =
      { 0x0000, 0x0002, 0x0004, 0x0006, 0x0008, 0x000a, 0x000c,  0x000e };
 
-    static const uint8_t expectedUTF16LE[] =
+    const uint8_t expectedUTF16LE[] =
      { 0x31, 0x00, 0x32, 0x00, 0x33, 0x00, 0x00, 0x00, 0x00, 0x4e, 0x8c, 0x4e, 0x09, 0x4e, 0x2e, 0x00 };
-    static const int32_t toUTF16LEOffs[]=
+    int32_t      toUTF16LEOffs[]=
      { 0x00, 0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03, 0x04, 0x04, 0x05, 0x05, 0x06, 0x06,  0x07, 0x07};
-    static const int32_t fmUTF16LEOffs[] =
+    int32_t fmUTF16LEOffs[] =
      { 0x0000, 0x0002, 0x0004, 0x0006, 0x0008, 0x000a, 0x000c,  0x000e };
 
-    static const uint8_t expectedUTF32BE[] =
+    const uint8_t expectedUTF32BE[] =
      { 0x00, 0x00, 0x00, 0x31,
        0x00, 0x00, 0x00, 0x32,
        0x00, 0x00, 0x00, 0x33,
@@ -701,7 +701,7 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
        0x00, 0x00, 0x4e, 0x8c,
        0x00, 0x00, 0x4e, 0x09,
        0x00, 0x00, 0x00, 0x2e };
-    static const int32_t toUTF32BEOffs[]=
+    int32_t      toUTF32BEOffs[]=
      { 0x00, 0x00, 0x00, 0x00,
        0x01, 0x01, 0x01, 0x01,
        0x02, 0x02, 0x02, 0x02,
@@ -711,10 +711,10 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
        0x06, 0x06, 0x06, 0x06,
        0x07, 0x07, 0x07, 0x07,
        0x08, 0x08, 0x08, 0x08 };
-    static const int32_t fmUTF32BEOffs[] =
+    int32_t fmUTF32BEOffs[] =
      { 0x0000, 0x0004, 0x0008, 0x000c, 0x0010, 0x0014, 0x0018,  0x001c };
 
-    static const uint8_t expectedUTF32LE[] =
+    const uint8_t expectedUTF32LE[] =
      { 0x31, 0x00, 0x00, 0x00,
        0x32, 0x00, 0x00, 0x00,
        0x33, 0x00, 0x00, 0x00,
@@ -723,7 +723,7 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
        0x8c, 0x4e, 0x00, 0x00,
        0x09, 0x4e, 0x00, 0x00,
        0x2e, 0x00, 0x00, 0x00 };
-    static const int32_t toUTF32LEOffs[]=
+    int32_t      toUTF32LEOffs[]=
      { 0x00, 0x00, 0x00, 0x00,
        0x01, 0x01, 0x01, 0x01,
        0x02, 0x02, 0x02, 0x02,
@@ -733,7 +733,7 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
        0x06, 0x06, 0x06, 0x06,
        0x07, 0x07, 0x07, 0x07,
        0x08, 0x08, 0x08, 0x08 };
-    static const int32_t fmUTF32LEOffs[] =
+    int32_t fmUTF32LEOffs[] =
      { 0x0000, 0x0004, 0x0008, 0x000c, 0x0010, 0x0014, 0x0018,  0x001c };
 
 
@@ -742,34 +742,35 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
 /** Test chars #2 **/
 
     /* Sahha [health],  slashed h's */
-    static const UChar malteseUChars[] = { 0x0053, 0x0061, 0x0127, 0x0127, 0x0061 };
-    static const uint8_t expectedMaltese913[] = { 0x53, 0x61, 0xB1, 0xB1, 0x61 };
+    const UChar malteseUChars[] = { 0x0053, 0x0061, 0x0127, 0x0127, 0x0061 };
+    const uint8_t expectedMaltese913[] = { 0x53, 0x61, 0xB1, 0xB1, 0x61 };
 
     /* LMBCS */
-    static const UChar LMBCSUChars[]     = { 0x0027, 0x010A, 0x0000, 0x0127, 0x2666, 0x0220 };
-    static const uint8_t expectedLMBCS[] = { 0x27, 0x06, 0x04, 0x00, 0x01, 0x73, 0x01, 0x04, 0x14, 0x02, 0x20 };
-    static const int32_t toLMBCSOffs[]   = { 0x00, 0x01, 0x01, 0x02, 0x03, 0x03, 0x04, 0x04 , 0x05, 0x05, 0x05 };
-    static const int32_t fmLMBCSOffs[]   = { 0x0000, 0x0001, 0x0003, 0x0004, 0x0006, 0x0008};
+    const UChar LMBCSUChars[]  = { 0x0027, 0x010A, 0x0000, 0x0127, 0x2666, 0x0220 };
+    const uint8_t expectedLMBCS[] = { 0x27, 0x06, 0x04, 0x00, 0x01, 0x73, 0x01, 0x04, 0x14, 0x02, 0x20 };
+    int32_t toLMBCSOffs[]   = { 0x00, 0x01, 0x01, 0x02, 0x03, 0x03, 0x04, 0x04 , 0x05, 0x05, 0x05 };
+    int32_t fmLMBCSOffs[]   = { 0x0000, 0x0001, 0x0003, 0x0004, 0x0006, 0x0008};
     /*********************************** START OF CODE finally *************/
 
-    gInBufferSize = insize;
-    gOutBufferSize = outsize;
+  gInBufferSize = insize;
+  gOutBufferSize = outsize;
 
-    log_verbose("\n\n\nTesting conversions with InputBufferSize = %d, OutputBufferSize = %d\n", gInBufferSize, gOutBufferSize);
+  log_verbose("\n\n\nTesting conversions with InputBufferSize = %d, OutputBufferSize = %d\n", gInBufferSize, gOutBufferSize);
 
 
+#if 1
     /*UTF-8*/
     testConvertFromU(sampleText, sizeof(sampleText)/sizeof(sampleText[0]),
         expectedUTF8, sizeof(expectedUTF8), "UTF8", toUTF8Offs,FALSE );
 
     log_verbose("Test surrogate behaviour for UTF8\n");
     {
-        static const UChar testinput[]={ 0x20ac, 0xd801, 0xdc01, 0xdc01 };
-        static const uint8_t expectedUTF8test2[]= { 0xe2, 0x82, 0xac,
+        const UChar testinput[]={ 0x20ac, 0xd801, 0xdc01, 0xdc01 };
+        const uint8_t expectedUTF8test2[]= { 0xe2, 0x82, 0xac,
                            0xf0, 0x90, 0x90, 0x81,
                            0xef, 0xbf, 0xbd
         };
-        static const int32_t offsets[]={ 0, 0, 0, 1, 1, 1, 1, 3, 3, 3 };
+        int32_t offsets[]={ 0, 0, 0, 1, 1, 1, 1, 3, 3, 3 };
         testConvertFromU(testinput, sizeof(testinput)/sizeof(testinput[0]),
                          expectedUTF8test2, sizeof(expectedUTF8test2), "UTF8", offsets,FALSE );
 
@@ -818,7 +819,9 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
 
 
 /****/
+#endif
 
+#if 1
     /*UTF-8*/
     testConvertToU(expectedUTF8, sizeof(expectedUTF8),
         sampleText, sizeof(sampleText)/sizeof(sampleText[0]), "utf8", fmUTF8Offs,FALSE);
@@ -1063,6 +1066,7 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
             0x00, 0x00, 0x01, 0x62,
             0x00, 0x00, 0x02, 0x62
         };
+
         static const uint16_t utf32Expected[]={
             0x0061,
             0xfffd,         /* 0x110000 out of range */
@@ -1074,34 +1078,13 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
             0x0162,
             0x0262
         };
+
         static const int32_t utf32Offsets[]={
             0, 4, 8, 8, 12, 16, 20, 24, 28
         };
-        static const uint8_t utf32ExpectedBack[]={
-            0x00, 0x00, 0x00, 0x61,
-            0x00, 0x00, 0xff, 0xfd,         /* 0x110000 out of range */
-            0x00, 0x10, 0xff, 0xff,         /* 0x10FFFF in range */
-            0x00, 0x00, 0x00, 0x62,
-            0x00, 0x00, 0xff, 0xfd,         /* 0xffffffff out of range */
-            0x00, 0x00, 0xff, 0xfd,         /* 0x7fffffff out of range */
-            0x00, 0x00, 0x01, 0x62,
-            0x00, 0x00, 0x02, 0x62
-        };
-        static const int32_t utf32OffsetsBack[]={
-            0,0,0,0,
-            1,1,1,1,
-            2,2,2,2,
-            4,4,4,4,
-            5,5,5,5,
-            6,6,6,6,
-            7,7,7,7,
-            8,8,8,8
-        };
-
         testConvertToU(utf32, sizeof(utf32),
                        utf32Expected, sizeof(utf32Expected)/sizeof(utf32Expected[0]), "utf-32be", utf32Offsets ,FALSE);
-        testConvertFromU(utf32Expected, sizeof(utf32Expected)/sizeof(utf32Expected[0]),
-            utf32ExpectedBack, sizeof(utf32ExpectedBack), "utf-32be", utf32OffsetsBack, FALSE);
+
     }
 
     /* Test UTF-32LE bad data handling*/
@@ -1128,33 +1111,13 @@ static void TestNewConvertWithBufferSizes(int32_t outsize, int32_t insize )
             0x0162,
             0x0262
         };
+
         static const int32_t utf32Offsets[]={
             0, 4, 8, 8, 12, 16, 20, 24, 28
         };
-        static const uint8_t utf32ExpectedBack[]={
-            0x61, 0x00, 0x00, 0x00,
-            0xfd, 0xff, 0x00, 0x00,         /* 0x110000 out of range */
-            0xff, 0xff, 0x10, 0x00,         /* 0x10FFFF in range */
-            0x62, 0x00, 0x00, 0x00,
-            0xfd, 0xff, 0x00, 0x00,         /* 0xffffffff out of range */
-            0xfd, 0xff, 0x00, 0x00,         /* 0x7fffffff out of range */
-            0x62, 0x01, 0x00, 0x00,
-            0x62, 0x02, 0x00, 0x00
-        };
-        static const int32_t utf32OffsetsBack[]={
-            0,0,0,0,
-            1,1,1,1,
-            2,2,2,2,
-            4,4,4,4,
-            5,5,5,5,
-            6,6,6,6,
-            7,7,7,7,
-            8,8,8,8
-        };
         testConvertToU(utf32, sizeof(utf32),
             utf32Expected, sizeof(utf32Expected)/sizeof(utf32Expected[0]), "utf-32le", utf32Offsets,FALSE );
-        testConvertFromU(utf32Expected, sizeof(utf32Expected)/sizeof(utf32Expected[0]),
-            utf32ExpectedBack, sizeof(utf32ExpectedBack), "utf-32le", utf32OffsetsBack, FALSE);
+
     }
 }
 
@@ -1402,7 +1365,7 @@ static void TestAmbiguous()
 {
     UErrorCode status = U_ZERO_ERROR;
     UConverter *ascii_cnv = 0, *sjis_cnv = 0, *cnv;
-    static const char target[] = {
+    const char target[] = {
         /* "\\usr\\local\\share\\data\\icutest.txt" */
         0x5c, 0x75, 0x73, 0x72,
         0x5c, 0x6c, 0x6f, 0x63, 0x61, 0x6c,
@@ -1442,7 +1405,7 @@ static void TestAmbiguous()
         return;
     }
     /* convert target from SJIS to Unicode */
-    sjisLength = ucnv_toUChars(sjis_cnv, sjisResult, sizeof(sjisResult)/U_SIZEOF_UCHAR, target, (int32_t)strlen(target), &status);
+    sjisLength = ucnv_toUChars(sjis_cnv, sjisResult, sizeof(sjisResult)/U_SIZEOF_UCHAR, target, strlen(target), &status);
     if (U_FAILURE(status))
     {
         log_err("Failed to convert the SJIS string.\n");
@@ -1451,7 +1414,7 @@ static void TestAmbiguous()
         return;
     }
     /* convert target from Latin-1 to Unicode */
-    asciiLength = ucnv_toUChars(ascii_cnv, asciiResult, sizeof(asciiResult)/U_SIZEOF_UCHAR, target, (int32_t)strlen(target), &status);
+    asciiLength = ucnv_toUChars(ascii_cnv, asciiResult, sizeof(asciiResult)/U_SIZEOF_UCHAR, target, strlen(target), &status);
     if (U_FAILURE(status))
     {
         log_err("Failed to convert the Latin-1 string.\n");
@@ -2705,14 +2668,14 @@ static void TestToAndFromUChars(const uint16_t* source, const UChar* sourceLimit
     uTarget = uBuf;
     uTargetLimit = uBuf+ uBufSize*5;
     ucnv_reset(cnv);
-    numCharsInTarget=ucnv_fromUChars(cnv, cTarget, (int32_t)(cTargetLimit-cTarget), uSource, (int32_t)(uSourceLimit-uSource), &errorCode);
+    numCharsInTarget=ucnv_fromUChars( cnv , cTarget, (cTargetLimit-cTarget),uSource,(uSourceLimit-uSource), &errorCode);
     if(U_FAILURE(errorCode)){
         log_err("ucnv_fromUnicode conversion failed reason %s\n", u_errorName(errorCode));
         return;
     }
     cSource = cBuf;
     test =uBuf;
-    ucnv_toUChars(cnv,uTarget,(int32_t)(uTargetLimit-uTarget),cSource,numCharsInTarget,&errorCode);
+    ucnv_toUChars(cnv,uTarget,(uTargetLimit-uTarget),cSource,numCharsInTarget,&errorCode);
     if(U_FAILURE(errorCode)){
         log_err("ucnv_toUChars conversion failed, reason %s\n", u_errorName(errorCode));
         return;
@@ -3312,7 +3275,7 @@ unescape(UChar* dst, int32_t dstLen,const char* src,int32_t srcLen,UErrorCode *s
         return 0;
     }
     if(srcLen==-1){
-        srcLen = (int32_t)uprv_strlen(src);
+        srcLen = uprv_strlen(src);
     }
 
     for (; srcIndex<srcLen; ) {
@@ -3592,7 +3555,7 @@ TestSCSU() {
         int32_t cSrcLen,srcLen;
         UChar* src;
         /* UConverter* cnv = ucnv_open("SCSU",&status); */
-        cSrcLen = srcLen = (int32_t)uprv_strlen(fTestCases[i]);
+        cSrcLen= srcLen =  uprv_strlen(fTestCases[i]);
         src = (UChar*) malloc((sizeof(UChar) * srcLen) + sizeof(UChar));
         srcLen=unescape(src,srcLen,cSrc,cSrcLen,&status);
         log_verbose("Testing roundtrip for src: %s at index :%d\n",cSrc,i);
@@ -3988,7 +3951,7 @@ TestISO_2022_KR_1() {
 }
 
 static void TestJitterbug2411(){
-    static const char* source = "\x1b\x24\x29\x43\x6b\x6b\x6e\x6e\x6a\x68\x70\x6f\x69\x75\x79\x71\x77\x65\x68\x67\x0A"
+    const char* source = "\x1b\x24\x29\x43\x6b\x6b\x6e\x6e\x6a\x68\x70\x6f\x69\x75\x79\x71\x77\x65\x68\x67\x0A"
                          "\x1b\x24\x29\x43\x6a\x61\x73\x64\x66\x6a\x61\x73\x64\x66\x68\x6f\x69\x75\x79\x1b\x24\x29\x43";
     UConverter* kr=NULL, *kr1=NULL;
     UErrorCode errorCode = U_ZERO_ERROR;
@@ -4029,23 +3992,23 @@ TestJIS(){
     /* From Unicode moved to testdata/conversion.txt */
     /*To Unicode*/
     {
-        static const uint8_t sampleTextJIS[] = {
+        const uint8_t sampleTextJIS[] = {
             0x1b,0x28,0x48,0x41,0x42, /*jis-Roman*/
             0x1b,0x28,0x49,0x41,0x42, /*Katakana Set*/
             0x1b,0x26,0x40,0x1b,0x24,0x42,0x21,0x21 /*recognize and ignore <esc>&@*/
         };
-        static const uint16_t expectedISO2022JIS[] = {
+        const uint16_t expectedISO2022JIS[] = {
             0x0041, 0x0042,
             0xFF81, 0xFF82,
             0x3000
         };
-        static const int32_t  toISO2022JISOffs[]={
+        int32_t  toISO2022JISOffs[]={
             3,4,
             8,9,
             16
         };
 
-        static const uint8_t sampleTextJIS7[] = {
+        const uint8_t sampleTextJIS7[] = {
             0x1b,0x28,0x48,0x41,0x42, /*JIS7-Roman*/
             0x1b,0x28,0x49,0x41,0x42, /*Katakana Set*/
             0x1b,0x24,0x42,0x21,0x21,
@@ -4053,7 +4016,7 @@ TestJIS(){
             0x21,0x22,
             0x1b,0x26,0x40,0x1b,0x24,0x42,0x21,0x21 /*recognize and ignore <esc>&@*/
         };
-        static const uint16_t expectedISO2022JIS7[] = {
+        const uint16_t expectedISO2022JIS7[] = {
             0x0041, 0x0042,
             0xFF81, 0xFF82,
             0x3000,
@@ -4061,14 +4024,14 @@ TestJIS(){
             0x3001,
             0x3000
         };
-        static const int32_t  toISO2022JIS7Offs[]={
+        int32_t  toISO2022JIS7Offs[]={
             3,4,
             8,9,
             13,16,
             17,
             19,27
         };
-        static const uint8_t sampleTextJIS8[] = {
+        const uint8_t sampleTextJIS8[] = {
             0x1b,0x28,0x48,0x41,0x42, /*JIS8-Roman*/
             0xa1,0xc8,0xd9,/*Katakana Set*/
             0x1b,0x28,0x42,
@@ -4076,14 +4039,14 @@ TestJIS(){
             0xb1,0xc3, /*Katakana Set*/
             0x1b,0x24,0x42,0x21,0x21
         };
-        static const uint16_t expectedISO2022JIS8[] = {
+        const uint16_t expectedISO2022JIS8[] = {
             0x0041, 0x0042,
             0xff61, 0xff88, 0xff99,
             0x0041, 0x0042,
             0xff71, 0xff83,
             0x3000
         };
-        static const int32_t  toISO2022JIS8Offs[]={
+        int32_t  toISO2022JIS8Offs[]={
             3, 4,  5,  6,
             7, 11, 12, 13,
             14, 18,
@@ -4109,7 +4072,7 @@ static void TestJitterbug915(){
 \x1b$+L\x1bO!#\x1bO",\x1bO#N\x1bO!n\x1bO#q / *plane 6 * /
 \x1b$+M\x1bO"q\x1bO!N\x1bO!j\x1bO#:\x1bO#o / *plane 7 * /
 */
-    static const char cSource[]={
+    static char cSource[]={
         0x1B, 0x24, 0x29, 0x47, 0x0E, 0x23, 0x21, 0x23, 0x22, 0x23,
         0x23, 0x23, 0x24, 0x23, 0x25, 0x23, 0x26, 0x23, 0x27, 0x23,
         0x28, 0x23, 0x29, 0x23, 0x2A, 0x23, 0x2B, 0x0F, 0x2F, 0x2A,
@@ -4147,7 +4110,7 @@ static void TestJitterbug915(){
     char* ctarget=cTarget;
     char* ctargetLimit=cTarget+sizeof(cTarget);
     const char* csource=cSource;
-    const char* tempSrc = cSource;
+    char* tempSrc = cSource;
     UErrorCode err=U_ZERO_ERROR;
 
     UConverter* conv =ucnv_open("ISO_2022_CN_EXT",&err);
@@ -5073,7 +5036,7 @@ TestLMBCS() {
 
 static void TestJitterbug255()
 {
-    static const uint8_t testBytes[] = { 0x95, 0xcf, 0x8a, 0xb7, 0x0d, 0x0a, 0x00 };
+    const uint8_t testBytes[] = { 0x95, 0xcf, 0x8a, 0xb7, 0x0d, 0x0a, 0x00 };
     const uint8_t *testBuffer = testBytes;
     const uint8_t *testEnd = testBytes + sizeof(testBytes);
     UErrorCode status = U_ZERO_ERROR;
@@ -5183,7 +5146,7 @@ static void TestJitterbug981(){
 #endif
 
 static void TestJitterbug1293(){
-    static const UChar src[] = {0x30DE, 0x30A4, 0x5E83, 0x544A, 0x30BF, 0x30A4, 0x30D7,0x000};
+    UChar src[] = {0x30DE, 0x30A4, 0x5E83, 0x544A, 0x30BF, 0x30A4, 0x30D7,0x000};
     char target[256];
     UErrorCode status = U_ZERO_ERROR;
     UConverter* conv=NULL;
@@ -5210,3 +5173,4 @@ static void TestJitterbug1293(){
     ucnv_close(conv);
 }
 
+#endif

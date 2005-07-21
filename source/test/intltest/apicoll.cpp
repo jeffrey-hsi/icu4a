@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 //===============================================================================
@@ -42,7 +42,6 @@
 
 #include "sfwdchit.h"
 #include "cmemory.h"
-#include <stdlib.h>
 
 void
 CollationAPITest::doAssert(UBool condition, const char *message)
@@ -100,9 +99,8 @@ CollationAPITest::TestProperty(/* char* par */)
       ICU 2.2 currVersionArray = {0x21, 0x40, 0x04, 0x04};
       ICU 2.4 currVersionArray = {0x21, 0x40, 0x04, 0x04};
       ICU 2.6 currVersionArray = {0x21, 0x40, 0x03, 0x03};
-      ICU 2.8 currVersionArray = {0x29, 0x80, 0x00, 0x04};
     */
-    UVersionInfo currVersionArray = {0x31, 0xC0, 0x00, 0x04};
+    UVersionInfo currVersionArray = {0x29, 0x80, 0x00, 0x04};
     UVersionInfo versionArray;
     int i = 0;
 
@@ -1019,17 +1017,11 @@ void CollationAPITest::TestSortKey()
     col->setAttribute(UCOL_STRENGTH, UCOL_IDENTICAL, status);
 
     uint8_t key2compat[] = {
-        /* 3.4 key, from UCA 4.1 */
-        0x28, 0x2a, 0x2c, 0x2e, 0x28, 0x01, 
-        0x09, 0x01, 0x09, 0x01, 0x27, 0x01, 
-        0x92, 0x93, 0x94, 0x95, 0x92, 0x00
-
-        /* 2.6.1 key */
-        /*
+            /* 2.6.1 key */
         0x26, 0x28, 0x2A, 0x2C, 0x26, 0x01, 
         0x09, 0x01, 0x09, 0x01, 0x25, 0x01, 
         0x92, 0x93, 0x94, 0x95, 0x92, 0x00 
-        */
+
         /* 2.2 key */
         /*
         0x1D, 0x1F, 0x21, 0x23, 0x1D, 0x01,

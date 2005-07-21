@@ -18,7 +18,6 @@
 #include <string.h>
 #include "cintltst.h"
 #include "cstring.h"
-#include "uparse.h"
 
 #include "unicode/putil.h"
 #include "unicode/ubrk.h"
@@ -37,7 +36,6 @@
 
 static void TestNullDefault(void);
 static void TestNonexistentLanguageExemplars(void);
-
 void PrintDataTable();
 
 /*---------------------------------------------------
@@ -569,13 +567,6 @@ static void TestDisplayNames()
     if(errorCode!=U_USING_DEFAULT_WARNING || length!=2 || buffer[0]!=0x71 || buffer[1]!=0x71) {
         log_err("error getting the display string for an unknown language - %s\n", u_errorName(errorCode));
     }
-    
-    /* test that we get a default warning for a display name where one component is unknown (4255) */
-    errorCode=U_ZERO_ERROR;
-    length=uloc_getDisplayName("qq_US_POSIX", "en_US", buffer, LENGTHOF(buffer), &errorCode);
-    if(errorCode!=U_USING_DEFAULT_WARNING) {
-        log_err("error getting the display name for a locale with an unknown language - %s\n", u_errorName(errorCode));
-    }
 
     {
         int32_t i;
@@ -876,7 +867,7 @@ static void TestISOFunctions()
     {
         test = *(str+count);
 
-#if U_CHARSET_FAMILY==U_ASCII_FAMILY
+#if 0
         {
             /* This code only works on ASCII machines where the keys are stored in ASCII order */
             const char *key;
@@ -925,7 +916,7 @@ static void TestISOFunctions()
         if(!strcmp(test,"ZR"))
             log_err("FAIL getISOCountries() has obsolete country code %s\n", test);
     }
-    expect=240;
+    expect=239;
     if(count!=expect)
     {
         log_err("There is an error in getISOCountries, got %d, expected %d \n", count, expect);
@@ -1448,14 +1439,6 @@ static void TestKeywordVariants(void)
                     }
                     j++;
                 }
-                j = 0;
-                uenum_reset(keywords, &status);
-                while((keyword = uenum_next(keywords, &keywordLen, &status))) {
-                    if(strcmp(keyword, testCases[i].expectedKeywords[j]) != 0) {
-                        log_err("Expected to get keyword value %s, got %s\n", testCases[i].expectedKeywords[j], keyword);
-                    }
-                    j++;
-                }
             }
             uenum_close(keywords);
         }
@@ -1621,7 +1604,7 @@ static void TestKeywordSetError(void)
 
     for(i=0;i<=2;i++) {
         /* 1- test a short buffer with growing text */
-        blen=(int32_t)strlen(kwSetTestCases[i].l)+1;
+        blen=strlen(kwSetTestCases[i].l)+1;
         memset(buffer,'%',1023);
         strcpy(buffer,kwSetTestCases[i].l);
         status = U_ZERO_ERROR;
@@ -1643,7 +1626,7 @@ static void TestKeywordSetError(void)
 
     for(i=3;i<=4;i++) {
         /* 2- test a short buffer - text the same size or shrinking   */
-        blen=(int32_t)strlen(kwSetTestCases[i].l)+1;
+        blen=strlen(kwSetTestCases[i].l)+1;
         memset(buffer,'%',1023);
         strcpy(buffer,kwSetTestCases[i].l);
         status = U_ZERO_ERROR;
@@ -1723,7 +1706,7 @@ static void TestCanonicalization(void)
         { "hi__DIRECT", "hi__DIRECT", "hi@collation=direct" },
         { "ja_JP_TRADITIONAL", "ja_JP_TRADITIONAL", "ja_JP@calendar=japanese" },
         { "th_TH_TRADITIONAL", "th_TH_TRADITIONAL", "th_TH@calendar=buddhist" },
-        { "zh_TW_STROKE", "zh_TW_STROKE", "zh_Hant_TW@collation=stroke" },
+        { "zh_TW_STROKE", "zh_TW_STROKE", "zh_TW@collation=stroke" },
         { "zh__PINYIN", "zh__PINYIN", "zh@collation=pinyin" },
         { "zh@collation=pinyin", "zh@collation=pinyin", "zh@collation=pinyin" },
         { "zh_CN@collation=pinyin", "zh_CN@collation=pinyin", "zh_CN@collation=pinyin" },
@@ -1742,7 +1725,7 @@ static void TestCanonicalization(void)
         { "uz-UZ-Cyrl", "uz_UZ_CYRL", "uz_Cyrl_UZ" }, /* .NET name */
         { "uz-UZ-Latn", "uz_UZ_LATN", "uz_Latn_UZ" }, /* .NET name */
         { "zh-CHS", "zh_CHS", "zh_Hans" }, /* .NET name */
-        { "zh-CHT", "zh_CHT", "zh_Hant" }, /* .NET name This may change back to zh_Hant */
+        { "zh-CHT", "zh_CHT", "zh_TW" }, /* .NET name This may change back to zh_Hant */
 
         /* posix behavior that used to be performed by getName */
         { "mr.utf8", "mr.utf8", "mr" },
@@ -2062,13 +2045,23 @@ static void TestDisplayNameWarning(void) {
 
 
 /**
+ * Compare the ICU version against the given major/minor version.
+ */
+static int32_t _cmpversion(const char* version) {
+    UVersionInfo x, icu;
+    u_versionFromString(x, version);
+    u_getVersion(icu);
+    return memcmp(icu, x, U_MAX_VERSION_LENGTH);
+}
+
+/**
  * Compare two locale IDs.  If they are equal, return 0.  If `string'
  * starts with `prefix' plus an additional element, that is, string ==
  * prefix + '_' + x, then return 1.  Otherwise return a value < 0.
  */
 static UBool _loccmp(const char* string, const char* prefix) {
-    int32_t slen = (int32_t)uprv_strlen(string),
-            plen = (int32_t)uprv_strlen(prefix);
+    int32_t slen = uprv_strlen(string),
+            plen = uprv_strlen(prefix);
     int32_t c = uprv_strncmp(string, prefix, plen);
     /* 'root' is less than everything */
     if (uprv_strcmp(prefix, "root") == 0) {
@@ -2111,7 +2104,7 @@ static void TestGetLocale(void) {
                         NULL, 0,
                         NULL, 0, &ec);
         if (U_FAILURE(ec)) {
-            log_err("udat_open failed.Error %s\n", u_errorName(ec));
+            log_err("udat_open failed\n");
             return;
         }
         valid = udat_getLocaleByType(obj, ULOC_VALID_LOCALE, &ec);
@@ -2174,8 +2167,6 @@ static void TestGetLocale(void) {
 #endif
 
     /* === umsg === */
-#if 0
-    /* commented out by weiv 01/12/2005. umsg_getLocaleByType is to be removed */
 #if !UCONFIG_NO_FORMATTING
     {
         UMessageFormat *obj;
@@ -2196,14 +2187,7 @@ static void TestGetLocale(void) {
         }
         /* We want the valid to be strictly > the bogus requested locale,
            and the valid to be >= the actual. */
-        /* TODO MessageFormat is currently just storing the locale it is given.
-           As a result, it will return whatever it was given, even if the
-           locale is invalid. */
-        test = (_cmpversion("3.2") <= 0) ?
-            /* Here is the weakened test for 3.0: */
-            (_loccmp(req, valid) >= 0) :
-            /* Here is what the test line SHOULD be: */
-            (_loccmp(req, valid) > 0);
+        test = (_loccmp(req, valid) >= 0);
 
         if (test &&
             _loccmp(valid, actual) >= 0) {
@@ -2213,7 +2197,6 @@ static void TestGetLocale(void) {
         }
         umsg_close(obj);
     }
-#endif
 #endif
 
     /* === ubrk === */
@@ -2227,7 +2210,7 @@ static void TestGetLocale(void) {
                         0,
                         &ec);
         if (U_FAILURE(ec)) {
-            log_err("ubrk_open failed. Error: %s \n", u_errorName(ec));
+            log_err("ubrk_open failed\n");
             return;
         }
         valid = ubrk_getLocaleByType(obj, ULOC_VALID_LOCALE, &ec);
@@ -2266,10 +2249,8 @@ static void TestGetLocale(void) {
 static void TestNonexistentLanguageExemplars(void) {
     /* JB 4068 - Nonexistent language */
     UErrorCode ec = U_ZERO_ERROR;
-    ULocaleData *uld = ulocdata_open("qqq",&ec);
-    USet *nothing = ulocdata_getExemplarSet(uld, NULL, 0, ULOCDATA_ES_STANDARD, &ec);
+    USet *nothing = ulocdata_getExemplarSet(NULL, "qqq", 0, &ec);
     uset_close(nothing);
-    ulocdata_close(uld);
     if (ec != U_USING_DEFAULT_WARNING) {
         log_err("Exemplar set for \"qqq\", expecting U_USING_DEFAULT_WARNING, but got %s\n",
             u_errorName(ec));

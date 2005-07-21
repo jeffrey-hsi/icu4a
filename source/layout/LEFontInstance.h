@@ -1,7 +1,7 @@
 
 /*
  *
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved
  *
  */
 
@@ -9,10 +9,6 @@
 #define __LEFONTINSTANCE_H
 
 #include "LETypes.h"
-/**
- * \file 
- * \brief C++ API: Layout Engine Font Instance object
- */
 
 U_NAMESPACE_BEGIN
 
@@ -23,14 +19,14 @@ U_NAMESPACE_BEGIN
  * and character mirroring - replacing a character which has both a left and a right
  * hand form with the opposite form.
  *
- * @stable ICU 3.2
+ * @draft ICU 2.2
  */
 class LECharMapper /* not : public UObject because this is an interface/mixin class */
 {
 public:
     /**
      * Destructor.
-     * @stable ICU 3.2
+     * @draft ICU 2.4
      */
     virtual inline ~LECharMapper() {};
 
@@ -139,7 +135,7 @@ public:
      *
      * @see LEScripts.h
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual const LEFontInstance *getSubFont(const LEUnicode chars[], le_int32 *offset, le_int32 limit, le_int32 script, LEErrorCode &success) const;
 
@@ -179,9 +175,9 @@ public:
      *
      * @return <code>TRUE</code> if the font can render ch.
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
-    virtual inline le_bool canDisplay(LEUnicode32 ch) const;
+    virtual le_bool canDisplay(LEUnicode32 ch) const;
 
     /**
      * This method returns the number of design units in
@@ -229,7 +225,7 @@ public:
      *
      * @see LECharMapper
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual LEGlyphID mapCharToGlyph(LEUnicode32 ch, const LECharMapper *mapper) const;
 
@@ -243,7 +239,7 @@ public:
      *
      * @return the glyph index
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual LEGlyphID mapCharToGlyph(LEUnicode32 ch) const = 0;
 
@@ -257,7 +253,7 @@ public:
      * @param glyph - the glyph index
      * @param advance - the X and Y pixel values will be stored here
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.2
      */
     virtual void getGlyphAdvance(LEGlyphID glyph, LEPoint &advance) const = 0;
 
@@ -303,9 +299,9 @@ public:
      *
      * @return points in the X direction
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
-    virtual inline float xUnitsToPoints(float xUnits) const;
+    virtual float xUnitsToPoints(float xUnits) const;
 
     /**
      * This method converts font design units in the
@@ -315,9 +311,9 @@ public:
      *
      * @return points in the Y direction
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
-    virtual inline float yUnitsToPoints(float yUnits) const;
+    virtual float yUnitsToPoints(float yUnits) const;
 
     /**
      * This method converts font design units to points.
@@ -325,9 +321,9 @@ public:
      * @param units - X and Y design units
      * @param points - set to X and Y points
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
-    virtual inline void unitsToPoints(LEPoint &units, LEPoint &points) const;
+    virtual void unitsToPoints(LEPoint &units, LEPoint &points) const;
 
     /**
      * This method converts pixels in the
@@ -337,9 +333,9 @@ public:
      *
      * @return font design units in the X direction
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
-    virtual inline float xPixelsToUnits(float xPixels) const;
+    virtual float xPixelsToUnits(float xPixels) const;
 
     /**
      * This method converts pixels in the
@@ -349,9 +345,9 @@ public:
      *
      * @return font design units in the Y direction
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
-    virtual inline float yPixelsToUnits(float yPixels) const;
+    virtual float yPixelsToUnits(float yPixels) const;
 
     /**
      * This method converts pixels to font design units.
@@ -359,9 +355,9 @@ public:
      * @param pixels - X and Y pixel
      * @param units - set to X and Y font design units
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
-    virtual inline void pixelsToUnits(LEPoint &pixels, LEPoint &units) const;
+    virtual void pixelsToUnits(LEPoint &pixels, LEPoint &units) const;
 
     /**
      * Get the X scale factor from the font's transform. The default
@@ -372,7 +368,7 @@ public:
      *
      * @see transformFunits
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual float getScaleFactorX() const = 0;
 
@@ -384,7 +380,7 @@ public:
      *
      * @see transformFunits
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual float getScaleFactorY() const = 0;
 
@@ -401,9 +397,9 @@ public:
      * @see getScaleFactorX
      * @see getScaleFactorY
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
-    virtual inline void transformFunits(float xFunits, float yFunits, LEPoint &pixels) const;
+    virtual void transformFunits(float xFunits, float yFunits, LEPoint &pixels) const;
 
     /**
      * This is a convenience method used to convert
@@ -415,7 +411,7 @@ public:
      *
      * @stable ICU 2.8
      */
-    static inline float fixedToFloat(le_int32 fixed);
+    static float fixedToFloat(le_int32 fixed);
 
     /**
      * This is a convenience method used to convert
@@ -427,7 +423,7 @@ public:
      *
      * @stable ICU 2.8
      */
-    static inline le_int32 floatToFixed(float theFloat);
+    static le_int32 floatToFixed(float theFloat);
 
     //
     // These methods won't ever be called by the LayoutEngine,
@@ -441,7 +437,7 @@ public:
      * @return the font's ascent, in points. This value
      * will always be positive.
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual le_int32 getAscent() const = 0;
 
@@ -451,7 +447,7 @@ public:
      * @return the font's descent, in points. This value
      * will always be positive.
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual le_int32 getDescent() const = 0;
 
@@ -461,7 +457,7 @@ public:
      * @return the font's leading, in points. This value
      * will always be positive.
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual le_int32 getLeading() const = 0;
 
@@ -473,21 +469,21 @@ public:
      * @return the line height, in points. This vaule will
      * always be positive.
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual le_int32 getLineHeight() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     virtual UClassID getDynamicClassID() const;
 
     /**
      * ICU "poor man's RTTI", returns a UClassID for this class.
      *
-     * @stable ICU 3.2
+     * @draft ICU 2.6
      */
     static UClassID getStaticClassID();
 

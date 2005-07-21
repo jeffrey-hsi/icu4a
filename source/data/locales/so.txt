@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/so.xml
+// * Source File: ../../../locale/common/main/so.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/so.xml
+ *  ICU <specials> source: ../../../locale/icu/main/so.xml
  */
 so{
     Countries{
@@ -45,6 +45,7 @@ so{
         HU{"Hangeri"}
         ID{"Indoneesiya"}
         IE{"Ayrlaanda"}
+        IL{"Israa'iil"}
         IN{"Hindiya"}
         IQ{"Ciraaq"}
         IR{"Iiraan"}
@@ -112,29 +113,9 @@ so{
         ZW{"Simbaabwe"}
     }
     Currencies{
-        EUR{
-            "€",
-            "EUR",
-        }
-        GBP{
-            "£",
-            "GBP",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "INR",
-        }
-        JPY{
-            "¥",
-            "JPY",
-        }
         KES{
             "Ksh",
             "KES",
-        }
-        USD{
-            "$",
-            "USD",
         }
     }
     ExemplarCharacters{"[a-z]"}
@@ -144,7 +125,7 @@ so{
     LocaleScript{
         "Latn",
     }
-    Version{"1.30"}
+    Version{"1.2"}
     calendar{
         gregorian{
             AmPmMarkers{

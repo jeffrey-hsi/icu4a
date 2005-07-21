@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1998-2005, International Business Machines
+*   Copyright (C) 1998-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -27,9 +27,6 @@
 #include "unicode/uchar.h"
 #include "ucbuf.h"
 #include <stdio.h>
-
-#if !UCONFIG_NO_CONVERSION
-
 
 #define MAX_IN_BUF 1000
 #define MAX_U_BUF 1500
@@ -779,4 +776,3 @@ ucbuf_readline(UCHARBUF* buf,int32_t* len,UErrorCode* err){
     /* A compiler warning will appear if all paths don't contain a return statement. */
 /*    return NULL;*/
 }
-#endif

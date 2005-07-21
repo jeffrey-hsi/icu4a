@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2000-2005, International Business Machines
+*   Copyright (C) 2000-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -27,7 +27,6 @@
 #define MAGIC2 19641227
 
 #define URES_MAX_ALIAS_LEVEL 256
-#define URES_MAX_BUFFER_SIZE 256
 
 /*
 enum UResEntryType {

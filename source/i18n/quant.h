@@ -113,6 +113,8 @@ class Quantifier : public UnicodeFunctor, public UnicodeMatcher {
 
  private:
 
+    static void appendNumber(UnicodeString& result, int32_t n);
+
     UnicodeFunctor* matcher; // owned
 
     uint32_t minCount;

@@ -1,7 +1,7 @@
-/*
+/*  
 ******************************************************************************
 *
-*   Copyright (C) 2000-2005, International Business Machines
+*   Copyright (C) 2000-2001, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -447,7 +447,6 @@ ubidi_writeReordered(UBiDi *pBiDi,
             }
         } else {
             /* insert BiDi controls for "inverse BiDi" */
-            const DirProp *dirProps=pBiDi->dirProps;
             const UChar *src;
             UBiDiDirection dir;
 
@@ -456,7 +455,7 @@ ubidi_writeReordered(UBiDi *pBiDi,
                 src=text+logicalStart;
 
                 if(UBIDI_LTR==dir) {
-                    if(/*run>0 &&*/ dirProps[logicalStart]!=L) {
+                    if(/*run>0 &&*/ u_charDirection(*src)!=U_LEFT_TO_RIGHT) {
                         if(destSize>0) {
                             *dest++=LRM_CHAR;
                         }
@@ -469,14 +468,14 @@ ubidi_writeReordered(UBiDi *pBiDi,
                     dest+=runLength;
                     destSize-=runLength;
 
-                    if(/*run<runCount-1 &&*/ dirProps[logicalStart+runLength-1]!=L) {
+                    if(/*run<runCount-1 &&*/ u_charDirection(src[runLength-1])!=U_LEFT_TO_RIGHT) {
                         if(destSize>0) {
                             *dest++=LRM_CHAR;
                         }
                         --destSize;
                     }
                 } else {
-                    if(/*run>0 &&*/ !(MASK_R_AL&DIRPROP_FLAG(dirProps[logicalStart+runLength-1]))) {
+                    if(/*run>0 &&*/ !(MASK_R_AL&1UL<<u_charDirection(src[runLength-1]))) {
                         if(destSize>0) {
                             *dest++=RLM_CHAR;
                         }
@@ -489,7 +488,7 @@ ubidi_writeReordered(UBiDi *pBiDi,
                     dest+=runLength;
                     destSize-=runLength;
 
-                    if(/*run<runCount-1 &&*/ !(MASK_R_AL&DIRPROP_FLAG(dirProps[logicalStart]))) {
+                    if(/*run<runCount-1 &&*/ !(MASK_R_AL&1UL<<u_charDirection(*src))) {
                         if(destSize>0) {
                             *dest++=RLM_CHAR;
                         }
@@ -517,7 +516,6 @@ ubidi_writeReordered(UBiDi *pBiDi,
             }
         } else {
             /* insert BiDi controls for "inverse BiDi" */
-            const DirProp *dirProps=pBiDi->dirProps;
             const UChar *src;
             UBiDiDirection dir;
 
@@ -527,7 +525,7 @@ ubidi_writeReordered(UBiDi *pBiDi,
                 src=text+logicalStart;
 
                 if(UBIDI_LTR==dir) {
-                    if(/*run<runCount-1 &&*/ dirProps[logicalStart+runLength-1]!=L) {
+                    if(/*run<runCount-1 &&*/ u_charDirection(src[runLength-1])!=U_LEFT_TO_RIGHT) {
                         if(destSize>0) {
                             *dest++=LRM_CHAR;
                         }
@@ -540,14 +538,14 @@ ubidi_writeReordered(UBiDi *pBiDi,
                     dest+=runLength;
                     destSize-=runLength;
 
-                    if(/*run>0 &&*/ dirProps[logicalStart]!=L) {
+                    if(/*run>0 &&*/ u_charDirection(*src)!=U_LEFT_TO_RIGHT) {
                         if(destSize>0) {
                             *dest++=LRM_CHAR;
                         }
                         --destSize;
                     }
                 } else {
-                    if(/*run<runCount-1 &&*/ !(MASK_R_AL&DIRPROP_FLAG(dirProps[logicalStart]))) {
+                    if(/*run<runCount-1 &&*/ !(MASK_R_AL&1UL<<u_charDirection(*src))) {
                         if(destSize>0) {
                             *dest++=RLM_CHAR;
                         }
@@ -560,7 +558,7 @@ ubidi_writeReordered(UBiDi *pBiDi,
                     dest+=runLength;
                     destSize-=runLength;
 
-                    if(/*run>0 &&*/ !(MASK_R_AL&DIRPROP_FLAG(dirProps[logicalStart+runLength-1]))) {
+                    if(/*run>0 &&*/ !(MASK_R_AL&1UL<<u_charDirection(src[runLength-1]))) {
                         if(destSize>0) {
                             *dest++=RLM_CHAR;
                         }

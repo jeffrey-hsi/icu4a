@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************/
@@ -8,7 +8,7 @@
 /*
  * uconv(1): an iconv(1)-like converter using ICU.
  *
- * Original code by Jonas Utterstr&#x00F6;m <jonas.utterstrom@vittran.norrnod.se>
+ * Original code by Jonas Utterström <jonas.utterstrom@vittran.norrnod.se>
  * contributed in 1999.
  *
  * Conversion to the C conversion API and many improvements by
@@ -38,7 +38,7 @@
 
 #include "unicode/uwmsg.h"
 
-#if (defined(U_WINDOWS) || defined(U_CYGWIN)) && !defined(__STRICT_ANSI__)
+#if (defined(WIN32) || defined(U_CYGWIN)) && !defined(__STRICT_ANSI__)
 #include <io.h>
 #include <fcntl.h>
 #define USE_FILENO_BINARY_MODE 1
@@ -779,7 +779,7 @@ ConvertFile::convertFile(const char *pname,
                 buf + rd, useOffsets ? fromoffsets : NULL, flush, &err);
 
             ulen = (int32_t)(unibufp - unibuf);
-            u.releaseBuffer(U_SUCCESS(err) ? ulen : 0);
+            u.releaseBuffer(ulen);
 
             // fromSawEndOfBytes indicates that ucnv_toUnicode() is done
             // converting all of the input bytes.
@@ -1143,7 +1143,7 @@ main(int argc, char **argv)
 
     // Get and prettify pname.
     pname = uprv_strrchr(*argv, U_FILE_SEP_CHAR);
-#ifdef U_WINDOWS
+#ifdef WIN32
     if (!pname) {
         pname = uprv_strrchr(*argv, '/');
     }

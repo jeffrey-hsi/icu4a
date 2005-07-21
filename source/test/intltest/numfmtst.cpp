@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /* Modification History:
@@ -76,9 +76,6 @@ void NumberFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &n
         CASE(27,TestCases);
 
         CASE(28,TestCurrencyNames);
-        CASE(29,TestCurrencyAmount);
-        CASE(30,TestCurrencyUnit);
-        CASE(31,TestCoverage);
 
         default: name = ""; break;
     }
@@ -113,54 +110,8 @@ NumberFormatTest::TestAPI(void)
       status = U_ZERO_ERROR;
     }
 
-    result.remove();
-    int64_t ll = 12;
-    test->format(ll, result);
-    if (result != "12.00"){
-        errln("format int64_t error");
-    }
-
     delete test;  
   }
-}
-
-class StubNumberForamt :public NumberFormat{
-public:
-    StubNumberForamt(){};
-    virtual UnicodeString& format(double number,UnicodeString& appendTo,FieldPosition& pos) const {
-        return appendTo;
-    }
-    virtual UnicodeString& format(int32_t number,UnicodeString& appendTo,FieldPosition& pos) const {
-        return appendTo.append((UChar)0x0033);
-    }
-    virtual UnicodeString& format(int64_t number,UnicodeString& appendTo,FieldPosition& pos) const {
-        return NumberFormat::format(number, appendTo, pos);
-    }
-    virtual UnicodeString& format(const Formattable& , UnicodeString& appendTo, FieldPosition& , UErrorCode& ) const {
-        return appendTo;
-    }
-    virtual void parse(const UnicodeString& text,
-                    Formattable& result,
-                    ParsePosition& parsePosition) const {}
-    virtual void parse( const UnicodeString& text,
-                        Formattable& result,
-                        UErrorCode& status) const {}
-    virtual UClassID getDynamicClassID(void) const {
-        static char classID = 0;
-        return (UClassID)&classID; 
-    }
-    virtual Format* clone() const {return NULL;}
-};
-
-void 
-NumberFormatTest::TestCoverage(void){
-    StubNumberForamt stub;
-    UnicodeString agent("agent");
-    FieldPosition pos;
-    int64_t num = 4;
-    if (stub.format(num, agent, pos) != UnicodeString("agent3")){
-        errln("NumberFormat::format(int64, UnicodString&, FieldPosition&) should delegate to (int32, ,)");
-    };
 }
 
 // Test various patterns
@@ -654,11 +605,6 @@ NumberFormatTest::TestCurrency(void)
 {
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat* currencyFmt = NumberFormat::createCurrencyInstance(Locale::getCanadaFrench(), status);
-    if (U_FAILURE(status)) {
-        dataerrln("Error calling NumberFormat::createCurrencyInstance()");
-        return;
-    }
-
     UnicodeString s; currencyFmt->format(1.50, s);
     logln((UnicodeString)"Un pauvre ici a..........." + s);
     if (!(s=="1,50 $"))
@@ -802,11 +748,6 @@ NumberFormatTest::TestRounding487(void)
 {
     UErrorCode status = U_ZERO_ERROR;
     NumberFormat *nf = NumberFormat::createInstance(status);
-    if (U_FAILURE(status)) {
-        dataerrln("Error calling NumberFormat::createInstance()");
-        return;
-    }
-
     roundingTest(*nf, 0.00159999, 4, "0.0016");
     roundingTest(*nf, 0.00995, 4, "0.01");
 
@@ -1478,8 +1419,6 @@ void NumberFormatTest::TestCurrencyNames(void) {
     // USD { "US$", "US Dollar"            } // 04/04/1792-
     UErrorCode ec = U_ZERO_ERROR;
     static const UChar USD[] = {85, 83, 68, 0}; /*USD*/
-    static const UChar CAD[] = {0x43, 0x41, 0x44, 0}; /*CAD*/
-    static const UChar ITL[] = {0x49, 0x54, 0x4C, 0}; /*ITL*/
     UBool isChoiceFormat;
     int32_t len;
     // Warning: HARD-CODED LOCALE DATA in this test.  If it fails, CHECK
@@ -1496,67 +1435,7 @@ void NumberFormatTest::TestCurrencyNames(void) {
                                              &isChoiceFormat, &len, &ec)));
     assertSuccess("ucurr_getName", ec);
     
-    // Test that a default or fallback warning is being returned. JB 4239.
-    (void) ucurr_getName(CAD, "en_US", UCURR_LONG_NAME, &isChoiceFormat,
-                            &len, &ec);
-    assertTrue("ucurr_getName (fallback)",
-                    U_USING_FALLBACK_WARNING == ec, TRUE);
-    (void) ucurr_getName(CAD, "vi", UCURR_LONG_NAME, &isChoiceFormat,
-                            &len, &ec);
-    assertTrue("ucurr_getName (default)",
-                    U_USING_DEFAULT_WARNING == ec, TRUE);
-    
-    // Test that a default warning is being returned when falling back to root. JB 4536.
-    (void) ucurr_getName(ITL, "cy", UCURR_LONG_NAME, &isChoiceFormat,
-                            &len, &ec);
-    assertTrue("ucurr_getName (default to root)",
-                    U_USING_DEFAULT_WARNING == ec, TRUE);
-    
     // TODO add more tests later
-}
-
-void NumberFormatTest::TestCurrencyUnit(void){
-    UErrorCode ec = U_ZERO_ERROR;
-    static const UChar USD[] = {85, 83, 68, 0}; /*USD*/
-    CurrencyUnit cu(USD, ec);
-    assertSuccess("CurrencyUnit", ec);
-
-    const UChar * r = cu.getISOCurrency(); // who is the buffer owner ?
-    assertEquals("getISOCurrency()", USD, r);
-
-    CurrencyUnit cu2(cu);
-    if (!(cu2 == cu)){
-        errln("CurrencyUnit copy constructed object should be same");
-    }
-
-    CurrencyUnit * cu3 = (CurrencyUnit *)cu.clone();
-    if (!(*cu3 == cu)){
-        errln("CurrencyUnit cloned object should be same");
-    }
-    delete cu3;
-}
-
-void NumberFormatTest::TestCurrencyAmount(void){
-    UErrorCode ec = U_ZERO_ERROR;
-    static const UChar USD[] = {85, 83, 68, 0}; /*USD*/
-    CurrencyAmount ca(9, USD, ec);
-    assertSuccess("CurrencyAmount", ec);
-
-    CurrencyAmount ca2(ca);
-    if (!(ca2 == ca)){
-        errln("CurrencyAmount copy constructed object should be same");
-    }
-
-    ca2=ca;
-    if (!(ca2 == ca)){
-        errln("CurrencyAmount assigned object should be same");
-    }
-    
-    CurrencyAmount *ca3 = (CurrencyAmount *)ca.clone();
-    if (!(*ca3 == ca)){
-        errln("CurrencyAmount cloned object should be same");
-    }
-    delete ca3;
 }
 
 void NumberFormatTest::TestSymbolsWithBadLocale(void) {
@@ -1793,10 +1672,6 @@ void NumberFormatTest::TestCases() {
             delete ref;
             ref = new DecimalFormat(tok,
                       new DecimalFormatSymbols(Locale::getUS(), ec), ec);
-            if (U_FAILURE(ec)) {
-                dataerrln("Error constructing DecimalFormat");
-                goto error;
-            }
             break;
         case 1:
             // loc= <locale>
@@ -2097,7 +1972,6 @@ void NumberFormatTest::expectCurrency(NumberFormat& nf, const Locale& locale,
         assertSuccess("ucurr_forLocale", ec);
         fmt.setCurrency(curr, ec);
         assertSuccess("DecimalFormat::setCurrency", ec);
-        fmt.setCurrency(curr); //Deprecated variant, for coverage only
     }
     UnicodeString s;
     fmt.format(value, s);

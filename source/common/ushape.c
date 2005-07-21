@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2000-2005, International Business Machines
+*   Copyright (C) 2000-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -23,7 +23,6 @@
 #include "cmemory.h"
 #include "putilimp.h"
 #include "ustr_imp.h"
-#include "ubidi_props.h"
 
 #if UTF_SIZE<16
     /*
@@ -225,17 +224,8 @@ static void
 _shapeToArabicDigitsWithContext(UChar *s, int32_t length,
                                 UChar digitBase,
                                 UBool isLogical, UBool lastStrongWasAL) {
-    const UBiDiProps *bdp;
-    UErrorCode errorCode;
-
     int32_t i;
     UChar c;
-
-    errorCode=U_ZERO_ERROR;
-    bdp=ubidi_getSingleton(&errorCode);
-    if(U_FAILURE(errorCode)) {
-        return;
-    }
 
     digitBase-=0x30;
 
@@ -243,7 +233,7 @@ _shapeToArabicDigitsWithContext(UChar *s, int32_t length,
     if(isLogical) {
         for(i=0; i<length; ++i) {
             c=s[i];
-            switch(ubidi_getClass(bdp, c)) {
+            switch(u_charDirection(c)) {
             case U_LEFT_TO_RIGHT: /* L */
             case U_RIGHT_TO_LEFT: /* R */
                 lastStrongWasAL=FALSE;
@@ -263,7 +253,7 @@ _shapeToArabicDigitsWithContext(UChar *s, int32_t length,
     } else {
         for(i=length; i>0; /* pre-decrement in the body */) {
             c=s[--i];
-            switch(ubidi_getClass(bdp, c)) {
+            switch(u_charDirection(c)) {
             case U_LEFT_TO_RIGHT: /* L */
             case U_RIGHT_TO_LEFT: /* R */
                 lastStrongWasAL=FALSE;

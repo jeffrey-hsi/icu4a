@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2001-2005, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) 2001-2004, International Business Machines Corporation and others. All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
 *   07/18/01    aliu        Creation.
@@ -9,12 +9,6 @@
 #define UNIMATCH_H
 
 #include "unicode/utypes.h"
-
-/**
- * \file 
- * \brief C++ API: Unicode Matcher
- */
-
 
 U_NAMESPACE_BEGIN
 

@@ -1,7 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2005, International Business Machines
-* Corporation and others. All Rights Reserved.
+* Copyright (C) 1997-2004, International Business Machines Corporation and others. All Rights Reserved.
 *******************************************************************************
 */
 
@@ -72,7 +71,7 @@ public:
 
     UBool shouldRollBack(double number) const;
 
-    void _appendRuleText(UnicodeString& result) const;
+    void appendRuleText(UnicodeString& result) const;
 
 private:
     void parseRuleDescriptor(UnicodeString& descriptor, UErrorCode& status);

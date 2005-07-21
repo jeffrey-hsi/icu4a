@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-* Copyright (C) {1997-2005}, International Business Machines Corporation and others. All Rights Reserved.
+* Copyright (C) {1997-2004}, International Business Machines Corporation and others. All Rights Reserved.
 ********************************************************************************
 *
 * File FORMAT.H
@@ -22,11 +22,6 @@
 
 
 #include "unicode/utypes.h"
-
-/**
- * \file 
- * \brief C++ API: Base class for all formats. 
- */
 
 #if !UCONFIG_NO_FORMATTING
 
@@ -236,7 +231,7 @@ public:
      *  @param type type of the locale we're looking for (valid or actual) 
      *  @param status error code for the operation
      *  @return the locale
-     *  @draft ICU 2.8 likely to change after ICU 3.0, based on feedback
+     *  @draft ICU 2.8 likely to change in ICU 3.0, based on feedback
      */
     Locale getLocale(ULocDataLocaleType type, UErrorCode& status) const;
 
@@ -249,7 +244,7 @@ public:
     const char* getLocaleID(ULocDataLocaleType type, UErrorCode &status) const;
 
  protected:
-    /** @stable ICU 2.8 */
+    /** @draft ICU 2.8 */
     void setLocaleIDs(const char* valid, const char* actual);
 
 protected:

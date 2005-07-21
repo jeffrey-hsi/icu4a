@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2001, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -31,8 +31,9 @@ void addCollTest(TestNode** root);
 void addCollTest(TestNode** root)
 {
     addCollAPITest(root);
-    addCurrencyCollTest(root);
+    addCurrencyTest(root);
     addNormTest(root);
+    addDanishCollTest(root);
     addGermanCollTest(root);
     addSpanishCollTest(root);
     addFrenchCollTest(root);

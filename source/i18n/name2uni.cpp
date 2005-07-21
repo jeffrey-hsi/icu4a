@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2001-2005, International Business Machines
+*   Copyright (C) 2001-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -18,7 +18,6 @@
 #include "name2uni.h"
 #include "cmemory.h"
 #include "uprops.h"
-#include "uinvchar.h"
 #include "util.h"
 
 U_NAMESPACE_BEGIN
@@ -63,8 +62,7 @@ NameUnicodeTransliterator::NameUnicodeTransliterator(UnicodeFilter* adoptedFilte
         (USet *)&legal, // USet* == UnicodeSet*
         _set_add,
         _set_addRange,
-        _set_addString,
-        NULL // don't need remove()
+        _set_addString
     };
     uprv_getCharNameCharacters(&sa);
 }
@@ -174,6 +172,7 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
             }
 
             if (c == CLOSE_DELIM) {
+
                 int32_t len = name.length();
 
                 // Delete trailing space, if any
@@ -182,29 +181,27 @@ void NameUnicodeTransliterator::handleTransliterate(Replaceable& text, UTransPos
                     --len;
                 }
 
-                if (uprv_isInvariantUString(name.getBuffer(), len)) {
-                    name.extract(0, len, cbuf, maxLen, US_INV);
+                name.extract(0, len, cbuf, "");
 
-                    UErrorCode status = U_ZERO_ERROR;
-                    c = u_charFromName(U_EXTENDED_CHAR_NAME, cbuf, &status);
-                    if (U_SUCCESS(status)) {
-                        // Lookup succeeded
+                UErrorCode status = U_ZERO_ERROR;
+                c = u_charFromName(U_EXTENDED_CHAR_NAME, cbuf, &status);
+                if (U_SUCCESS(status)) {
+                    // Lookup succeeded
 
-                        // assert(UTF_CHAR_LENGTH(CLOSE_DELIM) == 1);
-                        cursor++; // advance over CLOSE_DELIM
+                    // assert(UTF_CHAR_LENGTH(CLOSE_DELIM) == 1);
+                    cursor++; // advance over CLOSE_DELIM
 
-                        str.truncate(0);
-                        str.append(c);
-                        text.handleReplaceBetween(openPos, cursor, str);
+                    str.truncate(0);
+                    str.append(c);
+                    text.handleReplaceBetween(openPos, cursor, str);
 
-                        // Adjust indices for the change in the length of
-                        // the string.  Do not assume that str.length() ==
-                        // 1, in case of surrogates.
-                        int32_t delta = cursor - openPos - str.length();
-                        cursor -= delta;
-                        limit -= delta;
-                        // assert(cursor == openPos + str.length());
-                    }
+                    // Adjust indices for the change in the length of
+                    // the string.  Do not assume that str.length() ==
+                    // 1, in case of surrogates.
+                    int32_t delta = cursor - openPos - str.length();
+                    cursor -= delta;
+                    limit -= delta;
+                    // assert(cursor == openPos + str.length());
                 }
                 // If the lookup failed, we leave things as-is and
                 // still switch to mode 0 and continue.

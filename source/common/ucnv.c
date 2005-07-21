@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1998-2005, International Business Machines
+*   Copyright (C) 1998-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -34,6 +34,7 @@
 #include "utracimp.h"
 #include "ustr_imp.h"
 #include "ucnv_imp.h"
+#include "ucnv_io.h"
 #include "ucnv_cnv.h"
 #include "ucnv_bld.h"
 
@@ -55,6 +56,17 @@ static const UAmbiguousConverter ambiguousConverters[]={
     { "ISO_2022,locale=ko,version=0", 0x20a9 }
 };
 
+U_CAPI const char*  U_EXPORT2
+ucnv_getDefaultName ()
+{
+    return ucnv_io_getDefaultConverterName();
+}
+
+U_CAPI void U_EXPORT2
+ucnv_setDefaultName (const char *converterName)
+{
+  ucnv_io_setDefaultConverterName(converterName);
+}
 /*Calls through createConverter */
 U_CAPI UConverter* U_EXPORT2
 ucnv_open (const char *name,
@@ -93,28 +105,6 @@ ucnv_openU (const UChar * name,
         return NULL;
     }
     return ucnv_open(u_austrcpy(asciiName, name), err);
-}
-
-/* Copy the string that is represented by the UConverterPlatform enum
- * @param platformString An output buffer
- * @param platform An enum representing a platform
- * @return the length of the copied string.
- */
-static int32_t
-ucnv_copyPlatformString(char *platformString, UConverterPlatform pltfrm)
-{
-    switch (pltfrm)
-    {
-    case UCNV_IBM:
-        uprv_strcpy(platformString, "ibm-");
-        return 4;
-    case UCNV_UNKNOWN:
-        break;
-    }
-
-    /* default to empty string */
-    *platformString = 0;
-    return 0;
 }
 
 /*Assumes a $platform-#codepage.$CONVERTER_FILE_EXTENSION scheme and calls
@@ -360,21 +350,47 @@ ucnv_close (UConverter * converter)
 U_CAPI const char*   U_EXPORT2
 ucnv_getAvailableName (int32_t n)
 {
-    if (0 <= n && n <= 0xffff) {
-        UErrorCode err = U_ZERO_ERROR;
-        const char *name = ucnv_bld_getAvailableConverter((uint16_t)n, &err);
-        if (U_SUCCESS(err)) {
-            return name;
-        }
+  if (0 <= n && n <= 0xffff) {
+    UErrorCode err = U_ZERO_ERROR;
+    const char *name = ucnv_io_getAvailableConverter((uint16_t)n, &err);
+    if (U_SUCCESS(err)) {
+      return name;
     }
-    return NULL;
+  }
+  return NULL;
 }
 
 U_CAPI int32_t   U_EXPORT2
 ucnv_countAvailable ()
 {
     UErrorCode err = U_ZERO_ERROR;
-    return ucnv_bld_countAvailableConverters(&err);
+    return ucnv_io_countAvailableConverters(&err);
+}
+
+U_CAPI uint16_t U_EXPORT2
+ucnv_countAliases(const char *alias, UErrorCode *pErrorCode)
+{
+    return ucnv_io_countAliases(alias, pErrorCode);
+}
+
+
+U_CAPI const char* U_EXPORT2
+ucnv_getAlias(const char *alias, uint16_t n, UErrorCode *pErrorCode)
+{
+    return ucnv_io_getAlias(alias, n, pErrorCode);
+}
+
+U_CAPI void U_EXPORT2
+ucnv_getAliases(const char *alias, const char **aliases, UErrorCode *pErrorCode)
+{
+    ucnv_io_getAliases(alias, 0, aliases, pErrorCode);
+}
+
+U_CAPI uint16_t U_EXPORT2
+ucnv_countStandards(void)
+{
+    UErrorCode err = U_ZERO_ERROR;
+    return ucnv_io_countStandards(&err);
 }
 
 U_CAPI void    U_EXPORT2
@@ -1571,7 +1587,7 @@ ucnv_toUChars(UConverter *cnv,
     ucnv_resetToUnicode(cnv);
     originalDest=dest;
     if(srcLength==-1) {
-        srcLength=(int32_t)uprv_strlen(src);
+        srcLength=uprv_strlen(src);
     }
     if(srcLength>0) {
         srcLimit=src+srcLength;
@@ -1968,7 +1984,7 @@ ucnv_internalConvert(UConverter *outConverter, UConverter *inConverter,
                        FALSE,
                        TRUE,
                        pErrorCode);
-        targetLength=(int32_t)(myTarget-target);
+        targetLength=myTarget-target;
     }
 
     /*
@@ -1991,7 +2007,7 @@ ucnv_internalConvert(UConverter *outConverter, UConverter *inConverter,
                            FALSE,
                            TRUE,
                            pErrorCode);
-            targetLength+=(int32_t)(myTarget-targetBuffer);
+            targetLength+=(myTarget-targetBuffer);
         } while(*pErrorCode==U_BUFFER_OVERFLOW_ERROR);
 
         /* done with preflighting, set warnings and errors as appropriate */
@@ -2306,7 +2322,7 @@ ucnv_detectUnicodeSignature( const char* source,
     }
 
     if(sourceLength==-1){
-        sourceLength=(int32_t)uprv_strlen(source);
+        sourceLength=uprv_strlen(source);
     }
 
     
@@ -2368,50 +2384,6 @@ ucnv_detectUnicodeSignature( const char* source,
     return NULL;
 }
 
- U_DRAFT int32_t U_EXPORT2
- ucnv_fromUCountPending(const UConverter* cnv, UErrorCode* status){
-    
-    if(status == NULL || U_FAILURE(*status)){
-        return -1;
-    }
-    if(cnv == NULL){
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return -1;
-    }
-
-    if(cnv->preFromULength > 0){
-        return U16_LENGTH(cnv->preFromUFirstCP)+cnv->preFromULength ;
-    }else if(cnv->preFromULength < 0){
-        return -cnv->preFromULength ;
-    }else if(cnv->fromUChar32 > 0){
-        return 1;
-    }else if(cnv->preFromUFirstCP >0){
-        return U16_LENGTH(cnv->preFromUFirstCP);
-    }
-    return 0; 
-
- }
-
-U_DRAFT int32_t U_EXPORT2
-ucnv_toUCountPending(const UConverter* cnv, UErrorCode* status){
-
-    if(status == NULL || U_FAILURE(*status)){
-        return -1;
-    }
-    if(cnv == NULL){
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return -1;
-    }
-
-    if(cnv->preToULength > 0){
-        return cnv->preToULength ;
-    }else if(cnv->preToULength < 0){
-        return -cnv->preToULength;
-    }else if(cnv->toULength > 0){
-        return cnv->toULength;
-    }
-    return 0;
-}
 #endif
 
 /*

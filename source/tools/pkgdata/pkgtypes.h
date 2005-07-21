@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-*   Copyright (C) 2000-2005, International Business Machines
+*   Copyright (C) 2000-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ***************************************************************************
@@ -140,7 +140,7 @@ typedef struct UPKGOptions_
 
 /* set up common defines for library naming */
 
-#ifdef U_WINDOWS
+#ifdef WIN32
 # ifndef UDATA_SO_SUFFIX
 #  define UDATA_SO_SUFFIX ".DLL"
 # endif

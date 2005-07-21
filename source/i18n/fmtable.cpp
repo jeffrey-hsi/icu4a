@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2005, International Business Machines Corporation and    *
+* Copyright (C) 1997-2004, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -121,6 +121,16 @@ Formattable::Formattable(int64_t value)
 {
     fBogus.setToBogus();
     fValue.fInt64 = value;
+}
+
+// -------------------------------------
+// Creates a formattable object with a char* string.
+
+Formattable::Formattable(const char* stringToCopy)
+    :   UObject(), fType(kString)
+{
+    fBogus.setToBogus();
+    fValue.fString = new UnicodeString(stringToCopy);
 }
 
 // -------------------------------------

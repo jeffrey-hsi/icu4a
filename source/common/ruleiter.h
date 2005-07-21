@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (c) 2003-2005, International Business Machines
+* Copyright (c) 2003, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 * Author: Alan Liu
@@ -204,7 +204,7 @@ public:
      * @param result output parameter to receive a string
      * representation of this object
      */
-//    UnicodeString& toString(UnicodeString& result) const;
+    UnicodeString& toString(UnicodeString& result) const;
     
 private:
     /**

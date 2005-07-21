@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2003, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -344,10 +344,6 @@ private:
 
     void TestAlternateSyntax(void);
 
-    void TestBeginEnd(void);
-
-    void TestBeginEndToRules(void);
-
     //======================================================================
     // Support methods
     //======================================================================
@@ -357,12 +353,6 @@ private:
                  const UnicodeString& expectedResult);
 
     void expect(const UnicodeString& rules,
-                const UnicodeString& source,
-                const UnicodeString& expectedResult,
-                UTransPosition *pos=0);
-
-    void expect(const UnicodeString& id,
-                const UnicodeString& rules,
                 const UnicodeString& source,
                 const UnicodeString& expectedResult,
                 UTransPosition *pos=0);
@@ -394,8 +384,6 @@ private:
                     const UnicodeString& testRulesForward);
     void CheckIncrementalAux(const Transliterator* t, 
                              const UnicodeString& input);
-
-    void reportParseError(const UnicodeString& message, const UParseError& parseError, const UErrorCode& status);
 
 
     const UnicodeString DESERET_DEE;

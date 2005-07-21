@@ -103,7 +103,7 @@ offsetTOCLookupFn(const UDataMemory *pData,
                   UErrorCode *pErrorCode) {
     const UDataOffsetTOC  *toc = (UDataOffsetTOC *)pData->toc;
     if(toc!=NULL) {
-        const char *base=(const char *)toc;
+        const char *base=(const char *)pData->toc;
         uint32_t start, limit, number, lastNumber;
         int32_t strResult;
         const UDataOffsetTOCEntry *entry;
@@ -120,11 +120,13 @@ offsetTOCLookupFn(const UDataMemory *pData,
         limit=toc->count;         /* number of names in this table of contents */
         lastNumber=limit;
         entry=toc->entry;
+        if (limit == 0) {         /* Stub common data library used during build is empty. */
+            return NULL;
+        }
         for (;;) {
             number = (start+limit)/2;
             if (lastNumber == number) { /* Have we moved? */
-                break;  /* We haven't moved, and it wasn't found; */
-                        /* or the empty stub common data library was used during build. */
+                break;  /* We haven't moved, and it wasn't found. */
             }
             lastNumber = number;
             strResult = uprv_strcmp(tocEntryName, base+entry[number].nameOffset);
@@ -163,7 +165,11 @@ offsetTOCLookupFn(const UDataMemory *pData,
 
 static uint32_t pointerTOCEntryCount(const UDataMemory *pData) {
     const PointerTOC *toc = (PointerTOC *)pData->toc;
-    return (uint32_t)((toc != NULL) ? (toc->count) : 0);
+    if (toc != NULL) {
+        return toc->count;
+    } else {
+        return 0;
+    }
 }
 
 
@@ -188,11 +194,14 @@ static const DataHeader *pointerTOCLookupFn(const UDataMemory *pData,
         limit=toc->count;
         lastNumber=limit;
 
+        if (limit == 0) {       /* Stub common data library used during build is empty. */
+            return NULL;
+        }
+
         for (;;) {
             number = (start+limit)/2;
             if (lastNumber == number) { /* Have we moved? */
-                break;  /* We haven't moved, and it wasn't found, */
-                        /* or the empty stub common data library was used during build. */
+                break;  /* We haven't moved, and it wasn't found. */
             }
             lastNumber = number;
             strResult = uprv_strcmp(name, toc->entry[number].entryName);

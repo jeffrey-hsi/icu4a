@@ -1,84 +1,27 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/be.xml
+// * Source File: ../../../locale/common/main/be.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/be.xml
+ *  ICU <specials> source: ../../../locale/icu/main/be.xml
  */
 be{
     Countries{
-        BR{"Бразілія"}
         BY{"Беларусь"}
-        CN{"Кітай"}
-        DE{"Германія"}
-        FR{"Францыя"}
-        GB{"Велікабрытанія"}
-        IN{"Індыя"}
-        IT{"Італія"}
-        JP{"Японія"}
-        RU{"Расія"}
-        US{"Злучаныя Штаты"}
     }
     Currencies{
-        BRL{
-            "BRL",
-            "бразільскі рэал",
-        }
         BYB{
             "Руб",
             "BYB",
         }
-        BYR{
-            "BYR",
-            "беларускі рубель",
-        }
-        CNY{
-            "CNY",
-            "кітайскі юань Renminbi",
-        }
-        EUR{
-            "€",
-            "еўра",
-        }
-        GBP{
-            "£",
-            "англійскі фунт",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "індыйская рупія",
-        }
-        JPY{
-            "¥",
-            "японская іена",
-        }
-        RUB{
-            "RUB",
-            "рускі рубель",
-        }
-        USD{
-            "$",
-            "долар ЗША",
-        }
     }
     ExemplarCharacters{"[а-з й-ш ы-я ’ёіў {дж} {дз}]"}
     Languages{
-        ar{"арабскі"}
         be{"Беларускі"}
-        de{"нямецкі"}
-        en{"англійскі"}
-        es{"іспанскі"}
-        fr{"французскі"}
-        hi{"хіндзі"}
-        it{"італьянскі"}
-        ja{"японскі"}
-        pt{"партугальскі"}
-        ru{"рускі"}
-        zh{"кітайскі"}
     }
     LocaleScript{
         "Cyrl",
@@ -97,11 +40,7 @@ be{
         "�",
         "+",
     }
-    Scripts{
-        Cyrl{"кірылічны"}
-        Latn{"лацінскі"}
-    }
-    Version{"1.36"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -138,17 +77,6 @@ be{
                         "чацвер",
                         "пятніца",
                         "субота",
-                    }
-                }
-                stand-alone{
-                    narrow{
-                        "н",
-                        "п",
-                        "а",
-                        "с",
-                        "ч",
-                        "п",
-                        "с",
                     }
                 }
             }
@@ -189,24 +117,8 @@ be{
                         "снежань",
                     }
                 }
-                stand-alone{
-                    narrow{
-                        "с",
-                        "л",
-                        "с",
-                        "к",
-                        "м",
-                        "ч",
-                        "л",
-                        "ж",
-                        "в",
-                        "к",
-                        "л",
-                        "с",
-                    }
-                }
             }
         }
     }
-    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
+    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZ"}
 }

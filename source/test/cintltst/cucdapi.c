@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2003, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -84,7 +84,7 @@ void TestUScriptCodeAPI(){
     {
         UErrorCode err = U_ZERO_ERROR;
         int32_t capacity=0;
-        UScriptCode jaCode[]={USCRIPT_KATAKANA, USCRIPT_HIRAGANA, USCRIPT_HAN };
+        UScriptCode jaCode[]={ USCRIPT_KATAKANA,USCRIPT_HIRAGANA,USCRIPT_HAN};
         UScriptCode script[10]={USCRIPT_INVALID_CODE};
         int32_t num = uscript_getCode("ja",script,capacity, &err);
         /* preflight */

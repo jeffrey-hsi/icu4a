@@ -1,45 +1,16 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/sl.xml
+// * Source File: ../../../locale/common/main/sl.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/sl.xml
+ *  ICU <specials> source: ../../../locale/icu/main/sl.xml
  */
 sl{
     Countries{
-        001{"Svet"}
-        002{"Afrika"}
-        005{"Južna Amerika"}
-        009{"Oceanija"}
-        011{"Zahodna Afrika"}
-        013{"Centralna Amerika"}
-        014{"Vzhodna Afrika"}
-        015{"Severna Afrika"}
-        017{"Centralna Afrika"}
-        018{"Južna Afrika"}
-        019{"Amerike"}
-        021{"Severna Amerika"}
-        029{"Karibi"}
-        030{"Vzhodna Azija"}
-        035{"Jugovzhodna Azija"}
-        039{"Južna Evropa"}
-        053{"Avstralija i Nova Zelandija"}
-        054{"Melanezija"}
-        057{"Micronezija"}
-        061{"Polinezija"}
-        062{"Južno-centralna Azija"}
-        142{"Azija"}
-        145{"Zahodna Azija"}
-        150{"Evropa"}
-        151{"Vzhodna Evropa"}
-        154{"Severna Evropa"}
-        155{"Zapadna Evropa"}
-        830{"Kanalski otoki"}
-        833{"Otok Man"}
         AD{"Andora"}
         AE{"Združeni arabski emirati"}
         AF{"Afganistan"}
@@ -55,7 +26,6 @@ sl{
         AT{"Avstrija"}
         AU{"Avstralija"}
         AW{"Aruba"}
-        AX{"Alandski otoki"}
         AZ{"Azerbajdžan"}
         BA{"Bosna in Hercegovina"}
         BB{"Barbados"}
@@ -89,7 +59,6 @@ sl{
         CN{"Kitajska"}
         CO{"Kolumbija"}
         CR{"Kostarika"}
-        CS{"Srbija in Črna gora"}
         CU{"Kuba"}
         CV{"Kapverdski otoki"}
         CX{"Božični otok"}
@@ -221,7 +190,6 @@ sl{
         PW{"Palau"}
         PY{"Paragvaj"}
         QA{"Katar"}
-        QO{"Ostala oceanija"}
         RE{"Reunion"}
         RO{"Romunija"}
         RU{"Ruska federacija"}
@@ -240,6 +208,7 @@ sl{
         SM{"San Marino"}
         SN{"Senegal"}
         SO{"Somalija"}
+        SP{"Serbia"}
         SR{"Surinam"}
         ST{"Sao Tome in Principe"}
         SV{"Salvador"}
@@ -278,46 +247,15 @@ sl{
         WS{"Samoa"}
         YE{"Jemen"}
         YT{"Mayotte"}
+        YU{"Jugoslavija"}
         ZA{"Južna Afrika"}
         ZM{"Zambija"}
         ZW{"Zimbabve"}
     }
     Currencies{
-        BRL{
-            "BRL",
-            "Brazilski Real",
-        }
-        CNY{
-            "CNY",
-            "Kitajski Yuan Renminbi",
-        }
-        EUR{
-            "€",
-            "Evro",
-        }
-        GBP{
-            "£",
-            "Britanski Funt Sterling",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "Indijski Rupi",
-        }
-        JPY{
-            "¥",
-            "Japonski Jen",
-        }
-        RUB{
-            "RUB",
-            "Ruska Rublja",
-        }
         SIT{
             "SIT",
             "Slovenski tolar",
-        }
-        USD{
-            "$",
-            "Ameriški Dolar",
         }
     }
     ExemplarCharacters{"[a-pr-vzčšž]"}
@@ -375,9 +313,6 @@ sl{
         "�",
         "+",
     }
-    Scripts{
-        Latn{"Latinski"}
-    }
     Types{
         calendar{
             buddhist{"Budistični kolendar"}
@@ -396,7 +331,7 @@ sl{
             traditional{"Tradicionano zlaganje"}
         }
     }
-    Version{"1.48"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -410,8 +345,8 @@ sl{
                 "H:mm",
                 "EEEE, dd. MMMM yyyy",
                 "dd. MMMM yyyy",
-                "d.M.yyyy",
-                "d.M.yy",
+                "yyyy.M.d",
+                "yy.M.d",
                 "{1} {0}",
             }
             dayNames{
@@ -425,17 +360,6 @@ sl{
                         "pet",
                         "sob",
                     }
-                    wide{
-                        "nedelja",
-                        "ponedeljek",
-                        "torek",
-                        "sreda",
-                        "četrtek",
-                        "petek",
-                        "sobota",
-                    }
-                }
-                stand-alone{
                     narrow{
                         "n",
                         "p",
@@ -444,6 +368,15 @@ sl{
                         "č",
                         "p",
                         "s",
+                    }
+                    wide{
+                        "nedelja",
+                        "ponedeljek",
+                        "torek",
+                        "sreda",
+                        "četrtek",
+                        "petek",
+                        "sobota",
                     }
                 }
             }
@@ -469,6 +402,20 @@ sl{
                         "nov",
                         "dec",
                     }
+                    narrow{
+                        "j",
+                        "f",
+                        "m",
+                        "a",
+                        "m",
+                        "j",
+                        "j",
+                        "a",
+                        "s",
+                        "o",
+                        "n",
+                        "d",
+                    }
                     wide{
                         "januar",
                         "februar",
@@ -484,24 +431,8 @@ sl{
                         "december",
                     }
                 }
-                stand-alone{
-                    narrow{
-                        "j",
-                        "f",
-                        "m",
-                        "a",
-                        "m",
-                        "j",
-                        "j",
-                        "a",
-                        "s",
-                        "o",
-                        "n",
-                        "d",
-                    }
-                }
             }
         }
     }
-    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
+    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZ"}
 }

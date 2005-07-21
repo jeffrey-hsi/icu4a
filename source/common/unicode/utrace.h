@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2003-2005, International Business Machines
+*   Copyright (C) 2003-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -23,11 +23,6 @@
 #include <stdarg.h>
 #include "unicode/utypes.h"
 
-/**
- * \file
- * \brief C API:  Definitions for ICU tracing/logging. 
- */
- 
 U_CDECL_BEGIN
 
 #ifndef U_HIDE_DRAFT_API
@@ -35,26 +30,26 @@ U_CDECL_BEGIN
 /**
  * Trace severity levels.  Higher levels increase the verbosity of the trace output.
  * @see utrace_setLevel
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 typedef enum UTraceLevel {
-    /** Disable all tracing  @stable ICU 2.8*/
+    /** Disable all tracing  @draft ICU 2.8*/
     UTRACE_OFF=-1,
-    /** Trace error conditions only  @stable ICU 2.8*/
+    /** Trace error conditions only  @draft ICU 2.8*/
     UTRACE_ERROR=0,
-    /** Trace errors and warnings  @stable ICU 2.8*/
+    /** Trace errors and warnings  @draft ICU 2.8*/
     UTRACE_WARNING=3,
-    /** Trace opens and closes of ICU services  @stable ICU 2.8*/
+    /** Trace opens and closes of ICU services  @draft ICU 2.8*/
     UTRACE_OPEN_CLOSE=5,
-    /** Trace an intermediate number of ICU operations  @stable ICU 2.8*/
+    /** Trace an intermediate number of ICU operations  @draft ICU 2.8*/
     UTRACE_INFO=7,
-    /** Trace the maximum number of ICU operations  @stable ICU 2.8*/
+    /** Trace the maximum number of ICU operations  @draft ICU 2.8*/
     UTRACE_VERBOSE=9
 } UTraceLevel;
 
 /**
  *  These are the ICU functions that will be traced when tracing is enabled.
- *  @stable ICU 2.8
+ *  @draft ICU 2.8
  */
 typedef enum UTraceFunctionNumber {
     UTRACE_FUNCTION_START=0,
@@ -90,17 +85,17 @@ typedef enum UTraceFunctionNumber {
 /**
  * Setter for the trace level.
  * @param traceLevel A UTraceLevel value.
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE void U_EXPORT2
+U_DRAFT void U_EXPORT2
 utrace_setLevel(int32_t traceLevel);
 
 /**
  * Getter for the trace level.
  * @return The UTraceLevel value being used by ICU.
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 utrace_getLevel(void);
 
 /* Trace function pointers types  ----------------------------- */
@@ -109,7 +104,7 @@ utrace_getLevel(void);
   *  Type signature for the trace function to be called when entering a function.
   *  @param context value supplied at the time the trace functions are set.
   *  @param fnNumber Enum value indicating the ICU function being entered.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   */
 typedef void U_CALLCONV
 UTraceEntry(const void *context, int32_t fnNumber);
@@ -125,7 +120,7 @@ UTraceEntry(const void *context, int32_t fnNumber);
   *  @param args    A variable arguments list.  Contents are described by
   *                 the fmt parameter.
   *  @see   utrace_vformat
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   */
 typedef void U_CALLCONV
 UTraceExit(const void *context, int32_t fnNumber, 
@@ -140,7 +135,7 @@ UTraceExit(const void *context, int32_t fnNumber,
   *  @param fmt      A format string describing the tracing data that is supplied
   *                  as variable args
   *  @param args     The data being traced, passed as variable args.
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   */
 typedef void U_CALLCONV
 UTraceData(const void *context, int32_t fnNumber, int32_t level,
@@ -172,9 +167,9 @@ UTraceData(const void *context, int32_t fnNumber, int32_t level,
   *                 traced ICU function, for the purpose of providing
   *                 data to the trace.
   *
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   */
-U_STABLE void U_EXPORT2
+U_DRAFT void U_EXPORT2
 utrace_setFunctions(const void *context,
                     UTraceEntry *e, UTraceExit *x, UTraceData *d);
 
@@ -186,9 +181,9 @@ utrace_setFunctions(const void *context,
   * @param e        The currently installed UTraceEntry function.
   * @param x        The currently installed UTraceExit function.
   * @param d        The currently installed UTraceData function.
-  * @stable ICU 2.8
+  * @draft ICU 2.8
   */
-U_STABLE void U_EXPORT2
+U_DRAFT void U_EXPORT2
 utrace_getFunctions(const void **context,
                     UTraceEntry **e, UTraceExit **x, UTraceData **d);
 
@@ -308,9 +303,9 @@ utrace_getFunctions(const void **context,
   *  @param args    Data to be formatted.
   *  @return        Length of formatted output, including the terminating NUL.
   *                 If buffer capacity is insufficient, the required capacity is returned. 
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 utrace_vformat(char *outBuf, int32_t capacity,
               int32_t indent, const char *fmt,  va_list args);
 
@@ -329,9 +324,9 @@ utrace_vformat(char *outBuf, int32_t capacity,
   *  @param ...     Data to be formatted.
   *  @return        Length of formatted output, including the terminating NUL.
   *                 If buffer capacity is insufficient, the required capacity is returned. 
-  *  @stable ICU 2.8
+  *  @draft ICU 2.8
   */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 utrace_format(char *outBuf, int32_t capacity,
               int32_t indent, const char *fmt,  ...);
 
@@ -346,9 +341,9 @@ utrace_format(char *outBuf, int32_t capacity,
  * @return The name string for the function.
  *
  * @see UTraceFunctionNumber
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE const char * U_EXPORT2
+U_DRAFT const char * U_EXPORT2
 utrace_functionName(int32_t fnNumber);
 
 U_CDECL_END

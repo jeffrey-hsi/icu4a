@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -156,10 +156,6 @@ public: // package
     void TestInvalidPattern(void);
 
     void TestGreekMay(void);
-
-    void TestGenericTime(void);
-
-    void TestGenericTimeZoneOrder(void);
 
  private:
     void expectParse(const char** data, int32_t data_length,

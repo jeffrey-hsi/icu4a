@@ -1,7 +1,7 @@
 
 /*
  *
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved
  *
  */
 
@@ -18,7 +18,6 @@
 #include "GlyphPositioningTables.h"
 
 #include "LEGlyphStorage.h"
-#include "GlyphPositionAdjustments.h"
 
 #include "GDEFMarkFilter.h"
 
@@ -35,42 +34,17 @@ static const LETag kernFeatureTag = LE_KERN_FEATURE_TAG;
 static const LETag markFeatureTag = LE_MARK_FEATURE_TAG;
 static const LETag mkmkFeatureTag = LE_MKMK_FEATURE_TAG;
 
-static const LETag dligFeatureTag = 0x646C6967; // 'dlig' not used at the moment
-static const LETag paltFeatureTag = 0x70616C74; // 'palt'
-
-// default has no ligatures, that's what java does.  this is the minimal set.
-static const LETag minimalFeatures[] = {ccmpFeatureTag, markFeatureTag, mkmkFeatureTag, emptyTag};
-
-// kerning (kern, palt following adobe recommendation for cjk 'kerning') but no ligatures.
-static const LETag kernFeatures[] = {ccmpFeatureTag, kernFeatureTag, paltFeatureTag, 
-				     markFeatureTag, mkmkFeatureTag, emptyTag};
-
-// ligatures (liga, clig) but no kerning.  omit dlig for now.
-static const LETag ligaFeatures[] = {ccmpFeatureTag, ligaFeatureTag, cligFeatureTag, markFeatureTag, 
-				     mkmkFeatureTag, emptyTag};
-
-// kerning and ligatures.
-static const LETag kernAndLigaFeatures[] = {ccmpFeatureTag, ligaFeatureTag, cligFeatureTag, 
-					    kernFeatureTag, paltFeatureTag, markFeatureTag, mkmkFeatureTag, emptyTag};
+static const LETag defaultFeatures[] = {ccmpFeatureTag, ligaFeatureTag, cligFeatureTag, kernFeatureTag, markFeatureTag, mkmkFeatureTag, emptyTag};
 
 
 OpenTypeLayoutEngine::OpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode,
-                        le_int32 typoFlags, const GlyphSubstitutionTableHeader *gsubTable)
-    : LayoutEngine(fontInstance, scriptCode, languageCode, typoFlags), fFeatureList(minimalFeatures), fFeatureOrder(NULL),
+                        const GlyphSubstitutionTableHeader *gsubTable)
+    : LayoutEngine(fontInstance, scriptCode, languageCode), fFeatureList(defaultFeatures), fFeatureOrder(NULL),
       fGSUBTable(gsubTable), fGDEFTable(NULL), fGPOSTable(NULL), fSubstitutionFilter(NULL)
 {
     static const le_uint32 gdefTableTag = LE_GDEF_TABLE_TAG;
     static const le_uint32 gposTableTag = LE_GPOS_TABLE_TAG;
     const GlyphPositioningTableHeader *gposTable = (const GlyphPositioningTableHeader *) getFontTable(gposTableTag);
-
-    // todo: switch to more flags and bitfield rather than list of feature tags?
-    switch (typoFlags) {
-    case 0: break; // default
-    case 1: fFeatureList = kernFeatures; break;
-    case 2: fFeatureList = ligaFeatures; break;
-    case 3: fFeatureList = kernAndLigaFeatures; break;
-    default: break;
-    }
 
     setScriptAndLanguageTags();
 
@@ -90,9 +64,8 @@ void OpenTypeLayoutEngine::reset()
     LayoutEngine::reset();
 }
 
-OpenTypeLayoutEngine::OpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode,
-					   le_int32 typoFlags)
-    : LayoutEngine(fontInstance, scriptCode, languageCode, typoFlags), fFeatureOrder(NULL),
+OpenTypeLayoutEngine::OpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode)
+    : LayoutEngine(fontInstance, scriptCode, languageCode), fFeatureOrder(NULL),
       fGSUBTable(NULL), fGDEFTable(NULL), fGPOSTable(NULL), fSubstitutionFilter(NULL)
 {
     setScriptAndLanguageTags();
@@ -243,7 +216,7 @@ void OpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], le_int3
     le_int32 glyphCount = glyphStorage.getGlyphCount();
 
     if (glyphCount > 0 && fGPOSTable != NULL) {
-        GlyphPositionAdjustments *adjustments = new GlyphPositionAdjustments(glyphCount);
+        GlyphPositionAdjustment *adjustments = new GlyphPositionAdjustment[glyphCount];
         le_int32 i;
 
         if (adjustments == NULL) {
@@ -255,13 +228,13 @@ void OpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], le_int3
         // Don't need to do this if we allocate
         // the adjustments array w/ new...
         for (i = 0; i < glyphCount; i += 1) {
-            adjustments->setXPlacement(i, 0);
-            adjustments->setYPlacement(i, 0);
+            adjustments[i].setXPlacement(0);
+            adjustments[i].setYPlacement(0);
 
-            adjustments->setXAdvance(i, 0);
-            adjustments->setYAdvance(i, 0);
+            adjustments[i].setXAdvance(0);
+            adjustments[i].setYAdvance(0);
 
-            adjustments->setBaseOffset(i, -1);
+            adjustments[i].setBaseOffset(-1);
         }
 #endif
 
@@ -270,8 +243,8 @@ void OpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], le_int3
         float xAdjust = 0, yAdjust = 0;
 
         for (i = 0; i < glyphCount; i += 1) {
-            float xAdvance   = adjustments->getXAdvance(i);
-            float yAdvance   = adjustments->getYAdvance(i);
+            float xAdvance   = adjustments[i].getXAdvance();
+            float yAdvance   = adjustments[i].getYAdvance();
             float xPlacement = 0;
             float yPlacement = 0;
 
@@ -283,9 +256,9 @@ void OpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], le_int3
             yAdjust += yKerning;
 #endif
 
-            for (le_int32 base = i; base >= 0; base = adjustments->getBaseOffset(base)) {
-                xPlacement += adjustments->getXPlacement(base);
-                yPlacement += adjustments->getYPlacement(base);
+            for (le_int32 base = i; base >= 0; base = adjustments[base].getBaseOffset()) {
+                xPlacement += adjustments[base].getXPlacement();
+                yPlacement += adjustments[base].getYPlacement();
             }
 
             xPlacement = fFontInstance->xUnitsToPoints(xPlacement);
@@ -298,7 +271,7 @@ void OpenTypeLayoutEngine::adjustGlyphPositions(const LEUnicode chars[], le_int3
 
         glyphStorage.adjustPosition(glyphCount, xAdjust, -yAdjust, success);
 
-        delete adjustments;
+        delete[] adjustments;
     }
 
 #if 0

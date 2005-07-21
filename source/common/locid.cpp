@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 1997-2005, International Business Machines
+ *   Copyright (C) 1997-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
 *
@@ -553,7 +553,7 @@ Locale& Locale::init(const char* localeID, UBool canonicalize)
         fieldIdx = 1;
         while ((separator = uprv_strchr(field[fieldIdx-1], SEP_CHAR)) && fieldIdx < (int32_t)(sizeof(field)/sizeof(field[0]))-1) {
             field[fieldIdx] = separator + 1;
-            fieldLen[fieldIdx-1] = (int32_t)(separator - field[fieldIdx-1]);
+            fieldLen[fieldIdx-1] = separator - field[fieldIdx-1];
             fieldIdx++;
         }
         // variant may contain @foo or .foo POSIX cruft; remove it
@@ -563,7 +563,7 @@ Locale& Locale::init(const char* localeID, UBool canonicalize)
             if (separator==NULL || (sep2!=NULL && separator > sep2)) {
                 separator = sep2;
             }
-            fieldLen[fieldIdx-1] = (int32_t)(separator - field[fieldIdx-1]);
+            fieldLen[fieldIdx-1] = separator - field[fieldIdx-1];
         } else {
             fieldLen[fieldIdx-1] = length - (int32_t)(field[fieldIdx-1] - fullName);
         }
@@ -745,7 +745,7 @@ Locale::getDisplayLanguage(const Locale &displayLocale,
     length=uloc_getDisplayLanguage(fullName, displayLocale.fullName,
                                    buffer, result.getCapacity(),
                                    &errorCode);
-    result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+    result.releaseBuffer(length);
 
     if(errorCode==U_BUFFER_OVERFLOW_ERROR) {
         buffer=result.getBuffer(length);
@@ -757,7 +757,11 @@ Locale::getDisplayLanguage(const Locale &displayLocale,
         length=uloc_getDisplayLanguage(fullName, displayLocale.fullName,
                                        buffer, result.getCapacity(),
                                        &errorCode);
-        result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+        result.releaseBuffer(length);
+    }
+
+    if(U_FAILURE(errorCode)) {
+        result.truncate(0);
     }
 
     return result;
@@ -785,7 +789,7 @@ Locale::getDisplayScript(const Locale &displayLocale,
     length=uloc_getDisplayScript(fullName, displayLocale.fullName,
                                   buffer, result.getCapacity(),
                                   &errorCode);
-    result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+    result.releaseBuffer(length);
 
     if(errorCode==U_BUFFER_OVERFLOW_ERROR) {
         buffer=result.getBuffer(length);
@@ -797,7 +801,11 @@ Locale::getDisplayScript(const Locale &displayLocale,
         length=uloc_getDisplayScript(fullName, displayLocale.fullName,
                                       buffer, result.getCapacity(),
                                       &errorCode);
-        result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+        result.releaseBuffer(length);
+    }
+
+    if(U_FAILURE(errorCode)) {
+        result.truncate(0);
     }
 
     return result;
@@ -825,7 +833,7 @@ Locale::getDisplayCountry(const Locale &displayLocale,
     length=uloc_getDisplayCountry(fullName, displayLocale.fullName,
                                   buffer, result.getCapacity(),
                                   &errorCode);
-    result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+    result.releaseBuffer(length);
 
     if(errorCode==U_BUFFER_OVERFLOW_ERROR) {
         buffer=result.getBuffer(length);
@@ -837,7 +845,11 @@ Locale::getDisplayCountry(const Locale &displayLocale,
         length=uloc_getDisplayCountry(fullName, displayLocale.fullName,
                                       buffer, result.getCapacity(),
                                       &errorCode);
-        result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+        result.releaseBuffer(length);
+    }
+
+    if(U_FAILURE(errorCode)) {
+        result.truncate(0);
     }
 
     return result;
@@ -865,7 +877,7 @@ Locale::getDisplayVariant(const Locale &displayLocale,
     length=uloc_getDisplayVariant(fullName, displayLocale.fullName,
                                   buffer, result.getCapacity(),
                                   &errorCode);
-    result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+    result.releaseBuffer(length);
 
     if(errorCode==U_BUFFER_OVERFLOW_ERROR) {
         buffer=result.getBuffer(length);
@@ -877,7 +889,11 @@ Locale::getDisplayVariant(const Locale &displayLocale,
         length=uloc_getDisplayVariant(fullName, displayLocale.fullName,
                                       buffer, result.getCapacity(),
                                       &errorCode);
-        result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+        result.releaseBuffer(length);
+    }
+
+    if(U_FAILURE(errorCode)) {
+        result.truncate(0);
     }
 
     return result;
@@ -905,7 +921,7 @@ Locale::getDisplayName(const Locale &displayLocale,
     length=uloc_getDisplayName(fullName, displayLocale.fullName,
                                buffer, result.getCapacity(),
                                &errorCode);
-    result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+    result.releaseBuffer(length);
 
     if(errorCode==U_BUFFER_OVERFLOW_ERROR) {
         buffer=result.getBuffer(length);
@@ -917,7 +933,11 @@ Locale::getDisplayName(const Locale &displayLocale,
         length=uloc_getDisplayName(fullName, displayLocale.fullName,
                                    buffer, result.getCapacity(),
                                    &errorCode);
-        result.releaseBuffer(U_SUCCESS(errorCode) ? length : 0);
+        result.releaseBuffer(length);
+    }
+
+    if(U_FAILURE(errorCode)) {
+        result.truncate(0);
     }
 
     return result;
@@ -1222,7 +1242,7 @@ public:
         int32_t len;
         if(U_SUCCESS(status) && *current != 0) {
             result = current;
-            len = (int32_t)uprv_strlen(current);
+            len = uprv_strlen(current);
             current += len+1;
             if(resultLength != NULL) {
                 *resultLength = len;

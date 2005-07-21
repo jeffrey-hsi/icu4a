@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -39,7 +39,7 @@ U_CDECL_BEGIN
  * @see u_getUnicodeVersion
  * @stable ICU 2.0
  */
-#define U_UNICODE_VERSION "4.1"
+#define U_UNICODE_VERSION "4.0.1"
 
 /**
  * \file
@@ -56,12 +56,12 @@ U_CDECL_BEGIN
  *
  * For more information see
  * "About the Unicode Character Database" (http://www.unicode.org/ucd/)
- * and the ICU User Guide chapter on Properties (http://icu.sourceforge.net/userguide/properties.html).
+ * and the ICU User Guide chapter on Properties (http://oss.software.ibm.com/icu/userguide/properties.html).
  *
  * Many functions are designed to match java.lang.Character functions.
  * See the individual function documentation,
- * and see the JDK 1.4 java.lang.Character documentation
- * at http://java.sun.com/j2se/1.4/docs/api/java/lang/Character.html
+ * and see the JDK 1.4.1 java.lang.Character documentation
+ * at http://java.sun.com/j2se/1.4.1/docs/api/java/lang/Character.html
  *
  * There are also functions that provide easy migration from C/POSIX functions
  * like isblank(). Their use is generally discouraged because the C/POSIX
@@ -77,33 +77,12 @@ U_CDECL_BEGIN
  * (In ICU, BreakIterator is the most sophisticated API for word boundaries.)
  * Another example: There is no "istitle()" class for titlecase characters.
  *
- * ICU 3.4 and later provides API access for all twelve C/POSIX character classes.
- * ICU implements them according to the Standard Recommendations in
- * Annex C: Compatibility Properties of UTS #18 Unicode Regular Expressions
- * (http://www.unicode.org/reports/tr18/#Compatibility_Properties).
+ * A summary of the behavior of some C/POSIX character classification implementations
+ * for Unicode is available at http://oss.software.ibm.com/cvs/icu/~checkout~/icuhtml/design/posix_classes.html
  *
- * API access for C/POSIX character classes is as follows:
- * - alpha:     u_isUAlphabetic(c) or u_hasBinaryProperty(c, UCHAR_ALPHABETIC)
- * - lower:     u_isULowercase(c) or u_hasBinaryProperty(c, UCHAR_LOWERCASE)
- * - upper:     u_isUUppercase(c) or u_hasBinaryProperty(c, UCHAR_UPPERCASE)
- * - punct:     u_ispunct(c)
- * - digit:     u_isdigit(c) or u_charType(c)==U_DECIMAL_DIGIT_NUMBER
- * - xdigit:    u_isxdigit(c) or u_hasBinaryProperty(c, UCHAR_POSIX_XDIGIT)
- * - alnum:     u_hasBinaryProperty(c, UCHAR_POSIX_ALNUM)
- * - space:     u_isUWhiteSpace(c) or u_hasBinaryProperty(c, UCHAR_WHITE_SPACE)
- * - blank:     u_isblank(c) or u_hasBinaryProperty(c, UCHAR_POSIX_BLANK)
- * - cntrl:     u_charType(c)==U_CONTROL_CHAR
- * - graph:     u_hasBinaryProperty(c, UCHAR_POSIX_GRAPH)
- * - print:     u_hasBinaryProperty(c, UCHAR_POSIX_PRINT)
- *
- * Note: Some of the u_isxyz() functions in uchar.h predate, and do not match,
- * the Standard Recommendations in UTS #18. Instead, they match Java
- * functions according to their API documentation.
- *
- * \htmlonly
- * The C/POSIX character classes are also available in UnicodeSet patterns,
- * using patterns like [:graph:] or \p{graph}.
- * \endhtmlonly
+ * <strong>Important</strong>:
+ * The behavior of the ICU C/POSIX-style character classification
+ * functions is subject to change according to discussion of the above summary.
  *
  * Note: There are several ICU whitespace functions.
  * Comparison:
@@ -379,41 +358,6 @@ typedef enum UProperty {
         processing collation tailoring rules.
         @draft ICU 3.0 */
     UCHAR_SEGMENT_STARTER,
-    /** Binary property Pattern_Syntax (new in Unicode 4.1).
-        See UAX #31 Identifier and Pattern Syntax
-        (http://www.unicode.org/reports/tr31/)
-        @draft ICU 3.4 */
-    UCHAR_PATTERN_SYNTAX,
-    /** Binary property Pattern_White_Space (new in Unicode 4.1).
-        See UAX #31 Identifier and Pattern Syntax
-        (http://www.unicode.org/reports/tr31/)
-        @draft ICU 3.4 */
-    UCHAR_PATTERN_WHITE_SPACE,
-    /** Binary property alnum (a C/POSIX character class).
-        Implemented according to the UTS #18 Annex C Standard Recommendation.
-        See the uchar.h file documentation.
-        @draft ICU 3.4 */
-    UCHAR_POSIX_ALNUM,
-    /** Binary property blank (a C/POSIX character class).
-        Implemented according to the UTS #18 Annex C Standard Recommendation.
-        See the uchar.h file documentation.
-        @draft ICU 3.4 */
-    UCHAR_POSIX_BLANK,
-    /** Binary property graph (a C/POSIX character class).
-        Implemented according to the UTS #18 Annex C Standard Recommendation.
-        See the uchar.h file documentation.
-        @draft ICU 3.4 */
-    UCHAR_POSIX_GRAPH,
-    /** Binary property print (a C/POSIX character class).
-        Implemented according to the UTS #18 Annex C Standard Recommendation.
-        See the uchar.h file documentation.
-        @draft ICU 3.4 */
-    UCHAR_POSIX_PRINT,
-    /** Binary property xdigit (a C/POSIX character class).
-        Implemented according to the UTS #18 Annex C Standard Recommendation.
-        See the uchar.h file documentation.
-        @draft ICU 3.4 */
-    UCHAR_POSIX_XDIGIT,
     /** One more than the last constant for binary Unicode properties. @stable ICU 2.1 */
     UCHAR_BINARY_LIMIT,
 
@@ -482,21 +426,6 @@ typedef enum UProperty {
         see UNORM_FCD and http://www.unicode.org/notes/tn5/#FCD .
         Returns 8-bit numeric values like UCHAR_CANONICAL_COMBINING_CLASS. @draft ICU 3.0 */
     UCHAR_TRAIL_CANONICAL_COMBINING_CLASS,
-    /** Enumerated property Grapheme_Cluster_Break (new in Unicode 4.1).
-        Used in UAX #29: Text Boundaries
-        (http://www.unicode.org/reports/tr29/)
-        Returns UGraphemeClusterBreak values. @draft ICU 3.4 */
-    UCHAR_GRAPHEME_CLUSTER_BREAK,
-    /** Enumerated property Sentence_Break (new in Unicode 4.1).
-        Used in UAX #29: Text Boundaries
-        (http://www.unicode.org/reports/tr29/)
-        Returns USentenceBreak values. @draft ICU 3.4 */
-    UCHAR_SENTENCE_BREAK,
-    /** Enumerated property Word_Break (new in Unicode 4.1).
-        Used in UAX #29: Text Boundaries
-        (http://www.unicode.org/reports/tr29/)
-        Returns UWordBreakValues values. @draft ICU 3.4 */
-    UCHAR_WORD_BREAK,
     /** One more than the last constant for enumerated/integer Unicode properties. @stable ICU 2.2 */
     UCHAR_INT_LIMIT,
 
@@ -1190,49 +1119,6 @@ enum UBlockCode {
     /** @stable ICU 2.6 */
     UBLOCK_VARIATION_SELECTORS_SUPPLEMENT = 125, /*[E0100]*/
 
-    /* New blocks in Unicode 4.1 */
-
-    /** @draft ICU 3.4 */
-    UBLOCK_ANCIENT_GREEK_MUSICAL_NOTATION = 126, /*[1D200]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_ANCIENT_GREEK_NUMBERS = 127, /*[10140]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_ARABIC_SUPPLEMENT = 128, /*[0750]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_BUGINESE = 129, /*[1A00]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_CJK_STROKES = 130, /*[31C0]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_COMBINING_DIACRITICAL_MARKS_SUPPLEMENT = 131, /*[1DC0]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_COPTIC = 132, /*[2C80]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_ETHIOPIC_EXTENDED = 133, /*[2D80]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_ETHIOPIC_SUPPLEMENT = 134, /*[1380]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_GEORGIAN_SUPPLEMENT = 135, /*[2D00]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_GLAGOLITIC = 136, /*[2C00]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_KHAROSHTHI = 137, /*[10A00]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_MODIFIER_TONE_LETTERS = 138, /*[A700]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_NEW_TAI_LUE = 139, /*[1980]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_OLD_PERSIAN = 140, /*[103A0]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_PHONETIC_EXTENSIONS_SUPPLEMENT = 141, /*[1D80]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_SUPPLEMENTAL_PUNCTUATION = 142, /*[2E00]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_SYLOTI_NAGRI = 143, /*[A800]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_TIFINAGH = 144, /*[2D30]*/
-    /** @draft ICU 3.4 */
-    UBLOCK_VERTICAL_FORMS = 145, /*[FE10]*/
-
     /** @stable ICU 2.0 */
     UBLOCK_COUNT,
 
@@ -1410,66 +1296,6 @@ typedef enum UJoiningGroup {
 } UJoiningGroup;
 
 /**
- * Grapheme Cluster Break constants.
- *
- * @see UCHAR_GRAPHEME_CLUSTER_BREAK
- * @draft ICU 3.4
- */
-typedef enum UGraphemeClusterBreak {
-    U_GCB_OTHER,            /*[XX]*/ /*See note !!*/
-    U_GCB_CONTROL,          /*[CN]*/
-    U_GCB_CR,               /*[CR]*/
-    U_GCB_EXTEND,           /*[EX]*/
-    U_GCB_L,                /*[L]*/
-    U_GCB_LF,               /*[LF]*/
-    U_GCB_LV,               /*[LV]*/
-    U_GCB_LVT,              /*[LVT]*/
-    U_GCB_T,                /*[T]*/
-    U_GCB_V,                /*[V]*/
-    U_GCB_COUNT
-} UGraphemeClusterBreak;
-
-/**
- * Word Break constants.
- * (UWordBreak is a pre-existing enum type in ubrk.h for word break status tags.)
- *
- * @see UCHAR_WORD_BREAK
- * @draft ICU 3.4
- */
-typedef enum UWordBreakValues {
-    U_WB_OTHER,             /*[XX]*/ /*See note !!*/
-    U_WB_ALETTER,           /*[LE]*/
-    U_WB_FORMAT,            /*[FO]*/
-    U_WB_KATAKANA,          /*[KA]*/
-    U_WB_MIDLETTER,         /*[ML]*/
-    U_WB_MIDNUM,            /*[MN]*/
-    U_WB_NUMERIC,           /*[NU]*/
-    U_WB_EXTENDNUMLET,      /*[EX]*/
-    U_WB_COUNT
-} UWordBreakValues;
-
-/**
- * Sentence Break constants.
- *
- * @see UCHAR_SENTENCE_BREAK
- * @draft ICU 3.4
- */
-typedef enum USentenceBreak {
-    U_SB_OTHER,             /*[XX]*/ /*See note !!*/
-    U_SB_ATERM,             /*[AT]*/
-    U_SB_CLOSE,             /*[CL]*/
-    U_SB_FORMAT,            /*[FO]*/
-    U_SB_LOWER,             /*[LO]*/
-    U_SB_NUMERIC,           /*[NU]*/
-    U_SB_OLETTER,           /*[LE]*/
-    U_SB_SEP,               /*[SE]*/
-    U_SB_SP,                /*[SP]*/
-    U_SB_STERM,             /*[ST]*/
-    U_SB_UPPER,             /*[UP]*/
-    U_SB_COUNT
-} USentenceBreak;
-
-/**
  * Line Break constants.
  *
  * @see UCHAR_LINE_BREAK
@@ -1509,11 +1335,6 @@ typedef enum ULineBreak {
     U_LB_ZWSPACE,           /*[ZW]*/
     U_LB_NEXT_LINE,         /*[NL]*/ /* from here on: new in Unicode 4/ICU 2.6 */
     U_LB_WORD_JOINER,       /*[WJ]*/
-    U_LB_H2,                /*[H2]*/ /* from here on: new in Unicode 4.1/ICU 3.4 */
-    U_LB_H3,                /*[H3]*/
-    U_LB_JL,                /*[JL]*/
-    U_LB_JT,                /*[JT]*/
-    U_LB_JV,                /*[JV]*/
     U_LB_COUNT
 } ULineBreak;
 
@@ -1785,6 +1606,7 @@ u_getNumericValue(UChar32 c);
  * @see UCHAR_LOWERCASE
  * @see u_isupper
  * @see u_istitle
+ * @see u_islower
  * @stable ICU 2.0
  */
 U_STABLE UBool U_EXPORT2
@@ -2746,14 +2568,10 @@ u_isJavaIDPart(UChar32 c);
  * Same as java.lang.Character.toLowerCase().
  *
  * This function only returns the simple, single-code point case mapping.
- * Full case mappings should be used whenever possible because they produce
- * better results by working on whole strings.
- * They take into account the string context and the language and can map
- * to a result string with a different length as appropriate.
+ * Full case mappings may result in zero, one or more code points and depend
+ * on context or language etc.
  * Full case mappings are applied by the string case mapping functions,
  * see ustring.h and the UnicodeString class.
- * See also the User Guide chapter on C/POSIX migration:
- * http://icu.sourceforge.net/userguide/posix.html#case_mappings
  *
  * @param c the code point to be mapped
  * @return the Simple_Lowercase_Mapping of the code point, if any;
@@ -2771,14 +2589,10 @@ u_tolower(UChar32 c);
  * Same as java.lang.Character.toUpperCase().
  *
  * This function only returns the simple, single-code point case mapping.
- * Full case mappings should be used whenever possible because they produce
- * better results by working on whole strings.
- * They take into account the string context and the language and can map
- * to a result string with a different length as appropriate.
+ * Full case mappings may result in zero, one or more code points and depend
+ * on context or language etc.
  * Full case mappings are applied by the string case mapping functions,
  * see ustring.h and the UnicodeString class.
- * See also the User Guide chapter on C/POSIX migration:
- * http://icu.sourceforge.net/userguide/posix.html#case_mappings
  *
  * @param c the code point to be mapped
  * @return the Simple_Uppercase_Mapping of the code point, if any;
@@ -2796,14 +2610,10 @@ u_toupper(UChar32 c);
  * Same as java.lang.Character.toTitleCase().
  *
  * This function only returns the simple, single-code point case mapping.
- * Full case mappings should be used whenever possible because they produce
- * better results by working on whole strings.
- * They take into account the string context and the language and can map
- * to a result string with a different length as appropriate.
+ * Full case mappings may result in zero, one or more code points and depend
+ * on context or language etc.
  * Full case mappings are applied by the string case mapping functions,
  * see ustring.h and the UnicodeString class.
- * See also the User Guide chapter on C/POSIX migration:
- * http://icu.sourceforge.net/userguide/posix.html#case_mappings
  *
  * @param c the code point to be mapped
  * @return the Simple_Titlecase_Mapping of the code point, if any;
@@ -2841,14 +2651,10 @@ u_totitle(UChar32 c);
  * itself is returned.
  *
  * This function only returns the simple, single-code point case mapping.
- * Full case mappings should be used whenever possible because they produce
- * better results by working on whole strings.
- * They take into account the string context and the language and can map
- * to a result string with a different length as appropriate.
+ * Full case mappings may result in zero, one or more code points and depend
+ * on context or language etc.
  * Full case mappings are applied by the string case mapping functions,
  * see ustring.h and the UnicodeString class.
- * See also the User Guide chapter on C/POSIX migration:
- * http://icu.sourceforge.net/userguide/posix.html#case_mappings
  *
  * @param c the code point to be mapped
  * @param options Either U_FOLD_CASE_DEFAULT or U_FOLD_CASE_EXCLUDE_SPECIAL_I

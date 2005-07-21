@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*   file name:  cbiditst.cpp
@@ -67,10 +67,6 @@ doLOGICALArabicDeShapingTest(void);
 
 static void TestReorder(void);
 
-static void TestFailureRecovery(void);
-
-static void TestMultipleParagraphs(void);
-
 /* helpers ------------------------------------------------------------------ */
 
 static const char *levelString="...............................................................";
@@ -94,8 +90,6 @@ addComplexTest(TestNode** root) {
     addTest(root, doBiDiTest, "complex/bidi/BiDiTest");
     addTest(root, doInverseBiDiTest, "complex/bidi/inverse");
     addTest(root, TestReorder,"complex/bidi/TestReorder");
-    addTest(root, TestFailureRecovery,"complex/bidi/TestFailureRecovery");
-    addTest(root, TestMultipleParagraphs,"complex/bidi/multipleParagraphs");
     addTest(root, doArabicShapingTest, "complex/arabic-shaping/ArabicShapingTest");
     addTest(root, doLamAlefSpecialVLTRArabicShapingTest, "complex/arabic-shaping/lamalef");
     addTest(root, doTashkeelSpecialVLTRArabicShapingTest, "complex/arabic-shaping/tashkeel");
@@ -190,10 +184,10 @@ static void TestReorder(){
             "DEL(\\u0644\\u0644)ADD(\\u0644.\\u0644.\\u0029\\u0644)\\u0644.\\u200F",
             "DEL(\\u0631\\u064A)ADD(\\u0631.\\u064A.) \\u0631.\\u064A.\\u200F",
             "DAY  2  \\u0646  \\u0627\\u0644\\u0627\\u062B\\u0646\\u064A\\u0646 DAYABBR",
-            "DAY  3  \\u062B  \\u0627\\u0644\\u062B\\u0644\\u0627\\u062B\\u0627\\u0621 DAYABBR",
-            "DAY  4   \\u0631  \\u0627\\u0644\\u0623\\u0631\\u0628\\u0639\\u0627\\u0621 DAYABBR",
-            "DAY  5  \\u062E  \\u0627\\u0644\\u062E\\u0645\\u064A\\u0633  DAYABBR",
-            "DAY  6   \\u062C  \\u0627\\u0644\\u062C\\u0645\\u0639\\u0629    DAYABBR",
+            "DAY  3  \\u062B  \\u0627\\u0644\\u062B\\u0644\\u0627\\u062B\\u0627\\u0621 DAYABBR",     
+            "DAY  4   \\u0631  \\u0627\\u0644\\u0623\\u0631\\u0628\\u0639\\u0627\\u0621 DAYABBR",   
+            "DAY  5  \\u062E  \\u0627\\u0644\\u062E\\u0645\\u064A\\u0633  DAYABBR",   
+            "DAY  6   \\u062C  \\u0627\\u0644\\u062C\\u0645\\u0639\\u0629    DAYABBR", 
             "DAY  7  \\u0633  \\u0627\\u0644\\u0633\\u0628\\u062A  DAYABBR",
             "HELLO\\u0627\\u0644\\u0633\\u0628\\u062A",
     };
@@ -207,20 +201,20 @@ static void TestReorder(){
              */
             "DEL(\\u064A\\u0631)ADD(\\u200F.\\u064A.\\u0631 (.\\u064A.\\u0631",
             "DAY  2  \\u0646\\u064A\\u0646\\u062B\\u0627\\u0644\\u0627  \\u0646 DAYABBR",
-            "DAY  3  \\u0621\\u0627\\u062B\\u0627\\u0644\\u062B\\u0644\\u0627  \\u062B DAYABBR",
-            "DAY  4   \\u0621\\u0627\\u0639\\u0628\\u0631\\u0623\\u0644\\u0627  \\u0631 DAYABBR",
-            "DAY  5  \\u0633\\u064A\\u0645\\u062E\\u0644\\u0627  \\u062E  DAYABBR",
-            "DAY  6   \\u0629\\u0639\\u0645\\u062C\\u0644\\u0627  \\u062C    DAYABBR",
+            "DAY  3  \\u0621\\u0627\\u062B\\u0627\\u0644\\u062B\\u0644\\u0627  \\u062B DAYABBR",     
+            "DAY  4   \\u0621\\u0627\\u0639\\u0628\\u0631\\u0623\\u0644\\u0627  \\u0631 DAYABBR",   
+            "DAY  5  \\u0633\\u064A\\u0645\\u062E\\u0644\\u0627  \\u062E  DAYABBR",   
+            "DAY  6   \\u0629\\u0639\\u0645\\u062C\\u0644\\u0627  \\u062C    DAYABBR", 
             "DAY  7  \\u062A\\u0628\\u0633\\u0644\\u0627  \\u0633  DAYABBR",
             "HELLO\\u062A\\u0628\\u0633\\u0644\\u0627",
     };
     static const char* const visualOrder1[]={
             ")\\u062F.\\u0625.\\u200F(DDA)\\u062F\\u0625(LED",
             ")\\u0623\\u064A\\u0627\\u0631(DDA )\\u0645\\u0627\\u064A\\u0648(LED",
-            "\\u0644.\\u0644.(\\u0644(\\u0644.\\u200F(DDA)\\u0644\\u0644(LED",
+            "\\u0644.\\u0644.(\\u0644(\\u0644.\\u200F(DDA)\\u0644\\u0644(LED", 
             "\\u0631.\\u064A.( \\u0631.\\u064A.\\u200F(DDA)\\u0631\\u064A(LED",
             "RBBAYAD \\u0646  \\u0627\\u0644\\u0627\\u062B\\u0646\\u064A\\u0646  2  YAD",
-            "RBBAYAD \\u062B  \\u0627\\u0644\\u062B\\u0644\\u0627\\u062B\\u0627\\u0621  3  YAD",
+            "RBBAYAD \\u062B  \\u0627\\u0644\\u062B\\u0644\\u0627\\u062B\\u0627\\u0621  3  YAD", 
             "RBBAYAD \\u0631  \\u0627\\u0644\\u0623\\u0631\\u0628\\u0639\\u0627\\u0621   4  YAD",
             "RBBAYAD  \\u062E  \\u0627\\u0644\\u062E\\u0645\\u064A\\u0633  5  YAD",
             "RBBAYAD    \\u062C  \\u0627\\u0644\\u062C\\u0645\\u0639\\u0629   6  YAD",
@@ -299,11 +293,13 @@ static void TestReorder(){
             log_err("ubidi_writeReordered() destSize and srcSize do not match\n");
         }else if(uprv_strncmp(visualOrder[i],chars,destSize)!=0){
             log_err("ubidi_writeReordered() did not give expected results. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
+
+            
         }
         free(src);
         free(dest);
     }
-
+    
     for(i=0;i<(sizeof(logicalOrder)/sizeof(logicalOrder[0]));i++){
         int32_t srcSize = (int32_t)uprv_strlen(logicalOrder[i]);
         int32_t destSize = srcSize*2;
@@ -332,8 +328,11 @@ static void TestReorder(){
         if(destSize!=srcSize){
             log_err("ubidi_writeReordered() destSize and srcSize do not match\n");
         }else if(uprv_strncmp(visualOrder1[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results for UBIDI_DO_MIRRORING+UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder1[i],chars,i);
+            log_err("ubidi_writeReordered() did not give expected results for UBIDI_DO_MIRRORING+UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
+
+            
         }
+        
         free(src);
         free(dest);
     }
@@ -368,8 +367,11 @@ static void TestReorder(){
             log_err("ubidi_writeReordered() destSize and srcSize do not match. Dest Size = %d Source Size = %d\n",destSize,srcSize );
         }else*/
             if(uprv_strncmp(visualOrder2[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results for UBIDI_INSERT_LRM_FOR_NUMERIC+UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder2[i],chars,i);
+            log_err("ubidi_writeReordered() did not give expected results for UBIDI_INSERT_LRM_FOR_NUMERIC+UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
+
+            
         }
+        
         free(src);
         free(dest);
     }
@@ -404,8 +406,11 @@ static void TestReorder(){
         if(destSize!=srcSize){
             log_err("ubidi_writeReordered() destSize and srcSize do not match. Dest Size = %d Source Size = %d\n",destSize,srcSize );
         }else if(uprv_strncmp(visualOrder3[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results for UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder3[i],chars,i);
+            log_err("ubidi_writeReordered() did not give expected results for UBIDI_OUTPUT_REVERSE. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
+
+            
         }
+        
         free(src);
         free(dest);
     }
@@ -424,7 +429,7 @@ static void TestReorder(){
             log_err("ubidi_setPara(tests[%d], paraLevel %d) failed with errorCode %s\n",
                     i, UBIDI_MAX_EXPLICIT_LEVEL, u_errorName(ec));
         }
-
+        
         /* try pre-flighting */
         destSize = ubidi_writeReordered(bidi,dest,0,UBIDI_DO_MIRRORING+UBIDI_REMOVE_BIDI_CONTROLS,&ec);
         if(ec!=U_BUFFER_OVERFLOW_ERROR){
@@ -440,8 +445,9 @@ static void TestReorder(){
         /*if(destSize!=srcSize){
             log_err("ubidi_writeReordered() destSize and srcSize do not match. Dest Size = %d Source Size = %d\n",destSize,srcSize );
         }else*/ if(uprv_strncmp(visualOrder4[i],chars,destSize)!=0){
-            log_err("ubidi_writeReordered() did not give expected results for UBIDI_DO_MIRRORING+UBIDI_REMOVE_BIDI_CONTROLS. Expected: %s Got: %s At Index: %d\n",visualOrder4[i],chars,i);
+            log_err("ubidi_writeReordered() did not give expected results for UBIDI_DO_MIRRORING+UBIDI_REMOVE_BIDI_CONTROLS. Expected: %s Got: %s At Index: %d\n",visualOrder[i],chars,i);
         }
+        
         free(src);
         free(dest);
     }
@@ -657,337 +663,44 @@ testReordering(UBiDi *pBiDi, int testNumber) {
     /* check that the indexes are the same between these and ubidi_getLogical/VisualIndex() */
     for(i=0; i<length; ++i) {
         if(logicalMap1[i]!=logicalMap2[i]) {
-            log_err("bidi reordering error in tests[%d]: logicalMap1[i]!=logicalMap2[i] at i=%d\n", testNumber, i);
+            log_verbose("bidi reordering error in tests[%d]: logicalMap1[i]!=logicalMap2[i] at i=%d\n", testNumber, i);
             break;
         }
         if(logicalMap1[i]!=logicalMap3[i]) {
-            log_err("bidi reordering error in tests[%d]: logicalMap1[i]!=logicalMap3[i] at i=%d\n", testNumber, i);
+            log_verbose("bidi reordering error in tests[%d]: logicalMap1[i]!=logicalMap3[i] at i=%d\n", testNumber, i);
             break;
         }
 
         if(visualMap1[i]!=visualMap2[i]) {
-            log_err("bidi reordering error in tests[%d]: visualMap1[i]!=visualMap2[i] at i=%d\n", testNumber, i);
+            log_verbose("bidi reordering error in tests[%d]: visualMap1[i]!=visualMap2[i] at i=%d\n", testNumber, i);
             break;
         }
         if(visualMap1[i]!=visualMap3[i]) {
-            log_err("bidi reordering error in tests[%d]: visualMap1[i]!=visualMap3[i] at i=%d\n", testNumber, i);
+            log_verbose("bidi reordering error in tests[%d]: visualMap1[i]!=visualMap3[i] at i=%d\n", testNumber, i);
             break;
         }
         if(visualMap1[i]!=visualMap4[i]) {
-            log_err("bidi reordering error in tests[%d]: visualMap1[i]!=visualMap4[i] at i=%d\n", testNumber, i);
+            log_verbose("bidi reordering error in tests[%d]: visualMap1[i]!=visualMap4[i] at i=%d\n", testNumber, i);
             break;
         }
 
         if(logicalMap1[i]!=ubidi_getVisualIndex(pBiDi, i, &errorCode)) {
-            log_err("bidi reordering error in tests[%d]: logicalMap1[i]!=ubidi_getVisualIndex(i) at i=%d\n", testNumber, i);
+            log_verbose("bidi reordering error in tests[%d]: logicalMap1[i]!=ubidi_getVisualIndex(i) at i=%d\n", testNumber, i);
             break;
         }
         if(U_FAILURE(errorCode)) {
-            log_err("ubidi_getVisualIndex(tests[%d], %d): error %s\n", testNumber, i, myErrorName(errorCode));
+            log_verbose("ubidi_getVisualIndex(tests[%d], %d): error %s\n", testNumber, i, myErrorName(errorCode));
             break;
         }
         if(visualMap1[i]!=ubidi_getLogicalIndex(pBiDi, i, &errorCode)) {
-            log_err("bidi reordering error in tests[%d]: visualMap1[i]!=ubidi_getLogicalIndex(i) at i=%d\n", testNumber, i);
+            log_verbose("bidi reordering error in tests[%d]: visualMap1[i]!=ubidi_getLogicalIndex(i) at i=%d\n", testNumber, i);
             break;
         }
         if(U_FAILURE(errorCode)) {
-            log_err("ubidi_getLogicalIndex(tests[%d], %d): error %s\n", testNumber, i, myErrorName(errorCode));
+            log_verbose("ubidi_getLogicalIndex(tests[%d], %d): error %s\n", testNumber, i, myErrorName(errorCode));
             break;
         }
     }
-}
-
-static void TestFailureRecovery(void) {
-    UErrorCode status;
-
-    status = U_FILE_ACCESS_ERROR;
-    if (ubidi_writeReordered(NULL, NULL, 0, 0, &status) != 0) {
-        log_err("ubidi_writeReordered did not return 0 when passed a failing UErrorCode\n");
-    }
-    if (ubidi_writeReverse(NULL, 0, NULL, 0, 0, &status) != 0) {
-        log_err("ubidi_writeReverse did not return 0 when passed a failing UErrorCode\n");
-    }
-    status = U_ZERO_ERROR;
-    if (ubidi_writeReordered(NULL, NULL, 0, 0, &status) != 0 || status != U_ILLEGAL_ARGUMENT_ERROR) {
-        log_err("ubidi_writeReordered did not fail as expected\n");
-    }
-    status = U_ZERO_ERROR;
-    if (ubidi_writeReverse(NULL, 0, NULL, 0, 0, &status) != 0 || status != U_ILLEGAL_ARGUMENT_ERROR) {
-        log_err("ubidi_writeReverse did not fail as expected\n");
-    }
-}
-
-static void TestMultipleParagraphs(void) {
-    #define MAXLEN 100
-    static const char* const text = "__ABC\\u001c"          /* Para #0 offset 0 */
-                                    "__\\u05d0DE\\u001c"    /*       1        6 */
-                                    "__123\\u001c"          /*       2       12 */
-                                    "\\u000d\\u000a"        /*       3       18 */
-                                    "FG\\u000d"             /*       4       20 */
-                                    "\\u000d"               /*       5       23 */
-                                    "HI\\u000d\\u000a"      /*       6       24 */
-                                    "\\u000d\\u000a"        /*       7       28 */
-                                    "\\u000a"               /*       8       30 */
-                                    "\\u000a"               /*       9       31 */
-                                    "JK\\u001c";            /*      10       32 */
-    static const int32_t paraCount=11;
-    static const int32_t paraBounds[]={0, 6, 12, 18, 20, 23, 24, 28, 30, 31, 32, 35};
-    static const UBiDiLevel paraLevels[]={UBIDI_LTR, UBIDI_RTL, UBIDI_DEFAULT_LTR, UBIDI_DEFAULT_RTL, 22, 23};
-    static const UBiDiLevel multiLevels[6][11] = {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-                                                  {0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                                                  {0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0},
-                                                  {22, 22, 22, 22, 22, 22, 22, 22, 22, 22, 22},
-                                                  {23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23}};
-    static const char* const text2 = "\\u05d0 1-2\\u001c\\u0630 1-2\\u001c1-2";
-    static const UBiDiLevel levels2[] = {1,1,2,2,2,0, 1,1,2,1,2,0, 2,2,2};
-    UBiDiLevel gotLevel;
-    const UBiDiLevel* gotLevels;
-    UBool orderParagraphsLTR;
-    UChar src[MAXLEN];
-    UErrorCode errorCode=U_ZERO_ERROR;
-    UBiDi* pBidi=ubidi_open();
-    UBiDi* pLine;
-    int32_t srcSize, count, paraStart, paraLimit, paraIndex, length;
-    int i, j, k;
-
-    u_unescape(text, src, MAXLEN);
-    srcSize=u_strlen(src);
-    ubidi_setPara(pBidi, src, srcSize, UBIDI_LTR, NULL, &errorCode);
-    if(U_FAILURE(errorCode)){
-        log_err("ubidi_setPara failed, paraLevel=%d, errorCode %s\n",
-                UBIDI_LTR, u_errorName(errorCode));
-        ubidi_close(pBidi);
-        return;
-    }
-    /* check paragraph count and boundaries */
-    if (paraCount!=(count=ubidi_countParagraphs(pBidi))) {
-        log_err("ubidi_countParagraphs returned %d, should be %d\n",
-                count, paraCount);
-    }
-    for (i=0; i<paraCount; i++) {
-        ubidi_getParagraphByIndex(pBidi, i, &paraStart, &paraLimit, NULL, &errorCode);
-        if ((paraStart!=paraBounds[i]) || (paraLimit!=paraBounds[i+1])) {
-            log_err("Found boundaries of paragraph %d: %d-%d; expected: %d-%d\n",
-                    i, paraStart, paraLimit, paraBounds[i], paraBounds[i+1]);
-        }
-    }
-    errorCode=U_ZERO_ERROR;
-    /* check with last paragraph not terminated by B */
-    src[srcSize-1]='L';
-    ubidi_setPara(pBidi, src, srcSize, UBIDI_LTR, NULL, &errorCode);
-    if(U_FAILURE(errorCode)){
-        log_err("2nd ubidi_setPara failed, paraLevel=%d, errorCode %s\n",
-                UBIDI_LTR, u_errorName(errorCode));
-        ubidi_close(pBidi);
-        return;
-    }
-    if (paraCount!=(count=ubidi_countParagraphs(pBidi))) {
-        log_err("2nd ubidi_countParagraphs returned %d, should be %d\n",
-                count, paraCount);
-    }
-    i=paraCount-1;
-    ubidi_getParagraphByIndex(pBidi, i, &paraStart, &paraLimit, NULL, &errorCode);
-    if ((paraStart!=paraBounds[i]) || (paraLimit!=paraBounds[i+1])) {
-        log_err("2nd Found boundaries of paragraph %d: %d-%d; expected: %d-%d\n",
-                i, paraStart, paraLimit, paraBounds[i], paraBounds[i+1]);
-    }
-    errorCode=U_ZERO_ERROR;
-    /* check paraLevel for all paragraphs under various paraLevel specs */
-    for (k=0; k<6; k++) {
-        ubidi_setPara(pBidi, src, srcSize, paraLevels[k], NULL, &errorCode);
-        for (i=0; i<paraCount; i++) {
-            paraIndex=ubidi_getParagraph(pBidi, paraBounds[i], NULL, NULL, &gotLevel, &errorCode);
-            if (paraIndex!=i) {
-                log_err("For paraLevel=%d paragraph=%d, found paragraph index=%d expected=%d\n",
-                        paraLevels[k], i, paraIndex, i);
-            }
-            if (gotLevel!=multiLevels[k][i]) {
-                log_err("For paraLevel=%d paragraph=%d, found level=%d expected %d\n",
-                        paraLevels[k], i, gotLevel, multiLevels[k][i]);
-            }
-        }
-        gotLevel=ubidi_getParaLevel(pBidi);
-        if (gotLevel!=multiLevels[k][0]) {
-            log_err("For paraLevel=%d getParaLevel=%d, expected %d\n",
-                    paraLevels[k], gotLevel, multiLevels[k][0]);
-        }
-    }
-    errorCode=U_ZERO_ERROR;
-    /* check that the result of ubidi_getParaLevel changes if the first
-     * paragraph has a different level
-     */
-    src[0]=0x05d2;                      /* Hebrew letter Gimel */
-    ubidi_setPara(pBidi, src, srcSize, UBIDI_DEFAULT_LTR, NULL, &errorCode);
-    gotLevel=ubidi_getParaLevel(pBidi);
-    if (gotLevel!=UBIDI_RTL) {
-        log_err("For paraLevel=UBIDI_DEFAULT_LTR getParaLevel=%d, expected=%d\n",
-                        gotLevel, UBIDI_RTL);
-    }
-    errorCode=U_ZERO_ERROR;
-    /* check that line cannot overlap paragraph boundaries */
-    pLine=ubidi_open();
-    i=paraBounds[1];
-    k=paraBounds[2]+1;
-    ubidi_setLine(pBidi, i, k, pLine, &errorCode);
-    if (U_SUCCESS(errorCode)) {
-        log_err("For line limits %d-%d got success %s\n",
-                i, k, u_errorName(errorCode));
-    }
-    errorCode=U_ZERO_ERROR;
-    i=paraBounds[1];
-    k=paraBounds[2];
-    ubidi_setLine(pBidi, i, k, pLine, &errorCode);
-    if (U_FAILURE(errorCode)) {
-        log_err("For line limits %d-%d got error %s\n",
-                i, k, u_errorName(errorCode));
-        errorCode=U_ZERO_ERROR;
-    }
-    /* check level of block separator at end of paragraph when orderParagraphsLTR==FALSE */
-    ubidi_setPara(pBidi, src, srcSize, UBIDI_RTL, NULL, &errorCode);
-    /* get levels through para Bidi block */
-    gotLevels=ubidi_getLevels(pBidi, &errorCode);
-    if (U_FAILURE(errorCode)) {
-        log_err("Error on Para getLevels %s\n", u_errorName(errorCode));
-        ubidi_close(pLine);
-        ubidi_close(pBidi);
-        return;
-    }
-    for (i=26; i<32; i++) {
-        if (gotLevels[i]!=UBIDI_RTL) {
-            log_err("For char %d(%04x), level=%d, expected=%d\n",
-                    i, src[i], gotLevels[i], UBIDI_RTL);
-        }
-    }
-    /* get levels through para Line block */
-    i=paraBounds[1];
-    k=paraBounds[2];
-    ubidi_setLine(pBidi, i, k, pLine, &errorCode);
-    if (U_FAILURE(errorCode)) {
-        log_err("For line limits %d-%d got error %s\n",
-                i, k, u_errorName(errorCode));
-        ubidi_close(pLine);
-        ubidi_close(pBidi);
-        return;
-    }
-    paraIndex=ubidi_getParagraph(pLine, i, &paraStart, &paraLimit, &gotLevel, &errorCode);
-    gotLevels=ubidi_getLevels(pLine, &errorCode);
-    if (U_FAILURE(errorCode)) {
-        log_err("Error on Line getLevels %s\n", u_errorName(errorCode));
-        ubidi_close(pLine);
-        ubidi_close(pBidi);
-        return;
-    }
-    length=ubidi_getLength(pLine);
-    if ((gotLevel!=UBIDI_RTL) || (gotLevels[length-1]!=UBIDI_RTL)) {
-        log_err("For paragraph %d with limits %d-%d, paraLevel=%d expected=%d, "
-                "level of separator=%d expected=%d\n",
-                paraIndex, paraStart, paraLimit, gotLevel, UBIDI_RTL, gotLevels[length-1], UBIDI_RTL);
-    }
-    orderParagraphsLTR=ubidi_isOrderParagraphsLTR(pBidi);
-    if (orderParagraphsLTR) {
-        log_err("Found orderParagraphsLTR=%d expected=%d\n", orderParagraphsLTR, FALSE);
-    }
-    ubidi_orderParagraphsLTR(pBidi, TRUE);
-    orderParagraphsLTR=ubidi_isOrderParagraphsLTR(pBidi);
-    if (!orderParagraphsLTR) {
-        log_err("Found orderParagraphsLTR=%d expected=%d\n", orderParagraphsLTR, TRUE);
-    }
-    /* check level of block separator at end of paragraph when orderParagraphsLTR==TRUE */
-    ubidi_setPara(pBidi, src, srcSize, UBIDI_RTL, NULL, &errorCode);
-    /* get levels through para Bidi block */
-    gotLevels=ubidi_getLevels(pBidi, &errorCode);
-    for (i=26; i<32; i++) {
-        if (gotLevels[i]!=0) {
-            log_err("For char %d(%04x), level=%d, expected=%d\n",
-                    i, src[i], gotLevels[i], 0);
-        }
-    }
-    errorCode=U_ZERO_ERROR;
-    /* get levels through para Line block */
-    i=paraBounds[1];
-    k=paraBounds[2];
-    ubidi_setLine(pBidi, paraStart, paraLimit, pLine, &errorCode);
-    paraIndex=ubidi_getParagraph(pLine, i, &paraStart, &paraLimit, &gotLevel, &errorCode);
-    gotLevels=ubidi_getLevels(pLine, &errorCode);
-    length=ubidi_getLength(pLine);
-    if ((gotLevel!=UBIDI_RTL) || (gotLevels[length-1]!=0)) {
-        log_err("For paragraph %d with limits %d-%d, paraLevel=%d expected=%d, "
-                "level of separator=%d expected=%d\n",
-                paraIndex, paraStart, paraLimit, gotLevel, UBIDI_RTL, gotLevels[length-1], 0);
-        log_verbose("levels=");
-        for (count=0; count<length; count++) {
-            log_verbose(" %d", gotLevels[count]);
-        }
-        log_verbose("\n");
-    }
-
-    /* test that the concatenation of separate invocations of the bidi code
-     * on each individual paragraph in order matches the levels array that
-     * results from invoking bidi once over the entire multiparagraph tests
-     * (with orderParagraphsLTR false, of course)
-     */
-    u_unescape(text, src, MAXLEN);      /* restore original content */
-    srcSize=u_strlen(src);
-    ubidi_orderParagraphsLTR(pBidi, FALSE);
-    ubidi_setPara(pBidi, src, srcSize, UBIDI_DEFAULT_RTL, NULL, &errorCode);
-    gotLevels=ubidi_getLevels(pBidi, &errorCode);
-    for (i=0; i<paraCount; i++) {
-        /* use pLine for individual paragraphs */
-        paraStart = paraBounds[i];
-        length = paraBounds[i+1] - paraStart;
-        ubidi_setPara(pLine, src+paraStart, length, UBIDI_DEFAULT_RTL, NULL, &errorCode);
-        for (j=0; j<length; j++) {
-            if ((k=ubidi_getLevelAt(pLine, j)) != (gotLevel=gotLevels[paraStart+j])) {
-                log_err("Checking paragraph concatenation: for paragraph=%d, "
-                        "char=%d(%04x), level=%d, expected=%d\n",
-                        i, j, src[paraStart+j], k, gotLevel);
-            }
-        }
-    }
-
-    /* ensure that leading numerics in a paragraph are not treated as arabic
-       numerals because of arabic text in a preceding paragraph
-     */
-    u_unescape(text2, src, MAXLEN);
-    srcSize=u_strlen(src);
-    ubidi_orderParagraphsLTR(pBidi, TRUE);
-    ubidi_setPara(pBidi, src, srcSize, UBIDI_RTL, NULL, &errorCode);
-    gotLevels=ubidi_getLevels(pBidi, &errorCode);
-    for (i=0; i<srcSize; i++) {
-        if (gotLevels[i]!=levels2[i]) {
-            log_err("Checking leading numerics: for char %d(%04x), level=%d, expected=%d\n",
-                    i, src[i], gotLevels[i], levels2[i]);
-        }
-    }
-
-    /* check handling of whitespace before end of paragraph separator when
-     * orderParagraphsLTR==TRUE, when last paragraph has, and lacks, a terminating B
-     */
-    u_memset(src, 0x0020, MAXLEN);
-    srcSize = 5;
-    ubidi_orderParagraphsLTR(pBidi, TRUE);
-    for (i=0x001c; i<=0x0020; i+=(0x0020-0x001c)) {
-        src[4]=i;                       /* with and without terminating B */
-        for (j=0x0041; j<=0x05d0; j+=(0x05d0-0x0041)) {
-            src[0]=j;                   /* leading 'A' or Alef */
-            for (gotLevel=4; gotLevel<=5; gotLevel++) {
-                /* test even and odd paraLevel */
-                ubidi_setPara(pBidi, src, srcSize, gotLevel, NULL, &errorCode);
-                gotLevels=ubidi_getLevels(pBidi, &errorCode);
-                for (k=1; k<=3; k++) {
-                    if (gotLevels[k]!=gotLevel) {
-                        log_err("Checking trailing spaces: for leading_char=%04x, "
-                                "last_char=%04x, index=%d, level=%d, expected=%d\n",
-                                src[0], src[4], k, gotLevels[k], gotLevel);
-                    }
-                }
-            }
-        }
-    }
-
-    ubidi_close(pLine);
-    ubidi_close(pBidi);
 }
 
 

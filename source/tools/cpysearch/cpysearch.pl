@@ -1,13 +1,9 @@
 #!/usr/bin/perl -w
 #  ***********************************************************************
 #  * COPYRIGHT:
-#  * Copyright (c) 2002-2005, International Business Machines Corporation
+#  * Copyright (c) 2002-2004, International Business Machines Corporation
 #  * and others. All Rights Reserved.
 #  ***********************************************************************
-#
-# Search for files modified this year, that need to have copyright indicating
-# this current year on them.
-#
 use strict;
 
 my $icuSource = $ARGV[0];

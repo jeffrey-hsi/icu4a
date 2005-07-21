@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 2002-2005, International Business Machines Corporation and
+ * Copyright (c) 2002-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -69,7 +69,7 @@ void RBDataMap::init(UResourceBundle *data, UErrorCode &status) {
   UResourceBundle *t = NULL;
   for(i = 0; i < ures_getSize(data); i++) {
     t = ures_getByIndex(data, i, t, &status);
-    fData->put(UnicodeString(ures_getKey(t), -1, US_INV), new ResourceBundle(t, status), status);
+    fData->put(UnicodeString(ures_getKey(t), ""), new ResourceBundle(t, status), status);
   }
   ures_close(t);
 }
@@ -100,7 +100,7 @@ const ResourceBundle *RBDataMap::getItem(const char* key, UErrorCode &status) co
     return NULL;
   }
 
-  UnicodeString hashKey(key, -1, US_INV);
+  UnicodeString hashKey(key, "");
   const ResourceBundle *r = (ResourceBundle *)fData->get(hashKey);
   if(r != NULL) {
     return r;
@@ -218,4 +218,3 @@ const int32_t* RBDataMap::getIntArray(int32_t& count, const char* key, UErrorCod
     return NULL;
   }
 }
-

@@ -23,7 +23,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				ImproveFloatingPointConsistency="TRUE"
-				AdditionalIncludeDirectories="..\..\..\include;..\..\tools\ctestfw;..\..\common"
+				AdditionalIncludeDirectories="..\..\..\include,..\..\tools\ctestfw,..\..\common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -84,11 +84,14 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="2"
 				ImproveFloatingPointConsistency="TRUE"
-				AdditionalIncludeDirectories="..\..\..\include;..\..\tools\ctestfw;..\..\common"
+				AdditionalIncludeDirectories="..\..\..\include,..\..\tools\ctestfw,..\..\common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="TRUE"
 				DisableLanguageExtensions="TRUE"
 				PrecompiledHeaderFile=".\Release/iotest.pch"
 				AssemblerListingLocation=".\Release/"
@@ -146,9 +149,6 @@
 			</File>
 			<File
 				RelativePath="strtst.c">
-			</File>
-			<File
-				RelativePath="trnstst.c">
 			</File>
 		</Filter>
 		<Filter

@@ -75,39 +75,28 @@ static const UChar SPEC_Any[] = {
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(UnescapeTransliterator)
 
-static UChar* copySpec(const UChar* spec) {
-    int32_t len = 0;
-    while (spec[len] != END) {
-        ++len;
-    }
-    ++len;
-    UChar *result = (UChar *)uprv_malloc(len*sizeof(UChar));
-    uprv_memcpy(result, spec, len*sizeof(result[0]));
-    return result;
-}
-
 /**
  * Factory methods.  Ignore the context.
  */
-static Transliterator* _createUnicode(const UnicodeString& ID, Transliterator::Token /*context*/) {
+Transliterator* UnescapeTransliterator::_createUnicode(const UnicodeString& ID, Token /*context*/) {
     return new UnescapeTransliterator(ID, SPEC_Unicode);
 }
-static Transliterator* _createJava(const UnicodeString& ID, Transliterator::Token /*context*/) {
+Transliterator* UnescapeTransliterator::_createJava(const UnicodeString& ID, Token /*context*/) {
     return new UnescapeTransliterator(ID, SPEC_Java);
 }
-static Transliterator* _createC(const UnicodeString& ID, Transliterator::Token /*context*/) {
+Transliterator* UnescapeTransliterator::_createC(const UnicodeString& ID, Token /*context*/) {
     return new UnescapeTransliterator(ID, SPEC_C);
 }
-static Transliterator* _createXML(const UnicodeString& ID, Transliterator::Token /*context*/) {
+Transliterator* UnescapeTransliterator::_createXML(const UnicodeString& ID, Token /*context*/) {
     return new UnescapeTransliterator(ID, SPEC_XML);
 }
-static Transliterator* _createXML10(const UnicodeString& ID, Transliterator::Token /*context*/) {
+Transliterator* UnescapeTransliterator::_createXML10(const UnicodeString& ID, Token /*context*/) {
     return new UnescapeTransliterator(ID, SPEC_XML10);
 }
-static Transliterator* _createPerl(const UnicodeString& ID, Transliterator::Token /*context*/) {
+Transliterator* UnescapeTransliterator::_createPerl(const UnicodeString& ID, Token /*context*/) {
     return new UnescapeTransliterator(ID, SPEC_Perl);
 }
-static Transliterator* _createAny(const UnicodeString& ID, Transliterator::Token /*context*/) {
+Transliterator* UnescapeTransliterator::_createAny(const UnicodeString& ID, Token /*context*/) {
     return new UnescapeTransliterator(ID, SPEC_Any);
 }
 
@@ -160,6 +149,17 @@ UnescapeTransliterator::~UnescapeTransliterator() {
  */
 Transliterator* UnescapeTransliterator::clone() const {
     return new UnescapeTransliterator(*this);
+}
+
+UChar* UnescapeTransliterator::copySpec(const UChar* spec) {
+    int32_t len = 0;
+    while (spec[len] != END) {
+        ++len;
+    }
+    ++len;
+    UChar *result = (UChar *)uprv_malloc(len*sizeof(UChar));
+    uprv_memcpy(result, spec, len*sizeof(result[0]));
+    return result;
 }
 
 /**

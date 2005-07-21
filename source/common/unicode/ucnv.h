@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2005, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
  *  ucnv.h:
@@ -35,12 +35,12 @@
  *
  * <p>When a converter encounters an illegal, irregular, invalid or unmappable character
  * its default behavior is to use a substitution character to replace the
- * bad byte sequence. This behavior can be changed by using {@link ucnv_setFromUCallBack() }
- * or {@link ucnv_setToUCallBack() } on the converter. The header ucnv_err.h defines
+ * bad byte sequence. This behavior can be changed by using {@link ucnv_getFromUCallBack() }
+ * or {@link ucnv_getToUCallBack() } on the converter. The header ucnv_err.h defines
  * many other callback actions that can be used instead of a character substitution.</p>
  *
  * <p>More information about this API can be found in our 
- * <a href="http://icu.sourceforge.net/userguide/conversion.html">User's
+ * <a href="http://oss.software.ibm.com/icu/userguide/conversion.html">User's
  * Guide</a>.</p>
  */
 
@@ -151,9 +151,6 @@ typedef enum {
  * @param codeUnits Points to 'length' bytes of the concerned codepage sequence
  * @param length Size (in bytes) of the concerned codepage sequence
  * @param reason Defines the reason the callback was invoked
- * @param pErrorCode    ICU error code in/out parameter.
- *                      For converter callback functions, set to a conversion error
- *                      before the call, and the callback may reset it to U_ZERO_ERROR.
  * @see ucnv_setToUCallBack
  * @see UConverterToUnicodeArgs
  * @stable ICU 2.0
@@ -164,7 +161,7 @@ typedef void (U_EXPORT2 *UConverterToUCallback) (
                   const char *codeUnits,
                   int32_t length,
                   UConverterCallbackReason reason,
-                  UErrorCode *pErrorCode);
+                  UErrorCode *);
 
 /**
  * Function pointer for error callback in the unicode to codepage direction.
@@ -175,9 +172,6 @@ typedef void (U_EXPORT2 *UConverterToUCallback) (
  * @param length Size (in bytes) of the concerned codepage sequence
  * @param codePoint Single UChar32 (UTF-32) containing the concerend Unicode codepoint.
  * @param reason Defines the reason the callback was invoked
- * @param pErrorCode    ICU error code in/out parameter.
- *                      For converter callback functions, set to a conversion error
- *                      before the call, and the callback may reset it to U_ZERO_ERROR.
  * @see ucnv_setFromUCallBack
  * @stable ICU 2.0
  */
@@ -188,7 +182,7 @@ typedef void (U_EXPORT2 *UConverterFromUCallback) (
                     int32_t length,
                     UChar32 codePoint,
                     UConverterCallbackReason reason,
-                    UErrorCode *pErrorCode);
+                    UErrorCode *);
 
 U_CDECL_END
 
@@ -293,7 +287,7 @@ ucnv_compareNames(const char *name1, const char *name2);
  *
  * <p>The conversion behavior and names can vary between platforms. ICU may
  * convert some characters differently from other platforms. Details on this topic
- * are in the <a href="http://icu.sourceforge.net/userguide/conversion.html">User's
+ * are in the <a href="http://oss.software.ibm.com/icu/userguide/conversion.html">User's
  * Guide</a>.</p>
  *
  * @param converterName Name of the uconv table, may have options appended
@@ -410,7 +404,7 @@ ucnv_openCCSID(int32_t codepage,
  * <p>The packageName and converterName must point to an ICU udata object, as defined by
  *   <code> udata_open( packageName, "cnv", converterName, err) </code> or equivalent.
  * Typically, packageName will refer to a (.dat) file, or to a package registered with
- * udata_setAppData(). Using a full file or directory pathname for packageName is deprecated.</p>
+ * udata_setAppData().</p>
  * 
  * <p>The name will NOT be looked up in the alias mechanism, nor will the converter be
  * stored in the converter cache or the alias table. The only way to open further converters
@@ -438,39 +432,18 @@ U_STABLE UConverter* U_EXPORT2
 ucnv_openPackage(const char *packageName, const char *converterName, UErrorCode *err);
 
 /**
- * Thread safe converter cloning operation.
- * For most efficient operation, pass in a stackBuffer (and a *pBufferSize)
- * with at least U_CNV_SAFECLONE_BUFFERSIZE bytes of space.
- * If the buffer size is sufficient, then the clone will use the stack buffer;
- * otherwise, it will be allocated, and *pBufferSize will indicate
- * the actual size. (This should not occur with U_CNV_SAFECLONE_BUFFERSIZE.)
- *
- * You must ucnv_close() the clone in any case.
- *
- * If *pBufferSize==0, (regardless of whether stackBuffer==NULL or not)
- * then *pBufferSize will be changed to a sufficient size
- * for cloning this converter,
- * without actually cloning the converter ("pure pre-flighting").
- *
- * If *pBufferSize is greater than zero but not large enough for a stack-based
- * clone, then the converter is cloned using newly allocated memory
- * and *pBufferSize is changed to the necessary size.
- *
- * If the converter clone fits into the stack buffer but the stack buffer is not
- * sufficiently aligned for the clone, then the clone will use an
- * adjusted pointer and use an accordingly smaller buffer size.
- *
+ * Thread safe cloning operation
  * @param cnv converter to be cloned
  * @param stackBuffer user allocated space for the new clone. If NULL new memory will be allocated. 
  *  If buffer is not large enough, new memory will be allocated.
  *  Clients can use the U_CNV_SAFECLONE_BUFFERSIZE. This will probably be enough to avoid memory allocations.
- * @param pBufferSize pointer to size of allocated space. pBufferSize must not be NULL.
+ * @param pBufferSize pointer to size of allocated space. 
+ *  If *pBufferSize == 0, a sufficient size for use in cloning will 
+ *  be returned ('pre-flighting')
+ *  If *pBufferSize is not enough for a stack-based safe clone, 
+ *  new memory will be allocated.
  * @param status to indicate whether the operation went on smoothly or there were errors
- *  An informational status value, U_SAFECLONE_ALLOCATED_WARNING,
- *  is used if any allocations were necessary.
- *  However, it is better to check if *pBufferSize grew for checking for
- *  allocations because warning codes can be overridden by subsequent
- *  function calls.
+ *  An informational status value, U_SAFECLONE_ALLOCATED_ERROR, is used if any allocations were necessary.
  * @return pointer to the new clone
  * @stable ICU 2.0
  */
@@ -680,7 +653,7 @@ ucnv_getMaxCharSize(const UConverter *converter);
  *         converting length UChars with the converter that returned the maxCharSize.
  *
  * @see ucnv_getMaxCharSize
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 #define UCNV_GET_MAX_BYTES_FOR_STRING(length, maxCharSize) \
      (((int32_t)(length)+10)*(int32_t)(maxCharSize))
@@ -1826,8 +1799,9 @@ ucnv_usesFallback(const UConverter *cnv);
  * @param signatureLength   A pointer to int32_t to receive the number of bytes that make up the signature 
  *                          of the detected UTF. 0 if not detected.
  *                          Can be a NULL pointer.
- * @param pErrorCode        ICU error code in/out parameter.
- *                          Must fulfill U_SUCCESS before the function call.
+ * @param pErrorCode        A pointer to receive information about any errors that may occur during detection.
+ *                          Must be a valid pointer to an error code value, which must not indicate a failure
+ *                          before the function call.
  * @return The name of the encoding detected. NULL if encoding is not detected. 
  * @stable ICU 2.4
  */
@@ -1836,34 +1810,6 @@ ucnv_detectUnicodeSignature(const char* source,
                             int32_t sourceLength,
                             int32_t *signatureLength,
                             UErrorCode *pErrorCode);
-
-/**
- * Returns the number of UChars held in the converter's internal state 
- * because more input is needed for completing the conversion. This function is 
- * useful for mapping semantics of ICU's converter interface to those of iconv,
- * and this information is not needed for normal conversion.
- * @param cnv       The converter in which the input is held
- * @param status    ICU error code in/out parameter.
- *                  Must fulfill U_SUCCESS before the function call.
- * @return The number of UChars in the state. -1 if an error is encountered.
- * @draft ICU 3.4
- */
-U_DRAFT int32_t U_EXPORT2
-ucnv_fromUCountPending(const UConverter* cnv, UErrorCode* status);
-
-/**
- * Returns the number of chars held in the converter's internal state
- * because more input is needed for completing the conversion. This function is 
- * useful for mapping semantics of ICU's converter interface to those of iconv,
- * and this information is not needed for normal conversion.
- * @param cnv       The converter in which the input is held as internal state
- * @param status    ICU error code in/out parameter.
- *                  Must fulfill U_SUCCESS before the function call.
- * @return The number of chars in the state. -1 if an error is encountered.
- * @draft ICU 3.4
- */
-U_DRAFT int32_t U_EXPORT2
-ucnv_toUCountPending(const UConverter* cnv, UErrorCode* status);
 
 #endif
 

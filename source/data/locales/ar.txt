@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/ar.xml
+// * Source File: ../../../locale/common/main/ar.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/ar.xml
+ *  ICU <specials> source: ../../../locale/icu/main/ar.xml
  */
 ar{
     Countries{
@@ -150,7 +150,6 @@ ar{
         PH{"الفيلبين"}
         PK{"الباكستان"}
         PL{"بولندا"}
-        PS{"فلسطين"}
         PT{"البرتغال"}
         PW{"بالاو"}
         PY{"باراغواي"}
@@ -220,14 +219,6 @@ ar{
             "ج.م.‏",
             "EGP",
         }
-        EUR{
-            "€",
-            "EUR",
-        }
-        GBP{
-            "£",
-            "GBP",
-        }
         IQD{
             "د.ع.‏",
             "IQD",
@@ -235,10 +226,6 @@ ar{
         JOD{
             "د.أ.‏",
             "JOD",
-        }
-        JPY{
-            "¥",
-            "JPY",
         }
         KWD{
             "د.ك.‏",
@@ -268,10 +255,6 @@ ar{
             "ر.س.‏",
             "SAR",
         }
-        SDD{
-            ".‏د.س",
-            "SDD",
-        }
         SDP{
             "ج.س.‏",
             "SDP",
@@ -283,10 +266,6 @@ ar{
         TND{
             "د.ت.‏",
             "TND",
-        }
-        USD{
-            "$",
-            "USD",
         }
         YER{
             "ر.ي.‏",
@@ -440,7 +419,7 @@ ar{
             traditional{"تقليدي"}
         }
     }
-    Version{"1.46"}
+    Version{"1.2"}
     calendar{
         buddhist{
             eras{
@@ -480,17 +459,6 @@ ar{
                         "ج",
                         "س",
                     }
-                    wide{
-                        "الأحد",
-                        "الاثنين",
-                        "الثلاثاء",
-                        "الأربعاء",
-                        "الخميس",
-                        "الجمعة",
-                        "السبت",
-                    }
-                }
-                stand-alone{
                     narrow{
                         "ح",
                         "ن",
@@ -499,6 +467,15 @@ ar{
                         "خ",
                         "ج",
                         "س",
+                    }
+                    wide{
+                        "الأحد",
+                        "الاثنين",
+                        "الثلاثاء",
+                        "الأربعاء",
+                        "الخميس",
+                        "الجمعة",
+                        "السبت",
                     }
                 }
             }
@@ -524,22 +501,6 @@ ar{
                         "نوفمبر",
                         "ديسمبر",
                     }
-                    wide{
-                        "يناير",
-                        "فبراير",
-                        "مارس",
-                        "أبريل",
-                        "مايو",
-                        "يونيو",
-                        "يوليو",
-                        "أغسطس",
-                        "سبتمبر",
-                        "أكتوبر",
-                        "نوفمبر",
-                        "ديسمبر",
-                    }
-                }
-                stand-alone{
                     narrow{
                         "ي",
                         "ف",
@@ -553,6 +514,20 @@ ar{
                         "ك",
                         "ب",
                         "د",
+                    }
+                    wide{
+                        "يناير",
+                        "فبراير",
+                        "مارس",
+                        "أبريل",
+                        "مايو",
+                        "يونيو",
+                        "يوليو",
+                        "أغسطس",
+                        "سبتمبر",
+                        "أكتوبر",
+                        "نوفمبر",
+                        "ديسمبر",
                     }
                 }
             }
@@ -571,7 +546,7 @@ ar{
             }
             monthNames{
                 format{
-                    abbreviated:alias{"/LOCALE/calendar/islamic/monthNames/format/wide"}
+                    abbreviated:alias{"ar/calendar/islamic/monthNames/format/wide"}
                     wide{
                         "محرم",
                         "صفر",
@@ -590,9 +565,9 @@ ar{
             }
         }
         islamic-civil{
-            eras:alias{"/LOCALE/calendar/islamic/eras"}
-            monthNames:alias{"/LOCALE/calendar/islamic/monthNames"}
+            eras:alias{"ar/calendar/islamic/eras"}
+            monthNames:alias{"ar/calendar/islamic/monthNames"}
         }
     }
-    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
+    localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZ"}
 }

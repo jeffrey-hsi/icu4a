@@ -1,7 +1,7 @@
 
 /*
  *
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved
  *
  */
 
@@ -9,11 +9,6 @@
 #define __LESWAPS_H
 
 #include "LETypes.h"
-
-/**
- * \file 
- * \brief C++ API: Endian independent access to data for LayoutEngine
- */
 
 U_NAMESPACE_BEGIN
 

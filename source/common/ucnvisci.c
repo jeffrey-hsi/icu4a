@@ -1332,7 +1332,7 @@ _ISCII_SafeClone(const UConverter *cnv,
 
 static void
 _ISCIIGetUnicodeSet(const UConverter *cnv,
-                    const USetAdder *sa,
+                    USetAdder *sa,
                     UConverterUnicodeSet which,
                     UErrorCode *pErrorCode)
 {

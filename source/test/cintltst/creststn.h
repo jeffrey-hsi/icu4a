@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /***************************************************************************
@@ -59,8 +59,6 @@ static void TestResourceLevelAliasing(void);
 static void TestErrorCodes(void);
 
 static void TestJB3763(void);
-
-static void TestXPath(void);
 
 /**
 * extensive subtests called by TestResourceBundles

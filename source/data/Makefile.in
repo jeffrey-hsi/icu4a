@@ -1,5 +1,5 @@
 ## Makefile.in for ICU data
-## Copyright (c) 1999-2005, International Business Machines Corporation and
+## Copyright (c) 1999-2004, International Business Machines Corporation and
 ## others. All Rights Reserved.
 
 ## Source directory information
@@ -35,17 +35,10 @@ else
 ICUPKGDATA_OUTDIR = $(OUTDIR)
 endif
 
+top_builddir_from_tmp = $(patsubst ..%,../..%,$(top_builddir))
 CURDIR:=$(CURR_FULL_DIR)
-PKGDATA = $(BINDIR)/pkgdata $(PKGDATA_OPTS) -q -c -s $(CURDIR)/out/build/$(ICUDATA_PLATFORM_NAME) -d $(ICUPKGDATA_OUTDIR) -M'PKGDATA_LDFLAGS="$(LDFLAGSICUDT)"'
+PKGDATA = $(BINDIR)/pkgdata $(PKGDATA_OPTS) -q -c -s $(CURDIR)/out/build/$(ICUDATA_PLATFORM_NAME) -d $(ICUPKGDATA_OUTDIR)
 
-ifeq ($(OS390_STUBDATA),1)
-OS390PKG=package390
-OS390INSTALL=install390
-
-# Additional data for 390
-OS390LIST=$(OUTTMPDIR)/icudata390.lst
-OUTTMPDIR_390STUB=$(top_builddir)/data/out/tmp_390stub
-endif
 
 # OBJDATADIR must be a short path (with ..'s) to the data.
 
@@ -61,8 +54,7 @@ OUTDIR=$(top_builddir)/data/out
 endif
 
 OUTTMPDIR=$(OUTDIR)/tmp
-MAINBUILDDIR=$(OUTDIR)/build
-BUILDDIR=$(MAINBUILDDIR)/$(ICUDATA_PLATFORM_NAME)
+BUILDDIR=$(OUTDIR)/build/$(ICUDATA_PLATFORM_NAME)
 UNICODEDATADIR=$(SRCDATADIR)/unidata
 LOCSRCDIR=$(SRCDATADIR)/locales
 COLSRCDIR=$(SRCDATADIR)/coll
@@ -103,16 +95,16 @@ check: all
 distclean-local: clean
 	$(RMV) Makefile
 
-all-local: build-dir icupkg.inc build-local packagedata $(POST_DATA_BUILD) $(OS390PKG)
+ifeq ($(OS390_STUBDATA),1)
+OS390PKG=package390
+OS390INSTALL=install390
 
-# Starting with ICU4C 3.4, the core Unicode properties files (uprops.icu, ucase.icu, ubidi.icu, unorm.icu)
-# are hardcoded in the common DLL and therefore not included in the data package any more.
-# They are not built by default but need to be built for ICU4J data and for getting the .c source files
-# when updating the Unicode data.
-# Changed in Makefile.in revision 1.147. See Jitterbug 4497.
-uni-core-data: build-dir $(BUILDDIR)/uprops.icu $(BUILDDIR)/ucase.icu $(BUILDDIR)/ubidi.icu $(BUILDDIR)/unorm.icu
-	@echo Unicode .icu files built to $(BUILDDIR)
-	@echo Unicode .c source files built to $(OUTTMPDIR)
+# Additional data for 390
+OS390LIST=$(OUTTMPDIR)/icudata390.lst
+OUTTMPDIR_390STUB=$(top_builddir)/data/out/tmp_390stub
+endif
+
+all-local: build-dir icupkg.inc build-local packagedata $(POST_DATA_BUILD) $(OS390PKG)
 
 dist-local:
 
@@ -130,27 +122,6 @@ cleanpackage:
 
 check-local:
 
-# Find out if we have a source archive.
-# If we have that, then use that instead of building everything from scratch.
-ICUDATA_SOURCE_ARCHIVE = $(wildcard $(srcdir)/in/$(ICUDATA_PLATFORM_NAME).dat)
-ifeq ($(ICUDATA_SOURCE_ARCHIVE),)
-ICUDATA_ARCHIVE = $(firstword $(wildcard $(srcdir)/in/$(ICUDATA_BASENAME_VERSION)*.dat))
-# We don't have the data in the current endianess or charset.
-# See if we can find data of any archive type,
-# and convert it to the current type.
-ifneq ($(ICUDATA_ARCHIVE),)
-ICUDATA_SOURCE_ARCHIVE = $(OUTDIR)/$(ICUDATA_PLATFORM_NAME).dat
-$(ICUDATA_SOURCE_ARCHIVE): $(ICUDATA_ARCHIVE) $(OUTDIR)
-	$(INVOKE) $(BINDIR)/icuswap -t$(ICUDATA_CHAR) $(ICUDATA_ARCHIVE) $(ICUDATA_SOURCE_ARCHIVE)
-endif
-else
-ifeq ($(PKGDATA_MODE),common)
-# We have a source data common archive in the native endianess,
-# and it's what we want to build. Try to not run any of ICU's tools.
-ICUDATA_SOURCE_IS_NATIVE_TARGET=YES
-endif
-endif
-
 # During this INVOKE we only want to use stubdata.
 # We don't want to try to write over files that we are using.
 PKGDATA_INVOKE:=$(subst $(LIBDIR):$(top_builddir)/stubdata,$(top_builddir)/stubdata:$(LIBDIR),$(INVOKE)) $(PKGDATA_INVOKE_OPTS)
@@ -159,11 +130,7 @@ packagedata: icupkg.inc $(OUTTMPDIR)/icudata.lst build-local
 ifneq ($(ENABLE_STATIC),)
 	$(PKGDATA_INVOKE) $(PKGDATA) -e $(ICUDATA_ENTRY_POINT) -T $(OUTTMPDIR) -p $(ICUDATA_NAME) $(PKGDATA_LIBSTATICNAME) -m static $(OUTTMPDIR)/icudata.lst
 endif
-ifneq ($(ICUDATA_SOURCE_IS_NATIVE_TARGET),YES)
 	$(PKGDATA_INVOKE) $(PKGDATA) -e $(ICUDATA_ENTRY_POINT) -T $(OUTTMPDIR) -p $(ICUDATA_NAME) -m $(PKGDATA_MODE) $(PKGDATA_VERSIONING) $(PKGDATA_LIBNAME) $(OUTTMPDIR)/icudata.lst
-else
-	$(INSTALL_DATA) $(ICUDATA_SOURCE_ARCHIVE) $(OUTDIR)
-endif
 
 ## Install ICU data.
 install-local: $(OUTTMPDIR)/icudata.lst ./icupkg.inc packagedata $(OS390INSTALL)
@@ -171,11 +138,7 @@ install-local: $(OUTTMPDIR)/icudata.lst ./icupkg.inc packagedata $(OS390INSTALL)
 ifneq ($(ENABLE_STATIC),)
 	$(PKGDATA_INVOKE) $(PKGDATA) -m static -e $(ICUDATA_ENTRY_POINT) -T $(OUTTMPDIR) -s $(BUILDDIR) -p $(ICUDATA_NAME) $(PKGDATA_LIBSTATICNAME) $(OUTTMPDIR)/icudata.lst -I $(ICUPKGDATA_INSTALL_LIBDIR)
 endif
-ifneq ($(ICUDATA_SOURCE_IS_NATIVE_TARGET),YES)
 	$(PKGDATA_INVOKE) $(PKGDATA) -m $(PKGDATA_MODE) $(PKGDATA_VERSIONING) -e $(ICUDATA_ENTRY_POINT) -T $(OUTTMPDIR) -s $(BUILDDIR) -p $(ICUDATA_NAME) $(PKGDATA_LIBNAME) $(OUTTMPDIR)/icudata.lst -I $(ICUPKGDATA_INSTALL_DIR)
-else
-	$(INSTALL_DATA) $(ICUDATA_SOURCE_ARCHIVE) $(DESTDIR)$(ICUPKGDATA_DIR)
-endif
 
 
 ####
@@ -200,10 +163,7 @@ package390: $(OUTTMPDIR)/icudata390.lst $(OUTTMPDIR)/icudata.lst ./icupkg.inc pa
 # X_FILES = full paths (for dependency)
 
 ## DAT files - Misc. data files.
-#  2005-may-05 Removed Unicode properties files (unorm.icu, uprops.icu, ucase.icu, ubidi.icu)
-#  from data build. See Jitterbug 4497. (makedata.mak revision 1.117)
-#
-DAT_FILES_SHORT=pnames.icu unames.icu cnvalias.icu ucadata.icu invuca.icu uidna.spp 
+DAT_FILES_SHORT=uprops.icu ucase.icu pnames.icu unames.icu unorm.icu cnvalias.icu ucadata.icu invuca.icu uidna.spp 
 DAT_FILES=$(DAT_FILES_SHORT:%=$(BUILDDIR)/%)
 
 ## BRK files
@@ -231,27 +191,20 @@ CNV_FILES_SHORT = $(ALL_UCM_SOURCE:%.ucm=%.cnv)
 -include $(LOCSRCDIR)/reslocal.mk
 -include $(COLSRCDIR)/collocal.mk
 -include $(RBNFSRCDIR)/rbnflocal.mk
--include $(TRANSLITSRCDIR)/trnslocal.mk
-ifdef GENRB_SOURCE
+-include $(TRANSLITSRCDIR)/translocal.mk
 RES_SRC= root.txt $(GENRB_SOURCE) $(GENRB_ALIAS_SOURCE) $(GENRB_SOURCE_LOCAL)
 RES_SRC_FILES = $(RES_SRC:%=$(LOCSRCDIR)/%)
 INSTALLED_RB_FILES = $(GENRB_SOURCE:%.txt=%) $(GENRB_SOURCE_LOCAL:%.txt=%)
-endif
-ifdef COLLATION_SOURCE
 COL_SRC= root.txt $(COLLATION_SOURCE) $(COLLATION_ALIAS_SOURCE) $(COLLATION_SOURCE_LOCAL)
 COL_SRC_FILES = $(COL_SRC:%=$(COLSRCDIR)/%)
 INSTALLED_COL_FILES = $(COLLATION_SOURCE:%.txt=%)  $(COLLATION_SOURCE_LOCAL:%.txt=%)
-endif
-ifdef RBNF_SOURCE
 RBNF_SRC= root.txt $(RBNF_SOURCE) $(RBNF_ALIAS_SOURCE) $(RBNF_SOURCE_LOCAL)
 RBNF_SRC_FILES = $(RBNF_SRC:%=$(RBNFSRCDIR)/%)
 INSTALLED_RBNF_FILES = $(RBNF_SOURCE:%.txt=%)  $(RBNF_SOURCE_LOCAL:%.txt=%)
-endif
-ifdef TRANSLIT_SOURCE
-TRANSLIT_SRC= $(TRANSLIT_SOURCE) $(TRANSLIT_ALIAS_SOURCE) $(TRANSLIT_SOURCE_LOCAL)
+INSTALLED_TRANSLIT_FILES = $(TRANSLIT_SOURCE:%.txt=%)  $(TRANSLIT_SOURCE_LOCAL:%.txt=%)
+TRANSLIT_SRC= root.txt $(TRANSLIT_SOURCE) $(TRANSLIT_ALIAS_SOURCE) $(TRANSLIT_SOURCE_LOCAL)
 TRANSLIT_SRC_FILES = $(TRANSLIT_SRC:%=$(TRANSLITSRCDIR)/%)
 INSTALLED_TRANSLIT_FILES = $(TRANSLIT_SOURCE:%.txt=%)  $(TRANSLIT_SOURCE_LOCAL:%.txt=%)
-endif
 GENRBOPTS=-k
 
 ## MISC files
@@ -309,26 +262,14 @@ ALL_FILES_LIST = $(DAT_FILES_SHORT) $(CNV_FILES_SHORT) $(BRK_FILES_SHORT) $(RES_
 ## Files to remove for 'make clean'
 CLEANFILES = *~ icupkg.inc
 
-ifeq ($(ICUDATA_SOURCE_ARCHIVE),)
-build-local: build-dir $(SO_VERSION_DATA) $(ALL_FILES) $(OUTTMPDIR)/icudata.lst $(OS390LIST)
 $(OUTTMPDIR)/icudata.lst: $(SRCLISTDEPS)
 	@echo "generating $@ (list of data files)"
 	@-$(RMV) $@
 	@for file in $(ALL_FILES_LIST); do \
 	  echo $$file >> $@; \
 	done;
-else
-build-local: build-dir $(SO_VERSION_DATA) $(OUTTMPDIR)/icudata.lst $(OS390LIST)
-$(OUTTMPDIR)/icudata.lst: $(SRCLISTDEPS) $(ICUDATA_SOURCE_ARCHIVE) $(MAINBUILDDIR)
-ifneq ($(ICUDATA_SOURCE_IS_NATIVE_TARGET),YES)
-	@echo "Unpacking $(ICUDATA_SOURCE_ARCHIVE) and generating $@ (list of data files)"
-	@-$(RMV) $@
-	$(INVOKE) $(BINDIR)/decmn -d $(MAINBUILDDIR) --pkgdata $(ICUDATA_SOURCE_ARCHIVE) > $@
-else
-	@echo "$@" > $@
-endif
-endif
 
+build-local: build-dir $(SO_VERSION_DATA) $(ALL_FILES) $(OUTTMPDIR)/icudata.lst $(OS390LIST)
 
 build-dir: $(BUILD_DIRS)
 $(BUILD_DIRS):
@@ -343,17 +284,10 @@ $(BUILD_DIRS):
 # uprops.icu
 $(BUILDDIR)/uprops.icu: $(UNICODEDATADIR)/UnicodeData.txt $(UNICODEDATADIR)/BidiMirroring.txt $(BINDIR)/genprops$(EXEEXT) $(BUILDDIR)/$(ICUDT)pnames.icu
 	$(INVOKE) $(BINDIR)/genprops -s $(UNICODEDATADIR) -i $(BUILDDIR) -d $(BUILDDIR) -u $(UNICODE_VERSION)
-	$(INVOKE) $(BINDIR)/genprops --csource -s $(UNICODEDATADIR) -i $(BUILDDIR) -d $(OUTTMPDIR) -u $(UNICODE_VERSION)
-
-# ubidi.icu
-$(BUILDDIR)/ubidi.icu: $(UNICODEDATADIR)/UnicodeData.txt $(BINDIR)/genbidi$(EXEEXT)
-	$(INVOKE) $(BINDIR)/genbidi -s $(UNICODEDATADIR) -i $(BUILDDIR) -d $(BUILDDIR) -u $(UNICODE_VERSION)
-	$(INVOKE) $(BINDIR)/genbidi --csource -s $(UNICODEDATADIR) -i $(BUILDDIR) -d $(OUTTMPDIR) -u $(UNICODE_VERSION)
 
 # ucase.icu
 $(BUILDDIR)/ucase.icu: $(UNICODEDATADIR)/UnicodeData.txt $(BINDIR)/gencase$(EXEEXT)
 	$(INVOKE) $(BINDIR)/gencase -s $(UNICODEDATADIR) -i $(BUILDDIR) -d $(BUILDDIR) -u $(UNICODE_VERSION)
-	$(INVOKE) $(BINDIR)/gencase --csource -s $(UNICODEDATADIR) -i $(BUILDDIR) -d $(OUTTMPDIR) -u $(UNICODE_VERSION)
 
 # pnames.icu
 $(BUILDDIR)/pnames.icu: $(UNICODEDATADIR)/PropertyAliases.txt $(UNICODEDATADIR)/PropertyValueAliases.txt $(UNICODEDATADIR)/Blocks.txt $(COMINCDIR)/uscript.h $(COMINCDIR)/uchar.h $(BINDIR)/genpname$(EXEEXT)
@@ -362,12 +296,9 @@ $(BUILDDIR)/pnames.icu: $(UNICODEDATADIR)/PropertyAliases.txt $(UNICODEDATADIR)/
 # unorm.icu
 $(BUILDDIR)/unorm.icu: $(UNICODEDATADIR)/UnicodeData.txt $(UNICODEDATADIR)/DerivedNormalizationProps.txt $(UNICODEDATADIR)/BidiMirroring.txt $(BINDIR)/gennorm$(EXEEXT) $(BUILDDIR)/$(ICUDT)pnames.icu $(BUILDDIR)/$(ICUDT)uprops.icu $(BUILDDIR)/$(ICUDT)ucase.icu
 	$(INVOKE) $(BINDIR)/gennorm -s $(UNICODEDATADIR) -i $(BUILDDIR) -d $(BUILDDIR) -u $(UNICODE_VERSION)
-	$(INVOKE) $(BINDIR)/gennorm --csource -s $(UNICODEDATADIR) -i $(BUILDDIR) -d $(OUTTMPDIR) -u $(UNICODE_VERSION)
 
 # ucadata.icu
-# used to depend on $(BUILDDIR)/$(ICUDT)unorm.icu $(BUILDDIR)/$(ICUDT)ucase.icu
-# see Jitterbug 4497
-$(BUILDDIR)/ucadata.icu $(BUILDDIR)/$(ICUDT)invuca.icu: $(UNICODEDATADIR)/FractionalUCA.txt $(BINDIR)/genuca$(EXEEXT)
+$(BUILDDIR)/ucadata.icu $(BUILDDIR)/$(ICUDT)invuca.icu: $(UNICODEDATADIR)/FractionalUCA.txt $(BINDIR)/genuca$(EXEEXT) $(BUILDDIR)/$(ICUDT)unorm.icu $(BUILDDIR)/$(ICUDT)ucase.icu
 	$(INVOKE) $(BINDIR)/genuca -s $(UNICODEDATADIR) -d $(BUILDDIR) -i $(BUILDDIR) 
 
 # unames.icu
@@ -379,7 +310,7 @@ $(BUILDDIR)/cnvalias.icu: $(UCMSRCDIR)/convrtrs.txt $(BINDIR)/gencnval$(EXEEXT)
 	$(INVOKE) $(BINDIR)/gencnval -d $(BUILDDIR) $(UCMSRCDIR)/convrtrs.txt
 
 # uidna.spp
-$(BUILDDIR)/uidna.spp: $(MISCSRCDIR)/NamePrepProfile.txt $(BINDIR)/gensprep$(EXEEXT) $(BUILDDIR)/unames.icu $(BUILDDIR)/pnames.icu
+$(BUILDDIR)/uidna.spp: $(MISCSRCDIR)/NamePrepProfile.txt $(BINDIR)/gensprep$(EXEEXT) $(BUILDDIR)/uprops.icu $(BUILDDIR)/unames.icu $(BUILDDIR)/pnames.icu
 	$(INVOKE) $(BINDIR)/gensprep -d $(BUILDDIR) -i $(BUILDDIR) -s $(MISCSRCDIR) -b uidna -n $(UNICODEDATADIR) -u 3.2.0 -k NamePrepProfile.txt
 
 ####################################################    BRK
@@ -481,9 +412,7 @@ icupkg.inc: $(srcdir)/icupkg.inc.in  $(top_builddir)/config.status
 ###########
 ########### 390 (z/OS) support
 UCMFILES390=ebcdic-xml-us.ucm ibm-37_P100-1995.ucm ibm-1047_P100-1995.ucm ibm-4909_P100-1999.ucm
-# used to depend on uprops.icu ucase.icu ubidi.icu unorm.icu
-# see Jitterbug 4497
-ALLFILES390=pnames.icu cnvalias.icu $(UCMFILES390:.ucm=.cnv)
+ALLFILES390=uprops.icu ucase.icu pnames.icu unorm.icu cnvalias.icu $(UCMFILES390:.ucm=.cnv)
 
 $(OUTTMPDIR)/icudata390.lst: $(SRCLISTDEPS)
 	@echo "generating $@ (list of 390 data files)"

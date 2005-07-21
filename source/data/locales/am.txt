@@ -1,13 +1,13 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2005 International Business Machines
+// * Copyright (C) 2004 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File: ../../../cldr/common/main/am.xml
+// * Source File: ../../../locale/common/main/am.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: ./xml/main/am.xml
+ *  ICU <specials> source: ../../../locale/icu/main/am.xml
  */
 am{
     Countries{
@@ -118,6 +118,7 @@ am{
         SK{"ስሎቫኪያ"}
         SN{"ሴኔጋል"}
         SO{"ሱማሌ"}
+        SP{"ሰርቢያ"}
         SY{"ሲሪያ"}
         TD{"ቻድ"}
         TF{"የፈረንሳይ ደቡባዊ ግዛቶች"}
@@ -135,31 +136,11 @@ am{
         VG{"የእንግሊዝ ድንግል ደሴቶች"}
         VI{"የአሜሪካ ቨርጂን ደሴቶች"}
         YE{"የመን"}
+        YU{"ዩጎዝላቪያ"}
         ZA{"ደቡብ አፍሪካ"}
         ZM{"ዛምቢያ"}
     }
-    Currencies{
-        EUR{
-            "€",
-            "EUR",
-        }
-        GBP{
-            "£",
-            "GBP",
-        }
-        INR{
-            "=0#Rs.|1#Re.|1<Rs.",
-            "INR",
-        }
-        JPY{
-            "¥",
-            "JPY",
-        }
-    }
-    ExemplarCharacters{
-        "[ሀ-ቈቊ-ቍቐ-ቖቘቚ-ቝበ-ኈኊ-ኍነ-ኰኲ-ኵኸ-ኾዀዂ-ዅወ-ዖዘ-ጐጒ-ጕጘ-ፚ፟-፼ᎀ-᎙ⶀ-ⶖⶠ-ⶦⶨ-ⶮⶰ-ⶶⶸ-ⶾⷀ-ⷆⷈ-ⷎⷐ-ⷖⷘ"
-        "-ⷞ]"
-    }
+    ExemplarCharacters{"[:Ethi:]"}
     Languages{
         aa{"አፋርኛ"}
         ab{"አብሐዚኛ"}
@@ -307,7 +288,7 @@ am{
     LocaleScript{
         "Ethi",
     }
-    Version{"1.39"}
+    Version{"1.2"}
     calendar{
         gregorian{
             DateTimeElements:intvector{

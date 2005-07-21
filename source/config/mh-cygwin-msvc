@@ -1,5 +1,5 @@
 ## Cygwin-specific setup
-## Copyright (c) 2001-2005, International Business Machines Corporation and
+## Copyright (c) 2001-2004, International Business Machines Corporation and
 ## others. All Rights Reserved.
 
 # We install sbin tools into the same bin directory because
@@ -110,7 +110,7 @@ LIBCTESTFW=	$(top_builddir)/tools/ctestfw/$(LIBICU)$(CTESTFW_STUBNAME)$(ICULIBSU
 LIBICUTOOLUTIL=	$(LIBDIR)/$(LIBICU)$(TOOLUTIL_STUBNAME)$(ICULIBSUFFIX).lib
 
 ## These are the library specific LDFLAGS
-LDFLAGSICUDT=	/base:"0x4ad00000" /NOENTRY# The NOENTRY option is required for creating a resource-only DLL.
+LDFLAGSICUDT=# Unused for now.
 LDFLAGSICUUC=	/base:"0x4a800000"# in-uc = 1MB
 LDFLAGSICUI18N=	/base:"0x4a900000"# io-in = 2MB
 LDFLAGSICUIO=	/base:"0x4ab00000"# le-io = 1MB
@@ -121,9 +121,9 @@ LDFLAGSICUTOOLUTIL=	/base:"0x4ac00000"# Same as layout. Layout and tools probabl
 
 # The #M# is used to delete lines for icu-config
 # Current full path directory.
-CURR_FULL_DIR=$(subst \,/,$(shell cygpath -da .))#M# -m isn't used because it doesn't work on Win98
+CURR_FULL_DIR=$(shell cygpath -dma .)#M#
 # Current full path directory for use in source code in a -D compiler option.
-CURR_SRCCODE_FULL_DIR=$(subst \,\\,$(shell cygpath -da .))#M#
+CURR_SRCCODE_FULL_DIR=$(subst \,\\\\,$(shell cygpath -da .))#M#
 
 ifeq ($(srcdir),.)
 SOURCE_FILE=$<
@@ -184,12 +184,9 @@ ICUPKGDATA_INSTALL_LIBDIR = $(shell cygpath -dma $(DESTDIR)$(libdir))#M#
 
 ## Versioned import library names. The library names are versioned,
 ## but the import libraries do not need versioning.
-IMPORT_LIB = $(basename $(SO_TARGET))$(IMPORT_LIB_EXT)#M#
-MIDDLE_IMPORT_LIB = $(IMPORT_LIB)#M#
-FINAL_IMPORT_LIB = $(MIDDLE_IMPORT_LIB)#M#
-
-# The following is for Makefile.inc's use.
-ICULIBSUFFIX_VERSION = $(LIB_VERSION_MAJOR)
+IMPORT_LIB = $(basename $(SO_TARGET))$(IMPORT_LIB_EXT)
+MIDDLE_IMPORT_LIB = $(IMPORT_LIB)
+FINAL_IMPORT_LIB = $(MIDDLE_IMPORT_LIB)
 
 ## Versioned libraries rules
 #%$(SO_TARGET_VERSION_MAJOR).$(SO): %$(SO_TARGET_VERSION).$(SO)

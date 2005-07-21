@@ -1,12 +1,11 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2005, International Business Machines Corporation and
+ * Copyright (c) 1997-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
 #include "cintltst.h"
 #include "unicode/ures.h"
-#include "unicode/ucurr.h"
 #include "unicode/ustring.h"
 #include "unicode/uset.h"
 #include "unicode/udat.h"
@@ -22,8 +21,7 @@ static UBool isCurrencyPreEuro(const char* currencyKey){
         strcmp(currencyKey, "LUF") == 0 ||
         strcmp(currencyKey, "GRD") == 0 ||
         strcmp(currencyKey, "BEF") == 0 ||
-        strcmp(currencyKey, "ITL") == 0 ||
-        strcmp(currencyKey, "EEK") == 0){
+        strcmp(currencyKey, "ITL") == 0 ){
             return TRUE;
     }
     return FALSE;
@@ -420,7 +418,7 @@ TestLocaleStructure(void) {
     int32_t locCount = uloc_countAvailable();
     int32_t locIndex;
     UErrorCode errorCode = U_ZERO_ERROR;
-    const char *currLoc, *resolvedLoc;
+    const char *currLoc;
 
     /* TODO: Compare against parent's data too. This code can't handle fallbacks that some tools do already. */
 /*    char locName[ULOC_FULLNAME_CAPACITY];
@@ -478,13 +476,6 @@ TestLocaleStructure(void) {
         else if (ures_getStringByKey(currentLocale, "Version", NULL, &errorCode)[0] == (UChar)(0x78)) {
             log_verbose("WARNING: The locale %s is experimental! It shouldn't be listed as an installed locale.\n",
                 currLoc);
-        }
-        resolvedLoc = ures_getLocaleByType(currentLocale, ULOC_ACTUAL_LOCALE, &errorCode);
-        if (strcmp(resolvedLoc, currLoc) != 0) {
-            /* All locales have at least a Version resource.
-               If it's absolutely empty, then the previous test will fail too.*/
-            log_err("Locale resolves to different locale. Is %s an alias of %s?\n",
-                currLoc, resolvedLoc);
         }
         TestKeyInRootRecursive(root, "root", currentLocale, currLoc);
 
@@ -840,10 +831,6 @@ findSetMatch( UScriptCode *scriptCodes, int32_t scriptsLen,
 }
 
 static void VerifyTranslation(void) {
-#if U_ICU_VERSION_MAJOR_NUM == 3 && U_ICU_VERSION_MINOR_NUM == 4
-    /* Disabled until the CLDR data can be fixed. */
-    return;
-#else
     UResourceBundle *root, *currentLocale;
     int32_t locCount = uloc_countAvailable();
     int32_t locIndex;
@@ -857,7 +844,6 @@ static void VerifyTranslation(void) {
     int32_t end;
     UResourceBundle *resArray;
 
-    log_err("This test fails in exhaustive mode. Please fix the CLDR data\n");
     if (locCount <= 1) {
         log_data_err("At least root needs to be installed\n");
     }
@@ -993,12 +979,10 @@ static void VerifyTranslation(void) {
 
             /* test that the scripts are a superset of exemplar characters. */
            {
-                ULocaleData *uld = ulocdata_open(currLoc,&errorCode);
-                USet *exemplarSet =  ulocdata_getExemplarSet(uld, NULL, 0, ULOCDATA_ES_STANDARD, &errorCode);
+                USet *exemplarSet =  ulocdata_getExemplarSet(NULL,currLoc, 0, &errorCode);
                 /* test if exemplar characters are part of script code */
                 findSetMatch(scripts, numScripts, exemplarSet, currLoc);
                 uset_close(exemplarSet);
-                ulocdata_close(uld);
             }
 
            /* test that the paperSize API works */
@@ -1031,7 +1015,6 @@ static void VerifyTranslation(void) {
     }
 
     ures_close(root);
-#endif
 }
 
 /* adjust this limit as appropriate */
@@ -1069,10 +1052,8 @@ static void TestExemplarSet(void){
         log_verbose("%s\n", locale);
         for (k=0; k<2; ++k) {
             uint32_t option = (k==0) ? 0 : USET_CASE_INSENSITIVE;
-            ULocaleData *uld = ulocdata_open(locale,&ec); 
-            USet* exemplarSet = ulocdata_getExemplarSet(uld,NULL, option, ULOCDATA_ES_STANDARD, &ec);
+            USet* exemplarSet = ulocdata_getExemplarSet(NULL, locale, option, &ec);
             uset_close(exemplarSets[k]);
-            ulocdata_close(uld);
             exemplarSets[k] = exemplarSet;
             if (!assertSuccess("ulocaledata_getExemplarSet", &ec)) goto END;
 
@@ -1117,7 +1098,7 @@ static void TestExemplarSet(void){
             }
 
             if (existsInScript == FALSE){
-                log_err("ExemplarSet containment failed for locale : %s\n", locale);
+                log_err("ExemplarSet containment failed for locale : %s", locale);
             }
         }
         assertTrue("case-folded is a superset",
@@ -1140,74 +1121,6 @@ static void TestExemplarSet(void){
     }
 }
 
-static void TestCoverage(void){
-    ULocaleDataDelimiterType types[] = {
-     ULOCDATA_QUOTATION_START,     /* Quotation start */
-     ULOCDATA_QUOTATION_END,       /* Quotation end */
-     ULOCDATA_ALT_QUOTATION_START, /* Alternate quotation start */
-     ULOCDATA_ALT_QUOTATION_END,   /* Alternate quotation end */
-     ULOCDATA_DELIMITER_COUNT
-    };
-    int i;
-    UBool sub;
-    UErrorCode status = U_ZERO_ERROR;
-    ULocaleData *uld = ulocdata_open(uloc_getDefault(), &status);
-
-    if(U_FAILURE(status)){
-        log_err("ulocdata_open error");
-        return;
-    }
-
-
-    for(i = 0; i < ULOCDATA_DELIMITER_COUNT; i++){
-        UErrorCode status = U_ZERO_ERROR;
-        UChar result[32] = {0,};
-        ulocdata_getDelimiter(uld, types[i], result, 32, &status);
-        if (U_FAILURE(status)){
-            log_err("ulocdata_getgetDelimiter error with type %d", types[i]);
-        }
-    }
-
-    sub = ulocdata_getNoSubstitute(uld);
-    ulocdata_setNoSubstitute(uld,sub);
-    ulocdata_close(uld);
-}
-
-static void TestCurrencyList(void){
-#if !UCONFIG_NO_FORMATTING
-    UErrorCode errorCode = U_ZERO_ERROR;
-    int32_t structLocaleCount, currencyCount;
-    UEnumeration *en = ucurr_openISOCurrencies(UCURR_ALL, &errorCode);
-    const char *isoCode, *structISOCode;
-    UResourceBundle *subBundle;
-    UResourceBundle *currencies = ures_openDirect(loadTestData(&errorCode), "structLocale", &errorCode);
-    if(U_FAILURE(errorCode)) {
-        log_data_err("Can't open structLocale\n");
-        return;
-    }
-    currencies = ures_getByKey(currencies, "Currencies", currencies, &errorCode);
-    currencyCount = uenum_count(en, &errorCode);
-    structLocaleCount = ures_getSize(currencies);
-    if (currencyCount != structLocaleCount) {
-        log_err("structLocale(%d) and ISO4217(%d) currency list are out of sync.\n", structLocaleCount, currencyCount);
-#if U_CHARSET_FAMILY == U_ASCII_FAMILY
-        ures_resetIterator(currencies);
-        while ((isoCode = uenum_next(en, NULL, &errorCode)) != NULL && ures_hasNext(currencies)) {
-            subBundle = ures_getNextResource(currencies, NULL, &errorCode);
-            structISOCode = ures_getKey(subBundle);
-            ures_close(subBundle);
-            if (strcmp(structISOCode, isoCode) != 0) {
-                log_err("First difference found at structLocale(%s) and ISO4217(%s).\n", structISOCode, isoCode);
-                break;
-            }
-        }
-#endif
-    }
-    ures_close(currencies);
-    uenum_close(en);
-#endif
-}
-
 #define TESTCASE(name) addTest(root, &name, "tsutil/cldrtest/" #name)
 
 void addCLDRTest(TestNode** root);
@@ -1218,6 +1131,4 @@ void addCLDRTest(TestNode** root)
     TESTCASE(TestConsistentCountryInfo);
     TESTCASE(VerifyTranslation);
     TESTCASE(TestExemplarSet);
-    TESTCASE(TestCurrencyList);
-    TESTCASE(TestCoverage);
 }

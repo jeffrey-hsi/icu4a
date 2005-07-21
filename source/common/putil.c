@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1997-2005, International Business Machines
+*   Copyright (C) 1997-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -65,18 +65,10 @@
 #include "cstring.h"
 #include "locmap.h"
 #include "ucln_cmn.h"
-
-/* Include standard headers. */
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <locale.h>
-#include <float.h>
-#include <time.h>
+#include "udataswp.h"
 
 /* include system headers */
-#ifdef U_WINDOWS
+#ifdef WIN32
 #   define WIN32_LEAN_AND_MEAN
 #   define VC_EXTRALEAN
 #   define NOUSER
@@ -87,6 +79,11 @@
 #elif defined(U_CYGWIN) && defined(__STRICT_ANSI__)
 /* tzset isn't defined in strict ANSI on Cygwin. */
 #   undef __STRICT_ANSI__
+#elif defined(OS2)
+#   define INCL_DOSMISC
+#   define INCL_DOSERRORS
+#   define INCL_DOSMODULEMGR
+#   include <os2.h>
 #elif defined(OS400)
 #   include <float.h>
 #   include <qusec.h>       /* error code structure */
@@ -99,7 +96,6 @@
 #   include <Folders.h>
 #   include <MacTypes.h>
 #   include <TextUtils.h>
-#   define ICU_NO_USER_DATA_OVERRIDE 1
 #elif defined(OS390)
 #include "unicode/ucnv.h"   /* Needed for UCNV_SWAP_LFNL_OPTION_STRING */
 #elif defined(U_AIX)
@@ -112,9 +108,14 @@
 #include <sys/neutrino.h>
 #endif
 
-#ifndef U_WINDOWS
-#include <sys/time.h> 
-#endif
+/* Include standard headers. */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <locale.h>
+#include <float.h>
+#include <time.h>
 
 /*
  * Only include langinfo.h if we have a way to get the codeset. If we later
@@ -136,11 +137,10 @@ static const char copyright[] = U_COPYRIGHT_STRING;
 
 /* We return QNAN rather than SNAN*/
 #define SIGN 0x80000000U
-#if defined(__GNUC__) || defined(_MSC_VER)
+#if defined(__GNUC__)
 /*
     This is an optimization for when u_topNBytesOfDouble
-    and u_bottomNBytesOfDouble can't be properly optimized by the compiler
-    or when faster infinity and NaN usage is helpful.
+    and u_bottomNBytesOfDouble can't be properly optimized by the compiler.
 */
 #define USE_64BIT_DOUBLE_OPTIMIZATION 1
 #else
@@ -149,10 +149,10 @@ static const char copyright[] = U_COPYRIGHT_STRING;
 
 #if USE_64BIT_DOUBLE_OPTIMIZATION
 /* gcc 3.2 has an optimization bug */
-static const int64_t gNan64 = INT64_C(0x7FF8000000000000);
-static const int64_t gInf64 = INT64_C(0x7FF0000000000000);
-static const double * const fgNan = (const double * const)(&gNan64);
-static const double * const fgInf = (const double * const)(&gInf64);
+static const int64_t gNan64 = 0x7FF8000000000000LL;
+static const int64_t gInf64 = 0x7FF0000000000000LL;
+static const double * const fgNan = (const double *)(&gNan64);
+static const double * const fgInf = (const double *)(&gInf64);
 #else
 
 #if IEEE_754
@@ -168,8 +168,8 @@ static UBool fgNaNInitialized = FALSE;
 static UBool fgInfInitialized = FALSE;
 static double gNan;
 static double gInf;
-static double * fgNan = &gNan;
-static double * fgInf = &gInf;
+static double * const fgNan = &gNan;
+static double * const fgInf = &gInf;
 #endif
 
 /*---------------------------------------------------------------------------
@@ -180,14 +180,13 @@ static double * fgInf = &gInf;
   functions).
   ---------------------------------------------------------------------------*/
 
-#if defined(U_WINDOWS) || defined(XP_MAC) || defined(OS400)
+#if defined(_WIN32) || defined(XP_MAC) || defined(OS400) || defined(OS2)
 #   undef U_POSIX_LOCALE
 #else
 #   define U_POSIX_LOCALE    1
 #endif
 
 /* Utilities to get the bits from a double */
-#if !USE_64BIT_DOUBLE_OPTIMIZATION
 static char*
 u_topNBytesOfDouble(double* d, int n)
 {
@@ -197,7 +196,6 @@ u_topNBytesOfDouble(double* d, int n)
     return (char*)(d + 1) - n;
 #endif
 }
-#endif
 
 static char*
 u_bottomNBytesOfDouble(double* d, int n)
@@ -209,26 +207,14 @@ u_bottomNBytesOfDouble(double* d, int n)
 #endif
 }
 
-#if defined(U_WINDOWS)
-typedef union {
-    int64_t int64;
-    FILETIME fileTime;
-} FileTimeConversion;   /* This is like a ULARGE_INTEGER */
-
-/* Number of 100 nanoseconds from 1/1/1601 to 1/1/1970 */
-#define EPOCH_BIAS  INT64_C(116444736000000000)
-#define HECTONANOSECOND_PER_MILLISECOND   10000
-
-#endif
-
 /*---------------------------------------------------------------------------
   Universal Implementations
-  These are designed to work on all platforms.  Try these, and if they
-  don't work on your platform, then special case your platform with new
+  These are designed to work on all platforms.  Try these, and if they don't
+  work on your platform, then special case your platform with new
   implementations.
----------------------------------------------------------------------------*/
+  ---------------------------------------------------------------------------*/
 
-/* Return UTC (GMT) time measured in milliseconds since 0:00 on 1/1/70.*/
+/* Get UTC (GMT) time measured in seconds since 0:00 on 1/1/70.*/
 U_CAPI UDate U_EXPORT2
 uprv_getUTCtime()
 {
@@ -246,17 +232,7 @@ uprv_getUTCtime()
     uprv_memcpy( &tmrec, gmtime(&t), sizeof(tmrec) );
     t2 = mktime(&tmrec);    /* seconds of current GMT*/
     return (UDate)(t2 - t1) * U_MILLIS_PER_SECOND;         /* GMT (or UTC) in seconds since 1970*/
-#elif defined(U_WINDOWS)
-
-    FileTimeConversion winTime;
-    GetSystemTimeAsFileTime(&winTime.fileTime);
-    return (UDate)((winTime.int64 - EPOCH_BIAS) / HECTONANOSECOND_PER_MILLISECOND);
 #else
-/*
-    struct timeval posixTime;
-    gettimeofday(&posixTime, NULL);
-    return (UDate)(((int64_t)posixTime.tv_sec * U_MILLIS_PER_SECOND) + (posixTime.tv_usec/1000));
-*/
     time_t epochtime;
     time(&epochtime);
     return (UDate)epochtime * U_MILLIS_PER_SECOND;
@@ -683,7 +659,7 @@ uprv_digitsAfterDecimal(double x)
 
 /* Win32 time zone detection ------------------------------------------------ */
 
-#ifdef U_WINDOWS
+#ifdef WIN32
 
 /*
   This code attempts to detect the Windows time zone, as set in the
@@ -1160,7 +1136,7 @@ static const char* detectWindowsTimeZone() {
     return ZONE_MAP[firstMatch].icuid;
 }
 
-#endif /*U_WINDOWS*/
+#endif /*WIN32*/
 
 /* Generic time zone layer -------------------------------------------------- */
 
@@ -1218,7 +1194,7 @@ static char *gTimeZoneBuffer = NULL; /* Heap allocated */
 U_CAPI const char* U_EXPORT2
 uprv_tzname(int n)
 {
-#ifdef U_WINDOWS
+#ifdef WIN32
     char* id = (char*) detectWindowsTimeZone();
     if (id != NULL) {
         return id;
@@ -1276,10 +1252,10 @@ static char *gDataDirectory = NULL;
 
 static UBool U_CALLCONV putil_cleanup(void)
 {
-    if (gDataDirectory && *gDataDirectory) {
+    if (gDataDirectory) {
         uprv_free(gDataDirectory);
+        gDataDirectory = NULL;
     }
-    gDataDirectory = NULL;
 #if U_POSIX_LOCALE
     if (gCorrectedPOSIXLocale) {
         uprv_free(gCorrectedPOSIXLocale);
@@ -1297,32 +1273,26 @@ static UBool U_CALLCONV putil_cleanup(void)
 U_CAPI void U_EXPORT2
 u_setDataDirectory(const char *directory) {
     char *newDataDir;
+#if (U_FILE_SEP_CHAR != U_FILE_ALT_SEP_CHAR)
+    char *p;
+#endif
     int32_t length;
 
-    if(directory==NULL || *directory==0) {
-        /* A small optimization to prevent the malloc and copy when the
-        shared library is used, and this is a way to make sure that NULL
-        is never returned.
-        */
-        newDataDir = (char *)"";
+    if(directory==NULL) {
+        directory = "";
     }
-    else {
-        length=(int32_t)uprv_strlen(directory);
-        newDataDir = (char *)uprv_malloc(length + 2);
-        uprv_strcpy(newDataDir, directory);
+    length=(int32_t)uprv_strlen(directory);
+    newDataDir = (char *)uprv_malloc(length + 2);
+    uprv_strcpy(newDataDir, directory);
 
 #if (U_FILE_SEP_CHAR != U_FILE_ALT_SEP_CHAR)
-        {
-            char *p;
-            while(p = uprv_strchr(newDataDir, U_FILE_ALT_SEP_CHAR)) {
-                *p = U_FILE_SEP_CHAR;
-            }
-        }
-#endif
+    while(p = uprv_strchr(newDataDir, U_FILE_ALT_SEP_CHAR)) {
+       *p = U_FILE_SEP_CHAR;
     }
+#endif
 
     umtx_lock(NULL);
-    if (gDataDirectory && *gDataDirectory) {
+    if (gDataDirectory) {
         uprv_free(gDataDirectory);
     }
     gDataDirectory = newDataDir;
@@ -1347,7 +1317,7 @@ uprv_pathIsAbsolute(const char *path)
   }
 #endif
 
-#if defined(U_WINDOWS)
+#if defined(WIN32)
   if( (((path[0] >= 'A') && (path[0] <= 'Z')) ||
        ((path[0] >= 'a') && (path[0] <= 'z'))) &&
       path[1] == ':' ) {
@@ -1361,33 +1331,97 @@ uprv_pathIsAbsolute(const char *path)
 U_CAPI const char * U_EXPORT2
 u_getDataDirectory(void) {
     const char *path = NULL;
+    char pathBuffer[1024];
+    const char *dataDir;
 
     /* if we have the directory, then return it immediately */
     umtx_lock(NULL);
-    path = gDataDirectory;
+    dataDir = gDataDirectory;
     umtx_unlock(NULL);
 
-    if(path) {
-        return path;
+    if(dataDir) {
+        return dataDir;
     }
 
-    /*
-    When ICU_NO_USER_DATA_OVERRIDE is defined, users aren't allowed to
-    override ICU's data with the ICU_DATA environment variable. This prevents
-    problems where multiple custom copies of ICU's specific version of data
-    are installed on a system. Either the application must define the data
-    directory with u_setDataDirectory, define ICU_DATA_DIR when compiling
-    ICU, set the data with udata_setCommonData or trust that all of the
-    required data is contained in ICU's data library that contains
-    the entry point defined by U_ICUDATA_ENTRY_POINT.
-
-    There may also be some platforms where environment variables
-    are not allowed.
-    */
-#   if !defined(ICU_NO_USER_DATA_OVERRIDE) && (!defined(UCONFIG_NO_FILE_IO) || !UCONFIG_NO_FILE_IO)
-    /* First try to get the environment variable */
+    /* we need to look for it */
+    pathBuffer[0] = 0;                     /* Shuts up compiler warnings about unreferenced */
+                                           /*   variables when the code using it is ifdefed out */
+#   if !defined(XP_MAC)
+    /* first try to get the environment variable */
     path=getenv("ICU_DATA");
-#   endif
+#   else    /* XP_MAC */
+    {
+        OSErr myErr;
+        short vRef;
+        long  dir,newDir;
+        int16_t volNum;
+        Str255 xpath;
+        FSSpec spec;
+        short  len;
+        Handle full;
+
+        xpath[0]=0;
+
+        myErr = HGetVol(xpath, &volNum, &dir);
+
+        if(myErr == noErr) {
+            myErr = FindFolder(volNum, kApplicationSupportFolderType, TRUE, &vRef, &dir);
+            newDir=-1;
+            if (myErr == noErr) {
+                myErr = DirCreate(volNum,
+                    dir,
+                    "\pICU",
+                    &newDir);
+                if( (myErr == noErr) || (myErr == dupFNErr) ) {
+                    spec.vRefNum = volNum;
+                    spec.parID = dir;
+                    uprv_memcpy(spec.name, "\pICU", 4);
+
+                    myErr = FSpGetFullPath(&spec, &len, &full);
+                    if(full != NULL)
+                    {
+                        HLock(full);
+                        uprv_memcpy(pathBuffer,  ((char*)(*full)), len);
+                        pathBuffer[len] = 0;
+                        path = pathBuffer;
+                        DisposeHandle(full);
+                    }
+                }
+            }
+        }
+    }
+#       endif
+
+
+#       if defined WIN32 && defined ICU_ENABLE_DEPRECATED_WIN_REGISTRY
+    /* next, try to read the path from the registry */
+    if(path==NULL || *path==0) {
+        HKEY key;
+
+        if(ERROR_SUCCESS==RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SOFTWARE\\ICU\\Unicode\\Data", 0, KEY_QUERY_VALUE, &key)) {
+            DWORD type=REG_EXPAND_SZ, size=sizeof(pathBuffer);
+
+            if(ERROR_SUCCESS==RegQueryValueEx(key, "Path", NULL, &type, (unsigned char *)pathBuffer, &size) && size>1) {
+                if(type==REG_EXPAND_SZ) {
+                    /* replace environment variable references by their values */
+                    char temporaryPath[1024];
+
+                    /* copy the path with variables to the temporary one */
+                    uprv_memcpy(temporaryPath, pathBuffer, size);
+
+                    /* do the replacement and store it in the pathBuffer */
+                    size=ExpandEnvironmentStrings(temporaryPath, pathBuffer, sizeof(pathBuffer));
+                    if(size>0 && size<sizeof(pathBuffer)) {
+                        path=pathBuffer;
+                    }
+                } else if(type==REG_SZ) {
+                    path=pathBuffer;
+                }
+            }
+            RegCloseKey(key);
+        }
+    }
+#       endif
 
     /* ICU_DATA_DIR may be set as a compile option */
 #   ifdef ICU_DATA_DIR
@@ -1670,7 +1704,7 @@ The leftmost codepage (.xxx) wins.
 
     return posixID;
 
-#elif defined(U_WINDOWS)
+#elif defined(WIN32)
     UErrorCode status = U_ZERO_ERROR;
     LCID id = GetThreadLocale();
     const char* locID = uprv_convertToPosix(id, &status);
@@ -1715,6 +1749,20 @@ The leftmost codepage (.xxx) wins.
 
     return posixID;
 
+#elif defined(OS2)
+    char * locID;
+
+    locID = getenv("LC_ALL");
+    if (!locID || !*locID)
+        locID = getenv("LANG");
+    if (!locID || !*locID) {
+        locID = "en_US";
+    }
+    if (!stricmp(locID, "c") || !stricmp(locID, "posix") ||
+        !stricmp(locID, "univ"))
+        locID = "en_US_POSIX";
+    return locID;
+
 #elif defined(OS400)
     /* locales are process scoped and are by definition thread safe */
     static char correctedLocale[64];
@@ -1751,13 +1799,10 @@ The leftmost codepage (.xxx) wins.
     /* See if we are using the POSIX locale.  Any of the
     * following are equivalent and use the same QLGPGCMA
     * (POSIX) locale.
-    * QLGPGCMA2 means UCS2
-    * QLGPGCMA_4 means UTF-32
-    * QLGPGCMA_8 means UTF-8
     */
     if ((uprv_strcmp("C", correctedLocale) == 0) ||
         (uprv_strcmp("POSIX", correctedLocale) == 0) ||
-        (uprv_strncmp("QLGPGCMA", correctedLocale, 8) == 0))
+        (uprv_strcmp("QLGPGCMA", correctedLocale) == 0))
     {
         uprv_strcpy(correctedLocale, "en_US_POSIX");
     }
@@ -1841,9 +1886,9 @@ int_getDefaultCodepage()
     return codepage;
 
 #elif defined(XP_MAC)
-    return "macintosh"; /* TODO: Macintosh Roman. There must be a better way. fixme! */
+    return "ibm-1275"; /* TODO: Macintosh Roman. There must be a better way. fixme! */
 
-#elif defined(U_WINDOWS)
+#elif defined(WIN32)
     static char codepage[64];
     sprintf(codepage, "windows-%d", GetACP());
     return codepage;
@@ -1858,27 +1903,7 @@ int_getDefaultCodepage()
 
     /* Check setlocale before the environment variables
        because the application may have set it first */
-
-    /* Use setlocale in a nice way.
-       Maybe the application used setlocale already.
-       Normally this won't work. */
-    localeName = setlocale(LC_CTYPE, NULL);
-    if (localeName != NULL && (name = (uprv_strchr(localeName, '.'))) != NULL) {
-        /* strip the locale name and look at the suffix only */
-        name = uprv_strncpy(codesetName, name+1, sizeof(codesetName));
-        codesetName[sizeof(codesetName)-1] = 0;
-        if ((euro = (uprv_strchr(name, '@'))) != NULL) {
-           *euro = 0;
-        }
-        /* if we can find the codset name from setlocale, return that. */
-        if (*name) {
-            return name;
-        }
-    }
-    /* else "C" was probably returned. That's underspecified. */
-
-    /* Use setlocale a little more forcefully.
-       The application didn't use setlocale */
+    /* setlocale needs "" and not NULL for Linux and Solaris */
     localeName = setlocale(LC_CTYPE, "");
     if (localeName != NULL && (name = (uprv_strchr(localeName, '.'))) != NULL) {
         /* strip the locale name and look at the suffix only */
@@ -1892,7 +1917,6 @@ int_getDefaultCodepage()
             return name;
         }
     }
-    /* else "C" or something like it was returned. That's still underspecified. */
 
 #if U_HAVE_NL_LANGINFO_CODESET
     if (*codesetName) {

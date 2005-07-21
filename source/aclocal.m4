@@ -1,5 +1,5 @@
 dnl aclocal.m4 for ICU
-dnl Copyright (c) 1999-2005, International Business Machines Corporation and
+dnl Copyright (c) 1999-2004, International Business Machines Corporation and
 dnl others. All Rights Reserved.
 dnl Stephen F. Booth
 
@@ -224,22 +224,6 @@ AC_DEFUN(AC_CHECK_64BIT_LIBS,
                 fi
             fi
             ;;
-        *-*ibm-openedition*|*-*-os390*)
-            OLD_CFLAGS="${CFLAGS}"
-            OLD_CXXFLAGS="${CXXFLAGS}"
-            OLD_LDFLAGS="${LDFLAGS}"
-            CFLAGS="${CFLAGS} -Wc,lp64,expo"
-            CXXFLAGS="${CXXFLAGS} -Wc,lp64,expo"
-            LDFLAGS="${LDFLAGS} -Wl,lp64"
-            AC_TRY_RUN(int main(void) {return 0;},
-               ENABLE_64BIT_LIBS=yes, ENABLE_64BIT_LIBS=no,
-ENABLE_64BIT_LIBS=no)
-            if test "$ENABLE_64BIT_LIBS" = no; then
-                CFLAGS="${OLD_CFLAGS}"
-                CXXFLAGS="${OLD_CXXFLAGS}"
-                LDFLAGS="${OLD_LDFLAGS}"
-            fi
-            ;;
         *)
             ENABLE_64BIT_LIBS=no
             ;;
@@ -267,7 +251,7 @@ AC_DEFUN(AC_CHECK_STRICT_COMPILE,
     then
         if test "$GCC" = yes
         then
-            CFLAGS="$CFLAGS -Wall -ansi -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings -Winline -Wno-long-long -fno-strict-aliasing"
+            CFLAGS="$CFLAGS -Wall -ansi -pedantic -Wshadow -Wpointer-arith -Wmissing-prototypes -Wwrite-strings -Winline -Wno-long-long"
             case "${host}" in
             *-*-solaris*)
                 CFLAGS="$CFLAGS -D__STDC__=0";;
@@ -283,7 +267,7 @@ AC_DEFUN(AC_CHECK_STRICT_COMPILE,
         fi
         if test "$GXX" = yes
         then
-            CXXFLAGS="$CXXFLAGS -W -Wall -ansi -pedantic -Wpointer-arith -Wwrite-strings -Winline -Wno-long-long"
+            CXXFLAGS="$CXXFLAGS -W -Wall -ansi -pedantic -Wpointer-arith -Wmissing-prototypes -Wwrite-strings -Winline -Wno-long-long"
             case "${host}" in
             *-*-solaris*)
                 CXXFLAGS="$CXXFLAGS -D__STDC__=0";;

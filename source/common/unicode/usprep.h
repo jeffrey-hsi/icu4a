@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  *
- *   Copyright (C) 2003-2005, International Business Machines
+ *   Copyright (C) 2003-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *
  *******************************************************************************
@@ -17,14 +17,9 @@
 #ifndef __USPREP_H__
 #define __USPREP_H__
 
-/**
- * \file 
- * \brief C API: Implements the StringPrep algorithm.
- */
-
 #include "unicode/utypes.h"
 /**
- *
+ *\file
  * StringPrep API implements the StingPrep framework as described by RFC 3454.
  * StringPrep prepares Unicode strings for use in network protocols.
  * Profiles of StingPrep are set of rules and data according to with the
@@ -63,7 +58,7 @@
 
 /**
  * The StringPrep profile
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 typedef struct UStringPrepProfile UStringPrepProfile;
 
@@ -72,7 +67,7 @@ typedef struct UStringPrepProfile UStringPrepProfile;
  * Option to prohibit processing of unassigned code points in the input
  * 
  * @see  usprep_prepare
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 #define USPREP_DEFAULT 0x0000
 
@@ -80,7 +75,7 @@ typedef struct UStringPrepProfile UStringPrepProfile;
  * Option to allow processing of unassigned code points in the input
  * 
  * @see  usprep_prepare
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 #define USPREP_ALLOW_UNASSIGNED 0x0001
 
@@ -100,9 +95,9 @@ typedef struct UStringPrepProfile UStringPrepProfile;
  * @return Pointer to UStringPrepProfile that is opened. Should be closed by
  * calling usprep_close()
  * @see usprep_close()
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE UStringPrepProfile* U_EXPORT2
+U_DRAFT UStringPrepProfile* U_EXPORT2
 usprep_open(const char* path, 
             const char* fileName,
             UErrorCode* status);
@@ -111,9 +106,9 @@ usprep_open(const char* path,
 /**
  * Closes the profile
  * @param profile The profile to close
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
-U_STABLE void U_EXPORT2
+U_DRAFT void U_EXPORT2
 usprep_close(UStringPrepProfile* profile);
 
 
@@ -143,10 +138,10 @@ usprep_close(UStringPrepProfile* profile);
  *                          too many code points.
  *                          U_BUFFER_OVERFLOW_ERROR if destCapacity is not enough
  * @return The number of UChars in the destination buffer
- * @stable ICU 2.8
+ * @draft ICU 2.8
  */
 
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 usprep_prepare(   const UStringPrepProfile* prep,
                   const UChar* src, int32_t srcLength, 
                   UChar* dest, int32_t destCapacity,
