@@ -186,14 +186,7 @@ static const le_bool complexTable[] = {
     FALSE,  /* Shaw */
     FALSE,  /* Tale */
     FALSE,  /* Ugar */
-    FALSE,  /* Hrkt */
-    FALSE,  /* Bugi */
-    FALSE,  /* Glag */
-    FALSE,  /* Khar */
-    FALSE,  /* Sylo */
-    FALSE,  /* Talu */
-    FALSE,  /* Tfng */
-    FALSE   /* Xpeo */
+    FALSE   /* Hrkt */
 };
 
 

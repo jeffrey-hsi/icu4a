@@ -4,19 +4,17 @@
  *
  * WARNING: THIS FILE IS MACHINE GENERATED. DO NOT HAND EDIT IT UNLESS
  * YOU REALLY KNOW WHAT YOU'RE DOING.
- *
- * Generated on: 07/19/2005 01:01:08 PM PDT
  */
 
 #ifndef __LESCRIPTS_H
 #define __LESCRIPTS_H
 
 #include "LETypes.h"
-
 /**
- * \file
+ * \file 
  * \brief C++ API: Constants for Unicode script values
  */
+
 
 U_NAMESPACE_BEGIN
 
@@ -24,7 +22,7 @@ U_NAMESPACE_BEGIN
  * Constants for Unicode script values, generated using
  * ICU4J's <code>UScript</code> class.
  *
- * @draft ICU 3.4
+ * @draft ICU 3.0
  */
 
 enum ScriptCodes {
@@ -35,7 +33,7 @@ enum ScriptCodes {
     bengScriptCode =  4,
     bopoScriptCode =  5,
     cherScriptCode =  6,
-    coptScriptCode =  7,
+    qaacScriptCode =  7,
     cyrlScriptCode =  8,
     dsrtScriptCode =  9,
     devaScriptCode = 10,
@@ -83,15 +81,8 @@ enum ScriptCodes {
     taleScriptCode = 52,
     ugarScriptCode = 53,
     hrktScriptCode = 54,
-    bugiScriptCode = 55,
-    glagScriptCode = 56,
-    kharScriptCode = 57,
-    syloScriptCode = 58,
-    taluScriptCode = 59,
-    tfngScriptCode = 60,
-    xpeoScriptCode = 61,
 
-    scriptCodeCount = 62
+    scriptCodeCount = 55
 };
 
 U_NAMESPACE_END

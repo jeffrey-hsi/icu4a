@@ -284,9 +284,6 @@
 				RelativePath=".\MarkToMarkPosnSubtables.cpp">
 			</File>
 			<File
-				RelativePath=".\MirroredCharData.cpp">
-			</File>
-			<File
 				RelativePath=".\MorphTables.cpp">
 			</File>
 			<File
@@ -318,9 +315,6 @@
 			</File>
 			<File
 				RelativePath=".\SegmentSingleProcessor.cpp">
-			</File>
-			<File
-				RelativePath=".\ShapingTypeData.cpp">
 			</File>
 			<File
 				RelativePath=".\SimpleArrayProcessor.cpp">

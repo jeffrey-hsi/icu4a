@@ -105,14 +105,12 @@ MarkArrays.o \
 MarkToBasePosnSubtables.o \
 MarkToLigaturePosnSubtables.o \
 MarkToMarkPosnSubtables.o \
-MirroredCharData.o \
 MPreFixups.o \
 MultipleSubstSubtables.o \
 OpenTypeUtilities.o \
 PairPositioningSubtables.o \
 ScriptAndLanguage.o \
 ScriptAndLanguageTags.o \
-ShapingTypeData.o \
 SinglePositioningSubtables.o \
 SingleSubstitutionSubtables.o \
 SubstitutionLookups.o \

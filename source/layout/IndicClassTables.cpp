@@ -106,7 +106,7 @@ static const IndicClassTable::CharClass punjCharClasses[] =
     _dr, _db, _db, _xx, _xx, _xx, _xx, _da, _da, _xx, _xx, _da, _da, _vr, _xx, _xx, // 0A40 - 0A4F
     _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _cn, _cn, _cn, _ct, _xx, _cn, _xx, // 0A50 - 0A5F
     _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, _xx, // 0A60 - 0A6F
-    _ma, _ma, _xx, _xx, _xx                                                         // 0A70 - 0A74
+    _ma, _ma, _ct, _ct, _xx                                                         // 0A70 - 0A74
 };
 
 static const IndicClassTable::CharClass gujrCharClasses[] =
@@ -251,7 +251,7 @@ static const IndicClassTable * const indicClassTables[] = {
     &bengClassTable, /* 'beng' (BENGALI) */
     NULL,            /* 'bopo' (BOPOMOFO) */
     NULL,            /* 'cher' (CHEROKEE) */
-    NULL,            /* 'copt' (COPTIC) */
+    NULL,            /* 'qaac' (COPTIC) */
     NULL,            /* 'cyrl' (CYRILLIC) */
     NULL,            /* 'dsrt' (DESERET) */
     &devaClassTable, /* 'deva' (DEVANAGARI) */
@@ -298,14 +298,7 @@ static const IndicClassTable * const indicClassTables[] = {
     NULL,            /* 'shaw' (SHAVIAN) */
     NULL,            /* 'tale' (TAI_LE) */
     NULL,            /* 'ugar' (UGARITIC) */
-    NULL,            /* 'hrkt' (KATAKANA_OR_HIRAGANA) */
-    NULL,            /* 'bugi' (BUGINESE) */
-    NULL,            /* 'glag' (GLAGOLITIC) */
-    NULL,            /* 'khar' (KHAROSHTHI) */
-    NULL,            /* 'sylo' (SYLOTI_NAGRI) */
-    NULL,            /* 'talu' (NEW_TAI_LUE) */
-    NULL,            /* 'tfng' (TIFINAGH) */
-    NULL             /* 'xpeo' (OLD_PERSIAN) */
+    NULL             /* 'hrkt' (KATAKANA_OR_HIRAGANA) */
 };
 
 IndicClassTable::CharClass IndicClassTable::getCharClass(LEUnicode ch) const
