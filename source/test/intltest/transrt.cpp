@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2000-2006, International Business Machines
+*   Copyright (C) 2000-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -83,7 +83,7 @@ TransliteratorRoundTripTest::runIndexedTest(int32_t index, UBool exec,
 // Time bomb - allows temporary behavior that expires at a given
 //             release
 //--------------------------------------------------------------------
-static const UVersionInfo ICU_36 = {3,6,0,0};
+static const UVersionInfo ICU_35 = {3,5,0,0};
 
 static UBool isICUVersionAtLeast(const UVersionInfo x) {
     UVersionInfo v;
@@ -271,10 +271,6 @@ UBool LegalGreek::isRho(UChar c) {
 }
 
 // AbbreviatedUnicodeSetIterator Interface ---------------------------------------------
-//
-//      Iterate over a UnicodeSet, only returning a sampling of the contained code points.
-//        density is the approximate total number of code points to returned for the entire set.
-//
 
 class AbbreviatedUnicodeSetIterator : public UnicodeSetIterator {
 public :
@@ -295,7 +291,7 @@ public :
 
 private :
     UBool abbreviated;
-    int32_t perRange;           // The maximum number of code points to be returned from each range
+    int32_t perRange;
     virtual void loadRange(int32_t range);
 
     /**
@@ -1147,7 +1143,7 @@ void TransliteratorRoundTripTest::TestHan() {
 
 void TransliteratorRoundTripTest::TestGreek() {
 
-    if (isICUVersionAtLeast(ICU_36)) {
+    if (isICUVersionAtLeast(ICU_35)) {
         // We temporarily filter against Unicode 4.1, but we only do this
         // before version 3.4.
         errln("FAIL: TestGreek needs to be updated to remove delete the [:Age=4.0:] filter ");
@@ -1179,7 +1175,7 @@ void TransliteratorRoundTripTest::TestGreek() {
 
 void TransliteratorRoundTripTest::TestGreekUNGEGN() {
 
-    if (isICUVersionAtLeast(ICU_36)) {
+    if (isICUVersionAtLeast(ICU_35)) {
         // We temporarily filter against Unicode 4.1, but we only do this
         // before version 3.4.
         errln("FAIL: TestGreek needs to be updated to remove delete the [:Age=4.0:] filter ");
@@ -1208,7 +1204,7 @@ void TransliteratorRoundTripTest::TestGreekUNGEGN() {
 
 void TransliteratorRoundTripTest::Testel() {
     
-    if (isICUVersionAtLeast(ICU_36)) {
+    if (isICUVersionAtLeast(ICU_35)) {
         // We temporarily filter against Unicode 4.1, but we only do this
         // before version 3.4.
         errln("FAIL: TestGreek needs to be updated to remove delete the [:Age=4.0:] filter ");
@@ -1276,7 +1272,7 @@ UBool LegalHebrew::is(const UnicodeString& sourceString)const{
     return TRUE;
 }
 void TransliteratorRoundTripTest::TestHebrew() {
-    if (isICUVersionAtLeast(ICU_36)) {
+    if (isICUVersionAtLeast(ICU_35)) {
         // We temporarily filter against Unicode 4.1, but we only do this
         // before version 3.4.
         errln("FAIL: TestHebrew needs to be updated to remove delete the [:Age=4.0:] filter ");

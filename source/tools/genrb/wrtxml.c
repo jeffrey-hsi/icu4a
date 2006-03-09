@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2002-2006, International Business Machines
+*   Copyright (C) 2002-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -308,7 +308,13 @@ static char* convertAndEscape(char** pDest, int32_t destCap, int32_t* destLength
 #define LF       0x000D
 #define AT_SIGN  0x0040
 
+static const UChar tokens[][11] = {
+    {0x0040, 0x0074, 0x0072, 0x0061, 0x006e, 0x0073, 0x006c, 0x0061, 0x0074, 0x0065, 0x0000}, /* @translate */
+    {0x0040, 0x006e, 0x006f, 0x0074, 0x0065, 0x0000}                                          /* @note */
+};
 
+static const UChar yes[] = {  0x0079, 0x0065, 0x0073, 0x0000}; /* yes */
+static const UChar no[] ={ 0x006e, 0x006f, 0x0000 };           /* no */
 
 
 
@@ -497,7 +503,7 @@ string_write_xml(struct SResource *res, const char* id, const char* language, UE
 
         T_FileStream_write(out,valStrStart, (int32_t)uprv_strlen(valStrStart));
        /* T_FileStream_write(out,language, (int32_t)uprv_strlen(language)); */
-        T_FileStream_write(out,">", 1);
+        T_FileStream_write(out,"\">", 2);
 
         buf = convertAndEscape(&buf,0,&bufLen,res->u.fString.fChars,res->u.fString.fLength,status);
 
@@ -537,7 +543,7 @@ string_write_xml(struct SResource *res, const char* id, const char* language, UE
         T_FileStream_write(out,valStrStart, (int32_t)uprv_strlen(valStrStart));
 
         /*T_FileStream_write(out,language, (int32_t)uprv_strlen(language));*/
-        T_FileStream_write(out,">", 1);
+        T_FileStream_write(out,"\">", 2);
 
         buf = convertAndEscape(&buf,0,&bufLen,res->u.fString.fChars,res->u.fString.fLength,status);
         if(U_FAILURE(*status)){
@@ -1157,8 +1163,8 @@ bundle_write_xml(struct SRBRoot *bundle, const char *outputDir,const char* outpu
     char* xmlfileName = NULL;
     char* outputFileName = NULL;
     char* originalFileName = NULL;
-    const char* fileStart = "<file xml:space = \"preserve\" source-language = \"";
-    const char* file1 = "\" datatype = \"ICUResourceBundle\" ";
+    const char* fileStart = "<file xml:space = \"preserve\" datatype=\"ICUResourceBundle\" source-language = \"";
+    const char* file1 = "\" datatype = \"text\" ";
     const char* file2 = "original = \"";
     const char* file3 = "\" tool = \"genrb\" ";
     const char* file4 = "date = \"";

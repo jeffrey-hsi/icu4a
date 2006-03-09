@@ -19,6 +19,12 @@
 
 U_NAMESPACE_BEGIN
 
+const LETag LookupProcessor::notSelected    = 0x00000000;
+const LETag LookupProcessor::defaultFeature = 0xFFFFFFFF;
+
+static const LETag emptyTag = 0x00000000;
+
+
 le_uint32 LookupProcessor::applyLookupTable(const LookupTable *lookupTable, GlyphIterator *glyphIterator,
                                          const LEFontInstance *fontInstance) const
 {
@@ -58,13 +64,13 @@ le_int32 LookupProcessor::process(LEGlyphStorage &glyphStorage, GlyphPositionAdj
 
     for (le_uint16 order = 0; order < lookupOrderCount; order += 1) {
         le_uint16 lookup = lookupOrderArray[order];
-        FeatureMask selectMask = lookupSelectArray[lookup];
+        LETag selectTag = lookupSelectArray[lookup];
 
-        if (selectMask != 0) {
+        if (selectTag != notSelected) {
             const LookupTable *lookupTable = lookupListTable->getLookupTable(lookup);
             le_uint16 lookupFlags = SWAPW(lookupTable->lookupFlags);
             
-            glyphIterator.reset(lookupFlags, selectMask);
+            glyphIterator.reset(lookupFlags, selectTag);
 
             while (glyphIterator.findFeatureTag()) {
                 le_uint32 delta = 1;
@@ -92,7 +98,7 @@ le_uint32 LookupProcessor::applySingleLookup(le_uint16 lookupTableIndex, GlyphIt
     return delta;
 }
 
-le_int32 LookupProcessor::selectLookups(const FeatureTable *featureTable, FeatureMask featureMask, le_int32 order)
+le_int32 LookupProcessor::selectLookups(const FeatureTable *featureTable, LETag featureTag, le_int32 order)
 {
     le_uint16 lookupCount = featureTable? SWAPW(featureTable->lookupCount) : 0;
     le_int32  store = order;
@@ -100,8 +106,10 @@ le_int32 LookupProcessor::selectLookups(const FeatureTable *featureTable, Featur
     for (le_uint16 lookup = 0; lookup < lookupCount; lookup += 1) {
         le_uint16 lookupListIndex = SWAPW(featureTable->lookupListIndexArray[lookup]);
 
-        lookupSelectArray[lookupListIndex] |= featureMask;
-        lookupOrderArray[store++] = lookupListIndex;
+        if (lookupSelectArray[lookupListIndex] == notSelected) { 
+            lookupSelectArray[lookupListIndex] = featureTag;
+            lookupOrderArray[store++]   = lookupListIndex;
+        }
     }
 
     return store - order;
@@ -109,9 +117,9 @@ le_int32 LookupProcessor::selectLookups(const FeatureTable *featureTable, Featur
 
 LookupProcessor::LookupProcessor(const char *baseAddress,
         Offset scriptListOffset, Offset featureListOffset, Offset lookupListOffset,
-        LETag scriptTag, LETag languageTag, const FeatureMap *featureMap, le_int32 featureMapCount, le_bool orderFeatures)
+        LETag scriptTag, LETag languageTag, const LETag *featureOrder)
     : lookupListTable(NULL), featureListTable(NULL), lookupSelectArray(NULL),
-      lookupOrderArray(NULL), lookupOrderCount(0)
+      requiredFeatureTag(notSelected), lookupOrderArray(NULL), lookupOrderCount(0)
 {
     const ScriptListTable *scriptListTable = NULL;
     const LangSysTable *langSysTable = NULL;
@@ -144,66 +152,39 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
  
     requiredFeatureIndex = SWAPW(langSysTable->reqFeatureIndex);
 
-    lookupSelectArray = LE_NEW_ARRAY(FeatureMask, lookupListCount);
+    lookupSelectArray = LE_NEW_ARRAY(LETag, lookupListCount);
 
     for (int i = 0; i < lookupListCount; i += 1) {
-        lookupSelectArray[i] = 0;
+        lookupSelectArray[i] = notSelected;
     }
 
     le_int32 count, order = 0;
-    le_int32 featureReferences = 0;
-    const FeatureTable *featureTable = NULL;
+    const FeatureTable *featureTable = 0;
     LETag featureTag;
 
-    const FeatureTable *requiredFeatureTable = NULL;
-    LETag requiredFeatureTag = 0x00000000U;
-
-    // Count the total number of lookups referenced by all features. This will
-    // be the maximum number of entries in the lookupOrderArray. We can't use
-    // lookupListCount because some lookups might be referenced by more than
-    // one feature.
-    for (le_int32 feature = 0; feature < featureCount; feature += 1) {
-        le_uint16 featureIndex = SWAPW(langSysTable->featureIndexArray[feature]);
-
-        featureTable = featureListTable->getFeatureTable(featureIndex, &featureTag);
-        featureReferences += SWAPW(featureTable->lookupCount);
-    }
+    lookupOrderArray = LE_NEW_ARRAY(le_uint16, lookupListCount);
 
     if (requiredFeatureIndex != 0xFFFF) {
-        requiredFeatureTable = featureListTable->getFeatureTable(requiredFeatureIndex, &requiredFeatureTag);
-        featureReferences += SWAPW(featureTable->lookupCount);
+        featureTable = featureListTable->getFeatureTable(requiredFeatureIndex, &featureTag);
+        order += selectLookups(featureTable, defaultFeature, order);
     }
 
-    lookupOrderArray = LE_NEW_ARRAY(le_uint16, featureReferences);
-
-    for (le_int32 f = 0; f < featureMapCount; f += 1) {
-        FeatureMap fm = featureMap[f];
-        count = 0;
-
-        // If this is the required feature, add its lookups
-        if (requiredFeatureTag == fm.tag) {
-            count += selectLookups(requiredFeatureTable, fm.mask, order);
+    if (featureOrder != NULL) {
+        if (order > 1) {
+            OpenTypeUtilities::sort(lookupOrderArray, order);
         }
 
-        if (orderFeatures) {
-            // If we added lookups from the required feature, sort them
-            if (count > 1) {
-                OpenTypeUtilities::sort(lookupOrderArray, order);
-            }
+        for (le_int32 tag = 0; featureOrder[tag] != emptyTag; tag += 1) {
+            featureTag = featureOrder[tag];
+            count = 0;
 
             for (le_uint16 feature = 0; feature < featureCount; feature += 1) {
                 le_uint16 featureIndex = SWAPW(langSysTable->featureIndexArray[feature]);
- 
-                // don't add the required feature to the list more than once...
-                // TODO: Do we need this check? (Spec. says required feature won't be in feature list...)
-                if (featureIndex == requiredFeatureIndex) {
-                    continue;
-                }
 
                 featureTable = featureListTable->getFeatureTable(featureIndex, &featureTag);
 
-                if (featureTag == fm.tag) {
-                    count += selectLookups(featureTable, fm.mask, order + count);
+                if (featureTag == featureOrder[tag]) {
+                    count += selectLookups(featureTable, featureTag, order + count);
                 }
             }
 
@@ -212,51 +193,24 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
             }
 
             order += count;
-        } else {
-            for (le_uint16 feature = 0; feature < featureCount; feature += 1) {
-                le_uint16 featureIndex = SWAPW(langSysTable->featureIndexArray[feature]);
+        }
+    } else {
+        for (le_uint16 feature = 0; feature < featureCount; feature += 1) {
+            le_uint16 featureIndex = SWAPW(langSysTable->featureIndexArray[feature]);
  
-                // don't add the required feature to the list more than once...
-                // NOTE: This check is commented out because the spec. says that
-                // the required feature won't be in the feature list, and because
-                // any duplicate entries will be removed below.
-#if 0
-                if (featureIndex == requiredFeatureIndex) {
-                    continue;
-                }
-#endif
-
-                featureTable = featureListTable->getFeatureTable(featureIndex, &featureTag);
-
-                if (featureTag == fm.tag) {
-                    order += selectLookups(featureTable, fm.mask, order);
-                }
+            // don't add the required feature to the list more than once...
+            if (featureIndex == requiredFeatureIndex) {
+                continue;
             }
-        }
-    }
 
-    if (!orderFeatures && (order > 1)) {
-        OpenTypeUtilities::sort(lookupOrderArray, order);
-
-        // If there's no specified feature order,
-        // we will apply the lookups in the order
-        // that they're in the font. If a particular
-        // lookup may be referenced by more than one feature,
-        // it will apprear in the lookupOrderArray more than
-        // once, so remove any duplicate entries in the sorted array.
-        le_int32 out = 1;
-
-        for (le_int32 in = 1; in < order; in += 1) {
-            if (lookupOrderArray[out - 1] != lookupOrderArray[in]) {
-                if (out != in) {
-                    lookupOrderArray[out] = lookupOrderArray[in];
-                }
-
-                out += 1;
-            }
+            featureTable = featureListTable->getFeatureTable(featureIndex, &featureTag);
+            count = selectLookups(featureTable, featureTag, order);
+            order += count;
         }
 
-        order = out;
+        if (order > 1) {
+            OpenTypeUtilities::sort(lookupOrderArray, order);
+        }
     }
 
     lookupOrderCount = order;

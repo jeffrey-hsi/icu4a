@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1998-2006, International Business Machines Corporation and
+ * Copyright (c) 1998-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -32,7 +32,6 @@
 #include "icusvtst.h"
 #include "testidna.h"
 #include "convtest.h"
-#include "csdetest.h"
 
 #define CASE_SUITE(id, suite) case id:                  \
                           name = #suite;                \
@@ -168,15 +167,6 @@ void MajorTestLevel::runIndexedTest( int32_t index, UBool exec, const char* &nam
                     callTest(test, par);
                 }
 #endif
-                break;
-
-            case 13: name = "csdet";
-                if (exec) {
-                    logln("TestSuite CharsetDetection---"); logln();
-                    CharsetDetectionTest test;
-                    callTest(test, par);
-                }
-
                 break;
 
         default: name = ""; break;

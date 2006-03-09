@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/nl.xml
+// * Source File: ../../../cldr/common/main/nl.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/nl.xml
+ *  ICU <specials> source: ./xml/main/nl.xml
  */
 nl{
     Countries{
@@ -1268,7 +1268,7 @@ nl{
             "Zimbabwaanse dollar",
         }
     }
-    ExemplarCharacters{"[a á ä b-e é ë f-i í ï ĳ j-o ó ö p-u ú ü v-z]"}
+    ExemplarCharacters{"[a-záéíóúäëïöüĳ]"}
     Keys{
         calendar{"Kalender"}
         collation{"Volgorde"}
@@ -1756,7 +1756,7 @@ nl{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Scripts{
@@ -1836,7 +1836,7 @@ nl{
     Variants{
         REVISED{"Gewijzigd"}
     }
-    Version{"1.58"}
+    Version{"1.52"}
     calendar{
         gregorian{
             DateTimePatterns{
@@ -1941,6 +1941,7 @@ nl{
         hebrew{
             monthNames{
                 format{
+                    abbreviated:alias{"/LOCALE/calendar/hebrew/monthNames/format/wide"}
                     wide{
                         "Tisjrie",
                         "Chesjwan",
@@ -1967,6 +1968,7 @@ nl{
             }
             monthNames{
                 format{
+                    abbreviated:alias{"/LOCALE/calendar/islamic/monthNames/format/wide"}
                     wide{
                         "Moeharram",
                         "Safar",
@@ -1984,191 +1986,136 @@ nl{
                 }
             }
         }
+        islamic-civil:alias{"/LOCALE/calendar/islamic"}
     }
     zoneStrings{
-        "Africa:Casablanca"{
-            ec{"Casablanca"}
-            ld{"Greenwich Mean Time"}
-            ls{"Greenwich Mean Time"}
-            sd{"GMT"}
-            ss{"GMT"}
+        {
+            "America/Halifax",
+            "Atlantic-standaardtijd",
+            "AST",
+            "Atlantic-zomertijd",
+            "ADT",
+            "Halifax",
         }
-        "Africa:Timbuktu"{
-            ec{"Timboektoe"}
+        {
+            "America/St_Johns",
+            "Newfoundland-standaardtijd",
+            "CNT",
+            "Newfoundland-zomertijd",
+            "CDT",
+            "St. Johns",
         }
-        "America:Anchorage"{
-            ec{"Anchorage"}
-            ld{"Alaska-zomertijd"}
-            ls{"Alaska-standaardtijd"}
-            sd{"ADT"}
-            ss{"AST"}
+        {
+            "Asia/Shanghai",
+            "Chinese standaardtijd",
+            "CTT",
+            "Chinese standaardtijd",
+            "CDT",
+            "Shanghai",
         }
-        "America:Argentina:ComodRivadavia"{
-            ec{"Comodora Rivadavia"}
+        {
+            "Europe/Paris",
+            "Midden-Europese standaardtijd",
+            "CET",
+            "Midden-Europese zomertijd",
+            "CEST",
+            "Parijs",
         }
-        "America:Argentina:Rio_Gallegos"{
-            ec{"Río Gallegos"}
+        {
+            "Asia/Jerusalem",
+            "Israëlische standaardtijd",
+            "IST",
+            "Israëlische zomertijd",
+            "IDT",
+            "Jeruzalem",
         }
-        "America:Belem"{
-            ec{"Belém"}
+        {
+            "Asia/Tokyo",
+            "Japanse standaardtijd",
+            "JST",
+            "Japanse standaardtijd",
+            "JST",
+            "Tokyo",
         }
-        "America:Cancun"{
-            ec{"Cancún"}
+        {
+            "Africa/Casablanca",
+            "Greenwich Mean Time",
+            "GMT",
+            "Greenwich Mean Time",
+            "GMT",
+            "Casablanca",
         }
-        "America:Chicago"{
-            ec{"Chicago"}
-            ld{"Central-zomertijd"}
-            ls{"Central-standaardtijd"}
-            sd{"CDT"}
-            ss{"CST"}
+        {
+            "Europe/Bucharest",
+            "Oost-Europese standaardtijd",
+            "EET",
+            "Oost-Europese zomertijd",
+            "EEST",
+            "Boekarest",
         }
-        "America:Cordoba"{
-            ec{"Córdoba"}
+        {
+            "Pacific/Honolulu",
+            "Hawaï-standaardtijd",
+            "HST",
+            "Hawaï-standaardtijd",
+            "HST",
+            "Honolulu",
         }
-        "America:Cuiaba"{
-            ec{"Cuiabá"}
+        {
+            "America/Anchorage",
+            "Alaska-standaardtijd",
+            "AST",
+            "Alaska-zomertijd",
+            "ADT",
+            "Anchorage",
         }
-        "America:Denver"{
-            ec{"Denver"}
-            ld{"Mountain-zomertijd"}
-            ls{"Mountain-standaardtijd"}
-            sd{"MDT"}
-            ss{"MST"}
+        {
+            "America/Los_Angeles",
+            "Pacific-standaardtijd",
+            "PST",
+            "Pacific-zomertijd",
+            "PDT",
+            "Los Angeles",
         }
-        "America:Halifax"{
-            ec{"Halifax"}
-            ld{"Atlantic-zomertijd"}
-            ls{"Atlantic-standaardtijd"}
-            sd{"ADT"}
-            ss{"AST"}
+        {
+            "America/Phoenix",
+            "Mountain-standaardtijd",
+            "MST",
+            "Mountain-standaardtijd",
+            "MST",
+            "Phoenix",
         }
-        "America:Indianapolis"{
-            ec{"Indianapolis"}
-            ld{"Eastern-standaardtijd"}
-            ls{"Eastern-standaardtijd"}
-            sd{"EST"}
-            ss{"EST"}
+        {
+            "America/Denver",
+            "Mountain-standaardtijd",
+            "MST",
+            "Mountain-zomertijd",
+            "MDT",
+            "Denver",
         }
-        "America:Los_Angeles"{
-            ec{"Los Angeles"}
-            ld{"Pacific-zomertijd"}
-            ls{"Pacific-standaardtijd"}
-            sd{"PDT"}
-            ss{"PST"}
+        {
+            "America/Chicago",
+            "Central-standaardtijd",
+            "CST",
+            "Central-zomertijd",
+            "CDT",
+            "Chicago",
         }
-        "America:Maceio"{
-            ec{"Maceió"}
+        {
+            "America/Indianapolis",
+            "Eastern-standaardtijd",
+            "EST",
+            "Eastern-standaardtijd",
+            "EST",
+            "Indianapolis",
         }
-        "America:Mazatlan"{
-            ec{"Mazatlán"}
-        }
-        "America:Merida"{
-            ec{"Mérida"}
-        }
-        "America:Mexico_City"{
-            ec{"Mexico Stad"}
-        }
-        "America:Montreal"{
-            ec{"Montréal"}
-        }
-        "America:New_York"{
-            ec{"New York"}
-            ld{"Eastern-zomertijd"}
-            ls{"Eastern-standaardtijd"}
-            sd{"EDT"}
-            ss{"EST"}
-        }
-        "America:Phoenix"{
-            ec{"Phoenix"}
-            ld{"Mountain-standaardtijd"}
-            ls{"Mountain-standaardtijd"}
-            sd{"MST"}
-            ss{"MST"}
-        }
-        "America:Porto_Velho"{
-            ec{"Pôrto Velho"}
-        }
-        "America:Sao_Paulo"{
-            ec{"São Paulo"}
-        }
-        "America:St_Johns"{
-            ec{"St. Johns"}
-            ld{"Newfoundland-zomertijd"}
-            ls{"Newfoundland-standaardtijd"}
-            sd{"CDT"}
-            ss{"CNT"}
-        }
-        "Antarctica:DumontDUrville"{
-            ec{"Dumont d'Urville"}
-        }
-        "Antarctica:South_Pole"{
-            ec{"Zuidpool"}
-        }
-        "Asia:Jerusalem"{
-            ec{"Jeruzalem"}
-            ld{"Israëlische zomertijd"}
-            ls{"Israëlische standaardtijd"}
-            sd{"IDT"}
-            ss{"IST"}
-        }
-        "Asia:Shanghai"{
-            ec{"Shanghai"}
-            ld{"Chinese standaardtijd"}
-            ls{"Chinese standaardtijd"}
-            sd{"CDT"}
-            ss{"CTT"}
-        }
-        "Asia:Tashkent"{
-            ec{"Tasjkent"}
-        }
-        "Asia:Tokyo"{
-            ec{"Tokyo"}
-            ld{"Japanse standaardtijd"}
-            ls{"Japanse standaardtijd"}
-            sd{"JST"}
-            ss{"JST"}
-        }
-        "Asia:Ulaanbaatar"{
-            ec{"Ulaanbaator"}
-        }
-        "Atlantic:Azores"{
-            ec{"Azoren"}
-        }
-        "Atlantic:Canary"{
-            ec{"Canarische Eilanden"}
-        }
-        "Europe:Bucharest"{
-            ec{"Boekarest"}
-            ld{"Oost-Europese zomertijd"}
-            ls{"Oost-Europese standaardtijd"}
-            sd{"EEST"}
-            ss{"EET"}
-        }
-        "Europe:Lisbon"{
-            ec{"Lissabon"}
-        }
-        "Europe:London"{
-            ec{"Londen"}
-        }
-        "Europe:Moscow"{
-            ec{"Moskou"}
-        }
-        "Europe:Paris"{
-            ec{"Parijs"}
-            ld{"Midden-Europese zomertijd"}
-            ls{"Midden-Europese standaardtijd"}
-            sd{"CEST"}
-            ss{"CET"}
-        }
-        "Pacific:Easter"{
-            ec{"Paaseiland"}
-        }
-        "Pacific:Honolulu"{
-            ec{"Honolulu"}
-            ld{"Hawaï-standaardtijd"}
-            ls{"Hawaï-standaardtijd"}
-            sd{"HST"}
-            ss{"HST"}
+        {
+            "America/New_York",
+            "Eastern-standaardtijd",
+            "EST",
+            "Eastern-zomertijd",
+            "EDT",
+            "New York",
         }
     }
 }

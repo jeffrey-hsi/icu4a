@@ -1,4 +1,5 @@
 /*
+ *
  * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
  *
  */
@@ -29,7 +30,7 @@ struct GlyphPositioningTableHeader : public GlyphLookupTableHeader
     void    process(LEGlyphStorage &glyphStorage, GlyphPositionAdjustments *glyphPositionAdjustments,
                 le_bool rightToLeft, LETag scriptTag, LETag languageTag,
                 const GlyphDefinitionTableHeader *glyphDefinitionTableHeader,
-                const LEFontInstance *fontInstance, const FeatureMap *featureMap, le_int32 featureMapCount, le_bool featureOrder) const;
+                const LEFontInstance *fontInstance, const LETag *featureOrder) const;
 };
 
 enum GlyphPositioningSubtableTypes

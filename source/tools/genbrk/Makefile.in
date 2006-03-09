@@ -1,5 +1,5 @@
 ## Makefile.in for ICU - tools/genbrk
-## Copyright (c) 2002-2006 International Business Machines Corporation and
+## Copyright (c) 2002-2005 International Business Machines Corporation and
 ## others. All Rights Reserved.
 
 ## Source directory information
@@ -10,8 +10,7 @@ top_builddir = ../..
 
 include $(top_builddir)/icudefs.mk
 
-## Build directory information
-subdir = tools/genbrk
+##
 
 TARGET_STUB_NAME = genbrk
 
@@ -19,17 +18,16 @@ SECTION = 1
 
 MAN_FILES = $(TARGET_STUB_NAME).$(SECTION)
 
+## Build directory information
+subdir = tools/genbrk
 
 ## Extra files to remove for 'make clean'
-CLEANFILES = *~ $(DEPS) $(MAN_FILES)
+CLEANFILES = *~ $(MAN_FILES) $(DEPS) 
 
 ## Target information
 TARGET = $(BINDIR)/$(TARGET_STUB_NAME)$(EXEEXT)
 
-ifneq ($(top_builddir),$(top_srcdir))
-CPPFLAGS += -I$(top_builddir)/common
-endif
-CPPFLAGS += -I$(top_srcdir)/common -I$(srcdir)/../toolutil
+CPPFLAGS += -I$(top_builddir)/common -I$(top_srcdir)/common -I$(srcdir)/../toolutil
 LIBS = $(LIBICUTOOLUTIL) $(LIBICUI18N) $(LIBICUUC) $(DEFAULT_LIBS) $(LIB_M)
 
 OBJECTS = genbrk.o
@@ -38,7 +36,8 @@ DEPS = $(OBJECTS:.o=.d)
 
 ## List of phony targets
 .PHONY : all all-local install install-local clean clean-local	\
-distclean distclean-local dist dist-local check check-local install-man
+distclean distclean-local dist dist-local check \
+check-local install-man
 
 ## Clear suffix list
 .SUFFIXES :
@@ -51,19 +50,15 @@ distclean : distclean-local
 dist: dist-local
 check: all check-local
 
-all-local: $(TARGET) $(MAN_FILES)
+all-local: $(TARGET) 
 
-install-local: all-local install-man
+install-local: all-local
 	$(MKINSTALLDIRS) $(DESTDIR)$(bindir)
 	$(INSTALL) $(TARGET) $(DESTDIR)$(bindir)
 
-install-man: $(MAN_FILES)
-	$(MKINSTALLDIRS) $(DESTDIR)$(mandir)/man$(SECTION)
-	$(INSTALL_DATA) $? $(DESTDIR)$(mandir)/man$(SECTION)
-
 dist-local:
 
-clean-local:
+clean-local: 
 	test -z "$(CLEANFILES)" || $(RMV) $(CLEANFILES)
 	$(RMV) $(TARGET) $(OBJECTS)
 
@@ -77,13 +72,22 @@ Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 $(TARGET) : $(OBJECTS)
-	$(LINK.cc) $(OUTOPT)$@ $^ $(LIBS)
+	$(LINK.cc) $(OUTOPT)$@ $^ $(LIBS) 
+
+
+# the 'mv' will always fail if you are building in the source dir
 
 
 %.$(SECTION): $(srcdir)/%.$(SECTION).in
 	cd $(top_builddir) \
 	 && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
+# build postscript and pdf formats
+$(TARGET).ps: $(TARGET).$(SECTION)
+	groff -man < $< > $@
+
+$(TARGET).pdf: $(TARGET).ps
+	ps2pdf $< $@
 
 ifeq (,$(MAKECMDGOALS))
 -include $(DEPS)

@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2006, International Business Machines Corporation and
+ * Copyright (c) 1997-2005, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /* Modification History:
@@ -24,7 +24,6 @@
 #include "tokiter.h"
 #include "charstr.h"
 #include "putilimp.h"
-#include "winnmtst.h"
 #include <float.h>
 #include <string.h>
 
@@ -80,8 +79,7 @@ void NumberFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &n
         CASE(29,TestCurrencyAmount);
         CASE(30,TestCurrencyUnit);
         CASE(31,TestCoverage);
-        CASE(32,TestJB3832);
-        CASE(33,TestHost);
+
         default: name = ""; break;
     }
 }
@@ -1585,8 +1583,7 @@ void NumberFormatTest::TestSymbolsWithBadLocale(void) {
             + prettify(mySymbols.getSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbolEnum)));
 
         if (mySymbols.getSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbolEnum).length() == 0
-            && symbolEnum != (int)DecimalFormatSymbols::kGroupingSeparatorSymbol
-            && symbolEnum != (int)DecimalFormatSymbols::kMonetaryGroupingSeparatorSymbol)
+            && symbolEnum != (int)DecimalFormatSymbols::kGroupingSeparatorSymbol)
         {
             errln("DecimalFormatSymbols has an empty string at index %d.", symbolEnum);
         }
@@ -2173,35 +2170,6 @@ void NumberFormatTest::expectPad(DecimalFormat& fmt, const UnicodeString& pat,
               " width=" + awidth + " pad=" + apadStr +
               ", expected " + pos + " " + width + " " + pad);
     }
-}
-void NumberFormatTest::TestJB3832(){
-    const char* localeID = "pt_PT@currency=PTE";
-    Locale loc(localeID);
-    UErrorCode status = U_ZERO_ERROR;
-    UnicodeString expected("1,150$50 Esc.");
-    UnicodeString s;
-    NumberFormat* currencyFmt = NumberFormat::createCurrencyInstance(loc, status);
-    if(U_FAILURE(status)){
-        errln("Could not create currency formatter for locale %s", localeID);
-        return;
-    }
-    currencyFmt->format(1150.50, s);
-    if(s!=expected){
-        errln(UnicodeString("FAIL: Expected: ")+expected 
-                + UnicodeString(" Got: ") + s 
-                + UnicodeString( " for locale: ")+ UnicodeString(localeID) );
-    }
-    if (U_FAILURE(status)){
-        errln((UnicodeString)"FAIL: Status " + (int32_t)status);
-    }
-    delete currencyFmt;
-}
-
-void NumberFormatTest::TestHost()
-{
-#ifdef U_WINDOWS
-    Win32NumberTest::testLocales(this);
-#endif
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

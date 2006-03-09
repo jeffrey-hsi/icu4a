@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/uk.xml
+// * Source File: ../../../cldr/common/main/uk.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/uk.xml
+ *  ICU <specials> source: ./xml/main/uk.xml
  */
 uk{
     Countries{
@@ -1234,7 +1234,7 @@ uk{
             "Зімбабвійський долар",
         }
     }
-    ExemplarCharacters{"[ʼ а-г ґ д е є ж-и і ї й-щ ь ю я]"}
+    ExemplarCharacters{"[а-щюьяєіїґ ʼ]"}
     Keys{
         calendar{"Календар"}
         collation{"Сортування"}
@@ -1394,7 +1394,7 @@ uk{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Scripts{
@@ -1469,7 +1469,7 @@ uk{
             traditional{"Традиційний"}
         }
     }
-    Version{"1.54"}
+    Version{"1.49"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -1619,58 +1619,4 @@ uk{
         }
     }
     localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
-    zoneStrings{
-        "Africa:Lubumbashi"{
-            ec{"Лубумбаші"}
-        }
-        "Africa:Timbuktu"{
-            ec{"Тимбукту"}
-        }
-        "America:Argentina:ComodRivadavia"{
-            ec{"Комодоро-Ривадавія"}
-        }
-        "America:Argentina:Rio_Gallegos"{
-            ec{"Ріо-Ґалеґос"}
-        }
-        "America:Pangnirtung"{
-            ec{"Панґніртунґ"}
-        }
-        "America:Porto_Velho"{
-            ec{"Порто-Велью"}
-        }
-        "America:Regina"{
-            ec{"Реджайна"}
-        }
-        "America:Rio_Branco"{
-            ec{"Ріо-Бранко"}
-        }
-        "America:Winnipeg"{
-            ec{"Вінніпеґ"}
-        }
-        "Arctic:Longyearbyen"{
-            ec{"Лонгербюйн"}
-        }
-        "Asia:Hovd"{
-            ec{"Говд"}
-        }
-        "Asia:Kuching"{
-            ec{"Кучінґ"}
-        }
-        "Atlantic:Jan_Mayen"{
-            ec{"Ян-Майєн"}
-        }
-        "Pacific:Galapagos"{
-            ec{"Ґалапагос"}
-        }
-        "Pacific:Gambier"{
-            ec{"Гамбер"}
-        }
-        "Pacific:Kiritimati"{
-            ec{"Кіритиматі"}
-        }
-        "Pacific:Yap"{
-            ec{"Яп"}
-        }
-        hourFormat{"+HHmm;-HHmm"}
-    }
 }

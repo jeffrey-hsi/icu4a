@@ -530,13 +530,7 @@ UBool OlsonTimeZone::useDaylightTime() const {
     }
     return FALSE;
 }
-int32_t 
-OlsonTimeZone::getDSTSavings() const{
-    if(finalZone!=NULL){
-        return finalZone->getDSTSavings();
-    }
-    return TimeZone::getDSTSavings();
-}
+
 /**
  * TimeZone API.
  */

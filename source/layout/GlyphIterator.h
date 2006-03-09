@@ -23,12 +23,12 @@ class GlyphPositionAdjustments;
 
 class GlyphIterator : public UMemory {
 public:
-    GlyphIterator(LEGlyphStorage &theGlyphStorage, GlyphPositionAdjustments *theGlyphPositionAdjustments, le_bool rightToLeft, le_uint16 theLookupFlags,
-        FeatureMask theFeatureMask, const GlyphDefinitionTableHeader *theGlyphDefinitionTableHeader);
+    GlyphIterator(LEGlyphStorage &theGlyphStorage, GlyphPositionAdjustments *theGlyphPositionAdjustments, le_bool rightToLeft, le_uint16 theLookupFlags, LETag theFeatureTag,
+        const GlyphDefinitionTableHeader *theGlyphDefinitionTableHeader);
 
     GlyphIterator(GlyphIterator &that);
 
-    GlyphIterator(GlyphIterator &that, FeatureMask newFeatureMask);
+    GlyphIterator(GlyphIterator &that, LETag newFeatureTag);
 
     GlyphIterator(GlyphIterator &that, le_uint16 newLookupFlags);
 
@@ -83,12 +83,10 @@ private:
 
     LEGlyphStorage &glyphStorage;
     GlyphPositionAdjustments *glyphPositionAdjustments;
-
-    le_int32    srcIndex;
-    le_int32    destIndex;
-    le_uint16   lookupFlags;
-    FeatureMask featureMask;
-
+    le_int32 srcIndex;
+    le_int32 destIndex;
+    le_uint16 lookupFlags;
+    LETag    featureTag;
     const GlyphClassDefinitionTable *glyphClassDefinitionTable;
     const MarkAttachClassDefinitionTable *markAttachClassDefinitionTable;
 

@@ -131,8 +131,7 @@ struct RBBIStateTable {
 };
 
 typedef enum {
-    RBBI_LOOKAHEAD_HARD_BREAK = 1,
-    RBBI_BOF_REQUIRED = 2
+    RBBI_LOOKAHEAD_HARD_BREAK = 1
 } RBBIStateTableFlags;
 
 

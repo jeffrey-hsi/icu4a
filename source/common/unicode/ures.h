@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1997-2006, International Business Machines
+*   Copyright (C) 1997-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -82,8 +82,6 @@ typedef enum {
      */
     URES_ALIAS=3,
 
-#ifndef U_HIDE_INTERNAL_API
-
     /**
      * Internal use only.
      * Alternative resource type constant for tables of key-value pairs.
@@ -91,8 +89,6 @@ typedef enum {
      * @internal
      */
     URES_TABLE32=4,
-
-#endif /* U_HIDE_INTERNAL_API */
 
     /**
      * Resource type constant for a single 28-bit integer, interpreted as
@@ -111,7 +107,8 @@ typedef enum {
      * @see ures_getIntVector
      * @stable ICU 2.6
      */
-    URES_INT_VECTOR = 14,
+    URES_INT_VECTOR=14,
+
 #ifndef U_HIDE_DEPRECATED_API
     /** @deprecated ICU 2.6 Use the URES_ constant instead. */
     RES_NONE=URES_NONE,
@@ -129,11 +126,10 @@ typedef enum {
     RES_ARRAY=URES_ARRAY,
     /** @deprecated ICU 2.6 Use the URES_ constant instead. */
     RES_INT_VECTOR=URES_INT_VECTOR,
-    /** @deprecated ICU 2.6 Not used. */
-    RES_RESERVED=15, 
 #endif /* U_HIDE_DEPRECATED_API */
 
-    URES_LIMIT = 16
+    /** @deprecated ICU 2.6 Not used. */
+    RES_RESERVED=15
 } UResType;
 
 /*
@@ -303,9 +299,9 @@ ures_getLocale(const UResourceBundle* resourceBundle,
  *             ULocDataLocaleType in uloc.h
  * @param status just for catching illegal arguments
  * @return  A Locale name
- * @stable ICU 2.8
+ * @draft ICU 2.8 likely to change in the future
  */
-U_STABLE const char* U_EXPORT2 
+U_DRAFT const char* U_EXPORT2 
 ures_getLocaleByType(const UResourceBundle* resourceBundle, 
                      ULocDataLocaleType type, 
                      UErrorCode* status);
@@ -690,15 +686,40 @@ U_NAMESPACE_END
 
 #endif
 
+
+/**
+ * Get a resource with multi-level fallback. Normally only the top level resources will
+ * fallback to its parent. This performs fallback on subresources. For example, when a table
+ * is defined in a resource bundle and a parent resource bundle, normally no fallback occurs
+ * on the sub-resources because the table is defined in the current resource bundle, but this
+ * function can perform fallback on the sub-resources of the table.
+ * @param resB              a resource
+ * @param inKey             a key associated with the requested resource
+ * @param fillIn            if NULL a new UResourceBundle struct is allocated and must be deleted by the caller.
+ *                          Alternatively, you can supply a struct to be filled by this function.
+ * @param status: fills in the outgoing error code
+ *                could be <TT>U_MISSING_RESOURCE_ERROR</TT> if the key is not found
+ *                could be a non-failing error 
+ *                e.g.: <TT>U_USING_FALLBACK_WARNING</TT>,<TT>U_USING_DEFAULT_WARNING </TT>
+ * @return                  a pointer to a UResourceBundle struct. If fill in param was NULL, caller must delete it
+ * @internal ICU 3.0
+ */
+U_INTERNAL UResourceBundle* U_EXPORT2 
+ures_getByKeyWithFallback(const UResourceBundle *resB, 
+                          const char* inKey, 
+                          UResourceBundle *fillIn, 
+                          UErrorCode *status);
+
+
 /**
  * Create a string enumerator, owned by the caller, of all locales located within 
  * the specified resource tree.
  * @param packageName name of the tree, such as (NULL) or U_ICUDATA_ALIAS or  or "ICUDATA-coll"
  * This call is similar to uloc_getAvailable().
  * @param status error code
- * @stable ICU 3.2
+ * @draft ICU 3.2
  */
-U_STABLE UEnumeration* U_EXPORT2
+U_DRAFT UEnumeration* U_EXPORT2
 ures_openAvailableLocales(const char *packageName, UErrorCode *status);
 
 

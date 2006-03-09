@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *                                                                            *
-* Copyright (C) 2001-2006, International Business Machines                   *
+* Copyright (C) 2001-2005, International Business Machines                   *
 *                Corporation and others. All Rights Reserved.                *
 *                                                                            *
 ******************************************************************************
@@ -108,7 +108,7 @@ u_init(UErrorCode *status) {
      * available.
      */
 #if !UCONFIG_NO_CONVERSION
-    ucnv_io_countTotalAliases(status);
+    ucnv_io_countStandards(status);
 #endif
 #else
     /* Do any required init for services that don't have open operations
@@ -118,7 +118,7 @@ u_init(UErrorCode *status) {
      */
 
     /* Char Properties */
-    uprv_haveProperties(status);
+    uprv_loadPropsData(status);
 
     /* load the case and bidi properties but don't fail if they are not available */
     u_isULowercase(0x61);

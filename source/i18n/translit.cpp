@@ -155,10 +155,6 @@ Transliterator::Transliterator(const Transliterator& other) :
     }
 }
 
-Transliterator* Transliterator::clone() const {
-    return NULL;
-}
-
 /**
  * Assignment operator.
  */
@@ -1238,20 +1234,6 @@ void U_EXPORT2 Transliterator::registerInstance(Transliterator* adoptedPrototype
 
 void Transliterator::_registerInstance(Transliterator* adoptedPrototype) {
     registry->put(adoptedPrototype, TRUE);
-}
-
-void U_EXPORT2 Transliterator::registerAlias(const UnicodeString& aliasID,
-											 const UnicodeString& realID) {
-    umtx_init(&registryMutex);
-    Mutex lock(&registryMutex);
-    if (HAVE_REGISTRY) {
-        _registerAlias(aliasID, realID);
-    }
-}
-
-void Transliterator::_registerAlias(const UnicodeString& aliasID,
-									const UnicodeString& realID) {
-	registry->put(aliasID, realID, TRUE);
 }
 
 /**

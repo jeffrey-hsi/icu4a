@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/ga.xml
+// * Source File: ../../../cldr/common/main/ga.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/ga.xml
+ *  ICU <specials> source: ./xml/main/ga.xml
  */
 ga{
     Countries{
@@ -1222,7 +1222,7 @@ ga{
             "Dollar Siombábach",
         }
     }
-    ExemplarCharacters{"[a á b-e é f-i í j-o ó p-u ú v-z]"}
+    ExemplarCharacters{"[a-z á é í ó ú]"}
     Languages{
         aa{"Afar"}
         ab{"Abcáisis"}
@@ -1348,7 +1348,7 @@ ga{
     LocaleScript{
         "Latn",
     }
-    Version{"1.42"}
+    Version{"1.36"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -1419,26 +1419,29 @@ ga{
     }
     localPatternChars{"RbMLkUnsSElFtTauKcBeyrACvdz"}
     zoneStrings{
-        "Europe:Belfast"{
-            ec{"Béal Feirste"}
-            ld{"Am Samhraidh na Breataine"}
-            ls{"Meán-Am Greenwich"}
-            sd{"ASB"}
-            ss{"MAG"}
+        {
+            "Europe/Belfast",
+            "Meán-Am Greenwich",
+            "MAG",
+            "Am Samhraidh na Breataine",
+            "ASB",
+            "Béal Feirste",
         }
-        "Europe:Dublin"{
-            ec{"Baile Átha Cliath"}
-            ld{"Am Samhraidh na hÉireann"}
-            ls{"Meán-Am Greenwich"}
-            sd{"ASÉ"}
-            ss{"MAG"}
+        {
+            "Europe/London",
+            "Meán-Am Greenwich",
+            "MAG",
+            "Am Samhraidh na Breataine",
+            "ASB",
+            "Londain",
         }
-        "Europe:London"{
-            ec{"Londain"}
-            ld{"Am Samhraidh na Breataine"}
-            ls{"Meán-Am Greenwich"}
-            sd{"ASB"}
-            ss{"MAG"}
+        {
+            "Europe/Dublin",
+            "Meán-Am Greenwich",
+            "MAG",
+            "Am Samhraidh na hÉireann",
+            "ASÉ",
+            "Baile Átha Cliath",
         }
     }
 }

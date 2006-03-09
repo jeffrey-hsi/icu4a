@@ -1355,7 +1355,7 @@ LIB_VERSION_MAJOR=`echo $LIB_VERSION | sed 's/\..*//'`
 echo "$as_me:$LINENO: result: release $VERSION, library $LIB_VERSION" >&5
 echo "${ECHO_T}release $VERSION, library $LIB_VERSION" >&6
 
-UNICODE_VERSION="5.0"
+UNICODE_VERSION="4.1"
 
 
 ac_aux_dir=
@@ -3402,6 +3402,7 @@ powerpc*-*-linux*)
 *-dec-osf*) icu_cv_host_frag=mh-alpha-osf ;;
 *-*-nto*)	icu_cv_host_frag=mh-qnx ;;
 *-ncr-*)	icu_cv_host_frag=mh-mpras ;;
+*-sequent-*) 	icu_cv_host_frag=mh-ptx ;;
 *) 		icu_cv_host_frag=mh-unknown ;;
 esac
 
@@ -7615,6 +7616,7 @@ case "${host}" in
 	*-*-beos)		platform=U_BEOS ;;
 	*-*-irix*)		platform=U_IRIX ;;
 	*-ncr-*)		platform=U_MPRAS ;;
+	*-sequent-*)	platform=PTX ;;
 	*) 		platform=U_UNKNOWN_PLATFORM ;;
 esac
 
@@ -7632,6 +7634,7 @@ case "${host}" in
 	*-*-hpux*) 	ld_rpath_suf=":" ;;
 	*-*ibm-openedition*|*-*-os390*)	ld_rpath_suf="" ;;
 	*-*-os400*)	ld_rpath_suf=" " ;;
+	*-sequent-*)	ld_rpath_suf="" ;;
 	*-*-irix*)      ld_rpath_suf=" " ;;
 	*) 		ld_rpath_suf="" ;;
 esac
@@ -7685,7 +7688,7 @@ then
     CXXFLAGS="$CXXFLAGS \$(THREADSCXXFLAGS)"
 fi
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ac_config_files="$ac_config_files icudefs.mk Makefile data/icupkg.inc config/Makefile.inc data/Makefile stubdata/Makefile common/Makefile i18n/Makefile layout/Makefile layoutex/Makefile io/Makefile extra/Makefile extra/uconv/Makefile extra/scrptrun/Makefile tools/Makefile tools/ctestfw/Makefile tools/makeconv/Makefile tools/genrb/Makefile tools/genuca/Makefile tools/genccode/Makefile tools/gencmn/Makefile tools/gencnval/Makefile tools/gennames/Makefile tools/gentest/Makefile tools/gennorm/Makefile tools/genprops/Makefile tools/gencase/Makefile tools/genbidi/Makefile tools/genpname/Makefile tools/genbrk/Makefile tools/gensprep/Makefile tools/icupkg/Makefile tools/pkgdata/Makefile tools/toolutil/Makefile tools/dumpce/Makefile test/Makefile test/testdata/Makefile test/testdata/pkgdata.inc test/hdrtst/Makefile test/intltest/Makefile test/cintltst/Makefile test/iotest/Makefile test/thaitest/Makefile test/testmap/Makefile test/letest/Makefile test/threadtest/Makefile samples/Makefile samples/date/Makefile samples/cal/Makefile samples/csdet/Makefile samples/layout/Makefile common/unicode/platform.h"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ac_config_files="$ac_config_files icudefs.mk Makefile data/icupkg.inc config/Makefile.inc data/Makefile stubdata/Makefile common/Makefile i18n/Makefile layout/Makefile layoutex/Makefile io/Makefile extra/Makefile extra/uconv/Makefile extra/scrptrun/Makefile tools/Makefile tools/ctestfw/Makefile tools/makeconv/Makefile tools/genrb/Makefile tools/genuca/Makefile tools/genccode/Makefile tools/gencmn/Makefile tools/gencnval/Makefile tools/gennames/Makefile tools/gentest/Makefile tools/gennorm/Makefile tools/genprops/Makefile tools/gencase/Makefile tools/genbidi/Makefile tools/genpname/Makefile tools/genbrk/Makefile tools/gensprep/Makefile tools/icuswap/Makefile tools/pkgdata/Makefile tools/toolutil/Makefile tools/dumpce/Makefile test/Makefile test/testdata/Makefile test/testdata/pkgdata.inc test/hdrtst/Makefile test/intltest/Makefile test/cintltst/Makefile test/iotest/Makefile test/thaitest/Makefile test/testmap/Makefile test/letest/Makefile test/threadtest/Makefile samples/Makefile samples/date/Makefile samples/cal/Makefile samples/layout/Makefile common/unicode/platform.h"
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure
@@ -8242,7 +8245,7 @@ do
   "tools/genpname/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/genpname/Makefile" ;;
   "tools/genbrk/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/genbrk/Makefile" ;;
   "tools/gensprep/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/gensprep/Makefile" ;;
-  "tools/icupkg/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/icupkg/Makefile" ;;
+  "tools/icuswap/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/icuswap/Makefile" ;;
   "tools/pkgdata/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/pkgdata/Makefile" ;;
   "tools/toolutil/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/toolutil/Makefile" ;;
   "tools/dumpce/Makefile" ) CONFIG_FILES="$CONFIG_FILES tools/dumpce/Makefile" ;;
@@ -8260,7 +8263,6 @@ do
   "samples/Makefile" ) CONFIG_FILES="$CONFIG_FILES samples/Makefile" ;;
   "samples/date/Makefile" ) CONFIG_FILES="$CONFIG_FILES samples/date/Makefile" ;;
   "samples/cal/Makefile" ) CONFIG_FILES="$CONFIG_FILES samples/cal/Makefile" ;;
-  "samples/csdet/Makefile" ) CONFIG_FILES="$CONFIG_FILES samples/csdet/Makefile" ;;
   "samples/layout/Makefile" ) CONFIG_FILES="$CONFIG_FILES samples/layout/Makefile" ;;
   "common/unicode/platform.h" ) CONFIG_FILES="$CONFIG_FILES common/unicode/platform.h" ;;
   "common/icucfg.h" ) CONFIG_HEADERS="$CONFIG_HEADERS common/icucfg.h" ;;
@@ -8945,4 +8947,4 @@ fi
 
 echo "You must use $U_MAKE to build ICU."
 
-$as_unset _CXX_CXXSUFFIX
+unset _CXX_CXXSUFFIX

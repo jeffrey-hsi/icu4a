@@ -15,7 +15,7 @@
 //
 //*******************************************************************************
 
-conversion:table(nofallback) {
+conversion {
   Info {
     Description { "Test data for conversion" }
     LongDescription {

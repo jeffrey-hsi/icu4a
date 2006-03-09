@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/da.xml
+// * Source File: ../../../cldr/common/main/da.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/da.xml
+ *  ICU <specials> source: ./xml/main/da.xml
  */
 da{
     Countries{
@@ -1181,7 +1181,7 @@ da{
             "Zimbabwisk dollar",
         }
     }
-    ExemplarCharacters{"[a á b-e é f-i í j-o ó p-u ú v-y ý z æ ø å]"}
+    ExemplarCharacters{"[a-z æ å ø á é í ó ú ý]"}
     Keys{
         calendar{"Kalender"}
         collation{"Sortering"}
@@ -1658,7 +1658,7 @@ da{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Scripts{
@@ -1704,7 +1704,7 @@ da{
             traditional{"Traditionel sorteringsrækkefølge"}
         }
     }
-    Version{"1.53"}
+    Version{"1.46"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -1813,135 +1813,133 @@ da{
     }
     localPatternChars{"GuMtkHmsSEDFwWahKzUeygAZvcL"}
     zoneStrings{
-        "Africa:Casablanca"{
-            ec{"Casablanca"}
-            ld{"Verdenstid"}
-            ls{"Verdenstid"}
-            sd{"GMT"}
-            ss{"GMT"}
+        {
+            "America/Halifax",
+            "Atlantic-normaltid",
+            "AST",
+            "Atlantic-sommertid",
+            "ADT",
+            "Halifax",
         }
-        "America:Anchorage"{
-            ec{"Anchorage"}
-            ld{"Alaska-sommertid"}
-            ls{"Alaska-normaltid"}
-            sd{"ADT"}
-            ss{"AST"}
+        {
+            "America/St_Johns",
+            "Newfoundland-normaltid",
+            "CNT",
+            "Newfoundland-sommertid",
+            "CDT",
+            "St. Johns",
         }
-        "America:Chicago"{
-            ec{"Chicago"}
-            ld{"Central-sommertid"}
-            ls{"Central-normaltid"}
-            sd{"CDT"}
-            ss{"CST"}
+        {
+            "Asia/Shanghai",
+            "Kinesisk normaltid",
+            "CTT",
+            "Kinesisk normaltid",
+            "CDT",
+            "Shanghai",
         }
-        "America:Denver"{
-            ec{"Denver"}
-            ld{"Mountain-sommertid"}
-            ls{"Mountain-normaltid"}
-            sd{"MDT"}
-            ss{"MST"}
+        {
+            "Europe/Paris",
+            "Mellemeuropæisk normaltid",
+            "CET",
+            "Mellemeuropæisk sommertid",
+            "CEST",
+            "Paris",
         }
-        "America:Godthab"{
-            ec{"Nuuk"}
+        {
+            "Asia/Jerusalem",
+            "Israelsk normaltid",
+            "IST",
+            "Israelsk sommertid",
+            "IDT",
+            "Jerusalem",
         }
-        "America:Halifax"{
-            ec{"Halifax"}
-            ld{"Atlantic-sommertid"}
-            ls{"Atlantic-normaltid"}
-            sd{"ADT"}
-            ss{"AST"}
+        {
+            "Asia/Tokyo",
+            "Japansk normaltid",
+            "JST",
+            "Japansk normaltid",
+            "JST",
+            "Tokyo",
         }
-        "America:Indianapolis"{
-            ec{"Indianapolis"}
-            ld{"Eastern-normaltid"}
-            ls{"Eastern-normaltid"}
-            sd{"EST"}
-            ss{"EST"}
+        {
+            "Africa/Casablanca",
+            "Verdenstid",
+            "GMT",
+            "Verdenstid",
+            "GMT",
+            "Casablanca",
         }
-        "America:Los_Angeles"{
-            ec{"Los Angeles"}
-            ld{"Pacific-sommertid"}
-            ls{"Pacific-normaltid"}
-            sd{"PDT"}
-            ss{"PST"}
+        {
+            "Europe/Bucharest",
+            "Østeuropæisk normaltid",
+            "EET",
+            "Østeuropæisk sommertid",
+            "EEST",
+            "Bukarest",
         }
-        "America:New_York"{
-            ec{"New York"}
-            ld{"Eastern-sommertid"}
-            ls{"Eastern-normaltid"}
-            sd{"EDT"}
-            ss{"EST"}
+        {
+            "Pacific/Honolulu",
+            "Hawaii-normaltid",
+            "HST",
+            "Hawaii-normaltid",
+            "HST",
+            "Honolulu",
         }
-        "America:Phoenix"{
-            ec{"Phoenix"}
-            ld{"Mountain-normaltid"}
-            ls{"Mountain-normaltid"}
-            sd{"MST"}
-            ss{"MST"}
+        {
+            "America/Anchorage",
+            "Alaska-normaltid",
+            "AST",
+            "Alaska-sommertid",
+            "ADT",
+            "Anchorage",
         }
-        "America:St_Johns"{
-            ec{"St. Johns"}
-            ld{"Newfoundland-sommertid"}
-            ls{"Newfoundland-normaltid"}
-            sd{"CDT"}
-            ss{"CNT"}
+        {
+            "America/Los_Angeles",
+            "Pacific-normaltid",
+            "PST",
+            "Pacific-sommertid",
+            "PDT",
+            "Los Angeles",
         }
-        "Antarctica:South_Pole"{
-            ec{"Sydpolen"}
+        {
+            "America/Phoenix",
+            "Mountain-normaltid",
+            "MST",
+            "Mountain-normaltid",
+            "MST",
+            "Phoenix",
         }
-        "Asia:Jerusalem"{
-            ec{"Jerusalem"}
-            ld{"Israelsk sommertid"}
-            ls{"Israelsk normaltid"}
-            sd{"IDT"}
-            ss{"IST"}
+        {
+            "America/Denver",
+            "Mountain-normaltid",
+            "MST",
+            "Mountain-sommertid",
+            "MDT",
+            "Denver",
         }
-        "Asia:Shanghai"{
-            ec{"Shanghai"}
-            ld{"Kinesisk normaltid"}
-            ls{"Kinesisk normaltid"}
-            sd{"CDT"}
-            ss{"CTT"}
+        {
+            "America/Chicago",
+            "Central-normaltid",
+            "CST",
+            "Central-sommertid",
+            "CDT",
+            "Chicago",
         }
-        "Asia:Tokyo"{
-            ec{"Tokyo"}
-            ld{"Japansk normaltid"}
-            ls{"Japansk normaltid"}
-            sd{"JST"}
-            ss{"JST"}
+        {
+            "America/Indianapolis",
+            "Eastern-normaltid",
+            "EST",
+            "Eastern-normaltid",
+            "EST",
+            "Indianapolis",
         }
-        "Atlantic:Canary"{
-            ec{"De Kanariske Øer"}
-        }
-        "Europe:Bucharest"{
-            ec{"Bukarest"}
-            ld{"Østeuropæisk sommertid"}
-            ls{"Østeuropæisk normaltid"}
-            sd{"EEST"}
-            ss{"EET"}
-        }
-        "Europe:Lisbon"{
-            ec{"Lissabon"}
-        }
-        "Europe:Moscow"{
-            ec{"Moskva"}
-        }
-        "Europe:Paris"{
-            ec{"Paris"}
-            ld{"Mellemeuropæisk sommertid"}
-            ls{"Mellemeuropæisk normaltid"}
-            sd{"CEST"}
-            ss{"CET"}
-        }
-        "Pacific:Easter"{
-            ec{"Påskeøen"}
-        }
-        "Pacific:Honolulu"{
-            ec{"Honolulu"}
-            ld{"Hawaii-normaltid"}
-            ls{"Hawaii-normaltid"}
-            sd{"HST"}
-            ss{"HST"}
+        {
+            "America/New_York",
+            "Eastern-normaltid",
+            "EST",
+            "Eastern-sommertid",
+            "EDT",
+            "New York",
         }
     }
 }

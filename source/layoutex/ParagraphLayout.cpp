@@ -186,14 +186,7 @@ static const le_bool complexTable[] = {
     FALSE,  /* Shaw */
     FALSE,  /* Tale */
     FALSE,  /* Ugar */
-    FALSE,  /* Hrkt */
-    FALSE,  /* Bugi */
-    FALSE,  /* Glag */
-    FALSE,  /* Khar */
-    FALSE,  /* Sylo */
-    FALSE,  /* Talu */
-    FALSE,  /* Tfng */
-    FALSE   /* Xpeo */
+    FALSE   /* Hrkt */
 };
 
 
@@ -457,17 +450,14 @@ le_bool ParagraphLayout::isComplex(const LEUnicode chars[], le_int32 count)
     UErrorCode scriptStatus = U_ZERO_ERROR;
     UScriptCode scriptCode  = USCRIPT_INVALID_CODE;
     UScriptRun *sr = uscript_openRun(chars, count, &scriptStatus);
-    le_bool result = FALSE;
 
     while (uscript_nextRun(sr, NULL, NULL, &scriptCode)) {
         if (isComplex(scriptCode)) {
-            result = TRUE;
-            break;
+            return TRUE;
         }
     }
 
-    uscript_closeRun(sr);
-    return result;
+    return FALSE;
 }
 
 le_int32 ParagraphLayout::getAscent() const

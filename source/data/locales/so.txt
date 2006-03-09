@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/so.xml
+// * Source File: ../../../cldr/common/main/so.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/so.xml
+ *  ICU <specials> source: ./xml/main/so.xml
  */
 so{
     Countries{
@@ -112,9 +112,29 @@ so{
         ZW{"Simbaabwe"}
     }
     Currencies{
+        EUR{
+            "€",
+            "EUR",
+        }
+        GBP{
+            "£",
+            "GBP",
+        }
+        INR{
+            "=0#Rs.|1#Re.|1<Rs.",
+            "INR",
+        }
+        JPY{
+            "¥",
+            "JPY",
+        }
         KES{
             "Ksh",
             "KES",
+        }
+        USD{
+            "$",
+            "USD",
         }
     }
     ExemplarCharacters{"[a-z]"}
@@ -124,7 +144,7 @@ so{
     LocaleScript{
         "Latn",
     }
-    Version{"1.34"}
+    Version{"1.30"}
     calendar{
         gregorian{
             AmPmMarkers{

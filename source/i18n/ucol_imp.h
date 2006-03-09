@@ -43,7 +43,7 @@
 
 #include "unicode/ucol.h"
 #include "utrie.h"
-#include "uresimp.h"
+#include "unicode/ures.h"
 #include "unicode/udata.h"
 #include "unicode/uiter.h"
 

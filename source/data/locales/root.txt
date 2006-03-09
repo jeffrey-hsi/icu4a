@@ -3,13 +3,14 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/root.xml
+// * Source File: ../../../cldr/common/main/root.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/root.xml
+ *  ICU <specials> source: ./xml/main/root.xml
  */
 root{
+    AuxExemplarCharacters{"[]"}
     Currencies{
         EUR{
             "€",
@@ -52,7 +53,7 @@ root{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     NumberPatterns{
@@ -65,7 +66,7 @@ root{
         297,
         210,
     }
-    Version{"1.63"}
+    Version{"1.52"}
     boundaries{
         grapheme{"char"}
         line{"line"}
@@ -212,42 +213,6 @@ root{
                     "BCE",
                     "CE",
                 }
-                wide:alias{"/LOCALE/calendar/gregorian/eras/abbreviated"}
-            }
-            fields{
-                day{
-                    dn{"Day"}
-                }
-                dayperiod{
-                    dn{"Dayperiod"}
-                }
-                era{
-                    dn{"Era"}
-                }
-                hour{
-                    dn{"Hour"}
-                }
-                minute{
-                    dn{"Minute"}
-                }
-                month{
-                    dn{"Month"}
-                }
-                second{
-                    dn{"Second"}
-                }
-                week{
-                    dn{"Week"}
-                }
-                weekday{
-                    dn{"Day of the Week"}
-                }
-                year{
-                    dn{"Year"}
-                }
-                zone{
-                    dn{"Zone"}
-                }
             }
             monthNames{
                 default{"format"}
@@ -336,17 +301,6 @@ root{
             }
         }
         islamic{
-            DateTimePatterns{
-                "HH:mm:ss z",
-                "HH:mm:ss z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE, yyyy MMMM dd",
-                "yyyy MMMM d",
-                "yyyy MMM d",
-                "yy/MM/dd",
-                "{1} {0}",
-            }
             eras{
                 abbreviated{
                     "AH",
@@ -629,17 +583,6 @@ root{
             }
         }
         persian{
-            DateTimePatterns{
-                "HH:mm:ss z",
-                "HH:mm:ss z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE, yyyy MMMM dd",
-                "yyyy MMMM d",
-                "yyyy MMM d",
-                "yy/MM/dd",
-                "{1} {0}",
-            }
             monthNames{
                 default{"format"}
                 format{
@@ -656,35 +599,15 @@ root{
     }
     localPatternChars{"GyMdkHmsSEDFwWahKzYeugAZvcL"}
     zoneStrings{
-        ""{
-            ec{""}
-            ld{""}
-            ls{""}
-            sd{""}
-            ss{""}
-        }
-        abbreviationFallback{"standard"}
-        fallbackFormat{"{0} ({1})"}
-        gmtFormat{"GMT{0}"}
-        hourFormat{"+HH:mm;-HH:mm"}
-        hoursFormat{"{0}/{1}"}
-        preferenceOrdering{
+        {
             "",
-        }
-        regionFormat{"{0}"}
-        singleCountries{
-            "Africa/Bamako",
-            "America/Godthab",
-            "America/Santiago",
-            "America/Guayaquil",
-            "Asia/Shanghai",
-            "Asia/Tashkent",
-            "Asia/Kuala_Lumpur",
-            "Europe/Madrid",
-            "Europe/Lisbon",
-            "Europe/London",
-            "Pacific/Auckland",
-            "Pacific/Tahiti",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
         }
     }
 }

@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2006, International Business Machines Corporation and
+ * Copyright (c) 1997-2005, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -203,8 +203,6 @@ void addNEWResourceBundleTest(TestNode** root)
     addTest(root, &TestXPath,                 "tsutil/creststn/TestXPath"); 
     addTest(root, &TestCLDRStyleAliases,      "tsutil/creststn/TestCLDRStyleAliases");
     addTest(root, &TestFallbackCodes,         "tsutil/creststn/TestFallbackCodes");    
-    addTest(root, &TestStackReuse,            "tsutil/creststn/TestStackReuse");
-
 }
 
 
@@ -975,7 +973,6 @@ static void TestAPI() {
     const char* testdatapath;
     UChar* utestdatapath=NULL;
     char convOutput[256];
-    UChar largeBuffer[1025];
     UResourceBundle *teRes = NULL;
     UResourceBundle *teFillin=NULL;
     UResourceBundle *teFillin2=NULL;
@@ -1003,18 +1000,8 @@ static void TestAPI() {
     }
 #endif
 
-    u_memset(largeBuffer, 0x0030, sizeof(largeBuffer)/sizeof(largeBuffer[0]));
-    largeBuffer[sizeof(largeBuffer)/sizeof(largeBuffer[0])-1] = 0;
-
     /*Test ures_openU */
 
-    status = U_ZERO_ERROR;
-    ures_close(ures_openU(largeBuffer, "root", &status));
-    if(status != U_ILLEGAL_ARGUMENT_ERROR){
-        log_err("ERROR: ures_openU() worked when the path is very large. It returned %s\n", myErrorName(status));
-    }
-
-    status = U_ZERO_ERROR;
     ures_close(ures_openU(NULL, "root", &status));
     if(U_FAILURE(status)){
         log_err("ERROR: ures_openU() failed path = NULL with %s\n", myErrorName(status));
@@ -2043,7 +2030,7 @@ static void TestFallback()
         UResourceBundle* myResB = ures_open(NULL,"no_NO_NY",&err);
         UResourceBundle* resLocID = ures_getByKey(myResB, "Version", NULL, &err);
         UResourceBundle* tResB;
-        static const UChar versionStr[] = { 0x0031, 0x002E, 0x0033, 0x0031, 0x0000};
+        static const UChar versionStr[] = { 0x0031, 0x002E, 0x0032, 0x0037, 0x0000};
 
         if(err != U_ZERO_ERROR){
             log_data_err("Expected U_ZERO_ERROR when trying to test no_NO_NY aliased to nn_NO for Version err=%s\n",u_errorName(err));
@@ -2221,34 +2208,22 @@ static void TestResourceLevelAliasing(void) {
         }
         for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
             result = ures_getStringByKey(tb, keys[i], &resultLen, &status);
-            if(U_FAILURE(status)){
-                log_err("Fetching the resource with key %s failed. Error: %s\n", keys[i], u_errorName(status));
-                continue;
-            }
             uBufferLen = u_unescape(strings[i], uBuffer, 256);
             if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
               log_err("Didn't get correct string while accesing alias table by key (%s)\n", keys[i]);
             }
         }
         for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
-            result = ures_getStringByIndex(tb, i, &resultLen, &status); 
-            if(U_FAILURE(status)){
-                log_err("Fetching the resource with key %s failed. Error: %s\n", keys[i], u_errorName(status));
-                continue;
-            }
+            result = ures_getStringByIndex(tb, i, &resultLen, &status);
             uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(result==NULL || resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
+            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
               log_err("Didn't get correct string while accesing alias table by index (%s)\n", strings[i]);
             }
         }
         for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
             result = ures_getNextString(tb, &resultLen, &key, &status);
-            if(U_FAILURE(status)){
-                log_err("Fetching the resource with key %s failed. Error: %s\n", keys[i], u_errorName(status));
-                continue;
-            }
             uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(result==NULL || resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
+            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
               log_err("Didn't get correct string while iterating over alias table (%s)\n", strings[i]);
             }
         }
@@ -2258,30 +2233,18 @@ static void TestResourceLevelAliasing(void) {
         }
         for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
             result = ures_getStringByIndex(tb, i, &resultLen, &status);
-            if(U_FAILURE(status)){
-                log_err("Fetching the resource with key %s failed. Error: %s\n", keys[i], u_errorName(status));
-                continue;
-            }
             uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(result==NULL || resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
+            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
               log_err("Didn't get correct string while accesing alias by index in an array (%s)\n", strings[i]);
             }
         }
         for(i = 0; i < sizeof(strings)/sizeof(strings[0]); i++) {
             result = ures_getNextString(tb, &resultLen, &key, &status);
-            if(U_FAILURE(status)){
-                log_err("Fetching the resource with key %s failed. Error: %s\n", keys[i], u_errorName(status));
-                continue;
-            }
             uBufferLen = u_unescape(strings[i], uBuffer, 256);
-            if(result==NULL || resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
+            if(resultLen != uBufferLen || u_strncmp(result, uBuffer, resultLen) != 0) {
               log_err("Didn't get correct string while iterating over aliases in an array (%s)\n", strings[i]);
             }
         }
-    }
-    tb = ures_getByKey(aliasB, "testAliasToTree", tb, &status);
-    if(U_FAILURE(status)){
-        log_err("Fetching the resource with key %s failed. Error: %s\n", "testAliasToTree", u_errorName(status));
     }
 cleanup:
     ures_close(aliasB);
@@ -2298,13 +2261,8 @@ static void TestDirectAccess(void) {
     
     char buffer[100];
     char *s;
-    const char* testdatapath=loadTestData(&status);
-    if(U_FAILURE(status)){
-        log_err("Could not load testdata.dat %s \n",myErrorName(status));
-        return;
-    }
     
-    t = ures_findResource("/testdata/te/zoneStrings/3/2", t, &status);
+    t = ures_findResource("en/zoneStrings/3/2", t, &status);
     if(U_FAILURE(status)) {
         log_err("Couldn't access indexed resource, error %s\n", u_errorName(status));
         status = U_ZERO_ERROR;
@@ -2314,7 +2272,7 @@ static void TestDirectAccess(void) {
             log_err("Got a strange key, expected NULL, got %s\n", key);
         }
     }
-    t = ures_findResource("en/calendar/gregorian/DateTimePatterns/3", t, &status);
+    t = ures_findResource("en/zoneStrings/3", t, &status);
     if(U_FAILURE(status)) {
         log_err("Couldn't access indexed resource, error %s\n", u_errorName(status));
         status = U_ZERO_ERROR;
@@ -2358,7 +2316,7 @@ static void TestDirectAccess(void) {
         }
     }
 
-    t = ures_findResource("root/calendar/islamic-civil/DateTime", t, &status);
+    t = ures_findResource("root/calendar/islamic-civil/DateTimePatterns", t, &status);
     if(U_SUCCESS(status)) {
         log_err("This resource does not exist. How did it get here?\n");
     }
@@ -2375,7 +2333,7 @@ static void TestDirectAccess(void) {
     t2 = ures_open(NULL, "he", &status);
     t2 = ures_getByKeyWithFallback(t2, "calendar", t2, &status);
     t2 = ures_getByKeyWithFallback(t2, "islamic-civil", t2, &status);
-    t2 = ures_getByKeyWithFallback(t2, "DateTime", t2, &status);
+    t2 = ures_getByKeyWithFallback(t2, "DateTimePatterns", t2, &status);
     if(U_SUCCESS(status)) {
         log_err("This resource does not exist. How did it get here?\n");
     }
@@ -2396,7 +2354,7 @@ static void TestDirectAccess(void) {
     t2 = ures_open(NULL, "root", &status);
     t2 = ures_getByKeyWithFallback(t2, "calendar", t2, &status);
     t2 = ures_getByKeyWithFallback(t2, "islamic-civil", t2, &status);
-    t2 = ures_getByKeyWithFallback(t2, "DateTime", t2, &status);
+    t2 = ures_getByKeyWithFallback(t2, "DateTimePatterns", t2, &status);
     if(U_SUCCESS(status)) {
         log_err("This resource does not exist. How did it get here?\n");
     }
@@ -2727,21 +2685,3 @@ static void TestFallbackCodes(void) {
   ures_close(r);
   ures_close(res);
 }
-
-/* This test will crash if this doesn't work. Results don't need testing. */
-static void TestStackReuse(void) {
-    UResourceBundle table;
-    UErrorCode errorCode = U_ZERO_ERROR;
-    UResourceBundle *rb = ures_open(NULL, "en_US", &errorCode);
-
-    if(U_FAILURE(errorCode)) {
-        log_err("Could not load en_US locale. status=%s\n",myErrorName(errorCode));
-        return;
-    }
-    ures_initStackObject(&table);
-    ures_getByKeyWithFallback(rb, "Types", &table, &errorCode);
-    ures_getByKeyWithFallback(&table, "collation", &table, &errorCode);
-    ures_close(rb);
-    ures_close(&table);
-}
-

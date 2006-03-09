@@ -1,6 +1,6 @@
 /*  
 **********************************************************************
-*   Copyright (C) 2002-2006, International Business Machines
+*   Copyright (C) 2002-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   file name:  uconfig.h
@@ -23,13 +23,6 @@
  * By default, all modules are built.
  * The switches are fairly coarse, controlling large modules.
  * Basic services cannot be turned off.
- *
- * Building with any of these options does not guarantee that the
- * ICU build process will completely work. It is recommended that
- * the ICU libraries and data be built using the normal build.
- * At that time you should remove the data used by those services.
- * After building the ICU data library, you should rebuild the ICU
- * libraries with these switches customized to your needs.
  *
  * @stable ICU 2.4
  */
@@ -92,7 +85,7 @@
  * ICU will not completely build with this switch turned on.
  * This switch turns off all converters.
  *
- * @stable ICU 3.2
+ * @draft ICU 3.2
  */
 #ifndef UCONFIG_NO_CONVERSION
 #   define UCONFIG_NO_CONVERSION 0
@@ -206,7 +199,7 @@
  * \def UCONFIG_NO_SERVICE
  * This switch turns off service registration.
  *
- * @stable ICU 3.2
+ * @draft ICU 3.2
  */
 #ifndef UCONFIG_NO_SERVICE
 #   define UCONFIG_NO_SERVICE 0

@@ -1,6 +1,5 @@
 /*
-**********************************************************************
-* Copyright (C) 1999-2006, International Business Machines Corporation and others.
+* Copyright (C) 1999-2005, International Business Machines Corporation and others.
 * All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -26,7 +25,7 @@ U_NAMESPACE_BEGIN
  * characters outside the range contextStart..contextLimit-1.  This
  * allows explicit matching by rules and UnicodeSets of text outside a
  * defined range.
- * @stable ICU 3.0
+ * @draft ICU 3.0
  */
 #define U_ETHER ((UChar)0xFFFF)
 

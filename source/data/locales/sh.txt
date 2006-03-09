@@ -3,12 +3,9 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/sh.xml
+// * Source File: ../../../cldr/common/main/sh.xml
 // *
 // ***************************************************************************
-/**
- *  ICU <specials> source: <path>/xml/main/sh.xml
- */
 sh{
     "%%ALIAS"{"sr_Latn"}
 }

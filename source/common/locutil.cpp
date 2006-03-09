@@ -211,9 +211,7 @@ LocaleUtility::getAvailableLocaleNames(const UnicodeString& bundleID)
             ucln_common_registerCleanup(UCLN_COMMON_SERVICE, service_cleanup);
         }
         umtx_unlock(NULL);
-        if(cache != NULL) {
-          delete cache;
-        }
+        delete cache;
         cache = h;
     }
 

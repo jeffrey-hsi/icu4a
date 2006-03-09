@@ -23,8 +23,7 @@
 #include "uobjtest.h"
 #include "utxttest.h"
 #include "v32test.h"
-#include "uvectest.h" 
-#include "aliastst.h"
+#include "uvectest.h"
 //#include "custrtest.h"
 //#include "ccitrtst.h"
 //#include "cloctest.h"
@@ -149,17 +148,19 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
                 UTextTest test;
                 callTest( test, par );
             }
-            break;
+            break;;
 
-         case 13:
-            name = "LocaleAliasTest"; 
+
+        /*
+        case 8:
+            name = "LocaleTest"; 
             if (exec) {
-                logln("LocaleAliasTest---"); logln("");
-                LocaleAliasTest test;
+                logln("LocaleTest---"); logln("");
+                CLocaleTest test;
                 callTest( test, par );
             }
             break;
-
+        */
         default: name = ""; break; //needed to end loop
     }
 }

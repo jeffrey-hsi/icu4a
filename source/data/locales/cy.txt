@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/cy.xml
+// * Source File: ../../../cldr/common/main/cy.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/cy.xml
+ *  ICU <specials> source: ./xml/main/cy.xml
  */
 cy{
     Countries{
@@ -47,10 +47,7 @@ cy{
             "Doler yr UDA",
         }
     }
-    ExemplarCharacters{
-        "[a á à â ä b-e é è ê ë f-i í ì î ï j-o ó ò ô ö p-u ú ù û ü v w ẃ ẁ ŵ ẅ x y ý"
-        " ỳ ŷ ÿ z]"
-    }
+    ExemplarCharacters{"[a-z âäáàêëéèîïíìôöóòûüúùŵẅẃẁŷÿýỳ]"}
     Languages{
         ar{"Arabeg"}
         cy{"Cymraeg"}
@@ -71,7 +68,7 @@ cy{
     Scripts{
         Latn{"Lladin"}
     }
-    Version{"1.30"}
+    Version{"1.23"}
     calendar{
         gregorian{
             dayNames{
@@ -156,8 +153,5 @@ cy{
                 }
             }
         }
-    }
-    zoneStrings{
-        hourFormat{"+HHmm;-HHmm"}
     }
 }

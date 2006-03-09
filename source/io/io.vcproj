@@ -27,7 +27,6 @@
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DisableLanguageExtensions="TRUE"
-				TreatWChar_tAsBuiltInType="TRUE"
 				PrecompiledHeaderFile=".\Release/icuio.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
@@ -40,10 +39,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\bin\icuio35.dll"
+				OutputFile="..\..\bin\icuio34.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\..\..\lib\icuio35.pdb"
+				ProgramDatabaseFile=".\..\..\lib\icuio34.pdb"
 				EnableCOMDATFolding="2"
 				BaseAddress="0x4ab00000"
 				ImportLibrary="..\..\lib\icuio.lib"/>
@@ -94,7 +93,6 @@
 				RuntimeLibrary="3"
 				BufferSecurityCheck="TRUE"
 				DisableLanguageExtensions="TRUE"
-				TreatWChar_tAsBuiltInType="TRUE"
 				PrecompiledHeaderFile=".\Debug/icuio.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
@@ -108,11 +106,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\bin\icuio35d.dll"
+				OutputFile="..\..\bin\icuio34d.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\..\..\lib\icuio35d.pdb"
+				ProgramDatabaseFile=".\..\..\lib\icuio34d.pdb"
 				BaseAddress="0x4ab00000"
 				ImportLibrary="..\..\lib\icuiod.lib"/>
 			<Tool

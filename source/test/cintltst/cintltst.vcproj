@@ -28,7 +28,6 @@
 				RuntimeLibrary="1"
 				BufferSecurityCheck="TRUE"
 				DisableLanguageExtensions="TRUE"
-				TreatWChar_tAsBuiltInType="TRUE"
 				PrecompiledHeaderFile=".\Debug/cintltst.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
@@ -91,7 +90,6 @@
 				BufferSecurityCheck="TRUE"
 				EnableFunctionLevelLinking="TRUE"
 				DisableLanguageExtensions="TRUE"
-				TreatWChar_tAsBuiltInType="TRUE"
 				PrecompiledHeaderFile=".\Release/cintltst.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
@@ -394,9 +392,6 @@
 			</File>
 			<File
 				RelativePath=".\currtest.c">
-			</File>
-			<File
-				RelativePath=".\ucsdetst.c">
 			</File>
 			<File
 				RelativePath=".\utmstest.c">

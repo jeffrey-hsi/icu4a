@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2006, International Business Machines Corporation and    *
+* Copyright (C) 1997-2005, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -16,7 +16,6 @@
 *   11/16/99    weiv        Added 'Y' and 'e' to fgPatternChars
 *   03/27/00    weiv        Keeping resource bundle around!
 *   06/30/05    emmons      Added eraNames, narrow month/day, standalone context
-*   10/12/05    emmons      Added setters for eraNames, month/day by width/context
 *******************************************************************************
 */
  
@@ -26,16 +25,13 @@
 
 #include "unicode/dtfmtsym.h"
 #include "unicode/smpdtfmt.h"
-#include "cpputils.h"
 #include "ucln_in.h"
 #include "mutex.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "locbased.h"
 #include "gregoimp.h"
-#include "hash.h"
-#include "uresimp.h" 
-
+ 
 // *****************************************************************************
 // class DateFormatSymbols
 // *****************************************************************************
@@ -56,9 +52,6 @@ static const UChar gPatternChars[] = {
     0x44, 0x46, 0x77, 0x57, 0x61, 0x68, 0x4B, 0x7A, 0x59, 0x65,
     0x75, 0x67, 0x41, 0x5A, 0x76, 0x63, 0x4c, 0
 };
-
-/* length of an array */
-#define ARRAY_LENGTH(array) (sizeof(array)/sizeof(array[0]))
 
 //------------------------------------------------------
 // Strings of last resort.  These are only used if we have no resource
@@ -145,36 +138,22 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(DateFormatSymbols)
  * These are the tags we expect to see in normal resource bundle files associated
  * with a locale and calendar
  */
-static const char gErasTag[]="eras";
-static const char gAbbreviatedTag[] = "abbreviated";
-static const char gMonthNamesTag[]="monthNames";
-static const char gDayNamesTag[]="dayNames";
-static const char gNamesWideTag[]="wide";
-static const char gNamesAbbrTag[]="abbreviated";
-static const char gNamesNarrowTag[]="narrow";
-static const char gNamesStandaloneTag[]="stand-alone";
-static const char gAmPmMarkersTag[]="AmPmMarkers";
+const char gErasTag[]="eras";
+const char gAbbreviatedTag[] = "abbreviated";
+const char gMonthNamesTag[]="monthNames";
+const char gDayNamesTag[]="dayNames";
+const char gNamesWideTag[]="wide";
+const char gNamesAbbrTag[]="abbreviated";
+const char gNamesNarrowTag[]="narrow";
+const char gNamesStandaloneTag[]="stand-alone";
+const char gAmPmMarkersTag[]="AmPmMarkers";
 
 /**
  * These are the tags we expect to see in time zone data resource bundle files
  * associated with a locale.
  */
-static const char gZoneStringsTag[]="zoneStrings";
-static const char gLocalPatternCharsTag[]="localPatternChars";
-
-static UMTX LOCK;
-
-/*
- * Keep this variable in synch with max length of display strings
- */
-#define UTZ_MAX_DISPLAY_STRINGS_LENGTH 7
-#define UTZ_SHORT_GENERIC   "sg"
-#define UTZ_SHORT_STANDARD  "ss"
-#define UTZ_SHORT_DAYLIGHT  "sd"
-#define UTZ_LONG_GENERIC    "lg"
-#define UTZ_LONG_STANDARD   "ls"
-#define UTZ_LONG_DAYLIGHT   "ld"
-#define UTZ_EXEMPLAR_CITY   "ec"
+const char gZoneStringsTag[]="zoneStrings";
+const char gLocalPatternCharsTag[]="localPatternChars";
 
 /**
  * Jitterbug 2974: MSVC has a bug whereby new X[0] behaves badly.
@@ -183,12 +162,6 @@ static UMTX LOCK;
 static inline UnicodeString* newUnicodeStringArray(size_t count) {
     return new UnicodeString[count ? count : 1];
 }
-
-U_CDECL_BEGIN
-static void deleteUnicodeStringArray(void* obj) {
-    delete[] (UnicodeString*)obj;
-}
-U_CDECL_END
 
 //------------------------------------------------------
 
@@ -295,25 +268,10 @@ DateFormatSymbols::copyData(const DateFormatSymbols& other) {
     assignArray(fStandaloneShortWeekdays, fStandaloneShortWeekdaysCount, other.fStandaloneShortWeekdays, other.fStandaloneShortWeekdaysCount);
     assignArray(fStandaloneNarrowWeekdays, fStandaloneNarrowWeekdaysCount, other.fStandaloneNarrowWeekdays, other.fStandaloneNarrowWeekdaysCount);
     assignArray(fAmPms, fAmPmsCount, other.fAmPms, other.fAmPmsCount);
-    // the zoneStrings data is initialized on demand
-    //fZoneStringsRowCount = other.fZoneStringsRowCount;
-    //fZoneStringsColCount = other.fZoneStringsColCount;
-    //createZoneStrings((const UnicodeString**)other.fZoneStrings);
-    // initialize on demand
-    fZoneStringsHash = NULL;
-    fZoneIDEnumeration = NULL;
-    fZoneStrings = NULL;
-    fZoneStringsColCount = 0;
-    fZoneStringsRowCount = 0;
-    fResourceBundle = NULL;
-    if(other.fZoneStringsHash!=NULL){
-        fZoneStringsHash = createZoneStringsHash(other.fZoneStringsHash);
-        fZoneIDEnumeration = other.fZoneIDEnumeration->clone();
-    }else{
-        UErrorCode status =U_ZERO_ERROR;
-        fResourceBundle = ures_clone(other.fResourceBundle, &status);
-        // TODO: what should be done in case of error?
-    }
+
+    fZoneStringsRowCount = other.fZoneStringsRowCount;
+    fZoneStringsColCount = other.fZoneStringsColCount;
+    createZoneStrings((const UnicodeString**)other.fZoneStrings);
 
     // fastCopyFrom() - see assignArray comments
     fLocalPatternChars.fastCopyFrom(other.fLocalPatternChars);
@@ -362,17 +320,7 @@ void DateFormatSymbols::disposeZoneStrings()
         for (int32_t row=0; row<fZoneStringsRowCount; ++row)
             delete[] fZoneStrings[row];
         uprv_free(fZoneStrings);
-    } 
-    if(fZoneStringsHash){
-        delete fZoneStringsHash;
-        fZoneStringsHash =  NULL;
     }
-    if(fZoneIDEnumeration){
-        delete fZoneIDEnumeration; 
-        fZoneIDEnumeration = NULL;
-    }
-    ures_close(fResourceBundle);
-    fResourceBundle = NULL;
 }
 
 UBool
@@ -410,7 +358,9 @@ DateFormatSymbols::operator==(const DateFormatSymbols& other) const
         fStandaloneWeekdaysCount == other.fStandaloneWeekdaysCount &&
         fStandaloneShortWeekdaysCount == other.fStandaloneShortWeekdaysCount &&
         fStandaloneNarrowWeekdaysCount == other.fStandaloneNarrowWeekdaysCount &&
-        fAmPmsCount == other.fAmPmsCount)
+        fAmPmsCount == other.fAmPmsCount &&
+        fZoneStringsRowCount == other.fZoneStringsRowCount &&
+        fZoneStringsColCount == other.fZoneStringsColCount)
     {
         // Now compare the arrays themselves
         if (arrayCompare(fEras, other.fEras, fErasCount) &&
@@ -429,22 +379,13 @@ DateFormatSymbols::operator==(const DateFormatSymbols& other) const
             arrayCompare(fStandaloneNarrowWeekdays, other.fStandaloneNarrowWeekdays, fStandaloneNarrowWeekdaysCount) &&
             arrayCompare(fAmPms, other.fAmPms, fAmPmsCount))
         {
-            
-            if(fZoneStringsHash == NULL || other.fZoneStringsHash == NULL){
-                // fZoneStringsHash is not initialized compare the resource bundles
-                if(ures_equal(fResourceBundle, other.fResourceBundle)== FALSE){
+            if (fZoneStrings == other.fZoneStrings) return TRUE;
+
+            for (int32_t row=0; row<fZoneStringsRowCount; ++row)
+            {
+                if (!arrayCompare(fZoneStrings[row], other.fZoneStrings[row], fZoneStringsColCount))
                     return FALSE;
-                }
-            }else{
-                if(fZoneStringsHash->equals(*other.fZoneStringsHash) == FALSE){
-                    return FALSE;
-                }
-                // we always make sure that we update the enumeration when the hash is
-                // updated. So we can be sure that once we compare the hashes  the 
-                // enumerations are also equal
             }
-            // since fZoneStrings data member is deprecated .. and may not be initialized
-            // so don't compare them
             return TRUE;
         }
     }
@@ -487,44 +428,38 @@ DateFormatSymbols::getMonths(int32_t &count, DtContextType context, DtWidthType 
     UnicodeString *returnValue = NULL;
 
     switch (context) {
-    case FORMAT :
-        switch(width) {
-        case WIDE :
-            count = fMonthsCount;
-            returnValue = fMonths;
-            break;
-        case ABBREVIATED :
-            count = fShortMonthsCount;
-            returnValue = fShortMonths;
-            break;
-        case NARROW :
-            count = fNarrowMonthsCount;
-            returnValue = fNarrowMonths;
-            break;
-        case DT_WIDTH_COUNT :
-            break;
-        }
-        break;
-    case STANDALONE :
-        switch(width) {
-        case WIDE :
-            count = fStandaloneMonthsCount;
-            returnValue = fStandaloneMonths;
-            break;
-        case ABBREVIATED :
-            count = fStandaloneShortMonthsCount;
-            returnValue = fStandaloneShortMonths;
-            break;
-        case NARROW :
-            count = fStandaloneNarrowMonthsCount;
-            returnValue = fStandaloneNarrowMonths;
-            break;
-        case DT_WIDTH_COUNT :
-            break;
-        }
-        break;
-    case DT_CONTEXT_COUNT :
-        break;
+       case FORMAT :
+          switch(width) {
+             case WIDE :
+                count = fMonthsCount;
+                returnValue = fMonths;
+                break;
+             case ABBREVIATED :
+                count = fShortMonthsCount;
+                returnValue = fShortMonths;
+                break;
+             case NARROW :
+                count = fNarrowMonthsCount;
+                returnValue = fNarrowMonths;
+                break;
+          }
+          break;
+       case STANDALONE :
+          switch(width) {
+             case WIDE :
+                count = fStandaloneMonthsCount;
+                returnValue = fStandaloneMonths;
+                break;
+             case ABBREVIATED :
+                count = fStandaloneShortMonthsCount;
+                returnValue = fStandaloneShortMonths;
+                break;
+             case NARROW :
+                count = fStandaloneNarrowMonthsCount;
+                returnValue = fStandaloneNarrowMonths;
+                break;
+          }
+          break;
     }
     return returnValue;
 }
@@ -548,44 +483,38 @@ DateFormatSymbols::getWeekdays(int32_t &count, DtContextType context, DtWidthTyp
 {
     UnicodeString *returnValue = NULL;
     switch (context) {
-    case FORMAT :
-        switch(width) {
-            case WIDE :
+       case FORMAT :
+          switch(width) {
+             case WIDE :
                 count = fWeekdaysCount;
                 returnValue = fWeekdays;
                 break;
-            case ABBREVIATED :
+             case ABBREVIATED :
                 count = fShortWeekdaysCount;
                 returnValue = fShortWeekdays;
                 break;
-            case NARROW :
+             case NARROW :
                 count = fNarrowWeekdaysCount;
                 returnValue = fNarrowWeekdays;
                 break;
-            case DT_WIDTH_COUNT :
-                break;
-        }
-        break;
-    case STANDALONE :
-        switch(width) {
-            case WIDE :
+          }
+          break;
+       case STANDALONE :
+          switch(width) {
+             case WIDE :
                 count = fStandaloneWeekdaysCount;
                 returnValue = fStandaloneWeekdays;
                 break;
-            case ABBREVIATED :
+             case ABBREVIATED :
                 count = fStandaloneShortWeekdaysCount;
                 returnValue = fStandaloneShortWeekdays;
                 break;
-            case NARROW :
+             case NARROW :
                 count = fStandaloneNarrowWeekdaysCount;
                 returnValue = fStandaloneNarrowWeekdays;
                 break;
-            case DT_WIDTH_COUNT :
-                break;
-        }
-        break;
-    case DT_CONTEXT_COUNT :
-        break;
+          }
+          break;
     }
     return returnValue;
 }
@@ -603,8 +532,7 @@ void
 DateFormatSymbols::setEras(const UnicodeString* erasArray, int32_t count)
 {
     // delete the old list if we own it
-    if (fEras)
-        delete[] fEras;
+    if (fEras) delete[] fEras;
 
     // we always own the new list, which we create here (we duplicate rather
     // than adopting the list passed in)
@@ -614,25 +542,10 @@ DateFormatSymbols::setEras(const UnicodeString* erasArray, int32_t count)
 }
 
 void
-DateFormatSymbols::setEraNames(const UnicodeString* eraNamesArray, int32_t count)
-{
-    // delete the old list if we own it
-    if (fEraNames)
-        delete[] fEraNames;
-
-    // we always own the new list, which we create here (we duplicate rather
-    // than adopting the list passed in)
-    fEraNames = newUnicodeStringArray(count);
-    uprv_arrayCopy(eraNamesArray,fEraNames,  count);
-    fEraNamesCount = count;
-}
-
-void
 DateFormatSymbols::setMonths(const UnicodeString* monthsArray, int32_t count)
 {
     // delete the old list if we own it
-    if (fMonths)
-        delete[] fMonths;
+    if (fMonths) delete[] fMonths;
 
     // we always own the new list, which we create here (we duplicate rather
     // than adopting the list passed in)
@@ -645,8 +558,7 @@ void
 DateFormatSymbols::setShortMonths(const UnicodeString* shortMonthsArray, int32_t count)
 {
     // delete the old list if we own it
-    if (fShortMonths)
-        delete[] fShortMonths;
+    if (fShortMonths) delete[] fShortMonths;
 
     // we always own the new list, which we create here (we duplicate rather
     // than adopting the list passed in)
@@ -655,78 +567,10 @@ DateFormatSymbols::setShortMonths(const UnicodeString* shortMonthsArray, int32_t
     fShortMonthsCount = count;
 }
 
-void
-DateFormatSymbols::setMonths(const UnicodeString* monthsArray, int32_t count, DtContextType context, DtWidthType width)
-{
-    // delete the old list if we own it
-    // we always own the new list, which we create here (we duplicate rather
-    // than adopting the list passed in)
-
-    switch (context) {
-    case FORMAT :
-        switch (width) {
-        case WIDE :
-            if (fMonths)
-                delete[] fMonths;
-            fMonths = newUnicodeStringArray(count);
-            uprv_arrayCopy( monthsArray,fMonths,count);
-            fMonthsCount = count;
-            break;
-        case ABBREVIATED :
-            if (fShortMonths)
-                delete[] fShortMonths;
-            fShortMonths = newUnicodeStringArray(count);
-            uprv_arrayCopy( monthsArray,fShortMonths,count);
-            fShortMonthsCount = count;
-            break;
-        case NARROW :
-            if (fNarrowMonths)
-                delete[] fNarrowMonths;
-            fNarrowMonths = newUnicodeStringArray(count);
-            uprv_arrayCopy( monthsArray,fNarrowMonths,count);
-            fNarrowMonthsCount = count;
-            break; 
-        case DT_WIDTH_COUNT :
-            break;
-        }
-        break;
-    case STANDALONE :
-        switch (width) {
-        case WIDE :
-            if (fStandaloneMonths)
-                delete[] fStandaloneMonths;
-            fStandaloneMonths = newUnicodeStringArray(count);
-            uprv_arrayCopy( monthsArray,fStandaloneMonths,count);
-            fStandaloneMonthsCount = count;
-            break;
-        case ABBREVIATED :
-            if (fStandaloneShortMonths)
-                delete[] fStandaloneShortMonths;
-            fStandaloneShortMonths = newUnicodeStringArray(count);
-            uprv_arrayCopy( monthsArray,fStandaloneShortMonths,count);
-            fStandaloneShortMonthsCount = count;
-            break;
-        case NARROW :
-           if (fStandaloneNarrowMonths)
-                delete[] fStandaloneNarrowMonths;
-            fStandaloneNarrowMonths = newUnicodeStringArray(count);
-            uprv_arrayCopy( monthsArray,fStandaloneNarrowMonths,count);
-            fStandaloneNarrowMonthsCount = count;
-            break; 
-        case DT_WIDTH_COUNT :
-            break;
-        }
-        break;
-    case DT_CONTEXT_COUNT :
-        break;
-    }
-}
-
 void DateFormatSymbols::setWeekdays(const UnicodeString* weekdaysArray, int32_t count)
 {
     // delete the old list if we own it
-    if (fWeekdays)
-        delete[] fWeekdays;
+    if (fWeekdays) delete[] fWeekdays;
 
     // we always own the new list, which we create here (we duplicate rather
     // than adopting the list passed in)
@@ -739,81 +583,13 @@ void
 DateFormatSymbols::setShortWeekdays(const UnicodeString* shortWeekdaysArray, int32_t count)
 {
     // delete the old list if we own it
-    if (fShortWeekdays)
-        delete[] fShortWeekdays;
+    if (fShortWeekdays) delete[] fShortWeekdays;
 
     // we always own the new list, which we create here (we duplicate rather
     // than adopting the list passed in)
     fShortWeekdays = newUnicodeStringArray(count);
-    uprv_arrayCopy(shortWeekdaysArray, fShortWeekdays, count);
+    uprv_arrayCopy( shortWeekdaysArray,fShortWeekdays,count);
     fShortWeekdaysCount = count;
-}
-
-void
-DateFormatSymbols::setWeekdays(const UnicodeString* weekdaysArray, int32_t count, DtContextType context, DtWidthType width)
-{
-    // delete the old list if we own it
-    // we always own the new list, which we create here (we duplicate rather
-    // than adopting the list passed in)
-
-    switch (context) {
-    case FORMAT :
-        switch (width) {
-        case WIDE :
-            if (fWeekdays)
-                delete[] fWeekdays;
-            fWeekdays = newUnicodeStringArray(count);
-            uprv_arrayCopy(weekdaysArray, fWeekdays, count);
-            fWeekdaysCount = count;
-            break;
-        case ABBREVIATED :
-            if (fShortWeekdays)
-                delete[] fShortWeekdays;
-            fShortWeekdays = newUnicodeStringArray(count);
-            uprv_arrayCopy(weekdaysArray, fShortWeekdays, count);
-            fShortWeekdaysCount = count;
-            break;
-        case NARROW :
-            if (fNarrowWeekdays)
-                delete[] fNarrowWeekdays;
-            fNarrowWeekdays = newUnicodeStringArray(count);
-            uprv_arrayCopy(weekdaysArray, fNarrowWeekdays, count);
-            fNarrowWeekdaysCount = count;
-            break; 
-        case DT_WIDTH_COUNT :
-            break;
-        }
-        break;
-    case STANDALONE :
-        switch (width) {
-        case WIDE :
-            if (fStandaloneWeekdays)
-                delete[] fStandaloneWeekdays;
-            fStandaloneWeekdays = newUnicodeStringArray(count);
-            uprv_arrayCopy(weekdaysArray, fStandaloneWeekdays, count);
-            fStandaloneWeekdaysCount = count;
-            break;
-        case ABBREVIATED :
-            if (fStandaloneShortWeekdays)
-                delete[] fStandaloneShortWeekdays;
-            fStandaloneShortWeekdays = newUnicodeStringArray(count);
-            uprv_arrayCopy(weekdaysArray, fStandaloneShortWeekdays, count);
-            fStandaloneShortWeekdaysCount = count;
-            break;
-        case NARROW :
-            if (fStandaloneNarrowWeekdays)
-                delete[] fStandaloneNarrowWeekdays;
-            fStandaloneNarrowWeekdays = newUnicodeStringArray(count);
-            uprv_arrayCopy(weekdaysArray, fStandaloneNarrowWeekdays, count);
-            fStandaloneNarrowWeekdaysCount = count;
-            break; 
-        case DT_WIDTH_COUNT :
-            break;
-        }
-        break;
-    case DT_CONTEXT_COUNT :
-        break;
-    }
 }
 
 void
@@ -834,18 +610,8 @@ DateFormatSymbols::setAmPmStrings(const UnicodeString* amPmsArray, int32_t count
 const UnicodeString**
 DateFormatSymbols::getZoneStrings(int32_t& rowCount, int32_t& columnCount) const
 {
-    umtx_lock(&LOCK);
-    UErrorCode status = U_ZERO_ERROR;
-    if(fZoneStrings==NULL){
-        // cast away const to get around the problem for lazy initialization
-        ((DateFormatSymbols*)this)->initZoneStringsArray(status);
-        if(U_FAILURE(status)){
-            return NULL;
-        }
-    }
     rowCount = fZoneStringsRowCount;
     columnCount = fZoneStringsColCount;
-    umtx_unlock(&LOCK);
     return (const UnicodeString**)fZoneStrings; // Compiler requires cast
 }
 
@@ -855,13 +621,12 @@ DateFormatSymbols::setZoneStrings(const UnicodeString* const *strings, int32_t r
     // since deleting a 2-d array is a pain in the butt, we offload that task to
     // a separate function
     disposeZoneStrings();
-    UErrorCode status = U_ZERO_ERROR;
+
     // we always own the new list, which we create here (we duplicate rather
     // than adopting the list passed in)
     fZoneStringsRowCount = rowCount;
     fZoneStringsColCount = columnCount;
     createZoneStrings((const UnicodeString**)strings);
-    initZoneStrings((const UnicodeString**)strings, rowCount,columnCount, status);
 }
 
 //------------------------------------------------------
@@ -936,6 +701,7 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
     int32_t i;
     int32_t len = 0;
     const UChar *resStr;
+
     /* In case something goes wrong, initialize all of the data to NULL. */
     fEras = NULL;
     fErasCount = 0;
@@ -970,11 +736,8 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
     fZoneStringsRowCount = 0;
     fZoneStringsColCount = 0;
     fZoneStrings = NULL;
-    fZoneStringsHash = NULL;
-    fZoneIDEnumeration = NULL;
-    fResourceBundle   = NULL;
-    
-      
+
+
     if (U_FAILURE(status)) return;
 
     /**
@@ -983,7 +746,7 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
      * these.
      */
     CalendarData calData(locale, type, status);
-    fResourceBundle = ures_open((char*)0, locale.getName(), &status);
+    UResourceBundle *nonCalendarData = ures_open((char*)0, locale.getName(), &status);
 
     // load the first data item
     UResourceBundle *erasMain = calData.getByKey(gErasTag, status);
@@ -1001,7 +764,8 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
     UResourceBundle *standaloneWeekdaysData = NULL; // Data closed by calData
     UResourceBundle *standaloneShortWeekdaysData = NULL; // Data closed by calData
     UResourceBundle *standaloneNarrowWeekdaysData = NULL; // Data closed by calData
-
+    UResourceBundle *zoneArray = ures_getByKey(nonCalendarData, gZoneStringsTag, NULL, &status);
+    UResourceBundle *zoneRow = ures_getByIndex(zoneArray, (int32_t)0, NULL, &status);
     U_LOCALE_BASED(locBased, *this);
     if (U_FAILURE(status))
     {
@@ -1029,6 +793,14 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
             initField(&fStandaloneShortWeekdays, fStandaloneShortWeekdaysCount, (const UChar *)gLastResortDayNames, kDayNum, kDayLen, status);
             initField(&fStandaloneNarrowWeekdays, fStandaloneNarrowWeekdaysCount, (const UChar *)gLastResortDayNames, kDayNum, kDayLen, status);
             initField(&fAmPms, fAmPmsCount, (const UChar *)gLastResortAmPmMarkers, kAmPmNum, kAmPmLen, status);
+
+            fZoneStrings = (UnicodeString **)uprv_malloc(sizeof(UnicodeString *));
+            /* test for NULL */
+            if (fZoneStrings == 0) {
+                status = U_MEMORY_ALLOCATION_ERROR;
+            }
+            fZoneStringsRowCount = 1;
+            initField(fZoneStrings, fZoneStringsColCount, (const UChar *)gLastResortZoneStrings, kZoneNum, kZoneLen, status);
             fLocalPatternChars = gPatternChars;
         }
         goto cleanup;
@@ -1070,7 +842,7 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
     initField(&fAmPms, fAmPmsCount, calData.getByKey(gAmPmMarkersTag, status), status);
 
     // fastCopyFrom()/setTo() - see assignArray comments
-    resStr = ures_getStringByKey(fResourceBundle, gLocalPatternCharsTag, &len, &status);
+    resStr = ures_getStringByKey(nonCalendarData, gLocalPatternCharsTag, &len, &status);
     fLocalPatternChars.setTo(TRUE, resStr, len);
     // If the locale data does not include new pattern chars, use the defaults
     // TODO: Consider making this an error, since this may add conflicting characters.
@@ -1078,12 +850,39 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
         fLocalPatternChars.append(UnicodeString(TRUE, &gPatternChars[len], PATTERN_CHARS_LEN-len));
     }
 
+    /* TODO: Fix the case where the zoneStrings is not a perfect square array of information. */
+    fZoneStringsRowCount = ures_getSize(zoneArray);
+    fZoneStringsColCount = ures_getSize(zoneRow);
+    fZoneStrings = (UnicodeString **)uprv_malloc(fZoneStringsRowCount * sizeof(UnicodeString *));
+    /* test for NULL */
+    if (fZoneStrings == 0) {
+        status = U_MEMORY_ALLOCATION_ERROR;
+        goto cleanup;
+    }
+    for(i = 0; i<fZoneStringsRowCount; i++) {
+        *(fZoneStrings+i) = newUnicodeStringArray(fZoneStringsColCount);
+        /* test for NULL */
+        if ((*(fZoneStrings+i)) == 0) {
+            status = U_MEMORY_ALLOCATION_ERROR;
+            goto cleanup;
+        }
+        zoneRow = ures_getByIndex(zoneArray, i, zoneRow, &status);
+        // compute the size of the array dynamically. Don't assume
+        // that all rows of zone strings are of the same size.
+        int32_t size = ures_getSize(zoneRow);
+        for(int32_t j = 0; j<size; j++) {
+            resStr = ures_getStringByIndex(zoneRow, j, &len, &status);
+            // setTo() - see assignArray comments
+            fZoneStrings[i][j].setTo(TRUE, resStr, len);
+        }
+    }
+
     // {sfb} fixed to handle 1-based weekdays
     weekdaysData = calData.getByKey2(gDayNamesTag, gNamesWideTag, status);
     fWeekdaysCount = ures_getSize(weekdaysData);
     fWeekdays = new UnicodeString[fWeekdaysCount+1];
-    /* pin the blame on system. If we cannot get a chunk of memory .. the system is dying!*/
-    if (fWeekdays == NULL) {
+    /* test for NULL */
+    if (fWeekdays == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
         goto cleanup;
     }
@@ -1198,6 +997,9 @@ DateFormatSymbols::initializeData(const Locale& locale, const char *type, UError
 cleanup:
     ures_close(eras);
     ures_close(eraNames);
+    ures_close(zoneRow);
+    ures_close(zoneArray);
+    ures_close(nonCalendarData);
 }
 
 /**
@@ -1255,580 +1057,6 @@ DateFormatSymbols::getLocale(ULocDataLocaleType type, UErrorCode& status) const 
     return locBased.getLocale(type, status);
 }
 
-class TimeZoneKeysEnumeration : public StringEnumeration {
-private:
-    UnicodeString* strings;
-    int32_t length;
-    int32_t current;
-    int32_t capacity;
-    TimeZoneKeysEnumeration(UnicodeString* oldStrs, int32_t count){
-        strings = newUnicodeStringArray(count);
-        if(strings==NULL){
-            return;
-        }
-        capacity = count;
-        current = 0;
-        for(length = 0; length<capacity; length++){
-            strings[length].setTo(oldStrs[length]);
-        }
-    }    
-public:
-    static UClassID U_EXPORT2 getStaticClassID(void);
-    virtual UClassID getDynamicClassID(void) const;
-
-    TimeZoneKeysEnumeration(int32_t count, UErrorCode status){
-        strings = newUnicodeStringArray(count);
-        if(strings == NULL){
-            status = U_MEMORY_ALLOCATION_ERROR;
-        }
-        length = 0; 
-        current = 0;
-        capacity = count;
-    }
-
-    void put(const UnicodeString& str, UErrorCode& status){
-        if(length < capacity){
-            strings[length++].setTo(str);
-        }else{
-            status = U_INDEX_OUTOFBOUNDS_ERROR;
-        }
-    }
-    virtual ~TimeZoneKeysEnumeration() {
-        delete[] strings;
-    }
-
-    virtual StringEnumeration * clone() const
-    {
-        return new TimeZoneKeysEnumeration(strings, length);
-    }
-
-    virtual int32_t count(UErrorCode &/*status*/) const {
-        return length;
-    }
-    virtual const UChar* unext(int32_t *resultLength, UErrorCode& /*status*/){
-        if(current < length){
-            const UChar* ret = strings[current].getBuffer();
-            *resultLength = strings[current].length();
-            current++;
-            return ret;
-        }
-        return NULL;
-    }
-
-    virtual const UnicodeString* snext(UErrorCode& status) {
-        if(U_FAILURE(status)){
-            return NULL;
-        }
-        if(current < length){
-            return &strings[current++];
-        }
-        return NULL;
-    }
-    /* this method is for thread safe iteration */
-    const UnicodeString* snext(int32_t& pos, UErrorCode& status)const {
-        if(U_FAILURE(status)){
-            return NULL;
-        }
-        if(pos < length){
-            return &strings[pos++];
-        }
-        return NULL;
-    }
-
-    virtual void reset(UErrorCode& /*status*/) {
-        current = 0;
-
-    }
-    virtual UBool operator==(const StringEnumeration& that)const{
-        return ((this == &that) ||
-            (getDynamicClassID() == that.getDynamicClassID() &&
-            StringEnumeration::operator==(that) &&
-            equals(that)));
-    }
-private:
-    UBool equals(const StringEnumeration& other) const{
-        if (other.getDynamicClassID() != TimeZoneKeysEnumeration::getStaticClassID()) {
-            return FALSE;
-        }
-        TimeZoneKeysEnumeration& enum2 =  (TimeZoneKeysEnumeration&)(other);
-        UErrorCode status = U_ZERO_ERROR;
-
-        int32_t count1 = count(status);
-        int32_t count2 = other.count(status);
-        if(count1 != count2){
-            return FALSE;
-        }
-        int32_t pos1 = 0; 
-        int32_t pos2 = 0;
-        const UnicodeString* str1 = NULL;
-        const UnicodeString* str2 = NULL;
-
-        while((str1 = snext(pos1, status))!=NULL){ 
-            str2 = enum2.snext(pos2, status);
-            if(U_FAILURE(status)){
-                return FALSE;
-            }
-            if(*str1 != *str2){
-                // bail out at the first failure
-                return FALSE;
-            }
-            
-        }
-        // if we reached here that means that the enumerations are equal
-        return TRUE;
-    }
-};
-
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(TimeZoneKeysEnumeration)
-
-void
-DateFormatSymbols::initZoneStringsArray(UErrorCode& status){
-    if(fZoneStringsHash == NULL){
-        initZoneStrings(status);
-    }
-    if(U_FAILURE(status)){
-        return;
-    }
-    fZoneStringsRowCount = fZoneIDEnumeration->count(status);
-    fZoneStringsColCount = 8;
-    fZoneStrings = (UnicodeString **)uprv_malloc(fZoneStringsRowCount * sizeof(UnicodeString *));
-    /* if we can't get a chunk of heap then the system is going down. Pin the blame on system*/
-    if (fZoneStrings == NULL) {
-        status = U_MEMORY_ALLOCATION_ERROR;
-        return;
-    }
-    const UnicodeString *zid = NULL;
-    TimeZoneKeysEnumeration *keys = (TimeZoneKeysEnumeration*) fZoneIDEnumeration;
-    int32_t pos = 0;
-    int32_t i = 0;
-    while((zid=keys->snext(pos,status))!=NULL){
-        *(fZoneStrings+i) = newUnicodeStringArray(fZoneStringsColCount);
-        /* test for NULL */
-        if ((*(fZoneStrings+i)) == 0) {
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return;
-        }
-        UnicodeString* strings = (UnicodeString*)fZoneStringsHash->get(*zid);
-        fZoneStrings[i][0].setTo(*zid);
-        fZoneStrings[i][1].setTo(strings[TIMEZONE_LONG_STANDARD]);
-        fZoneStrings[i][2].setTo(strings[TIMEZONE_SHORT_STANDARD]);
-        fZoneStrings[i][3].setTo(strings[TIMEZONE_LONG_DAYLIGHT]);
-        fZoneStrings[i][4].setTo(strings[TIMEZONE_SHORT_DAYLIGHT]);
-        fZoneStrings[i][5].setTo(strings[TIMEZONE_EXEMPLAR_CITY]);
-        if(fZoneStrings[i][5].length()==0){
-            fZoneStrings[i][5].setTo(strings[TIMEZONE_LONG_GENERIC]);
-        }else{
-            fZoneStrings[i][6].setTo(strings[TIMEZONE_LONG_GENERIC]);
-        }
-        if(fZoneStrings[i][6].length()==0){
-            fZoneStrings[i][6].setTo(strings[TIMEZONE_LONG_GENERIC]);
-        }else{
-            fZoneStrings[i][7].setTo(strings[TIMEZONE_LONG_GENERIC]);
-        }
-        i++;
-    }
-}
-
-U_CDECL_BEGIN
-static UBool U_CALLCONV 
-compareTZHashValues(const UHashTok val1, const UHashTok val2){
-
-    const UnicodeString* array1 = (UnicodeString*) val1.pointer;
-    const UnicodeString* array2 = (UnicodeString*) val2.pointer;
-    if(array1==array2){
-        return TRUE;
-    }
-    if(array1==NULL || array2==NULL){
-        return FALSE;
-    }
-    for(int32_t j=0; j< UTZ_MAX_DISPLAY_STRINGS_LENGTH; j++){
-        if(array1[j] != array2[j]){
-            return FALSE;
-        }
-    }
-    return TRUE;
-}
-U_CDECL_END
-
-void
-DateFormatSymbols::initZoneStrings(UErrorCode &status){
-    if(U_FAILURE(status)){
-        return;
-    }  
-
-    if(fZoneStringsHash != NULL){
-        return;
-    }
-    int32_t i;
-    
-    fZoneStringsHash = new Hashtable(uhash_compareUnicodeString, compareTZHashValues, status);
-    if(fZoneStringsHash==NULL){
-        status = U_MEMORY_ALLOCATION_ERROR;
-        return;
-    }
-    fZoneStringsHash->setValueDeleter(deleteUnicodeStringArray);
-
-    if(fResourceBundle != NULL){
-        UnicodeString solidus = UNICODE_STRING_SIMPLE("/");
-        UnicodeString colon = UNICODE_STRING_SIMPLE(":");
-        UResourceBundle zoneArray,zoneItem;
-        ures_initStackObject(&zoneItem);
-        ures_initStackObject(&zoneArray);
-        for(const UResourceBundle* rb = fResourceBundle; rb!=NULL; rb=ures_getParentBundle(rb)){
-            ures_getByKey(rb, gZoneStringsTag, &zoneArray, &status);
-            if(U_FAILURE(status)){
-                break;
-            }
-            while(ures_hasNext(&zoneArray)){
-                UErrorCode tempStatus = U_ZERO_ERROR;
-                UnicodeString* array = newUnicodeStringArray(UTZ_MAX_DISPLAY_STRINGS_LENGTH);
-                ures_getNextResource(&zoneArray, &zoneItem, &status);
-                UnicodeString key(ures_getKey(&zoneItem), -1, US_INV);
-                key.findAndReplace(colon, solidus);
-                int32_t len = 0;
-                //fetch the strings with fine grained fallback
-                const UChar* str = ures_getStringByKeyWithFallback(&zoneItem,UTZ_SHORT_STANDARD, &len, &tempStatus);
-                if(U_SUCCESS(tempStatus)){
-                    array[TIMEZONE_SHORT_STANDARD].setTo(str, len);
-                }else{
-                    tempStatus = U_ZERO_ERROR;
-                }
-                str = ures_getStringByKeyWithFallback(&zoneItem,UTZ_SHORT_GENERIC, &len, &tempStatus);
-                if(U_SUCCESS(tempStatus)){
-                    array[TIMEZONE_SHORT_GENERIC].setTo(str, len);
-                }else{
-                    tempStatus = U_ZERO_ERROR;
-                }                
-                str = ures_getStringByKeyWithFallback(&zoneItem,UTZ_SHORT_DAYLIGHT, &len, &tempStatus);
-                if(U_SUCCESS(tempStatus)){
-                    array[TIMEZONE_SHORT_DAYLIGHT].setTo(str, len);
-                }else{
-                    tempStatus = U_ZERO_ERROR;
-                }
-                str = ures_getStringByKeyWithFallback(&zoneItem,UTZ_LONG_STANDARD, &len, &tempStatus);
-                if(U_SUCCESS(tempStatus)){
-                    array[TIMEZONE_LONG_STANDARD].setTo(str, len);
-                }else{
-                    tempStatus = U_ZERO_ERROR;
-                }
-                str = ures_getStringByKeyWithFallback(&zoneItem,UTZ_LONG_GENERIC, &len, &tempStatus);
-                if(U_SUCCESS(tempStatus)){
-                    array[TIMEZONE_LONG_GENERIC].setTo(str, len);
-                }else{
-                    tempStatus = U_ZERO_ERROR;
-                }                
-                str = ures_getStringByKeyWithFallback(&zoneItem,UTZ_LONG_DAYLIGHT, &len, &tempStatus);
-                if(U_SUCCESS(tempStatus)){
-                    array[TIMEZONE_LONG_DAYLIGHT].setTo(str, len);
-                }else{
-                    tempStatus = U_ZERO_ERROR;
-                }
-                str = ures_getStringByKeyWithFallback(&zoneItem,UTZ_EXEMPLAR_CITY, &len, &tempStatus);
-                if(U_SUCCESS(tempStatus)){
-                    array[TIMEZONE_EXEMPLAR_CITY].setTo(str, len);
-                }else{
-                    tempStatus = U_ZERO_ERROR;
-                }
-                // store the strings in hash
-                fZoneStringsHash->put(key, array, status);
-            }
-            ures_close(&zoneItem);
-            ures_close(&zoneArray);
-        }
-        int32_t length = fZoneStringsHash->count();
-        TimeZoneKeysEnumeration* keysEnum = new TimeZoneKeysEnumeration(length, status);
-        fZoneIDEnumeration = keysEnum;
-        if(fZoneIDEnumeration==NULL){
-            delete fZoneStringsHash;
-            fZoneStringsHash = NULL;
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return;
-        }
-        int32_t pos=-1;
-        const UnicodeString* key; 
-        const UHashElement* elem = NULL;
-        while((elem = fZoneStringsHash->nextElement(pos))!= NULL){  
-            const UHashTok keyTok = elem->key;
-            key = (const UnicodeString*)keyTok.pointer;
-            keysEnum->put(*key, status);
-        }
-    }else{
-        //last resort strings
-        UnicodeString* array = newUnicodeStringArray(UTZ_MAX_DISPLAY_STRINGS_LENGTH);
-        if(array==NULL){
-            delete fZoneStringsHash;
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return;
-        }
-        int32_t length = ARRAY_LENGTH(gLastResortZoneStrings);
-        UnicodeString key(gLastResortZoneStrings[0]);
-        TimeZoneKeysEnumeration* keysEnum = new TimeZoneKeysEnumeration(length, status);
-        fZoneIDEnumeration = keysEnum;
-        if(fZoneIDEnumeration==NULL){
-            delete fZoneStringsHash;
-            delete[] array;
-            fZoneStringsHash = NULL;
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return;
-        }
-        keysEnum->put(key, status);
-        int32_t j=1;
-        for(i=0; i< length; ){
-            array[i++].setTo(gLastResortZoneStrings[j++]);
-        }
-        fZoneStringsHash->put(key, array, status);
-    }
-}
-void 
-DateFormatSymbols::initZoneStrings(const UnicodeString** strings, int32_t rowCount, int32_t columnCount, UErrorCode& status){
-    if(strings==NULL || rowCount<0 || columnCount<0){
-        status = U_ILLEGAL_ARGUMENT_ERROR;
-        return;
-    }
-    TimeZoneKeysEnumeration* keysEnum = new TimeZoneKeysEnumeration(rowCount, status);
-    fZoneIDEnumeration = keysEnum;
-    if(U_FAILURE(status)){
-        return;
-    }
-    if(fZoneIDEnumeration==NULL){
-        status = U_MEMORY_ALLOCATION_ERROR;
-        return;
-    }
-    fZoneStringsHash = new Hashtable(uhash_compareUnicodeString, compareTZHashValues, status);
-    if(U_FAILURE(status)){
-        return;
-    }
-    if(fZoneStringsHash==NULL){
-        status = U_MEMORY_ALLOCATION_ERROR;
-        return;
-    }
-    for (int32_t row=0; row<rowCount; ++row){
-        // the first string in the array is the key.
-        UnicodeString key = strings[row][0];
-        keysEnum->put(key, status);
-        UnicodeString* array = newUnicodeStringArray(UTZ_MAX_DISPLAY_STRINGS_LENGTH);
-        if(array==NULL){
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return;
-        }
-        for (int32_t col=1; col<columnCount; ++col) {
-            // fastCopyFrom() - see assignArray comments
-            switch (col){
-                case 1:
-                    array[TIMEZONE_LONG_STANDARD].setTo(strings[row][col]);
-                    break;
-                case 2:
-                    array[TIMEZONE_SHORT_STANDARD].setTo(strings[row][col]);
-                    break;
-                case 3:
-                    array[TIMEZONE_LONG_DAYLIGHT].setTo(strings[row][col]);
-                    break;
-                case 4:
-                     array[TIMEZONE_LONG_DAYLIGHT].setTo(strings[row][col]);
-                     break;
-                case 5:
-                    if(fZoneStringsColCount==6 || fZoneStringsColCount==8){
-                        array[TIMEZONE_EXEMPLAR_CITY].setTo(strings[row][col]);
-                    }else{
-                        array[TIMEZONE_LONG_GENERIC].setTo(strings[row][col]);
-                    }
-                    break;
-                case 6:
-                    if(fZoneStringsColCount==8){
-                        array[TIMEZONE_LONG_GENERIC].setTo(strings[row][col]);
-                    }else{
-                        array[TIMEZONE_SHORT_GENERIC].setTo(strings[row][col]);
-                    }
-                    break; 
-                case 7:
-                    array[TIMEZONE_SHORT_GENERIC].setTo(strings[row][col]);
-                    break;
-                default:
-                    status = U_ILLEGAL_ARGUMENT_ERROR;
-            }
-            // populate the hash table
-            fZoneStringsHash->put(strings[row][0], array, status);
-        }
-    }
-
-}
-
-UnicodeString&
-DateFormatSymbols::getZoneString(const UnicodeString &zid, const TimeZoneTranslationType type, 
-                                 UnicodeString &result, UErrorCode &status){
-
-    if(fZoneStringsHash == NULL){
-        //lazy initialization
-        initZoneStrings(status);
-    }
-    if(U_FAILURE(status)){
-        return result;
-    }
-    UnicodeString* stringsArray = (UnicodeString*)fZoneStringsHash->get(zid);
-    if(stringsArray != NULL){
-        result.setTo(stringsArray[type],0);
-    }
-
-    return result;
-}
-
-StringEnumeration* 
-DateFormatSymbols::createZoneStringIDs(UErrorCode &status){
-    if(U_FAILURE(status)){
-        return NULL;
-    }
-    if(fZoneStringsHash == NULL){    
-        //lazy initialization
-        initZoneStrings(status);
-    }
-    return fZoneIDEnumeration->clone();
-}
-
-/**
- * Sets timezone strings.
- * @draft ICU 3.6
- */
-void 
-DateFormatSymbols::setZoneString(const UnicodeString &zid, const TimeZoneTranslationType type,
-                                 const UnicodeString &value, UErrorCode &status){
-    if(fZoneStringsHash == NULL){
-        //lazy initialization
-        initZoneStrings(status);
-    }
-    if(U_FAILURE(status)){
-        return;
-    }
-    UnicodeString* stringsArray = (UnicodeString*)fZoneStringsHash->get(zid);
-    if(stringsArray != NULL){
-        stringsArray[type].setTo(value);
-    }else{
-        stringsArray = newUnicodeStringArray(UTZ_MAX_DISPLAY_STRINGS_LENGTH); 
-        if(stringsArray==NULL){
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return;
-        }
-        stringsArray[type].setTo(value);
-        fZoneStringsHash->put(zid, stringsArray, status);
-        TimeZoneKeysEnumeration* keys = (TimeZoneKeysEnumeration*) fZoneIDEnumeration;
-        keys->put(zid, status);
-    }
-}
-
-Hashtable* 
-DateFormatSymbols::createZoneStringsHash(const Hashtable* otherHash){
-    UErrorCode status = U_ZERO_ERROR;
-    Hashtable* hash = new Hashtable(uhash_compareUnicodeString, compareTZHashValues, status);
-    if(hash==NULL){
-        return NULL;
-    }
-    if(U_FAILURE(status)){
-        return NULL;
-    }
-    int32_t pos = -1;
-    const UHashElement* elem = NULL;
-    // walk through the hash table and create a deep clone 
-    while((elem = otherHash->nextElement(pos))!= NULL){
-        const UHashTok otherKeyTok = elem->key;
-        const UHashTok otherValueTok = elem->value;
-        UnicodeString* otherKey = (UnicodeString*)otherKeyTok.pointer;
-        UnicodeString* otherArray = (UnicodeString*)otherValueTok.pointer;
-        UnicodeString* array = newUnicodeStringArray(UTZ_MAX_DISPLAY_STRINGS_LENGTH);
-        if(array==NULL){
-            return NULL;
-        }
-        UnicodeString key(*otherKey);
-        for(int32_t i=0; i<UTZ_MAX_DISPLAY_STRINGS_LENGTH; i++){
-            array[i].setTo(otherArray[i]);
-        }
-        hash->put(key, array, status);
-        if(U_FAILURE(status)){
-            delete[] array;
-            return NULL;
-        }
-    } 
-    return hash;
-}
-
-
-UnicodeString&
-DateFormatSymbols::getZoneID(const UnicodeString& zid, UnicodeString& result, UErrorCode& status){
-    if(fZoneStringsHash == NULL){
-        initZoneStrings(status); 
-    }
-    if(U_FAILURE(status)){
-        return result;
-    }
-    UnicodeString* strings = (UnicodeString*)fZoneStringsHash->get(zid);
-    if (strings != NULL) {
-        return result.setTo(zid,0);
-    }
-
-    // Do a search through the equivalency group for the given ID
-    int32_t n = TimeZone::countEquivalentIDs(zid);
-    if (n > 1) {
-        int32_t i;
-        for (i=0; i<n; ++i) {
-            UnicodeString equivID = TimeZone::getEquivalentID(zid, i);
-            if (equivID != zid) {
-                strings = (UnicodeString*)fZoneStringsHash->get(equivID);
-                if (strings != NULL) {
-                    return result.setTo(equivID,0);
-                }
-            }
-        }
-    }else{
-        result.setTo(zid);
-    }
-    return result;
-}
-
-void
-DateFormatSymbols::getZoneType(const UnicodeString& zid, const UnicodeString& text, int32_t start, 
-                               TimeZoneTranslationType& type, UnicodeString& value, UErrorCode& status){
-    if(fZoneStringsHash == NULL){
-        initZoneStrings(status);
-    }
-    if(U_FAILURE(status)){
-        return;
-    }
-    UnicodeString* strings = (UnicodeString*)fZoneStringsHash->get(zid);
-    if(strings != NULL){
-        for(int32_t j=0; j<UTZ_MAX_DISPLAY_STRINGS_LENGTH; j++){
-            if(text.caseCompare(start, strings[j].length(), strings[j], 0)==0){
-                type = (TimeZoneTranslationType)j;
-                value.setTo(strings[j]);
-                return;
-            }
-        }
-    }
-}
-void
-DateFormatSymbols::findZoneIDTypeValue( UnicodeString& zid, const UnicodeString& text, int32_t start, 
-                                        TimeZoneTranslationType& type, UnicodeString& value,
-                                        UErrorCode& status){
-    if(fZoneStringsHash == NULL){
-        initZoneStrings(status);
-    }
-    if(U_FAILURE(status)){
-        return;
-    }
-    const UnicodeString* myKey = NULL;
-    int32_t pos = 0;
-    TimeZoneKeysEnumeration *keys = (TimeZoneKeysEnumeration*)fZoneIDEnumeration;
-    while( (myKey=keys->snext(pos, status))!= NULL){
-        UnicodeString* strings = (UnicodeString*)fZoneStringsHash->get(*myKey);
-        if(strings != NULL){
-            for(int32_t j=0; j<UTZ_MAX_DISPLAY_STRINGS_LENGTH; j++){
-                if(strings[j].length()>0 && text.caseCompare(start, strings[j].length(), strings[j], 0)==0){
-                    type = (TimeZoneTranslationType)j;
-                    value.setTo(strings[j]);
-                    zid.setTo(*myKey);
-                    return;
-                }
-            }
-        }
-    }
-}
 U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

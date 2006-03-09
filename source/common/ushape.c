@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2000-2006, International Business Machines
+*   Copyright (C) 2000-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -806,7 +806,7 @@ shapeUnicode(UChar *dest, int32_t sourceLength,
 
     int32_t          i, iend;
     int32_t          step;
-    int32_t          lastPos,Nx, Nw;
+    int32_t          prevPos, lastPos,Nx, Nw;
     unsigned int     Shape;
     int32_t          flag;
     int32_t          lamalef_found = 0;
@@ -840,6 +840,7 @@ shapeUnicode(UChar *dest, int32_t sourceLength,
      */
     currLink = getLink(dest[i]);
 
+    prevPos = i;
     lastPos = i;
     Nx = -2, Nw = 0;
 
@@ -910,6 +911,7 @@ shapeUnicode(UChar *dest, int32_t sourceLength,
         if ((currLink & IRRELEVANT) == 0) {
               prevLink = lastLink;
               lastLink = currLink;
+              prevPos = lastPos;
               lastPos = i;
         }
 
@@ -995,7 +997,7 @@ u_shapeArabic(const UChar *source, int32_t sourceLength,
     if(sourceLength==-1) {
         sourceLength=u_strlen(source);
     }
-    if(sourceLength<=0) {
+    if(sourceLength==0) {
         return u_terminateUChars(dest, destCapacity, 0, pErrorCode);
     }
 

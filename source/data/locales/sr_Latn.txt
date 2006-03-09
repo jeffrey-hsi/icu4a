@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/sr_Latn.xml
+// * Source File: ../../../cldr/common/main/sr_Latn.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/sr_Latn.xml
+ *  ICU <specials> source: ./xml/main/sr_Latn.xml
  */
 sr_Latn{
     Countries{
@@ -316,7 +316,7 @@ sr_Latn{
             "Kineski Juan Renminbi",
         }
         CSD{
-            "YUN",
+            "CSD",
             "Srpski Dinar",
         }
         DEM{
@@ -420,7 +420,7 @@ sr_Latn{
             "YUN",
         }
     }
-    ExemplarCharacters{"[a-c ć č d đ {dž} e-l {lj} m n {nj} o p r s š t-v z ž]"}
+    ExemplarCharacters{"[a-p r-v z đ ć č ž š {lj} {nj} {dž}]"}
     Keys{
         calendar{"Kalendar"}
         collation{"Sortiranje"}
@@ -529,7 +529,7 @@ sr_Latn{
             traditional{"Tradicionalno sortiranje"}
         }
     }
-    Version{"1.37"}
+    Version{"1.30"}
     calendar{
         gregorian{
             DateTimePatterns{
@@ -630,46 +630,6 @@ sr_Latn{
                     }
                 }
             }
-        }
-    }
-    zoneStrings{
-        "Africa:Kinshasa"{
-            ec{"Kinšasa"}
-        }
-        "Antarctica:South_Pole"{
-            ec{"Južni pol"}
-        }
-        "Asia:Anadyr"{
-            ec{"Anadir"}
-        }
-        "Asia:Kamchatka"{
-            ec{"Kamčatka"}
-        }
-        "Asia:Krasnoyarsk"{
-            ec{"Krasnojarsk"}
-        }
-        "Asia:Shanghai"{
-            ec{"Šangaj"}
-        }
-        "Asia:Tashkent"{
-            ec{"Taškent"}
-        }
-        "Europe:Belgrade"{
-            ec{"Belgrade"}
-            ld{"Centralno Evropsko Vreme"}
-            ls{"Centralno Evropsko Vreme"}
-        }
-        "Europe:Kiev"{
-            ec{"Kijev"}
-        }
-        "Europe:Moscow"{
-            ec{"Moskva"}
-        }
-        "Europe:Uzhgorod"{
-            ec{"Užgorod"}
-        }
-        "Europe:Zaporozhye"{
-            ec{"Zaporožje"}
         }
     }
 }

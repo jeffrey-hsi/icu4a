@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (c) 2002-2006, International Business Machines
+* Copyright (c) 2002-2005, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -28,23 +28,19 @@ class UnicodeString;
  * code points or ranges have been returned, it returns the
  * multicharacter strings of the UnicodSet, if any.
  *
- * This class is not intended to be subclassed.  Consider any fields
- *  or methods declared as "protected" to be private.  The use of
- *  protected in this class is an artifact of history.
- *
- * <p>To iterate over code points and strings, use a loop like this:
+ * <p>To iterate over code points, use a loop like this:
  * <pre>
  * UnicodeSetIterator it(set);
  * while (set.next()) {
- *     processItem(set.getString());
+ *   if (set.isString()) {
+ *     processString(set.getString());
+ *   } else {
+ *     processCodepoint(set.getCodepoint());
+ *   }
  * }
  * </pre>
- * <p>Each item in the set is accessed as a string.  Set elements
- *    consisting of single code points are returned as strings containing
- *    just the one code point.
  *
- * <p>To iterate over code point ranges, instead of individual code points,
- *    use a loop like this:
+ * <p>To iterate over code point ranges, use a loop like this:
  * <pre>
  * UnicodeSetIterator it(set);
  * while (it.nextRange()) {
@@ -125,14 +121,9 @@ class U_COMMON_API UnicodeSetIterator : public UObject {
      * caller can retrieve it with <tt>getString()</tt>.  If this
      * method returns false, the current element is a code point or
      * code point range, depending on whether <tt>next()</tt> or
-     * <tt>nextRange()</tt> was called.
-     * Elements of types string and codepoint can both be retrieved
-     * with the function <tt>getString()</tt>.
-     * Elements of type codepoint can also be retrieved with
-     * <tt>getCodepoint()</tt>.
-     * For ranges, <tt>getCodepoint()</tt> returns the starting codepoint
-     * of the range, and <tt>getCodepointEnd()</tt> returns the end
-     * of the range.
+     * <tt>nextRange()</tt> was called, and the caller can retrieve it
+     * with <tt>getCodepoint()</tt> and, for a range,
+     * <tt>getCodepointEnd()</tt>.
      * @stable ICU 2.4
      */
     inline UBool isString() const;
@@ -154,37 +145,28 @@ class U_COMMON_API UnicodeSetIterator : public UObject {
 
     /**
      * Returns the current string, if <tt>isString()</tt> returned
-     * true.  If the current iteration item is a code point, a UnicodeString
-     * containing that single code point is returned.
-     *
-     * Ownership of the returned string remains with the iterator.
-     * The string is guaranteed to remain valid only until the iterator is
-     *   advanced to the next item, or until the iterator is deleted.
-     * 
+     * true.  Otherwise returns an undefined result.
      * @stable ICU 2.4
      */
-    const UnicodeString& getString();
+    inline const UnicodeString& getString() const;
 
     /**
-     * Advances the iteration position to the next element in the set, 
-     * which can be either a single code point or a string.  
-     * If there are no more elements in the set, return false.
-     *
-     * <p>
-     * If <tt>isString() == TRUE</tt>, the value is a
-     * string, otherwise the value is a
-     * single code point.  Elements of either type can be retrieved
-     * with the function <tt>getString()</tt>, while elements of
-     * consisting of a single code point can be retrieved with
-     * <tt>getCodepoint()</tt>
+     * Returns the next element in the set, either a single code point
+     * or a string.  If there are no more elements in the set, return
+     * false.  If <tt>codepoint == IS_STRING</tt>, the value is a
+     * string in the <tt>string</tt> field.  Otherwise the value is a
+     * single code point in the <tt>codepoint</tt> field.
      *
      * <p>The order of iteration is all code points in sorted order,
-     * followed by all strings sorted order.    Do not mix
+     * followed by all strings sorted order.  <tt>codepointEnd</tt> is
+     * undefined after calling this method.  <tt>string</tt> is
+     * undefined unless <tt>codepoint == IS_STRING</tt>.  Do not mix
      * calls to <tt>next()</tt> and <tt>nextRange()</tt> without
      * calling <tt>reset()</tt> between them.  The results of doing so
      * are undefined.
      *
-     * @return true if there was another element in the set.
+     * @return true if there was another element in the set and this
+     * object contains the element.
      * @stable ICU 2.4
      */
     UBool next();
@@ -192,20 +174,21 @@ class U_COMMON_API UnicodeSetIterator : public UObject {
     /**
      * Returns the next element in the set, either a code point range
      * or a string.  If there are no more elements in the set, return
-     * false.  If <tt>isString() == TRUE</tt>, the value is a
-     * string and can be accessed with <tt>getString()</tt>.  Otherwise the value is a
-     * range of one or more code points from <tt>getCodepoint()</tt> to
-     * <tt>getCodepointeEnd()</tt> inclusive.
+     * false.  If <tt>codepoint == IS_STRING</tt>, the value is a
+     * string in the <tt>string</tt> field.  Otherwise the value is a
+     * range of one or more code points from <tt>codepoint</tt> to
+     * <tt>codepointeEnd</tt> inclusive.
      *
      * <p>The order of iteration is all code points ranges in sorted
      * order, followed by all strings sorted order.  Ranges are
-     * disjoint and non-contiguous.  The value returned from <tt>getString()</tt>
-     * is undefined unless <tt>isString() == TRUE</tt>.  Do not mix calls to
+     * disjoint and non-contiguous.  <tt>string</tt> is undefined
+     * unless <tt>codepoint == IS_STRING</tt>.  Do not mix calls to
      * <tt>next()</tt> and <tt>nextRange()</tt> without calling
      * <tt>reset()</tt> between them.  The results of doing so are
      * undefined.
      *
-     * @return true if there was another element in the set.
+     * @return true if there was another element in the set and this
+     * object contains the element.
      * @stable ICU 2.4
      */
     UBool nextRange();
@@ -276,13 +259,6 @@ class U_COMMON_API UnicodeSetIterator : public UObject {
      */
     int32_t stringCount;
 
-    /**
-     *  Points to the string to use when the caller asks for a
-     *  string and the current iteration item is a code point, not a string.
-     *  @internal
-     */
-    UnicodeString *cpString;
-
     /** Copy constructor. Disallowed.
      * @stable ICU 2.4
      */
@@ -312,6 +288,9 @@ inline UChar32 UnicodeSetIterator::getCodepointEnd() const {
     return codepointEnd;
 }
 
+inline const UnicodeString& UnicodeSetIterator::getString() const {
+    return *string;
+}
 
 U_NAMESPACE_END
 

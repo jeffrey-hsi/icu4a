@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/sr.xml
+// * Source File: ../../../cldr/common/main/sr.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/sr.xml
+ *  ICU <specials> source: ./xml/main/sr.xml
  */
 sr{
     Countries{
@@ -413,7 +413,7 @@ sr{
             "YUN",
         }
     }
-    ExemplarCharacters{"[а-д ђ е-и ј к л љ м н њ о-т ћ у-ч џ ш]"}
+    ExemplarCharacters{"[а-и к-ш ђ ј љ њ ћ џ]"}
     Keys{
         calendar{"Календар"}
         collation{"Сортирање"}
@@ -496,7 +496,7 @@ sr{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Scripts{
@@ -537,7 +537,7 @@ sr{
             traditional{"Традиционално сортирање"}
         }
     }
-    Version{"1.55"}
+    Version{"1.49"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -646,46 +646,13 @@ sr{
     }
     localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
     zoneStrings{
-        "Africa:Lubumbashi"{
-            ec{"Лумумбаши"}
+        {
+            "Europe/Belgrade",
+            "Централно Европско Време",
+            "CET",
+            "Централно Европско Време",
+            "CET",
+            "Belgrade",
         }
-        "Antarctica:South_Pole"{
-            ec{"Јужни пол"}
-        }
-        "Asia:Anadyr"{
-            ec{"Анадир"}
-        }
-        "Asia:Kamchatka"{
-            ec{"Камчатка"}
-        }
-        "Asia:Krasnoyarsk"{
-            ec{"Краснојарск"}
-        }
-        "Asia:Shanghai"{
-            ec{"Шангај"}
-        }
-        "Asia:Tashkent"{
-            ec{"Ташкент"}
-        }
-        "Europe:Belgrade"{
-            ec{"Belgrade"}
-            ld{"Централно Европско Време"}
-            ls{"Централно Европско Време"}
-            sd{"CET"}
-            ss{"CET"}
-        }
-        "Europe:Kiev"{
-            ec{"Кијев"}
-        }
-        "Europe:Moscow"{
-            ec{"Москва"}
-        }
-        "Europe:Uzhgorod"{
-            ec{"Ужгород"}
-        }
-        "Europe:Zaporozhye"{
-            ec{"Запорожје"}
-        }
-        hourFormat{"+HHmm;-HHmm"}
     }
 }

@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2002-2006, International Business Machines Corporation
+*   Copyright (c) 2002-2005, International Business Machines Corporation
 *   and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -33,7 +33,7 @@ static const UChar VARIANT_SEP = 0x002F; // /
 static const UChar OPEN_REV    = 0x0028; // (
 static const UChar CLOSE_REV   = 0x0029; // )
 
-//static const UChar EMPTY[]     = {0}; // ""
+static const UChar EMPTY[]     = {0}; // ""
 static const UChar ANY[]       = {65,110,121,0}; // "Any"
 static const UChar ANY_NULL[]  = {65,110,121,45,78,117,108,108,0}; // "Any-Null"
 
@@ -878,7 +878,7 @@ void TransliteratorIDParser::init(UErrorCode &status) {
         special_inverses = NULL;
     }
     umtx_unlock(&LOCK);
-    delete special_inverses; /*null instance*/
+    delete special_inverses;
 
     ucln_i18n_registerCleanup(UCLN_I18N_TRANSLITERATOR, transliterator_cleanup);
 }

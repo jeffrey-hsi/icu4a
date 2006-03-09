@@ -82,10 +82,6 @@ public:
     virtual long getEventsPerIteration(){
         return -1;
     }
-    /**
-     * destructor
-     */
-    virtual ~UPerfFunction() {}
 
     /**
      * Call call() n times in a tight loop and return the elapsed
@@ -93,7 +89,7 @@ public:
      * result may be zero.  Small return values have limited
      * meaningfulness, depending on the underlying CPU and OS.
      */
-     virtual double time(int32_t n, UErrorCode* status) {
+     double time(int32_t n, UErrorCode* status) {
         UTimer start, stop;
         utimer_getTime(&start); 
         while (n-- > 0) {

@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2006, International Business Machines
+*   Copyright (C) 1999-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
  *  ucnv.h:
@@ -270,7 +270,7 @@ ucnv_compareNames(const char *name1, const char *name2);
 
 
 /**
- * Creates a UConverter object with the name of a coded character set specified as a C string.
+ * Creates a UConverter object with the names specified as a C string.
  * The actual name will be resolved with the alias file
  * using a case-insensitive string comparison that ignores
  * the delimiters '-', '_', and ' ' (dash, underscore, and space).
@@ -294,24 +294,13 @@ ucnv_compareNames(const char *name1, const char *name2);
  * <p>The conversion behavior and names can vary between platforms. ICU may
  * convert some characters differently from other platforms. Details on this topic
  * are in the <a href="http://icu.sourceforge.net/userguide/conversion.html">User's
- * Guide</a>. Aliases starting with a "cp" prefix have no specific meaning
- * other than its an alias starting with the letters "cp". Please do not
- * associate any meaning to these aliases.</p>
+ * Guide</a>.</p>
  *
- * @param converterName Name of the coded character set table.
- *          This may have options appended to the string.
- *          IANA alias character set names, IBM CCSIDs starting with "ibm-",
- *          Windows codepage numbers starting with "windows-" are frequently
- *          used for this parameter. See ucnv_getAvailableName and
- *          ucnv_getAlias for a complete list that is available.
- *          If this parameter is NULL, the default converter will be used.
+ * @param converterName Name of the uconv table, may have options appended
  * @param err outgoing error status <TT>U_MEMORY_ALLOCATION_ERROR, U_FILE_ACCESS_ERROR</TT>
  * @return the created Unicode converter object, or <TT>NULL</TT> if an error occured
  * @see ucnv_openU
  * @see ucnv_openCCSID
- * @see ucnv_getAvailableName
- * @see ucnv_getAlias
- * @see ucnv_getDefaultName
  * @see ucnv_close
  * @stable ICU 2.0
  */
@@ -330,9 +319,7 @@ ucnv_open(const char *converterName, UErrorCode *err);
  * one with the ucnv_getDefaultName() return value.
  * If the alias is ambiguous, then the preferred converter is used
  * and the status is set to U_AMBIGUOUS_ALIAS_WARNING.
- *
- * <p>See ucnv_open for the complete details</p>
- * @param name Name of the UConverter table in a zero terminated 
+ * @param name : name of the uconv table in a zero terminated 
  *        Unicode string
  * @param err outgoing error status <TT>U_MEMORY_ALLOCATION_ERROR, 
  *        U_FILE_ACCESS_ERROR</TT>
@@ -341,6 +328,7 @@ ucnv_open(const char *converterName, UErrorCode *err);
  * @see ucnv_open
  * @see ucnv_openCCSID
  * @see ucnv_close
+ * @see ucnv_getDefaultName
  * @stable ICU 2.0
  */
 U_STABLE UConverter* U_EXPORT2 
@@ -673,6 +661,8 @@ ucnv_resetFromUnicode(UConverter *converter);
 U_STABLE int8_t U_EXPORT2
 ucnv_getMaxCharSize(const UConverter *converter);
 
+#ifndef U_HIDE_DRAFT_API
+
 /**
  * Calculates the size of a buffer for conversion from Unicode to a charset.
  * The calculated size is guaranteed to be sufficient for this conversion.
@@ -694,6 +684,8 @@ ucnv_getMaxCharSize(const UConverter *converter);
  */
 #define UCNV_GET_MAX_BYTES_FOR_STRING(length, maxCharSize) \
      (((int32_t)(length)+10)*(int32_t)(maxCharSize))
+
+#endif /*U_HIDE_DRAFT_API*/
 
 /**
  * Returns the minimum byte length for characters in this codepage. 

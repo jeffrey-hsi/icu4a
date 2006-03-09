@@ -34,7 +34,7 @@ AC_SUBST(LIB_VERSION)
 AC_SUBST(LIB_VERSION_MAJOR)
 AC_MSG_RESULT([release $VERSION, library $LIB_VERSION])
 
-UNICODE_VERSION="5.0"
+UNICODE_VERSION="4.1"
 AC_SUBST(UNICODE_VERSION)
 
 dnl Determine the host system
@@ -913,6 +913,7 @@ case "${host}" in
 	*-*-beos)		platform=U_BEOS ;;
 	*-*-irix*)		platform=U_IRIX ;;
 	*-ncr-*)		platform=U_MPRAS ;;
+	*-sequent-*)	platform=PTX ;;
 	*) 		platform=U_UNKNOWN_PLATFORM ;;
 esac
 AC_SUBST(ICUDATA_CHAR)
@@ -931,6 +932,7 @@ case "${host}" in
 	*-*-hpux*) 	ld_rpath_suf=":" ;;
 	*-*ibm-openedition*|*-*-os390*)	ld_rpath_suf="" ;;
 	*-*-os400*)	ld_rpath_suf=" " ;;
+	*-sequent-*)	ld_rpath_suf="" ;;
 	*-*-irix*)      ld_rpath_suf=" " ;;
 	*) 		ld_rpath_suf="" ;;
 esac
@@ -1019,7 +1021,7 @@ AC_OUTPUT([icudefs.mk \
 		tools/genpname/Makefile \
 		tools/genbrk/Makefile \
 		tools/gensprep/Makefile \
-		tools/icupkg/Makefile \
+		tools/icuswap/Makefile \
 		tools/pkgdata/Makefile \
 		tools/toolutil/Makefile \
 		tools/dumpce/Makefile \
@@ -1035,7 +1037,7 @@ AC_OUTPUT([icudefs.mk \
 		test/letest/Makefile \
 		test/threadtest/Makefile \
 		samples/Makefile samples/date/Makefile \
-		samples/cal/Makefile samples/csdet/Makefile samples/layout/Makefile \
+		samples/cal/Makefile samples/layout/Makefile \
 		common/unicode/platform.h])
 
 if test $ICU_USE_THREADS = 0; then
@@ -1044,4 +1046,4 @@ fi
 
 echo "You must use $U_MAKE to build ICU."
 
-$as_unset _CXX_CXXSUFFIX
+unset _CXX_CXXSUFFIX

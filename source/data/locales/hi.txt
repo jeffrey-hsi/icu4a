@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/hi.xml
+// * Source File: ../../../cldr/common/main/hi.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/hi.xml
+ *  ICU <specials> source: ./xml/main/hi.xml
  */
 hi{
     Countries{
@@ -186,10 +186,7 @@ hi{
             "INR",
         }
     }
-    ExemplarCharacters{
-        "[‌ ‍ ॐ ०-९ ऄ-ऋ ॠ ऌ ॡ ऍ-क क़ ख ख़ ग ग़ घ-ज ज़ झ-ड ड़ ढ ढ़ ण-फ फ़ ब-य य़ र-ह ़ ँ-ः ॑-॔"
-        " ऽ ् ॽ ा-ॄ ॢ ॣ ॅ-ौ]"
-    }
+    ExemplarCharacters{"[ँ-ह़-्ॐ-॔क़-ॣ०-९ॽ‌‍]"}
     Languages{
         aa{"अफ़ार"}
         ab{"अब्खाज़ियन्"}
@@ -348,10 +345,10 @@ hi{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
-    Version{"1.43"}
+    Version{"1.37"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -421,12 +418,13 @@ hi{
         }
     }
     zoneStrings{
-        "Asia:Calcutta"{
-            ec{"Calcutta"}
-            ld{"भारतीय समय"}
-            ls{"भारतीय समय"}
-            sd{"IST"}
-            ss{"IST"}
+        {
+            "Asia/Calcutta",
+            "भारतीय समय",
+            "IST",
+            "भारतीय समय",
+            "IST",
+            "Calcutta",
         }
     }
 }

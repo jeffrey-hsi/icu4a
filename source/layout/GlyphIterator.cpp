@@ -15,11 +15,11 @@
 
 U_NAMESPACE_BEGIN
 
-GlyphIterator::GlyphIterator(LEGlyphStorage &theGlyphStorage, GlyphPositionAdjustments *theGlyphPositionAdjustments, le_bool rightToLeft, le_uint16 theLookupFlags,
-                             FeatureMask theFeatureMask, const GlyphDefinitionTableHeader *theGlyphDefinitionTableHeader)
+GlyphIterator::GlyphIterator(LEGlyphStorage &theGlyphStorage, GlyphPositionAdjustments *theGlyphPositionAdjustments, le_bool rightToLeft, le_uint16 theLookupFlags, LETag theFeatureTag,
+    const GlyphDefinitionTableHeader *theGlyphDefinitionTableHeader)
   : direction(1), position(-1), nextLimit(-1), prevLimit(-1),
     glyphStorage(theGlyphStorage), glyphPositionAdjustments(theGlyphPositionAdjustments),
-    srcIndex(-1), destIndex(-1), lookupFlags(theLookupFlags), featureMask(theFeatureMask),
+    srcIndex(-1), destIndex(-1), lookupFlags(theLookupFlags), featureTag(theFeatureTag),
     glyphClassDefinitionTable(NULL), markAttachClassDefinitionTable(NULL)
 
 {
@@ -52,12 +52,12 @@ GlyphIterator::GlyphIterator(GlyphIterator &that)
     srcIndex = that.srcIndex;
     destIndex = that.destIndex;
     lookupFlags = that.lookupFlags;
-    featureMask = that.featureMask;
+    featureTag = that.featureTag;
     glyphClassDefinitionTable = that.glyphClassDefinitionTable;
     markAttachClassDefinitionTable = that.markAttachClassDefinitionTable;
 }
 
-GlyphIterator::GlyphIterator(GlyphIterator &that, FeatureMask newFeatureMask)
+GlyphIterator::GlyphIterator(GlyphIterator &that, LETag newFeatureTag)
   : glyphStorage(that.glyphStorage)
 {
     direction    = that.direction;
@@ -69,7 +69,7 @@ GlyphIterator::GlyphIterator(GlyphIterator &that, FeatureMask newFeatureMask)
     srcIndex = that.srcIndex;
     destIndex = that.destIndex;
     lookupFlags = that.lookupFlags;
-    featureMask = newFeatureMask;
+    featureTag = newFeatureTag;
     glyphClassDefinitionTable = that.glyphClassDefinitionTable;
     markAttachClassDefinitionTable = that.markAttachClassDefinitionTable;
 }
@@ -86,7 +86,7 @@ GlyphIterator::GlyphIterator(GlyphIterator &that, le_uint16 newLookupFlags)
     srcIndex = that.srcIndex;
     destIndex = that.destIndex;
     lookupFlags = newLookupFlags;
-    featureMask = that.featureMask;
+    featureTag = that.featureTag;
     glyphClassDefinitionTable = that.glyphClassDefinitionTable;
     markAttachClassDefinitionTable = that.markAttachClassDefinitionTable;
 }
@@ -96,11 +96,11 @@ GlyphIterator::~GlyphIterator()
     // nothing to do, right?
 }
 
-void GlyphIterator::reset(le_uint16 newLookupFlags, FeatureMask newFeatureMask)
+void GlyphIterator::reset(le_uint16 newLookupFlags, LETag newFeatureTag)
 {
-    position     = prevLimit;
-    featureMask  = newFeatureMask;
-    lookupFlags  = newLookupFlags;
+    position    = prevLimit;
+    featureTag  = newFeatureTag;
+    lookupFlags = newLookupFlags;
 }
 
 LEGlyphID *GlyphIterator::insertGlyphs(le_int32 count)
@@ -366,16 +366,27 @@ le_bool GlyphIterator::filterGlyph(le_uint32 index) const
     }
 }
 
+static const LETag emptyTag = 0;
+static const LETag defaultTag = 0xFFFFFFFF;
+
 le_bool GlyphIterator::hasFeatureTag() const
 {
-    if (featureMask == 0) {
+    if (featureTag == defaultTag || featureTag == emptyTag) {
         return TRUE;
     }
 
     LEErrorCode success = LE_NO_ERROR;
-    FeatureMask fm = glyphStorage.getAuxData(position, success);
+    const LETag *tagList = (const LETag *) glyphStorage.getAuxData(position, success);
 
-    return (fm & featureMask) != 0;
+    if (tagList != NULL) {
+        for (le_int32 tag = 0; tagList[tag] != emptyTag; tag += 1) {
+            if (tagList[tag] == featureTag) {
+                return TRUE;
+            }
+        }
+    }
+
+    return FALSE;
 }
 
 le_bool GlyphIterator::findFeatureTag()

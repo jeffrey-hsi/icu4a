@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2006, International Business Machines Corporation and
+ * Copyright (c) 1997-2005, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
  
@@ -19,10 +19,6 @@
 #include "cmemory.h"
 #include "cstring.h"
 #include "caltest.h"  // for fieldName
-
-#ifdef U_WINDOWS
-#include "windttst.h"
-#endif
 
 // *****************************************************************************
 // class DateFormatTest
@@ -58,8 +54,6 @@ void DateFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &nam
         TESTCASE(23,TestGreekMay);
         TESTCASE(24,TestGenericTime);
         TESTCASE(25,TestGenericTimeZoneOrder);
-        TESTCASE(26,TestTimeZoneStringsAPI);
-        TESTCASE(27,TestHost);
         default: name = ""; break;
     }
 }
@@ -181,9 +175,6 @@ DateFormatTest::TestEquals()
     if (!(*fmtA == *fmtB)) errln((UnicodeString)"FAIL");
     delete fmtA;
     delete fmtB;
-
-    TimeZone* test = TimeZone::createTimeZone("PDT");
-    delete test;
 }
  
 // -------------------------------------
@@ -199,21 +190,13 @@ DateFormatTest::TestTwoDigitYearDSTParse(void)
     SimpleDateFormat *fmt = new SimpleDateFormat((UnicodeString)"dd-MMM-yy h:mm:ss 'o''clock' a z", Locale::getEnglish(), status);
     //DateFormat* fmt = DateFormat::createDateTimeInstance(DateFormat::MEDIUM, DateFormat::FULL, Locale::ENGLISH);
     UnicodeString* s = new UnicodeString("03-Apr-04 2:20:47 o'clock AM PST", "");
-    TimeZone* defaultTZ = TimeZone::createDefault();
-    TimeZone* PST = TimeZone::createTimeZone("PST");
-    int32_t defaultOffset = defaultTZ->getRawOffset();
-    int32_t PSTOffset = PST->getRawOffset();
-    int32_t hour = 2 + (defaultOffset - PSTOffset) / (60*60*1000);
-    // hour is the expected hour of day, in units of seconds
-    hour = ((hour < 0) ? hour + 24 : hour) * 60*60;
-    
+    int32_t hour = 2;
+
     UnicodeString str;
     UDate d = fmt->parse(*s, status);
     logln(*s + " P> " + ((DateFormat*)fullFmt)->format(d, str));
     int32_t y, m, day, hr, min, sec;
     dateToFields(d, y, m, day, hr, min, sec);
-    hour += defaultTZ->inDaylightTime(d, status) ? 1 : 0;
-    hr = hr*60*60;
     if (hr != hour)
         errln((UnicodeString)"FAIL: Should parse to hour " + hour + " but got " + hr);
 
@@ -223,8 +206,6 @@ DateFormatTest::TestTwoDigitYearDSTParse(void)
     delete s;
     delete fmt;
     delete fullFmt;
-    delete PST;
-    delete defaultTZ;
 }
  
 // -------------------------------------
@@ -1381,7 +1362,7 @@ void DateFormatTest::expect(const char** data, int32_t data_length,
 }
 
 void DateFormatTest::TestGenericTime() {
-#if U_ICU_VERSION_MAJOR_NUM > 3 || U_ICU_VERSION_MINOR_NUM > 5
+#if U_ICU_VERSION_MAJOR_NUM > 3 || U_ICU_VERSION_MINOR_NUM > 4
 # define FIX_FAILING_WALLTIME_TESTS
 #else
   logln("Warning, skipping some tests here!");
@@ -1509,70 +1490,6 @@ void DateFormatTest::TestGenericTimeZoneOrder() {
   const int32_t XDATA_length = sizeof(XDATA)/sizeof(XDATA[0]);
   Locale en("en");
   expect(XDATA, XDATA_length, en);
-}
-
-void DateFormatTest::TestTimeZoneStringsAPI() {
-    // Verify data
-    UErrorCode status  = U_ZERO_ERROR;
-    DateFormatSymbols symbols(Locale::getUS(), status);
-    StringEnumeration* keys = symbols.createZoneStringIDs(status);
-    if(U_FAILURE(status)){
-        errln("Could not create the StringEnumeration for Locale::getUS(). Error: %s", u_errorName(status)); 
-        return;
-    }
-    
-    StringEnumeration* keys2 = symbols.createZoneStringIDs(status);
-     if(*keys2!=*keys){
-        errln("operator!= failed for TimeZoneStringsEnum");
-    }
-    const UnicodeString* key = NULL;
-
-    while( (key = keys->snext(status))!=NULL){ 
-        logln(prettify(*key)); 
-    }
-    if(U_FAILURE(status)){
-        errln("Could not iterate over the StringEnumeration. Error: %s", u_errorName(status)); 
-        return;
-    }
-    UnicodeString expectedKey("America/Los_Angeles");
-    UnicodeString expectedStrs[DateFormatSymbols::TIMEZONE_COUNT];
-    expectedStrs[DateFormatSymbols::TIMEZONE_SHORT_GENERIC].setTo("PT");
-    expectedStrs[DateFormatSymbols::TIMEZONE_SHORT_STANDARD].setTo("PST");
-    expectedStrs[DateFormatSymbols::TIMEZONE_SHORT_DAYLIGHT].setTo("PDT");
-    expectedStrs[DateFormatSymbols::TIMEZONE_LONG_GENERIC].setTo("Pacific Time");
-    expectedStrs[DateFormatSymbols::TIMEZONE_LONG_STANDARD].setTo("Pacific Standard Time");
-    expectedStrs[DateFormatSymbols::TIMEZONE_LONG_DAYLIGHT].setTo("Pacific Daylight Time");
-    expectedStrs[DateFormatSymbols::TIMEZONE_EXEMPLAR_CITY].setTo("Los Angeles");
-    for(int32_t i=0; i<DateFormatSymbols::TIMEZONE_COUNT; i++){
-        UnicodeString result;
-        result = symbols.getZoneString(expectedKey, (DateFormatSymbols::TimeZoneTranslationType)i, result,status);
-        if(U_FAILURE(status)){
-            errln("Could not retrieve display name. Error: %s", u_errorName(status)); 
-            return;
-        }
-        if(expectedStrs[i] != result){
-            errln("Did not get the expected string. Expected: "+expectedStrs[i]+ UnicodeString(" Got: ") + result ); 
-        }
-    }
-    expectedKey.setTo("America/Phoenix",0);
-    UnicodeString exemplarCity("San Francisco");
-    UnicodeString result;
-    symbols.setZoneString(expectedKey,DateFormatSymbols::TIMEZONE_EXEMPLAR_CITY, exemplarCity, status);
-    if(U_FAILURE(status)){
-        errln("setZoneString() did not succeed. Error: %s", u_errorName(status)); 
-        return;
-    }    
-    result = symbols.getZoneString(expectedKey, DateFormatSymbols::TIMEZONE_EXEMPLAR_CITY, result,status);
-    if(result != exemplarCity){ 
-        errln("setZoneString() did not succeed. Expected: " + exemplarCity + " Got: " + result); 
-    }
-}
-
-void DateFormatTest::TestHost(void)
-{
-#ifdef U_WINDOWS
-    Win32DateTimeTest::testLocales(this);
-#endif
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

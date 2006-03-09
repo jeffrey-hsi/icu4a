@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/ro.xml
+// * Source File: ../../../cldr/common/main/ro.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/ro.xml
+ *  ICU <specials> source: ./xml/main/ro.xml
  */
 ro{
     Countries{
@@ -279,12 +279,28 @@ ro{
         ZW{"Zimbabwe"}
     }
     Currencies{
+        GBP{
+            "£",
+            "GBP",
+        }
+        INR{
+            "=0#Rs.|1#Re.|1<Rs.",
+            "INR",
+        }
+        JPY{
+            "¥",
+            "JPY",
+        }
         ROL{
             "lei",
             "ROL",
         }
+        USD{
+            "$",
+            "USD",
+        }
     }
-    ExemplarCharacters{"[a ă â b-i î j-s ş t ţ u-z]"}
+    ExemplarCharacters{"[a-z â î ă ş ţ]"}
     Languages{
         ar{"Arabă"}
         bg{"Bulgară"}
@@ -331,10 +347,10 @@ ro{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
-    Version{"1.55"}
+    Version{"1.46"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -442,42 +458,4 @@ ro{
         }
     }
     localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
-    zoneStrings{
-        "Antarctica:South_Pole"{
-            ec{"Polul Sud"}
-        }
-        "Asia:Irkutsk"{
-            ec{"Irkuțk"}
-        }
-        "Asia:Kamchatka"{
-            ec{"Kamciatka"}
-        }
-        "Asia:Sakhalin"{
-            ec{"Sahalin"}
-        }
-        "Asia:Yakutsk"{
-            ec{"Yakuțk"}
-        }
-        "Asia:Yekaterinburg"{
-            ec{"Ekaterinburg"}
-        }
-        "Atlantic:Azores"{
-            ec{"Azore"}
-        }
-        "Atlantic:Canary"{
-            ec{"Canare"}
-        }
-        "Europe:Lisbon"{
-            ec{"Lisabona"}
-        }
-        "Europe:London"{
-            ec{"Londra"}
-        }
-        "Europe:Moscow"{
-            ec{"Moscova"}
-        }
-        "Europe:Zaporozhye"{
-            ec{"Zaporoje"}
-        }
-    }
 }

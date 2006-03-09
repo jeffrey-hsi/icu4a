@@ -1,5 +1,6 @@
 /*
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved 
+ *
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved 
  *
  * This file is a modification of the ICU file IndicReordering.h
  * by Jens Herden and Javier Sola for Khmer language 
@@ -14,8 +15,8 @@
  * \internal
  */
 
-#include "LETypes.h"
-#include "OpenTypeTables.h"
+// #include "LETypes.h"
+// #include "OpenTypeTables.h"
 
 U_NAMESPACE_BEGIN
 
@@ -117,7 +118,7 @@ public:
     static le_int32 reorder(const LEUnicode *theChars, le_int32 charCount, le_int32 scriptCode,
         LEUnicode *outChars, LEGlyphStorage &glyphStorage);
 
-    static const FeatureMap *getFeatureMap(le_int32 &count);
+    static const LETag *getFeatureOrder();
 
 private:
     // do not instantiate

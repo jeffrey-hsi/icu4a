@@ -5,7 +5,4 @@ Debug
 Makefile
 Release
 gennames
-gennames.[0-9]
-*.plg
-*.ncb
-*.opt
+gennames.8

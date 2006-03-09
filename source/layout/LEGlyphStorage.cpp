@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 1998-2005, International Business Machines
+ *   Copyright (C) 1998-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
  */
@@ -131,7 +131,7 @@ le_int32 LEGlyphStorage::allocateAuxData(LEErrorCode &success)
         return -1;
     }
 
-    fAuxData = LE_NEW_ARRAY(le_uint32, fGlyphCount);
+    fAuxData = LE_NEW_ARRAY(void *, fGlyphCount);
 
     if (fAuxData == NULL) {
         success = LE_MEMORY_ALLOCATION_ERROR;
@@ -302,7 +302,7 @@ void LEGlyphStorage::setCharIndex(le_int32 glyphIndex, le_int32 charIndex, LEErr
     fCharIndices[glyphIndex] = charIndex;
 }
 
-void LEGlyphStorage::getAuxData(le_uint32 auxData[], LEErrorCode &success) const
+void LEGlyphStorage::getAuxData(void *auxData[], LEErrorCode &success) const
 {
     if (LE_FAILURE(success)) {
       return;
@@ -321,26 +321,26 @@ void LEGlyphStorage::getAuxData(le_uint32 auxData[], LEErrorCode &success) const
     LE_ARRAY_COPY(auxData, fAuxData, fGlyphCount);
 }
 
-le_uint32 LEGlyphStorage::getAuxData(le_int32 glyphIndex, LEErrorCode &success) const
+void *LEGlyphStorage::getAuxData(le_int32 glyphIndex, LEErrorCode &success) const
 {
     if (LE_FAILURE(success)) {
-        return 0;
+        return NULL;
     }
 
     if (fAuxData == NULL) {
         success = LE_NO_LAYOUT_ERROR;
-        return 0;
+        return NULL;
     }
     
     if (glyphIndex < 0 || glyphIndex >= fGlyphCount) {
         success = LE_INDEX_OUT_OF_BOUNDS_ERROR;
-        return 0;
+        return NULL;
     }
 
     return fAuxData[glyphIndex];
 }
 
-void LEGlyphStorage::setAuxData(le_int32 glyphIndex, le_uint32 auxData, LEErrorCode &success)
+void LEGlyphStorage::setAuxData(le_int32 glyphIndex, void *auxData, LEErrorCode &success)
 {
     if (LE_FAILURE(success)) {
         return;
@@ -505,7 +505,7 @@ le_int32 LEGlyphStorage::applyInsertions()
     fCharIndices = (le_int32 *)  LE_GROW_ARRAY(fCharIndices, newGlyphCount);
 
     if (fAuxData != NULL) {
-        fAuxData = (le_uint32 *) LE_GROW_ARRAY(fAuxData,     newGlyphCount);
+        fAuxData     = (void **) LE_GROW_ARRAY(fAuxData,     newGlyphCount);
     }
 
     fSrcIndex  = fGlyphCount - 1;

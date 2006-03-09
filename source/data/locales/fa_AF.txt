@@ -3,10 +3,14 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/fa_AF.xml
+// * Source File: ../../../cldr/common/main/fa_AF.xml
 // *
 // ***************************************************************************
 fa_AF{
+    AuxExemplarCharacters{
+        "[\u064a\u067c\u0681\u0685\u0689\u0693\u0696\u069a\u06ab\u06bc\u06cd\u06d0"
+        "\u0656\u0670]"
+    }
     Countries{
         AD{"اندورا"}
         AE{"امارات متحدهٔ عربی"}
@@ -105,6 +109,16 @@ fa_AF{
         WS{"ساموآی غربی"}
         ZW{"زیمبابوی"}
     }
+    Currencies{
+        JPY{
+            "¥",
+            "JPY",
+        }
+        USD{
+            "$",
+            "USD",
+        }
+    }
     Languages{
         es{"هسپانوی"}
         fa{"دری"}
@@ -126,27 +140,7 @@ fa_AF{
         sv{"سویدنی"}
         tg{"تاجکی"}
     }
-    NumberElements{
-        "٫",
-        "٬",
-        ";",
-        "٪",
-        "۰",
-        "#",
-        "−",
-        "×۱۰^",
-        "‰",
-        "∞",
-        "NaN",
-        "+",
-    }
-    NumberPatterns{
-        "#,##0.###;'‪'-#,##0.###'‬'",
-        "#,##0.00 ¤",
-        "'‪'#,##0%'‬'",
-        "#E0",
-    }
-    Version{"1.38"}
+    Version{"1.33"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -186,26 +180,15 @@ fa_AF{
                 }
             }
         }
-        islamic{
-            DateTimeElements:intvector{
-                7,
-                1,
-            }
-        }
-        persian{
-            DateTimeElements:intvector{
-                7,
-                1,
-            }
-        }
     }
     zoneStrings{
-        "Asia:Kabul"{
-            ec{"Kabul"}
-            ld{"وقت افغانستان"}
-            ls{"وقت افغانستان"}
-            sd{"AFT"}
-            ss{"AFT"}
+        {
+            "Asia/Kabul",
+            "وقت افغانستان",
+            "AFT",
+            "وقت افغانستان",
+            "AFT",
+            "کابل",
         }
     }
 }

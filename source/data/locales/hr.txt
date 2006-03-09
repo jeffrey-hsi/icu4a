@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/hr.xml
+// * Source File: ../../../cldr/common/main/hr.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/hr.xml
+ *  ICU <specials> source: ./xml/main/hr.xml
  */
 hr{
     Countries{
@@ -988,7 +988,7 @@ hr{
             "Zimbabveanski dolar",
         }
     }
-    ExemplarCharacters{"[a-c č ć d đ {dž} e-l {lj} m n {nj} o p r s š t-v z ž]"}
+    ExemplarCharacters{"[a-p r-v z đ ć č ž š {lj} {nj} {dž}]"}
     Keys{
         calendar{"Kalendar"}
         collation{"Poredavanje"}
@@ -1081,7 +1081,7 @@ hr{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Scripts{
@@ -1105,7 +1105,7 @@ hr{
             traditional{"Tradicionano poredavanje"}
         }
     }
-    Version{"1.54"}
+    Version{"1.48"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -1249,43 +1249,4 @@ hr{
         }
     }
     localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
-    zoneStrings{
-        "Africa:Kinshasa"{
-            ec{"Kinšasa"}
-        }
-        "Africa:Lubumbashi"{
-            ec{"Lubumbaši"}
-        }
-        "Antarctica:South_Pole"{
-            ec{"Južni pol"}
-        }
-        "Asia:Anadyr"{
-            ec{"Anadir"}
-        }
-        "Asia:Kamchatka"{
-            ec{"Kamčatka"}
-        }
-        "Asia:Krasnoyarsk"{
-            ec{"Krasnojarsk"}
-        }
-        "Asia:Shanghai"{
-            ec{"Šangaj"}
-        }
-        "Asia:Tashkent"{
-            ec{"Taškent"}
-        }
-        "Europe:Kiev"{
-            ec{"Kijev"}
-        }
-        "Europe:Moscow"{
-            ec{"Moskva"}
-        }
-        "Europe:Uzhgorod"{
-            ec{"Uzgorod"}
-        }
-        "Europe:Zaporozhye"{
-            ec{"Zaporožje"}
-        }
-        hourFormat{"+HHmm;-HHmm"}
-    }
 }

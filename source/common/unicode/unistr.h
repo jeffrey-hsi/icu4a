@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1998-2006, International Business Machines
+*   Copyright (C) 1998-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -63,7 +63,7 @@ class BreakIterator;        // unicode/brkiter.h
  * therefore recommended over ones taking a charset name string
  * (where the empty string "" indicates invariant-character conversion).
  *
- * @stable ICU 3.2
+ * @draft ICU 3.2
  */
 #define US_INV UnicodeString::kInvariant
 
@@ -192,12 +192,12 @@ public:
    * Use the macro US_INV instead of the full qualification for this value.
    *
    * @see US_INV
-   * @stable ICU 3.2
+   * @draft ICU 3.2
    */
   enum EInvariant {
     /**
      * @see EInvariant
-     * @stable ICU 3.2
+     * @draft ICU 3.2
      */
     kInvariant
   };
@@ -1438,7 +1438,7 @@ public:
    * @param targetCapacity the length of the target buffer
    * @param inv Signature-distinguishing paramater, use US_INV.
    * @return the output string length, not including the terminating NUL
-   * @stable ICU 3.2
+   * @draft ICU 3.2
    */
   int32_t extract(int32_t start,
            int32_t startLength,
@@ -2817,7 +2817,7 @@ public:
    * @param inv Signature-distinguishing paramater, use US_INV.
    *
    * @see US_INV
-   * @stable ICU 3.2
+   * @draft ICU 3.2
    */
   UnicodeString(const char *src, int32_t length, enum EInvariant inv);
 
@@ -3200,6 +3200,32 @@ private:
  */
 U_COMMON_API UnicodeString U_EXPORT2
 operator+ (const UnicodeString &s1, const UnicodeString &s2);
+
+U_NAMESPACE_END
+
+// inline implementations -------------------------------------------------- ***
+
+//========================================
+// Array copying
+//========================================
+/**
+ * Copy an array of UnicodeString OBJECTS (not pointers).
+ * @internal
+ */
+inline void
+uprv_arrayCopy(const U_NAMESPACE_QUALIFIER UnicodeString *src, U_NAMESPACE_QUALIFIER UnicodeString *dst, int32_t count)
+{ while(count-- > 0) *dst++ = *src++; }
+
+/**
+ * Copy an array of UnicodeString OBJECTS (not pointers).
+ * @internal
+ */
+inline void
+uprv_arrayCopy(const U_NAMESPACE_QUALIFIER UnicodeString *src, int32_t srcStart,
+        U_NAMESPACE_QUALIFIER UnicodeString *dst, int32_t dstStart, int32_t count)
+{ uprv_arrayCopy(src+srcStart, dst+dstStart, count); }
+
+U_NAMESPACE_BEGIN
 
 //========================================
 // Inline members
@@ -3979,6 +4005,23 @@ UnicodeString::setTo(UChar32 srcChar)
 }
 
 inline UnicodeString&
+UnicodeString::operator+= (UChar ch)
+{ return doReplace(fLength, 0, &ch, 0, 1); }
+
+inline UnicodeString&
+UnicodeString::operator+= (UChar32 ch) {
+  UChar buffer[U16_MAX_LENGTH];
+  int32_t _length = 0;
+  UBool isError = FALSE;
+  U16_APPEND(buffer, _length, U16_MAX_LENGTH, ch, isError);
+  return doReplace(fLength, 0, buffer, 0, _length);
+}
+
+inline UnicodeString&
+UnicodeString::operator+= (const UnicodeString& srcText)
+{ return doReplace(fLength, 0, srcText, 0, srcText.fLength); }
+
+inline UnicodeString&
 UnicodeString::append(const UnicodeString& srcText,
               int32_t srcStart,
               int32_t srcLength)
@@ -4011,19 +4054,6 @@ UnicodeString::append(UChar32 srcChar) {
   U16_APPEND(buffer, _length, U16_MAX_LENGTH, srcChar, isError);
   return doReplace(fLength, 0, buffer, 0, _length);
 }
-
-inline UnicodeString&
-UnicodeString::operator+= (UChar ch)
-{ return doReplace(fLength, 0, &ch, 0, 1); }
-
-inline UnicodeString&
-UnicodeString::operator+= (UChar32 ch) {
-  return append(ch);
-}
-
-inline UnicodeString&
-UnicodeString::operator+= (const UnicodeString& srcText)
-{ return doReplace(fLength, 0, srcText, 0, srcText.fLength); }
 
 inline UnicodeString&
 UnicodeString::insert(int32_t start,

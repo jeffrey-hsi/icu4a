@@ -1,7 +1,5 @@
 /*
-*******************************************************************************
-* Copyright (C) 1996-2006, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 1996-2005, International Business Machines Corporation and others. All Rights Reserved.
 *******************************************************************************
 */
 
@@ -163,238 +161,119 @@ typedef enum UCalendarType UCalendarType;
  */
 enum UCalendarDateFields {
   /** 
-   * Field number indicating the era, e.g., AD or BC in the Gregorian (Julian) calendar. 
-   * This is a calendar-specific value.
+   * Era field
    * @stable ICU 2.6 
    */
   UCAL_ERA,
-
   /**
-   * Field number indicating the year. This is a calendar-specific value.
+   * Year field
    * @stable ICU 2.6 
    */
   UCAL_YEAR,
-
   /**
-   * Field number indicating the month. This is a calendar-specific value. 
-   * The first month of the year is
-   * <code>JANUARY</code>; the last depends on the number of months in a year.
-   * @see #UCAL_JANUARY
-   * @see #UCAL_FEBRUARY
-   * @see #UCAL_MARCH
-   * @see #UCAL_APRIL
-   * @see #UCAL_MAY
-   * @see #UCAL_JUNE
-   * @see #UCAL_JULY
-   * @see #UCAL_AUGUST
-   * @see #UCAL_SEPTEMBER
-   * @see #UCAL_OCTOBER
-   * @see #UCAL_NOVEMBER
-   * @see #UCAL_DECEMBER
-   * @see #UCAL_UNDECIMBER
+   * Month field
    * @stable ICU 2.6 
    */
   UCAL_MONTH,
-
   /**
-   * Field number indicating the
-   * week number within the current year.  The first week of the year, as
-   * defined by <code>UCAL_FIRST_DAY_OF_WEEK</code> and <code>UCAL_MINIMAL_DAYS_IN_FIRST_WEEK</code>
-   * attributes, has value 1.  Subclasses define
-   * the value of <code>UCAL_WEEK_OF_YEAR</code> for days before the first week of
-   * the year.
-   * @see ucal_setAttribute
+   * Week of year field
    * @stable ICU 2.6 
    */
   UCAL_WEEK_OF_YEAR,
-
- /**
-   * Field number indicating the
-   * week number within the current month.  The first week of the month, as
-   * defined by <code>UCAL_FIRST_DAY_OF_WEEK</code> and <code>UCAL_MINIMAL_DAYS_IN_FIRST_WEEK</code>
-   * attributes, has value 1.  Subclasses define
-   * the value of <code>WEEK_OF_MONTH</code> for days before the first week of
-   * the month.
-   * @see #getFirstDayOfWeek
-   * @see #getMinimalDaysInFirstWeek
+  /**
+   * Week of month field
    * @stable ICU 2.6 
    */
   UCAL_WEEK_OF_MONTH,
-
- /**
-   * Field number indicating the
-   * day of the month. This is a synonym for <code>DAY_OF_MONTH</code>.
-   * The first day of the month has value 1.
-   * @see #DAY_OF_MONTH
+  /**
+   * Date field
    * @stable ICU 2.6 
    */
   UCAL_DATE,
-
- /**
-   * Field number indicating the day
-   * number within the current year.  The first day of the year has value 1.
+  /**
+   * Day of year field
    * @stable ICU 2.6 
    */
   UCAL_DAY_OF_YEAR,
-
- /**
-   * Field number indicating the day
-   * of the week.  This field takes values <code>SUNDAY</code>,
-   * <code>MONDAY</code>, <code>TUESDAY</code>, <code>WEDNESDAY</code>,
-   * <code>THURSDAY</code>, <code>FRIDAY</code>, and <code>SATURDAY</code>.
-   * @see #SUNDAY
-   * @see #MONDAY
-   * @see #TUESDAY
-   * @see #WEDNESDAY
-   * @see #THURSDAY
-   * @see #FRIDAY
-   * @see #SATURDAY
-   * @stable ICU 2.0
+  /**
+   * Day of week field
    * @stable ICU 2.6 
    */
   UCAL_DAY_OF_WEEK,
-
- /**
-   * Field number indicating the
-   * ordinal number of the day of the week within the current month. Together
-   * with the <code>DAY_OF_WEEK</code> field, this uniquely specifies a day
-   * within a month.  Unlike <code>WEEK_OF_MONTH</code> and
-   * <code>WEEK_OF_YEAR</code>, this field's value does <em>not</em> depend on
-   * <code>getFirstDayOfWeek()</code> or
-   * <code>getMinimalDaysInFirstWeek()</code>.  <code>DAY_OF_MONTH 1</code>
-   * through <code>7</code> always correspond to <code>DAY_OF_WEEK_IN_MONTH
-   * 1</code>; <code>8</code> through <code>15</code> correspond to
-   * <code>DAY_OF_WEEK_IN_MONTH 2</code>, and so on.
-   * <code>DAY_OF_WEEK_IN_MONTH 0</code> indicates the week before
-   * <code>DAY_OF_WEEK_IN_MONTH 1</code>.  Negative values count back from the
-   * end of the month, so the last Sunday of a month is specified as
-   * <code>DAY_OF_WEEK = SUNDAY, DAY_OF_WEEK_IN_MONTH = -1</code>.  Because
-   * negative values count backward they will usually be aligned differently
-   * within the month than positive values.  For example, if a month has 31
-   * days, <code>DAY_OF_WEEK_IN_MONTH -1</code> will overlap
-   * <code>DAY_OF_WEEK_IN_MONTH 5</code> and the end of <code>4</code>.
-   * @see #DAY_OF_WEEK
-   * @see #WEEK_OF_MONTH
+  /**
+   * Day of week in month field
    * @stable ICU 2.6 
    */
   UCAL_DAY_OF_WEEK_IN_MONTH,
-
- /**
-   * Field number indicating
-   * whether the <code>HOUR</code> is before or after noon.
-   * E.g., at 10:04:15.250 PM the <code>AM_PM</code> is <code>PM</code>.
-   * @see #UCAL_AM
-   * @see #UCAL_PM
-   * @see #UCAL_HOUR
+  /**
+   * AM/PM field
    * @stable ICU 2.6 
    */
   UCAL_AM_PM,
-
- /**
-   * Field number indicating the
-   * hour of the morning or afternoon. <code>HOUR</code> is used for the 12-hour
-   * clock.
-   * E.g., at 10:04:15.250 PM the <code>HOUR</code> is 10.
-   * @see #UCAL_AM_PM
-   * @see #UCAL_HOUR_OF_DAY
+  /**
+   * Hour field
    * @stable ICU 2.6 
    */
   UCAL_HOUR,
-
- /**
-   * Field number indicating the
-   * hour of the day. <code>HOUR_OF_DAY</code> is used for the 24-hour clock.
-   * E.g., at 10:04:15.250 PM the <code>HOUR_OF_DAY</code> is 22.
-   * @see #UCAL_HOUR
+  /**
+   * Hour of day field
    * @stable ICU 2.6 
    */
   UCAL_HOUR_OF_DAY,
-
- /**
-   * Field number indicating the
-   * minute within the hour.
-   * E.g., at 10:04:15.250 PM the <code>UCAL_MINUTE</code> is 4.
+  /**
+   * Minute field
    * @stable ICU 2.6 
    */
   UCAL_MINUTE,
-
- /**
-   * Field number indicating the
-   * second within the minute.
-   * E.g., at 10:04:15.250 PM the <code>UCAL_SECOND</code> is 15.
+  /**
+   * Second field
    * @stable ICU 2.6 
    */
   UCAL_SECOND,
-
- /**
-   * Field number indicating the
-   * millisecond within the second.
-   * E.g., at 10:04:15.250 PM the <code>UCAL_MILLISECOND</code> is 250.
+  /**
+   * Millisecond field
    * @stable ICU 2.6 
    */
   UCAL_MILLISECOND,
-
- /**
-   * Field number indicating the
-   * raw offset from GMT in milliseconds.
+  /**
+   * Zone offset field
    * @stable ICU 2.6 
    */
   UCAL_ZONE_OFFSET,
-
- /**
-   * Field number indicating the
-   * daylight savings offset in milliseconds.
+  /**
+   * DST offset field
    * @stable ICU 2.6 
    */
   UCAL_DST_OFFSET,
-  
- /**
-   * Field number 
-   * indicating the extended year corresponding to the
-   * <code>UCAL_WEEK_OF_YEAR</code> field.  This may be one greater or less
-   * than the value of <code>UCAL_EXTENDED_YEAR</code>.
+  /**
+   * Year / week of year 
    * @stable ICU 2.6
    */
   UCAL_YEAR_WOY,
-
- /**
-   * Field number 
-   * indicating the localized day of week.  This will be a value from 1
-   * to 7 inclusive, with 1 being the localized first day of the week.
+  /**
+   * Day of week, localized (1..7) 
    * @stable ICU 2.6
    */
+#ifndef U_HIDE_DRAFT_API
+
   UCAL_DOW_LOCAL,
-  
   /**
-   * Year of this calendar system, encompassing all supra-year fields. For example, 
-   * in Gregorian/Julian calendars, positive Extended Year values indicate years AD,
-   *  1 BC = 0 extended, 2 BC = -1 extended, and so on. 
+   * Year of this calendar system, encompassing all supra-year fields. For example, in Gregorian/Julian calendars, positive Extended Year values indicate years AD,  1 BC = 0 extended, 2 BC = -1 extended, and so on. 
    * @stable ICU 2.8 
    */
   UCAL_EXTENDED_YEAR,       
- 
- /**
-   * Field number 
-   * indicating the modified Julian day number.  This is different from
-   * the conventional Julian day number in two regards.  First, it
-   * demarcates days at local zone midnight, rather than noon GMT.
-   * Second, it is a local number; that is, it depends on the local time
-   * zone.  It can be thought of as a single number that encompasses all
-   * the date-related fields.
+  /**
+   * Modified Julian day number, encompassing all date-related fields.  Demarcates at local midnight.
    * @stable ICU 2.8
    */
   UCAL_JULIAN_DAY, 
-
   /**
-   * Ranges from 0 to 23:59:59.999 (regardless of DST).  This field behaves <em>exactly</em> 
-   * like a composite of all time-related fields, not including the zone fields.  As such, 
-   * it also reflects discontinuities of those fields on DST transition days.  On a day
-   * of DST onset, it will jump forward.  On a day of DST cessation, it will jump 
-   * backward.  This reflects the fact that it must be combined with the DST_OFFSET field
-   * to obtain a unique local time value.
+   * Ranges from 0 to 23:59:59.999 (regardless of DST).  This field behaves <em>exactly</em> like a composite of all time-related fields, not including the zone fields.  As such, it also reflects discontinuities of those fields on DST transition days.  On a day of DST onset, it will jump forward.  On a day of DST cessation, it will jump backward.  This reflects the fact that is must be combined with the DST_OFFSET field to obtain a unique local time value.
    * @stable ICU 2.8
    */
   UCAL_MILLISECONDS_IN_DAY,
+
+#endif /* U_HIDE_DRAFT_API */
   
   /**
    * Field count
@@ -402,15 +281,15 @@ enum UCalendarDateFields {
    */
   UCAL_FIELD_COUNT,
 
- /**
-   * Field number indicating the
-   * day of the month. This is a synonym for <code>UCAL_DATE</code>.
-   * The first day of the month has value 1.
-   * @see #UCAL_DATE
+#ifndef U_HIDE_DRAFT_API
+
+  /**
    * Synonym for UCAL_DATE
    * @stable ICU 2.8
    **/
   UCAL_DAY_OF_MONTH=UCAL_DATE
+
+#endif /*U_HIDE_DRAFT_API*/
 };
 
 /** @stable ICU 2.0 */
@@ -471,10 +350,7 @@ enum UCalendarMonths {
   UCAL_NOVEMBER,
   /** December */
   UCAL_DECEMBER,
-  /** Value of the <code>UCAL_MONTH</code> field indicating the
-    * thirteenth month of the year. Although the Gregorian calendar
-    * does not use this value, lunar calendars do.
-    */
+  /** Undecimber */
   UCAL_UNDECIMBER
 };
 
@@ -505,7 +381,7 @@ typedef enum UCalendarAMPMs UCalendarAMPMs;
  *
  * @stable ICU 2.6
  */
-U_STABLE UEnumeration* U_EXPORT2
+U_DRAFT UEnumeration* U_EXPORT2
 ucal_openTimeZones(UErrorCode* ec);
 
 /**
@@ -524,7 +400,7 @@ ucal_openTimeZones(UErrorCode* ec);
  *
  * @stable ICU 2.6
  */
-U_STABLE UEnumeration* U_EXPORT2
+U_DRAFT UEnumeration* U_EXPORT2
 ucal_openCountryTimeZones(const char* country, UErrorCode* ec);
 
 /**
@@ -543,7 +419,7 @@ ucal_openCountryTimeZones(const char* country, UErrorCode* ec);
  *
  * @stable ICU 2.6
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 ucal_getDefaultTimeZone(UChar* result, int32_t resultCapacity, UErrorCode* ec);
 
 /**
@@ -555,7 +431,7 @@ ucal_getDefaultTimeZone(UChar* result, int32_t resultCapacity, UErrorCode* ec);
  *
  * @stable ICU 2.6
  */
-U_STABLE void U_EXPORT2
+U_DRAFT void U_EXPORT2
 ucal_setDefaultTimeZone(const UChar* zoneID, UErrorCode* ec);
 
 /**
@@ -574,7 +450,7 @@ ucal_setDefaultTimeZone(const UChar* zoneID, UErrorCode* ec);
  *
  * @stable ICU 2.6
  */
-U_STABLE int32_t U_EXPORT2
+U_DRAFT int32_t U_EXPORT2
 ucal_getDSTSavings(const UChar* zoneID, UErrorCode* ec);
 
 /**
@@ -1051,9 +927,9 @@ ucal_countAvailableTZIDs(int32_t rawOffset);
  *  @param type type of the locale we're looking for (valid or actual) 
  *  @param status error code for the operation
  *  @return the locale name
- *  @stable ICU 2.8
+ *  @draft ICU 2.8 likely to change after ICU 3.0, based on feedback
  */
-U_STABLE const char * U_EXPORT2
+U_DRAFT const char * U_EXPORT2
 ucal_getLocaleByType(const UCalendar *cal, ULocDataLocaleType type, UErrorCode* status);
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

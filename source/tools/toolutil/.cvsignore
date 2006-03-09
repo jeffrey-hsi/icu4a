@@ -5,6 +5,4 @@ Makefile
 *.o
 *.pdb
 libicu*
-*.plg
-*.ncb
-*.opt
+

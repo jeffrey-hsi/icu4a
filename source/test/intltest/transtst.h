@@ -344,20 +344,9 @@ private:
 
     void TestAlternateSyntax(void);
 
-    /**
-	 * Tests the multiple-pass syntax
-	 */
-	void TestBeginEnd(void);
+    void TestBeginEnd(void);
 
-    /**
-	 * Tests that toRules() works right with the multiple-pass syntax
-	 */
-	void TestBeginEndToRules(void);
-
-	/**
-	 * Tests the registerAlias() function
-	 */
-	void TestRegisterAlias(void);
+    void TestBeginEndToRules(void);
 
     //======================================================================
     // Support methods

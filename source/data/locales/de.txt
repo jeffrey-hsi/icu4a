@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/de.xml
+// * Source File: ../../../cldr/common/main/de.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/de.xml
+ *  ICU <specials> source: ./xml/main/de.xml
  */
 de{
     Countries{
@@ -1224,7 +1224,7 @@ de{
             "Simbabwe Dollar",
         }
     }
-    ExemplarCharacters{"[a ä b-o ö p-s ß t u ü v-z]"}
+    ExemplarCharacters{"[a-z ä ö ü ß]"}
     Keys{
         calendar{"Kalender"}
         collation{"Sortierung"}
@@ -1713,7 +1713,7 @@ de{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Scripts{
@@ -1787,7 +1787,7 @@ de{
         POSIX{"Posix"}
         REVISED{"Revidiert"}
     }
-    Version{"1.58"}
+    Version{"1.52"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -1910,75 +1910,13 @@ de{
     }
     localPatternChars{"GjMtkHmsSEDFwWahKzJeugAZvcL"}
     zoneStrings{
-        "America:Mexico_City"{
-            ec{"Mexiko-Stadt"}
-        }
-        "America:St_Johns"{
-            ec{"St. John's"}
-        }
-        "Antarctica:South_Pole"{
-            ec{"Südpol"}
-        }
-        "Antarctica:Vostok"{
-            ec{"Wostok"}
-        }
-        "Asia:Kamchatka"{
-            ec{"Kamtschatka"}
-        }
-        "Asia:Krasnoyarsk"{
-            ec{"Krasnojarsk"}
-        }
-        "Asia:Novosibirsk"{
-            ec{"Nowosibirsk"}
-        }
-        "Asia:Sakhalin"{
-            ec{"Sachalin"}
-        }
-        "Asia:Tashkent"{
-            ec{"Taschkent"}
-        }
-        "Asia:Ulaanbaatar"{
-            ec{"Ulan-Bator"}
-        }
-        "Asia:Vladivostok"{
-            ec{"Wladiwostok"}
-        }
-        "Asia:Yakutsk"{
-            ec{"Jakutsk"}
-        }
-        "Asia:Yekaterinburg"{
-            ec{"Jekaterinburg"}
-        }
-        "Atlantic:Azores"{
-            ec{"Azoren"}
-        }
-        "Atlantic:Canary"{
-            ec{"Kanaren"}
-        }
-        "Europe:Berlin"{
-            ec{"Berlin"}
-            ld{"Mitteleuropäische Sommerzeit"}
-            ls{"Mitteleuropäische Zeit"}
-            sd{"MESZ"}
-            ss{"MEZ"}
-        }
-        "Europe:Kiev"{
-            ec{"Kiew"}
-        }
-        "Europe:Lisbon"{
-            ec{"Lissabon"}
-        }
-        "Europe:Moscow"{
-            ec{"Moskau"}
-        }
-        "Europe:Uzhgorod"{
-            ec{"Uschgorod"}
-        }
-        "Europe:Zaporozhye"{
-            ec{"Saporischja"}
-        }
-        "Pacific:Easter"{
-            ec{"Osterinsel"}
+        {
+            "Europe/Berlin",
+            "Mitteleuropäische Zeit",
+            "MEZ",
+            "Mitteleuropäische Sommerzeit",
+            "MESZ",
+            "Berlin",
         }
     }
 }

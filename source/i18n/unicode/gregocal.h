@@ -1,6 +1,5 @@
 /*
-* Copyright (C) 1997-2006, International Business Machines Corporation and others.
-* All Rights Reserved.
+* Copyright (C) {1997-2005}, International Business Machines Corporation and others. All Rights Reserved.
 ********************************************************************************
 *
 * File GREGOCAL.H
@@ -399,7 +398,7 @@ public:
      * @param field    the time field.
      * @param status   error result.
      * @return         the minimum value that this field could have, given the current date.
-     * @stable ICU 3.0
+     * @draft ICU 3.0
      */
     int32_t getActualMinimum(UCalendarDateFields field, UErrorCode &status) const;
 

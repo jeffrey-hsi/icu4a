@@ -27,7 +27,6 @@
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="TRUE"
 				DisableLanguageExtensions="TRUE"
-				TreatWChar_tAsBuiltInType="TRUE"
 				PrecompiledHeaderFile=".\Release/stubdata.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
@@ -39,10 +38,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\bin\icudt35.dll"
+				OutputFile="..\..\bin\icudt34.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\Release/icudt35.pdb"
+				ProgramDatabaseFile=".\Release/icudt34.pdb"
 				ResourceOnlyDLL="TRUE"
 				ImportLibrary="..\..\lib\icudt.lib"/>
 			<Tool
@@ -92,7 +91,6 @@
 				RuntimeLibrary="3"
 				BufferSecurityCheck="TRUE"
 				DisableLanguageExtensions="TRUE"
-				TreatWChar_tAsBuiltInType="TRUE"
 				PrecompiledHeaderFile=".\Debug/stubdata.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
@@ -105,10 +103,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="..\..\bin\icudt35.dll"
+				OutputFile="..\..\bin\icudt34.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
-				ProgramDatabaseFile=".\Debug/icudt35.pdb"
+				ProgramDatabaseFile=".\Debug/icudt34.pdb"
 				ResourceOnlyDLL="TRUE"
 				ImportLibrary="..\..\lib\icudt.lib"/>
 			<Tool

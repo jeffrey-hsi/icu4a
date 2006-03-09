@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/th.xml
+// * Source File: ../../../cldr/common/main/th.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/th.xml
+ *  ICU <specials> source: ./xml/main/th.xml
  */
 th{
     BreakDictionaryData:import{"../brkitr/thaidict.brk"}
@@ -408,7 +408,7 @@ th{
             "ทอง",
         }
     }
-    ExemplarCharacters{"[​ ฯ ๆ ๎ ็-ํ ก-ฮ ะ-ฺ เ-ๅ]"}
+    ExemplarCharacters{"[ก-ฺเ-๎​]"}
     Languages{
         aa{"อาฟา"}
         ab{"แอบกาเซีย"}
@@ -557,7 +557,7 @@ th{
         Latn{"ลาติน"}
         Thai{"ไทย"}
     }
-    Version{"1.56"}
+    Version{"1.50"}
     boundaries{
         line{"line_th"}
         word{"word_th"}
@@ -687,205 +687,4 @@ th{
         }
     }
     localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
-    zoneStrings{
-        "America:Argentina:ComodRivadavia"{
-            ec{"โคมอดริวาดาเวีย"}
-        }
-        "America:Argentina:La_Rioja"{
-            ec{"ลาริโอจา"}
-        }
-        "America:Argentina:San_Juan"{
-            ec{"ซานจวน"}
-        }
-        "America:Argentina:Tucuman"{
-            ec{"ทูคูแมน"}
-        }
-        "America:Belem"{
-            ec{"เบเลง"}
-        }
-        "America:Boa_Vista"{
-            ec{"บัววีชตา"}
-        }
-        "America:Boise"{
-            ec{"บอยซี"}
-        }
-        "America:Cambridge_Bay"{
-            ec{"อ่าวแคมบรืดจ์"}
-        }
-        "America:Campo_Grande"{
-            ec{"กัมปูกรัมดี"}
-        }
-        "America:Catamarca"{
-            ec{"คาตามาร์กา"}
-        }
-        "America:Chicago"{
-            ec{"ชิคาโก"}
-        }
-        "America:Chihuahua"{
-            ec{"ชีวาวา"}
-        }
-        "America:Cuiaba"{
-            ec{"กุยาบา"}
-        }
-        "America:Denver"{
-            ec{"เดนเวอร์"}
-        }
-        "America:Detroit"{
-            ec{"ดีทรอยต์"}
-        }
-        "America:Edmonton"{
-            ec{"เอดมันตัน"}
-        }
-        "America:Fortaleza"{
-            ec{"ฟอร์ตาเลซา"}
-        }
-        "America:Goose_Bay"{
-            ec{"กูสเบย์"}
-        }
-        "America:Halifax"{
-            ec{"แฮลิแฟกซ์"}
-        }
-        "America:Hermosillo"{
-            ec{"เอร์โมซีโย"}
-        }
-        "America:Indianapolis"{
-            ec{"อินเดียแนโพลิส"}
-        }
-        "America:Iqaluit"{
-            ec{"อีกวาลิต"}
-        }
-        "America:Los_Angeles"{
-            ec{"ลอสแองเจลิส"}
-        }
-        "America:Maceio"{
-            ec{"มาเซโอ"}
-        }
-        "America:Manaus"{
-            ec{"มาเนาส์"}
-        }
-        "America:Mendoza"{
-            ec{"เมนดูซา"}
-        }
-        "America:Merida"{
-            ec{"เมรีดา"}
-        }
-        "America:Mexico_City"{
-            ec{"เม็กซิโกซิตี"}
-        }
-        "America:Monterrey"{
-            ec{"มอนเตร์เรย์"}
-        }
-        "America:New_York"{
-            ec{"นิวยอร์ก"}
-        }
-        "America:North_Dakota:Center"{
-            ec{"เซนเตอร์"}
-        }
-        "America:Rainy_River"{
-            ec{"เรนนี่ริเวอร์"}
-        }
-        "America:Recife"{
-            ec{"เรซีเฟ"}
-        }
-        "America:Regina"{
-            ec{"ริไจนา"}
-        }
-        "America:Rio_Branco"{
-            ec{"ริโอบรังโก"}
-        }
-        "America:Sao_Paulo"{
-            ec{"เซาเปาลู"}
-        }
-        "America:St_Johns"{
-            ec{"เซนต์จอนส์"}
-        }
-        "America:Thunder_Bay"{
-            ec{"ทันเดอร์เบย์"}
-        }
-        "America:Toronto"{
-            ec{"โทรอนโต"}
-        }
-        "America:Vancouver"{
-            ec{"แวนคูเวอร์"}
-        }
-        "America:Whitehorse"{
-            ec{"ไวต์ฮอร์ส"}
-        }
-        "America:Winnipeg"{
-            ec{"วินนิเพก"}
-        }
-        "America:Yellowknife"{
-            ec{"เยลโลว์ไนฟ์"}
-        }
-        "Antarctica:Davis"{
-            ec{"เดวิส"}
-        }
-        "Antarctica:South_Pole"{
-            ec{"ขั่วโลกใต้"}
-        }
-        "Antarctica:Vostok"{
-            ec{"วอสทอก"}
-        }
-        "Asia:Chongqing"{
-            ec{"ฉงชิ่ง"}
-        }
-        "Asia:Harbin"{
-            ec{"ฮาร์บิน"}
-        }
-        "Asia:Jakarta"{
-            ec{"จาการ์ตา"}
-        }
-        "Asia:Kuala_Lumpur"{
-            ec{"กัวลาลัมเปอร์"}
-        }
-        "Asia:Kuching"{
-            ec{"กูชิง"}
-        }
-        "Asia:Shanghai"{
-            ec{"เซี่ยงไฮ้"}
-        }
-        "Asia:Tashkent"{
-            ec{"ทาชเคนต์"}
-        }
-        "Asia:Urumqi"{
-            ec{"อุรุมชี"}
-        }
-        "Asia:Yakutsk"{
-            ec{"ยาคุตสค์"}
-        }
-        "Australia:Adelaide"{
-            ec{"แอดิเลด"}
-        }
-        "Australia:Brisbane"{
-            ec{"บริสเบน"}
-        }
-        "Australia:Broken_Hill"{
-            ec{"โบรกเคนฮิว"}
-        }
-        "Australia:Darwin"{
-            ec{"ดาร์วิน"}
-        }
-        "Australia:Hobart"{
-            ec{"โฮบาร์ต"}
-        }
-        "Australia:Lindeman"{
-            ec{"ลินดีแมน"}
-        }
-        "Australia:Lord_Howe"{
-            ec{"ลอร์ดโฮวี"}
-        }
-        "Australia:Melbourne"{
-            ec{"เมลเบิร์น"}
-        }
-        "Australia:Perth"{
-            ec{"เพิิร์ท"}
-        }
-        "Australia:Sydney"{
-            ec{"ซิดนีย์ Sydney"}
-        }
-        "Europe:Belfast"{
-            ec{"เบลฟัสต์"}
-        }
-        hourFormat{"+HHmm;-HHmm"}
-    }
 }

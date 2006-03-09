@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  *
- *   Copyright (C) 1999-2005, International Business Machines
+ *   Copyright (C) 1999-2003, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *
  *******************************************************************************
@@ -14,7 +14,6 @@
 #define __PARAGRAPH_H
 
 #include "unicode/utypes.h"
-#include "unicode/ubidi.h"
 
 #include "layout/LEFontInstance.h"
 #include "layout/ParagraphLayout.h"
@@ -47,17 +46,11 @@ public:
     static Paragraph *paragraphFactory(const char *fileName, const LEFontInstance *font, GUISupport *guiSupport);
 
 private:
-    void addLine(const ParagraphLayout::Line *line);
+    ParagraphLayout *fParagraphLayout;
 
-    ParagraphLayout **fParagraphLayout;
-
-    le_int32          fParagraphCount;
-    le_int32          fParagraphMax;
-    le_int32          fParagraphGrow;
-    
-    le_int32          fLineCount;
-    le_int32          fLinesMax;
-    le_int32          fLinesGrow;
+    le_int32         fLineCount;
+    le_int32         fLinesMax;
+    le_int32         fLinesGrow;
 
     const ParagraphLayout::Line **fLines;
           LEUnicode *fChars;
@@ -66,7 +59,6 @@ private:
     le_int32         fAscent;
     le_int32         fWidth;
     le_int32         fHeight;
-    UBiDiLevel       fParagraphLevel;
 };
 
 inline le_int32 Paragraph::getLineHeight()

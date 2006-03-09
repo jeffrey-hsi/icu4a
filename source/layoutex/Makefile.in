@@ -1,18 +1,13 @@
-#******************************************************************************
-#
-#   Copyright (C) 1999-2005, International Business Machines
-#   Corporation and others.  All Rights Reserved.
-#
-#******************************************************************************
+## Copyright (c) 1999-2004, International Business Machines Corporation and
+## others. All Rights Reserved.
 ## Makefile.in for ICU - layout
 
-## Source directory information
+## Install directory information
 srcdir = @srcdir@
 top_srcdir = @top_srcdir@
 
 top_builddir = ..
 
-## All the flags and other definitions are included here.
 include $(top_builddir)/icudefs.mk
 
 ## Build directory information
@@ -31,7 +26,7 @@ endif
 
 ifneq ($(ENABLE_SHARED),)
 SO_TARGET = $(LIBDIR)/$(LIBICU)$(TARGET_STUBNAME)$(ICULIBSUFFIX).$(SO)
-ALL_SO_TARGETS = $(SO_TARGET) $(MIDDLE_SO_TARGET) $(FINAL_SO_TARGET) $(SHARED_OBJECT)
+ALL_SO_TARGETS = $(SO_TARGET) $(MIDDLE_SO_TARGET) $(FINAL_SO_TARGET)
 
 ifeq ($(ENABLE_SO_VERSION_DATA),1)
 SO_VERSION_DATA = layoutex.res
@@ -50,26 +45,21 @@ DYNAMICCPPFLAGS = $(SHAREDLIBCPPFLAGS)
 DYNAMICCFLAGS = $(SHAREDLIBCFLAGS)
 DYNAMICCXXFLAGS = $(SHAREDLIBCXXFLAGS)
 
-ifneq ($(top_builddir),$(top_srcdir))
-CPPFLAGS += -I$(top_builddir)/common
-endif
-CPPFLAGS += -I$(srcdir) -I$(srcdir)/unicode -I$(srcdir)/.. -I$(top_srcdir)/common $(LIBCPPFLAGS)
-DEFS += -DU_LAYOUTEX_IMPLEMENTATION
 LDFLAGS += $(LDFLAGSICULX)
+CPPFLAGS += -I$(srcdir) -I$(srcdir)/unicode -I$(srcdir)/.. -I$(top_builddir)/common -I$(top_srcdir)/common $(LIBCPPFLAGS)
+DEFS += -DU_LAYOUTEX_IMPLEMENTATION
 LIBS = $(LIBICUUC) $(LIBICULE) $(DEFAULT_LIBS)
 
 OBJECTS =  ParagraphLayout.o \
 RunArrays.o \
 LXUtilities.o  
 
-## Header files to install
-HEADERS= $(srcdir)/layout/ParagraphLayout.h $(srcdir)/layout/RunArrays.h
-
 STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
 
 DEPS = $(OBJECTS:.o=.d)
 
--include Makefile.local
+## Header files to install
+HEADERS= $(srcdir)/layout/ParagraphLayout.h $(srcdir)/layout/RunArrays.h
 
 ## List of phony targets
 .PHONY : all all-local install install-local clean clean-local	\
@@ -89,7 +79,7 @@ check: all check-local
 
 all-local: $(ALL_TARGETS)
 
-install-local: install-headers install-library
+install-local: install-headers install-library 
 
 install-library: all-local
 	$(MKINSTALLDIRS) $(DESTDIR)$(libdir)
@@ -108,12 +98,13 @@ endif
 ifneq ($(IMPORT_LIB_EXT),)
 	$(INSTALL-L) $(FINAL_IMPORT_LIB) $(DESTDIR)$(libdir)
 ifneq ($(IMPORT_LIB),$(FINAL_IMPORT_LIB))
-	cd $(DESTDIR)$(libdir) && $(RM) $(notdir $(IMPORT_LIB)) && ln -s $(notdir $(FINAL_IMPORT_LIB)) $(notdir $(IMPORT_LIB))
+	cd $(DESTDIR)$(libdir) && $(RM) $(notdir $(IMPORT_LIB)) && ln -s $(FINAL_IMPORT_LIB) $(notdir $(IMPORT_LIB))
 endif
 ifneq ($(MIDDLE_IMPORT_LIB),$(FINAL_IMPORT_LIB))
 	cd $(DESTDIR)$(libdir) && $(RM) $(notdir $(MIDDLE_IMPORT_LIB)) && ln -s $(notdir $(FINAL_IMPORT_LIB)) $(notdir $(MIDDLE_IMPORT_LIB))
 endif
 endif
+
 
 install-headers:
 	$(MKINSTALLDIRS) $(DESTDIR)$(includedir)/layout
@@ -126,7 +117,7 @@ dist-local:
 
 clean-local:
 	test -z "$(CLEANFILES)" || $(RMV) $(CLEANFILES)
-	$(RMV) $(OBJECTS) $(STATIC_OBJECTS) $(ALL_TARGETS) $(SO_VERSION_DATA)
+	$(RMV) $(OBJECTS) $(ALL_TARGETS) $(SO_VERSION_DATA)
 
 distclean-local: clean-local
 	$(RMV) Makefile
@@ -143,14 +134,15 @@ $(TARGET): $(TARGET)($(STATIC_OBJECTS))
 endif
 
 ifneq ($(ENABLE_SHARED),)
-$(SHARED_OBJECT): $(OBJECTS) $(SO_VERSION_DATA)
+$(FINAL_SO_TARGET): $(OBJECTS) $(SO_VERSION_DATA)
 	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(LIBS)
 
 ifeq ($(OS390BATCH),1)
-$(BATCH_TARGET):$(OBJECTS)
+$(BATCH_TARGET): $(OBJECTS)
 	$(SHLIB.cc) $(LD_SONAME) $(OUTOPT)$@ $^ $(BATCH_LIBS)
 endif   # OS390BATCH
-endif   # ENABLE_SHARED
+
+endif
 
 ifeq (,$(MAKECMDGOALS))
 -include $(DEPS)
@@ -159,4 +151,5 @@ ifneq ($(patsubst %clean,,$(MAKECMDGOALS)),)
 -include $(DEPS)
 endif
 endif
+
 

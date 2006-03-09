@@ -197,7 +197,7 @@ initCache(UErrorCode *status) {
     makeCache = (SHARED_DATA_HASHTABLE ==  NULL);
     umtx_unlock(&usprepMutex);
     if(makeCache) {
-        UHashtable *newCache = uhash_open(hashEntry, compareEntries, NULL, status);
+        UHashtable *newCache = uhash_open(hashEntry, compareEntries, status);
         if (U_FAILURE(*status)) {
             return;
         }
@@ -799,7 +799,7 @@ usprep_prepare(   const UStringPrepProfile* profile,
             return FALSE;
         }
     }
-    if(b2Len>0 && b2Len <= destCapacity){
+    if(b2Len <= destCapacity){
         uprv_memmove(dest,b2, b2Len*U_SIZEOF_UCHAR);
     }
 

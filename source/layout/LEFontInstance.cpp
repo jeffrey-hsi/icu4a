@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  *
- *   Copyright (C) 1999-2005, International Business Machines
+ *   Copyright (C) 1999-2004, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *
  *******************************************************************************
@@ -37,7 +37,7 @@ const LEFontInstance *LEFontInstance::getSubFont(const LEUnicode chars[], le_int
 }
 
 void LEFontInstance::mapCharsToGlyphs(const LEUnicode chars[], le_int32 offset, le_int32 count,
-                                      le_bool reverse, const LECharMapper *mapper, le_bool filterZeroWidth, LEGlyphStorage &glyphStorage) const
+                                      le_bool reverse, const LECharMapper *mapper, LEGlyphStorage &glyphStorage) const
 {
     le_int32 i, out = 0, dir = 1;
 
@@ -58,7 +58,7 @@ void LEFontInstance::mapCharsToGlyphs(const LEUnicode chars[], le_int32 offset, 
             }
         }
 
-        glyphStorage[out] = mapCharToGlyph(code, mapper, filterZeroWidth);
+        glyphStorage[out] = mapCharToGlyph(code, mapper);
 
         if (code >= 0x10000) {
             i += 1;
@@ -69,19 +69,14 @@ void LEFontInstance::mapCharsToGlyphs(const LEUnicode chars[], le_int32 offset, 
 
 LEGlyphID LEFontInstance::mapCharToGlyph(LEUnicode32 ch, const LECharMapper *mapper) const
 {
-    return mapCharToGlyph(ch, mapper, TRUE);
-}
-
-LEGlyphID LEFontInstance::mapCharToGlyph(LEUnicode32 ch, const LECharMapper *mapper, le_bool filterZeroWidth) const
-{
     LEUnicode32 mappedChar = mapper->mapChar(ch);
 
     if (mappedChar == 0xFFFE || mappedChar == 0xFFFF) {
         return 0xFFFF;
     }
 
-    if (filterZeroWidth && (mappedChar == 0x200C || mappedChar == 0x200D)) {
-        return canDisplay(mappedChar)? 1 : mappedChar;
+    if (mappedChar == 0x200C || mappedChar == 0x200D) {
+        return 1;
     }
 
     return mapCharToGlyph(mappedChar);

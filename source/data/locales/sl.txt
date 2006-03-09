@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/sl.xml
+// * Source File: ../../../cldr/common/main/sl.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/sl.xml
+ *  ICU <specials> source: ./xml/main/sl.xml
  */
 sl{
     Countries{
@@ -320,7 +320,7 @@ sl{
             "Ameriški Dolar",
         }
     }
-    ExemplarCharacters{"[a-c č d-p r s š t-v z ž]"}
+    ExemplarCharacters{"[a-pr-vzčšž]"}
     Keys{
         calendar{"Kolendar"}
         collation{"Zlaganje"}
@@ -372,7 +372,7 @@ sl{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Scripts{
@@ -396,7 +396,7 @@ sl{
             traditional{"Tradicionano zlaganje"}
         }
     }
-    Version{"1.55"}
+    Version{"1.48"}
     calendar{
         gregorian{
             DateTimeElements:intvector{
@@ -504,43 +504,4 @@ sl{
         }
     }
     localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
-    zoneStrings{
-        "Africa:Kinshasa"{
-            ec{"Kinšasa"}
-        }
-        "Africa:Lubumbashi"{
-            ec{"Lubumbaši"}
-        }
-        "Antarctica:South_Pole"{
-            ec{"Južni pol"}
-        }
-        "Asia:Anadyr"{
-            ec{"Anadir"}
-        }
-        "Asia:Kamchatka"{
-            ec{"Kamčatka"}
-        }
-        "Asia:Krasnoyarsk"{
-            ec{"Krasnojarsk"}
-        }
-        "Asia:Shanghai"{
-            ec{"Šangaj"}
-        }
-        "Asia:Tashkent"{
-            ec{"Taškent"}
-        }
-        "Europe:Kiev"{
-            ec{"Kijev"}
-        }
-        "Europe:Moscow"{
-            ec{"Moskva"}
-        }
-        "Europe:Uzhgorod"{
-            ec{"Užgorod"}
-        }
-        "Europe:Zaporozhye"{
-            ec{"Zaporožje"}
-        }
-        hourFormat{"+HHmm;-HHmm"}
-    }
 }

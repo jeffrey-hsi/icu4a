@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/kok.xml
+// * Source File: ../../../cldr/common/main/kok.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/kok.xml
+ *  ICU <specials> source: ./xml/main/kok.xml
  */
 kok{
     Countries{
@@ -19,10 +19,7 @@ kok{
             "INR",
         }
     }
-    ExemplarCharacters{
-        "[‌ ‍ ़ ँ-ः ॑-॔ ०-९ ॐ ऄ-ऋ ॠ ऌ ॡ ऍ-क क़ ख ख़ ग ग़ घ-ज ज़ झ-ड ड़ ढ ढ़ ण-फ फ़ ब-य य़ र-ह"
-        " ऽ ॽ ा-ॄ ॢ ॣ ॅ-्]"
-    }
+    ExemplarCharacters{"[ँ-ह़-्ॐ-॔क़-ॣ०-९ॽ‌‍]"}
     Languages{
         aa{"अफार"}
         ab{"अबखेज़ियन"}
@@ -168,7 +165,7 @@ kok{
     LocaleScript{
         "Deva",
     }
-    Version{"1.35"}
+    Version{"1.31"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -238,12 +235,13 @@ kok{
         }
     }
     zoneStrings{
-        "Asia:Calcutta"{
-            ec{"Calcutta"}
-            ld{"भारतीय समय"}
-            ls{"भारतीय समय"}
-            sd{"IST"}
-            ss{"IST"}
+        {
+            "Asia/Calcutta",
+            "भारतीय समय",
+            "IST",
+            "भारतीय समय",
+            "IST",
+            "Calcutta",
         }
     }
 }

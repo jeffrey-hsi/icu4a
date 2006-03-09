@@ -28,17 +28,13 @@ IndicOpenTypeLayoutEngine::IndicOpenTypeLayoutEngine(const LEFontInstance *fontI
                     le_int32 typoFlags, const GlyphSubstitutionTableHeader *gsubTable)
     : OpenTypeLayoutEngine(fontInstance, scriptCode, languageCode, typoFlags, gsubTable), fMPreFixups(NULL)
 {
-    fFeatureMap = IndicReordering::getFeatureMap(fFeatureMapCount);
-    fFeatureOrder = TRUE;
-
-    fFilterZeroWidth = IndicReordering::getFilterZeroWidth(fScriptCode);
+    fFeatureOrder = IndicReordering::getFeatureOrder();
 }
 
 IndicOpenTypeLayoutEngine::IndicOpenTypeLayoutEngine(const LEFontInstance *fontInstance, le_int32 scriptCode, le_int32 languageCode, le_int32 typoFlags)
     : OpenTypeLayoutEngine(fontInstance, scriptCode, languageCode, typoFlags), fMPreFixups(NULL)
 {
-    fFeatureMap = IndicReordering::getFeatureMap(fFeatureMapCount);
-    fFeatureOrder = TRUE;
+    fFeatureOrder = IndicReordering::getFeatureOrder();
 }
 
 IndicOpenTypeLayoutEngine::~IndicOpenTypeLayoutEngine()

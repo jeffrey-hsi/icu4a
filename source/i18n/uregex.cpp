@@ -963,10 +963,7 @@ static void copyString(UChar        *destBuffer,    //  Destination buffer.
             break;
         }
     }
-    if (di<destCapacity) {
-        destBuffer[di] = 0;
-    }
-    di++;
+    destBuffer[di++] = 0;
     *destIndex = di;
 }
 
@@ -1094,7 +1091,7 @@ uregex_split(   URegularExpression      *regexp,
     if (requiredCapacity != NULL) {
         *requiredCapacity = destIdx;
     }
-    if (destIdx > destCapacity) {
+    if (*requiredCapacity > destCapacity) {
         *status = U_BUFFER_OVERFLOW_ERROR;
     }
     return i+1;

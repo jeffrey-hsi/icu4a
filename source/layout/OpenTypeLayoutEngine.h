@@ -1,4 +1,7 @@
+
 /*
+ * %W% %E%
+ *
  * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
  *
  */
@@ -142,37 +145,21 @@ private:
 
 protected:
     /**
-     * A set of "default" features. The default characterProcessing method
-     * will apply all of these features to every glyph.
+     * A list of "default" features. The default characterProcessing method
+     * will apply all of these tags to every glyph.
      *
      * @internal
      */
-    FeatureMask fFeatureMask;
+    const LETag *fFeatureList;
 
     /**
-     * A set of mappings from feature tags to feature masks. These may
-     * be in the order in which the featues should be applied, but they
-     * don't need to be.
+     * A list of tags in the order in which the features in
+     * the font should be applied, as opposed to using the
+     * order of the lookups in the font.
      *
      * @internal
      */
-    const FeatureMap *fFeatureMap;
-
-    /**
-     * The length of the feature map.
-     *
-     * @internal
-     */
-    le_int32 fFeatureMapCount;
-
-    /**
-     * <code>TRUE</code> if the features in the
-     * feature map are in the order in which they
-     * must be applied.
-     *
-     * @internal
-     */
-    le_bool fFeatureOrder;
+    const LETag *fFeatureOrder;
 
     /**
      * The address of the GSUB table.
@@ -218,14 +205,6 @@ protected:
      * @internal
      */
     LETag fLangSysTag;
-
-    /**
-     * <code>TRUE</code> if <code>mapCharsToGlyphs</code> should replace ZWJ / ZWNJ with a glyph
-     * with no contours.
-     *
-     * @internal
-     */
-    le_bool fFilterZeroWidth;
 
     /**
      * This method does the OpenType character processing. It assigns the OpenType feature

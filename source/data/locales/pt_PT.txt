@@ -3,7 +3,7 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/pt_PT.xml
+// * Source File: ../../../cldr/common/main/pt_PT.xml
 // *
 // ***************************************************************************
 pt_PT{
@@ -90,7 +90,7 @@ pt_PT{
         "#,##0%",
         "#E0",
     }
-    Version{"1.40"}
+    Version{"1.36"}
     calendar{
         gregorian{
             DateTimePatterns{
@@ -111,37 +111,5 @@ pt_PT{
         alternateQuotationStart{"“"}
         quotationEnd{"’"}
         quotationStart{"‘"}
-    }
-    zoneStrings{
-        "America:Araguaina"{
-            ec{"Araguaina"}
-        }
-        "America:Bahia"{
-            ec{"Baía"}
-        }
-        "America:Cancun"{
-            ec{"Cancun"}
-        }
-        "America:Cuiaba"{
-            ec{"Cuibá"}
-        }
-        "America:North_Dakota:Center"{
-            ec{"Center"}
-        }
-        "Asia:Sakhalin"{
-            ec{"Sacalina"}
-        }
-        "Asia:Ulaanbaatar"{
-            ec{"Ulan Bator"}
-        }
-        "Europe:Kaliningrad"{
-            ec{"Kaliningrado"}
-        }
-        "Europe:Madrid"{
-            ec{"Madrid"}
-        }
-        "Europe:Moscow"{
-            ec{"Moscovo"}
-        }
     }
 }

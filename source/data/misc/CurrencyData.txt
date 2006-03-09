@@ -4,7 +4,7 @@
 // *   Corporation and others.  All Rights Reserved.
 // *
 // ***************************************************************************
-CurrencyData:table(nofallback){
+CurrencyData{
     // Currency metadata.  Unlike the "Currencies" element, this is
     // NOT true locale data.  It exists only in root.  The two
     // integers are the fraction digits for each currency, and the
@@ -242,7 +242,7 @@ CurrencyData:table(nofallback){
         PY { "PYG" } // PARAGUAY: Guarani
         QA { "QAR" } // QATAR: Qatari Rial
         RE { "EUR" } // REUNION: Euro
-        RO { "RON" } // ROMANIA: Leu
+        RO { "ROL" } // ROMANIA: Leu
         RU { "RUB" } // RUSSIAN FEDERATION: Russian Ruble
         RW { "RWF" } // RWANDA: Rwanda Franc
         SA { "SAR" } // SAUDI ARABIA: Saudi Riyal

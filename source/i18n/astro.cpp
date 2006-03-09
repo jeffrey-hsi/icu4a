@@ -1,5 +1,5 @@
 /************************************************************************
- * Copyright (C) 1996-2005, International Business Machines Corporation *
+ * Copyright (C) 1996-2004, International Business Machines Corporation *
  * and others. All Rights Reserved.                                     *
  ************************************************************************
  *  2003-nov-07   srl       Port from Java
@@ -1488,14 +1488,13 @@ UnicodeString CalendarAstronomer::Horizon::toString() const
 
 void CalendarCache::createCache(CalendarCache** cache, UErrorCode& status) {
   ucln_i18n_registerCleanup(UCLN_I18N_ASTRO_CALENDAR, calendar_astro_cleanup);
+  *cache = new CalendarCache(32, status);
   if(cache == NULL) {
     status = U_MEMORY_ALLOCATION_ERROR;
-  } else {
-    *cache = new CalendarCache(32, status);
-    if(U_FAILURE(status)) {
-      delete *cache;
-      *cache = NULL;
-    }
+  }
+  if(U_FAILURE(status)) {
+    delete *cache;
+    *cache = NULL;
   }
 }
 
@@ -1523,6 +1522,7 @@ int32_t CalendarCache::get(CalendarCache** cache, int32_t key, UErrorCode &statu
 }
 
 void CalendarCache::put(CalendarCache** cache, int32_t key, int32_t value, UErrorCode &status) {
+
   if(U_FAILURE(status)) {
     return;
   }
@@ -1543,7 +1543,7 @@ void CalendarCache::put(CalendarCache** cache, int32_t key, int32_t value, UErro
 }
 
 CalendarCache::CalendarCache(int32_t size, UErrorCode &status) {
-  fTable = uhash_openSize(uhash_hashLong, uhash_compareLong, NULL, size, &status);
+  fTable = uhash_openSize(uhash_hashLong, uhash_compareLong, size, &status);
   U_DEBUG_ASTRO_MSG(("%p: Opening.\n", fTable));
 }
 

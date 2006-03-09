@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/nb.xml
+// * Source File: ../../../cldr/common/main/nb.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/nb.xml
+ *  ICU <specials> source: ./xml/main/nb.xml
  */
 nb{
     Countries{
@@ -1233,7 +1233,7 @@ nb{
             "Zimbabwiske dollar",
         }
     }
-    ExemplarCharacters{"[a à ǎ b-e é f-o ó ô p-y ü z æ ø å]"}
+    ExemplarCharacters{"[a-zæåøéóôàüǎ]"}
     Keys{
         calendar{"Kalendar"}
         collation{"Kollasjon"}
@@ -1714,14 +1714,8 @@ nb{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
-    }
-    NumberPatterns{
-        "#,##0.###",
-        "¤ #,##0.00",
-        "#,##0 %",
-        "#E0",
     }
     Scripts{
         Arab{"arabisk"}
@@ -1802,7 +1796,7 @@ nb{
     Variants{
         REVISED{"Revidert"}
     }
-    Version{"1.55"}
+    Version{"1.50"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -1914,30 +1908,13 @@ nb{
         }
     }
     zoneStrings{
-        "America:Godthab"{
-            ec{"Godthåb"}
-        }
-        "America:St_Johns"{
-            ec{"St. John's"}
-        }
-        "Antarctica:South_Pole"{
-            ec{"Sydpolen"}
-        }
-        "Atlantic:Azores"{
-            ec{"Azorene"}
-        }
-        "Europe:Bucharest"{
-            ec{"Bucuresti"}
-            ld{"Eastern European Daylight Time"}
-            ls{"Eastern European Standard Time"}
-            sd{"EEST"}
-            ss{"EET"}
-        }
-        "Europe:Lisbon"{
-            ec{"Lisboa"}
-        }
-        "Europe:Moscow"{
-            ec{"Moskva"}
+        {
+            "Europe/Bucharest",
+            "Eastern European Standard Time",
+            "EET",
+            "Eastern European Daylight Time",
+            "EEST",
+            "Bucuresti",
         }
     }
 }

@@ -62,8 +62,6 @@ static void TestJB3763(void);
 
 static void TestXPath(void);
 
-static void TestStackReuse(void);
-
 /**
 * extensive subtests called by TestResourceBundles
 **/

@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/is.xml
+// * Source File: ../../../cldr/common/main/is.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/is.xml
+ *  ICU <specials> source: ./xml/main/is.xml
  */
 is{
     Countries{
@@ -885,7 +885,7 @@ is{
             "Simbabveskur dalur",
         }
     }
-    ExemplarCharacters{"[a á b-d ð e é f-i í j-o ó p-u ú v-y ý z þ æ ö]"}
+    ExemplarCharacters{"[a-záéíóúýöæðþ]"}
     Keys{
         calendar{"Dagatal"}
         collation{"Röðun"}
@@ -1373,7 +1373,7 @@ is{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Types{
@@ -1394,7 +1394,7 @@ is{
             traditional{"Hefðbundin"}
         }
     }
-    Version{"1.50"}
+    Version{"1.43"}
     calendar{
         gregorian{
             DateTimePatterns{

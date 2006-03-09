@@ -185,12 +185,11 @@ TransliteratorTest::runIndexedTest(int32_t index, UBool exec,
         TESTCASE(77,TestAlternateSyntax);
         TESTCASE(78,TestBeginEnd);
         TESTCASE(79,TestBeginEndToRules);
-        TESTCASE(80,TestRegisterAlias);
         default: name = ""; break;
     }
 }
 
-static const UVersionInfo ICU_36 = {3,6,0,0};
+static const UVersionInfo ICU_31 = {3,1,0,0};
 /**
  * Make sure every system transliterator can be instantiated.
  * 
@@ -225,8 +224,7 @@ void TransliteratorTest::TestInstantiation() {
                   i + ") != getAvailableIDs().snext()");
             continue;
         }
-        if(id2.indexOf("Thai")>-1 && !isICUVersionAtLeast(ICU_36)){
-            /* The Thai-Latin transliterator doesn't exist in ICU4C yet */
+        if(id2.indexOf("Thai")>-1 && isICUVersionAtLeast(ICU_31)){
             continue;
         }
         UParseError parseError;
@@ -3497,8 +3495,7 @@ void TransliteratorTest::TestIncrementalProgress(void) {
                 Transliterator::getAvailableVariant(k, source, target, variant);
                 UnicodeString id = source + "-" + target + "/" + variant;
                 
-                if(id.indexOf("Thai")>-1 && !isICUVersionAtLeast(ICU_36)){
-                    /* The Thai-Latin transliterator doesn't exist in ICU4C yet */
+                if(id.indexOf("Thai")>-1 && isICUVersionAtLeast(ICU_31)){
                     continue;
                 }    
                 Transliterator *t = Transliterator::createInstance(id, UTRANS_FORWARD, err, status);
@@ -4316,82 +4313,6 @@ void TransliteratorTest::TestBeginEndToRules() {
             delete reversed2;
         }
     }
-}
-
-void TransliteratorTest::TestRegisterAlias() {
-	UnicodeString longID("Lower;[aeiou]Upper");
-	UnicodeString shortID("Any-CapVowels");
-	UnicodeString reallyShortID("CapVowels");
-	
-	Transliterator::registerAlias(shortID, longID);
-
-	UErrorCode err = U_ZERO_ERROR;
-	Transliterator* t1 = Transliterator::createInstance(longID, UTRANS_FORWARD, err);
-	if (U_FAILURE(err)) {
-		errln("Failed to instantiate transliterator with long ID");
-		Transliterator::unregister(shortID);
-		return;
-	}
-	Transliterator* t2 = Transliterator::createInstance(reallyShortID, UTRANS_FORWARD, err);
-	if (U_FAILURE(err)) {
-		errln("Failed to instantiate transliterator with short ID");
-		delete t1;
-		Transliterator::unregister(shortID);
-		return;
-	}
-	
-	if (t1->getID() != longID)
-		errln("Transliterator instantiated with long ID doesn't have long ID");
-	if (t2->getID() != reallyShortID)
-		errln("Transliterator instantiated with short ID doesn't have short ID");
-
-	UnicodeString rules1;
-	UnicodeString rules2;
-
-	t1->toRules(rules1, TRUE);
-	t2->toRules(rules2, TRUE);
-	if (rules1 != rules2)
-		errln("Alias transliterators aren't the same");
-
-	delete t1;
-	delete t2;
-	Transliterator::unregister(shortID);
-
-	t1 = Transliterator::createInstance(shortID, UTRANS_FORWARD, err);
-	if (U_SUCCESS(err)) {
-		errln("Instantiation with short ID succeeded after short ID was unregistered");
-		delete t1;
-	}
-
-	// try the same thing again, but this time with something other than
-	// an instance of CompoundTransliterator
-	UnicodeString realID("Latin-Greek");
-	UnicodeString fakeID("Latin-dlgkjdflkjdl");
-	Transliterator::registerAlias(fakeID, realID);
-
-	err = U_ZERO_ERROR;
-	t1 = Transliterator::createInstance(realID, UTRANS_FORWARD, err);
-	if (U_FAILURE(err)) {
-		errln("Failed to instantiate transliterator with real ID");
-		Transliterator::unregister(realID);
-		return;
-	}
-	t2 = Transliterator::createInstance(fakeID, UTRANS_FORWARD, err);
-	if (U_FAILURE(err)) {
-		errln("Failed to instantiate transliterator with fake ID");
-		delete t1;
-		Transliterator::unregister(realID);
-		return;
-	}
-
-	t1->toRules(rules1, TRUE);
-	t2->toRules(rules2, TRUE);
-	if (rules1 != rules2)
-		errln("Alias transliterators aren't the same");
-
-	delete t1;
-	delete t2;
-	Transliterator::unregister(fakeID);
 }
 
 //======================================================================

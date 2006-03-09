@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 2005-2006, International Business Machines Corporation and
+ * Copyright (c) 2005, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*
@@ -86,14 +86,14 @@ static void TestAPI(void) {
     /* utext_clone()  */
     {
         UChar   uString[]  = {0x41, 0x42, 0x43, 0};
-        int64_t len;
+        int32_t len;
         UText   *uta;
         UText   *utb;
 
         status = U_ZERO_ERROR;
         uta = utext_openUChars(NULL, uString, -1, &status);
         TEST_SUCCESS(status);
-        utb = utext_clone(NULL, uta, FALSE, FALSE, &status);
+        utb = utext_clone(NULL, uta, FALSE, &status);
         TEST_SUCCESS(status);
         TEST_ASSERT(utb != NULL);
         TEST_ASSERT(utb != uta);
@@ -108,9 +108,9 @@ static void TestAPI(void) {
         UChar     uString[]  = {0x41, 0x42, 0x43, 0};
         UText     *uta;
         UChar32   c;
-        int64_t   len;
+        int32_t   len;
         UBool     b;
-        int64_t   i;
+        int32_t   i;
 
         status = U_ZERO_ERROR;
         uta = utext_openUChars(NULL, uString, -1, &status);

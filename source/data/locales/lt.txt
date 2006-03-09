@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/lt.xml
+// * Source File: ../../../cldr/common/main/lt.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/lt.xml
+ *  ICU <specials> source: ./xml/main/lt.xml
  */
 lt{
     Countries{
@@ -151,7 +151,7 @@ lt{
         ML{"Malis"}
         MM{"Mianmaras"}
         MN{"Mongolija"}
-        MO{"Macao"}
+        MO{"Kinijos S.A.R. Makao"}
         MP{"Marianos šiaurinės salos"}
         MQ{"Martinika"}
         MR{"Mauritanija"}
@@ -289,7 +289,7 @@ lt{
             "JAV doleris",
         }
     }
-    ExemplarCharacters{"[a ą b c č d e ę ė f-i į y j-s š t u ų ū v-x z ž]"}
+    ExemplarCharacters{"[a-z ą ę į ų ė ū č š ž]"}
     Languages{
         ar{"Arabų"}
         bg{"Bulgarų"}
@@ -337,13 +337,13 @@ lt{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     Scripts{
         Latn{"Latin"}
     }
-    Version{"1.57"}
+    Version{"1.45"}
     calendar{
         gregorian{
             AmPmMarkers{

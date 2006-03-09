@@ -1,7 +1,5 @@
 /*
-********************************************************************************
-* Copyright (C) 1997-2006, International Business Machines Corporation and others.
-* All Rights Reserved.
+* Copyright (C) {1997-2005}, International Business Machines Corporation and others. All Rights Reserved.
 ********************************************************************************
 *
 * File NUMFMT.H
@@ -41,6 +39,11 @@ U_NAMESPACE_BEGIN
 #if !UCONFIG_NO_SERVICE
 class NumberFormatFactory;
 class StringEnumeration;
+
+/**
+ * @internal
+ */
+typedef const void* URegistryKey;
 #endif
 
 /**
@@ -768,7 +771,7 @@ public:
 
     /**
      * Destructor
-     * @stable ICU 3.0
+     * @draft ICU 3.0
      */
     virtual ~NumberFormatFactory();
 
@@ -799,7 +802,7 @@ public:
 
 /**
  * A NumberFormatFactory that supports a single locale.  It can be visible or invisible.
- * @stable ICU 2.6
+ * @draft ICU 3.0
  */
 class U_I18N_API SimpleNumberFormatFactory : public NumberFormatFactory {
 protected:
@@ -822,7 +825,7 @@ public:
     SimpleNumberFormatFactory(const Locale& locale, UBool visible = TRUE);
 
     /**
-     * @stable ICU 3.0
+     * @draft ICU 3.0
      */
     virtual ~SimpleNumberFormatFactory();
 

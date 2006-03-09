@@ -1,8 +1,7 @@
 /*
- *****************************************************************************
- * Copyright (C) 1996-2006, International Business Machines Corporation and others.
+ * Copyright (C) 1996-2005, International Business Machines Corporation and others.
  * All Rights Reserved.
- *****************************************************************************
+ *****************************************************************************************
  *
  * File sortkey.h
  *
@@ -15,7 +14,7 @@
  *  6/20/97     helena      Java class name change.
  *  8/18/97     helena      Added internal API documentation.
  *  6/26/98     erm         Changed to use byte arrays and memcmp.
- *****************************************************************************
+ *****************************************************************************************
  */
 
 #ifndef SORTKEY_H
@@ -109,6 +108,7 @@ public:
     * Creates a collation key based on the collation key values.
     * @param values the collation key values
     * @param count number of collation key values, including trailing nulls.
+    * @see #createBits
     * @deprecated ICU 2.8 Use Collator::getSortKey(...) instead
     */
     CollationKey(const  uint8_t*    values,

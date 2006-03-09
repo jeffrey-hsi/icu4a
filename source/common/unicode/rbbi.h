@@ -1,6 +1,6 @@
 /*
 ***************************************************************************
-*   Copyright (C) 1999-2006 International Business Machines Corporation   *
+*   Copyright (C) 1999-2005 International Business Machines Corporation   *
 *   and others. All rights reserved.                                      *
 ***************************************************************************
 
@@ -423,7 +423,7 @@ public:
     *                  is the total number of status values that were available,
     *                  not the reduced number that were actually returned.
     * @see getRuleStatus
-    * @stable ICU 3.0
+    * @draft ICU 3.0
     */
     virtual int32_t getRuleStatusVec(int32_t *fillInVec, int32_t capacity, UErrorCode &status);
 
@@ -515,6 +515,16 @@ protected:
      * @internal
      */
     virtual int32_t handleNext(void);
+
+    /**
+     * This method backs the iterator back up to a "safe position" in the text.
+     * This is a position that we know, without any context, must be a break position.
+     * The various calling methods then iterate forward from this safe position to
+     * the appropriate position to return.  (For more information, see the description
+     * of buildBackwardsStateTable() in RuleBasedBreakIterator.Builder.)
+     * @internal
+     */
+    virtual int32_t handlePrevious(void);
 
     /**
      * Dumps caches and performs other actions associated with a complete change

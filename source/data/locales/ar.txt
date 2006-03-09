@@ -3,11 +3,11 @@
 // * Copyright (C) 2005 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/main/ar.xml
+// * Source File: ../../../cldr/common/main/ar.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/main/ar.xml
+ *  ICU <specials> source: ./xml/main/ar.xml
  */
 ar{
     Countries{
@@ -220,6 +220,14 @@ ar{
             "ج.م.‏",
             "EGP",
         }
+        EUR{
+            "€",
+            "EUR",
+        }
+        GBP{
+            "£",
+            "GBP",
+        }
         IQD{
             "د.ع.‏",
             "IQD",
@@ -227,6 +235,10 @@ ar{
         JOD{
             "د.أ.‏",
             "JOD",
+        }
+        JPY{
+            "¥",
+            "JPY",
         }
         KWD{
             "د.ك.‏",
@@ -272,12 +284,16 @@ ar{
             "د.ت.‏",
             "TND",
         }
+        USD{
+            "$",
+            "USD",
+        }
         YER{
             "ر.ي.‏",
             "YER",
         }
     }
-    ExemplarCharacters{"[‌ ‍ ً-ْ ـ ء-غ ف-ي]"}
+    ExemplarCharacters{"[ء-غـ-ْ‌‍‏‎]"}
     Keys{
         calendar{"تقويم"}
         collation{"الترتيب"}
@@ -378,7 +394,7 @@ ar{
         "E",
         "‰",
         "∞",
-        "NaN",
+        "�",
         "+",
     }
     NumberPatterns{
@@ -424,7 +440,7 @@ ar{
             traditional{"تقليدي"}
         }
     }
-    Version{"1.52"}
+    Version{"1.46"}
     calendar{
         buddhist{
             eras{
@@ -555,6 +571,7 @@ ar{
             }
             monthNames{
                 format{
+                    abbreviated:alias{"/LOCALE/calendar/islamic/monthNames/format/wide"}
                     wide{
                         "محرم",
                         "صفر",
@@ -576,10 +593,6 @@ ar{
             eras:alias{"/LOCALE/calendar/islamic/eras"}
             monthNames:alias{"/LOCALE/calendar/islamic/monthNames"}
         }
-    }
-    layout{
-        characters{"right-to-left"}
-        lines{"top-to-bottom"}
     }
     localPatternChars{"GanjkHmsSEDFwWxhKzAeugXZvcL"}
 }

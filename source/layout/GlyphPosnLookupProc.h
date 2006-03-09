@@ -1,5 +1,6 @@
 /*
- * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
+ *
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved
  *
  */
 
@@ -27,7 +28,7 @@ class GlyphPositioningLookupProcessor : public LookupProcessor
 {
 public:
     GlyphPositioningLookupProcessor(const GlyphPositioningTableHeader *glyphPositioningTableHeader,
-        LETag scriptTag, LETag languageTag, const FeatureMap *featureMap, le_int32 featureMapCount, le_bool featureOrder);
+        LETag scriptTag, LETag languageTag, const LETag *featureOrder);
 
     virtual ~GlyphPositioningLookupProcessor();
 
