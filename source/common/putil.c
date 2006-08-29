@@ -781,7 +781,9 @@ u_getDataDirectory(void) {
     const char *path = NULL;
 
     /* if we have the directory, then return it immediately */
-    UMTX_CHECK(NULL, gDataDirectory, path);
+    umtx_lock(NULL);
+    path = gDataDirectory;
+    umtx_unlock(NULL);
 
     if(path) {
         return path;

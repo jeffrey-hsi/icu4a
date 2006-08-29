@@ -585,22 +585,26 @@ static ICULocaleService*
 getNumberFormatService(void)
 {
     UBool needInit;
-    UMTX_CHECK(NULL, (UBool)(gService == NULL), needInit);
+    {
+        Mutex mutex;
+        needInit = (UBool)(gService == NULL);
+    }
     if (needInit) {
         ICULocaleService * newservice = new ICUNumberFormatService();
         if (newservice) {
-            umtx_lock(NULL);
+            Mutex mutex;
             if (gService == NULL) {
                 gService = newservice;
                 newservice = NULL;
             }
-            umtx_unlock(NULL);
         }
         if (newservice) {
             delete newservice;
         } else {
             // we won the contention, this thread can register cleanup.
+#if !UCONFIG_NO_SERVICE
             ucln_i18n_registerCleanup(UCLN_I18N_NUMFMT, numfmt_cleanup);
+#endif
         }
     }
     return gService;
@@ -625,8 +629,9 @@ UBool U_EXPORT2
 NumberFormat::unregister(URegistryKey key, UErrorCode& status)
 {
     if (U_SUCCESS(status)) {
-        UBool haveService;
-        UMTX_CHECK(NULL, gService != NULL, haveService);
+        umtx_lock(NULL);
+        UBool haveService = gService != NULL;
+        umtx_unlock(NULL);
         if (haveService) {
             return gService->unregister(key, status);
         }
@@ -652,8 +657,9 @@ NumberFormat* U_EXPORT2
 NumberFormat::createInstance(const Locale& loc, EStyles kind, UErrorCode& status)
 {
 #if !UCONFIG_NO_SERVICE
-    UBool haveService;
-    UMTX_CHECK(NULL, gService != NULL, haveService);
+    umtx_lock(NULL);
+    UBool haveService = gService != NULL;
+    umtx_unlock(NULL);
     if (haveService) {
         return (NumberFormat*)gService->get(loc, kind, status);
     }

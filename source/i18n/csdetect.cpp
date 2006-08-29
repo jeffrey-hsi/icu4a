@@ -76,7 +76,9 @@ void CharsetDetector::setRecognizers(UErrorCode &status)
         return;
     }
 
-    UMTX_CHECK(NULL, (UBool) (fCSRecognizers == NULL), needsInit);
+    umtx_lock(NULL);
+    needsInit = (UBool) (fCSRecognizers == NULL);
+    umtx_unlock(NULL);
 
     if (needsInit) {
         CharsetRecognizer *tempArray[] = {

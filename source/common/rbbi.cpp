@@ -1705,7 +1705,9 @@ getLanguageBreakEngineFromFactory(UChar32 c, int32_t breakType)
 {
     UBool       needsInit;
     UErrorCode  status = U_ZERO_ERROR;
-    UMTX_CHECK(NULL, (UBool)(gLanguageBreakFactories == NULL), needsInit);
+    umtx_lock(NULL);
+    needsInit = (UBool)(gLanguageBreakFactories == NULL);
+    umtx_unlock(NULL);
     
     if (needsInit) {
         UStack  *factories = new UStack(_deleteFactory, NULL, status);

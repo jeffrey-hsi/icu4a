@@ -303,7 +303,9 @@ static ICULocaleService*
 getService(void)
 {
     UBool needsInit;
-    UMTX_CHECK(NULL, (UBool)(gService == NULL), needsInit);
+    umtx_lock(NULL);
+    needsInit = (UBool)(gService == NULL);
+    umtx_unlock(NULL);
     
     if (needsInit) {
         ICULocaleService  *tService = new ICUBreakIteratorService();

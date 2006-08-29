@@ -138,7 +138,9 @@ const LanguageBreakEngine *
 ICULanguageBreakFactory::getEngineFor(UChar32 c, int32_t breakType) {
     UBool       needsInit;
     UErrorCode  status = U_ZERO_ERROR;
-    UMTX_CHECK(NULL, (UBool)(fEngines == NULL), needsInit);
+    umtx_lock(NULL);
+    needsInit = (UBool)(fEngines == NULL);
+    umtx_unlock(NULL);
     
     if (needsInit) {
         UStack  *engines = new UStack(_deleteEngine, NULL, status);

@@ -244,12 +244,13 @@ RuleBasedTransliterator::handleTransliterate(Replaceable& text, UTransPosition& 
     //   so no concurrent access from multiple threads is possible.
     UBool    lockedMutexAtThisLevel = FALSE;
     if (isDataOwned == FALSE) {
-        // Test whether this request is operating on the same text string as some
-        //   some other transliteration that is still in progress and holding the 
-        //   transliteration mutex.  If so, do not lock the transliteration
-        //    mutex again.
-        UBool needToLock;
-        UMTX_CHECK(NULL, (&text != gLockedText), needToLock);
+        umtx_lock(NULL);
+            // Test whether this request is operating on the same text string as some
+            //   some other transliteration that is still in progress and holding the 
+            //   transliteration mutex.  If so, do not lock the transliteration
+            //    mutex again.
+            UBool needToLock = (&text != gLockedText);
+        umtx_unlock(NULL);
         if (needToLock) {
             umtx_lock(&transliteratorDataMutex);
             gLockedText = &text;

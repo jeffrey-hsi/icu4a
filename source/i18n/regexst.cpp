@@ -1,7 +1,7 @@
 //
 //  regexst.h
 //
-//  Copyright (C) 2004-2006, International Business Machines Corporation and others.
+//  Copyright (C) 2004, International Business Machines Corporation and others.
 //  All Rights Reserved.
 //
 //  This file contains class RegexStaticSets
@@ -262,8 +262,9 @@ regex_cleanup(void) {
 U_CDECL_END
 
 void RegexStaticSets::initGlobals(UErrorCode *status) {
-    RegexStaticSets *p;
-    UMTX_CHECK(NULL, gStaticSets, p);
+    umtx_lock(NULL);
+    RegexStaticSets *p = gStaticSets;
+    umtx_unlock(NULL);
     if (p == NULL) {
         p = new RegexStaticSets(status);
         if (U_FAILURE(*status)) {

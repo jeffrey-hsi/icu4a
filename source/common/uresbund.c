@@ -210,7 +210,9 @@ static UBool U_CALLCONV ures_cleanup(void)
 /** INTERNAL: Initializes the cache for resources */
 static void initCache(UErrorCode *status) {
     UBool makeCache = FALSE;
-    UMTX_CHECK(&resbMutex, (cache ==  NULL), makeCache);
+    umtx_lock(&resbMutex);
+    makeCache = (cache ==  NULL);
+    umtx_unlock(&resbMutex);
     if(makeCache) {
         UHashtable *newCache = uhash_open(hashEntry, compareEntries, NULL, status);
         if (U_FAILURE(*status)) {

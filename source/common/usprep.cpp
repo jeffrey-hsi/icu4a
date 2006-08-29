@@ -192,8 +192,10 @@ usprep_init() {
 /** Initializes the cache for resources */
 static void 
 initCache(UErrorCode *status) {
-    UBool makeCache;
-    UMTX_CHECK(&usprepMutex, (SHARED_DATA_HASHTABLE ==  NULL), makeCache);
+    UBool makeCache = FALSE;
+    umtx_lock(&usprepMutex);
+    makeCache = (SHARED_DATA_HASHTABLE ==  NULL);
+    umtx_unlock(&usprepMutex);
     if(makeCache) {
         UHashtable *newCache = uhash_open(hashEntry, compareEntries, NULL, status);
         if (U_SUCCESS(*status)) {

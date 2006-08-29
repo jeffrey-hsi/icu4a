@@ -2621,7 +2621,9 @@ static void _load_installedLocales()
 {
     UBool   localesLoaded;
 
-    UMTX_CHECK(NULL, _installedLocales != NULL, localesLoaded);
+    umtx_lock(NULL);
+    localesLoaded = _installedLocales != NULL;
+    umtx_unlock(NULL);
     
     if (localesLoaded == FALSE) {
         UResourceBundle *index = NULL;

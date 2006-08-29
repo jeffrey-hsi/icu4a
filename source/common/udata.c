@@ -209,7 +209,9 @@ static UHashtable *udata_getHashTable() {
     UBool        cacheIsInitialized;
     UHashtable  *tHT = NULL;
 
-    UMTX_CHECK(NULL, (gCommonDataCache != NULL), cacheIsInitialized);
+    umtx_lock(NULL);
+    cacheIsInitialized = (gCommonDataCache != NULL);
+    umtx_unlock(NULL);
 
     if (cacheIsInitialized) {
         return gCommonDataCache;

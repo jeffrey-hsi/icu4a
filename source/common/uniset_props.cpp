@@ -1207,9 +1207,10 @@ static UBool U_CALLCONV uset_cleanup(void) {
 U_CDECL_END
 
 const UnicodeSet* UnicodeSet::getInclusions(int32_t src, UErrorCode &status) {
-    UBool needInit;
-    UMTX_CHECK(NULL, (INCLUSIONS[src] == NULL), needInit);
-    if (needInit) {
+    umtx_lock(NULL);
+    UBool f = (INCLUSIONS[src] == NULL);
+    umtx_unlock(NULL);
+    if (f) {
         UnicodeSet* incl = new UnicodeSet();
         USetAdder sa = {
             (USet *)incl,
