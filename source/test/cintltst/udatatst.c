@@ -499,7 +499,6 @@ static void TestUDataFileAccess(){
         log_err("%s\n", u_errorName(status));
     }
     free(icuDataDir);
-    ctest_resetICU();
 }
 
 
@@ -1282,7 +1281,7 @@ static const struct {
      * MBCS conversion table file without extension,
      * to test swapping and preflighting of UTF-8-friendly mbcsIndex[].
      */
-    {"jisx-212",                 "cnv", ucnv_swap},
+    {"jisx-208",                 "cnv", ucnv_swap},
 #endif
 
 #if !UCONFIG_NO_CONVERSION

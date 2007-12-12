@@ -60,15 +60,56 @@ void ctest_setICU_DATA(void);
 #   define TRY_CNV_2 "sjis"
 #endif
 
-static int gOrigArgc;
-static const char* const * gOrigArgv;
+
+/*
+ * Tracing functions.
+ */
+static int traceFnNestingDepth = 0;
+U_CDECL_BEGIN
+static void U_CALLCONV TraceEntry(const void *context, int32_t fnNumber) {
+    char buf[500];
+    utrace_format(buf, sizeof(buf), traceFnNestingDepth*3, "%s() enter.\n", utrace_functionName(fnNumber));
+    buf[sizeof(buf)-1]=0;  
+    fputs(buf, stdout);
+    traceFnNestingDepth++;
+}
+        
+static void U_CALLCONV TraceExit(const void *context, int32_t fnNumber, const char *fmt, va_list args) {
+    char buf[500];
+
+    if (traceFnNestingDepth>0) {
+        traceFnNestingDepth--;
+    }
+    utrace_format(buf, sizeof(buf), traceFnNestingDepth*3, "%s() ", utrace_functionName(fnNumber));
+    buf[sizeof(buf)-1]=0;
+    fputs(buf, stdout);
+    utrace_vformat(buf, sizeof(buf), traceFnNestingDepth*3, fmt, args);
+    buf[sizeof(buf)-1]=0;
+    fputs(buf, stdout);
+    putc('\n', stdout);
+}
+
+static void U_CALLCONV TraceData(const void *context, int32_t fnNumber, 
+                          int32_t level, const char *fmt, va_list args) {
+    char buf[500];
+    utrace_vformat(buf, sizeof(buf), traceFnNestingDepth*3, fmt, args);
+    buf[sizeof(buf)-1]=0;
+    fputs(buf, stdout);
+    putc('\n', stdout);
+}
+U_CDECL_END
+
+
 
 int main(int argc, const char* const argv[])
 {
     int nerrors = 0;
+    int warnOnMissingData = 0;
+    int i, j;
     UBool   defaultDataFound;
     TestNode *root;
     const char *warnOrErr = "Failure"; 
+    const char** argv2;
     UDate startTime, endTime;
     int32_t diffTime;
 
@@ -81,37 +122,71 @@ int main(int argc, const char* const argv[])
 
     startTime = uprv_getUTCtime();
 
-    gOrigArgc = argc;
-    gOrigArgv = argv;
-    if (!initArgs(argc, argv)) {
-        /* Error already displayed. */
-        return -1;
+    argv2 = (const char**) malloc(sizeof(char*) * argc);
+    if (argv2 == NULL) {
+        printf("*** Error: Out of memory (too many cmd line args?)\n");
+        return 1;
     }
-    
-    /* Check whether ICU will initialize without forcing the build data directory into
-     *  the ICU_DATA path.  Success here means either the data dll contains data, or that
-     *  this test program was run with ICU_DATA set externally.  Failure of this check
-     *  is normal when ICU data is not packaged into a shared library.
-     *
-     *  Whether or not this test succeeds, we want to cleanup and reinitialize
-     *  with a data path so that data loading from individual files can be tested.
-     */
-    defaultDataFound = TRUE;
-    u_init(&errorCode);
-    if (U_FAILURE(errorCode)) {
-        fprintf(stderr,
-            "#### Note:  ICU Init without build-specific setDataDirectory() failed. %s\n", u_errorName(errorCode));
-        defaultDataFound = FALSE;
-    }
-    u_cleanup();
+    argv2[0] = argv[0];
 
+
+    /* Checkargs */
+    /* TODO:  Test framework arg handling needs to be decoupled from test execution
+     *        so that the args being processed here don't need special handling,
+     *        separate from the other test args.
+     */
+    ICU_TRACE = UTRACE_OFF;
+    for(i=1,j=1;i<argc;i++) {
+        argv2[j++] = argv[i];
+        if(!strcmp(argv[i],"-w")) {
+            warnOnMissingData = 1;
+            warnOrErr = "Warning";
+        }
+        else if (strcmp( argv[i], "-t_error") == 0) {
+            ICU_TRACE = UTRACE_ERROR;
+        }
+        else if (strcmp( argv[i], "-t_warn") == 0) {
+            ICU_TRACE = UTRACE_WARNING;
+        }
+        else if (strcmp( argv[i], "-t_oc") == 0) {
+            ICU_TRACE = UTRACE_OPEN_CLOSE;
+        }
+        else if (strcmp( argv[i], "-t_info") == 0) {
+            ICU_TRACE = UTRACE_INFO;
+        }
+        else if (strcmp( argv[i], "-t_verbose") == 0) {
+            ICU_TRACE = UTRACE_VERBOSE;
+        }
+    }
+    argc = j;
+
+    
+    utrace_setFunctions(NULL, TraceEntry, TraceExit, TraceData);
+    utrace_setLevel(ICU_TRACE);
+ 
+    
     while (REPEAT_TESTS > 0) {   /* Loop runs once per complete execution of the tests 
                                   *   used for -r  (repeat) test option.                */
-        if (!initArgs(argc, argv)) {
-            /* Error already displayed. */
-            return -1;
+
+        /* Check whether ICU will initialize without forcing the build data directory into
+         *  the ICU_DATA path.  Success here means either the data dll contains data, or that
+         *  this test program was run with ICU_DATA set externally.  Failure of this check
+         *  is normal when ICU data is not packaged into a shared library.
+         *
+         *  Whether or not this test succeeds, we want to cleanup and reinitialize
+         *  with a data path so that data loading from individual files can be tested.
+         */
+        defaultDataFound = TRUE;
+        u_init(&errorCode);
+        if (U_FAILURE(errorCode)) {
+            fprintf(stderr,
+                "#### Note:  ICU Init without build-specific setDataDirectory() failed. %s\n", u_errorName(errorCode));
+            defaultDataFound = FALSE;
         }
+        u_cleanup();
         errorCode = U_ZERO_ERROR;
+        utrace_setFunctions(NULL, TraceEntry, TraceExit, TraceData);
+        utrace_setLevel(ICU_TRACE);
 
         /* Initialize ICU */
         if (!defaultDataFound) {
@@ -123,7 +198,7 @@ int main(int argc, const char* const argv[])
                 "#### ERROR! %s: u_init() failed with status = \"%s\".\n" 
                 "*** Check the ICU_DATA environment variable and \n"
                 "*** check that the data files are present.\n", argv[0], u_errorName(errorCode));
-                if(!WARN_ON_MISSING_DATA) {
+                if(warnOnMissingData == 0) {
                     fprintf(stderr, "*** Exiting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                     u_cleanup();
                     return 1;
@@ -142,7 +217,7 @@ int main(int argc, const char* const argv[])
                     "*** %s! The converter for " TRY_CNV_2 " cannot be opened.\n"
                     "*** Check the ICU_DATA environment variable and \n"
                     "*** check that the data files are present.\n", warnOrErr);
-            if(!WARN_ON_MISSING_DATA) {
+            if(warnOnMissingData == 0) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
                 return 1;
@@ -158,7 +233,7 @@ int main(int argc, const char* const argv[])
                     "*** %s! The \"en\" locale resource bundle cannot be opened.\n"
                     "*** Check the ICU_DATA environment variable and \n"
                     "*** check that the data files are present.\n", warnOrErr);
-            if(!WARN_ON_MISSING_DATA) {
+            if(warnOnMissingData == 0) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
                 return 1;
@@ -177,7 +252,7 @@ int main(int argc, const char* const argv[])
         } else {
             fprintf(stderr,
                     "*** %s! Can not open a resource bundle for the default locale %s\n", warnOrErr, uloc_getDefault());
-            if(!WARN_ON_MISSING_DATA) {
+            if(warnOnMissingData == 0) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n"
                     "*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
@@ -192,7 +267,7 @@ int main(int argc, const char* const argv[])
         addAllTests(&root);
 
         /*  Tests acutally run HERE.   TODO:  separate command line option parsing & setting from test execution!! */
-        nerrors = runTestRequest(root, argc, argv);
+        nerrors = processArgs(root, argc, argv2);
 
         if (--REPEAT_TESTS > 0) {
             printf("Repeating tests %d more time(s)\n", REPEAT_TESTS);
@@ -207,10 +282,8 @@ int main(int argc, const char* const argv[])
 
     }  /* End of loop that repeats the entire test, if requested.  (Normally doesn't loop)  */
 
-    if (ALLOCATION_COUNT > 0) {
-        fprintf(stderr, "There were %d blocks leaked!\n", ALLOCATION_COUNT);
-        nerrors++;
-    }
+    free((void*)argv2);
+
     endTime = uprv_getUTCtime();
     diffTime = (int32_t)(endTime - startTime);
     printf("Elapsed Time: %02d:%02d:%02d.%03d\n",
@@ -412,38 +485,6 @@ void ctest_setICU_DATA() {
         /* If ICU_DATA isn't set, set it to the usual location */
         u_setDataDirectory(ctest_dataOutDir());
     }
-}
-
-/*  These tests do cleanup and reinitialize ICU in the course of their operation.
- *    The ICU data directory must be preserved across these operations.
- *    Here is a helper function to assist with that.
- */
-static char *safeGetICUDataDirectory() {
-    const char *dataDir = u_getDataDirectory();  /* Returned string vanashes with u_cleanup */
-    char *retStr = NULL;
-    if (dataDir != NULL) {
-        retStr = (char *)malloc(strlen(dataDir)+1);
-        strcpy(retStr, dataDir);
-    }
-    return retStr;
-}
-
-UBool ctest_resetICU() {
-    UErrorCode   status = U_ZERO_ERROR;
-    char         *dataDir = safeGetICUDataDirectory();
-
-    u_cleanup();
-    if (!initArgs(gOrigArgc, gOrigArgv)) {
-        /* Error already displayed. */
-        return FALSE;
-    }
-    u_setDataDirectory(dataDir);
-    u_init(&status);
-    if (U_FAILURE(status)) {
-        log_err("u_init failed with %s\n", u_errorName(status));
-        return FALSE;
-    }
-    return TRUE;
 }
 
 UChar* CharsToUChars(const char* str) {

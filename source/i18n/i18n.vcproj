@@ -534,7 +534,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -543,7 +543,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -581,14 +581,6 @@
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\chnsecal.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\chnsecal.h"
-				>
 			</File>
 			<File
 				RelativePath=".\choicfmt.cpp"
@@ -830,7 +822,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -839,7 +831,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1316,7 +1308,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1325,7 +1317,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1342,7 +1334,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1351,7 +1343,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1558,7 +1550,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1584,7 +1576,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>
@@ -1593,7 +1585,7 @@
 					>
 					<Tool
 						Name="VCCustomBuildTool"
-						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode&#x0D;&#x0A;"
+						CommandLine="copy &quot;$(InputPath)&quot; ..\..\include\unicode"
 						Outputs="..\..\include\unicode\$(InputFileName)"
 					/>
 				</FileConfiguration>

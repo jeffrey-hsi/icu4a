@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2007, International Business Machines
+*   Copyright (C) 1999-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -130,8 +130,6 @@
 #include "uoptions.h"
 #include "uparse.h"
 
-#define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
-
 #define STRING_STORE_SIZE 1000000
 #define GROUP_STORE_SIZE 5000
 
@@ -147,8 +145,6 @@
 #define DATA_TYPE "icu"
 #define VERSION_STRING "unam"
 #define NAME_SEPARATOR_CHAR ';'
-
-#define ISO_DATA_NAME "ucomment"
 
 /* Unicode versions --------------------------------------------------------- */
 
@@ -212,17 +208,11 @@ static UDataInfo dataInfo={
 
 static UBool beVerbose=FALSE, beQuiet=FALSE, haveCopyright=TRUE;
 
-typedef struct Options {
-    UBool storeNames;
-    UBool store10Names;
-    UBool storeISOComments;
-} Options;
-
 static uint8_t stringStore[STRING_STORE_SIZE],
                groupStore[GROUP_STORE_SIZE],
                lineLengths[LINES_PER_GROUP];
 
-static uint32_t lineTop=0, groupBottom, wordBottom=STRING_STORE_SIZE, lineLengthsTop;
+static uint32_t lineTop=0, wordBottom=STRING_STORE_SIZE, lineLengthsTop;
 
 typedef struct {
     uint32_t code;
@@ -255,7 +245,7 @@ static void
 init(void);
 
 static void
-parseDB(const char *filename, Options *options);
+parseDB(const char *filename, UBool store10Names);
 
 static void
 parseName(char *name, int16_t length);
@@ -279,10 +269,10 @@ static int32_t
 compareWords(const void *context, const void *word1, const void *word2);
 
 static void
-generateData(const char *dataDir, Options *options);
+generateData(const char *dataDir);
 
 static uint32_t
-generateAlgorithmicData(UNewDataMemory *pData, Options *options);
+generateAlgorithmicData(UNewDataMemory *pData);
 
 static int16_t
 findToken(uint8_t *s, int16_t length);
@@ -319,19 +309,6 @@ allocWord(uint32_t length);
 
 /* -------------------------------------------------------------------------- */
 
-enum {
-    HELP_H,
-    HELP_QUESTION_MARK,
-    VERBOSE,
-    QUIET,
-    COPYRIGHT,
-    DESTDIR,
-    UNICODE,
-    UNICODE1_NAMES,
-    NO_ISO_COMMENTS,
-    ONLY_ISO_COMMENTS
-};
-
 static UOption options[]={
     UOPTION_HELP_H,
     UOPTION_HELP_QUESTION_MARK,
@@ -340,15 +317,13 @@ static UOption options[]={
     UOPTION_COPYRIGHT,
     UOPTION_DESTDIR,
     { "unicode", NULL, NULL, NULL, 'u', UOPT_REQUIRES_ARG, 0 },
-    { "unicode1-names", NULL, NULL, NULL, '1', UOPT_NO_ARG, 0 },
-    { "no-iso-comments", NULL, NULL, NULL, '\1', UOPT_NO_ARG, 0 },
-    { "only-iso-comments", NULL, NULL, NULL, '\1', UOPT_NO_ARG, 0 }
+    { "unicode1-names", NULL, NULL, NULL, '1', UOPT_NO_ARG, 0 }
 };
 
 extern int
 main(int argc, char* argv[]) {
     UVersionInfo version;
-    Options moreOptions={ TRUE, FALSE, TRUE };
+    UBool store10Names=FALSE;
     UErrorCode errorCode = U_ZERO_ERROR;
 
     U_MAIN_INIT_ARGS(argc, argv);
@@ -366,9 +341,9 @@ main(int argc, char* argv[]) {
     }
 
     /* preset then read command line options */
-    options[DESTDIR].value=u_getDataDirectory();
-    options[UNICODE].value="4.1";
-    argc=u_parseArgs(argc, argv, LENGTHOF(options), options);
+    options[5].value=u_getDataDirectory();
+    options[6].value="4.1";
+    argc=u_parseArgs(argc, argv, sizeof(options)/sizeof(options[0]), options);
 
     /* error handling, printing usage message */
     if(argc<0) {
@@ -378,7 +353,7 @@ main(int argc, char* argv[]) {
     } else if(argc<2) {
         argc=-1;
     }
-    if(argc<0 || options[HELP_H].doesOccur || options[HELP_QUESTION_MARK].doesOccur) {
+    if(argc<0 || options[0].doesOccur || options[1].doesOccur) {
         /*
          * Broken into chucks because the C89 standard says the minimum
          * required supported string length is 509 bytes.
@@ -400,34 +375,26 @@ main(int argc, char* argv[]) {
             "\t-q or --quiet       no output\n"
             "\t-c or --copyright   include a copyright notice\n"
             "\t-d or --destdir     destination directory, followed by the path\n"
-            "\t-u or --unicode     Unicode version, followed by the version like 3.0.0\n");
-        fprintf(stderr,
-            "\t-1 or --unicode1-names     store Unicode 1.0 character names\n"
-            "\t      --no-iso-comments    do not store ISO comments\n",
-            "\t      --only-iso-comments  write ucomment.icu with only ISO comments\n");
+            "\t-u or --unicode     Unicode version, followed by the version like 3.0.0\n"
+            "\t-1 or --unicode1-names  store Unicode 1.0 character names\n");
         return argc<0 ? U_ILLEGAL_ARGUMENT_ERROR : U_ZERO_ERROR;
     }
 
     /* get the options values */
-    beVerbose=options[VERBOSE].doesOccur;
-    beQuiet=options[QUIET].doesOccur;
-    haveCopyright=options[COPYRIGHT].doesOccur;
-    moreOptions.store10Names=options[UNICODE1_NAMES].doesOccur;
-    moreOptions.storeISOComments=!options[NO_ISO_COMMENTS].doesOccur;
-    if(options[ONLY_ISO_COMMENTS].doesOccur) {
-        moreOptions.storeNames=moreOptions.store10Names=FALSE;
-        moreOptions.storeISOComments=TRUE;
-    }
+    beVerbose=options[2].doesOccur;
+    beQuiet=options[3].doesOccur;
+    haveCopyright=options[4].doesOccur;
+    store10Names=options[7].doesOccur;
 
     /* set the Unicode version */
-    u_versionFromString(version, options[UNICODE].value);
+    u_versionFromString(version, options[6].value);
     uprv_memcpy(dataInfo.dataVersion, version, 4);
     ucdVersion=findUnicodeVersion(version);
 
     init();
-    parseDB(argc>=2 ? argv[1] : "-", &moreOptions);
+    parseDB(argc>=2 ? argv[1] : "-", store10Names);
     compress();
-    generateData(options[DESTDIR].value, &moreOptions);
+    generateData(options[5].value);
 
     u_cleanup();
     return 0;
@@ -464,9 +431,8 @@ static void U_CALLCONV
 lineFn(void *context,
        char *fields[][2], int32_t fieldCount,
        UErrorCode *pErrorCode) {
-    Options *options=(Options *)context;
     char *names[3];
-    int16_t lengths[3]={ 0, 0, 0 };
+    int16_t lengths[3];
     static uint32_t prevCode=0;
     uint32_t code=0;
 
@@ -477,38 +443,34 @@ lineFn(void *context,
     code=uprv_strtoul(fields[0][0], NULL, 16);
 
     /* get the character name */
-    if(options->storeNames) {
-        names[0]=fields[1][0];
-        lengths[0]=getName(names+0, fields[1][1]);
-        if(names[0][0]=='<') {
-            /* do not store pseudo-names in <> brackets */
-            lengths[0]=0;
-        }
+    names[0]=fields[1][0];
+    lengths[0]=getName(names+0, fields[1][1]);
+    if(names[0][0]=='<') {
+        /* do not store pseudo-names in <> brackets */
+        lengths[0]=0;
     }
 
     /* store 1.0 names */
     /* get the second character name, the one from Unicode 1.0 */
-    if(options->store10Names) {
-        names[1]=fields[10][0];
-        lengths[1]=getName(names+1, fields[10][1]);
-        if(names[1][0]=='<') {
-            /* do not store pseudo-names in <> brackets */
-            lengths[1]=0;
-        }
+    /* do not store pseudo-names in <> brackets */
+    names[1]=fields[10][0];
+    lengths[1]=getName(names+1, fields[10][1]);
+    if(*(UBool *)context && names[1][0]!='<') {
+        /* keep the name */
+    } else {
+        lengths[1]=0;
     }
 
     /* get the ISO 10646 comment */
-    if(options->storeISOComments) {
-        names[2]=fields[11][0];
-        lengths[2]=getName(names+2, fields[11][1]);
-    }
+    names[2]=fields[11][0];
+    lengths[2]=getName(names+2, fields[11][1]);
 
     if(lengths[0]+lengths[1]+lengths[2]==0) {
         return;
     }
 
     /* check for non-character code points */
-    if(!U_IS_UNICODE_CHAR(code)) {
+    if(!UTF_IS_UNICODE_CHAR(code)) {
         fprintf(stderr, "gennames: error - properties for non-character code point U+%04lx\n",
                 (unsigned long)code);
         *pErrorCode=U_PARSE_ERROR;
@@ -530,27 +492,19 @@ lineFn(void *context,
 
     /*
      * set the count argument to
-     * 1: only store regular names, or only store ISO 10646 comments
+     * 1: only store regular names
      * 2: store regular and 1.0 names
      * 3: store names and ISO 10646 comment
-     *
-     * addLine() will ignore empty trailing names
      */
-    if(options->storeNames) {
-        /* store names and comments as parsed according to options */
-        addLine(code, names, lengths, 3);
-    } else {
-        /* store only ISO 10646 comments */
-        addLine(code, names+2, lengths+2, 1);
-    }
+    addLine(code, names, lengths, 3);
 }
 
 static void
-parseDB(const char *filename, Options *options) {
+parseDB(const char *filename, UBool store10Names) {
     char *fields[15][2];
     UErrorCode errorCode=U_ZERO_ERROR;
 
-    u_parseDelimitedFile(filename, ';', fields, 15, lineFn, options, &errorCode);
+    u_parseDelimitedFile(filename, ';', fields, 15, lineFn, &store10Names, &errorCode);
     if(U_FAILURE(errorCode)) {
         fprintf(stderr, "gennames parse error: %s\n", u_errorName(errorCode));
         exit(errorCode);
@@ -803,8 +757,8 @@ compressLines() {
              groupMSB=0xffff, lineCount2;
     int16_t groupTop=0;
 
-    /* store the groups like lines, with compressed data after raw strings */
-    groupBottom=lineTop;
+    /* store the groups like lines, reusing the lines' memory */
+    lineTop=0;
     lineCount2=lineCount;
     lineCount=0;
 
@@ -827,6 +781,10 @@ compressLines() {
                     exit(U_BUFFER_OVERFLOW_ERROR);
                 }
                 addGroup(groupMSB, groupStore, groupTop);
+                if(lineTop>(uint32_t)(line->s-stringStore)) {
+                    fprintf(stderr, "gennames: group store runs into string store\n");
+                    exit(U_INTERNAL_PROGRAM_ERROR);
+                }
             }
 
             /* start the new group */
@@ -859,6 +817,10 @@ compressLines() {
                 exit(U_BUFFER_OVERFLOW_ERROR);
             }
             addGroup(groupMSB, groupStore, groupTop);
+            if(lineTop>(uint32_t)(line->s-stringStore)) {
+                fprintf(stderr, "gennames: group store runs into string store\n");
+                exit(U_INTERNAL_PROGRAM_ERROR);
+            }
         }
     }
 
@@ -917,7 +879,7 @@ compareWords(const void *context, const void *word1, const void *word2) {
 /* generate output data ----------------------------------------------------- */
 
 static void
-generateData(const char *dataDir, Options *options) {
+generateData(const char *dataDir) {
     UNewDataMemory *pData;
     UErrorCode errorCode=U_ZERO_ERROR;
     uint16_t groupWords[3];
@@ -926,9 +888,7 @@ generateData(const char *dataDir, Options *options) {
     long dataLength;
     int16_t token;
 
-    pData=udata_create(dataDir,
-                       DATA_TYPE, options->storeNames ? DATA_NAME : ISO_DATA_NAME,
-                       &dataInfo,
+    pData=udata_create(dataDir, DATA_TYPE,DATA_NAME, &dataInfo,
                        haveCopyright ? U_COPYRIGHT_STRING : NULL, &errorCode);
     if(U_FAILURE(errorCode)) {
         fprintf(stderr, "gennames: unable to create data memory, error %d\n", errorCode);
@@ -994,23 +954,23 @@ generateData(const char *dataDir, Options *options) {
      * - the number of groups, uint16_t (2)
      * - the group table, { uint16_t groupMSB, uint16_t offsetHigh, uint16_t offsetLow }[6*groupCount]
      *
-     * - the group strings (groupTop-groupBottom), 2-padded
+     * - the group strings (groupTop), 2-padded
      *
      * - the size of the data for the algorithmic names
      */
     tokenStringOffset=4+4+4+4+2+2*tokenCount;
-    groupsOffset=(tokenStringOffset+(lineTop-groupTop)+1)&~1;
+    groupsOffset=(tokenStringOffset+(lineTop-groupTop+1))&~1;
     groupStringOffset=groupsOffset+2+6*lineCount;
-    algNamesOffset=(groupStringOffset+(groupTop-groupBottom)+3)&~3;
+    algNamesOffset=(groupStringOffset+groupTop+3)&~3;
 
-    offset=generateAlgorithmicData(NULL, options);
+    offset=generateAlgorithmicData(NULL);
     size=algNamesOffset+offset;
 
     if(!beQuiet) {
         printf("size of the Unicode Names data:\n"
                "total data length %lu, token strings %lu, compressed strings %lu, algorithmic names %lu\n",
                 (unsigned long)size, (unsigned long)(lineTop-groupTop),
-                (unsigned long)(groupTop-groupBottom), (unsigned long)offset);
+                (unsigned long)groupTop, (unsigned long)offset);
     }
 
     /* write the data to the file */
@@ -1038,19 +998,19 @@ generateData(const char *dataDir, Options *options) {
         groupWords[0]=(uint16_t)lines[i].code;
 
         /* offset */
-        offset = (uint32_t)((lines[i].s - stringStore)-groupBottom);
+        offset = (uint32_t)(lines[i].s - stringStore);
         groupWords[1]=(uint16_t)(offset>>16);
         groupWords[2]=(uint16_t)(offset);
         udata_writeBlock(pData, groupWords, 6);
     }
 
     /* group strings */
-    udata_writeBlock(pData, stringStore+groupBottom, groupTop-groupBottom);
+    udata_writeBlock(pData, stringStore, groupTop);
 
     /* 4-align the algorithmic names data */
-    udata_writePadding(pData, algNamesOffset-(groupStringOffset+(groupTop-groupBottom)));
+    udata_writePadding(pData, algNamesOffset-(groupStringOffset+groupTop));
 
-    generateAlgorithmicData(pData, options);
+    generateAlgorithmicData(pData);
 
     /* finish up */
     dataLength=udata_finish(pData, &errorCode);
@@ -1074,7 +1034,7 @@ typedef struct AlgorithmicRange {
 } AlgorithmicRange;
 
 static uint32_t
-generateAlgorithmicData(UNewDataMemory *pData, Options *options) {
+generateAlgorithmicData(UNewDataMemory *pData) {
     static char prefix[] = "CJK UNIFIED IDEOGRAPH-";
 #   define PREFIX_LENGTH 23
 #   define PREFIX_LENGTH_4 24
@@ -1133,9 +1093,7 @@ generateAlgorithmicData(UNewDataMemory *pData, Options *options) {
     }
 
     /* number of ranges of algorithmic names */
-    if(!options->storeNames) {
-        countAlgRanges=0;
-    } else if(ucdVersion>=UNI_3_1) {
+    if(ucdVersion>=UNI_3_1) {
         /* Unicode 3.1 and up has 4 ranges including CJK Extension B */
         countAlgRanges=4;
     } else if(ucdVersion>=UNI_3_0) {
@@ -1150,9 +1108,6 @@ generateAlgorithmicData(UNewDataMemory *pData, Options *options) {
         udata_write32(pData, countAlgRanges);
     } else {
         size+=4;
-    }
-    if(countAlgRanges==0) {
-        return size;
     }
 
     /*

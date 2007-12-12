@@ -87,7 +87,6 @@ static const char     *outputdir;
 static uint32_t        outputdirLength;
 
 static UBool gMakeBinaryCollation = TRUE;
-static UBool gOmitCollationRules  = FALSE;
 
 static struct SResource *parseResource(char *tag, const struct UString *comment, UErrorCode *status);
 
@@ -309,9 +308,6 @@ parseUCARules(char *tag, uint32_t startline, const struct UString* comment, UErr
     }
     uprv_strcat(filename, cs);
 
-    if(gOmitCollationRules) {
-        return res_none();
-    }
 
     ucbuf = ucbuf_open(filename, &cp, getShowWarning(),FALSE, status);
 
@@ -703,12 +699,8 @@ addCollation(struct SResource  *result, uint32_t startline, UErrorCode *status)
 #if UCONFIG_NO_COLLATION
             warning(line, "Not building collation elements because of UCONFIG_NO_COLLATION, see uconfig.h");
 #else
-            /* in order to achieve smaller data files, we can direct genrb */
-            /* to omit collation rules */
-            if(!gOmitCollationRules) {
-              /* first we add the "Sequence", so that we always have rules */
-              table_add(result, member, line, status);
-            }
+            /* first we add the "Sequence", so that we always have rules */
+            table_add(result, member, line, status);
             if(gMakeBinaryCollation) {
                 UErrorCode intStatus = U_ZERO_ERROR;
 
@@ -1618,7 +1610,7 @@ static struct {
     {"reserved", NULL, NULL}
 };
 
-void initParser(UBool omitBinaryCollation, UBool omitCollationRules)
+void initParser(UBool makeBinaryCollation)
 {
     uint32_t i;
 
@@ -1645,8 +1637,7 @@ void initParser(UBool omitBinaryCollation, UBool omitCollationRules)
     {
         ustr_init(&lookahead[i].value);
     }
-    gMakeBinaryCollation = !omitBinaryCollation;
-    gOmitCollationRules = omitCollationRules;
+    gMakeBinaryCollation = makeBinaryCollation;
 }
 
 static U_INLINE UBool isTable(enum EResourceType type) {

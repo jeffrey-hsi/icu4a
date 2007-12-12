@@ -72,7 +72,6 @@ public:
     void TestToUnicode();
     void TestFromUnicode();
     void TestGetUnicodeSet();
-    void TestGetUnicodeSet2();
 
 private:
     UBool

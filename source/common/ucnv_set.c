@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2003-2007, International Business Machines
+*   Copyright (C) 2003-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -52,8 +52,7 @@ ucnv_getUnicodeSet(const UConverter *cnv,
             uset_add,
             uset_addRange,
             uset_addString,
-            uset_remove,
-            uset_removeRange
+            uset_remove
         };
         sa.set=setFillIn;
 

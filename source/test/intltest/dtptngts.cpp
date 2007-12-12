@@ -433,37 +433,10 @@ void IntlTestDateTimePatternGeneratorAPI::testAPI(/*char *par*/)
         }
     }
 
-    // ========= DateTimePatternGenerator sample code in Userguide
-    // set up the generator
-    Locale locale = Locale::getFrench();
-    status = U_ZERO_ERROR;
-    DateTimePatternGenerator *generator = DateTimePatternGenerator::createInstance( locale, status);
-        
-    // get a pattern for an abbreviated month and day
-    pattern = generator->getBestPattern(UnicodeString("MMMd"), status); 
-    SimpleDateFormat formatter(pattern, locale, status); 
-
-    zone = TimeZone::createTimeZone(UnicodeString("GMT"));
-    formatter.setTimeZone(*zone);
-    // use it to format (or parse)
-    UnicodeString formatted;
-    formatted = formatter.format(Calendar::getNow(), formatted, status); 
-    // for French, the result is "13 sept."
-    formatted.remove();
-    // cannot use the result from getNow() because the value change evreyday. 
-    formatted = formatter.format(testDate, formatted, status);
-    expectedResult=UnicodeString("14 janv.");
-    if ( formatted != expectedResult ) {
-        errln("ERROR: Userguide sample code result!");
-        errln(UnicodeString(" Got: ")+ formatted + UnicodeString(" Expected: ") + expectedResult);
-    }
-
-    delete zone;
     delete output;
     delete ptrSkeletonEnum;
     delete ptrBaseSkeletonEnum;
     delete test;
-    delete generator;
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

@@ -101,20 +101,9 @@ enum {
 U_CFUNC NewConverter *
 MBCSOpen(UCMFile *ucm);
 
-struct MBCSData;
-typedef struct MBCSData MBCSData;
-
-/*
- * Get a dummy MBCSData for use with MBCSOkForBaseFromUnicode()
- * for creating an extension-only file.
- * Assume maxCharLength>1.
- */
-U_CFUNC const MBCSData *
-MBCSGetDummy();
-
 /* Test if a 1:1 mapping fits into the MBCS base table's fromUnicode structure. */
 U_CFUNC UBool
-MBCSOkForBaseFromUnicode(const MBCSData *mbcsData,
+MBCSOkForBaseFromUnicode(UBool utf8Friendly,
                          const uint8_t *bytes, int32_t length,
                          UChar32 c, int8_t flag);
 

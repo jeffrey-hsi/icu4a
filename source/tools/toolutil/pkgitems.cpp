@@ -497,7 +497,7 @@ ucnv_enumDependencies(const UDataSwapper *ds,
     /* check for supported conversionType values */
     if(inStaticData->conversionType==UCNV_MBCS) {
         /* MBCS data */
-        uint32_t mbcsHeaderLength, mbcsHeaderFlags, mbcsHeaderOptions;
+        uint32_t mbcsHeaderFlags;
         int32_t extOffset;
 
         inMBCSHeader=(const _MBCSHeader *)inBytes;
@@ -508,14 +508,7 @@ ucnv_enumDependencies(const UDataSwapper *ds,
             *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
             return;
         }
-        if(inMBCSHeader->version[0]==4 && inMBCSHeader->version[1]>=1) {
-            mbcsHeaderLength=MBCS_HEADER_V4_LENGTH;
-        } else if(inMBCSHeader->version[0]==5 && inMBCSHeader->version[1]>=3 &&
-                  ((mbcsHeaderOptions=ds->readUInt32(inMBCSHeader->options))&
-                   MBCS_OPT_UNKNOWN_INCOMPATIBLE_MASK)==0
-        ) {
-            mbcsHeaderLength=mbcsHeaderOptions&MBCS_OPT_LENGTH_MASK;
-        } else {
+        if(!(inMBCSHeader->version[0]==4 && inMBCSHeader->version[1]>=1)) {
             udata_printError(ds, "icupkg/ucnv_enumDependencies(): unsupported _MBCSHeader.version %d.%d\n",
                              inMBCSHeader->version[0], inMBCSHeader->version[1]);
             *pErrorCode=U_UNSUPPORTED_ERROR;
@@ -543,15 +536,14 @@ ucnv_enumDependencies(const UDataSwapper *ds,
             }
 
             /* swap the base name, between the header and the extension data */
-            const char *inBaseName=(const char *)inBytes+mbcsHeaderLength*4;
-            baseNameLength=(int32_t)strlen(inBaseName);
+            baseNameLength=(int32_t)strlen((const char *)(inMBCSHeader+1));
             if(baseNameLength>=(int32_t)sizeof(baseName)) {
                 udata_printError(ds, "icupkg/ucnv_enumDependencies(%s): base name length %ld too long\n",
                                  itemName, baseNameLength);
                 *pErrorCode=U_UNSUPPORTED_ERROR;
                 return;
             }
-            ds->swapInvChars(ds, inBaseName, baseNameLength+1, baseName, pErrorCode);
+            ds->swapInvChars(ds, inMBCSHeader+1, baseNameLength+1, baseName, pErrorCode);
 
             checkIDSuffix(itemName, baseName, -1, ".cnv", check, context, pErrorCode);
         }

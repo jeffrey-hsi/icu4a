@@ -1,6 +1,6 @@
 /*  
 **********************************************************************
-*   Copyright (C) 2000-2007, International Business Machines
+*   Copyright (C) 2000-2006, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   file name:  ucnv_lmb.cpp
@@ -536,7 +536,7 @@ static const UConverterImpl _LMBCSImpl##n={\
     NULL,\
     NULL,\
     _LMBCSSafeClone,\
-    ucnv_getCompleteUnicodeSet\
+    _LMBCSGetUnicodeSet\
 };\
 static const UConverterStaticData _LMBCSStaticData##n={\
   sizeof(UConverterStaticData),\
@@ -662,14 +662,15 @@ _LMBCSSafeClone(const UConverter *cnv,
     return &newLMBCS->cnv;
 }
 
-/*
- * There used to be a _LMBCSGetUnicodeSet() function here (up to svn revision 20117)
- * which added all code points except for U+F6xx
- * because those cannot be represented in the Unicode group.
- * However, it turns out that windows-950 has roundtrips for all of U+F6xx
- * which means that LMBCS can convert all Unicode code points after all.
- * We now simply use ucnv_getCompleteUnicodeSet().
- */
+static void
+_LMBCSGetUnicodeSet(const UConverter *cnv,
+                   const USetAdder *sa,
+                   UConverterUnicodeSet which,
+                   UErrorCode *pErrorCode) {
+    /* all but U+F6xx, see LMBCS explanation above (search for F6xx) */
+    sa->addRange(sa->set, 0, 0xf5ff);
+    sa->addRange(sa->set, 0xf700, 0x10ffff);
+}
 
 /* 
    Here's the basic helper function that we use when converting from

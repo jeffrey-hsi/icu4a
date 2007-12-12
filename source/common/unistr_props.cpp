@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2007, International Business Machines
+*   Copyright (C) 1999-2006, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -29,10 +29,8 @@ UnicodeString::trim()
     return *this;
   }
 
-  UChar *array = getArrayStart();
   UChar32 c;
-  int32_t oldLength = this->length();
-  int32_t i = oldLength, length;
+  int32_t i = fLength, length;
 
   // first cut off trailing white space
   for(;;) {
@@ -40,13 +38,13 @@ UnicodeString::trim()
     if(i <= 0) {
       break;
     }
-    U16_PREV(array, 0, i, c);
+    UTF_PREV_CHAR(fArray, 0, i, c);
     if(!(c == 0x20 || u_isWhitespace(c))) {
       break;
     }
   }
-  if(length < oldLength) {
-    setLength(length);
+  if(length < fLength) {
+    fLength = length;
   }
 
   // find leading white space
@@ -57,7 +55,7 @@ UnicodeString::trim()
     if(i >= length) {
       break;
     }
-    U16_NEXT(array, i, length, c);
+    UTF_NEXT_CHAR(fArray, i, length, c);
     if(!(c == 0x20 || u_isWhitespace(c))) {
       break;
     }

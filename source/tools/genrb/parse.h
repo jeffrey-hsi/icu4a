@@ -24,7 +24,7 @@
 
 U_CDECL_BEGIN
 /* One time parser initalisation */
-void initParser(UBool omitBinaryCollation, UBool omitCollationRules);
+void initParser(UBool makeBinaryCollation);
 
 /* Parse a ResourceBundle text file */
 struct SRBRoot* parse(UCHARBUF *buf, const char* inputDir, const char* outputDir, UErrorCode *status);
@@ -32,3 +32,4 @@ struct SRBRoot* parse(UCHARBUF *buf, const char* inputDir, const char* outputDir
 U_CDECL_END
 
 #endif
+

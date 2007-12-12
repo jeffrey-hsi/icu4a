@@ -870,8 +870,6 @@ ucnv_getStarters(const UConverter* converter,
 typedef enum UConverterUnicodeSet {
     /** Select the set of roundtrippable Unicode code points. @stable ICU 2.6 */
     UCNV_ROUNDTRIP_SET,
-    /** Select the set of Unicode code points with roundtrip or fallback mappings. @draft ICU 4.0 */
-    UCNV_ROUNDTRIP_AND_FALLBACK_SET,
     /** Number of UConverterUnicodeSet selectors. @stable ICU 2.6 */
     UCNV_SET_COUNT
 } UConverterUnicodeSet;
@@ -880,16 +878,11 @@ typedef enum UConverterUnicodeSet {
 /**
  * Returns the set of Unicode code points that can be converted by an ICU converter.
  *
- * Returns one of several kinds of set:
- *
- * 1. UCNV_ROUNDTRIP_SET
- *
+ * The current implementation returns only one kind of set (UCNV_ROUNDTRIP_SET):
  * The set of all Unicode code points that can be roundtrip-converted
- * (converted without any data loss) with the converter (ucnv_fromUnicode()).
+ * (converted without any data loss) with the converter.
  * This set will not include code points that have fallback mappings
  * or are only the result of reverse fallback mappings.
- * This set will also not include PUA code points with fallbacks, although
- * ucnv_fromUnicode() will always uses those mappings despite ucnv_setFallback().
  * See UTR #22 "Character Mapping Markup Language"
  * at http://www.unicode.org/reports/tr22/
  *
@@ -899,12 +892,6 @@ typedef enum UConverterUnicodeSet {
  * - testing if a converter can be used for text for typical text for a certain locale,
  *   by comparing its roundtrip set with the set of ExemplarCharacters from
  *   ICU's locale data or other sources
- *
- * 2. UCNV_ROUNDTRIP_AND_FALLBACK_SET
- *
- * The set of all Unicode code points that can be converted with the converter (ucnv_fromUnicode())
- * when fallbacks are turned on (see ucnv_setFallback()).
- * This set includes all code points with roundtrips and fallbacks (but not reverse fallbacks).
  *
  * In the future, there may be more UConverterUnicodeSet choices to select
  * sets with different properties.
