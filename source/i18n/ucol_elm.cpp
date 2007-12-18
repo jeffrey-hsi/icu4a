@@ -1909,8 +1909,8 @@ uprv_uca_canonicalClosure(tempUCATable *t,
     uprv_uca_closeTempTable(tempTable);
 
     if(U_SUCCESS(*status)) {
-        tempColl->ucaRules = NULL;
-        tempColl->actualLocale = NULL;
+        tempColl->rb = NULL;
+        tempColl->elements = NULL;
         tempColl->validLocale = NULL;
         tempColl->requestedLocale = NULL;
         tempColl->hasRealData = TRUE;

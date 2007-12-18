@@ -920,7 +920,7 @@ protected:
     * @param validLocale the valid locale
     * @internal
     */
-    virtual void setLocales(const Locale& requestedLocale, const Locale& validLocale, const Locale& actualLocale);
+    virtual void setLocales(const Locale& requestedLocale, const Locale& validLocale);
 
 public:
 #if !UCONFIG_NO_SERVICE

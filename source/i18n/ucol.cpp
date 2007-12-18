@@ -391,13 +391,13 @@ ucol_initFromBinary(const uint8_t *bin, int32_t length,
         }
         result->freeImageOnClose = FALSE;
     }
-    result->actualLocale = NULL;
     result->validLocale = NULL;
     result->requestedLocale = NULL;
     result->rules = NULL;
     result->rulesLength = 0;
     result->freeRulesOnClose = FALSE;
-    result->ucaRules = NULL;
+    result->rb = NULL;
+    result->elements = NULL;
     return result;
 }
 
@@ -500,11 +500,10 @@ ucol_safeClone(const UCollator *coll, void *stackBuffer, int32_t * pBufferSize, 
     for(i = 0; i < UCOL_ATTRIBUTE_COUNT; i++) {
         ucol_setAttribute(localCollator, (UColAttribute)i, ucol_getAttribute(coll, (UColAttribute)i, status), status);
     }
-    // zero copies of pointers
-    localCollator->actualLocale = NULL;
+    localCollator->requestedLocale = NULL; // zero copies of pointers
     localCollator->validLocale = NULL;
-    localCollator->requestedLocale = NULL;
-    localCollator->ucaRules = coll->ucaRules; // There should only be one copy here.
+    localCollator->rb = NULL;
+    localCollator->elements = NULL;
     localCollator->freeOnClose = colAllocated;
     localCollator->freeImageOnClose = imageAllocated;
     return localCollator;
@@ -521,11 +520,11 @@ ucol_close(UCollator *coll)
         if(coll->validLocale != NULL) {
             uprv_free(coll->validLocale);
         }
-        if(coll->actualLocale != NULL) {
-            uprv_free(coll->actualLocale);
-        }
         if(coll->requestedLocale != NULL) {
             uprv_free(coll->requestedLocale);
+        }
+        if(coll->resCleaner != NULL) {
+            coll->resCleaner(coll);
         }
         if(coll->latinOneCEs != NULL) {
             uprv_free(coll->latinOneCEs);
@@ -751,7 +750,6 @@ UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, con
 
     result->rules = NULL;
     result->rulesLength = 0;
-    result->freeRulesOnClose = FALSE;
 
     /* get the version info from UCATableHeader and populate the Collator struct*/
     result->dataVersion[0] = result->image->version[0]; /* UCA Builder version*/
@@ -789,12 +787,13 @@ UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, con
     result->latinOneRegenTable = FALSE;
     result->latinOneFailed = FALSE;
     result->UCA = UCA;
+    result->resCleaner = NULL;
 
     ucol_updateInternalState(result, status);
 
     /* Normally these will be set correctly later. This is the default if you use UCA or the default. */
-    result->ucaRules = NULL;
-    result->actualLocale = NULL;
+    result->rb = NULL;
+    result->elements = NULL;
     result->validLocale = NULL;
     result->requestedLocale = NULL;
     result->hasRealData = FALSE; // real data lives in .dat file...
@@ -4600,7 +4599,7 @@ ucol_calcSortKey(const    UCollator    *coll,
     uint8_t tertiary = 0;
     uint8_t caseSwitch = coll->caseSwitch;
     uint8_t tertiaryMask = coll->tertiaryMask;
-    int8_t tertiaryAddition = coll->tertiaryAddition;
+    int8_t tertiaryAddition = (int8_t)coll->tertiaryAddition;
     uint8_t tertiaryTop = coll->tertiaryTop;
     uint8_t tertiaryBottom = coll->tertiaryBottom;
     uint8_t tertiaryCommon = coll->tertiaryCommon;
@@ -5185,7 +5184,7 @@ ucol_calcSortKeySimpleTertiary(const    UCollator    *coll,
     uint8_t tertiary = 0;
     uint8_t caseSwitch = coll->caseSwitch;
     uint8_t tertiaryMask = coll->tertiaryMask;
-    int8_t tertiaryAddition = coll->tertiaryAddition;
+    int8_t tertiaryAddition = (int8_t)coll->tertiaryAddition;
     uint8_t tertiaryTop = coll->tertiaryTop;
     uint8_t tertiaryBottom = coll->tertiaryBottom;
     uint8_t tertiaryCommon = coll->tertiaryCommon;
@@ -6603,7 +6602,7 @@ void ucol_updateInternalState(UCollator *coll, UErrorCode *status) {
     if(coll->caseLevel == UCOL_ON || coll->caseFirst == UCOL_OFF) {
       coll->tertiaryMask = UCOL_REMOVE_CASE;
       coll->tertiaryCommon = UCOL_COMMON3_NORMAL;
-      coll->tertiaryAddition = (int8_t)UCOL_FLAG_BIT_MASK_CASE_SW_OFF; /* Should be 0x80 */
+      coll->tertiaryAddition = UCOL_FLAG_BIT_MASK_CASE_SW_OFF;
       coll->tertiaryTop = UCOL_COMMON_TOP3_CASE_SW_OFF;
       coll->tertiaryBottom = UCOL_COMMON_BOT3;
     } else {
