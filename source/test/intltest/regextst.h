@@ -30,7 +30,6 @@ public:
     virtual void Extended();
     virtual void Errors();
     virtual void PerlTests();
-    virtual void Bug6149();
     virtual void Callbacks();
 
     // The following functions are internal to the regexp tests.
