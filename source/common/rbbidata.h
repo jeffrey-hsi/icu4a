@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2005,2008 International Business Machines
+*   Copyright (C) 1999-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -141,11 +141,7 @@ typedef enum {
 /*                                        */
 class RBBIDataWrapper : public UMemory {
 public:
-    enum EDontAdopt {
-        kDontAdopt
-    };
     RBBIDataWrapper(const RBBIDataHeader *data, UErrorCode &status);
-    RBBIDataWrapper(const RBBIDataHeader *data, enum EDontAdopt dontAdopt, UErrorCode &status);
     RBBIDataWrapper(UDataMemory* udm, UErrorCode &status);
     ~RBBIDataWrapper();
 
@@ -183,7 +179,6 @@ private:
     int32_t             fRefCount;
     UDataMemory        *fUDataMem;
     UnicodeString       fRuleString;
-    UBool               fDontFreeData;
 
     RBBIDataWrapper(const RBBIDataWrapper &other); /*  forbid copying of this class */
     RBBIDataWrapper &operator=(const RBBIDataWrapper &other); /*  forbid copying of this class */

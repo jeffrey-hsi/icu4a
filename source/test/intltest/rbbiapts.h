@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1999-2004,2008 International Business Machines Corporation and
+ * Copyright (c) 1999-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /************************************************************************
@@ -64,12 +64,6 @@ public:
     void RoundtripRule(const char *dataFile);
 
     /**
-     * Test creating RuleBasedBreakIterator from RBBIData.
-     **/
-
-    void TestCreateFromRBBIData(void);
-
-    /**
      * Tests grouping effect of 'single quotes' in rules.
      **/
     void TestQuoteGrouping();
@@ -96,18 +90,6 @@ public:
     void doTest(UnicodeString& testString, int32_t start, int32_t gotoffset, int32_t expectedOffset, const char* expected);
 
 
-};
-
-/**
- * Special class to enable testing of protected functions in RuleBasedBreakIterator
- */
-class RBBIWithProtectedFunctions: public RuleBasedBreakIterator {
-public:
-    enum EDontAdopt {
-        kDontAdopt
-    };
-    RBBIWithProtectedFunctions(RBBIDataHeader* data, UErrorCode &status);
-    RBBIWithProtectedFunctions(const RBBIDataHeader* data, enum EDontAdopt dontAdopt, UErrorCode &status);
 };
 
 #endif /* #if !UCONFIG_NO_BREAK_ITERATION */
