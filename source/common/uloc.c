@@ -2215,18 +2215,13 @@ _getStringOrCopyKey(const char *path, const char *locale,
             ures_close(rb);
         }
     } else {
-        /* Language code should not be a number. If it is, set the error code. */
-        if (!uprv_strncmp(tableKey, "Languages", 9) && uprv_strtol(itemKey, NULL, 10)) {
-            *pErrorCode = U_MISSING_RESOURCE_ERROR;
-        } else {
-            /* second-level item, use special fallback */
-            s=_res_getTableStringWithFallback(path, locale,
-                                               tableKey, 
-                                               subTableKey,
-                                               itemKey,
-                                               &length,
-                                               pErrorCode);
-        }
+        /* second-level item, use special fallback */
+        s=_res_getTableStringWithFallback(path, locale,
+                                           tableKey, 
+                                           subTableKey,
+                                           itemKey,
+                                           &length,
+                                           pErrorCode);
     }
     if(U_SUCCESS(*pErrorCode)) {
         int32_t copyLength=uprv_min(length, destCapacity);
@@ -2702,8 +2697,8 @@ static void _load_installedLocales()
                 umtx_lock(NULL);
                 if (_installedLocales == NULL)
                 {
-                    _installedLocalesCount = localeCount;
                     _installedLocales = temp;
+                    _installedLocalesCount = localeCount;
                     temp = NULL;
                     ucln_common_registerCleanup(UCLN_COMMON_ULOC, uloc_cleanup);
                 } 

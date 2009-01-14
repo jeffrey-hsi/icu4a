@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2002-2008, International Business Machines
+*   Copyright (C) 2002-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -56,32 +56,32 @@ U_NAMESPACE_BEGIN
  * and replace with uprv_malloc/uprv_free.
  */
 
-void * U_EXPORT2 UMemory::operator new(size_t size) U_NO_THROW {
+void * U_EXPORT2 UMemory::operator new(size_t size) {
     return uprv_malloc(size);
 }
 
-void U_EXPORT2 UMemory::operator delete(void *p) U_NO_THROW {
+void U_EXPORT2 UMemory::operator delete(void *p) {
     if(p!=NULL) {
         uprv_free(p);
     }
 }
 
-void * U_EXPORT2 UMemory::operator new[](size_t size) U_NO_THROW {
+void * U_EXPORT2 UMemory::operator new[](size_t size) {
     return uprv_malloc(size);
 }
 
-void U_EXPORT2 UMemory::operator delete[](void *p) U_NO_THROW {
+void U_EXPORT2 UMemory::operator delete[](void *p) {
     if(p!=NULL) {
         uprv_free(p);
     }
 }
 
 #if U_HAVE_DEBUG_LOCATION_NEW
-void * U_EXPORT2 UMemory::operator new(size_t size, const char* /*file*/, int /*line*/) U_NO_THROW {
+void * U_EXPORT2 UMemory::operator new(size_t size, const char* /*file*/, int /*line*/) {
     return UMemory::operator new(size);
 }
 
-void U_EXPORT2 UMemory::operator delete(void* p, const char* /*file*/, int /*line*/) U_NO_THROW {
+void U_EXPORT2 UMemory::operator delete(void* p, const char* /*file*/, int /*line*/) {
     UMemory::operator delete(p);
 }
 #endif /* U_HAVE_DEBUG_LOCATION_NEW */

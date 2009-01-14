@@ -83,10 +83,10 @@ class DateFormat;
  * identify positions in an array using a name.  UErrorCode is set to
  * U_ARGUMENT_TYPE_MISMATCH if there is a status/success field in the method.
  * These methods are 
- * {@link #adoptFormats(Format** formatsToAdopt, int32_t count)},
+ * {@link #adoptFormats(Format** newFormats, int32_t count)},
  * {@link #setFormats(const Format** newFormats,int32_t count)},
  * {@link #adoptFormat(int32_t n, Format *newFormat)},
- * {@link #getFormats(int32_t& count)},
+ * {@link #getFormats(int32_t& cnt)},
  * {@link #format(const Formattable* source,int32_t cnt,UnicodeString& appendTo, FieldPosition& ignore, UErrorCode& success)},
  * {@link #format(const UnicodeString& pattern,const Formattable* arguments,int32_t cnt,UnicodeString& appendTo,UErrorCode& success)},
  * {@link #format(const Formattable& source, UnicodeString& appendTo,FieldPosition& ignore, UErrorCode& success)},
@@ -748,19 +748,6 @@ public:
      */
     UBool usesNamedArguments() const;
     
-
-    /**
-     * This API is for ICU internal use only.
-     * Please do not use it.
-     *
-     * Returns argument types count in the parsed pattern.
-     * Used to distinguish pattern "{0} d" and "d".
-     *
-     * @return           The number of formattable types in the pattern
-     * @internal
-     */
-    int32_t getArgTypeCount() const;
-
     /**
      * Returns a unique class ID POLYMORPHICALLY.  Pure virtual override.
      * This method is to implement a simple version of RTTI, since not all

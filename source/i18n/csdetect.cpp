@@ -144,8 +144,8 @@ void CharsetDetector::setRecognizers(UErrorCode &status)
         if (U_SUCCESS(status)) {
             umtx_lock(NULL);
             if (fCSRecognizers == NULL) {
-                fCSRecognizers_size = rCount;
                 fCSRecognizers = recognizers;
+                fCSRecognizers_size = rCount;
             }
             umtx_unlock(NULL);
         }

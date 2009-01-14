@@ -30,10 +30,10 @@
 
   <body>
     <h1>International Components for Unicode<br />
-     <abbr title="International Components for Unicode">ICU</abbr> 4.0 ReadMe</h1>
+     <abbr title="International Components for Unicode">ICU</abbr> 4.0.1 ReadMe</h1>
 
-    <p>Version: 2008 June 28th<br />
-     Copyright &copy; 1997-2008 International Business Machines Corporation and
+    <p>Version: 2009 Jan 15th<br />
+     Copyright &copy; 1997-2009 International Business Machines Corporation and
     others. All Rights Reserved.</p>
     <!-- Remember that there is a copyright at the end too -->
     <hr />
@@ -211,12 +211,15 @@
     <h2><a name="News" href="#News" id="News">What is new in this
     release?</a></h2>
 
-    <p>To see which APIs are new or changed in this release, view the <a href="APIChangeReport.html">ICU4C API Change Report</a>. </p>
+    <p>To see which APIs are new or changed in this release since the previous feature release (3.8), view the <a href="APIChangeReport.html">ICU4C API Change Report</a>. </p>
 
+    <p>This is a an update release of 4.0, containing mostly selected bug fixes and implementations of inherited API, but
+    does not introduce new API or functionality. These changes will be rolled into the next release of ICU4J </p>
 
-    <p><!-- The following list concentrates on <em>changes that affect existing
-    applications migrating from previous ICU releases</em>. --> For more news about
-    this release, see the <a href="http://www.icu-project.org/download/">ICU 4.0
+    <p>To see which non-stable APIs are new or changed in 4.0.1 since 4.0, view the <a href="APIChangeReport_401.html">ICU4C 4.0 vs. 4.0.1 API Change Report</a>. </p>
+
+	 <p>For more news about
+    this release, see the <a href="http://www.icu-project.org/download/">ICU 4.0.1
     download page</a>.</p>
 
     <h2><a name="Download" href="#Download" id="Download">How To Download the
@@ -453,9 +456,10 @@
       </tr>
 
       <tr>
-        <td><i>&lt;ICU&gt;</i>/<b>packaging</b>/</td>
+        <td><i>&lt;ICU&gt;</i>/<b>packaging</b>/<br />
+         <i>&lt;ICU&gt;</i>/<b>debian</b>/</td>
 
-        <td>This directory contain scripts and tools for packaging the final
+        <td>These directories contain scripts and tools for packaging the final
         ICU build for various release platforms.</td>
       </tr>
 
@@ -798,8 +802,8 @@
       "#HowToBuildWindowsCommandLine">command line note below</a> if you want to
       build from the command line instead.</li>
 
-      <li>Set the active platform to "Win32" or "x64" (See <a href="#HowToBuildWindowsPlatform">Windows platform note</a> below) 
-      and configuration to "Debug" or "Release" (See <a href="#HowToBuildWindowsConfig">Windows configuration note</a> below).</li>
+      <li>Set the active configuration to "Debug" or "Release" (See <a href=
+      "#HowToBuildWindowsConfig">Windows configuration note</a> below).</li>
 
       <li>Choose the "Build" menu and select "Rebuild Solution". If you want to
       build the Debug and Release at the same time, see the <a href=
@@ -831,24 +835,10 @@
     Note:</strong></a> You can build ICU from the command line. Assuming that you
     have properly installed Microsoft Visual C++ to support command line
     execution, you can run the following command, 'devenv.com
-    <i>&lt;ICU&gt;</i>\source\allinone\allinone.sln /build "Win32|Release"'. You can also
+    <i>&lt;ICU&gt;</i>\source\allinone\allinone.sln /build Release'. You can also
     use Cygwin with this compiler to build ICU, and you can refer to the <a href=
     "#HowToBuildCygwin">How To Build And Install On Windows with Cygwin</a>
     section for more details.</p>
-    
-    <p><a name="HowToBuildWindowsPlatform" id=
-    "HowToBuildWindowsPlatform"><strong>Setting Active Platform
-    Note:</strong></a> Even though you are able to select "x64" as the active platform, if your operating system is 
-    not a 64 bit version of Windows, the build will fail. To set the active platform, two different possibilities are:</p>
-
-    <ul>
-      <li>Choose "Build" menu, select "Configuration Manager...", and select
-      "Win32" or "x64" for the Active Platform Solution.</li>
-
-      <li>Another way is to select the desired build configuration from "Solution
-      Platforms" dropdown menu from the standard toolbar. It will say
-      "Win32" or "x64" in the dropdown list.</li>
-    </ul>
 
     <p><a name="HowToBuildWindowsConfig" id=
     "HowToBuildWindowsConfig"><strong>Setting Active Configuration
@@ -865,8 +855,8 @@
     </ul>
 
     <p><a name="HowToBuildWindowsBatch" id="HowToBuildWindowsBatch"><strong>Batch
-    Configuration Note:</strong></a> If you want to build the Win32 and x64 platforms and 
-    Debug and Release configurations at the same time, choose "Build" menu, and select "Batch
+    Configuration Note:</strong></a> If you want to build the Debug and Release
+    configurations at the same time, choose "Build" menu, and select "Batch
     Build...". Click the "Select All" button, and then click the "Rebuild"
     button.</p>
 

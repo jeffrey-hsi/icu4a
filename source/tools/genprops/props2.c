@@ -34,8 +34,9 @@
 
 /* data --------------------------------------------------------------------- */
 
-static UNewTrie *newTrie;
-UPropsVectors *pv;
+static UNewTrie *trie;
+uint32_t *pv;
+static int32_t pvCount;
 
 /* miscellaneous ------------------------------------------------------------ */
 
@@ -165,16 +166,17 @@ singleEnumLineFn(void *context,
                  UErrorCode *pErrorCode) {
     const SingleEnum *sen;
     char *s;
-    uint32_t start, end, uv;
+    uint32_t start, limit, uv;
     int32_t value;
 
     sen=(const SingleEnum *)context;
 
-    u_parseCodePointRange(fields[0][0], &start, &end, pErrorCode);
+    u_parseCodePointRange(fields[0][0], &start, &limit, pErrorCode);
     if(U_FAILURE(*pErrorCode)) {
         fprintf(stderr, "genprops: syntax error in %s.txt field 0 at %s\n", sen->ucdFile, fields[0][0]);
         exit(*pErrorCode);
     }
+    ++limit;
 
     /* parse property alias */
     s=trimTerminateField(fields[1][0], fields[1][1]);
@@ -203,12 +205,7 @@ singleEnumLineFn(void *context,
         exit(U_INTERNAL_PROGRAM_ERROR);
     }
 
-    if(start==0 && end==0x10ffff) {
-        /* Also set bits for initialValue and errorValue. */
-        end=UPVEC_MAX_CP;
-    }
-    upvec_setValue(pv, start, end, sen->vecWord, uv, sen->vecMask, pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
+    if(!upvec_setValue(pv, start, limit, sen->vecWord, uv, sen->vecMask, pErrorCode)) {
         fprintf(stderr, "genprops error: unable to set %s code: %s\n",
                         sen->propName, u_errorName(*pErrorCode));
         exit(*pErrorCode);
@@ -333,16 +330,17 @@ binariesLineFn(void *context,
                UErrorCode *pErrorCode) {
     const Binaries *bin;
     char *s;
-    uint32_t start, end, uv;
+    uint32_t start, limit, uv;
     int32_t i;
 
     bin=(const Binaries *)context;
 
-    u_parseCodePointRange(fields[0][0], &start, &end, pErrorCode);
+    u_parseCodePointRange(fields[0][0], &start, &limit, pErrorCode);
     if(U_FAILURE(*pErrorCode)) {
         fprintf(stderr, "genprops: syntax error in %s.txt field 0 at %s\n", bin->ucdFile, fields[0][0]);
         exit(*pErrorCode);
     }
+    ++limit;
 
     /* parse binary property name */
     s=(char *)u_skipWhitespace(fields[1][0]);
@@ -366,12 +364,7 @@ binariesLineFn(void *context,
     }
     uv=U_MASK(bin->binaries[i].vecShift);
 
-    if(start==0 && end==0x10ffff) {
-        /* Also set bits for initialValue and errorValue. */
-        end=UPVEC_MAX_CP;
-    }
-    upvec_setValue(pv, start, end, bin->binaries[i].vecWord, uv, uv, pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
+    if(!upvec_setValue(pv, start, limit, bin->binaries[i].vecWord, uv, uv, pErrorCode)) {
         fprintf(stderr, "genprops error: unable to set %s code: %s\n",
                         bin->binaries[i].propName, u_errorName(*pErrorCode));
         exit(*pErrorCode);
@@ -409,17 +402,12 @@ parseBinariesFile(char *filename, char *basename, const char *suffix,
 
 U_CFUNC void
 initAdditionalProperties() {
-    UErrorCode errorCode=U_ZERO_ERROR;
-    pv=upvec_open(UPROPS_VECTOR_WORDS, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        fprintf(stderr, "error: upvec_open() failed - %s\n", u_errorName(errorCode));
-        exit(errorCode);
-    }
+    pv=upvec_open(UPROPS_VECTOR_WORDS, 20000);
 }
 
 U_CFUNC void
 exitAdditionalProperties() {
-    utrie_close(newTrie);
+    utrie_close(trie);
     upvec_close(pv);
 }
 
@@ -490,11 +478,11 @@ generateAdditionalProperties(char *filename, const char *suffix, UErrorCode *pEr
      * W for plane 2
      */
     *pErrorCode=U_ZERO_ERROR;
-    upvec_setValue(pv, 0xe000, 0xf8ff, 0, (uint32_t)(U_EA_AMBIGUOUS<<UPROPS_EA_SHIFT), UPROPS_EA_MASK, pErrorCode);
-    upvec_setValue(pv, 0xf0000, 0xffffd, 0, (uint32_t)(U_EA_AMBIGUOUS<<UPROPS_EA_SHIFT), UPROPS_EA_MASK, pErrorCode);
-    upvec_setValue(pv, 0x100000, 0x10fffd, 0, (uint32_t)(U_EA_AMBIGUOUS<<UPROPS_EA_SHIFT), UPROPS_EA_MASK, pErrorCode);
-    upvec_setValue(pv, 0x20000, 0x2fffd, 0, (uint32_t)(U_EA_WIDE<<UPROPS_EA_SHIFT), UPROPS_EA_MASK, pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
+    if( !upvec_setValue(pv, 0xe000, 0xf900, 0, (uint32_t)(U_EA_AMBIGUOUS<<UPROPS_EA_SHIFT), UPROPS_EA_MASK, pErrorCode) ||
+        !upvec_setValue(pv, 0xf0000, 0xffffe, 0, (uint32_t)(U_EA_AMBIGUOUS<<UPROPS_EA_SHIFT), UPROPS_EA_MASK, pErrorCode) ||
+        !upvec_setValue(pv, 0x100000, 0x10fffe, 0, (uint32_t)(U_EA_AMBIGUOUS<<UPROPS_EA_SHIFT), UPROPS_EA_MASK, pErrorCode) ||
+        !upvec_setValue(pv, 0x20000, 0x2fffe, 0, (uint32_t)(U_EA_WIDE<<UPROPS_EA_SHIFT), UPROPS_EA_MASK, pErrorCode)
+    ) {
         fprintf(stderr, "genprops: unable to set default East Asian Widths: %s\n", u_errorName(*pErrorCode));
         exit(*pErrorCode);
     }
@@ -502,15 +490,17 @@ generateAdditionalProperties(char *filename, const char *suffix, UErrorCode *pEr
     /* parse EastAsianWidth.txt */
     parseSingleEnumFile(filename, basename, suffix, &eawSingleEnum, pErrorCode);
 
-    {
-        UPVecToUTrieContext toUTrie={ NULL, 50000 /* capacity */, 0, TRUE /* latin1Linear */ };
-        upvec_compact(pv, upvec_compactToUTrieHandler, &toUTrie, pErrorCode);
-        if(U_FAILURE(*pErrorCode)) {
-            fprintf(stderr, "genprops error: unable to build trie for additional properties: %s\n",
-                    u_errorName(*pErrorCode));
-            exit(*pErrorCode);
-        }
-        newTrie=toUTrie.newTrie;
+    trie=utrie_open(NULL, NULL, 50000, 0, 0, TRUE);
+    if(trie==NULL) {
+        *pErrorCode=U_MEMORY_ALLOCATION_ERROR;
+        upvec_close(pv);
+        return;
+    }
+
+    pvCount=upvec_compact(pv, upvec_compactToTrieHandler, trie, pErrorCode);
+    if(U_FAILURE(*pErrorCode)) {
+        fprintf(stderr, "genprops error: unable to build trie for additional properties: %s\n", u_errorName(*pErrorCode));
+        exit(*pErrorCode);
     }
 }
 
@@ -520,14 +510,15 @@ static void U_CALLCONV
 ageLineFn(void *context,
           char *fields[][2], int32_t fieldCount,
           UErrorCode *pErrorCode) {
-    char *s, *numberLimit;
-    uint32_t value, start, end, version;
+    char *s, *end;
+    uint32_t value, start, limit, version;
 
-    u_parseCodePointRange(fields[0][0], &start, &end, pErrorCode);
+    u_parseCodePointRange(fields[0][0], &start, &limit, pErrorCode);
     if(U_FAILURE(*pErrorCode)) {
         fprintf(stderr, "genprops: syntax error in DerivedAge.txt field 0 at %s\n", fields[0][0]);
         exit(*pErrorCode);
     }
+    ++limit;
 
     /* ignore "unassigned" (the default is already set to 0.0) */
     s=(char *)u_skipWhitespace(fields[1][0]);
@@ -536,8 +527,8 @@ ageLineFn(void *context,
     }
 
     /* parse version number */
-    value=(uint32_t)uprv_strtoul(s, &numberLimit, 10);
-    if(s==numberLimit || value==0 || value>15 || (*numberLimit!='.' && *numberLimit!=' ' && *numberLimit!='\t' && *numberLimit!=0)) {
+    value=(uint32_t)uprv_strtoul(s, &end, 10);
+    if(s==end || value==0 || value>15 || (*end!='.' && *end!=' ' && *end!='\t' && *end!=0)) {
         fprintf(stderr, "genprops: syntax error in DerivedAge.txt field 1 at %s\n", fields[1][0]);
         *pErrorCode=U_PARSE_ERROR;
         exit(U_PARSE_ERROR);
@@ -545,10 +536,10 @@ ageLineFn(void *context,
     version=value<<4;
 
     /* parse minor version number */
-    if(*numberLimit=='.') {
-        s=(char *)u_skipWhitespace(numberLimit+1);
-        value=(uint32_t)uprv_strtoul(s, &numberLimit, 10);
-        if(s==numberLimit || value>15 || (*numberLimit!=' ' && *numberLimit!='\t' && *numberLimit!=0)) {
+    if(*end=='.') {
+        s=(char *)u_skipWhitespace(end+1);
+        value=(uint32_t)uprv_strtoul(s, &end, 10);
+        if(s==end || value>15 || (*end!=' ' && *end!='\t' && *end!=0)) {
             fprintf(stderr, "genprops: syntax error in DerivedAge.txt field 1 at %s\n", fields[1][0]);
             *pErrorCode=U_PARSE_ERROR;
             exit(U_PARSE_ERROR);
@@ -556,12 +547,7 @@ ageLineFn(void *context,
         version|=value;
     }
 
-    if(start==0 && end==0x10ffff) {
-        /* Also set bits for initialValue and errorValue. */
-        end=UPVEC_MAX_CP;
-    }
-    upvec_setValue(pv, start, end, 0, version<<UPROPS_AGE_SHIFT, UPROPS_AGE_MASK, pErrorCode);
-    if(U_FAILURE(*pErrorCode)) {
+    if(!upvec_setValue(pv, start, limit, 0, version<<UPROPS_AGE_SHIFT, UPROPS_AGE_MASK, pErrorCode)) {
         fprintf(stderr, "genprops error: unable to set character age: %s\n", u_errorName(*pErrorCode));
         exit(*pErrorCode);
     }
@@ -574,18 +560,19 @@ numericLineFn(void *context,
               char *fields[][2], int32_t fieldCount,
               UErrorCode *pErrorCode) {
     Props newProps={ 0 };
-    char *s, *numberLimit;
-    uint32_t start, end, value, oldProps32;
+    char *s, *end;
+    uint32_t start, limit, value, oldProps32;
     int32_t oldType;
     char c;
     UBool isFraction;
 
     /* get the code point range */
-    u_parseCodePointRange(fields[0][0], &start, &end, pErrorCode);
+    u_parseCodePointRange(fields[0][0], &start, &limit, pErrorCode);
     if(U_FAILURE(*pErrorCode)) {
         fprintf(stderr, "genprops: syntax error in DerivedNumericValues.txt field 0 at %s\n", fields[0][0]);
         exit(*pErrorCode);
     }
+    ++limit;
 
     /*
      * Ignore the
@@ -595,7 +582,7 @@ numericLineFn(void *context,
      * the numeric values for all characters after reading most
      * from UnicodeData.txt already.
      */
-    if(start==0 && end==0x10ffff) {
+    if(start==0 && limit==0x110000) {
         return;
     }
 
@@ -603,8 +590,8 @@ numericLineFn(void *context,
     isFraction=FALSE;
     s=uprv_strchr(fields[1][0], '.');
     if(s!=NULL) {
-        numberLimit=s+1;
-        while('0'<=(c=*numberLimit++) && c<='9') {
+        end=s+1;
+        while('0'<=(c=*end++) && c<='9') {
             if(c!='0') {
                 isFraction=TRUE;
                 break;
@@ -623,17 +610,17 @@ numericLineFn(void *context,
             /* large powers of 10 are encoded in a special way, see store.c */
             uint8_t exp=0;
 
-            numberLimit=s;
-            while(*(++numberLimit)=='0') {
+            end=s;
+            while(*(++end)=='0') {
                 ++exp;
             }
             value=1;
             newProps.exponent=exp;
         } else {
             /* normal number parsing */
-            value=(uint32_t)uprv_strtoul(s, &numberLimit, 10);
+            value=(uint32_t)uprv_strtoul(s, &end, 10);
         }
-        if(numberLimit<=s || (*numberLimit!='.' && u_skipWhitespace(numberLimit)!=fields[1][1]) || value>=0x80000000) {
+        if(end<=s || (*end!='.' && u_skipWhitespace(end)!=fields[1][1]) || value>=0x80000000) {
             fprintf(stderr, "genprops: syntax error in DerivedNumericValues.txt field 1 at %s\n", fields[0][0]);
             exit(U_PARSE_ERROR);
         }
@@ -654,7 +641,7 @@ numericLineFn(void *context,
     /* the exponent may have been set above */
     value=makeProps(&newProps);
 
-    for(; start<=end; ++start) {
+    for(; start<limit; ++start) {
         oldProps32=getProps(start);
         oldType=(int32_t)GET_NUMERIC_TYPE(oldProps32);
 
@@ -700,16 +687,11 @@ numericLineFn(void *context,
 
 U_CFUNC int32_t
 writeAdditionalData(FILE *f, uint8_t *p, int32_t capacity, int32_t indexes[UPROPS_INDEX_COUNT]) {
-    uint32_t *pvArray;
-    int32_t pvRows, pvCount;
     int32_t length;
     UErrorCode errorCode;
 
-    pvArray=upvec_getArray(pv, &pvRows, NULL);
-    pvCount=pvRows*UPROPS_VECTOR_WORDS;
-
     errorCode=U_ZERO_ERROR;
-    length=utrie_serialize(newTrie, p, capacity, NULL, TRUE, &errorCode);
+    length=utrie_serialize(trie, p, capacity, NULL, TRUE, &errorCode);
     if(U_FAILURE(errorCode)) {
         fprintf(stderr, "genprops error: unable to serialize trie for additional properties: %s\n", u_errorName(errorCode));
         exit(errorCode);
@@ -719,10 +701,8 @@ writeAdditionalData(FILE *f, uint8_t *p, int32_t capacity, int32_t indexes[UPROP
             printf("size in bytes of additional props trie:%5u\n", (int)length);
         }
         if(f!=NULL) {
-            UTrie trie={ NULL };
-            UTrie2 *trie2;
-
-            utrie_unserialize(&trie, p, length, &errorCode);
+            UTrie trie2={ NULL };
+            utrie_unserialize(&trie2, p, length, &errorCode);
             if(U_FAILURE(errorCode)) {
                 fprintf(
                     stderr,
@@ -730,43 +710,14 @@ writeAdditionalData(FILE *f, uint8_t *p, int32_t capacity, int32_t indexes[UPROP
                     u_errorName(errorCode));
                 exit(errorCode);
             }
-
-            /* use UTrie2 */
-            trie2=utrie2_fromUTrie(&trie, trie.initialValue, &errorCode);
-            if(U_FAILURE(errorCode)) {
-                fprintf(
-                    stderr,
-                    "genprops error: utrie2_fromUTrie() failed - %s\n",
-                    u_errorName(errorCode));
-                exit(errorCode);
-            }
-            {
-                /* delete lead surrogate code unit values */
-                UChar lead;
-                trie2=utrie2_cloneAsThawed(trie2, &errorCode);
-                for(lead=0xd800; lead<0xdc00; ++lead) {
-                    utrie2_set32ForLeadSurrogateCodeUnit(trie2, lead, trie2->initialValue, &errorCode);
-                }
-                utrie2_freeze(trie2, UTRIE2_16_VALUE_BITS, &errorCode);
-                if(U_FAILURE(errorCode)) {
-                    fprintf(
-                        stderr,
-                        "genbidi error: deleting lead surrogate code unit values failed - %s\n",
-                        u_errorName(errorCode));
-                    exit(errorCode);
-                }
-            }
-
-            usrc_writeUTrie2Arrays(f,
+            usrc_writeUTrieArrays(f,
                 "static const uint16_t propsVectorsTrie_index[%ld]={\n", NULL,
-                trie2,
+                &trie2,
                 "\n};\n\n");
-            usrc_writeUTrie2Struct(f,
-                "static const UTrie2 propsVectorsTrie={\n",
-                trie2, "propsVectorsTrie_index", NULL,
+            usrc_writeUTrieStruct(f,
+                "static const UTrie propsVectorsTrie={\n",
+                &trie2, "propsVectorsTrie_index", NULL, NULL,
                 "};\n\n");
-
-            utrie2_close(trie2);
         }
 
         p+=length;
@@ -795,15 +746,15 @@ writeAdditionalData(FILE *f, uint8_t *p, int32_t capacity, int32_t indexes[UPROP
         if(f!=NULL) {
             usrc_writeArray(f,
                 "static const uint32_t propsVectors[%ld]={\n",
-                pvArray, 32, pvCount,
+                pv, 32, pvCount,
                 "};\n\n");
             fprintf(f, "static const int32_t countPropsVectors=%ld;\n", (long)pvCount);
             fprintf(f, "static const int32_t propsVectorsColumns=%ld;\n", (long)indexes[UPROPS_ADDITIONAL_VECTORS_COLUMNS_INDEX]);
         } else {
-            uprv_memcpy(p, pvArray, pvCount*4);
+            uprv_memcpy(p, pv, pvCount*4);
         }
         if(beVerbose) {
-            printf("number of additional props vectors:    %5u\n", (int)pvRows);
+            printf("number of additional props vectors:    %5u\n", (int)pvCount/UPROPS_VECTOR_WORDS);
             printf("number of 32-bit words per vector:     %5u\n", UPROPS_VECTOR_WORDS);
         }
     }

@@ -123,7 +123,6 @@ public:
     UnicodeString basePattern;
     PtnSkeleton   *skeleton;
     UnicodeString pattern;
-    UBool         skeletonWasSpecified; // if specified in availableFormats, not derived
     PtnElem       *next;
 
     PtnElem(const UnicodeString &basePattern, const UnicodeString &pattern);
@@ -194,9 +193,9 @@ public:
     PtnElem *boot[MAX_PATTERN_ENTRIES];
     PatternMap();
     virtual  ~PatternMap();
-    void  add(const UnicodeString& basePattern, const PtnSkeleton& skeleton, const UnicodeString& value, UBool skeletonWasSpecified, UErrorCode& status);
-    const UnicodeString* getPatternFromBasePattern(UnicodeString& basePattern, UBool& skeletonWasSpecified);
-    const UnicodeString* getPatternFromSkeleton(PtnSkeleton& skeleton, const PtnSkeleton** specifiedSkeletonPtr = 0);
+    void  add(const UnicodeString& basePattern, const PtnSkeleton& skeleton, const UnicodeString& value, UErrorCode& status);
+    const UnicodeString* getPatternFromBasePattern(UnicodeString& basePattern);
+    const UnicodeString* getPatternFromSkeleton(PtnSkeleton& skeleton);
     void copyFrom(const PatternMap& other, UErrorCode& status);
     PtnElem* getHeader(UChar baseChar);
     UBool equals(const PatternMap& other);

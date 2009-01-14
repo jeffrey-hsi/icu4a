@@ -418,21 +418,13 @@ le_int32 IndicReordering::findSyllable(const IndicClassTable *classTable, const 
 
 le_int32 IndicReordering::reorder(const LEUnicode *chars, le_int32 charCount, le_int32 scriptCode,
                                   LEUnicode *outChars, LEGlyphStorage &glyphStorage,
-                                  MPreFixups **outMPreFixups, LEErrorCode& success)
+                                  MPreFixups **outMPreFixups)
 {
-    if (LE_FAILURE(success)) {
-        return 0;
-    }
-
     MPreFixups *mpreFixups = NULL;
     const IndicClassTable *classTable = IndicClassTable::getScriptClassTable(scriptCode);
 
     if (classTable->scriptFlags & SF_MPRE_FIXUP) {
         mpreFixups = new MPreFixups(charCount);
-        if (mpreFixups == NULL) { 
-            success = LE_MEMORY_ALLOCATION_ERROR;
-            return 0;
-        }
     }
 
     IndicReorderingOutput output(outChars, glyphStorage, mpreFixups);
@@ -541,7 +533,7 @@ le_int32 IndicReordering::reorder(const LEUnicode *chars, le_int32 charCount, le
             le_int32  baseLimit = prev;
 
             // Check for REPH at front of syllable
-            if (length > 2 && classTable->isReph(chars[prev]) && classTable->isVirama(chars[prev + 1]) && chars[prev + 2] != C_SIGN_ZWNJ) {
+            if (length > 2 && classTable->isReph(chars[prev]) && classTable->isVirama(chars[prev + 1])) {
                 baseLimit += 2;
 
                 // Check for eyelash RA, if the script supports it
@@ -760,10 +752,10 @@ le_int32 IndicReordering::reorder(const LEUnicode *chars, le_int32 charCount, le
     return output.getOutputIndex();
 }
 
-void IndicReordering::adjustMPres(MPreFixups *mpreFixups, LEGlyphStorage &glyphStorage, LEErrorCode& success)
+void IndicReordering::adjustMPres(MPreFixups *mpreFixups, LEGlyphStorage &glyphStorage)
 {
     if (mpreFixups != NULL) {
-        mpreFixups->apply(glyphStorage, success);
+        mpreFixups->apply(glyphStorage);
         
         delete mpreFixups;
     }

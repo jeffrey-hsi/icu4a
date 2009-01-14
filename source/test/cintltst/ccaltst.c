@@ -18,7 +18,6 @@
 #if !UCONFIG_NO_FORMATTING
 
 #include <stdlib.h>
-#include <string.h>
 
 #include "unicode/uloc.h"
 #include "unicode/ucal.h"
@@ -57,20 +56,6 @@ static const UChar EUROPE_PARIS[] = {0x45, 0x75, 0x72, 0x6F, 0x70, 0x65, 0x2F, 0
 static const UChar AMERICA_LOS_ANGELES[] = {0x41, 0x6D, 0x65, 0x72, 0x69, 0x63, 0x61, 0x2F,
     0x4C, 0x6F, 0x73, 0x5F, 0x41, 0x6E, 0x67, 0x65, 0x6C, 0x65, 0x73, 0x00}; /* America/Los_Angeles */
 
-typedef struct {
-    const char *    locale;
-    UCalendarType   calType;
-    const char *    expectedResult;
-} UCalGetTypeTest;
-
-static const UCalGetTypeTest ucalGetTypeTests[] = {
-    { "en_US",                   UCAL_GREGORIAN, "gregorian" },
-    { "ja_JP@calendar=japanese", UCAL_DEFAULT,   "japanese"  },
-    { "th_TH",                   UCAL_GREGORIAN, "gregorian" },
-    { "th_TH",                   UCAL_DEFAULT,   "buddhist"  },
-    { NULL, 0, NULL } /* terminator */
-};    
-    
 static void TestCalendar()
 {
     UCalendar *caldef = 0, *caldef2 = 0, *calfr = 0, *calit = 0, *calfrclone = 0;
@@ -88,7 +73,6 @@ static void TestCalendar()
     const char *tzver = 0;
     UChar canonicalID[64];
     UBool isSystemID = FALSE;
-    const UCalGetTypeTest * ucalGetTypeTestPtr;
 
 #ifdef U_USE_UCAL_OBSOLETE_2_8
     /*Testing countAvailableTimeZones*/
@@ -404,33 +388,14 @@ static void TestCalendar()
     else
         log_err("FAIL: It is not in daylight saving's time\n");
 
+    
+    
     /*closing the UCalendar*/
     ucal_close(caldef);
     ucal_close(caldef2);
     ucal_close(calfr);
     ucal_close(calit);
     ucal_close(calfrclone);
-    
-    /*testing ucal_getType, and ucal_open with UCAL_GREGORIAN*/
-    for (ucalGetTypeTestPtr = ucalGetTypeTests; ucalGetTypeTestPtr->locale != NULL; ++ucalGetTypeTestPtr) {
-        status = U_ZERO_ERROR;
-        caldef = ucal_open(NULL, 0, ucalGetTypeTestPtr->locale, ucalGetTypeTestPtr->calType, &status);
-        if ( U_SUCCESS(status) ) {
-            const char * calType = ucal_getType(caldef, &status);
-            if ( U_SUCCESS(status) && calType != NULL ) {
-                if ( strcmp( calType, ucalGetTypeTestPtr->expectedResult ) != 0 ) {
-                    log_err("FAIL: ucal_open %s type %d does not return %s calendar\n", ucalGetTypeTestPtr->locale,
-                                                ucalGetTypeTestPtr->calType, ucalGetTypeTestPtr->expectedResult);
-                }
-            } else {
-                log_err("FAIL: ucal_open %s type %d, then ucal_getType fails\n", ucalGetTypeTestPtr->locale, ucalGetTypeTestPtr->calType);
-            }
-            ucal_close(caldef);
-        } else {
-            log_err("FAIL: ucal_open %s type %d fails\n", ucalGetTypeTestPtr->locale, ucalGetTypeTestPtr->calType);
-        }
-    }
-
     /*closing the UDateFormat used */
     udat_close(datdef);
     free(result);

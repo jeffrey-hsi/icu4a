@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 1998-2008 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2005 - All Rights Reserved
  *
  */
 
@@ -28,18 +28,12 @@ class GlyphSubstitutionLookupProcessor : public LookupProcessor
 {
 public:
     GlyphSubstitutionLookupProcessor(const GlyphSubstitutionTableHeader *glyphSubstitutionTableHeader,
-        LETag scriptTag, 
-        LETag languageTag, 
-        const LEGlyphFilter *filter, 
-        const FeatureMap *featureMap, 
-        le_int32 featureMapCount, 
-        le_bool featureOrder,
-        LEErrorCode& success);
+        LETag scriptTag, LETag languageTag, const LEGlyphFilter *filter, const FeatureMap *featureMap, le_int32 featureMapCount, le_bool featureOrder);
 
     virtual ~GlyphSubstitutionLookupProcessor();
 
     virtual le_uint32 applySubtable(const LookupSubtable *lookupSubtable, le_uint16 lookupType, GlyphIterator *glyphIterator,
-        const LEFontInstance *fontInstance, LEErrorCode& success) const;
+        const LEFontInstance *fontInstance) const;
 
 protected:
     GlyphSubstitutionLookupProcessor();

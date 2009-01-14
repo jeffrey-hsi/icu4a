@@ -24,7 +24,6 @@
 #include "unicode/smpdtfmt.h"
 #include "unicode/dtintrv.h"
 #include "unicode/dtitvinf.h"
-#include "unicode/dtptngen.h"
 
 U_NAMESPACE_BEGIN
 
@@ -581,13 +580,13 @@ private:
      * DateFormat and DateIntervalInfo objects. 
      * Caller should not delete them.
      *
-     * @param locale    the locale of this date interval formatter.
+     * @param dtfmt     the SimpleDateFormat object to be adopted.
      * @param dtitvinf  the DateIntervalInfo object to be adopted.
      * @param skeleton  the skeleton of the date formatter
      * @param status    output param set to success/failure code on exit
      * @internal ICU 4.0
      */
-    DateIntervalFormat(const Locale& locale, DateIntervalInfo* dtItvInfo,
+    DateIntervalFormat(DateFormat* dtfmt, DateIntervalInfo* dtItvInfo,
                        const UnicodeString* skeleton, UErrorCode& status);
 
     
@@ -597,40 +596,21 @@ private:
      *
      * It is a wrapper of the constructor.
      *
-     * @param locale    the locale of this date interval formatter.
+     * @param dtfmt     the DateFormat object to be adopted.
      * @param dtitvinf  the DateIntervalInfo object to be adopted.
      * @param skeleton  the skeleton of this formatter.
      * @param status    Output param set to success/failure code.
      * @return          a date time interval formatter which the caller owns.
      * @internal ICU 4.0
      */
-    static DateIntervalFormat* U_EXPORT2 create(const Locale& locale,
+    static DateIntervalFormat* U_EXPORT2 create(DateFormat* dtfmt,
                                                 DateIntervalInfo* dtitvinf,
                                                 const UnicodeString* skeleton,
                                                 UErrorCode& status);
 
-    /**
-     * Create a simple date/time formatter from skeleton, given locale,
-     * and date time pattern generator.
-     *
-     * @param skeleton  the skeleton on which date format based.
-     * @param locale    the given locale.
-     * @param dtpng     the date time pattern generator.
-     * @param status    Output param to be set to success/failure code.
-     *                  If it is failure, the returned date formatter will
-     *                  be NULL.
-     * @return          a simple date formatter which the caller owns.
-     * @internal ICU 4.0
-     */
-    static SimpleDateFormat* U_EXPORT2 createSDFPatternInstance(
-                                        const UnicodeString& skeleton,
-                                        const Locale& locale,
-                                        DateTimePatternGenerator* dtpng,
-                                        UErrorCode& status);
-
 
     /**
-     *  Below are for generating interval patterns local to the formatter 
+     *  Below are for generating interval patterns locale to the formatter 
      */
 
 
@@ -704,11 +684,13 @@ private:
      * a skeleton, and a date time pattern generator.
      * @param field      the largest different calendar field
      * @param skeleton   a skeleton
+     * @param dtpng      date time pattern generator
      * @param status     output param set to success/failure code on exit
      * @internal ICU 4.0 
      */
     void setFallbackPattern(UCalendarDateFields field, 
                             const UnicodeString& skeleton,
+                            DateTimePatternGenerator* dtpng,
                             UErrorCode& status);
                             
 
@@ -941,11 +923,6 @@ private:
      */
     Calendar* fFromCalendar;
     Calendar* fToCalendar;
-
-    /**
-     * Date time pattern generator
-     */
-    DateTimePatternGenerator* fDtpng;
 
     /**
      * Following are interval information relavent (locale) to this formatter.

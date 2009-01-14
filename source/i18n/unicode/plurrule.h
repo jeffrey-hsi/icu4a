@@ -66,7 +66,6 @@ class RuleParser;
  *  </p>
  *  <p>
  * Syntax:<pre>
- * \code
  * rules         = rule (';' rule)*
  * rule          = keyword ':' condition
  * keyword       = <identifier>
@@ -80,7 +79,6 @@ class RuleParser;
  * value         = digit+
  * digit         = 0|1|2|3|4|5|6|7|8|9
  * range         = value'..'value
- * \endcode
  * </pre></p>
  * <p>
  *  The difference between 'in' and 'within' is that 'in' only includes

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright IBM Corp. 1998 - 2008 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998 - 2005 - All Rights Reserved
  *
  */
 
@@ -33,24 +33,13 @@ typedef ChainingContextualSubstitutionSubtable ChainingContextualPositioningSubt
 
 GlyphPositioningLookupProcessor::GlyphPositioningLookupProcessor(
         const GlyphPositioningTableHeader *glyphPositioningTableHeader,
-        LETag scriptTag, 
-        LETag languageTag, 
-        const FeatureMap *featureMap, 
-        le_int32 featureMapCount, 
-        le_bool featureOrder,
-        LEErrorCode& success)
+        LETag scriptTag, LETag languageTag, const FeatureMap *featureMap, le_int32 featureMapCount, le_bool featureOrder)
     : LookupProcessor(
                       (char *) glyphPositioningTableHeader,
                       SWAPW(glyphPositioningTableHeader->scriptListOffset),
                       SWAPW(glyphPositioningTableHeader->featureListOffset),
                       SWAPW(glyphPositioningTableHeader->lookupListOffset),
-                      scriptTag, 
-                      languageTag, 
-                      featureMap, 
-                      featureMapCount, 
-                      featureOrder,
-                      success
-                      )
+                      scriptTag, languageTag, featureMap, featureMapCount, featureOrder)
 {
     // anything?
 }
@@ -61,13 +50,8 @@ GlyphPositioningLookupProcessor::GlyphPositioningLookupProcessor()
 
 le_uint32 GlyphPositioningLookupProcessor::applySubtable(const LookupSubtable *lookupSubtable, le_uint16 lookupType,
                                                        GlyphIterator *glyphIterator,
-                                                       const LEFontInstance *fontInstance,
-                                                       LEErrorCode& success) const
+                                                       const LEFontInstance *fontInstance) const
 {
-    if (LE_FAILURE(success)) { 
-        return 0;
-    } 
-
     le_uint32 delta = 0;
 
     switch(lookupType)
@@ -127,7 +111,7 @@ le_uint32 GlyphPositioningLookupProcessor::applySubtable(const LookupSubtable *l
     {
         const ContextualPositioningSubtable *subtable = (const ContextualPositioningSubtable *) lookupSubtable;
 
-        delta = subtable->process(this, glyphIterator, fontInstance, success);
+        delta = subtable->process(this, glyphIterator, fontInstance);
         break;
     }
 
@@ -135,7 +119,7 @@ le_uint32 GlyphPositioningLookupProcessor::applySubtable(const LookupSubtable *l
     {
         const ChainingContextualPositioningSubtable *subtable = (const ChainingContextualPositioningSubtable *) lookupSubtable;
 
-        delta = subtable->process(this, glyphIterator, fontInstance, success);
+        delta = subtable->process(this, glyphIterator, fontInstance);
         break;
     }
 
@@ -143,7 +127,7 @@ le_uint32 GlyphPositioningLookupProcessor::applySubtable(const LookupSubtable *l
     {
         const ExtensionSubtable *subtable = (const ExtensionSubtable *) lookupSubtable;
 
-        delta = subtable->process(this, lookupType, glyphIterator, fontInstance, success);
+        delta = subtable->process(this, lookupType, glyphIterator, fontInstance);
         break;
     }
 

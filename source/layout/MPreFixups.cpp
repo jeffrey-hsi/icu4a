@@ -1,6 +1,6 @@
 /*
  *
- * (C) Copyright IBM Corp. 2002-2008 - All Rights Reserved
+ * (C) Copyright IBM Corp. 2002-2004 - All Rights Reserved
  *
  */
 
@@ -40,12 +40,8 @@ void MPreFixups::add(le_int32 baseIndex, le_int32 mpreIndex)
     }
 }
 
-void MPreFixups::apply(LEGlyphStorage &glyphStorage, LEErrorCode& success)
+void MPreFixups::apply(LEGlyphStorage &glyphStorage)
 {
-    if (LE_FAILURE(success)) { 
-        return;
-    }
-
     for (le_int32 fixup = 0; fixup < fFixupCount; fixup += 1) {
         le_int32 baseIndex = fFixupData[fixup].fBaseIndex;
         le_int32 mpreIndex = fFixupData[fixup].fMPreIndex;
@@ -69,14 +65,6 @@ void MPreFixups::apply(LEGlyphStorage &glyphStorage, LEErrorCode& success)
         le_int32   mpreDest  = baseIndex - mpreCount;
         LEGlyphID *mpreSave  = LE_NEW_ARRAY(LEGlyphID, mpreCount);
         le_int32  *indexSave = LE_NEW_ARRAY(le_int32, mpreCount);
-
-        if (mpreSave == NULL || indexSave == NULL) {
-            LE_DELETE_ARRAY(mpreSave);
-            LE_DELETE_ARRAY(indexSave);
-            success = LE_MEMORY_ALLOCATION_ERROR;
-            return;
-        }
-
         le_int32   i;
 
         for (i = 0; i < mpreCount; i += 1) {

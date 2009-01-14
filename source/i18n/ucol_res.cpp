@@ -108,19 +108,16 @@ ucol_initUCA(UErrorCode *status) {
     UMTX_CHECK(NULL, (_staticUCA == NULL), needsInit);
 
     if(needsInit) {
-        UDataMemory *result = udata_openChoice(U_ICUDATA_COLL, UCA_DATA_TYPE, UCA_DATA_NAME, isAcceptableUCA, NULL, status);
+        UDataMemory *result = udata_openChoice(NULL, UCA_DATA_TYPE, UCA_DATA_NAME, isAcceptableUCA, NULL, status);
 
         if(U_SUCCESS(*status)){
             UCollator *newUCA = ucol_initCollator((const UCATableHeader *)udata_getMemory(result), NULL, NULL, status);
             if(U_SUCCESS(*status)){
-                // Initalize variables for implicit generation
-                uprv_uca_initImplicitConstants(status);
-                
                 umtx_lock(NULL);
                 if(_staticUCA == NULL) {
-                    UCA_DATA_MEM = result;
                     _staticUCA = newUCA;
                     newUCA = NULL;
+                    UCA_DATA_MEM = result;
                     result = NULL;
                 }
                 umtx_unlock(NULL);
@@ -130,6 +127,8 @@ ucol_initUCA(UErrorCode *status) {
                     ucol_close(newUCA);
                     udata_close(result);
                 }
+                // Initalize variables for implicit generation
+                uprv_uca_initImplicitConstants(status);
             }else{
                 ucol_close(newUCA);
                 udata_close(result);
@@ -183,8 +182,7 @@ ucol_open_internal(const char *loc,
     UResourceBundle *collElem = NULL;
     char keyBuffer[256];
     // if there is a keyword, we pick it up and try to get elements
-    if(!uloc_getKeywordValue(loc, "collation", keyBuffer, 256, status) ||
-        !uprv_strcmp(keyBuffer,"default")) { /* Treat 'zz@collation=default' as 'zz'. */
+    if(!uloc_getKeywordValue(loc, "collation", keyBuffer, 256, status)) {
         // no keyword. we try to find the default setting, which will give us the keyword value
         intStatus = U_ZERO_ERROR;
         // finding default value does not affect collation fallback status
@@ -231,12 +229,9 @@ ucol_open_internal(const char *loc,
             if(U_FAILURE(*status)) {
                 goto clean;
             }
-        } else if(U_SUCCESS(intStatus)) { /* otherwise, we'll pick a collation data that exists */
+        } else if(U_SUCCESS(*status)) { /* otherwise, we'll pick a collation data that exists */
             int32_t len = 0;
             const uint8_t *inData = ures_getBinary(binary, &len, status);
-            if(U_FAILURE(*status)) {
-                goto clean;
-            }
             UCATableHeader *colData = (UCATableHeader *)inData;
             if(uprv_memcmp(colData->UCAVersion, UCA->image->UCAVersion, sizeof(UVersionInfo)) != 0 ||
                 uprv_memcmp(colData->UCDVersion, UCA->image->UCDVersion, sizeof(UVersionInfo)) != 0 ||
@@ -264,11 +259,6 @@ ucol_open_internal(const char *loc,
                 }
                 result->freeImageOnClose = FALSE;
             }
-        } else { // !U_SUCCESS(binaryStatus)
-            if(U_SUCCESS(*status)) {
-                *status = intStatus; // propagate underlying error
-            }
-            goto clean;
         }
         intStatus = U_ZERO_ERROR;
         result->rules = ures_getStringByKey(collElem, "Sequence", &result->rulesLength, &intStatus);

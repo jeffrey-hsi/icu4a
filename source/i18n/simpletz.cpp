@@ -1,6 +1,6 @@
 /*
  *******************************************************************************
- * Copyright (C) 1997-2009, International Business Machines Corporation and    *
+ * Copyright (C) 1997-2008, International Business Machines Corporation and    *
  * others. All Rights Reserved.                                                *
  *******************************************************************************
  *
@@ -966,7 +966,7 @@ SimpleTimeZone::decodeEndRule(UErrorCode& status)
 
 UBool
 SimpleTimeZone::getNextTransition(UDate base, UBool inclusive, TimeZoneTransition& result) /*const*/ {
-    if (!useDaylight) {
+    if (startMonth == 0) {
         return FALSE;
     }
 
@@ -1000,7 +1000,7 @@ SimpleTimeZone::getNextTransition(UDate base, UBool inclusive, TimeZoneTransitio
 
 UBool
 SimpleTimeZone::getPreviousTransition(UDate base, UBool inclusive, TimeZoneTransition& result) /*const*/ {
-    if (!useDaylight) {
+    if (startMonth == 0) {
         return FALSE;
     }
 
@@ -1070,7 +1070,7 @@ SimpleTimeZone::initTransitionRules(UErrorCode& status) {
     UnicodeString tzid;
     getID(tzid);
 
-    if (useDaylight) {
+    if (startMonth != 0) {
         DateTimeRule* dtRule;
         DateTimeRule::TimeRuleType timeRuleType;
         UDate firstStdStart, firstDstStart;
@@ -1183,7 +1183,7 @@ SimpleTimeZone::initTransitionRules(UErrorCode& status) {
 
 int32_t
 SimpleTimeZone::countTransitionRules(UErrorCode& /*status*/) /*const*/ {
-    return (useDaylight) ? 2 : 0;
+    return (startMonth == 0) ? 0 : 2;
 }
 
 void

@@ -916,9 +916,8 @@ protected:
 
    /**
     * Used internally by registraton to define the requested and valid locales.
-    * @param requestedLocale the requested locale
+    * @param requestedLocale the requsted locale
     * @param validLocale the valid locale
-    * @param actualLocale the actual locale
     * @internal
     */
     virtual void setLocales(const Locale& requestedLocale, const Locale& validLocale, const Locale& actualLocale);

@@ -30,7 +30,7 @@
   * \brief C API: Platform Utilities
   */
   
-/** Define this to 1 if your platform supports IEEE 754 floating point,
+/* Define this to 1 if your platform supports IEEE 754 floating point,
    to 0 if it does not. */
 #ifndef IEEE_754
 #   define IEEE_754 1
@@ -58,11 +58,7 @@
  *    If u_setDataDirectory() has been called, that is it, otherwise
  *    if the ICU_DATA environment variable is set, use that, otherwise
  *    If a data directory was specifed at ICU build time
- *      <code>
- * \code
- *        #define ICU_DATA_DIR "path" 
- * \endcode
- * </code> use that,
+ *      <code>( #define ICU_DATA_DIR "path" )</code>, use that,
  *    otherwise no data directory is available.
  *
  * @return the data directory, or an empty string ("") if no data directory has
@@ -115,7 +111,6 @@ U_INTERNAL const char*  U_EXPORT2 uprv_getDefaultCodepage(void);
 U_INTERNAL const char*  U_EXPORT2 uprv_getDefaultLocaleID(void);
 
 /**
- * @{
  * Filesystem file and path separator characters.
  * Example: '/' and ':' on Unix, '\\' and ';' on Windows.
  * @stable ICU 2.0
@@ -142,8 +137,6 @@ U_INTERNAL const char*  U_EXPORT2 uprv_getDefaultLocaleID(void);
 #   define U_FILE_ALT_SEP_STRING "/"
 #   define U_PATH_SEP_STRING ":"
 #endif
-
-/** @} */
 
 /**
  * Convert char characters to UChar characters.

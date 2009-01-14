@@ -13,7 +13,7 @@
 
 #if !UCONFIG_NO_FORMATTING
 
-//TODO: define it in compiler time
+//FIXME: define it in compiler time
 //#define DTITVINF_DEBUG 1
 
 
@@ -317,8 +317,7 @@ DateIntervalInfo::initializeData(const Locale& locale, UErrorCode& err)
     ures_close(calBundle);
     ures_close(rb);
     status = U_ZERO_ERROR;
-    locNameLen = uloc_getParent(parentLocale, parentLocale,
-                                ULOC_FULLNAME_CAPACITY,&status);
+    locNameLen = uloc_getParent(parentLocale, parentLocale,50,&status);
   } while ( locNameLen > 0 );
 }
 

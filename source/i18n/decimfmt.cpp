@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2009, International Business Machines Corporation and    *
+* Copyright (C) 1997-2008, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -57,7 +57,6 @@
 #include "umutex.h"
 #include "uassert.h"
 #include "putilimp.h"
-#include <math.h>
 
 U_NAMESPACE_BEGIN
 
@@ -2176,9 +2175,6 @@ DecimalFormat::ERoundingMode DecimalFormat::getRoundingMode() const {
  */
 void DecimalFormat::setRoundingMode(ERoundingMode roundingMode) {
     fRoundingMode = roundingMode;
-    if (fRoundingIncrement == NULL) {
-        setRoundingIncrement(pow(10.0, -getMaximumFractionDigits()));
-    }
 }
 
 /**

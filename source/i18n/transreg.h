@@ -21,8 +21,8 @@
 
 U_NAMESPACE_BEGIN
 
-class TransliteratorEntry;
-class TransliteratorSpec;
+class Entry;
+class Spec;
 class UnicodeString;
 
 //------------------------------------------------------------------
@@ -359,40 +359,40 @@ class TransliteratorRegistry : public UMemory {
     // Private implementation
     //----------------------------------------------------------------
 
-    TransliteratorEntry* find(const UnicodeString& ID);
+    Entry* find(const UnicodeString& ID);
 
-    TransliteratorEntry* find(UnicodeString& source,
+    Entry* find(UnicodeString& source,
                 UnicodeString& target,
                 UnicodeString& variant);
 
-    TransliteratorEntry* findInDynamicStore(const TransliteratorSpec& src,
-                              const TransliteratorSpec& trg,
+    Entry* findInDynamicStore(const Spec& src,
+                              const Spec& trg,
                               const UnicodeString& variant) const;
 
-    TransliteratorEntry* findInStaticStore(const TransliteratorSpec& src,
-                             const TransliteratorSpec& trg,
+    Entry* findInStaticStore(const Spec& src,
+                             const Spec& trg,
                              const UnicodeString& variant);
 
-    static TransliteratorEntry* findInBundle(const TransliteratorSpec& specToOpen,
-                               const TransliteratorSpec& specToFind,
+    static Entry* findInBundle(const Spec& specToOpen,
+                               const Spec& specToFind,
                                const UnicodeString& variant,
                                UTransDirection direction);
 
     void registerEntry(const UnicodeString& source,
                        const UnicodeString& target,
                        const UnicodeString& variant,
-                       TransliteratorEntry* adopted,
+                       Entry* adopted,
                        UBool visible);
 
     void registerEntry(const UnicodeString& ID,
-                       TransliteratorEntry* adopted,
+                       Entry* adopted,
                        UBool visible);
 
     void registerEntry(const UnicodeString& ID,
                        const UnicodeString& source,
                        const UnicodeString& target,
                        const UnicodeString& variant,
-                       TransliteratorEntry* adopted,
+                       Entry* adopted,
                        UBool visible);
 
     void registerSTV(const UnicodeString& source,
@@ -404,7 +404,7 @@ class TransliteratorRegistry : public UMemory {
                    const UnicodeString& variant);
 
     Transliterator* instantiateEntry(const UnicodeString& ID,
-                                     TransliteratorEntry *entry,
+                                     Entry *entry,
                                      TransliteratorAlias*& aliasReturn,
                                      UErrorCode& status);
 

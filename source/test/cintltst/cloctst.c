@@ -1056,28 +1056,21 @@ static void TestSimpleDisplayNames()
      names, and other stuff like that.  This test just checks specific language
      and country codes to make sure we have the correct names for them.
   */
-    char languageCodes[] [4] = { "he", "id", "iu", "ug", "yi", "za", "419" };
+    char languageCodes[] [4] = { "he", "id", "iu", "ug", "yi", "za" };
     const char* languageNames [] = { "Hebrew", "Indonesian", "Inuktitut", "Uighur", "Yiddish",
-                               "Zhuang", "419" };
-    const char* inLocale [] = { "en_US", "zh_Hant"};
+                               "Zhuang" };
     UErrorCode status=U_ZERO_ERROR;
 
     int32_t i;
-    int32_t localeIndex = 0;
-    for (i = 0; i < 7; i++) {
+    for (i = 0; i < 6; i++) {
         UChar *testLang=0;
         UChar *expectedLang=0;
         int size=0;
-        
-        if (i == 6) {
-            localeIndex = 1; /* Use the second locale for the rest of the test. */
-        }
-        
-        size=uloc_getDisplayLanguage(languageCodes[i], inLocale[localeIndex], NULL, size, &status);
+        size=uloc_getDisplayLanguage(languageCodes[i], "en_US", NULL, size, &status);
         if(status==U_BUFFER_OVERFLOW_ERROR) {
             status=U_ZERO_ERROR;
             testLang=(UChar*)malloc(sizeof(UChar) * (size + 1));
-            uloc_getDisplayLanguage(languageCodes[i], inLocale[localeIndex], testLang, size + 1, &status);
+            uloc_getDisplayLanguage(languageCodes[i], "en_US", testLang, size + 1, &status);
         }
         expectedLang=(UChar*)malloc(sizeof(UChar) * (strlen(languageNames[i])+1));
         u_uastrcpy(expectedLang, languageNames[i]);

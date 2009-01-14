@@ -13,13 +13,10 @@
 *   created on: 1999nov19
 *   created by: Markus W. Scherer
 *
-*	6/25/08 - Added Cygwin specific code in uprv_mkdir - Brian Rower
-*	
 *   This file contains utility functions for ICU tools like genccode.
 */
 
 #include <stdio.h>
-#include <sys/stat.h>
 #include "unicode/utypes.h"
 #include "unicode/putil.h"
 #include "cmemory.h"
@@ -107,7 +104,6 @@ findBasename(const char *filename) {
 
 U_CAPI void U_EXPORT2
 uprv_mkdir(const char *pathname, UErrorCode *status) {
-
     int retVal = 0;
 #if defined(U_WINDOWS)
     retVal = _mkdir(pathname);
@@ -115,38 +111,9 @@ uprv_mkdir(const char *pathname, UErrorCode *status) {
     retVal = mkdir(pathname, S_IRWXU | (S_IROTH | S_IXOTH) | (S_IROTH | S_IXOTH));
 #endif
     if (retVal && errno != EEXIST) {
-#if defined(U_CYGWIN)
-		/*if using Cygwin and the mkdir says it failed...check if the directory already exists..*/
-		/* if it does...don't give the error, if it does not...give the error - Brian Rower - 6/25/08 */
-		struct stat st;
-		
-		if(stat(pathname,&st) != 0)
-		{
-			*status = U_FILE_ACCESS_ERROR;
-		}
-#else
         *status = U_FILE_ACCESS_ERROR;
-#endif
     }
 }
-
-/*U_CAPI UDate U_EXPORT2
-uprv_getModificationDate(const char *pathname, UErrorCode *status)
-{
-    if(U_FAILURE(*status)) {
-        return;
-    }
-    //  TODO: handle case where stat is not available
-    struct stat st;
-    
-    if(stat(pathname,&st) != 0)
-    {
-        *status = U_FILE_ACCESS_ERROR;
-    } else {
-        return st.st_mtime;
-    }
-}
-*/
 
 /* tool memory helper ------------------------------------------------------- */
 

@@ -22,14 +22,13 @@
 #include "cstring.h"
 #include "ucln_in.h"
 
+static UBool gZoneMetaInitialized = FALSE;
+
 // Metazone mapping tables
 static UMTX gZoneMetaLock = NULL;
 static U_NAMESPACE_QUALIFIER Hashtable *gCanonicalMap = NULL;
 static U_NAMESPACE_QUALIFIER Hashtable *gOlsonToMeta = NULL;
 static U_NAMESPACE_QUALIFIER Hashtable *gMetaToOlson = NULL;
-static UBool gCanonicalMapInitialized = FALSE;
-static UBool gOlsonToMetaInitialized = FALSE;
-static UBool gMetaToOlsonInitialized = FALSE;
 
 U_CDECL_BEGIN
 /**
@@ -43,19 +42,18 @@ static UBool U_CALLCONV zoneMeta_cleanup(void)
         delete gCanonicalMap;
         gCanonicalMap = NULL;
     }
-    gCanonicalMapInitialized = FALSE;
 
     if (gOlsonToMeta != NULL) {
         delete gOlsonToMeta;
         gOlsonToMeta = NULL;
     }
-    gOlsonToMetaInitialized = FALSE;
 
     if (gMetaToOlson != NULL) {
         delete gMetaToOlson;
         gMetaToOlson = NULL;
     }
-    gMetaToOlsonInitialized = FALSE;
+
+    gZoneMetaInitialized = FALSE;
 
     return TRUE;
 }
@@ -653,72 +651,32 @@ error_cleanup:
  * Initialize global objects
  */
 void
-ZoneMeta::initializeCanonicalMap(void) {
+ZoneMeta::initialize(void) {
     UBool initialized;
-    UMTX_CHECK(&gZoneMetaLock, gCanonicalMapInitialized, initialized);
+    UMTX_CHECK(&gZoneMetaLock, gZoneMetaInitialized, initialized);
     if (initialized) {
         return;
     }
-    // Initialize hash table
-    Hashtable *tmpCanonicalMap = createCanonicalMap();
 
-    umtx_lock(&gZoneMetaLock);
-    if (!gCanonicalMapInitialized) {
-        gCanonicalMap = tmpCanonicalMap;
-        tmpCanonicalMap = NULL;
-        gCanonicalMapInitialized = TRUE;
-    }
-    umtx_unlock(&gZoneMetaLock);
-
-    // OK to call the following multiple times with the same function
-    ucln_i18n_registerCleanup(UCLN_I18N_ZONEMETA, zoneMeta_cleanup);
-    delete tmpCanonicalMap;
-}
-
-void
-ZoneMeta::initializeOlsonToMeta(void) {
-    UBool initialized;
-    UMTX_CHECK(&gZoneMetaLock, gOlsonToMetaInitialized, initialized);
-    if (initialized) {
-        return;
-    }
     // Initialize hash tables
+    Hashtable *tmpCanonicalMap = createCanonicalMap();
     Hashtable *tmpOlsonToMeta = createOlsonToMetaMap();
-
-    umtx_lock(&gZoneMetaLock);
-    if (!gOlsonToMetaInitialized) {
-        gOlsonToMeta = tmpOlsonToMeta;
-        tmpOlsonToMeta = NULL;
-        gOlsonToMetaInitialized = TRUE;
-    }
-    umtx_unlock(&gZoneMetaLock);
-    
-    // OK to call the following multiple times with the same function
-    ucln_i18n_registerCleanup(UCLN_I18N_ZONEMETA, zoneMeta_cleanup);
-    delete tmpOlsonToMeta;
-}
-
-void
-ZoneMeta::initializeMetaToOlson(void) {
-    UBool initialized;
-    UMTX_CHECK(&gZoneMetaLock, gMetaToOlsonInitialized, initialized);
-    if (initialized) {
-        return;
-    }
-    // Initialize hash table
     Hashtable *tmpMetaToOlson = createMetaToOlsonMap();
 
     umtx_lock(&gZoneMetaLock);
-    if (!gMetaToOlsonInitialized) {
+    if (gZoneMetaInitialized) {
+        // Another thread already created mappings
+        delete tmpCanonicalMap;
+        delete tmpOlsonToMeta;
+        delete tmpMetaToOlson;
+    } else {
+        gZoneMetaInitialized = TRUE;
+        gCanonicalMap = tmpCanonicalMap;
+        gOlsonToMeta = tmpOlsonToMeta;
         gMetaToOlson = tmpMetaToOlson;
-        tmpMetaToOlson = NULL;
-        gMetaToOlsonInitialized = TRUE;
+        ucln_i18n_registerCleanup(UCLN_I18N_ZONEMETA, zoneMeta_cleanup);
     }
     umtx_unlock(&gZoneMetaLock);
-    
-    // OK to call the following multiple times with the same function
-    ucln_i18n_registerCleanup(UCLN_I18N_ZONEMETA, zoneMeta_cleanup);
-    delete tmpMetaToOlson;
 }
 
 UnicodeString& U_EXPORT2
@@ -746,7 +704,7 @@ ZoneMeta::getCanonicalCountry(const UnicodeString &tzid, UnicodeString &canonica
 
 const CanonicalMapEntry* U_EXPORT2
 ZoneMeta::getCanonicalInfo(const UnicodeString &tzid) {
-    initializeCanonicalMap();
+    initialize();
     CanonicalMapEntry *entry = NULL;
     if (gCanonicalMap != NULL) {
         entry = (CanonicalMapEntry*)gCanonicalMap->get(tzid);
@@ -808,7 +766,7 @@ ZoneMeta::getMetazoneID(const UnicodeString &tzid, UDate date, UnicodeString &re
 
 const UVector* U_EXPORT2
 ZoneMeta::getMetazoneMappings(const UnicodeString &tzid) {
-    initializeOlsonToMeta();
+    initialize();
     const UVector *result = NULL;
     if (gOlsonToMeta != NULL) {
         result = (UVector*)gOlsonToMeta->get(tzid);
@@ -818,7 +776,7 @@ ZoneMeta::getMetazoneMappings(const UnicodeString &tzid) {
 
 UnicodeString& U_EXPORT2
 ZoneMeta::getZoneIdByMetazone(const UnicodeString &mzid, const UnicodeString &region, UnicodeString &result) {
-    initializeMetaToOlson();
+    initialize();
     UBool isSet = FALSE;
     if (gMetaToOlson != NULL) {
         UVector *mappings = (UVector*)gMetaToOlson->get(mzid);

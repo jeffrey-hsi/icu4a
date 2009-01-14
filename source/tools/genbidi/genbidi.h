@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2004-2008, International Business Machines
+*   Copyright (C) 2004-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -18,7 +18,6 @@
 #define __GENBIDI_H__
 
 #include "unicode/utypes.h"
-#include "propsvec.h"
 
 U_CDECL_BEGIN
 
@@ -28,7 +27,7 @@ U_CDECL_BEGIN
 extern UBool beVerbose, haveCopyright;
 
 /* properties vectors in genbidi.c */
-extern UPropsVectors *pv;
+extern uint32_t *pv;
 
 /* prototypes */
 U_CFUNC void

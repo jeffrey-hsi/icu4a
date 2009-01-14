@@ -92,8 +92,3 @@ dtitvinf.h
 dtitvfmt.h
 plurfmt.h
 plurrule.h
-#duration format
-tmunit.h
-tmutamt.h
-tmutfmt.h
-

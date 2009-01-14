@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2004-2008, International Business Machines
+*   Copyright (C) 2004-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -24,7 +24,6 @@
 #include "cmemory.h"
 #include "cstring.h"
 #include "utrie.h"
-#include "utrie2.h"
 #include "uarrsort.h"
 #include "unicode/udata.h"
 #include "unewdata.h"
@@ -183,11 +182,12 @@ addMirror(UChar32 src, UChar32 mirror) {
     }
 
     errorCode=U_ZERO_ERROR;
-    upvec_setValue(
-            pv, src, src, 0,
+    if(
+        !upvec_setValue(
+            pv, src, src+1, 0,
             (uint32_t)delta<<UBIDI_MIRROR_DELTA_SHIFT, (uint32_t)(-1)<<UBIDI_MIRROR_DELTA_SHIFT,
-            &errorCode);
-    if(U_FAILURE(errorCode)) {
+            &errorCode)
+    ) {
         fprintf(stderr, "genbidi error: unable to set mirroring delta, code: %s\n",
                         u_errorName(errorCode));
         exit(errorCode);
@@ -293,7 +293,7 @@ generateData(const char *dataDir, UBool csource) {
     static uint8_t jgArray[0x300]; /* at most for U+0600..U+08FF */
 
     const uint32_t *row;
-    UChar32 start, end, prev, jgStart;
+    UChar32 start, limit, prev, jgStart;
     int32_t i;
 
     UNewDataMemory *pData;
@@ -311,18 +311,18 @@ generateData(const char *dataDir, UBool csource) {
     }
 
     prev=jgStart=0;
-    for(i=0; (row=upvec_getRow(pv, i, &start, &end))!=NULL && start<UPVEC_FIRST_SPECIAL_CP; ++i) {
+    for(i=0; (row=upvec_getRow(pv, i, &start, &limit))!=NULL; ++i) {
         /* store most values from vector column 0 in the trie */
-        if(!utrie_setRange32(pTrie, start, end+1, *row, TRUE)) {
+        if(!utrie_setRange32(pTrie, start, limit, *row, TRUE)) {
             fprintf(stderr, "genbidi error: unable to set trie value (overflow)\n");
             exit(U_BUFFER_OVERFLOW_ERROR);
         }
 
         /* store Joining_Group values from vector column 1 in a simple byte array */
         if(row[1]!=0) {
-            if(start<0x600 || 0x8ff<end) {
+            if(start<0x600 || 0x900<=limit) {
                 fprintf(stderr, "genbidi error: Joining_Group for out-of-range code points U+%04lx..U+%04lx\n",
-                        (long)start, (long)end);
+                        (long)start, (long)limit);
                 exit(U_ILLEGAL_ARGUMENT_ERROR);
             }
 
@@ -336,8 +336,8 @@ generateData(const char *dataDir, UBool csource) {
                 }
             }
 
-            /* set Joining_Group value for start..end */
-            while(prev<=end) {
+            /* set Joining_Group value for start..limit */
+            while(prev<limit) {
                 jgArray[prev++ -jgStart]=(uint8_t)row[1];
             }
         }
@@ -379,7 +379,6 @@ generateData(const char *dataDir, UBool csource) {
     if(csource) {
         /* write .c file for hardcoded data */
         UTrie trie={ NULL };
-        UTrie2 *trie2;
         FILE *f;
 
         utrie_unserialize(&trie, trieBlock, trieSize, &errorCode);
@@ -388,36 +387,7 @@ generateData(const char *dataDir, UBool csource) {
                 stderr,
                 "genbidi error: failed to utrie_unserialize(ubidi.icu trie) - %s\n",
                 u_errorName(errorCode));
-            exit(errorCode);
-        }
-
-        /* use UTrie2 */
-        dataInfo.formatVersion[0]=2;
-        dataInfo.formatVersion[2]=0;
-        dataInfo.formatVersion[3]=0;
-        trie2=utrie2_fromUTrie(&trie, 0, &errorCode);
-        if(U_FAILURE(errorCode)) {
-            fprintf(
-                stderr,
-                "genbidi error: utrie2_fromUTrie() failed - %s\n",
-                u_errorName(errorCode));
-            exit(errorCode);
-        }
-        {
-            /* delete lead surrogate code unit values */
-            UChar lead;
-            trie2=utrie2_cloneAsThawed(trie2, &errorCode);
-            for(lead=0xd800; lead<0xdc00; ++lead) {
-                utrie2_set32ForLeadSurrogateCodeUnit(trie2, lead, trie2->initialValue, &errorCode);
-            }
-            utrie2_freeze(trie2, UTRIE2_16_VALUE_BITS, &errorCode);
-            if(U_FAILURE(errorCode)) {
-                fprintf(
-                    stderr,
-                    "genbidi error: deleting lead surrogate code unit values failed - %s\n",
-                    u_errorName(errorCode));
-                exit(errorCode);
-            }
+            return;
         }
 
         f=usrc_create(dataDir, "ubidi_props_data.c");
@@ -430,9 +400,9 @@ generateData(const char *dataDir, UBool csource) {
                 "static const int32_t ubidi_props_indexes[UBIDI_IX_TOP]={",
                 indexes, 32, UBIDI_IX_TOP,
                 "};\n\n");
-            usrc_writeUTrie2Arrays(f,
+            usrc_writeUTrieArrays(f,
                 "static const uint16_t ubidi_props_trieIndex[%ld]={\n", NULL,
-                trie2,
+                &trie,
                 "\n};\n\n");
             usrc_writeArray(f,
                 "static const uint32_t ubidi_props_mirrors[%ld]={\n",
@@ -449,15 +419,14 @@ generateData(const char *dataDir, UBool csource) {
                 "  ubidi_props_mirrors,\n"
                 "  ubidi_props_jgArray,\n",
                 f);
-            usrc_writeUTrie2Struct(f,
+            usrc_writeUTrieStruct(f,
                 "  {\n",
-                trie2, "ubidi_props_trieIndex", NULL,
+                &trie, "ubidi_props_trieIndex", NULL, NULL,
                 "  },\n");
             usrc_writeArray(f, "  { ", dataInfo.formatVersion, 8, 4, " }\n");
             fputs("};\n", f);
             fclose(f);
         }
-        utrie2_close(trie2);
     } else {
         /* write the data */
         pData=udata_create(dataDir, UBIDI_DATA_TYPE, UBIDI_DATA_NAME, &dataInfo,

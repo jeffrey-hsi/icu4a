@@ -1156,7 +1156,7 @@ void Calendar::computeFields(UErrorCode &ec)
     // JULIAN_DAY field and also removes some inelegant code. - Liu
     // 11/6/00
 
-    int32_t days =  (int32_t)ClockMath::floorDivide(localMillis, (double)kOneDay);
+    int32_t days =  (int32_t)Math::floorDivide(localMillis, (double)kOneDay);
 
     internalSet(UCAL_JULIAN_DAY,days + kEpochStartAsJulianDay);
 
@@ -1234,6 +1234,9 @@ void Calendar::computeGregorianAndDOWFields(int32_t julianDay, UErrorCode &ec)
 * variables gregorianXxx.  They are used for time zone computations and by
 * subclasses that are Gregorian derivatives.  Subclasses may call this
 * method to perform a Gregorian calendar millis->fields computation.
+* To perform a Gregorian calendar fields->millis computation, call
+* computeGregorianMonthStart().
+* @see #computeGregorianMonthStart
 */
 void Calendar::computeGregorianFields(int32_t julianDay, UErrorCode & /* ec */) {
     int32_t gregorianDayOfWeekUnused;
@@ -2346,7 +2349,7 @@ void Calendar::computeTime(UErrorCode& status) {
     double millis = Grego::julianDayToMillis(julianDay);
 
 #if defined (U_DEBUG_CAL)
-    //  int32_t julianInsanityCheck =  (int32_t)ClockMath::floorDivide(millis, kOneDay);
+    //  int32_t julianInsanityCheck =  (int32_t)Math::floorDivide(millis, kOneDay);
     //  julianInsanityCheck += kEpochStartAsJulianDay;
     //  if(1 || julianInsanityCheck != julianDay) {
     //    fprintf(stderr, "%s:%d- D'oh- computed jules %d, to mills (%s)%.lf, recomputed %d\n",
@@ -2508,7 +2511,7 @@ int32_t Calendar::handleComputeJulianDay(UCalendarDateFields bestField)  {
     if(isSet(UCAL_MONTH)) {
         month = internalGet(UCAL_MONTH);
     } else {
-        month = getDefaultMonthInYear(year);
+        month = getDefaultMonthInYear();
     }
 
     int32_t julianDay = handleComputeMonthStart(year, useMonth ? month : 0, useMonth);
@@ -2520,7 +2523,7 @@ int32_t Calendar::handleComputeJulianDay(UCalendarDateFields bestField)  {
         if(isSet(UCAL_DAY_OF_MONTH)) {
             dayOfMonth = internalGet(UCAL_DAY_OF_MONTH,1);
         } else {
-            dayOfMonth = getDefaultDayInMonth(year, month);
+            dayOfMonth = getDefaultDayInMonth(month);
         }
         return julianDay + dayOfMonth;
     }
@@ -2675,13 +2678,13 @@ int32_t Calendar::handleComputeJulianDay(UCalendarDateFields bestField)  {
 }
 
 int32_t
-Calendar::getDefaultMonthInYear(int32_t /*eyear*/) 
+Calendar::getDefaultMonthInYear() 
 {
     return 0;
 }
 
 int32_t
-Calendar::getDefaultDayInMonth(int32_t /*eyear*/, int32_t /*month*/) 
+Calendar::getDefaultDayInMonth(int32_t /*month*/) 
 {
     return 1;
 }

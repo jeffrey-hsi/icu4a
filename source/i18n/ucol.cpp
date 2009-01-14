@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-*   Copyright (C) 1996-2008, International Business Machines
+*   Copyright (C) 1996-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *******************************************************************************
 *   file name:  ucol.cpp
@@ -44,6 +44,11 @@
 
 U_NAMESPACE_USE
 
+/* added by synwee for trie manipulation*/
+#define STAGE_1_SHIFT_            10
+#define STAGE_2_SHIFT_            4
+#define STAGE_2_MASK_AFTER_SHIFT_ 0x3F
+#define STAGE_3_MASK_             0xF
 #define LAST_BYTE_MASK_           0xFF
 #define SECOND_LAST_BYTE_SHIFT_   8
 
@@ -54,8 +59,6 @@ U_NAMESPACE_USE
 // and therefore writing to it is not synchronized.
 // It is cleaned in ucol_cleanup
 static const uint16_t *fcdTrieIndex=NULL;
-// Code points at fcdHighStart and above have a zero FCD value.
-static UChar32 fcdHighStart = 0;
 
 // These are values from UCA required for
 // implicit generation and supressing sort key compression
@@ -122,7 +125,6 @@ uprv_init_collIterate(const UCollator *collator, const UChar *sourceString,
     /* Out-of-line version for use from other files. */
     IInit_collIterate(collator, sourceString, sourceLen, s);
 }
-
 
 /**
 * Backup the state of the collIterate struct data
@@ -750,7 +752,7 @@ UCollator* ucol_initCollator(const UCATableHeader *image, UCollator *fillIn, con
     // init FCD data
     if (fcdTrieIndex == NULL) {
         // The result is constant, until the library is reloaded.
-        fcdTrieIndex = unorm_getFCDTrieIndex(fcdHighStart, status);
+        fcdTrieIndex = unorm_getFCDTrie(status);
         ucln_i18n_registerCleanup(UCLN_I18N_UCOL, ucol_cleanup);
     }
 
@@ -904,7 +906,7 @@ static const UChar32
     UCOL_MAX_INPUT = 0x220001; // 2 * Unicode range + 2
 
 /**
- * Precomputed by initImplicitConstants()
+ * Precomputed by constructor
  */
 static int32_t
     final3Multiplier = 0,
@@ -1104,10 +1106,6 @@ static inline int32_t divideAndRoundUp(int a, int b) {
 
 /**
  * Set up to generate implicits.
- * Maintenance Note:  this function may end up being called more than once, due
- *                    to threading races during initialization.  Make sure that
- *                    none of the Constants is ever transiently assigned an
- *                    incorrect value.
  * @param minPrimary
  * @param maxPrimary
  * @param minTrail final byte
@@ -1288,6 +1286,7 @@ inline void normalizeIterator(collIterate *collationSource) {
 /*          that way, and we get called for every char where cc might be non-zero.        */
 static
 inline UBool collIterFCD(collIterate *collationSource) {
+    UChar       c, c2;
     const UChar *srcP, *endP;
     uint8_t     leadingCC;
     uint8_t     prevTrailingCC = 0;
@@ -1304,9 +1303,19 @@ inline UBool collIterFCD(collIterate *collationSource) {
 
     // Get the trailing combining class of the current character.  If it's zero,
     //   we are OK.
+    c = *srcP++;
     /* trie access */
-    fcd = unorm_nextFCD16(fcdTrieIndex, fcdHighStart, srcP, endP);
+    fcd = unorm_getFCD16(fcdTrieIndex, c);
     if (fcd != 0) {
+        if (U16_IS_LEAD(c)) {
+            if ((endP == NULL || srcP != endP) && U16_IS_TRAIL(c2=*srcP)) {
+                ++srcP;
+                fcd = unorm_getFCD16FromSurrogatePair(fcdTrieIndex, fcd, c2);
+            } else {
+                fcd = 0;
+            }
+        }
+
         prevTrailingCC = (uint8_t)(fcd & LAST_BYTE_MASK_);
 
         if (prevTrailingCC != 0) {
@@ -1316,8 +1325,17 @@ inline UBool collIterFCD(collIterate *collationSource) {
             {
                 const UChar *savedSrcP = srcP;
 
+                c = *srcP++;
                 /* trie access */
-                fcd = unorm_nextFCD16(fcdTrieIndex, fcdHighStart, srcP, endP);
+                fcd = unorm_getFCD16(fcdTrieIndex, c);
+                if (fcd != 0 && U16_IS_LEAD(c)) {
+                    if ((endP == NULL || srcP != endP) && U16_IS_TRAIL(c2=*srcP)) {
+                        ++srcP;
+                        fcd = unorm_getFCD16FromSurrogatePair(fcdTrieIndex, fcd, c2);
+                    } else {
+                        fcd = 0;
+                    }
+                }
                 leadingCC = (uint8_t)(fcd >> SECOND_LAST_BYTE_SHIFT_);
                 if (leadingCC == 0) {
                     srcP = savedSrcP;      // Hit char that is not part of combining sequence.
@@ -1499,10 +1517,30 @@ inline uint32_t ucol_IGetNextCE(const UCollator *coll, collIterate *collationSou
     }
     else
     {
-        order = UTRIE_GET32_FROM_LEAD(&coll->mapping, ch);
+        // Always use UCA for Han, Hangul
+        // (Han extension A is before main Han block)
+        // **** Han compatibility chars ?? ****
+        if ((collationSource->flags & UCOL_FORCE_HAN_IMPLICIT) != 0 &&
+            (ch >= UCOL_FIRST_HAN_A && ch <= UCOL_LAST_HANGUL)) {
+            if (ch > UCOL_LAST_HAN && ch < UCOL_FIRST_HANGUL) {
+                // between the two target ranges; do normal lookup
+                // **** this range is YI, Modifier tone letters, ****
+                // **** Latin-D, Syloti Nagari, Phagas-pa.       ****
+                // **** Latin-D might be tailored, so we need to ****
+                // **** do the normal lookup for these guys.     ****
+                order = UTRIE_GET32_FROM_LEAD(&coll->mapping, ch);
+            } else {
+                // in one of the target ranges; use UCA
+                order = UCOL_NOT_FOUND;
+            }
+        } else {
+            order = UTRIE_GET32_FROM_LEAD(&coll->mapping, ch);
+        }
+
         if(order > UCOL_NOT_FOUND) {                                       /* if a CE is special                */
             order = ucol_prv_getSpecialCE(coll, ch, order, collationSource, status);    /* and try to get the special CE     */
         }
+
         if(order == UCOL_NOT_FOUND && coll->UCA) {   /* We couldn't find a good CE in the tailoring */
             /* if we got here, the codepoint MUST be over 0xFF - so we look directly in the trie */
             order = UTRIE_GET32_FROM_LEAD(&coll->UCA->mapping, ch);
@@ -1676,6 +1714,7 @@ static
 inline UBool collPrevIterFCD(collIterate *data)
 {
     const UChar *src, *start;
+    UChar       c, c2;
     uint8_t     leadingCC;
     uint8_t     trailingCC = 0;
     uint16_t    fcd;
@@ -1685,7 +1724,18 @@ inline UBool collPrevIterFCD(collIterate *data)
     src = data->pos + 1;
 
     /* Get the trailing combining class of the current character. */
-    fcd = unorm_prevFCD16(fcdTrieIndex, fcdHighStart, start, src);
+    c = *--src;
+    if (!U16_IS_SURROGATE(c)) {
+        fcd = unorm_getFCD16(fcdTrieIndex, c);
+    } else if (U16_IS_TRAIL(c) && start < src && U16_IS_LEAD(c2 = *(src - 1))) {
+        --src;
+        fcd = unorm_getFCD16(fcdTrieIndex, c2);
+        if (fcd != 0) {
+            fcd = unorm_getFCD16FromSurrogatePair(fcdTrieIndex, fcd, c);
+        }
+    } else /* unpaired surrogate */ {
+        fcd = 0;
+    }
 
     leadingCC = (uint8_t)(fcd >> SECOND_LAST_BYTE_SHIFT_);
 
@@ -1701,7 +1751,18 @@ inline UBool collPrevIterFCD(collIterate *data)
                 return result;
             }
 
-            fcd = unorm_prevFCD16(fcdTrieIndex, fcdHighStart, start, src);
+            c = *--src;
+            if (!U16_IS_SURROGATE(c)) {
+                fcd = unorm_getFCD16(fcdTrieIndex, c);
+            } else if (U16_IS_TRAIL(c) && start < src && U16_IS_LEAD(c2 = *(src - 1))) {
+                --src;
+                fcd = unorm_getFCD16(fcdTrieIndex, c2);
+                if (fcd != 0) {
+                    fcd = unorm_getFCD16FromSurrogatePair(fcdTrieIndex, fcd, c);
+                }
+            } else /* unpaired surrogate */ {
+                fcd = 0;
+            }
 
             trailingCC = (uint8_t)(fcd & LAST_BYTE_MASK_);
 
@@ -1939,7 +2000,27 @@ inline uint32_t ucol_IGetPrevCE(const UCollator *coll, collIterate *data,
                 result = coll->latinOneMapping[ch];
             }
             else {
-                result = UTRIE_GET32_FROM_LEAD(&coll->mapping, ch);
+                // Always use UCA for [3400..9FFF], [AC00..D7AF]
+                // **** [FA0E..FA2F] ?? ****
+                if ((data->flags & UCOL_FORCE_HAN_IMPLICIT) != 0 &&
+                    (ch >= 0x3400 && ch <= 0xD7AF)) {
+#if 1
+                    if (ch > 0x9FFF && ch < 0xAC00) {
+                        // between the two target ranges; do normal lookup
+                        // **** this range is YI, Modifier tone letters, ****
+                        // **** Latin-D, Syloti Nagari, Phagas-pa. It's  ****
+                        // **** unlikely that these are tailored so it's ****
+                        // **** probably OK to use UCA for them too.     ****
+                         result = UTRIE_GET32_FROM_LEAD(&coll->mapping, ch);
+                    } else {
+                        result = UCOL_NOT_FOUND;
+                    }
+#else
+                    result = UCOL_NOT_FOUND;
+#endif
+                } else {
+                    result = UTRIE_GET32_FROM_LEAD(&coll->mapping, ch);
+                }
             }
             if (result > UCOL_NOT_FOUND) {
                 result = ucol_prv_getSpecialPrevCE(coll, ch, result, data, status);
@@ -3545,38 +3626,12 @@ uint32_t ucol_prv_getSpecialPrevCE(const UCollator *coll, UChar ch, uint32_t CE,
 
             int32_t offsetBias;
 
-#if 0
-            if (source->offsetReturn != NULL) {
-                source->offsetStore = source->offsetReturn - noChars;
-            }
-
             // **** doesn't work if using iterator ****
             if (source->flags & UCOL_ITER_INNORMBUF) {
-                if (source->fcdPosition == NULL) {
-                    offsetBias = 0;
-                } else {
-                    offsetBias = (int32_t)(source->fcdPosition - source->string);
-                }
-            } else {
-                offsetBias = (int32_t)(source->pos - source->string);
-            }
-
-#else
-            // **** doesn't work if using iterator ****
-            if (source->flags & UCOL_ITER_INNORMBUF) {
-#if 1
                 offsetBias = -1;
-#else
-              if (source->fcdPosition == NULL) {
-                  offsetBias = 0;
-              } else {
-                  offsetBias = (int32_t)(source->fcdPosition - source->string);
-              }
-#endif
             } else {
                 offsetBias = (int32_t)(source->pos - source->string);
             }
-#endif
 
             /* a new collIterate is used to simplify things, since using the current
             collIterate will mean that the forward and backwards iteration will
@@ -3584,9 +3639,9 @@ uint32_t ucol_prv_getSpecialPrevCE(const UCollator *coll, UChar ch, uint32_t CE,
             collIterate temp;
             int32_t rawOffset;
 
-            //IInit_collIterate(coll, UCharOffset, -1, &temp);
             IInit_collIterate(coll, UCharOffset, noChars, &temp);
             temp.flags &= ~UCOL_ITER_NORM;
+            temp.flags |= source->flags & UCOL_FORCE_HAN_IMPLICIT;
 
             rawOffset = temp.pos - temp.string; // should always be zero?
             CE = ucol_IGetNextCE(coll, &temp, status);
@@ -3679,7 +3734,12 @@ uint32_t ucol_prv_getSpecialPrevCE(const UCollator *coll, UChar ch, uint32_t CE,
                     }
                 }
 
-                rawOffset = temp.pos - temp.string;
+                if ((temp.flags & UCOL_ITER_INNORMBUF) != 0) {
+                    rawOffset = temp.fcdPosition - temp.string;
+                } else {
+                    rawOffset = temp.pos - temp.string;
+                }
+
                 CE = ucol_IGetNextCE(coll, &temp, status);
             }
 
@@ -4136,29 +4196,6 @@ uint32_t ucol_prv_getSpecialPrevCE(const UCollator *coll, UChar ch, uint32_t CE,
             }
 
         case IMPLICIT_TAG:        /* everything that is not defined otherwise */
-#if 0
-			if (source->offsetBuffer == NULL) {
-				source->offsetBufferSize = UCOL_EXPAND_CE_BUFFER_SIZE;
-				source->offsetBuffer = (int32_t *) uprv_malloc(sizeof(int32_t) * UCOL_EXPAND_CE_BUFFER_SIZE);
-				source->offsetStore = source->offsetBuffer;
-			}
-
-			// **** doesn't work if using iterator ****
-			if (source->flags & UCOL_ITER_INNORMBUF) {
-			  source->offsetRepeatCount = 1;
-			} else {
-			  int32_t firstOffset = (int32_t)(source->pos - source->string);
-
-			  *(source->offsetStore++) = firstOffset;
-			  *(source->offsetStore++) = firstOffset + 1;
-
-				source->offsetReturn = source->offsetStore - 1;
-				if (source->offsetReturn == source->offsetBuffer) {
-					source->offsetStore = source->offsetBuffer;
-				}
-			}
-#endif
-
             return getPrevImplicit(ch, source);
 
             // TODO: Remove CJK implicits as they are handled by the getImplicitPrimary function
@@ -7314,8 +7351,7 @@ ucol_getVersion(const UCollator* coll,
     versionInfo[1] = (uint8_t)cmbVersion;
     versionInfo[2] = coll->image->version[1];
     if(coll->UCA) {
-        /* Include the minor number when getting the UCA version. (major & 1f) << 3 | (minor & 7) */
-        versionInfo[3] = (coll->UCA->image->UCAVersion[0] & 0x1f) << 3 | (coll->UCA->image->UCAVersion[1] & 0x07);
+        versionInfo[3] = coll->UCA->image->UCAVersion[0];
     } else {
         versionInfo[3] = 0;
     }

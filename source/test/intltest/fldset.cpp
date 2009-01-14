@@ -1,6 +1,6 @@
 /*
 ************************************************************************
-* Copyright (c) 2007-2008, International Business Machines
+* Copyright (c) 2007, International Business Machines
 * Corporation and others.  All Rights Reserved.
 ************************************************************************
 */
@@ -189,11 +189,7 @@ int32_t FieldsSet::get(int32_t field) const {
 
 int32_t FieldsSet::handleParseName(const FieldsSet* /* inheritFrom */, const UnicodeString& name, const UnicodeString& /* substr*/ , UErrorCode& status) {
     if(fEnum > -1) {
-        int32_t which = udbg_enumByString(fEnum, name);
-        if(which == UDBG_INVALID_ENUM) {
-            status = U_UNSUPPORTED_ERROR;
-        }
-        return which;
+        return udbg_enumByString(fEnum, name);
     } else {
         status = U_UNSUPPORTED_ERROR;
         return -1;
@@ -258,6 +254,7 @@ void CalendarFieldsSet::setOnCalendar(Calendar *cal, UErrorCode& /*status*/) con
     for (int i=0; i<UDAT_FIELD_COUNT; i++) {
         if (isSet((UCalendarDateFields)i)) {
             int32_t value = get((UCalendarDateFields)i);
+            //fprintf(stderr, "Setting: %s#%d=%d\n",udbg_enumName(UDBG_UCalendarDateFields,i),i,value);            
             cal->set((UCalendarDateFields)i, value);
         }
     }
@@ -269,9 +266,8 @@ void CalendarFieldsSet::setOnCalendar(Calendar *cal, UErrorCode& /*status*/) con
 UBool CalendarFieldsSet::matches(Calendar *cal, CalendarFieldsSet &diffSet,
         UErrorCode& status) const {
     UBool match = TRUE;
-    if (U_FAILURE(status)) {
+    if (U_FAILURE(status))
         return FALSE;
-    }
     for (int i=0; i<UDAT_FIELD_COUNT; i++) {
         if (isSet((UCalendarDateFields)i)) {
             int32_t calVal = cal->get((UCalendarDateFields)i, status);
@@ -288,13 +284,10 @@ UBool CalendarFieldsSet::matches(Calendar *cal, CalendarFieldsSet &diffSet,
 }
 
 
-/**
- * DateTimeStyleSet has two 'fields' -- date, and time.
- */
-enum DateTimeStyleSetFields {
-    DTS_DATE = 0,  /** Field one: the date (long, medium, short, etc). */
-    DTS_TIME,      /** Field two: the time (long, medium, short, etc). */
-    DTS_COUNT      /** The number of fields */
+enum {
+    DTS_DATE = 0,
+    DTS_TIME,
+    DTS_COUNT
 };
 
 /**
@@ -302,6 +295,7 @@ enum DateTimeStyleSetFields {
  * */
 DateTimeStyleSet::DateTimeStyleSet() :
     FieldsSet(DTS_COUNT) {
+    
 }
 
 DateTimeStyleSet::~DateTimeStyleSet() {
@@ -326,6 +320,8 @@ UDateFormatStyle DateTimeStyleSet::getTimeStyle() const {
 }
 
 void DateTimeStyleSet::handleParseValue(const FieldsSet* inheritFrom, int32_t field, const UnicodeString& substr, UErrorCode& status) {
+//    int32_t value = udbg_enumByString(UDBG_UDateFormatStyle, substr);
+//    fprintf(stderr, " HPV: %d -> %d\n", field, value);
     UnicodeString kRELATIVE_("RELATIVE_");
     if(substr.startsWith(kRELATIVE_)) {
         UnicodeString relativeas(substr,kRELATIVE_.length());

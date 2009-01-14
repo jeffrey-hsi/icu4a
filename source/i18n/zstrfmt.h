@@ -21,48 +21,35 @@ U_NAMESPACE_BEGIN
 /*
  * Character node used by TextTrieMap
  */
-struct CharacterNode {
-    // No constructor or destructor.
-    // We malloc and free an uninitalized array of CharacterNode objects
-    // and clear and delete them ourselves.
+class CharacterNode : public UMemory {
+public:
+    CharacterNode(UChar32 c, UErrorCode &status);
+    virtual ~CharacterNode();
 
-    void clear();
-    void deleteValues();
+    inline UChar32 getCharacter(void) const;
+    inline const UVector* getValues(void) const;
+    inline const UVector* getChildNodes(void) const;
 
     void addValue(void *value, UErrorCode &status);
-    inline UBool hasValues() const;
-    inline int32_t countValues() const;
-    inline const void *getValue(int32_t index) const;
+    CharacterNode* addChildNode(UChar32 c, UErrorCode &status);
+    CharacterNode* getChildNode(UChar32 c) const;
 
-    void     *fValues;      // Union of one single value vs. UVector of values.
-    UChar    fCharacter;    // UTF-16 code unit.
-    uint16_t fFirstChild;   // 0 if no children.
-    uint16_t fNextSibling;  // 0 terminates the list.
-    UBool    fHasValuesVector;
-    UBool    fPadding;
-
-    // No value:   fValues == NULL               and  fHasValuesVector == FALSE
-    // One value:  fValues == value              and  fHasValuesVector == FALSE
-    // >=2 values: fValues == UVector of values  and  fHasValuesVector == TRUE
+private:
+    UVector fChildren;
+    UVector fValues;
+    UChar32 fCharacter;
 };
 
-inline UBool CharacterNode::hasValues() const {
-    return (UBool)(fValues != NULL);
+inline UChar32 CharacterNode::getCharacter(void) const {
+    return fCharacter;
 }
 
-inline int32_t CharacterNode::countValues() const {
-    return
-        fValues == NULL ? 0 :
-        !fHasValuesVector ? 1 :
-        ((const UVector *)fValues)->size();
+inline const UVector* CharacterNode::getValues(void) const {
+    return &fValues;
 }
 
-inline const void *CharacterNode::getValue(int32_t index) const {
-    if (!fHasValuesVector) {
-        return fValues;  // Assume index == 0.
-    } else {
-        return ((const UVector *)fValues)->elementAt(index);
-    }
+inline const UVector* CharacterNode::getChildNodes(void) const {
+    return &fChildren;
 }
 
 /*
@@ -71,7 +58,7 @@ inline const void *CharacterNode::getValue(int32_t index) const {
 class TextTrieMapSearchResultHandler : public UMemory {
 public:
     virtual UBool handleMatch(int32_t matchLength,
-                              const CharacterNode *node, UErrorCode& status) = 0;
+        const UVector *values, UErrorCode& status) = 0;
     virtual ~TextTrieMapSearchResultHandler(); //added to avoid warning
 };
 
@@ -91,20 +78,14 @@ public:
 
 private:
     UBool           fIgnoreCase;
-    CharacterNode   *fNodes;
-    int32_t         fNodesCapacity;
-    int32_t         fNodesCount;
-
-    UBool growNodes();
-    CharacterNode* addChildNode(CharacterNode *parent, UChar c, UErrorCode &status);
-    CharacterNode* getChildNode(CharacterNode *parent, UChar c) const;
+    CharacterNode   *fRoot;
 
     void search(CharacterNode *node, const UnicodeString &text, int32_t start,
         int32_t index, TextTrieMapSearchResultHandler *handler, UErrorCode &status) const;
 };
 
 inline UChar32 TextTrieMap::isEmpty(void) const {
-    return fNodes == NULL;
+    return fRoot == NULL;
 }
 
 // Name types, these bit flag are used for zone string lookup
@@ -396,7 +377,7 @@ public:
     ZoneStringSearchResultHandler(UErrorCode &status);
     virtual ~ZoneStringSearchResultHandler();
 
-    virtual UBool handleMatch(int32_t matchLength, const CharacterNode *node, UErrorCode &status);
+    virtual UBool handleMatch(int32_t matchLength, const UVector *values, UErrorCode &status);
     int32_t countMatches(void);
     const ZoneStringInfo* getMatch(int32_t index, int32_t &matchLength);
     void clear(void);

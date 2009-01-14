@@ -1,6 +1,6 @@
 /*
  *
- * (C) Copyright IBM Corp. 1998-2008 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2007 - All Rights Reserved
  *
  */
 
@@ -20,12 +20,8 @@
 U_NAMESPACE_BEGIN
 
 le_uint32 LookupProcessor::applyLookupTable(const LookupTable *lookupTable, GlyphIterator *glyphIterator,
-                                         const LEFontInstance *fontInstance, LEErrorCode& success) const
+                                         const LEFontInstance *fontInstance) const
 {
-    if (LE_FAILURE(success)) {
-        return 0;
-    }
-
     le_uint16 lookupType = SWAPW(lookupTable->lookupType);
     le_uint16 subtableCount = SWAPW(lookupTable->subTableCount);
     le_int32 startPosition = glyphIterator->getCurrStreamPosition();
@@ -34,9 +30,9 @@ le_uint32 LookupProcessor::applyLookupTable(const LookupTable *lookupTable, Glyp
     for (le_uint16 subtable = 0; subtable < subtableCount; subtable += 1) {
         const LookupSubtable *lookupSubtable = lookupTable->getLookupSubtable(subtable);
 
-        delta = applySubtable(lookupSubtable, lookupType, glyphIterator, fontInstance, success);
+        delta = applySubtable(lookupSubtable, lookupType, glyphIterator, fontInstance);
 
-        if (delta > 0 && LE_FAILURE(success)) {
+        if (delta > 0) {
             return 1;
         }
 
@@ -48,12 +44,8 @@ le_uint32 LookupProcessor::applyLookupTable(const LookupTable *lookupTable, Glyp
 
 le_int32 LookupProcessor::process(LEGlyphStorage &glyphStorage, GlyphPositionAdjustments *glyphPositionAdjustments,
                               le_bool rightToLeft, const GlyphDefinitionTableHeader *glyphDefinitionTableHeader,
-                              const LEFontInstance *fontInstance, LEErrorCode& success) const
+                              const LEFontInstance *fontInstance) const
 {
-    if (LE_FAILURE(success)) {
-        return 0;
-    }    
-	
     le_int32 glyphCount = glyphStorage.getGlyphCount();
 
     if (lookupSelectArray == NULL) {
@@ -75,10 +67,7 @@ le_int32 LookupProcessor::process(LEGlyphStorage &glyphStorage, GlyphPositionAdj
             glyphIterator.reset(lookupFlags, selectMask);
 
             while (glyphIterator.findFeatureTag()) {
-                applyLookupTable(lookupTable, &glyphIterator, fontInstance, success);
-                if (LE_FAILURE(success)) { 
-                    return 0;
-                }
+                applyLookupTable(lookupTable, &glyphIterator, fontInstance);
             }
 
             newGlyphCount = glyphIterator.applyInsertions();
@@ -89,16 +78,12 @@ le_int32 LookupProcessor::process(LEGlyphStorage &glyphStorage, GlyphPositionAdj
 }
 
 le_uint32 LookupProcessor::applySingleLookup(le_uint16 lookupTableIndex, GlyphIterator *glyphIterator,
-                                          const LEFontInstance *fontInstance, LEErrorCode& success) const
+                                          const LEFontInstance *fontInstance) const
 {
-    if (LE_FAILURE(success)) {
-        return 0;
-    }    
-
     const LookupTable *lookupTable = lookupListTable->getLookupTable(lookupTableIndex);
     le_uint16 lookupFlags = SWAPW(lookupTable->lookupFlags);
     GlyphIterator tempIterator(*glyphIterator, lookupFlags);
-    le_uint32 delta = applyLookupTable(lookupTable, &tempIterator, fontInstance, success);
+    le_uint32 delta = applyLookupTable(lookupTable, &tempIterator, fontInstance);
 
     return delta;
 }
@@ -120,8 +105,7 @@ le_int32 LookupProcessor::selectLookups(const FeatureTable *featureTable, Featur
 
 LookupProcessor::LookupProcessor(const char *baseAddress,
         Offset scriptListOffset, Offset featureListOffset, Offset lookupListOffset,
-        LETag scriptTag, LETag languageTag, const FeatureMap *featureMap, le_int32 featureMapCount, le_bool orderFeatures, 
-        LEErrorCode& success)
+        LETag scriptTag, LETag languageTag, const FeatureMap *featureMap, le_int32 featureMapCount, le_bool orderFeatures)
     : lookupListTable(NULL), featureListTable(NULL), lookupSelectArray(NULL),
       lookupOrderArray(NULL), lookupOrderCount(0)
 {
@@ -130,10 +114,6 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
     le_uint16 featureCount = 0;
     le_uint16 lookupListCount = 0;
     le_uint16 requiredFeatureIndex;
-
-    if (LE_FAILURE(success)) {
-        return;
-    } 
 
     if (scriptListOffset != 0) {
         scriptListTable = (const ScriptListTable *) (baseAddress + scriptListOffset);
@@ -161,10 +141,6 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
     requiredFeatureIndex = SWAPW(langSysTable->reqFeatureIndex);
 
     lookupSelectArray = LE_NEW_ARRAY(FeatureMask, lookupListCount);
-    if (lookupSelectArray == NULL) {
-        success = LE_MEMORY_ALLOCATION_ERROR;
-        return;
-    }
 
     for (int i = 0; i < lookupListCount; i += 1) {
         lookupSelectArray[i] = 0;
@@ -195,10 +171,6 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
     }
 
     lookupOrderArray = LE_NEW_ARRAY(le_uint16, featureReferences);
-    if (lookupOrderArray == NULL) {
-        success = LE_MEMORY_ALLOCATION_ERROR;
-        return;
-    }
 
     for (le_int32 f = 0; f < featureMapCount; f += 1) {
         FeatureMap fm = featureMap[f];
@@ -288,8 +260,6 @@ LookupProcessor::LookupProcessor(const char *baseAddress,
 
 LookupProcessor::LookupProcessor()
 {
-	lookupOrderArray = NULL;
-	lookupSelectArray = NULL;
 }
 
 LookupProcessor::~LookupProcessor()

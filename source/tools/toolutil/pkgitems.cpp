@@ -215,6 +215,7 @@ ures_enumDependencies(const UDataSwapper *ds,
                 break;
             }
             useResSuffix = FALSE;
+            break;
         } else {
             // we ignore all other strings
             break;

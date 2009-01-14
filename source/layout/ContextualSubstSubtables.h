@@ -1,6 +1,6 @@
 /*
  *
- * (C) Copyright IBM Corp. 1998-2008 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2004 - All Rights Reserved
  *
  */
 
@@ -47,13 +47,12 @@ struct ContextualSubstitutionBase : GlyphSubstitutionSubtable
         le_uint16 substCount,
         GlyphIterator *glyphIterator,
         const LEFontInstance *fontInstance,
-        le_int32 position,
-        LEErrorCode& success);
+        le_int32 position);
 };
 
 struct ContextualSubstitutionSubtable : ContextualSubstitutionBase
 {
-    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance, LEErrorCode& success) const;
+    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 };
 
 struct ContextualSubstitutionFormat1Subtable : ContextualSubstitutionSubtable
@@ -61,7 +60,7 @@ struct ContextualSubstitutionFormat1Subtable : ContextualSubstitutionSubtable
     le_uint16  subRuleSetCount;
     Offset  subRuleSetTableOffsetArray[ANY_NUMBER];
 
-    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance, LEErrorCode& success) const;
+    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 };
 
 struct SubRuleSetTable
@@ -86,7 +85,7 @@ struct ContextualSubstitutionFormat2Subtable : ContextualSubstitutionSubtable
     le_uint16  subClassSetCount;
     Offset  subClassSetTableOffsetArray[ANY_NUMBER];
 
-    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance, LEErrorCode& success) const;
+    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 };
 
 struct SubClassSetTable
@@ -116,12 +115,12 @@ struct ContextualSubstitutionFormat3Subtable
     Offset  coverageTableOffsetArray[ANY_NUMBER];
   //SubstitutionLookupRecord substLookupRecord[ANY_NUMBER];
 
-    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance, LEErrorCode& success) const;
+    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 };
 
 struct ChainingContextualSubstitutionSubtable : ContextualSubstitutionBase
 {
-    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance, LEErrorCode& success) const;
+    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 };
 
 struct ChainingContextualSubstitutionFormat1Subtable : ChainingContextualSubstitutionSubtable
@@ -129,7 +128,7 @@ struct ChainingContextualSubstitutionFormat1Subtable : ChainingContextualSubstit
     le_uint16  chainSubRuleSetCount;
     Offset  chainSubRuleSetTableOffsetArray[ANY_NUMBER];
 
-    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance, LEErrorCode& success) const;
+    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 };
 
 struct ChainSubRuleSetTable
@@ -160,7 +159,7 @@ struct ChainingContextualSubstitutionFormat2Subtable : ChainingContextualSubstit
     le_uint16  chainSubClassSetCount;
     Offset  chainSubClassSetTableOffsetArray[ANY_NUMBER];
 
-    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance, LEErrorCode& success) const;
+    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 };
 
 struct ChainSubClassSetTable
@@ -198,7 +197,7 @@ struct ChainingContextualSubstitutionFormat3Subtable
   //le_uint16  substCount;
   //SubstitutionLookupRecord substLookupRecord[ANY_NUMBER];
 
-    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance, LEErrorCode& success) const;
+    le_uint32  process(const LookupProcessor *lookupProcessor, GlyphIterator *glyphIterator, const LEFontInstance *fontInstance) const;
 };
 
 U_NAMESPACE_END

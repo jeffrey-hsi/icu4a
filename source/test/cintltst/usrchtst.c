@@ -1,5 +1,5 @@
 /********************************************************************
- * Copyright (c) 2001-2008 International Business Machines 
+ * Copyright (c) 2001-2009 International Business Machines 
  * Corporation and others. All Rights Reserved.
  ********************************************************************
  * File usrchtst.c
@@ -19,7 +19,6 @@
 #include <stdio.h>
 #include "usrchdat.c"
 #include "unicode/ubrk.h"
-#include <assert.h>
 
 static UBool      TOCLOSE_ = TRUE;
 static UCollator *EN_US_; 
@@ -2266,94 +2265,6 @@ exitTestForwardBackward :
    {if ((x)==FALSE) {log_err("%s:%d: FAIL: test assertion failure \"%s\"\n", __FILE__, __LINE__, #x);\
    }}
 
-static void TestSearchForNull(void)
-{
-#if 0
-	UCollator *coll;
-	UErrorCode ec;
-	UStringSearch *search;
-	int pos;
-	int len;
-	int expectedPos;
-	int expectedLen;
-	int expectedNum;
-	int count = 0;
-    const UChar zerodigit = 0x0030; /* 0 */
-    const UChar nulldigit = 0x0001; /* null */
-	
-	/* static const UChar var[(length)+1]=U_DECLARE_UTF16(cs) */
-#define PATTERN_LEN 4
-#define TEXT_LEN 10
-
-    U_STRING_DECL (_pattern, "IS 0", PATTERN_LEN);
-    U_STRING_DECL (_text, "_0IS 0 OK?", TEXT_LEN);
-    UChar pattern[PATTERN_LEN + 1], text[TEXT_LEN + 1];
-    
-    U_STRING_INIT (_pattern, "IS 0", PATTERN_LEN);
-    U_STRING_INIT (_text, "_0IS 0 OK?", TEXT_LEN);
-	expectedPos = 2;
-	expectedLen = 4;
-	expectedNum = 1;
-
-    for(pos = 0; pos < PATTERN_LEN; pos++) {
-        if(_pattern[pos] == zerodigit) {
-            pattern[pos] = nulldigit;
-        } else {
-            pattern[pos] = _pattern[pos];
-        }
-    }
-    pattern[PATTERN_LEN] = 0x0000;
-
-    for(pos = 0; pos < TEXT_LEN; pos++) {
-        if(_text[pos] == zerodigit) {
-            text[pos] = nulldigit;
-        } else {
-            text[pos] = _text[pos];
-        }
-    }
-    text[TEXT_LEN] = 0x0000;
-
-	ec = U_ZERO_ERROR;
-
-	/* create a US-English collator */
-	coll = ucol_open ("en_US", &ec);
-
-	/* make sure we didn't fail. */
-	TEST_ASSERT (U_SUCCESS (ec));
-
-    ucol_setStrength( coll, UCOL_IDENTICAL); 
-
-	/* open a search looking for 0 */
-	search = usearch_openFromCollator (pattern, PATTERN_LEN, text, TEXT_LEN, coll, NULL, &ec);
-	TEST_ASSERT (U_SUCCESS (ec));
-
-	pos = usearch_first(search, &ec);
-	len = usearch_getMatchedLength(search);
-	if(pos != expectedPos)
-	{
-		log_err("Expected search result: %d; Got instead: %d\n", expectedPos, pos);
-	}
-		
-	if(len != expectedLen)
-	{
-		log_err("Expected search result length: %d; Got instead: %d\n", expectedLen, len);
-	}
-	
-	for(pos = usearch_first (search, &ec); pos != USEARCH_DONE; pos = usearch_next(search, &ec))
-	{
-        log_verbose("Match at %d\n", pos);
-		count += 1;
-	}
-
-	if(count != expectedNum)
-	{
-		log_err("Expected %d search hits, found %d\n", expectedNum, count);
-	}
-#else
-    log_info("Note: test disabled because it is known to fail (#4184).\n");
-#endif
-}
-
 static void TestStrengthIdentical(void)
 {
 	UCollator *coll;
@@ -2408,7 +2319,6 @@ static void TestStrengthIdentical(void)
     ucol_close(coll);
 }
 
-
 void addSearchTest(TestNode** root)
 {
     addTest(root, &TestStart, "tscoll/usrchtst/TestStart");
@@ -2461,7 +2371,6 @@ void addSearchTest(TestNode** root)
     addTest(root, &TestNumeric, "tscoll/usrchtst/TestNumeric");
     addTest(root, &TestDiacriticMatch, "tscoll/usrchtst/TestDiacriticMatch");
     addTest(root, &TestForwardBackward, "tscoll/usrchtst/TestForwardBackward");
-	addTest(root, &TestSearchForNull, "tscoll/usrchtst/TestSearchForNull");
     addTest(root, &TestStrengthIdentical, "tscoll/usrchtst/TestStrengthIdentical");
 }
 

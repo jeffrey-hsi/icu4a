@@ -742,13 +742,12 @@ static void uprv_uca_unsafeCPAddCCNZ(tempUCATable *t, UErrorCode *status) {
     UChar              c;
     uint16_t           fcd;     // Hi byte is lead combining class.
     // lo byte is trailing combing class.
-    const uint16_t    *fcdTrieIndex;
-    UChar32            fcdHighStart;
+    const uint16_t    *fcdTrieData;
     UBool buildCMTable = (t->cmLookup==NULL); // flag for building combining class table
     UChar *cm=NULL;
     uint16_t index[256];
     int32_t count=0;
-    fcdTrieIndex = unorm_getFCDTrieIndex(fcdHighStart, status);
+    fcdTrieData = unorm_getFCDTrie(status);
     if (U_FAILURE(*status)) {
         return;
     }
@@ -764,7 +763,7 @@ static void uprv_uca_unsafeCPAddCCNZ(tempUCATable *t, UErrorCode *status) {
         uprv_memset(index, 0, sizeof(index));
     }
     for (c=0; c<0xffff; c++) {
-        fcd = unorm_getFCD16(fcdTrieIndex, c);
+        fcd = unorm_getFCD16(fcdTrieData, c);
         if (fcd >= 0x100 ||               // if the leading combining class(c) > 0 ||
             (UTF_IS_LEAD(c) && fcd != 0)) {//    c is a leading surrogate with some FCD data
             if (buildCMTable) {
@@ -1757,12 +1756,8 @@ uprv_uca_addMultiCMContractions(tempUCATable *t,
     CombinClassTable *cmLookup = t->cmLookup;
     UChar  newDecomp[256];
     int32_t maxComp, newDecLen;
-    UChar32 fcdHighStart;
-    const uint16_t *fcdTrieIndex = unorm_getFCDTrieIndex(fcdHighStart, status);
-    if (U_FAILURE(*status)) {
-        return;
-    }
-    int16_t curClass = (unorm_getFCD16(fcdTrieIndex, c->tailoringCM) & 0xff);
+    const uint16_t  *fcdTrieData = unorm_getFCDTrie(status);
+    int16_t curClass = (unorm_getFCD16(fcdTrieData, c->tailoringCM) & 0xff);
     CompData *precomp = c->precomp;
     int32_t  compLen = c->compLen;
     UChar *comp = c->comp;
@@ -1827,12 +1822,8 @@ uprv_uca_addTailCanonicalClosures(tempUCATable *t,
                                   UCAElements *el,
                                   UErrorCode *status) {
     CombinClassTable *cmLookup = t->cmLookup;
-    UChar32 fcdHighStart;
-    const uint16_t *fcdTrieIndex = unorm_getFCDTrieIndex(fcdHighStart, status);
-    if (U_FAILURE(*status)) {
-        return;
-    }
-    int16_t maxIndex = (unorm_getFCD16(fcdTrieIndex, cMark) & 0xff );
+    const uint16_t  *fcdTrieData = unorm_getFCDTrie(status);
+    int16_t maxIndex = (unorm_getFCD16(fcdTrieData, cMark) & 0xff );
     UCAElements element;
     uint16_t *index;
     UChar  decomp[256];
@@ -1846,8 +1837,8 @@ uprv_uca_addTailCanonicalClosures(tempUCATable *t,
         return;
     }
     index = cmLookup->index;
-    int32_t cClass=(unorm_getFCD16(fcdTrieIndex, cMark) & 0xff);
-    maxIndex = (int32_t)index[(unorm_getFCD16(fcdTrieIndex, cMark) & 0xff)-1];
+    int32_t cClass=(unorm_getFCD16(fcdTrieData, cMark) & 0xff);
+    maxIndex = (int32_t)index[(unorm_getFCD16(fcdTrieData, cMark) & 0xff)-1];
     c.comp = comp;
     c.decomp = decomp;
     c.precomp = precomp;
@@ -1870,7 +1861,7 @@ uprv_uca_addTailCanonicalClosures(tempUCATable *t,
             // other combining mark combinations.
             precomp[precompLen].cp=comp[0];
             curClass = precomp[precompLen].cClass =
-                       index[unorm_getFCD16(fcdTrieIndex, decomp[1]) & 0xff];
+                       index[unorm_getFCD16(fcdTrieData, decomp[1]) & 0xff];
             precompLen++;
             replacedPos=0;
             for (decompLen=0; decompLen< (int32_t)el->cSize; decompLen++) {
@@ -1910,7 +1901,7 @@ uprv_uca_addTailCanonicalClosures(tempUCATable *t,
             // This is a fix for tailoring contractions with accented
             // character at the end of contraction string.
             if ((len>2) && 
-                (unorm_getFCD16(fcdTrieIndex, comp[len-2]) & 0xff00)==0) {
+                (unorm_getFCD16(fcdTrieData, comp[len-2]) & 0xff00)==0) {
                 uprv_uca_addFCD4AccentedContractions(t, colEl, comp, len, &element, status);
             }
 
@@ -1937,10 +1928,9 @@ uprv_uca_canonicalClosure(tempUCATable *t,
     UColToken *tok;
     uint32_t i = 0, j = 0;
     UChar  baseChar, firstCM;
-    UChar32 fcdHighStart;
-    const uint16_t *fcdTrieIndex = unorm_getFCDTrieIndex(fcdHighStart, status);
+    const uint16_t  *fcdTrieData = unorm_getFCDTrie(status);
 
-    if(U_FAILURE(*status)) {
+    if(!U_SUCCESS(*status)) {
         return 0;
     }
 
@@ -2009,7 +1999,7 @@ uprv_uca_canonicalClosure(tempUCATable *t,
             }
             if(src->UCA != NULL) {
                 for(j = 0; j<el.cSize; j++) {
-                    int16_t fcd = unorm_getFCD16(fcdTrieIndex, el.cPoints[j]);
+                    int16_t fcd = unorm_getFCD16(fcdTrieData, el.cPoints[j]);
                     if ( (fcd & 0xff) == 0 ) {
                         baseChar = el.cPoints[j];  // last base character
                         firstCM=0;  // reset combining mark value

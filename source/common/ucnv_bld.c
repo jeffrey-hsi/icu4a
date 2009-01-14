@@ -1080,8 +1080,8 @@ static UBool haveAvailableConverterList(UErrorCode *pErrorCode) {
 
         umtx_lock(&cnvCacheMutex);
         if (gAvailableConverters == NULL) {
-            gAvailableConverterCount = localConverterCount;
             gAvailableConverters = localConverterList;
+            gAvailableConverterCount = localConverterCount;
             ucln_common_registerCleanup(UCLN_COMMON_UCNV, ucnv_cleanup);
         }
         else {
@@ -1147,9 +1147,6 @@ internalSetName(const char *name, UErrorCode *status) {
     gDefaultConverterContainsOption = containsOption;
     uprv_memcpy(gDefaultConverterNameBuffer, name, length);
     gDefaultConverterNameBuffer[length]=0;
-    
-    /* gDefaultConverterName MUST be the last global var set by this function.  */
-    /*    It is the variable checked in ucnv_getDefaultName() to see if initialization is required. */
     gDefaultConverterName = gDefaultConverterNameBuffer;
 
     ucln_common_registerCleanup(UCLN_COMMON_UCNV, ucnv_cleanup);

@@ -1715,20 +1715,18 @@ protected:
     /**
      * Called by computeJulianDay.  Returns the default month (0-based) for the year,
      * taking year and era into account.  Defaults to 0 for Gregorian, which doesn't care.
-     * @param eyear The extended year
+     * @internal
      * @internal
      */
-    virtual int32_t getDefaultMonthInYear(int32_t eyear) ;
+    virtual int32_t getDefaultMonthInYear() ;
 
 
     /**
      * Called by computeJulianDay.  Returns the default day (1-based) for the month,
      * taking currently-set year and era into account.  Defaults to 1 for Gregorian.
-     * @param eyear the extended year
-     * @param month the month in the year
      * @internal
      */
-    virtual int32_t getDefaultDayInMonth(int32_t eyear, int32_t month);
+    virtual int32_t getDefaultDayInMonth(int32_t /*month*/);
 
     //-------------------------------------------------------------------------
     // Protected utility methods for use by subclasses.  These are very handy
@@ -1953,6 +1951,9 @@ private:
      * variables gregorianXxx.  They are used for time zone computations and by
      * subclasses that are Gregorian derivatives.  Subclasses may call this
      * method to perform a Gregorian calendar millis->fields computation.
+     * To perform a Gregorian calendar fields->millis computation, call
+     * computeGregorianMonthStart().
+     * @see #computeGregorianMonthStart
      */
     void computeGregorianFields(int32_t julianDay, UErrorCode &ec);
 
