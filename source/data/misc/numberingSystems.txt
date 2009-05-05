@@ -130,7 +130,7 @@ numberingSystems:table(nofallback){
         }
         mlym{
             algorithmic:int{0}
-            desc{"൦൧൨൩൪൫൬൭൮൯"}
+            desc{"൦൧൨൩൪൬൭൮൯"}
             radix:int{10}
         }
         mong{
