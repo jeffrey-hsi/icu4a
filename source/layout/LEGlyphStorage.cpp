@@ -570,14 +570,12 @@ le_int32 LEGlyphStorage::applyInsertions()
         // Could not grow the glyph array 
         return fGlyphCount; 
     } 
-    fGlyphs = newGlyphs; 
 
     le_int32 *newCharIndices = (le_int32 *) LE_GROW_ARRAY(fCharIndices, newGlyphCount);
     if (newCharIndices == NULL) { 
         // Could not grow the glyph array 
         return fGlyphCount; 
     } 
-    fCharIndices = newCharIndices;
 
     if (fAuxData != NULL) {	
         le_uint32 *newAuxData = (le_uint32 *) LE_GROW_ARRAY(fAuxData, newGlyphCount); 
@@ -587,6 +585,10 @@ le_int32 LEGlyphStorage::applyInsertions()
         } 
         fAuxData = (le_uint32 *)newAuxData;
     }
+
+	// Set grown arrays
+    fGlyphs = newGlyphs; 
+    fCharIndices = newCharIndices;
 
     fSrcIndex  = fGlyphCount - 1;
     fDestIndex = newGlyphCount - 1;

@@ -286,7 +286,7 @@ static void TestCompareVersions()
    int32_t op, invop, got, invgot; 
    UVersionInfo v1, v2;
    int32_t j;
-   log_verbose("Testing memcmp()\n");
+   log_verbose("Testing u_compareVersions()\n");
    for(j=0;testCases[j]!=NULL;j+=3) {
     v1str = testCases[j+0];
     opstr = testCases[j+1];
@@ -303,17 +303,17 @@ static void TestCompareVersions()
     invop = 0-op; /* inverse operation: with v1 and v2 switched */
     u_versionFromString(v1, v1str);
     u_versionFromString(v2, v2str);
-	got = memcmp(v1, v2, sizeof(UVersionInfo));
-	invgot = memcmp(v2, v1, sizeof(UVersionInfo)); /* Opposite */
-    if((got <= 0 && op <= 0) || (got >= 0 && op >= 0)) {
+    got = u_compareVersions(v1,v2);
+    invgot = u_compareVersions(v2,v1); /* oppsite */
+    if(got==op) {
         log_verbose("%d: %s %s %s, OK\n", (j/3), v1str, opstr, v2str);
     } else {
-        log_err("%d: %s %s %s: wanted values of the same sign, %d got %d\n", (j/3), v1str, opstr, v2str, op, got);
+        log_err("%d: %s %s %s: wanted %d got %d\n", (j/3), v1str, opstr, v2str, op, got);
     }
-    if((invgot >= 0 && invop >= 0) || (invgot <= 0 && invop <= 0)) {
+    if(invgot==invop) {
         log_verbose("%d: %s (%d) %s, OK (inverse)\n", (j/3), v2str, invop, v1str);
     } else {
-        log_err("%d: %s (%d) %s: wanted values of the same sign, %d got %d\n", (j/3), v2str, invop, v1str, invop, invgot);
+        log_err("%d: %s (%d) %s: wanted %d got %d\n", (j/3), v2str, invop, v1str, invop, invgot);
     }
    }
 }

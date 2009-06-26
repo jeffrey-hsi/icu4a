@@ -100,15 +100,13 @@ public:
     /** Returns the UErrorCode value and resets it to U_ZERO_ERROR. @draft ICU 4.2 */
     UErrorCode reset();
     /**
-     * Asserts isSuccess().
-     * In other words, this method checks for a failure code,
-     * and the base class handles it like this:
+     * Checks for a failure code:
      * \code
      *   if(isFailure()) { handleFailure(); }
      * \endcode
-     * @draft ICU 4.4
+     * @draft ICU 4.2
      */
-    void assertSuccess() const;
+    void check() const;
 
 protected:
     /**
@@ -117,7 +115,7 @@ protected:
      */
     UErrorCode errorCode;
     /**
-     * Called by assertSuccess() if isFailure() is true.
+     * Called by check() if isFailure() is true.
      * A subclass should override this function to deal with a failure code:
      * Throw an exception, log an error, terminate the program, or similar.
      * @draft ICU 4.2

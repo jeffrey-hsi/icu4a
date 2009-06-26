@@ -74,7 +74,7 @@
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.4
  */
-#define U_ICU_VERSION_PATCHLEVEL_NUM 0
+#define U_ICU_VERSION_PATCHLEVEL_NUM 1
 
 /** The current ICU build level version as an integer.  
  *  This value is for use by ICU clients. It defaults to 0.
@@ -90,12 +90,12 @@
  */
 #define U_ICU_VERSION_SUFFIX _4_2
 
-/** The current ICU library version as a dotted-decimal string. The patchlevel
+/** The current ICU library version as a dotted-decimal string. The patchlevel and buildlevel
  *  only appears in this string if it non-zero. 
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.4
  */
-#define U_ICU_VERSION "4.2"
+#define U_ICU_VERSION "4.2.1"
 
 /** The current ICU library major/minor version as a string without dots, for library name suffixes. 
  *  This value will change in the subsequent releases of ICU
@@ -119,7 +119,6 @@
 #define U_MAX_VERSION_STRING_LENGTH 20
 
 /** The binary form of a version on ICU APIs is an array of 4 uint8_t.
- *  To compare two versions, use memcmp(v1,v2,sizeof(UVersionInfo)).
  *  @stable ICU 2.4
  */
 typedef uint8_t UVersionInfo[U_MAX_VERSION_LENGTH];
@@ -245,6 +244,19 @@ u_versionToString(UVersionInfo versionArray, char *versionString);
  */
 U_STABLE void U_EXPORT2
 u_getVersion(UVersionInfo versionArray);
+
+/**
+ * Compare two version numbers, v1 and v2, numerically.
+ * Returns 0 if v1 == v2
+ * Returns -1 if v1 < v2  (v1 is older, v2 is newer)
+ * Returns +1 if v1 > v2  (v1 is newer, v2 is older)
+ * @param v1 version to compare
+ * @param v2 version to compare
+ * @return comparison result
+ * @draft ICU 4.2
+ */
+U_STABLE int32_t U_EXPORT2
+u_compareVersions(UVersionInfo v1, UVersionInfo v2);
 
 
 /*===========================================================================

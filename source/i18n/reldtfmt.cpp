@@ -124,7 +124,7 @@ UnicodeString& RelativeDateFormat::format(  Calendar& cal,
     int dayDiff = dayDifference(cal, status);
 
     // look up string
-    int32_t len = 0;
+    int32_t len;
     const UChar *theString = getStringForDay(dayDiff, len, status);
     if(U_SUCCESS(status) && (theString!=NULL)) {
         // found a relative string

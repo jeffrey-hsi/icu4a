@@ -80,7 +80,7 @@ void ErrorCodeTest::TestErrorCode() {
         errln("ErrorCode did not initialize properly");
         return;
     }
-    errorCode.assertSuccess();
+    errorCode.check();
     RefPlusOne(errorCode);
     if(errorCode.get()!=U_ILLEGAL_ARGUMENT_ERROR || errorCode.isSuccess() || !errorCode.isFailure()) {
         errln("ErrorCode did not yield a writable reference");
@@ -128,25 +128,25 @@ void ErrorCodeTest::TestSubclass() {
             errln("ErrorCode did not initialize properly");
             return;
         }
-        errorCode.assertSuccess();
+        errorCode.check();
         if(countChecks!=0) {
-            errln("ErrorCode.assertSuccess() called handleFailure() despite success");
+            errln("ErrorCode.check() called handleFailure(kCheck) despite success");
         }
         RefPlusOne(errorCode);
         if(errorCode.get()!=U_ILLEGAL_ARGUMENT_ERROR || errorCode.isSuccess() || !errorCode.isFailure()) {
             errln("ErrorCode did not yield a writable reference");
         }
-        errorCode.assertSuccess();
+        errorCode.check();
         if(countChecks!=1) {
-            errln("ErrorCode.assertSuccess() did not handleFailure()");
+            errln("ErrorCode.check() did not handleFailure(kCheck)");
         }
         PtrPlusTwo(errorCode);
         if(errorCode.get()!=U_INVALID_FORMAT_ERROR || errorCode.isSuccess() || !errorCode.isFailure()) {
             errln("ErrorCode did not yield a writable pointer");
         }
-        errorCode.assertSuccess();
+        errorCode.check();
         if(countChecks!=2) {
-            errln("ErrorCode.assertSuccess() did not handleFailure()");
+            errln("ErrorCode.check() did not handleFailure(kCheck)");
         }
         errorCode.set(U_PARSE_ERROR);
         if(errorCode.get()!=U_PARSE_ERROR || errorCode.isSuccess() || !errorCode.isFailure()) {
@@ -157,13 +157,13 @@ void ErrorCodeTest::TestSubclass() {
         ) {
             errln("ErrorCode did not reset properly");
         }
-        errorCode.assertSuccess();
+        errorCode.check();
         if(countChecks!=2) {
-            errln("ErrorCode.assertSuccess() called handleFailure() despite success");
+            errln("ErrorCode.check() called handleFailure(kCheck) despite success");
         }
     }
     if(countDests!=0) {
-        errln("MyErrorCode destructor detected failure despite success");
+        errln("ErrorCode.check() called handleFailure(kDestructor) despite success");
     }
     countChecks=countDests=0;
     {
@@ -171,6 +171,6 @@ void ErrorCodeTest::TestSubclass() {
         errorCode.set(U_PARSE_ERROR);
     }
     if(countDests!=1) {
-        errln("MyErrorCode destructor failed to detect failure");
+        errln("ErrorCode destructor did not handleFailure(kDestructor)");
     }
 }
