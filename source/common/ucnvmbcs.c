@@ -2074,7 +2074,7 @@ unrolled:
 #endif
 
     /* conversion loop */
-    while(targetCapacity > 0 && source < sourceLimit) {
+    while(targetCapacity>0) {
         entry=stateTable[0][*source++];
         /* MBCS_ENTRY_IS_FINAL(entry) */
 
