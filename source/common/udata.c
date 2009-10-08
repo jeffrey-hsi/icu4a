@@ -268,7 +268,7 @@ static UDataMemory *udata_cacheDataItem(const char *path, UDataMemory *item, UEr
     const char       *baseName;
     int32_t           nameLen;
     UHashtable       *htable;
-    DataCacheElement *oldValue = NULL;
+    UDataMemory      *oldValue = NULL;
     UErrorCode        subErr = U_ZERO_ERROR;
 
     if (U_FAILURE(*pErr)) {
@@ -305,7 +305,7 @@ static UDataMemory *udata_cacheDataItem(const char *path, UDataMemory *item, UEr
     */
     htable = udata_getHashTable();
     umtx_lock(NULL);
-    oldValue = (DataCacheElement *)uhash_get(htable, path);
+    oldValue = uhash_get(htable, path);
     if (oldValue != NULL) {
         subErr = U_USING_DEFAULT_WARNING;
     }
@@ -328,7 +328,7 @@ static UDataMemory *udata_cacheDataItem(const char *path, UDataMemory *item, UEr
         uprv_free(newElement->name);
         uprv_free(newElement->item);
         uprv_free(newElement);
-        return oldValue ? oldValue->item : NULL;
+        return oldValue;
     }
 
     return newElement->item;
