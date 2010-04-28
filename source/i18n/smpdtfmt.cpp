@@ -1900,26 +1900,7 @@ SimpleDateFormat::parse(const UnicodeString& text, Calendar& cal, ParsePosition&
                 int32_t s = subParse(text, pos, ch, count,
                                FALSE, TRUE, ambiguousYear, saveHebrewMonth, *workCal, i);
 
-                if (s == -pos-1) {
-                    // era not present, in special cases allow this to continue
-                    s++;
-
-                    if (i+1 < fPattern.length()) {
-                        // move to next pattern character
-                        UChar ch = fPattern.charAt(i+1);
-                      
-                        // check for whitespace
-                        if (uprv_isRuleWhiteSpace(ch)) {
-                            i++;
-                            // Advance over run in pattern
-                            while ((i+1)<fPattern.length() &&
-                                   uprv_isRuleWhiteSpace(fPattern.charAt(i+1))) {
-                                ++i;
-                            }
-                        }
-                    }
-                }
-                else if (s < 0) {
+                if (s < 0) {
                     status = U_PARSE_ERROR;
                     goto ExitParse;
                 }
@@ -2369,7 +2350,6 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
     Formattable number;
     int32_t value = 0;
     int32_t i;
-    int32_t ps = 0;
     ParsePosition pos(0);
     UDateFormatField patternCharIndex;
     NumberFormat *currentNumberFormat;
@@ -2458,22 +2438,13 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
     switch (patternCharIndex) {
     case UDAT_ERA_FIELD:
         if (count == 5) {
-            ps = matchString(text, start, UCAL_ERA, fSymbols->fNarrowEras, fSymbols->fNarrowErasCount, cal);
+            return matchString(text, start, UCAL_ERA, fSymbols->fNarrowEras, fSymbols->fNarrowErasCount, cal);
         }
         if (count == 4) {
-            ps = matchString(text, start, UCAL_ERA, fSymbols->fEraNames, fSymbols->fEraNamesCount, cal);
-        }
-        else {
-            ps = matchString(text, start, UCAL_ERA, fSymbols->fEras, fSymbols->fErasCount, cal);
+            return matchString(text, start, UCAL_ERA, fSymbols->fEraNames, fSymbols->fEraNamesCount, cal);
         }
 
-        // check return position, if it equals -start, then matchString error
-        // special case the return code so we don't necessarily fail out until we 
-        // verify no year information also
-        if (ps == -start)
-            ps--;
-
-        return ps;
+        return matchString(text, start, UCAL_ERA, fSymbols->fEras, fSymbols->fErasCount, cal);
 
     case UDAT_YEAR_FIELD:
         // If there are 3 or more YEAR pattern characters, this indicates

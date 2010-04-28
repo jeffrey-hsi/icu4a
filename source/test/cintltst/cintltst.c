@@ -111,7 +111,7 @@ int main(int argc, const char* const argv[])
     fprintf(stderr, "After initial u_cleanup: RB cache %s empty.\n", ures_dumpCacheContents()?"WAS NOT":"was");
 #endif
 
-    while (getTestOption(REPEAT_TESTS_OPTION) > 0) {   /* Loop runs once per complete execution of the tests
+    while (REPEAT_TESTS > 0) {   /* Loop runs once per complete execution of the tests 
                                   *   used for -r  (repeat) test option.                */
         if (!initArgs(argc, argv, NULL, NULL)) {
             /* Error already displayed. */
@@ -129,7 +129,7 @@ int main(int argc, const char* const argv[])
                 "#### ERROR! %s: u_init() failed with status = \"%s\".\n" 
                 "*** Check the ICU_DATA environment variable and \n"
                 "*** check that the data files are present.\n", argv[0], u_errorName(errorCode));
-                if(!getTestOption(WARN_ON_MISSING_DATA_OPTION)) {
+                if(!WARN_ON_MISSING_DATA) {
                     fprintf(stderr, "*** Exiting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                     u_cleanup();
                     return 1;
@@ -148,7 +148,7 @@ int main(int argc, const char* const argv[])
                     "*** %s! The converter for " TRY_CNV_2 " cannot be opened.\n"
                     "*** Check the ICU_DATA environment variable and \n"
                     "*** check that the data files are present.\n", warnOrErr);
-            if(!getTestOption(WARN_ON_MISSING_DATA_OPTION)) {
+            if(!WARN_ON_MISSING_DATA) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
                 return 1;
@@ -164,7 +164,7 @@ int main(int argc, const char* const argv[])
                     "*** %s! The \"en\" locale resource bundle cannot be opened.\n"
                     "*** Check the ICU_DATA environment variable and \n"
                     "*** check that the data files are present.\n", warnOrErr);
-            if(!getTestOption(WARN_ON_MISSING_DATA_OPTION)) {
+            if(!WARN_ON_MISSING_DATA) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
                 return 1;
@@ -183,7 +183,7 @@ int main(int argc, const char* const argv[])
         } else {
             fprintf(stderr,
                     "*** %s! Can not open a resource bundle for the default locale %s\n", warnOrErr, uloc_getDefault());
-            if(!getTestOption(WARN_ON_MISSING_DATA_OPTION)) {
+            if(!WARN_ON_MISSING_DATA) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n"
                     "*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
@@ -200,9 +200,8 @@ int main(int argc, const char* const argv[])
         /*  Tests acutally run HERE.   TODO:  separate command line option parsing & setting from test execution!! */
         nerrors = runTestRequest(root, argc, argv);
 
-        setTestOption(REPEAT_TESTS_OPTION, DECREMENT_OPTION_VALUE);
-        if (getTestOption(REPEAT_TESTS_OPTION) > 0) {
-            printf("Repeating tests %d more time(s)\n", getTestOption(REPEAT_TESTS_OPTION));
+        if (--REPEAT_TESTS > 0) {
+            printf("Repeating tests %d more time(s)\n", REPEAT_TESTS);
         }
         cleanUpTestTree(root);
 
