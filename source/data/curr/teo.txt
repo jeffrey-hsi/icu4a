@@ -64,7 +64,7 @@ teo{
             "Ango'otol lok' Aljeria",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Epaunt lok' Misri",
         }
         ERN{

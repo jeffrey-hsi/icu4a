@@ -482,24 +482,21 @@ LocaleTest::TestDisplayNames()
     /* Check to see if ICU supports this locale */
     if (symb.getLocale(ULOC_VALID_LOCALE, status) != Locale("root")) {
         /* test that the default locale has a display name for its own language */
-        /* Currently, there is no language information in the "tl" data file so this test will fail if default locale is "tl" */
-        if (uprv_strcmp(Locale().getLanguage(), "tl") != 0) {
-            Locale().getDisplayLanguage(Locale(), s);
-            if(s.length()<=3 && s.charAt(0)<=0x7f) {
-                /* check <=3 to reject getting the language code as a display name */
-                dataerrln("unable to get a display string for the language of the default locale: " + s);
-            }
+        Locale().getDisplayLanguage(Locale(), s);
+        if(s.length()<=3 && s.charAt(0)<=0x7f) {
+            /* check <=3 to reject getting the language code as a display name */
+            dataerrln("unable to get a display string for the language of the default locale.\n");
+        }
 
-            /*
-             * API coverage improvements: call
-             * Locale::getDisplayLanguage(UnicodeString &) and
-             * Locale::getDisplayCountry(UnicodeString &)
-             */
-            s.remove();
-            Locale().getDisplayLanguage(s);
-            if(s.length()<=3 && s.charAt(0)<=0x7f) {
-                dataerrln("unable to get a display string for the language of the default locale [2]: " + s);
-            }
+        /*
+         * API coverage improvements: call
+         * Locale::getDisplayLanguage(UnicodeString &) and
+         * Locale::getDisplayCountry(UnicodeString &)
+         */
+        s.remove();
+        Locale().getDisplayLanguage(s);
+        if(s.length()<=3 && s.charAt(0)<=0x7f) {
+            dataerrln("unable to get a display string for the language of the default locale [2].\n");
         }
     }
     else {
@@ -1320,13 +1317,8 @@ LocaleTest::Test4139940()
     UChar ocf = 0x00f4;
     UChar oda = 0x0151;
     if (str.indexOf(oda) < 0 || str.indexOf(ocf) >= 0) {
-      /* If the default locale is "th" this test will fail because of the buddhist calendar. */
-      if (strcmp(Locale::getDefault().getLanguage(), "th") != 0) {
-        errln("Fail: Monday in Hungarian is wrong - oda's index is %d and ocf's is %d",
-              str.indexOf(oda), str.indexOf(ocf));
-      } else {
-        logln(UnicodeString("An error is produce in buddhist calendar."));
-      }
+      errln("Fail: Monday in Hungarian is wrong - oda's index is %d and ocf's is %d",
+            str.indexOf(oda), str.indexOf(ocf));
       logln(UnicodeString("String is: ") + str );
     }
 }
@@ -1843,12 +1835,12 @@ void LocaleTest::TestGetLocale(void) {
     // DecimalFormat, DecimalFormatSymbols
 #if !UCONFIG_NO_FORMATTING
     req = "fr_FR_NICE";
-    NumberFormat* nf = NumberFormat::createInstance(Locale::createFromName(req), ec);
+    DecimalFormat* dec = (DecimalFormat*)
+    NumberFormat::createInstance(Locale::createFromName(req), ec);
     if (U_FAILURE(ec)) {
         dataerrln("FAIL: NumberFormat::createInstance failed - %s", u_errorName(ec));
     } else {
-        DecimalFormat* dec = dynamic_cast<DecimalFormat*>(nf);
-        if (dec == NULL) {
+        if (dec->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
             errln("FAIL: NumberFormat::createInstance does not return a DecimalFormat");
             return;
         }
@@ -1873,21 +1865,20 @@ void LocaleTest::TestGetLocale(void) {
             _checklocs("DecimalFormatSymbols", req, valid, actual);
         }        
     }
-    delete nf;
+    delete dec;
 #endif
 
     // DateFormat, DateFormatSymbols
 #if !UCONFIG_NO_FORMATTING
     req = "de_CH_LUCERNE";
-    DateFormat* df =
+    SimpleDateFormat* dat = (SimpleDateFormat*)
         DateFormat::createDateInstance(DateFormat::kDefault,
                                        Locale::createFromName(req));
-    if (df == 0){
+    if (dat == 0){
         dataerrln("Error calling DateFormat::createDateInstance()");
     } else {
-        SimpleDateFormat* dat = dynamic_cast<SimpleDateFormat*>(df);
-        if (dat == NULL) {
-            errln("FAIL: DateFormat::createInstance does not return a SimpleDateFormat");
+        if (dat->getDynamicClassID() != SimpleDateFormat::getStaticClassID()) {
+            errln("FAIL: NumberFormat::createInstance does not return a DecimalFormat");
             return;
         }
         valid = dat->getLocale(ULOC_VALID_LOCALE, ec);
@@ -1911,7 +1902,7 @@ void LocaleTest::TestGetLocale(void) {
             _checklocs("DateFormatSymbols", req, valid, actual);
         }        
     }
-    delete df;
+    delete dat;
 #endif
 
     // BreakIterator
@@ -2084,9 +2075,6 @@ void LocaleTest::TestCanonicalization(void)
         const char *getNameID;   /* expected getName() result */
         const char *canonicalID; /* expected canonicalize() result */
     } testCases[] = {
-        { "", "", "en_US_POSIX" },
-        { "C", "c", "en_US_POSIX" },
-        { "POSIX", "posix", "en_US_POSIX" },
         { "ca_ES_PREEURO-with-extra-stuff-that really doesn't make any sense-unless-you're trying to increase code coverage",
           "ca_ES_PREEURO_WITH_EXTRA_STUFF_THAT REALLY DOESN'T MAKE ANY SENSE_UNLESS_YOU'RE TRYING TO INCREASE CODE COVERAGE",
           "ca_ES_PREEURO_WITH_EXTRA_STUFF_THAT REALLY DOESN'T MAKE ANY SENSE_UNLESS_YOU'RE TRYING TO INCREASE CODE COVERAGE"},

@@ -64,7 +64,7 @@ mg{
             "Dinara alzerianina",
         }
         EGP{
-            "EGP",
+            "EG£",
             "vola venty ejipsiana",
         }
         ERN{

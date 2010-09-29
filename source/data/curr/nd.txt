@@ -64,7 +64,7 @@ nd{
             "Dinali yase Aljeriya",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Phawundi laseGibhide",
         }
         ERN{

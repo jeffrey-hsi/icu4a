@@ -219,18 +219,11 @@ static void MessageFormatTest( void )
                         austrdup(result), austrdup(testResultStrings[i]) );
                 }
 
-#if defined (U_DARWIN)  /* add platforms here .. */
-                log_verbose("Skipping potentially crashing test for mismatched varargs.\n");
-#else
-                log_verbose("Note: the next is a platform dependent test. If it crashes, add an exclusion for your platform near %s:%d\n", __FILE__, __LINE__); 
-
                 if (returnsNullForType(1, (double)2.0)) {
                     /* HP/UX and possibly other platforms don't properly check for this case.
                     We pass in a UDate, but the function expects a UDate *.  When va_arg is used,
                     most compilers will return NULL, but HP-UX won't do that and will return 2
-                    in this case.  This is a platform dependent test.  It crashes on some systems.
-            
-                    If you get a crash here, see the definition of returnsNullForType.
+                    in this case.  This is a platform dependent test.
 
                     This relies upon "undefined" behavior, as indicated by C99 7.15.1.1 paragraph 2
                     */
@@ -244,7 +237,6 @@ static void MessageFormatTest( void )
                 else {
                     log_verbose("Warning: Returning NULL for a mismatched va_arg type isn't supported on this platform.\n", i);
                 }
-#endif
 
                 umsg_parse(formatter,result,resultLength,&count,&ec,&one,&two,&d2);
                 if(U_FAILURE(ec)){

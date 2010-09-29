@@ -16,9 +16,6 @@
 #define __VZONE_H
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
 #include "ztrans.h"
 
 #ifndef UCNV_H
@@ -382,5 +379,3 @@ U_DRAFT UClassID U_EXPORT2
 vzone_getDynamicClassID(VZone* zone);
 
 #endif // __VZONE_H
-
-#endif

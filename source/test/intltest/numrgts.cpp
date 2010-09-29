@@ -503,14 +503,15 @@ void NumberFormatRegressionTest::Test4086575(void)
       return;
     }
     failure(status, "NumberFormat::createInstance", Locale::getFrance());
-
+    
     // C++ workaround to make sure cast works
-    DecimalFormat *nf = dynamic_cast<DecimalFormat *>(nf1);
-    if(nf == NULL) {
+    // Wouldn't dynamic_cast<DecimalFormat*> be great?
+    if(nf1->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
         errln("NumberFormat::createInstance returned incorrect type.");
         return;
     }
 
+    DecimalFormat *nf = (DecimalFormat*) nf1;
     UnicodeString temp;
     logln("nf toPattern1: " + nf->toPattern(temp));
     logln("nf toLocPattern1: " + nf->toLocalizedPattern(temp));
@@ -841,11 +842,11 @@ void NumberFormatRegressionTest::Test4087244 (void) {
       delete nf;
       return;
     }
-    DecimalFormat *df = dynamic_cast<DecimalFormat *>(nf);
-    if(df == NULL) {
+    if (nf->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
         errln("expected DecimalFormat!");
         return;
     }
+    DecimalFormat *df = (DecimalFormat*) nf;
     const DecimalFormatSymbols *sym = df->getDecimalFormatSymbols();
     UnicodeString decSep = sym->getSymbol(DecimalFormatSymbols::kDecimalSeparatorSymbol);
     UnicodeString monSep = sym->getSymbol(DecimalFormatSymbols::kMonetarySeparatorSymbol);
@@ -1241,7 +1242,7 @@ void NumberFormatRegressionTest::Test4074454(void)
         FieldPosition pos(FieldPosition::DONT_CARE);
         tempString = newFmt->format(3456.78, tempString, pos);
         if (tempString != UnicodeString("3,456.78 p'ieces"))
-            dataerrln("Failed!  3456.78 p'ieces expected, but got : " + tempString);
+            errln("Failed!  3456.78 p'ieces expected, but got : " + tempString);
     /*} catch (Exception foo) {
         errln("An exception was thrown for any inconsistent negative pattern.");
     }*/
@@ -1640,21 +1641,15 @@ void NumberFormatRegressionTest::Test4122840(void)
             NULL/*"java.text.resources.LocaleElements"*/, 
             locales[i], status);
         failure(status, "new ResourceBundle");
-        ResourceBundle numPat = rb->getWithFallback("NumberElements", status);
-        failure(status, "rb.get(NumberElements)");
-        numPat = numPat.getWithFallback("latn",status);
-        failure(status, "rb.get(latn)");
-        numPat = numPat.getWithFallback("patterns",status);
-        failure(status, "rb.get(patterns)");
-        numPat = numPat.getWithFallback("currencyFormat",status);
-        failure(status, "rb.get(currencyFormat)");
-       //
+        ResourceBundle numPat = rb->get("NumberPatterns", status);
+        failure(status, "new ResourceBundle(NumberPatterns)");
+        //
         // Get the currency pattern for this locale.  We have to fish it
         // out of the ResourceBundle directly, since DecimalFormat.toPattern
         // will return the localized symbol, not \00a4
         //
-        UnicodeString pattern = numPat.getString(status);
-        failure(status, "rb->getString()");
+        UnicodeString pattern = numPat.getStringEx(1, status);
+        failure(status, "rb->getStringArray");
 
         UChar fo[] = { 0x00A4 };
         UnicodeString foo(fo, 1, 1);
@@ -1912,12 +1907,12 @@ void NumberFormatRegressionTest::Test4145457() {
         delete nff;
         return;
     };
-    DecimalFormat *nf = dynamic_cast<DecimalFormat *>(nff);
-    if(nf == NULL) {
+    if(nff->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
         errln("DecimalFormat needed to continue");
         return;
     }
 
+    DecimalFormat *nf = (DecimalFormat*)nff;
     DecimalFormatSymbols *sym = (DecimalFormatSymbols*) nf->getDecimalFormatSymbols();
     sym->setSymbol(DecimalFormatSymbols::kDecimalSeparatorSymbol, (UChar)/*'\''*/0x0027);
     nf->setDecimalFormatSymbols(*sym);
@@ -2189,11 +2184,11 @@ void NumberFormatRegressionTest::Test4170798(void) {
         delete nf;
         return;
     };
-    DecimalFormat *df = dynamic_cast<DecimalFormat *>(nf);
-    if(df == NULL) {
+    if(nf->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
         errln("DecimalFormat needed to continue");
         return;
     }
+    DecimalFormat *df = (DecimalFormat*) nf;
     df->setParseIntegerOnly(TRUE);
     Formattable n;
     ParsePosition pos(0);
@@ -2424,11 +2419,6 @@ void NumberFormatRegressionTest::Test4212072(void) {
                 errln(UnicodeString("FAIL: ") + type[j] + avail[i].getDisplayName(l) +
                       " -> \"" + pat +
                       "\" -> \"" + f2.toPattern(p) + "\"");
-            } else {
-                UnicodeString l, p;
-                logln(UnicodeString("PASS: ") + type[j] + avail[i].getDisplayName(l) +
-                      " -> \"" + pat +
-                      "\"");
             }
 
             // Test toLocalizedPattern/applyLocalizedPattern round trip
@@ -2492,7 +2482,7 @@ void NumberFormatRegressionTest::Test4216742(void) {
             } else {
                 double d = num.getType() == Formattable::kDouble ?
                     num.getDouble() : (double) num.getLong();
-                if ((d > 0) != (DATA[i] > 0)) {
+                if (d > 0 != DATA[i] > 0) {
                     errln(UnicodeString("\"") + str + "\" parse(x " +
                           fmt->getMultiplier() +
                           ") => " + toString(num));

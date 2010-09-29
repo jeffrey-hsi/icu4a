@@ -35,7 +35,6 @@ public:
 
     void TestAdditionalProperties();
     void TestBinaryValues();
-    void TestConsistency();
 
 private:
 

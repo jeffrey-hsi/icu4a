@@ -99,7 +99,14 @@ UnicodeString::caseMap(BreakIterator *titleIter,
     return *this;
   }
 
-  const UCaseProps *csp=ucase_getSingleton();
+  UErrorCode errorCode;
+
+  errorCode = U_ZERO_ERROR;
+  const UCaseProps *csp=ucase_getSingleton(&errorCode);
+  if(U_FAILURE(errorCode)) {
+    setToBogus();
+    return *this;
+  }
 
   // We need to allocate a new buffer for the internal string case mapping function.
   // This is very similar to how doReplace() keeps the old array pointer
@@ -131,7 +138,6 @@ UnicodeString::caseMap(BreakIterator *titleIter,
   }
 
   // Case-map, and if the result is too long, then reallocate and repeat.
-  UErrorCode errorCode;
   int32_t newLength;
   do {
     errorCode = U_ZERO_ERROR;

@@ -64,7 +64,7 @@ rof{
             "heleri sa Aljeria",
         }
         EGP{
-            "EGP",
+            "EG£",
             "heleri sa Misri",
         }
         ERN{

@@ -64,7 +64,7 @@ mer{
             "Dinari ya Anjĩria",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Paũndi ya Misri",
         }
         ERN{

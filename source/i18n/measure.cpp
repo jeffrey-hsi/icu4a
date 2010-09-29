@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (c) 2004-2010, International Business Machines
+* Copyright (c) 2004-2008, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 * Author: Alan Liu
@@ -8,8 +8,6 @@
 * Since: ICU 3.0
 **********************************************************************
 */
-#include <typeinfo>  // for 'typeid' to work
-
 #include "unicode/utypes.h"
 
 #if !UCONFIG_NO_FORMATTING
@@ -50,7 +48,7 @@ Measure::~Measure() {
 
 UBool Measure::operator==(const UObject& other) const {
     const Measure* m = (const Measure*) &other;
-    return typeid(*this) == typeid(other) &&
+    return getDynamicClassID() == other.getDynamicClassID() &&
         number == m->getNumber() && 
         (unit != NULL && *unit == m->getUnit());
 }

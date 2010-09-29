@@ -64,7 +64,7 @@ ak{
             "Ɔlgyeria Dina",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egypt Pɔn",
         }
         ERN{

@@ -255,10 +255,6 @@ hu{
             "CSK" /** ===  */,
             "Csehszlovák kemény korona",
         }
-        CUC{
-            "CUC$",
-            "Kubai konvertibilis peso",
-        }
         CUP{
             "CU$",
             "Kubai peso",
@@ -312,7 +308,7 @@ hu{
             "Észt korona",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egyiptomi font",
         }
         ERN{
@@ -875,10 +871,6 @@ hu{
             "TMM",
             "Türkmenisztáni manat",
         }
-        TMT{
-            "TMT",
-            "Türkmenisztáni új manat",
-        }
         TND{
             "DT",
             "Tunéziai dínár",
@@ -1095,10 +1087,6 @@ hu{
             "Z$",
             "Zimbabwei dollár",
         }
-        ZWL{
-            "ZWL",
-            "Zimbabwei dollár (2009)",
-        }
     }
     CurrencyPlurals{
         ADP{
@@ -1309,5 +1297,5 @@ hu{
     CurrencyUnitPatterns{
         other{"{0} {1}"}
     }
-    Version{"2.0.50.26"}
+    Version{"2.0.48.64"}
 }

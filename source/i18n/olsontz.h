@@ -110,7 +110,7 @@ class SimpleTimeZone;
  * (UN M.49 - World).  This data is generated from "zone.tab"
  * in the tz database.
  */
-class U_I18N_API OlsonTimeZone: public BasicTimeZone {
+class OlsonTimeZone: public BasicTimeZone {
  public:
     /**
      * Construct from a resource bundle.
@@ -150,7 +150,7 @@ class U_I18N_API OlsonTimeZone: public BasicTimeZone {
     /**
      * TimeZone API.
      */
-    static UClassID U_EXPORT2 getStaticClassID();
+    U_I18N_API static UClassID U_EXPORT2 getStaticClassID();
 
     /**
      * TimeZone API.

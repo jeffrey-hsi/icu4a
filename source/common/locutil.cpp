@@ -1,7 +1,9 @@
 /**
  *******************************************************************************
- * Copyright (C) 2002-2010, International Business Machines Corporation and
- * others. All Rights Reserved.
+ * Copyright (C) 2002-2006, International Business Machines Corporation and    *
+ * others. All Rights Reserved.                                                *
+ *******************************************************************************
+ *
  *******************************************************************************
  */
 #include "unicode/utypes.h"
@@ -225,9 +227,9 @@ LocaleUtility::getAvailableLocaleNames(const UnicodeString& bundleID)
     if (htp == NULL) {
         htp = new Hashtable(status);
         if (htp && U_SUCCESS(status)) {
-            CharString cbundleID;
-            cbundleID.appendInvariantChars(bundleID, status);
-            const char* path = cbundleID.isEmpty() ? NULL : cbundleID.data();
+            CharString cbundleID(bundleID);
+            const char* path = (const char*) cbundleID;
+            if (*path == 0) path = NULL; // empty string => NULL
             UEnumeration *uenum = ures_openAvailableLocales(path, &status);
             for (;;) {
                 const UChar* id = uenum_unext(uenum, NULL, &status);

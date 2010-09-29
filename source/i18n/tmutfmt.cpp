@@ -5,7 +5,6 @@
  *******************************************************************************
  */
 
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/tmutfmt.h"
 
@@ -173,14 +172,16 @@ TimeUnitFormat::operator=(const TimeUnitFormat& other) {
 
 UBool 
 TimeUnitFormat::operator==(const Format& other) const {
-    if (typeid(*this) == typeid(other)) {
+    if (other.getDynamicClassID() == TimeUnitFormat::getStaticClassID()) {
         TimeUnitFormat* fmt = (TimeUnitFormat*)&other;
-        UBool ret =  ( ((fNumberFormat && fmt->fNumberFormat && *fNumberFormat == *fmt->fNumberFormat)
-                            || fNumberFormat == fmt->fNumberFormat ) 
-                        && fLocale == fmt->fLocale 
-                        && ((fPluralRules && fmt->fPluralRules && *fPluralRules == *fmt->fPluralRules) 
-                            || fPluralRules == fmt->fPluralRules) 
-                        && fStyle == fmt->fStyle); 
+        UBool ret =  ( (fNumberFormat && fmt->fNumberFormat && 
+                        *fNumberFormat == *fmt->fNumberFormat ||
+                        fNumberFormat == fmt->fNumberFormat ) &&
+                       fLocale == fmt->fLocale &&
+                       (fPluralRules && fmt->fPluralRules &&
+                        *fPluralRules == *fmt->fPluralRules ||
+                        fPluralRules == fmt->fPluralRules) &&
+                      fStyle == fmt->fStyle); 
         if (ret) {
             for (TimeUnit::UTimeUnitFields i = TimeUnit::UTIMEUNIT_YEAR;
                  i < TimeUnit::UTIMEUNIT_FIELD_COUNT && ret;
@@ -202,8 +203,8 @@ TimeUnitFormat::format(const Formattable& obj, UnicodeString& toAppendTo,
     }
     if (obj.getType() == Formattable::kObject) {
         const UObject* formatObj = obj.getObject();
-        const TimeUnitAmount* amount = dynamic_cast<const TimeUnitAmount*>(formatObj);
-        if (amount != NULL){
+        if (formatObj->getDynamicClassID() == TimeUnitAmount::getStaticClassID()){
+            TimeUnitAmount* amount = (TimeUnitAmount*)formatObj;
             Hashtable* countToPattern = fTimeUnitToCountToPatterns[amount->getTimeUnitField()];
             double number;
             const Formattable& amtNumber = amount->getNumber();
@@ -496,12 +497,13 @@ TimeUnitFormat::readFromCurrentLocale(EStyle style, const char* key, UErrorCode&
                   }
                   MessageFormat** formatters = (MessageFormat**)countToPatterns->get(pluralCount);
                   if (formatters == NULL) {
-                    formatters = (MessageFormat**)uprv_malloc(kTotal*sizeof(MessageFormat*));
+                    // formatters = new MessageFormat*[kTotal];
+                    formatters = (MessageFormat**)uprv_malloc(2*sizeof(MessageFormat*));
                     formatters[kFull] = NULL;
                     formatters[kAbbreviate] = NULL;
                     countToPatterns->put(pluralCount, formatters, err);
                     if (U_FAILURE(err)) {
-                        uprv_free(formatters);
+                        delete [] formatters;
                     }
                   } 
                   if (U_SUCCESS(err)) {
@@ -631,12 +633,13 @@ TimeUnitFormat::searchInLocaleChain(EStyle style, const char* key,
                 }
                 MessageFormat** formatters = (MessageFormat**)countToPatterns->get(srcPluralCount);
                 if (formatters == NULL) {
-                    formatters = (MessageFormat**)uprv_malloc(kTotal*sizeof(MessageFormat*));
+                    //formatters = new MessageFormat*[kTotal];
+                    formatters = (MessageFormat**)uprv_malloc(2*sizeof(MessageFormat*));
                     formatters[kFull] = NULL;
                     formatters[kAbbreviate] = NULL;
                     countToPatterns->put(srcPluralCount, formatters, err);
                     if (U_FAILURE(err)) {
-                        uprv_free(formatters);
+                        delete [] formatters;
                         delete messageFormat;
                     }
                 } 
@@ -691,7 +694,7 @@ TimeUnitFormat::searchInLocaleChain(EStyle style, const char* key,
                 formatters[kAbbreviate] = NULL;
                 countToPatterns->put(srcPluralCount, formatters, err);
                 if (U_FAILURE(err)) {
-                    uprv_free(formatters);
+                    delete [] formatters;
                     delete messageFormat;
                 }
             }
@@ -720,7 +723,7 @@ TimeUnitFormat::setLocale(const Locale& locale, UErrorCode& status) {
 
 void 
 TimeUnitFormat::setNumberFormat(const NumberFormat& format, UErrorCode& status){
-    if (U_FAILURE(status) || (fNumberFormat && format == *fNumberFormat)) {
+    if (U_FAILURE(status) || fNumberFormat && format == *fNumberFormat) {
         return;
     }
     delete fNumberFormat;
@@ -772,14 +775,15 @@ TimeUnitFormat::copyHash(const Hashtable* source, Hashtable* target, UErrorCode&
             const UnicodeString* key = (UnicodeString*)keyTok.pointer;
             const UHashTok valueTok = element->value;
             const MessageFormat** value = (const MessageFormat**)valueTok.pointer;
-            MessageFormat** newVal = (MessageFormat**)uprv_malloc(kTotal*sizeof(MessageFormat*));
+            //MessageFormat** newVal = new MessageFormat*[kTotal];
+            MessageFormat** newVal = (MessageFormat**)uprv_malloc(2*sizeof(MessageFormat*));
             newVal[0] = (MessageFormat*)value[0]->clone();
             newVal[1] = (MessageFormat*)value[1]->clone();
             target->put(UnicodeString(*key), newVal, status);
             if ( U_FAILURE(status) ) {
                 delete newVal[0];
                 delete newVal[1];
-                uprv_free(newVal);
+                delete [] newVal;
                 return;
             }
         }

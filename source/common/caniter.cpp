@@ -9,15 +9,15 @@
 
 #if !UCONFIG_NO_NORMALIZATION
 
-#include "unicode/caniter.h"
-#include "unicode/normalizer2.h"
-#include "unicode/uchar.h"
-#include "unicode/uniset.h"
-#include "unicode/usetiter.h"
+#include "unicode/uset.h"
 #include "unicode/ustring.h"
-#include "cmemory.h"
 #include "hash.h"
 #include "normalizer2impl.h"
+#include "unormimp.h"
+#include "unicode/caniter.h"
+#include "unicode/normlzr.h"
+#include "unicode/uchar.h"
+#include "cmemory.h"
 
 /**
  * This class allows one to iterate through all the strings that are canonically equivalent to a given
@@ -70,10 +70,9 @@ CanonicalIterator::CanonicalIterator(const UnicodeString &sourceStr, UErrorCode 
     pieces_lengths(NULL),
     current(NULL),
     current_length(0),
-    nfd(*Normalizer2Factory::getNFDInstance(status)),
-    nfcImpl(*Normalizer2Factory::getNFCImpl(status))
+    nfd(*Normalizer2Factory::getNFDInstance(status))
 {
-    if(U_SUCCESS(status) && nfcImpl.ensureCanonIterData(status)) {
+    if(U_SUCCESS(status)) {
       setSource(sourceStr, status);
     }
 }
@@ -169,7 +168,7 @@ void CanonicalIterator::setSource(const UnicodeString &newSource, UErrorCode &st
     int32_t i = 0;
     UnicodeString *list = NULL;
 
-    nfd.normalize(newSource, source, status);
+    Normalizer::normalize(newSource, UNORM_NFD, 0, source, status);
     if(U_FAILURE(status)) {
       return;
     }
@@ -216,7 +215,7 @@ void CanonicalIterator::setSource(const UnicodeString &newSource, UErrorCode &st
     // on the NFD form - see above).
     for (; i < source.length(); i += UTF16_CHAR_LENGTH(cp)) {
         cp = source.char32At(i);
-        if (nfcImpl.isCanonSegmentStarter(cp)) {
+        if (unorm_isCanonSafeStart(cp)) {
             source.extract(start, i-start, list[list_length++]); // add up to i
             start = i;
         }
@@ -378,7 +377,7 @@ UnicodeString* CanonicalIterator::getEquivalents(const UnicodeString &segment, i
             //UnicodeString *possible = new UnicodeString(*((UnicodeString *)(ne2->value.pointer)));
             UnicodeString possible(*((UnicodeString *)(ne2->value.pointer)));
             UnicodeString attempt;
-            nfd.normalize(possible, attempt, status);
+            Normalizer::normalize(possible, UNORM_NFD, 0, attempt, status);
 
             // TODO: check if operator == is semanticaly the same as attempt.equals(segment)
             if (attempt==segment) {
@@ -438,29 +437,28 @@ Hashtable *CanonicalIterator::getEquivalents2(Hashtable *fillinResult, const UCh
 
     fillinResult->put(toPut, new UnicodeString(toPut), status);
 
-    UnicodeSet starts;
+    USerializedSet starts;
 
     // cycle through all the characters
-    UChar32 cp;
-    for (int32_t i = 0; i < segLen; i += UTF16_CHAR_LENGTH(cp)) {
+    UChar32 cp, end = 0;
+    int32_t i = 0, j;
+    for (i = 0; i < segLen; i += UTF16_CHAR_LENGTH(cp)) {
         // see if any character is at the start of some decomposition
         UTF_GET_CHAR(segment, 0, i, segLen, cp);
-        if (!nfcImpl.getCanonStartSet(cp, starts)) {
+        if (!unorm_getCanonStartSet(cp, &starts)) {
             continue;
         }
-        // if so, see which decompositions match
-        UnicodeSetIterator iter(starts);
-        while (iter.next()) {
-            UChar32 cp2 = iter.getCodepoint();
+        // if so, see which decompositions match 
+        for(j = 0, cp = end+1; cp <= end || uset_getSerializedRange(&starts, j++, &cp, &end); ++cp) {
             Hashtable remainder(status);
             remainder.setValueDeleter(uhash_deleteUnicodeString);
-            if (extract(&remainder, cp2, segment, segLen, i, status) == NULL) {
+            if (extract(&remainder, cp, segment, segLen, i, status) == NULL) {
                 continue;
             }
 
             // there were some matches, so add all the possibilities to the set.
             UnicodeString prefix(segment, i);
-            prefix += cp2;
+            prefix += cp;
 
             int32_t el = -1;
             const UHashElement *ne = remainder.nextElement(el);

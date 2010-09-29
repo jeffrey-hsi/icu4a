@@ -21,10 +21,10 @@
 #include "unicode/ustring.h"
 #include "unicode/measure.h"
 #include "unicode/curramt.h"
-#include "charstr.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "decNumber.h"
+#include "decnumstr.h"
 #include "digitlst.h"
 
 // *****************************************************************************
@@ -38,7 +38,8 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(Formattable)
 //-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.
 
 // NOTE: As of 3.0, there are limitations to the UObject API.  It does
-// not (yet) support cloning, operator=, nor operator==.  To
+// not (yet) support cloning, operator=, nor operator==.  RTTI is also
+// restricted in that subtype testing is not (yet) implemented.  To
 // work around this, I implement some simple inlines here.  Later
 // these can be modified or removed.  [alan]
 
@@ -59,7 +60,9 @@ static inline UObject* objectClone(const UObject* a) {
 
 // Return TRUE if *a is an instance of Measure.
 static inline UBool instanceOfMeasure(const UObject* a) {
-    return dynamic_cast<const Measure*>(a) != NULL;
+    // LATER: return a->instanceof(Measure::getStaticClassID());
+    return a->getDynamicClassID() ==
+        CurrencyAmount::getStaticClassID();
 }
 
 /**
@@ -255,7 +258,7 @@ Formattable::operator=(const Formattable& source)
             fDecimalNum = new DigitList(*source.fDecimalNum);
         }
         if (source.fDecimalStr != NULL) {
-            fDecimalStr = new CharString(*source.fDecimalStr, status);
+            fDecimalStr = new DecimalNumberString(*source.fDecimalStr, status);
             if (U_FAILURE(status)) {
                 delete fDecimalStr;
                 fDecimalStr = NULL;
@@ -672,7 +675,7 @@ StringPiece Formattable::getDecimalNumber(UErrorCode &status) {
         return "";
     }
     if (fDecimalStr != NULL) {
-        return fDecimalStr->toStringPiece();
+        return *fDecimalStr;
     }
 
     if (fDecimalNum == NULL) {
@@ -704,14 +707,14 @@ StringPiece Formattable::getDecimalNumber(UErrorCode &status) {
         }
     }
 
-    fDecimalStr = new CharString;
+    fDecimalStr = new DecimalNumberString;
     if (fDecimalStr == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return "";
     }
     fDecimalNum->getDecimal(*fDecimalStr, status);
 
-    return fDecimalStr->toStringPiece();
+    return *fDecimalStr;
 }
 
 
@@ -750,13 +753,18 @@ Formattable::setDecimalNumber(const StringPiece &numberString, UErrorCode &statu
     // Copy the input string and nul-terminate it.
     //    The decNumber library requires nul-terminated input.  StringPiece input
     //    is not guaranteed nul-terminated.  Too bad.
-    //    CharString automatically adds the nul.
+    //    DecimalNumberStrings automatically adds the nul.
+    DecimalNumberString  s(numberString, status);
+    if (U_FAILURE(status)) {
+        return;
+    }
+    
     DigitList *dnum = new DigitList();
     if (dnum == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return;
     }
-    dnum->set(CharString(numberString, status).toStringPiece(), status);
+    dnum->set(s, status);
     if (U_FAILURE(status)) {
         delete dnum;
         return;   // String didn't contain a decimal number.

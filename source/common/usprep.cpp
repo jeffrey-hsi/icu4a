@@ -348,13 +348,17 @@ usprep_getProfile(const char* path,
         if(!loadData(newProfile.getAlias(), path, name, _SPREP_DATA_TYPE, status) || U_FAILURE(*status) ){
             return NULL;
         }
-
+        
         /* get the options */
         newProfile->doNFKC = (UBool)((newProfile->indexes[_SPREP_OPTIONS] & _SPREP_NORMALIZATION_ON) > 0);
         newProfile->checkBiDi = (UBool)((newProfile->indexes[_SPREP_OPTIONS] & _SPREP_CHECK_BIDI_ON) > 0);
 
         if(newProfile->checkBiDi) {
-            newProfile->bdp = ubidi_getSingleton();
+            newProfile->bdp = ubidi_getSingleton(status);
+            if(U_FAILURE(*status)) {
+                usprep_unload(newProfile.getAlias());
+                return NULL;
+            }
         }
 
         LocalMemory<UStringPrepKey> key;
@@ -370,27 +374,19 @@ usprep_getProfile(const char* path,
             return NULL;
         }
 
+        /* initialize the key members */
+        key->name = keyName.orphan();
+        uprv_strcpy(key->name, name);
+        if(path != NULL){
+            key->path = keyPath.orphan();
+            uprv_strcpy(key->path, path);
+        }        
+
+        profile = newProfile.orphan();
         umtx_lock(&usprepMutex);
-        // If another thread already inserted the same key/value, refcount and cleanup our thread data
-        profile = (UStringPrepProfile*) (uhash_get(SHARED_DATA_HASHTABLE,&stackKey));
-        if(profile != NULL) {
-            profile->refCount++;
-            usprep_unload(newProfile.getAlias());
-        }
-        else {
-            /* initialize the key members */
-            key->name = keyName.orphan();
-            uprv_strcpy(key->name, name);
-            if(path != NULL){
-                key->path = keyPath.orphan();
-                uprv_strcpy(key->path, path);
-            }        
-            profile = newProfile.orphan();
-    
-            /* add the data object to the cache */
-            profile->refCount = 1;
-            uhash_put(SHARED_DATA_HASHTABLE, key.orphan(), profile, status);
-        }
+        /* add the data object to the cache */
+        profile->refCount = 1;
+        uhash_put(SHARED_DATA_HASHTABLE, key.orphan(), profile, status);
         umtx_unlock(&usprepMutex);
     }
 

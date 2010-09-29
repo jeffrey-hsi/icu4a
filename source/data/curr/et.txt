@@ -235,7 +235,7 @@ et{
             }
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egiptuse nael",
         }
         ESP{

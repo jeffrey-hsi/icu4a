@@ -35,7 +35,7 @@
 // *****************************************************************************
 
 // TODO: We should probably read following data at runtime, so we can update
-// these values every release with necessary data changes.
+// the these values every release with necessary data changes.
 const int32_t TimeZoneTest::REFERENCE_YEAR = 2009;
 const char * TimeZoneTest::REFERENCE_DATA_VERSION = "2009d";
 
@@ -115,14 +115,16 @@ TimeZoneTest::TestGenericAPI()
     }
 
     if ((tzoffset % 900) != 0) {
+#ifdef U_DARWIN
         /*
-         * Ticket#6364 and #7648
-         * A few time zones are using GMT offests not a multiple of 15 minutes.
-         * Therefore, we should not interpret such case as an error.
-         * We downgrade this from errln to infoln. When we see this message,
-         * we should examine if it is ignorable or not.
+         * Ticket: 6364 (mow - 090522)
+         * On MacOSX 10.5.3 and up, this test fails when TZ is set to certain timezones (e.g. Africa/Dar_es_Salaam)
+         * Their GMT offset is not a multiple of 15 minutes. This is a MacOSX issue and is not a problem with ICU.
          */
-        infoln("WARNING: t_timezone may be incorrect. It is not a multiple of 15min.", tzoffset);
+        infoln("[WARNING] FAIL: t_timezone may be incorrect. It is not a multiple of 15min. It is %d (Note: This is a known issue on MacOSX)", tzoffset);
+#else
+        errln("FAIL: t_timezone may be incorrect. It is not a multiple of 15min. It is %d", tzoffset);
+#endif
     }
 
     TimeZone::adoptDefault(zone);
@@ -953,7 +955,7 @@ void TimeZoneTest::TestCustomParse()
         TimeZone *zone = TimeZone::createTimeZone(id);
         UnicodeString   itsID, temp;
 
-        if (dynamic_cast<OlsonTimeZone *>(zone) != NULL) {
+        if (zone->getDynamicClassID() == OlsonTimeZone::getStaticClassID()) {
             logln(id + " -> Olson time zone");
         } else {
             zone->getID(itsID);

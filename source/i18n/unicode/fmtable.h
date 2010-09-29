@@ -28,8 +28,8 @@
 
 U_NAMESPACE_BEGIN
 
-class CharString;
-class DigitList;
+class   DecimalNumberString;
+class   DigitList;
 
 /**
  * Formattable objects can be passed to the Format class or
@@ -606,6 +606,7 @@ public:
      *  Adopt, and set value from, a DigitList
      *     Internal Function, do not use.
      *  @param dl the Digit List to be adopted
+     *  @param status reports errors
      *  @internal
      */
     void adoptDigitList(DigitList *dl);
@@ -616,7 +617,7 @@ private:
      * string or array objects.
      */
     void            dispose(void);
-
+    
     /**
      * Common initialization, for use by constructors.
      */
@@ -636,7 +637,7 @@ private:
         }               fArrayAndCount;
     } fValue;
 
-    CharString           *fDecimalStr;
+    DecimalNumberString  *fDecimalStr;
     DigitList            *fDecimalNum;
 
     Type                fType;
@@ -671,3 +672,4 @@ U_NAMESPACE_END
 
 #endif //_FMTABLE
 //eof
+

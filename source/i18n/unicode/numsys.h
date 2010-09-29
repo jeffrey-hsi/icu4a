@@ -16,13 +16,6 @@
 #ifndef NUMSYS
 #define NUMSYS
 
-/**
- * \def NUMSYS_NAME_CAPACITY
- * Size of a numbering system name.
- * @internal
- */
-#define NUMSYS_NAME_CAPACITY 8
-
 #include "unicode/utypes.h"
 
 /**
@@ -123,13 +116,6 @@ public:
     int32_t getRadix();
 
     /**
-     * Returns the name of this numbering system if it was created using one of the predefined names
-     * known to ICU.  Otherwise, returns NULL.
-     * @draft ICU 4.6
-     */
-    const char * getName();
-
-    /**
      * Returns the description string of this numbering system, which is either
      * the string of digits in the case of simple systems, or the ruleset name
      * in the case of algorithmic systems.
@@ -168,15 +154,12 @@ private:
     UnicodeString   desc;
     int32_t         radix;
     UBool           algorithmic;
-    char            name[NUMSYS_NAME_CAPACITY+1];
 
     void setRadix(int32_t radix);
 
     void setAlgorithmic(UBool algorithmic);
 
     void setDesc(UnicodeString desc);
-
-    void setName(const char* name);
 
     static UBool isValidDigitString(const UnicodeString &str);
 

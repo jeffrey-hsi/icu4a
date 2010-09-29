@@ -11,8 +11,7 @@
 //
 
 #include "intltest.h"
-
-#if !UCONFIG_NO_FORMATTING && !UCONFIG_NO_REGULAR_EXPRESSIONS
+#if !UCONFIG_NO_REGULAR_EXPRESSIONS
 
 #include "unicode/regex.h"
 #include "unicode/uchar.h"
@@ -409,7 +408,7 @@ void DecimalFormatTest::execFormatTest(int32_t lineNum,
 
     Formattable fmtbl;
     fmtbl.setDecimalNumber(spInput, status);
-    //NumberFormat &nfmtr = fmtr;
+    NumberFormat &nfmtr = fmtr;
     fmtr.format(fmtbl, result, NULL, status);
 
     if (U_FAILURE(status)) {
@@ -482,7 +481,7 @@ UChar *DecimalFormatTest::ReadAndConvertFile(const char *fileName, int32_t &ulen
     amtReadNoBOM = amtRead - 3;
     if (fileSize<3 || uprv_strncmp(fileBuf, "\xEF\xBB\xBF", 3) != 0) {
         // TODO:  restore this check.
-        errln("Test data file %s is missing its BOM", fileName);
+        // errln("Test data file %s is missing its BOM", fileName);
         fileBufNoBOM = fileBuf;
         amtReadNoBOM = amtRead;
     }

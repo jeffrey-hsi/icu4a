@@ -725,17 +725,13 @@ MessageFormat::toPattern(UnicodeString& appendTo) const {
             appendTo += *subformats[i].argName;
         }
         Format* fmt = subformats[i].format;
-        DecimalFormat* decfmt;
-        SimpleDateFormat* sdtfmt;
-        ChoiceFormat* chcfmt;
-        PluralFormat* plfmt;
-        SelectFormat* selfmt;
         if (fmt == NULL) {
             // do nothing, string format
         } 
-        else if ((decfmt = dynamic_cast<DecimalFormat*>(fmt)) != NULL) {
+        else if (fmt->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+            
             UErrorCode ec = U_ZERO_ERROR;
-            NumberFormat& formatAlias = *decfmt;
+            NumberFormat& formatAlias = *(NumberFormat*)fmt;
             NumberFormat *defaultTemplate = NumberFormat::createInstance(fLocale, ec);
             NumberFormat *currencyTemplate = NumberFormat::createCurrencyInstance(fLocale, ec);
             NumberFormat *percentTemplate = NumberFormat::createPercentInstance(fLocale, ec);
@@ -756,7 +752,7 @@ MessageFormat::toPattern(UnicodeString& appendTo) const {
                 } 
                 else {
                     UnicodeString buffer;
-                    appendTo += decfmt->toPattern(buffer);
+                    appendTo += ((DecimalFormat*)fmt)->toPattern(buffer);
                 }
             }
             
@@ -765,8 +761,8 @@ MessageFormat::toPattern(UnicodeString& appendTo) const {
             delete percentTemplate;
             delete integerTemplate;
         } 
-        else if ((sdtfmt = dynamic_cast<SimpleDateFormat*>(fmt)) != NULL) {
-            DateFormat& formatAlias = *sdtfmt;
+        else if (fmt->getDynamicClassID() == SimpleDateFormat::getStaticClassID()) {
+            DateFormat& formatAlias = *(DateFormat*)fmt;
             DateFormat *defaultDateTemplate = DateFormat::createDateInstance(DateFormat::kDefault, fLocale);
             DateFormat *shortDateTemplate = DateFormat::createDateInstance(DateFormat::kShort, fLocale);
             DateFormat *longDateTemplate = DateFormat::createDateInstance(DateFormat::kLong, fLocale);
@@ -828,7 +824,7 @@ MessageFormat::toPattern(UnicodeString& appendTo) const {
                 UnicodeString buffer;
                 appendTo += ID_DATE;
                 appendTo += COMMA;
-                appendTo += sdtfmt->toPattern(buffer);
+                appendTo += ((SimpleDateFormat*)fmt)->toPattern(buffer);
             }
             
             delete defaultDateTemplate;
@@ -841,18 +837,18 @@ MessageFormat::toPattern(UnicodeString& appendTo) const {
             delete fullTimeTemplate;
             // {sfb} there should be a more efficient way to do this!
         } 
-        else if ((chcfmt = dynamic_cast<ChoiceFormat*>(fmt)) != NULL) {
+        else if (fmt->getDynamicClassID() == ChoiceFormat::getStaticClassID()) {
             UnicodeString buffer;
             appendTo += COMMA;
             appendTo += ID_CHOICE;
             appendTo += COMMA;
             appendTo += ((ChoiceFormat*)fmt)->toPattern(buffer);
         }
-        else if ((plfmt = dynamic_cast<PluralFormat*>(fmt)) != NULL) {
+        else if (fmt->getDynamicClassID() == PluralFormat::getStaticClassID()) {
             UnicodeString buffer;
-            appendTo += plfmt->toPattern(buffer);
+            appendTo += ((PluralFormat*)fmt)->toPattern(buffer);
         } 
-        else if ((selfmt = dynamic_cast<SelectFormat*>(fmt)) != NULL) {
+        else if (fmt->getDynamicClassID() == SelectFormat::getStaticClassID()) {
             UnicodeString buffer;
             appendTo += ((SelectFormat*)fmt)->toPattern(buffer);
         } 
@@ -1242,7 +1238,7 @@ MessageFormat::format(const Formattable* arguments,
 
         // Recursively calling the format process only if the current
         // format argument refers to either of the following:
-        // a ChoiceFormat object, a PluralFormat object, a SelectFormat object.
+        // a ChoiceFormat object ,a PluralFormat object, a SelectFormat object.
         Format* fmt = subformats[i].format;
         if (fmt != NULL) {
             UnicodeString argNum;
@@ -1250,11 +1246,11 @@ MessageFormat::format(const Formattable* arguments,
 
             // Needs to reprocess the ChoiceFormat and PluralFormat and SelectFormat option by using the
             // MessageFormat pattern application.
-            if ((dynamic_cast<ChoiceFormat*>(fmt) != NULL ||
-                 dynamic_cast<PluralFormat*>(fmt) != NULL ||
-                 dynamic_cast<SelectFormat*>(fmt) != NULL) &&
-                argNum.indexOf(LEFT_CURLY_BRACE) >= 0
-            ) {
+            if ((fmt->getDynamicClassID() == ChoiceFormat::getStaticClassID() ||
+                 fmt->getDynamicClassID() == PluralFormat::getStaticClassID() ||
+                 fmt->getDynamicClassID() == SelectFormat::getStaticClassID()
+                 ) &&
+                argNum.indexOf(LEFT_CURLY_BRACE) >= 0) {
                 MessageFormat temp(argNum, fLocale, success);
                 // TODO: Implement recursion protection
                 if ( isArgNumeric ) {
@@ -1567,11 +1563,9 @@ MessageFormat::makeFormat(int32_t formatNumber,
             break;
         default: // pattern
             fmt = NumberFormat::createInstance(fLocale, ec);
-            if (fmt) {
-                DecimalFormat* decfmt = dynamic_cast<DecimalFormat*>(fmt);
-                if (decfmt != NULL) {
-                    decfmt->applyPattern(segments[3],parseError,ec);
-                }
+            if (fmt &&
+                fmt->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+                ((DecimalFormat*)fmt)->applyPattern(segments[3],parseError,ec);
             }
             break;
         }
@@ -1589,11 +1583,10 @@ MessageFormat::makeFormat(int32_t formatNumber,
             fmt = DateFormat::createTimeInstance(style, fLocale);
         }
 
-        if (styleID < 0 && fmt != NULL) {
-            SimpleDateFormat* sdtfmt = dynamic_cast<SimpleDateFormat*>(fmt);
-            if (sdtfmt != NULL) {
-                sdtfmt->applyPattern(segments[3]);
-            }
+        if (styleID < 0 &&
+            fmt != NULL &&
+            fmt->getDynamicClassID() == SimpleDateFormat::getStaticClassID()) {
+            ((SimpleDateFormat*)fmt)->applyPattern(segments[3]);
         }
         break;
 
@@ -1751,8 +1744,8 @@ MessageFormat::copyAndFixQuotes(const UnicodeString& source,
 NumberFormat* 
 MessageFormat::createIntegerFormat(const Locale& locale, UErrorCode& status) const {
     NumberFormat *temp = NumberFormat::createInstance(locale, status);
-    DecimalFormat *temp2;
-    if (temp != NULL && (temp2 = dynamic_cast<DecimalFormat*>(temp)) != NULL) {
+    if (temp != NULL && temp->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+        DecimalFormat *temp2 = (DecimalFormat*) temp;
         temp2->setMaximumFractionDigits(0);
         temp2->setDecimalSeparatorAlwaysShown(FALSE);
         temp2->setParseIntegerOnly(TRUE);

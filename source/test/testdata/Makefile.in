@@ -29,9 +29,7 @@ SUBDIRS =
 .PHONY : all all-local all-recursive install install-local	\
 install-recursive clean clean-local clean-recursive distclean	\
 distclean-local distclean-recursive doc dist dist-local dist-recursive	\
-check check-local check-recursive build-dir testdata.jar xcheck
-
-xcheck: all-local
+check check-local check-recursive build-dir testdata.jar
 
 .NOTPARALLEL: build-dir
 

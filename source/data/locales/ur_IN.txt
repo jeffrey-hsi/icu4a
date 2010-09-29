@@ -10,14 +10,11 @@
  *  ICU <specials> source: <path>/xml/main/ur_IN.xml
  */
 ur_IN{
-    NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"¤ #,##,##0.00"}
-                decimalFormat{"#,##,##0.###"}
-                percentFormat{"#,##,##0%"}
-            }
-        }
+    NumberPatterns{
+        "#,##,##0.###",
+        "¤ #,##,##0.00",
+        "#,##,##0%",
+        "#E0",
     }
     Version{"2.0.41.23"}
     calendar{

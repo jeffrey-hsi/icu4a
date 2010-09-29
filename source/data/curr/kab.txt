@@ -64,7 +64,7 @@ kab{
             "Adinar Azzayri",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Apund Amaṣri",
         }
         ERN{

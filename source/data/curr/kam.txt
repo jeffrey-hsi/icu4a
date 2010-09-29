@@ -64,7 +64,7 @@ kam{
             "Dinari ya Aljeria",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Vaundi ya Misili",
         }
         ERN{

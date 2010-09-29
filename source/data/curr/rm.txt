@@ -344,7 +344,7 @@ rm{
             "cruna estona",
         }
         EGP{
-            "EGP",
+            "EG£",
             "glivra egipziana",
         }
         ERN{

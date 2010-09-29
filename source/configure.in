@@ -15,24 +15,6 @@ AC_CONFIG_HEADERS(common/icucfg.h)
 PACKAGE="icu"
 AC_SUBST(PACKAGE)
 
-# Use custom echo test for newline option
-# Current autoconf (2.65) gives incorrect echo newline option
-# for icu-config
-# This may be removed later - mow (June 17, 2010)
-ICU_ECHO_C= ICU_ECHO_N= ICU_ECHO_T=
-case `/bin/sh -c "echo -n x"` in
--n*)
-  case `/bin/sh -c "echo 'x\c'"` in
-  *c*) ICU_ECHO_T=' ';;     # ECHO_T is single tab character.
-  *)   ICU_ECHO_C='\c';;
-  esac;;
-*)
-  ICU_ECHO_N='-n';;
-esac
-AC_SUBST(ICU_ECHO_N)
-AC_SUBST(ICU_ECHO_C)
-AC_SUBST(ICU_ECHO_T)
-
 AC_MSG_CHECKING(for ICU version numbers)
 
 # Get the ICU version from uversion.h or other headers
@@ -1230,7 +1212,8 @@ ICUDATA_CHAR=$U_ENDIAN_CHAR
 # set ICUDATA_CHAR to 'e' for any EBCDIC (which should be big endian) platform.
 case "${host}" in
 	*-*-solaris*) 	platform=U_SOLARIS ;;
-	*-*-linux*|*-*-gnu|*-*-k*bsd*-gnu|*-*-kopensolaris*-gnu)        platform=U_LINUX ;;
+	*-*-linux*) 	platform=U_LINUX ;;
+	*-pc-gnu) 	platform=U_HURD ;;
 	*-*-*bsd*|*-*-dragonfly*) 	platform=U_BSD ;;
 	*-*-aix*) 	platform=U_AIX ;;
 	*-*-hpux*) 	platform=U_HPUX ;;
@@ -1279,7 +1262,6 @@ AC_CONFIG_FILES([icudefs.mk \
 		Makefile \
 		data/pkgdataMakefile \
 		config/Makefile.inc \
-		config/icu.pc \
 		config/pkgdataMakefile \
 		data/Makefile \
 		stubdata/Makefile \
@@ -1297,12 +1279,18 @@ AC_CONFIG_FILES([icudefs.mk \
 		tools/toolutil/Makefile \
 		tools/makeconv/Makefile \
 		tools/genrb/Makefile \
+		tools/genuca/Makefile \
 		tools/genccode/Makefile \
 		tools/gencmn/Makefile \
 		tools/gencnval/Makefile \
 		tools/genctd/Makefile \
+		tools/gennames/Makefile \
 		tools/gentest/Makefile \
 		tools/gennorm2/Makefile \
+		tools/genprops/Makefile \
+		tools/gencase/Makefile \
+		tools/genbidi/Makefile \
+		tools/genpname/Makefile \
 		tools/genbrk/Makefile \
 		tools/gensprep/Makefile \
 		tools/icuinfo/Makefile \
@@ -1326,7 +1314,6 @@ AC_CONFIG_FILES([icudefs.mk \
 		test/perf/charperf/Makefile \
 		test/perf/convperf/Makefile \
 		test/perf/normperf/Makefile \
-		test/perf/DateFmtPerf/Makefile \
 		test/perf/strsrchperf/Makefile \
 		test/perf/unisetperf/Makefile \
 		test/perf/usetperf/Makefile \

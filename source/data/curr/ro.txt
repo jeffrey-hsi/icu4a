@@ -220,7 +220,7 @@ ro{
             "coroană estoniană",
         }
         EGP{
-            "EGP",
+            "EG£",
             "liră egipteană",
         }
         ESA{

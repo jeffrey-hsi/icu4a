@@ -352,7 +352,7 @@ lt{
             "Estijos krona",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egipto svaras",
         }
         ERN{

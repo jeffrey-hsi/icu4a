@@ -1021,7 +1021,8 @@ private:
     /**
      * Get the numbering system to be used for a particular field.
      */
-     NumberFormat * getNumberFormatByIndex(UDateFormatField index) const;
+    using DateFormat::getNumberFormat;    // Do not hide visibility of base class function
+    NumberFormat * getNumberFormat(UDateFormatField index) const;
 
     /**
      * Parse the given override string and set up structures for number formats

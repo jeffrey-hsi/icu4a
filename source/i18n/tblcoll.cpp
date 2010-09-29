@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
- * Copyright (C) 1996-2010, International Business Machines Corporation and
- * others. All Rights Reserved.
+ * Copyright (C) 1996-2009, International Business Machines Corporation and   *
+ * others. All Rights Reserved.                                               *
  ******************************************************************************
  */
 
@@ -53,8 +53,6 @@
  *                          to implementation file.
  * 01/29/01     synwee      Modified into a C++ wrapper calling C APIs (ucol.h)
  */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -195,7 +193,7 @@ UBool RuleBasedCollator::operator==(const Collator& that) const
   if (Collator::operator==(that))
     return TRUE;
 
-  if (typeid(*this) != typeid(that))
+  if (getDynamicClassID() != that.getDynamicClassID())
     return FALSE;  /* not the same class */
 
   RuleBasedCollator& thatAlias = (RuleBasedCollator&)that;

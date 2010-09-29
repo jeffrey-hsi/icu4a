@@ -108,11 +108,10 @@ void IntlTestDateFormatAPI::TestEquals(void)
     if (!(*a == *b))
         errln("FAIL: DateFormat objects created at different times are unequal.");
 
-    SimpleDateFormat *sdtfmt = dynamic_cast<SimpleDateFormat *>(b);
-    if (sdtfmt != NULL)
+    if (b->getDynamicClassID() == SimpleDateFormat::getStaticClassID())
     {
         double ONE_YEAR = 365*24*60*60*1000.0;
-        sdtfmt->set2DigitYearStart(start + 50*ONE_YEAR, status);
+        ((SimpleDateFormat*)b)->set2DigitYearStart(start + 50*ONE_YEAR, status);
         if (U_FAILURE(status))
             errln("FAIL: setTwoDigitStartDate failed.");
         else if (*a == *b)
@@ -218,16 +217,7 @@ if (fr != NULL && it != NULL && de != NULL)
         name = locales[i].getName();
         logln(name);
     }
-    
-    // check default value of lenient, and setting/testing
-    if ( !fr->isLenient() ) {
-        errln("ERROR: isLenient() not TRUE by default for DateFormat");
-    } else {
-        fr->setLenient(FALSE);
-        if ( fr->isLenient() ) {
-            errln("ERROR: isLenient() after setLenient(FALSE) failed");
-        }
-    }
+
     fr->setLenient(it->isLenient());
     if(fr->isLenient() != it->isLenient()) {
         errln("ERROR: setLenient() failed");
@@ -323,7 +313,6 @@ IntlTestDateFormatAPI::TestNameHiding(void) {
         sdf.format((UDate)0, str);
         sdf.parse(str, status);
         sdf.parse(str, ppos);
-        sdf.getNumberFormat();
     }
 
     // NumberFormat calling Format API

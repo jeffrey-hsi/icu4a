@@ -13,39 +13,35 @@ root{
     AuxExemplarCharacters{"[]"}
     ExemplarCharacters{"[]"}
     ExemplarCharactersCurrency{"[a b c č d e f g h i j k l ł m n o º p q r s t u v w x y z]"}
-    ExemplarCharactersPunctuation{"[\- , ; \: ! ? . ( ) \[ \] \{ \}]"}
     LocaleScript{
         "Zyyy",
     }
     MeasurementSystem:int{0}
     NumberElements{
-        default{"latn"}
-        latn{
-            patterns{
-                currencyFormat{"¤ #,##0.00"}
-                decimalFormat{"#,##0.###"}
-                percentFormat{"#,##0%"}
-                scientificFormat{"#E0"}
-            }
-            symbols{
-                decimal{"."}
-                exponential{"E"}
-                group{","}
-                infinity{"∞"}
-                list{";"}
-                minusSign{"-"}
-                nan{"NaN"}
-                perMille{"‰"}
-                percentSign{"%"}
-                plusSign{"+"}
-            }
-        }
+        ".",
+        ",",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
+    }
+    NumberPatterns{
+        "#,##0.###",
+        "¤ #,##0.00",
+        "#,##0%",
+        "#E0",
     }
     PaperSize:intvector{
         297,
         210,
     }
-    Version{"2.0.50.28"}
+    Version{"2.0.48.64"}
     calendar{
         buddhist{
             AmPmMarkers:alias{"/LOCALE/calendar/gregorian/AmPmMarkers"}
@@ -1414,6 +1410,7 @@ root{
             quarters:alias{"/LOCALE/calendar/gregorian/quarters"}
         }
     }
+    defaultNumberingSystem{"latn"}
     delimiters{
         alternateQuotationEnd{"’"}
         alternateQuotationStart{"‘"}
@@ -1433,7 +1430,6 @@ root{
         }
     }
     measurementSystemNames{
-        UK{"UK"}
         US{"US"}
         metric{"Metric"}
     }

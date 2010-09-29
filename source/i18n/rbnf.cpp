@@ -1,11 +1,9 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2010, International Business Machines Corporation
+* Copyright (C) 1997-2009, International Business Machines Corporation
 * and others. All Rights Reserved.
 *******************************************************************************
 */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/rbnf.h"
 
@@ -655,6 +653,7 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description,
   , locale(alocale)
   , collator(NULL)
   , decimalFormatSymbols(NULL)
+  , lenient(FALSE)
   , lenientParseRules(NULL)
   , localizations(NULL)
   , noParse(FALSE) //TODO: to be removed after #6895
@@ -671,6 +670,7 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description,
   , locale(Locale::getDefault())
   , collator(NULL)
   , decimalFormatSymbols(NULL)
+  , lenient(FALSE)
   , lenientParseRules(NULL)
   , localizations(NULL)
   , noParse(FALSE) //TODO: to be removed after #6895
@@ -687,6 +687,7 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description,
   , locale(alocale)
   , collator(NULL)
   , decimalFormatSymbols(NULL)
+  , lenient(FALSE)
   , lenientParseRules(NULL)
   , localizations(NULL)
   , noParse(FALSE) //TODO: to be removed after #6895
@@ -702,6 +703,7 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description,
   , locale(Locale::getDefault())
   , collator(NULL)
   , decimalFormatSymbols(NULL)
+  , lenient(FALSE)
   , lenientParseRules(NULL)
   , localizations(NULL)
   , noParse(FALSE) //TODO: to be removed after #6895
@@ -718,6 +720,7 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(const UnicodeString& description,
   , locale(aLocale)
   , collator(NULL)
   , decimalFormatSymbols(NULL)
+  , lenient(FALSE)
   , lenientParseRules(NULL)
   , localizations(NULL)
   , noParse(FALSE) //TODO: to be removed after #6895
@@ -731,6 +734,7 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(URBNFRuleSetTag tag, const Locale& 
   , locale(alocale)
   , collator(NULL)
   , decimalFormatSymbols(NULL)
+  , lenient(FALSE)
   , lenientParseRules(NULL)
   , localizations(NULL)
 {
@@ -804,6 +808,7 @@ RuleBasedNumberFormat::RuleBasedNumberFormat(const RuleBasedNumberFormat& rhs)
   , locale(rhs.locale)
   , collator(NULL)
   , decimalFormatSymbols(NULL)
+  , lenient(FALSE)
   , lenientParseRules(NULL)
   , localizations(NULL)
 {
@@ -818,7 +823,7 @@ RuleBasedNumberFormat::operator=(const RuleBasedNumberFormat& rhs)
     UErrorCode status = U_ZERO_ERROR;
     dispose();
     locale = rhs.locale;
-    Format::setLenient( rhs.isLenient() );
+    lenient = rhs.lenient;
 
     UnicodeString rules = rhs.getRules();
     UParseError perror;
@@ -852,7 +857,7 @@ RuleBasedNumberFormat::clone(void) const
         delete result;
         result = 0;
     } else {
-        result->Format::setLenient( isLenient() );
+        result->lenient = lenient;
 
         //TODO: remove below when we fix the parse bug - See #6895 / #6896
         result->noParse = noParse;
@@ -867,10 +872,10 @@ RuleBasedNumberFormat::operator==(const Format& other) const
         return TRUE;
     }
 
-    if (typeid(*this) == typeid(other)) {
+    if (other.getDynamicClassID() == getStaticClassID()) {
         const RuleBasedNumberFormat& rhs = (const RuleBasedNumberFormat&)other;
         if (locale == rhs.locale &&
-            isLenient() == rhs.isLenient() &&
+            lenient == rhs.lenient &&
             (localizations == NULL 
                 ? rhs.localizations == NULL 
                 : (rhs.localizations == NULL 
@@ -1204,18 +1209,12 @@ RuleBasedNumberFormat::parse(const UnicodeString& text,
 void
 RuleBasedNumberFormat::setLenient(UBool enabled)
 {
-    Format::setLenient(enabled);
+    lenient = enabled;
     if (!enabled && collator) {
         delete collator;
         collator = NULL;
     }
 }
-
-UBool
-RuleBasedNumberFormat::isLenient(void) const {
-    return Format::isLenient();
-}
-
 
 #endif
 
@@ -1542,7 +1541,7 @@ RuleBasedNumberFormat::getCollator() const
     }
 
     // lazy-evaulate the collator
-    if (collator == NULL && isLenient()) {
+    if (collator == NULL && lenient) {
         // create a default collator based on the formatter's locale,
         // then pull out that collator's rules, append any additional
         // rules specified in the description, and create a _new_
@@ -1551,8 +1550,10 @@ RuleBasedNumberFormat::getCollator() const
         UErrorCode status = U_ZERO_ERROR;
 
         Collator* temp = Collator::createInstance(locale, status);
-        RuleBasedCollator* newCollator;
-        if (U_SUCCESS(status) && (newCollator = dynamic_cast<RuleBasedCollator*>(temp)) != NULL) {
+        if (U_SUCCESS(status) &&
+            temp->getDynamicClassID() == RuleBasedCollator::getStaticClassID()) {
+
+            RuleBasedCollator* newCollator = (RuleBasedCollator*)temp;
             if (lenientParseRules) {
                 UnicodeString rules(newCollator->getRules());
                 rules.append(*lenientParseRules);

@@ -9,12 +9,18 @@
 es_US{
     MeasurementSystem:int{1}
     NumberElements{
-        latn{
-            symbols{
-                decimal{"."}
-                group{","}
-            }
-        }
+        ".",
+        ",",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
     }
     PaperSize:intvector{
         279,
