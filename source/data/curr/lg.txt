@@ -64,7 +64,7 @@ lg{
             "Dinaali ey'Aligerya",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Pawundi ey'eMisiri",
         }
         ERN{

@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 2007-2011, International Business Machines Corporation and    *
+* Copyright (C) 2007-2009, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 */
@@ -80,7 +80,7 @@ public:
  * ZSFStringPool   Pool of (UChar *) strings.  Provides for sharing of repeated
  *                 strings within ZoneStringFormats.
  */
-struct ZSFStringPoolChunk;
+class ZSFStringPoolChunk;
 class ZSFStringPool: public UMemory {
   public:
     ZSFStringPool(UErrorCode &status);
@@ -297,13 +297,6 @@ private:
     UResourceBundle *fMetazoneItem;
     UResourceBundle *fZoneItem;
 
-	UBool			 fIsFullyLoaded;
-
-	void loadZone(const UnicodeString &utzid, UErrorCode &status);
-	void addSingleZone(UnicodeString &utzid, UErrorCode &status);
-	void loadFull(UErrorCode &status);
-
-
     /*
      * Private method to get a zone string except generic partial location types.
      */
@@ -351,8 +344,6 @@ private:
      */
     const ZoneStringInfo* find(const UnicodeString &text, int32_t start, int32_t types,
         int32_t &matchLength, UErrorCode &status) const;
-	const ZoneStringInfo* subFind(const UnicodeString &text, int32_t start, int32_t types,
-                       int32_t &matchLength, UErrorCode &status) const;
 
     UnicodeString& getRegion(UnicodeString &region) const;
 

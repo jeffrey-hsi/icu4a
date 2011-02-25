@@ -68,7 +68,7 @@ af{
             "Algeriese dinar",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egiptiese pond",
         }
         ERN{

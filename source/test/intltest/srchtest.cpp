@@ -9,9 +9,7 @@
 #if !UCONFIG_NO_COLLATION
 
 #include "srchtest.h"
-#if !UCONFIG_NO_BREAK_ITERATION
 #include "../cintltst/usrchdat.c"
-#endif
 #include "unicode/stsearch.h"
 #include "unicode/ustring.h"
 #include "unicode/schriter.h"

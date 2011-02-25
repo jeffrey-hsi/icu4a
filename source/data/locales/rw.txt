@@ -16,12 +16,18 @@ rw{
         "Latn",
     }
     NumberElements{
-        latn{
-            symbols{
-                decimal{","}
-                group{"."}
-            }
-        }
+        ",",
+        ".",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
     }
     Version{"2.0.48.64"}
     calendar{

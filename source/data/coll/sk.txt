@@ -10,19 +10,21 @@
  *  ICU <specials> source: <path>/xml/collation/sk.xml
  */
 sk{
-    Version{"2.0.49.77"}
+    Version{"2.0.41.26"}
     collations{
         standard{
             Sequence{
-                "&A<ä<<<Ä"
-                "&C<č<<<Č"
+                "&A<ä<<<Ä"
+                "&C<č<<<Č"
+                "&D<đ<<<Đ"
                 "&H<ch<<<cH<<<Ch<<<CH"
-                "&O<ô<<<Ô"
-                "&R<ř<<<Ř"
-                "&S<š<<<Š"
-                "&Z<ž<<<Ž"
+                "&L<ł<<<Ł"
+                "&O<ô<<<Ô"
+                "&R<ř<<<Ř"
+                "&S<š<<<Š"
+                "&Z<ž<<<Ž<ż<<<Ż"
             }
-            Version{"1.9"}
+            Version{"1.8.1"}
         }
     }
 }

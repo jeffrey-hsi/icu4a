@@ -64,7 +64,7 @@ bez{
             "Lupila lwa Hualjelia",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Lupila lwa Humisri",
         }
         ERN{

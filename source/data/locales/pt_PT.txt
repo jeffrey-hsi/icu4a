@@ -9,16 +9,26 @@
 pt_PT{
     AuxExemplarCharacters{"[ª ă å ä ā æ è ĕ ë ē ì ĭ î ï ī ñ º ŏ ö ø ō œ ù ŭ û ü ū ÿ]"}
     NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"#,##0.00 ¤"}
-            }
-            symbols{
-                group{" "}
-            }
-        }
+        ",",
+        " ",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
     }
-    Version{"2.0.50.84"}
+    NumberPatterns{
+        "#,##0.###",
+        "#,##0.00 ¤",
+        "#,##0%",
+        "#E0",
+    }
+    Version{"2.0.47.71"}
     calendar{
         buddhist{
             DateTimePatterns{
@@ -26,20 +36,15 @@ pt_PT{
                 "HH'h'mm'min'ss's' z",
                 "HH:mm:ss",
                 "HH:mm",
-                "EEEE, d 'de' MMMM 'de' y G",
-                "d 'de' MMMM 'de' y G",
-                "d 'de' MMM 'de' y G",
-                "d/M/y G",
+                "EEEE, MMMM d, y G",
+                "MMMM d, y G",
+                "MMM d, y G",
+                "M/d/yyyy",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
-            }
-            availableFormats{
-                yQ{"QQQ 'de' y G"}
-                yQQQ{"QQQ 'de' y G"}
-                yyQ{"QQQ 'de' yy G"}
             }
         }
         gregorian{
@@ -63,13 +68,8 @@ pt_PT{
                 "{1} {0}",
             }
             availableFormats{
-                HHmm{"HH:mm"}
-                HHmmss{"HH:mm:ss"}
-                Hm{"HH:mm"}
-                Hms{"HH:mm:ss"}
-                hm{"h:mm a"}
-                hms{"h:mm:ss a"}
-                ms{"mm:ss"}
+                hm{"h:mm"}
+                hms{"h:mm:ss"}
                 yQ{"QQQ 'de' yyyy"}
                 yQQQ{"QQQ 'de' y"}
                 yyQ{"QQQ 'de' yy"}
@@ -151,70 +151,21 @@ pt_PT{
                 }
             }
         }
-        islamic{
-            DateTimePatterns{
-                "HH'h'mm'min'ss's' zzzz",
-                "HH'h'mm'min'ss's' z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE, d 'de' MMMM 'de' y G",
-                "d 'de' MMMM 'de' y G",
-                "d 'de' MMM 'de' y G",
-                "d/M/y G",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-            }
-            availableFormats{
-                yQ{"QQQ 'de' y G"}
-                yQQQ{"QQQ 'de' y G"}
-                yyQ{"QQQ 'de' yy G"}
-            }
-        }
         japanese{
             DateTimePatterns{
                 "HH'h'mm'min'ss's' zzzz",
                 "HH'h'mm'min'ss's' z",
                 "HH:mm:ss",
                 "HH:mm",
-                "EEEE, d 'de' MMMM 'de' y G",
-                "d 'de' MMMM 'de' y G",
-                "d 'de' MMM 'de' y G",
-                "d/M/y G",
+                "EEEE, MMMM d, y G",
+                "MMMM d, y G",
+                "MMM d, y G",
+                "M/d/yy",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
-            }
-            availableFormats{
-                yQ{"QQQ 'de' y G"}
-                yQQQ{"QQQ 'de' y G"}
-                yyQ{"QQQ 'de' yy G"}
-            }
-        }
-        roc{
-            DateTimePatterns{
-                "HH'h'mm'min'ss's' zzzz",
-                "HH'h'mm'min'ss's' z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE, d 'de' MMMM 'de' y G",
-                "d 'de' MMMM 'de' y G",
-                "d 'de' MMM 'de' y G",
-                "d/M/y G",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-            }
-            availableFormats{
-                yQ{"QQQ 'de' y G"}
-                yQQQ{"QQQ 'de' y G"}
-                yyQ{"QQQ 'de' yy G"}
             }
         }
     }

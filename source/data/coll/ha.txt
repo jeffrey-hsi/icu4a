@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/collation/ha.xml
  */
 ha{
-    Version{"2.0.50.79"}
+    Version{"2.0.42.8"}
     collations{
         standard{
             Sequence{
@@ -19,9 +19,9 @@ ha{
                 "&K<ƙ<<<Ƙ"
                 "&S<sh<<<Sh<<<SH"
                 "&T<ts<<<Ts<<<TS"
-                "&Y<ƴ<<<ʼy<<<''y<<<Ƴ<<<ʼY<<<''Y"
+                "&Y<''y=ƴ<<<''Y=Ƴ"
             }
-            Version{"1.9"}
+            Version{"1.8.1"}
         }
     }
 }

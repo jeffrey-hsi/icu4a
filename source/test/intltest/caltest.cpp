@@ -14,7 +14,7 @@
 #include "hebrwcal.h"
 #include "unicode/smpdtfmt.h"
 #include "unicode/simpletz.h"
-#include "dbgutil.h"
+#include "unicode/dbgutil.h"
 #include "unicode/udat.h"
 #include "unicode/ustring.h"
 
@@ -227,13 +227,6 @@ void CalendarTest::runIndexedTest( int32_t index, UBool exec, const char* &name,
           if(exec) {
             logln("Test1624---"); logln("");
             Test1624();
-          }
-          break;
-        case 25:
-          name = "TestTimeStamp";
-          if(exec) {
-            logln("TestTimeStamp---"); logln("");
-            TestTimeStamp();
           }
           break;
         default: name = ""; break;
@@ -1330,7 +1323,7 @@ CalendarTest::TestEpochStartFields()
 }
  
 int32_t CalendarTest::EPOCH_FIELDS[] = {
-    1, 1970, 0, 53, 0, 1, 1, 5, 1, 0, 0, 0, 0, 0, 0, - 28800000, 0
+    1, 1970, 0, 1, 1, 1, 1, 5, 1, 0, 0, 0, 0, 0, 0, - 28800000, 0
 };
  
 // -------------------------------------
@@ -2041,7 +2034,7 @@ static UDate doMinDateOfCalendar(Calendar* adopt, UBool &isGregorian, UErrorCode
   adopt->clear();
   adopt->set(UCAL_EXTENDED_YEAR, adopt->getActualMinimum(UCAL_EXTENDED_YEAR, status));
   UDate ret = adopt->getTime(status);
-  isGregorian = dynamic_cast<GregorianCalendar*>(adopt) != NULL;
+  isGregorian = (adopt->getDynamicClassID() == GregorianCalendar::getStaticClassID());
   delete adopt;
   return ret;
 }
@@ -2163,41 +2156,6 @@ void CalendarTest::Test1624() {
         }
     }
     return;
-}
-
-void CalendarTest::TestTimeStamp() {
-    UErrorCode status = U_ZERO_ERROR;
-    UDate start, time;
-    Calendar *cal;
-
-    // Create a new Gregorian Calendar.
-    cal = Calendar::createInstance("en_US@calender=gregorian", status);
-    if (U_FAILURE(status)) {
-        dataerrln("Error creating Gregorian calendar.");
-        return;
-    }
-
-    for (int i = 0; i < 20000; i++) {
-        // Set the Gregorian Calendar to a specific date for testing.
-        cal->set(2009, UCAL_JULY, 3, 0, 49, 46);
-
-        time = cal->getTime(status);
-        if (U_FAILURE(status)) {
-            errln("Error calling getTime()");
-            break;
-        }
-
-        if (i == 0) {
-            start = time;
-        } else {
-            if (start != time) {
-                errln("start and time not equal.");
-                break;
-            }
-        }
-    }
-
-    delete cal;
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

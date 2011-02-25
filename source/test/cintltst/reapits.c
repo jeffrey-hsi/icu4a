@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 2004-2011, International Business Machines Corporation and
+ * Copyright (c) 2004-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -119,7 +119,6 @@ static void test_assert_utext(const char *expected, UText *actual, const char *f
 static void TestRegexCAPI(void);
 static void TestBug4315(void);
 static void TestUTextAPI(void);
-static void TestRefreshInput(void);
 
 void addURegexTest(TestNode** root);
 
@@ -128,7 +127,6 @@ void addURegexTest(TestNode** root)
     addTest(root, &TestRegexCAPI, "regex/TestRegexCAPI");
     addTest(root, &TestBug4315,   "regex/TestBug4315");
     addTest(root, &TestUTextAPI,  "regex/TestUTextAPI");
-    addTest(root, &TestRefreshInput, "regex/TestRefreshInput");
 }
 
 /*
@@ -1733,50 +1731,21 @@ static void TestUTextAPI(void) {
 
         /*  Capture Group 0, the full match.  Should succeed.  */
         status = U_ZERO_ERROR;
-        actual = uregex_groupUTextDeep(re, 0, NULL, &status);
+        actual = uregex_groupUText(re, 0, NULL, &status);
         TEST_ASSERT_SUCCESS(status);
         TEST_ASSERT_UTEXT(str_abcinteriordef, actual);
         utext_close(actual);
 
-        /*  Capture Group 0 with shallow clone API.  Should succeed.  */
-        status = U_ZERO_ERROR;
-        {
-            int64_t      group_len;
-            int32_t      len16;
-            UErrorCode   shallowStatus = U_ZERO_ERROR;
-            int64_t      nativeIndex;
-            UChar *groupChars;
-            UText groupText = UTEXT_INITIALIZER;
-
-            actual = uregex_groupUText(re, 0, NULL, &group_len, &status);
-            TEST_ASSERT_SUCCESS(status);
-
-            nativeIndex = utext_getNativeIndex(actual);
-            /*  Following returns U_INDEX_OUTOFBOUNDS_ERROR... looks like a bug in ucstrFuncs UTextFuncs [utext.cpp]  */
-            /*  len16 = utext_extract(actual, nativeIndex, nativeIndex + group_len, NULL, 0, &shallowStatus);  */
-            len16 = group_len;
-            
-            groupChars = (UChar *)malloc(sizeof(UChar)*(len16+1));
-            utext_extract(actual, nativeIndex, nativeIndex + group_len, groupChars, len16+1, &shallowStatus);
-
-            utext_openUChars(&groupText, groupChars, len16, &shallowStatus);
-            
-            TEST_ASSERT_UTEXT(str_abcinteriordef, &groupText);
-            utext_close(&groupText);
-            free(groupChars);
-        }
-        utext_close(actual);
-
         /*  Capture group #1.  Should succeed. */
         status = U_ZERO_ERROR;
-        actual = uregex_groupUTextDeep(re, 1, NULL, &status);
+        actual = uregex_groupUText(re, 1, NULL, &status);
         TEST_ASSERT_SUCCESS(status);
         TEST_ASSERT_UTEXT(str_interior, actual);
         utext_close(actual);
 
         /*  Capture group out of range.  Error. */
         status = U_ZERO_ERROR;
-        actual = uregex_groupUTextDeep(re, 2, NULL, &status);
+        actual = uregex_groupUText(re, 2, NULL, &status);
         TEST_ASSERT(status == U_INDEX_OUTOFBOUNDS_ERROR);
         TEST_ASSERT(utext_nativeLength(actual) == 0);
         utext_close(actual);
@@ -2151,52 +2120,5 @@ static void TestUTextAPI(void) {
     }
     utext_close(&patternText);
 }
-
-
-static void TestRefreshInput(void) {
-    /*
-     *  RefreshInput changes out the input of a URegularExpression without
-     *    changing anything else in the match state.  Used with Java JNI,
-     *    when Java moves the underlying string storage.   This test
-     *    runs a find() loop, moving the text after the first match.
-     *    The right number of matches should still be found.
-     */
-    UChar testStr[]  = {0x41, 0x20, 0x42, 0x20, 0x43, 0x0};  /* = "A B C"  */
-    UChar movedStr[] = {   0,    0,    0,    0,    0,   0};
-    UErrorCode status = U_ZERO_ERROR;
-    URegularExpression *re;
-    UText ut1 = UTEXT_INITIALIZER;
-    UText ut2 = UTEXT_INITIALIZER;
-    
-    re = uregex_openC("[ABC]", 0, 0, &status);
-    TEST_ASSERT_SUCCESS(status);
-
-    utext_openUChars(&ut1, testStr, -1, &status);
-    TEST_ASSERT_SUCCESS(status);
-    uregex_setUText(re, &ut1, &status);
-    TEST_ASSERT_SUCCESS(status);
-
-    /* Find the first match "A" in the original string */
-    TEST_ASSERT(uregex_findNext(re, &status));
-    TEST_ASSERT(uregex_start(re, 0, &status) == 0);
-    
-    /* Move the string, kill the original string.  */
-    u_strcpy(movedStr, testStr);
-    u_memset(testStr, 0, u_strlen(testStr));
-    utext_openUChars(&ut2, movedStr, -1, &status);
-    TEST_ASSERT_SUCCESS(status);
-    uregex_refreshUText(re, &ut2, &status);
-    TEST_ASSERT_SUCCESS(status);
-
-    /* Find the following two matches, now working in the moved string. */
-    TEST_ASSERT(uregex_findNext(re, &status));
-    TEST_ASSERT(uregex_start(re, 0, &status) == 2);
-    TEST_ASSERT(uregex_findNext(re, &status));
-    TEST_ASSERT(uregex_start(re, 0, &status) == 4);
-    TEST_ASSERT(FALSE == uregex_findNext(re, &status));
-
-    uregex_close(re);
-}
-
 
 #endif   /*  !UCONFIG_NO_REGULAR_EXPRESSIONS */

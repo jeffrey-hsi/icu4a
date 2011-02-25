@@ -1,6 +1,6 @@
 /***********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2011, International Business Machines Corporation
+ * Copyright (c) 1997-2010, International Business Machines Corporation
  * and others. All Rights Reserved.
  ***********************************************************************/
 
@@ -35,7 +35,7 @@
 // *****************************************************************************
 
 // TODO: We should probably read following data at runtime, so we can update
-// these values every release with necessary data changes.
+// the these values every release with necessary data changes.
 const int32_t TimeZoneTest::REFERENCE_YEAR = 2009;
 const char * TimeZoneTest::REFERENCE_DATA_VERSION = "2009d";
 
@@ -61,7 +61,6 @@ void TimeZoneTest::runIndexedTest( int32_t index, UBool exec, const char* &name,
         CASE(15, TestFebruary);
         CASE(16, TestCanonicalID);
         CASE(17, TestDisplayNamesMeta);
-        CASE(18, TestGetRegion);
        default: name = ""; break;
     }
 }
@@ -116,14 +115,16 @@ TimeZoneTest::TestGenericAPI()
     }
 
     if ((tzoffset % 900) != 0) {
+#ifdef U_DARWIN
         /*
-         * Ticket#6364 and #7648
-         * A few time zones are using GMT offests not a multiple of 15 minutes.
-         * Therefore, we should not interpret such case as an error.
-         * We downgrade this from errln to infoln. When we see this message,
-         * we should examine if it is ignorable or not.
+         * Ticket: 6364 (mow - 090522)
+         * On MacOSX 10.5.3 and up, this test fails when TZ is set to certain timezones (e.g. Africa/Dar_es_Salaam)
+         * Their GMT offset is not a multiple of 15 minutes. This is a MacOSX issue and is not a problem with ICU.
          */
-        infoln("WARNING: t_timezone may be incorrect. It is not a multiple of 15min.", tzoffset);
+        infoln("[WARNING] FAIL: t_timezone may be incorrect. It is not a multiple of 15min. It is %d (Note: This is a known issue on MacOSX)", tzoffset);
+#else
+        errln("FAIL: t_timezone may be incorrect. It is not a multiple of 15min. It is %d", tzoffset);
+#endif
     }
 
     TimeZone::adoptDefault(zone);
@@ -502,7 +503,7 @@ TimeZoneTest::TestGetAvailableIDs913()
     UnicodeString temp;
     if (tz == 0)
         errln("FAIL: getTimeZone(NON_EXISTENT) = null");
-    else if (tz->getID(temp) != UCAL_UNKNOWN_ZONE_ID)
+    else if (tz->getID(temp) != "GMT")
         errln("FAIL: getTimeZone(NON_EXISTENT) = " + temp);
     delete tz;
 
@@ -954,7 +955,7 @@ void TimeZoneTest::TestCustomParse()
         TimeZone *zone = TimeZone::createTimeZone(id);
         UnicodeString   itsID, temp;
 
-        if (dynamic_cast<OlsonTimeZone *>(zone) != NULL) {
+        if (zone->getDynamicClassID() == OlsonTimeZone::getStaticClassID()) {
             logln(id + " -> Olson time zone");
         } else {
             zone->getID(itsID);
@@ -963,7 +964,7 @@ void TimeZoneTest::TestCustomParse()
             formatOffset(ioffset, offset);
             formatTZID(ioffset, expectedID);
             logln(id + " -> " + itsID + " " + offset);
-            if (exp == kUnparseable && itsID != UCAL_UNKNOWN_ZONE_ID) {
+            if (exp == kUnparseable && itsID != "GMT") {
                 errln("Expected parse failure for " + id +
                       ", got offset of " + offset +
                       ", id " + itsID);
@@ -1977,80 +1978,4 @@ void TimeZoneTest::TestDisplayNamesMeta() {
     }
 }
 
-void TimeZoneTest::TestGetRegion()
-{
-    static const struct {
-        const char *id;
-        const char *region;
-    } data[] = {
-        {"America/Los_Angeles",             "US"},
-        {"America/Indianapolis",            "US"},  // CLDR canonical, Olson backward
-        {"America/Indiana/Indianapolis",    "US"},  // CLDR alias
-        {"Mexico/General",                  "MX"},  // Link America/Mexico_City, Olson backward
-        {"Etc/UTC",                         "001"},
-        {"EST5EDT",                         "001"},
-        {"PST",                             "US"},  // Link America/Los_Angeles
-        {"Europe/Helsinki",                 "FI"},
-        {"Europe/Mariehamn",                "AX"},  // Link Europe/Helsinki, but in zone.tab
-        {"Asia/Riyadh",                     "SA"},
-        {"Asia/Riyadh87",                   "001"}, // this should be "SA" actually, but not in zone.tab
-        {"Etc/Unknown",                     0},  // CLDR canonical, but not a sysmte zone ID
-        {"bogus",                           0},  // bogus
-        {"GMT+08:00",                       0},  // a custom ID, not a system zone ID
-        {0, 0}
-    };
-
-    int32_t i;
-    char region[4];
-    UErrorCode sts;
-    for (i = 0; data[i].id; i++) {
-        sts = U_ZERO_ERROR;
-        TimeZone::getRegion(data[i].id, region, sizeof(region), sts);
-        if (U_SUCCESS(sts)) {
-            if (data[i].region == 0) {
-                errln((UnicodeString)"Fail: getRegion(\"" + data[i].id + "\") returns "
-                    + region + " [expected: U_ILLEGAL_ARGUMENT_ERROR]");
-            } else if (uprv_strcmp(region, data[i].region) != 0) {
-                errln((UnicodeString)"Fail: getRegion(\"" + data[i].id + "\") returns "
-                    + region + " [expected: " + data[i].region + "]");
-            }
-        } else if (sts == U_ILLEGAL_ARGUMENT_ERROR) {
-            if (data[i].region != 0) {
-                errln((UnicodeString)"Fail: getRegion(\"" + data[i].id
-                    + "\") returns error status U_ILLEGAL_ARGUMENT_ERROR [expected: "
-                    + data[i].region + "]");
-            }
-        } else {
-                errln((UnicodeString)"Fail: getRegion(\"" + data[i].id
-                    + "\") returns an unexpected error status");
-        }
-    }
-
-    // Extra test cases for short buffer
-    int32_t len;
-    char region2[2];
-    sts = U_ZERO_ERROR;
-
-    len = TimeZone::getRegion("America/New_York", region2, sizeof(region2), sts);
-    if (sts != U_STRING_NOT_TERMINATED_WARNING) {
-        errln("Expected U_STRING_NOT_TERMINATED_WARNING");
-    }
-    if (len != 2) { // length of "US"
-        errln("Incorrect result length");
-    }
-    if (uprv_strncmp(region2, "US", 2) != 0) {
-        errln("Incorrect result");
-    }
-
-    char region1[1];
-    sts = U_ZERO_ERROR;
-
-    len = TimeZone::getRegion("America/Chicago", region1, sizeof(region1), sts);
-    if (sts != U_BUFFER_OVERFLOW_ERROR) {
-        errln("Expected U_BUFFER_OVERFLOW_ERROR");
-    }
-    if (len != 2) { // length of "US"
-        errln("Incorrect result length");
-    }
-}
 #endif /* #if !UCONFIG_NO_FORMATTING */

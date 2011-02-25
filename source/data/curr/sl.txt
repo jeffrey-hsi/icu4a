@@ -255,10 +255,6 @@ sl{
             "CSK" /** ===  */,
             "češkoslovaška krona",
         }
-        CUC{
-            "CUC$",
-            "kubanski konvertibilni peso",
-        }
         CUP{
             "CU$",
             "kubanski peso",
@@ -312,7 +308,7 @@ sl{
             "estonska krona",
         }
         EGP{
-            "EGP",
+            "EG£",
             "egiptovski funt",
         }
         ERN{
@@ -382,10 +378,6 @@ sl{
         GMD{
             "GMD",
             "gambijski dalasi",
-        }
-        GNF{
-            "FG",
-            "gvinejski frank",
         }
         GNS{
             "GNS" /** ===  */,
@@ -875,10 +867,6 @@ sl{
             "TMM",
             "turkmenski manat",
         }
-        TMT{
-            "TMT",
-            "turkmenistanski novi manat",
-        }
         TND{
             "DT",
             "tunizijski dinar",
@@ -1096,25 +1084,5 @@ sl{
             "zimbabvejski dolar (2009)",
         }
     }
-    CurrencyPlurals{
-        CUC{
-            few{"CUC"}
-            one{"CUC"}
-            other{"CUC"}
-            two{"CUC"}
-        }
-        GNF{
-            few{"GNF"}
-            one{"GNF"}
-            other{"GNF"}
-            two{"GNF"}
-        }
-        TMT{
-            few{"TMT"}
-            one{"TMT"}
-            other{"TMT"}
-            two{"TMT"}
-        }
-    }
-    Version{"2.0.50.94"}
+    Version{"2.0.48.64"}
 }

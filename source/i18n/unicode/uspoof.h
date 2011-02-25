@@ -14,6 +14,11 @@
 *   Unicode Spoof Detection
 */
 
+/**
+ * \file
+ * \brief C API: Unicode Spoof Detection
+ */
+
 #ifndef USPOOF_H
 #define USPOOF_H
 
@@ -33,9 +38,9 @@ U_NAMESPACE_USE
 #endif
 
 
-/**
- * \file
- * \brief Unicode Security and Spoofing Detection, C API.
+ /**
+ *
+ * \brief C API for Unicode Security and Spoofing Detection.
  *
  * These functions are intended to check strings, typically
  * identifiers of some type, such as URLs, for the presence of
@@ -48,7 +53,7 @@ U_NAMESPACE_USE
  * "Unicode security considerations", give more background on 
  * security an spoofing issues with Unicode identifiers.
  * The tests and checks provided by this module implement the recommendations
- * from those Unicode documents.
+ * from these Unicode documents.
  *
  * The tests available on identifiers fall into two general categories:
  *   -#  Single identifier tests.  Check whether an identifier is
@@ -109,7 +114,7 @@ U_NAMESPACE_USE
  *       The visually confusable identifier also consists of characters from a single script.
  *       but not the same script as the identifier being checked.
  *    -# USPOOF_ANY_CASE: modifies the mixed script and whole script confusables tests.  If
- *       specified, the checks will consider confusable characters of any case.  If this flag is not
+ *       specified, the checks will confusable characters of any case.  If this flag is not
  *       set, the test is performed assuming case folded identifiers.
  *    -# USPOOF_SINGLE_SCRIPT: check that the identifier contains only characters from a
  *       single script.  (Characters from the 'common' and 'inherited' scripts are ignored.)
@@ -249,7 +254,7 @@ uspoof_open(UErrorCode *status);
  * @see uspoof_serialize
  * @stable ICU 4.2
  */
-U_STABLE USpoofChecker * U_EXPORT2
+U_CAPI USpoofChecker * U_EXPORT2
 uspoof_openFromSerialized(const void *data, int32_t length, int32_t *pActualLength,
                           UErrorCode *pErrorCode);
 
@@ -284,7 +289,7 @@ uspoof_openFromSerialized(const void *data, int32_t length, int32_t *pActualLeng
   * @return            A spoof checker that uses the rules from the input files.
   * @stable ICU 4.2
   */
-U_STABLE USpoofChecker * U_EXPORT2
+U_CAPI USpoofChecker * U_EXPORT2
 uspoof_openFromSource(const char *confusables,  int32_t confusablesLen,
                       const char *confusablesWholeScript, int32_t confusablesWholeScriptLen,
                       int32_t *errType, UParseError *pe, UErrorCode *status);
@@ -309,7 +314,7 @@ U_NAMESPACE_BEGIN
  *
  * @see LocalPointerBase
  * @see LocalPointer
- * @stable ICU 4.4
+ * @draft ICU 4.4
  */
 U_DEFINE_LOCAL_OPEN_POINTER(LocalUSpoofCheckerPointer, USpoofChecker, uspoof_close);
 
@@ -876,7 +881,7 @@ uspoof_getSkeletonUnicodeString(const USpoofChecker *sc,
  * @see utrie2_openFromSerialized()
  * @stable ICU 4.2
  */
-U_STABLE int32_t U_EXPORT2
+U_CAPI int32_t U_EXPORT2
 uspoof_serialize(USpoofChecker *sc,
                  void *data, int32_t capacity,
                  UErrorCode *status);

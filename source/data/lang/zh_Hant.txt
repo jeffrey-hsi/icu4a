@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/zh_Hant.xml
@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/zh_Hant.xml
  */
 zh_Hant{
-    %%Parent{"root"}
+    %%ParentIsRoot:int{1}
     Keys{
         calendar{"日曆"}
         collation{"校對"}
@@ -605,6 +605,7 @@ zh_Hant{
         Phag{"八思巴文"}
         Phnx{"腓尼基文"}
         Plrd{"柏格理拼音符"}
+        Qaai{"Qaai"}
         Rjng{"拉讓文"}
         Roro{"朗格朗格象形文"}
         Runr{"古北歐文字"}
@@ -646,7 +647,7 @@ zh_Hant{
             islamic{"伊斯蘭曆法"}
             islamic-civil{"伊斯蘭城市曆法"}
             japanese{"日本曆法"}
-            roc{"民國曆"}
+            roc{"中華民國曆"}
         }
         collation{
             big5han{"繁體中文排序 - Big5"}
@@ -671,7 +672,7 @@ zh_Hant{
         SAAHO{"SAAHO"}
         WADEGILE{"威妥瑪式拼音"}
     }
-    Version{"2.0.50.94"}
+    Version{"2.0.48.57"}
     codePatterns{
         language{"語言：{0}"}
         script{"文字：{0}"}

@@ -96,60 +96,60 @@ static const char * const LANGUAGES[] = {
     "aa",  "ab",  "ace", "ach", "ada", "ady", "ae",  "af",  "afa",
     "afh", "ain", "ak",  "akk", "ale", "alg", "alt", "am",  "an",  
     "ang", "anp", "apa",
-    "ar",  "arc", "arn", "arp", "art", "arw", "as", "asa", "ast",
+    "ar",  "arc", "arn", "arp", "art", "arw", "as",  "ast",
     "ath", "aus", "av",  "awa", "ay",  "az",  "ba",  "bad",
     "bai", "bal", "ban", "bas", "bat", "be",  "bej",
-    "bem", "ber", "bez", "bg",  "bh",  "bho", "bi",  "bik", "bin",
+    "bem", "ber", "bg",  "bh",  "bho", "bi",  "bik", "bin",
     "bla", "bm",  "bn",  "bnt", "bo",  "br",  "bra", "bs",
     "btk", "bua", "bug", "byn", "ca",  "cad", "cai", "car", "cau",
-    "cch", "ce",  "ceb", "cel", "cgg", "ch",  "chb", "chg", "chk", "chm",
+    "cch", "ce",  "ceb", "cel", "ch",  "chb", "chg", "chk", "chm",
     "chn", "cho", "chp", "chr", "chy", "cmc", "co",  "cop",
     "cpe", "cpf", "cpp", "cr",  "crh", "crp", "cs",  "csb", "cu",  "cus",
-    "cv",  "cy",  "da",  "dak", "dar", "dav", "day", "de",  "del", "den",
+    "cv",  "cy",  "da",  "dak", "dar", "day", "de",  "del", "den",
     "dgr", "din", "doi", "dra", "dsb", "dua", "dum", "dv",  "dyu",
-    "dz",  "ebu", "ee",  "efi", "egy", "eka", "el",  "elx", "en",
+    "dz",  "ee",  "efi", "egy", "eka", "el",  "elx", "en",
     "enm", "eo",  "es",  "et",  "eu",  "ewo", "fa",
     "fan", "fat", "ff",  "fi",  "fil", "fiu", "fj",  "fo",  "fon",
     "fr",  "frm", "fro", "frr", "frs", "fur", "fy",  
     "ga",  "gaa", "gay", "gba", "gd",  "gem", "gez", "gil", 
     "gl",  "gmh", "gn",  "goh", "gon", "gor", "got", "grb", 
-    "grc", "gsw", "gu",  "guz", "gv",  "gwi",
+    "grc", "gsw", "gu",  "gv", "gwi", 
     "ha",  "hai", "haw", "he",  "hi",  "hil", "him",
     "hit", "hmn", "ho",  "hr",  "hsb", "ht",  "hu",  "hup", "hy",  "hz",
     "ia",  "iba", "id",  "ie",  "ig",  "ii",  "ijo", "ik",
     "ilo", "inc", "ine", "inh", "io",  "ira", "iro", "is",  "it",
-    "iu",  "ja",  "jbo", "jmc", "jpr", "jrb", "jv",  "ka",  "kaa", "kab",
-    "kac", "kaj", "kam", "kar", "kaw", "kbd", "kcg", "kde", "kea", "kfo", "kg",  "kha", "khi",
-    "kho", "khq", "ki",  "kj",  "kk",  "kl",  "kln", "km",  "kmb", "kn",
+    "iu",  "ja",  "jbo", "jpr", "jrb", "jv",  "ka",  "kaa", "kab",
+    "kac", "kaj", "kam", "kar", "kaw", "kbd", "kcg", "kfo", "kg",  "kha", "khi",
+    "kho", "ki",  "kj",  "kk",  "kl",  "km",  "kmb", "kn",
     "ko",  "kok", "kos", "kpe", "kr",  "krc", "krl", "kro", "kru", "ks",
-    "ku",  "kum", "kut", "kv",  "kw",  "ky",  "la",  "lad", "lag",
+    "ku",  "kum", "kut", "kv",  "kw",  "ky",  "la",  "lad",
     "lah", "lam", "lb",  "lez", "lg",  "li",  "ln",  "lo",  "lol",
-    "loz", "lt",  "lu",  "lua", "lui", "lun", "luo", "lus", "luy",
+    "loz", "lt",  "lu",  "lua", "lui", "lun", "luo", "lus",
     "lv",  "mad", "mag", "mai", "mak", "man", "map", "mas",
-    "mdf", "mdr", "men", "mer", "mfe", "mg",  "mga", "mh",  "mi",  "mic", "min",
+    "mdf", "mdr", "men", "mfe", "mg",  "mga", "mh",  "mi",  "mic", "min",
     "mis", "mk",  "mkh", "ml",  "mn",  "mnc", "mni", "mno",
     "mo",  "moh", "mos", "mr",  "ms",  "mt",  "mul", "mun",
-    "mus", "mwl", "mwr", "my",  "myn", "myv", "na",  "nah", "nai", "nap", "naq",
+    "mus", "mwl", "mwr", "my",  "myn", "myv", "na",  "nah", "nai", "nap",
     "nb",  "nd",  "nds", "ne",  "new", "ng",  "nia", "nic",
     "niu", "nl",  "nn",  "no",  "nog", "non", "nqo", "nr",  "nso", "nub",
     "nv",  "nwc", "ny",  "nym", "nyn", "nyo", "nzi", "oc",  "oj",
     "om",  "or",  "os",  "osa", "ota", "oto", "pa",  "paa",
     "pag", "pal", "pam", "pap", "pau", "peo", "phi", "phn",
     "pi",  "pl",  "pon", "pra", "pro", "ps",  "pt",  "qu",
-    "raj", "rap", "rar", "rm",  "rn",  "ro",  "roa", "rof", "rom",
-    "ru",  "rup", "rw",  "rwk", "sa",  "sad", "sah", "sai", "sal", "sam", "saq",
-    "sas", "sat", "sc",  "scn", "sco", "sd",  "se",  "seh", "sel", "sem", "ses",
-    "sg",  "sga", "sgn", "shi", "shn", "si",  "sid", "sio", "sit",
+    "raj", "rap", "rar", "rm",  "rn",  "ro",  "roa", "rom",
+    "ru",  "rup", "rw",  "sa",  "sad", "sah", "sai", "sal", "sam",
+    "sas", "sat", "sc",  "scn", "sco", "sd",  "se",  "sel", "sem",
+    "sg",  "sga", "sgn", "shn", "si",  "sid", "sio", "sit",
     "sk",  "sl",  "sla", "sm",  "sma", "smi", "smj", "smn",
     "sms", "sn",  "snk", "so",  "sog", "son", "sq",  "sr",
     "srn", "srr", "ss",  "ssa", "st",  "su",  "suk", "sus", "sux",
-    "sv",  "sw",  "syc", "syr", "ta",  "tai", "te",  "tem", "teo", "ter",
+    "sv",  "sw",  "syc", "syr", "ta",  "tai", "te",  "tem", "ter",
     "tet", "tg",  "th",  "ti",  "tig", "tiv", "tk",  "tkl",
     "tl",  "tlh", "tli", "tmh", "tn",  "to",  "tog", "tpi", "tr", "trv",
     "ts",  "tsi", "tt",  "tum", "tup", "tut", "tvl", "tw",
-    "ty",  "tyv", "tzm", "udm", "ug",  "uga", "uk",  "umb", "und", "ur",
-    "uz",  "vai", "ve",  "vi",  "vo",  "vot", "vun", "wa",  "wak",
-    "wal", "war", "was", "wen", "wo",  "xal", "xh",  "xog", "yao", "yap",
+    "ty",  "tyv", "udm", "ug",  "uga", "uk",  "umb", "und", "ur",
+    "uz",  "vai", "ve",  "vi",  "vo",  "vot", "wa",  "wak",
+    "wal", "war", "was", "wen", "wo",  "xal", "xh",  "yao", "yap",
     "yi",  "yo",  "ypk", "za",  "zap", "zbl", "zen", "zh",  "znd",
     "zu",  "zun", "zxx", "zza",
 NULL,
@@ -184,30 +184,30 @@ static const char * const LANGUAGES_3[] = {
     "aar", "abk", "ace", "ach", "ada", "ady", "ave", "afr", "afa",
 /*  "afh", "ain", "ak",  "akk", "ale", "alg", "alt", "am",  "an",  "ang", "anp", "apa",    */
     "afh", "ain", "aka", "akk", "ale", "alg", "alt", "amh", "arg", "ang", "anp", "apa",
-/*  "ar",  "arc", "arn", "arp", "art", "arw", "as",  "asa", "ast",    */
-    "ara", "arc", "arn", "arp", "art", "arw", "asm", "asa", "ast",
+/*  "ar",  "arc", "arn", "arp", "art", "arw", "as",  "ast",    */
+    "ara", "arc", "arn", "arp", "art", "arw", "asm", "ast",
 /*  "ath", "aus", "av",  "awa", "ay",  "az",  "ba",  "bad",    */
     "ath", "aus", "ava", "awa", "aym", "aze", "bak", "bad",
 /*  "bai", "bal", "ban", "bas", "bat", "be",  "bej",    */
     "bai", "bal", "ban", "bas", "bat", "bel", "bej",
-/*  "bem", "ber", "bez", "bg",  "bh",  "bho", "bi",  "bik", "bin",    */
-    "bem", "ber", "bez", "bul", "bih", "bho", "bis", "bik", "bin",
+/*  "bem", "ber", "bg",  "bh",  "bho", "bi",  "bik", "bin",    */
+    "bem", "ber", "bul", "bih", "bho", "bis", "bik", "bin",
 /*  "bla", "bm",  "bn",  "bnt", "bo",  "br",  "bra", "bs",     */
     "bla", "bam", "ben", "bnt", "bod", "bre", "bra", "bos",
 /*  "btk", "bua", "bug", "byn", "ca",  "cad", "cai", "car", "cau",    */
     "btk", "bua", "bug", "byn", "cat", "cad", "cai", "car", "cau",
-/*  "cch", "ce",  "ceb", "cel", "cgg", "ch",  "chb", "chg", "chk", "chm",    */
-    "cch", "che", "ceb", "cel", "cgg", "cha", "chb", "chg", "chk", "chm",
+/*  "cch", "ce",  "ceb", "cel", "ch",  "chb", "chg", "chk", "chm",    */
+    "cch", "che", "ceb", "cel", "cha", "chb", "chg", "chk", "chm",
 /*  "chn", "cho", "chp", "chr", "chy", "cmc", "co",  "cop",    */
     "chn", "cho", "chp", "chr", "chy", "cmc", "cos", "cop",
 /*  "cpe", "cpf", "cpp", "cr",  "crh", "crp", "cs",  "csb", "cu",  "cus",    */
     "cpe", "cpf", "cpp", "cre", "crh", "crp", "ces", "csb", "chu", "cus",
-/*  "cv",  "cy",  "da",  "dak", "dar", "dav", "day", "de",  "del", "den",    */
-    "chv", "cym", "dan", "dak", "dar", "dav", "day", "deu", "del", "den",
+/*  "cv",  "cy",  "da",  "dak", "dar", "day", "de",  "del", "den",    */
+    "chv", "cym", "dan", "dak", "dar", "day", "deu", "del", "den",
 /*  "dgr", "din", "doi", "dra", "dsb", "dua", "dum", "dv",  "dyu",    */
     "dgr", "din", "doi", "dra", "dsb", "dua", "dum", "div", "dyu",
-/*  "dz",  "ebu", "ee",  "efi", "egy", "eka", "el",  "elx", "en",     */
-    "dzo", "ebu", "ewe", "efi", "egy", "eka", "ell", "elx", "eng",
+/*  "dz",  "ee",  "efi", "egy", "eka", "el",  "elx", "en",     */
+    "dzo", "ewe", "efi", "egy", "eka", "ell", "elx", "eng",
 /*  "enm", "eo",  "es",  "et",  "eu",  "ewo", "fa",     */
     "enm", "epo", "spa", "est", "eus", "ewo", "fas",
 /*  "fan", "fat", "ff",  "fi",  "fil", "fiu", "fj",  "fo",  "fon",    */
@@ -216,8 +216,8 @@ static const char * const LANGUAGES_3[] = {
     "fra", "frm", "fro", "frr", "frs", "fur", "fry", "gle", "gaa", "gay",
 /*  "gba", "gd",  "gem", "gez", "gil", "gl",  "gmh", "gn",     */
     "gba", "gla", "gem", "gez", "gil", "glg", "gmh", "grn",
-/*  "goh", "gon", "gor", "got", "grb", "grc", "gsw", "gu",  "guz", "gv",     */
-    "goh", "gon", "gor", "got", "grb", "grc", "gsw", "guj", "guz", "glv",
+/*  "goh", "gon", "gor", "got", "grb", "grc", "gsw", "gu",  "gv",     */
+    "goh", "gon", "gor", "got", "grb", "grc", "gsw", "guj", "glv",
 /*  "gwi", "ha",  "hai", "haw", "he",  "hi",  "hil", "him",    */
     "gwi", "hau", "hai", "haw", "heb", "hin", "hil", "him",
 /*  "hit", "hmn", "ho",  "hr",  "hsb", "ht",  "hu",  "hup", "hy",  "hz",     */
@@ -226,30 +226,30 @@ static const char * const LANGUAGES_3[] = {
     "ina", "iba", "ind", "ile", "ibo", "iii", "ijo", "ipk",
 /*  "ilo", "inc", "ine", "inh", "io",  "ira", "iro", "is",  "it",      */
     "ilo", "inc", "ine", "inh", "ido", "ira", "iro", "isl", "ita",
-/*  "iu",  "ja",  "jbo", "jmc", "jpr", "jrb", "jv",  "ka",  "kaa", "kab",   */
-    "iku", "jpn", "jbo", "jmc", "jpr", "jrb", "jav", "kat", "kaa", "kab",
-/*  "kac", "kaj", "kam", "kar", "kaw", "kbd", "kcg", "kde", "kea", "kfo", "kg",  "kha", "khi",*/
-    "kac", "kaj", "kam", "kar", "kaw", "kbd", "kcg", "kde", "kea", "kfo", "kg",  "kha", "khi",
-/*  "kho", "khq", "ki",  "kj",  "kk",  "kl",  "kln", "km",  "kmb", "kn",     */
-    "kho", "khq", "kik", "kua", "kaz", "kal", "kln", "khm", "kmb", "kan",
+/*  "iu",  "ja",  "jbo", "jpr", "jrb", "jv",  "ka",  "kaa", "kab",   */
+    "iku", "jpn", "jbo", "jpr", "jrb", "jav", "kat", "kaa", "kab",
+/*  "kac", "kaj", "kam", "kar", "kaw", "kbd", "kcg", "kfo", "kg",  "kha", "khi",*/
+    "kac", "kaj", "kam", "kar", "kaw", "kbd", "kcg", "kfo", "kg",  "kha", "khi",
+/*  "kho", "ki",  "kj",  "kk",  "kl",  "km",  "kmb", "kn",     */
+    "kho", "kik", "kua", "kaz", "kal", "khm", "kmb", "kan",
 /*  "ko",  "kok", "kos", "kpe", "kr",  "krc", "krl", "kro", "kru", "ks",     */
     "kor", "kok", "kos", "kpe", "kau", "krc", "krl", "kro", "kru", "kas",
-/*  "ku",  "kum", "kut", "kv",  "kw",  "ky",  "la",  "lad", "lag",    */
-    "kur", "kum", "kut", "kom", "cor", "kir", "lat", "lad", "lag",
+/*  "ku",  "kum", "kut", "kv",  "kw",  "ky",  "la",  "lad",    */
+    "kur", "kum", "kut", "kom", "cor", "kir", "lat", "lad",
 /*  "lah", "lam", "lb",  "lez", "lg",  "li",  "ln",  "lo",  "lol",    */
     "lah", "lam", "ltz", "lez", "lug", "lim", "lin", "lao", "lol",
-/*  "loz", "lt",  "lu",  "lua", "lui", "lun", "luo", "lus", "luy",   */
-    "loz", "lit", "lub", "lua", "lui", "lun", "luo", "lus", "luy",
+/*  "loz", "lt",  "lu",  "lua", "lui", "lun", "luo", "lus",    */
+    "loz", "lit", "lub", "lua", "lui", "lun", "luo", "lus",
 /*  "lv",  "mad", "mag", "mai", "mak", "man", "map", "mas",    */
     "lav", "mad", "mag", "mai", "mak", "man", "map", "mas",
-/*  "mdf", "mdr", "men", "mer", "mfe", "mg",  "mga", "mh",  "mi",  "mic", "min",    */
-    "mdf", "mdr", "men", "mer", "mfe", "mlg", "mga", "mah", "mri", "mic", "min",
+/*  "mdf", "mdr", "men", "mfe", "mg",  "mga", "mh",  "mi",  "mic", "min",    */
+    "mdf", "mdr", "men", "mfe", "mlg", "mga", "mah", "mri", "mic", "min",
 /*  "mis", "mk",  "mkh", "ml",  "mn",  "mnc", "mni", "mno",    */
     "mis", "mkd", "mkh", "mal", "mon", "mnc", "mni", "mno",
 /*  "mo",  "moh", "mos", "mr",  "ms",  "mt",  "mul", "mun",    */
     "mol", "moh", "mos", "mar", "msa", "mlt", "mul", "mun",
-/*  "mus", "mwl", "mwr", "my",  "myn", "myv", "na",  "nah", "nai", "nap", "naq",   */
-    "mus", "mwl", "mwr", "mya", "myn", "myv", "nau", "nah", "nai", "nap", "naq",
+/*  "mus", "mwl", "mwr", "my",  "myn", "myv", "na",  "nah", "nai", "nap",    */
+    "mus", "mwl", "mwr", "mya", "myn", "myv", "nau", "nah", "nai", "nap",
 /*  "nb",  "nd",  "nds", "ne",  "new", "ng",  "nia", "nic",    */
     "nob", "nde", "nds", "nep", "new", "ndo", "nia", "nic",
 /*  "niu", "nl",  "nn",  "no",  "nog", "non", "nqo", "nr",  "nso", "nub",    */
@@ -262,34 +262,34 @@ static const char * const LANGUAGES_3[] = {
     "pag", "pal", "pam", "pap", "pau", "peo", "phi", "phn",
 /*  "pi",  "pl",  "pon", "pra", "pro", "ps",  "pt",  "qu",     */
     "pli", "pol", "pon", "pra", "pro", "pus", "por", "que",
-/*  "raj", "rap", "rar", "rm",  "rn",  "ro",  "roa", "rof", "rom",    */
-    "raj", "rap", "rar", "roh", "run", "ron", "roa", "rof", "rom",
-/*  "ru",  "rup", "rw",  "rwk", "sa",  "sad", "sah", "sai", "sal", "sam", "saq",    */
-    "rus", "rup", "kin", "rwk", "san", "sad", "sah", "sai", "sal", "sam", "saq",
-/*  "sas", "sat", "sc",  "scn", "sco", "sd",  "se",  "seh", "sel", "sem", "ses",    */
-    "sas", "sat", "srd", "scn", "sco", "snd", "sme", "seh", "sel", "sem", "ses",
-/*  "sg",  "sga", "sgn", "shi", "shn", "si",  "sid", "sio", "sit",    */
-    "sag", "sga", "sgn", "shi", "shn", "sin", "sid", "sio", "sit",
+/*  "raj", "rap", "rar", "rm",  "rn",  "ro",  "roa", "rom",    */
+    "raj", "rap", "rar", "roh", "run", "ron", "roa", "rom",
+/*  "ru",  "rup", "rw",  "sa",  "sad", "sah", "sai", "sal", "sam",    */
+    "rus", "rup", "kin", "san", "sad", "sah", "sai", "sal", "sam",
+/*  "sas", "sat", "sc",  "scn", "sco", "sd",  "se",  "sel", "sem",    */
+    "sas", "sat", "srd", "scn", "sco", "snd", "sme", "sel", "sem",
+/*  "sg",  "sga", "sgn", "shn", "si",  "sid", "sio", "sit",    */
+    "sag", "sga", "sgn", "shn", "sin", "sid", "sio", "sit",
 /*  "sk",  "sl",  "sla", "sm",  "sma", "smi", "smj", "smn",    */
     "slk", "slv", "sla", "smo", "sma", "smi", "smj", "smn",
 /*  "sms", "sn",  "snk", "so",  "sog", "son", "sq",  "sr",     */
     "sms", "sna", "snk", "som", "sog", "son", "sqi", "srp",
 /*  "srn", "srr", "ss",  "ssa", "st",  "su",  "suk", "sus", "sux",    */
     "srn", "srr", "ssw", "ssa", "sot", "sun", "suk", "sus", "sux",
-/*  "sv",  "sw",  "syc", "syr", "ta",  "tai", "te",  "tem", "teo", "ter",    */
-    "swe", "swa", "syc", "syr", "tam", "tai", "tel", "tem", "teo", "ter",
+/*  "sv",  "sw",  "syc", "syr", "ta",  "tai", "te",  "tem", "ter",    */
+    "swe", "swa", "syc", "syr", "tam", "tai", "tel", "tem", "ter",
 /*  "tet", "tg",  "th",  "ti",  "tig", "tiv", "tk",  "tkl",    */
     "tet", "tgk", "tha", "tir", "tig", "tiv", "tuk", "tkl",
 /*  "tl",  "tlh", "tli", "tmh", "tn",  "to",  "tog", "tpi", "tr", "trv",    */
     "tgl", "tlh", "tli", "tmh", "tsn", "ton", "tog", "tpi", "tur", "trv",
 /*  "ts",  "tsi", "tt",  "tum", "tup", "tut", "tvl", "tw",     */
     "tso", "tsi", "tat", "tum", "tup", "tut", "tvl", "twi",
-/*  "ty",  "tyv", "tzm", "udm", "ug",  "uga", "uk",  "umb", "und", "ur",     */
-    "tah", "tyv", "tzm", "udm", "uig", "uga", "ukr", "umb", "und", "urd",
-/*  "uz",  "vai", "ve",  "vi",  "vo",  "vot", "vun", "wa",  "wak",    */
-    "uzb", "vai", "ven", "vie", "vol", "vot", "vun", "wln", "wak",
-/*  "wal", "war", "was", "wen", "wo",  "xal", "xh",  "xog", "yao", "yap",    */
-    "wal", "war", "was", "wen", "wol", "xal", "xho", "xog", "yao", "yap",
+/*  "ty",  "tyv", "udm", "ug",  "uga", "uk",  "umb", "und", "ur",     */
+    "tah", "tyv", "udm", "uig", "uga", "ukr", "umb", "und", "urd",
+/*  "uz",  "vai", "ve",  "vi",  "vo",  "vot", "wa",  "wak",    */
+    "uzb", "vai", "ven", "vie", "vol", "vot", "wln", "wak",
+/*  "wal", "war", "was", "wen", "wo",  "xal", "xh",  "yao", "yap",    */
+    "wal", "war", "was", "wen", "wol", "xal", "xho", "yao", "yap",
 /*  "yi",  "yo",  "ypk", "za",  "zap", "zbl", "zen", "zh",  "znd",    */
     "yid", "yor", "ypk", "zha", "zap", "zbl", "zen", "zho", "znd",
 /*  "zu",  "zun", "zxx", "zza",                                         */
@@ -461,7 +461,7 @@ typedef struct CanonicalizationMap {
  */
 static const CanonicalizationMap CANONICALIZE_MAP[] = {
     { "",               "en_US_POSIX", NULL, NULL }, /* .NET name */
-    { "c",              "en_US_POSIX", NULL, NULL }, /* POSIX name */
+    { "C",              "en_US_POSIX", NULL, NULL }, /* POSIX name */
     { "posix",          "en_US_POSIX", NULL, NULL }, /* POSIX name (alias of C) */
     { "art_LOJBAN",     "jbo", NULL, NULL }, /* registered name */
     { "az_AZ_CYRL",     "az_Cyrl_AZ", NULL, NULL }, /* .NET name */
@@ -527,48 +527,12 @@ static const VariantMap VARIANT_MAP[] = {
     { "STROKE", "collation", "stroke" }  /* Solaris variant */
 };
 
-/* ### BCP47 Conversion *******************************************/
-/* Test if the locale id has BCP47 u extension and does not have '@' */
-#define _hasBCP47Extension(id) (id && uprv_strstr(id, "@") == NULL && getShortestSubtagLength(localeID) == 1)
-/* Converts the BCP47 id to Unicode id. Does nothing to id if conversion fails */
-#define _ConvertBCP47(finalID, id, buffer, length,err) \
-        if (uloc_forLanguageTag(id, buffer, length, NULL, err) <= 0 || U_FAILURE(*err)) { \
-            finalID=id; \
-        } else { \
-            finalID=buffer; \
-        }
-/* Gets the size of the shortest subtag in the given localeID. */
-static int32_t getShortestSubtagLength(const char *localeID) {
-    int32_t localeIDLength = uprv_strlen(localeID);
-    int32_t length = localeIDLength;
-    int32_t tmpLength = 0;
-    int32_t i;
-    UBool reset = TRUE;
-
-    for (i = 0; i < localeIDLength; i++) {
-        if (localeID[i] != '_' && localeID[i] != '-') {
-            if (reset) {
-                tmpLength = 0;
-                reset = FALSE;
-            }
-            tmpLength++;
-        } else {
-            if (tmpLength != 0 && tmpLength < length) {
-                length = tmpLength;
-            }
-            reset = TRUE;
-        }
-    }
-
-    return length;
-}
-
 /* ### Keywords **************************************************/
 
 #define ULOC_KEYWORD_BUFFER_LEN 25
 #define ULOC_MAX_NO_KEYWORDS 25
 
-U_CAPI const char * U_EXPORT2
+static const char * 
 locale_getKeywordsStart(const char *localeID) {
     const char *result = NULL;
     if((result = uprv_strchr(localeID, '@')) != NULL) {
@@ -823,7 +787,6 @@ uloc_getKeywordValue(const char* localeID,
                      char* buffer, int32_t bufferCapacity,
                      UErrorCode* status)
 { 
-    const char* startSearchHere = NULL;
     const char* nextSeparator = NULL;
     char keywordNameBuffer[ULOC_KEYWORD_BUFFER_LEN];
     char localeKeywordNameBuffer[ULOC_KEYWORD_BUFFER_LEN];
@@ -831,16 +794,8 @@ uloc_getKeywordValue(const char* localeID,
     int32_t result = 0;
 
     if(status && U_SUCCESS(*status) && localeID) {
-      char tempBuffer[ULOC_FULLNAME_CAPACITY];
-      const char* tmpLocaleID;
-
-      if (_hasBCP47Extension(localeID)) {
-          _ConvertBCP47(tmpLocaleID, localeID, tempBuffer, sizeof(tempBuffer), status);
-      } else {
-          tmpLocaleID=localeID;
-      }
     
-      startSearchHere = uprv_strchr(tmpLocaleID, '@'); /* TODO: REVISIT: shouldn't this be locale_getKeywordsStart ? */
+      const char* startSearchHere = uprv_strchr(localeID, '@'); /* TODO: REVISIT: shouldn't this be locale_getKeywordsStart ? */
       if(startSearchHere == NULL) {
           /* no keywords, return at once */
           return 0;
@@ -1549,44 +1504,36 @@ uloc_openKeywords(const char* localeID,
     int32_t i=0;
     char keywords[256];
     int32_t keywordsCapacity = 256;
-    char tempBuffer[ULOC_FULLNAME_CAPACITY];
-    const char* tmpLocaleID;
-
     if(status==NULL || U_FAILURE(*status)) {
         return 0;
     }
     
-    if (_hasBCP47Extension(localeID)) {
-        _ConvertBCP47(tmpLocaleID, localeID, tempBuffer, sizeof(tempBuffer), status);
-    } else {
-        if (localeID==NULL) {
-           localeID=uloc_getDefault();
-        }
-        tmpLocaleID=localeID;
+    if(localeID==NULL) {
+        localeID=uloc_getDefault();
     }
 
     /* Skip the language */
-    ulocimp_getLanguage(tmpLocaleID, NULL, 0, &tmpLocaleID);
-    if(_isIDSeparator(*tmpLocaleID)) {
+    ulocimp_getLanguage(localeID, NULL, 0, &localeID);
+    if(_isIDSeparator(*localeID)) {
         const char *scriptID;
         /* Skip the script if available */
-        ulocimp_getScript(tmpLocaleID+1, NULL, 0, &scriptID);
-        if(scriptID != tmpLocaleID+1) {
+        ulocimp_getScript(localeID+1, NULL, 0, &scriptID);
+        if(scriptID != localeID+1) {
             /* Found optional script */
-            tmpLocaleID = scriptID;
+            localeID = scriptID;
         }
         /* Skip the Country */
-        if (_isIDSeparator(*tmpLocaleID)) {
-            ulocimp_getCountry(tmpLocaleID+1, NULL, 0, &tmpLocaleID);
-            if(_isIDSeparator(*tmpLocaleID)) {
-                _getVariant(tmpLocaleID+1, *tmpLocaleID, NULL, 0);
+        if (_isIDSeparator(*localeID)) {
+            ulocimp_getCountry(localeID+1, NULL, 0, &localeID);
+            if(_isIDSeparator(*localeID)) {
+                _getVariant(localeID+1, *localeID, NULL, 0);
             }
         }
     }
 
     /* keywords are located after '@' */
-    if((tmpLocaleID = locale_getKeywordsStart(tmpLocaleID)) != NULL) {
-        i=locale_getKeywords(tmpLocaleID+1, '@', keywords, keywordsCapacity, NULL, 0, NULL, FALSE, status);
+    if((localeID = locale_getKeywordsStart(localeID)) != NULL) {
+        i=locale_getKeywords(localeID+1, '@', keywords, keywordsCapacity, NULL, 0, NULL, FALSE, status);
     }
 
     if(i) {
@@ -1621,9 +1568,7 @@ _canonicalize(const char* localeID,
               UErrorCode* err) {
     int32_t j, len, fieldCount=0, scriptSize=0, variantSize=0, nameCapacity;
     char localeBuffer[ULOC_FULLNAME_CAPACITY];
-    char tempBuffer[ULOC_FULLNAME_CAPACITY];
     const char* origLocaleID;
-    const char* tmpLocaleID;
     const char* keywordAssign = NULL;
     const char* separatorIndicator = NULL;
     const char* addKeyword = NULL;
@@ -1635,16 +1580,10 @@ _canonicalize(const char* localeID,
         return 0;
     }
     
-    if (_hasBCP47Extension(localeID)) {
-        _ConvertBCP47(tmpLocaleID, localeID, tempBuffer, sizeof(tempBuffer), err);
-    } else {
-        if (localeID==NULL) {
-           localeID=uloc_getDefault();
-        }
-        tmpLocaleID=localeID;
+    if (localeID==NULL) {
+        localeID=uloc_getDefault();
     }
-
-    origLocaleID=tmpLocaleID;
+    origLocaleID=localeID;
 
     /* if we are doing a full canonicalization, then put results in
        localeBuffer, if necessary; otherwise send them to result. */
@@ -1658,7 +1597,7 @@ _canonicalize(const char* localeID,
     }
 
     /* get all pieces, one after another, and separate with '_' */
-    len=ulocimp_getLanguage(tmpLocaleID, name, nameCapacity, &tmpLocaleID);
+    len=ulocimp_getLanguage(localeID, name, nameCapacity, &localeID);
 
     if(len == I_DEFAULT_LENGTH && uprv_strncmp(origLocaleID, i_default, len) == 0) {
         const char *d = uloc_getDefault();
@@ -1668,7 +1607,7 @@ _canonicalize(const char* localeID,
         if (name != NULL) {
             uprv_strncpy(name, d, len);
         }
-    } else if(_isIDSeparator(*tmpLocaleID)) {
+    } else if(_isIDSeparator(*localeID)) {
         const char *scriptID;
 
         ++fieldCount;
@@ -1677,13 +1616,13 @@ _canonicalize(const char* localeID,
         }
         ++len;
 
-        scriptSize=ulocimp_getScript(tmpLocaleID+1, name+len, nameCapacity-len, &scriptID);
+        scriptSize=ulocimp_getScript(localeID+1, name+len, nameCapacity-len, &scriptID);
         if(scriptSize > 0) {
             /* Found optional script */
-            tmpLocaleID = scriptID;
+            localeID = scriptID;
             ++fieldCount;
             len+=scriptSize;
-            if (_isIDSeparator(*tmpLocaleID)) {
+            if (_isIDSeparator(*localeID)) {
                 /* If there is something else, then we add the _ */
                 if(len<nameCapacity) {
                     name[len]='_';
@@ -1692,15 +1631,15 @@ _canonicalize(const char* localeID,
             }
         }
 
-        if (_isIDSeparator(*tmpLocaleID)) {
+        if (_isIDSeparator(*localeID)) {
             const char *cntryID;
-            int32_t cntrySize = ulocimp_getCountry(tmpLocaleID+1, name+len, nameCapacity-len, &cntryID);
+            int32_t cntrySize = ulocimp_getCountry(localeID+1, name+len, nameCapacity-len, &cntryID);
             if (cntrySize > 0) {
                 /* Found optional country */
-                tmpLocaleID = cntryID;
+                localeID = cntryID;
                 len+=cntrySize;
             }
-            if(_isIDSeparator(*tmpLocaleID)) {
+            if(_isIDSeparator(*localeID)) {
                 /* If there is something else, then we add the _  if we found country before.*/
                 if (cntrySize > 0) {
                     ++fieldCount;
@@ -1710,21 +1649,21 @@ _canonicalize(const char* localeID,
                     ++len;
                 }
 
-                variantSize = _getVariant(tmpLocaleID+1, *tmpLocaleID, name+len, nameCapacity-len);
+                variantSize = _getVariant(localeID+1, *localeID, name+len, nameCapacity-len);
                 if (variantSize > 0) {
                     variant = name+len;
                     len += variantSize;
-                    tmpLocaleID += variantSize + 1; /* skip '_' and variant */
+                    localeID += variantSize + 1; /* skip '_' and variant */
                 }
             }
         }
     }
 
     /* Copy POSIX-style charset specifier, if any [mr.utf8] */
-    if (!OPTION_SET(options, _ULOC_CANONICALIZE) && *tmpLocaleID == '.') {
+    if (!OPTION_SET(options, _ULOC_CANONICALIZE) && *localeID == '.') {
         UBool done = FALSE;
         do {
-            char c = *tmpLocaleID;
+            char c = *localeID;
             switch (c) {
             case 0:
             case '@':
@@ -1735,24 +1674,24 @@ _canonicalize(const char* localeID,
                     name[len] = c;
                 }
                 ++len;
-                ++tmpLocaleID;
+                ++localeID;
                 break;
             }
         } while (!done);
     }
 
     /* Scan ahead to next '@' and determine if it is followed by '=' and/or ';'
-       After this, tmpLocaleID either points to '@' or is NULL */
-    if ((tmpLocaleID=locale_getKeywordsStart(tmpLocaleID))!=NULL) {
-        keywordAssign = uprv_strchr(tmpLocaleID, '=');
-        separatorIndicator = uprv_strchr(tmpLocaleID, ';');
+       After this, localeID either points to '@' or is NULL */
+    if ((localeID=locale_getKeywordsStart(localeID))!=NULL) {
+        keywordAssign = uprv_strchr(localeID, '=');
+        separatorIndicator = uprv_strchr(localeID, ';');
     }
 
     /* Copy POSIX-style variant, if any [mr@FOO] */
     if (!OPTION_SET(options, _ULOC_CANONICALIZE) &&
-        tmpLocaleID != NULL && keywordAssign == NULL) {
+        localeID != NULL && keywordAssign == NULL) {
         for (;;) {
-            char c = *tmpLocaleID;
+            char c = *localeID;
             if (c == 0) {
                 break;
             }
@@ -1760,13 +1699,13 @@ _canonicalize(const char* localeID,
                 name[len] = c;
             }
             ++len;
-            ++tmpLocaleID;
+            ++localeID;
         }
     }
 
     if (OPTION_SET(options, _ULOC_CANONICALIZE)) {
         /* Handle @FOO variant if @ is present and not followed by = */
-        if (tmpLocaleID!=NULL && keywordAssign==NULL) {
+        if (localeID!=NULL && keywordAssign==NULL) {
             int32_t posixVariantSize;
             /* Add missing '_' if needed */
             if (fieldCount < 2 || (fieldCount < 3 && scriptSize > 0)) {
@@ -1778,7 +1717,7 @@ _canonicalize(const char* localeID,
                     ++fieldCount;
                 } while(fieldCount<2);
             }
-            posixVariantSize = _getVariantEx(tmpLocaleID+1, '@', name+len, nameCapacity-len,
+            posixVariantSize = _getVariantEx(localeID+1, '@', name+len, nameCapacity-len,
                                              (UBool)(variantSize > 0));
             if (posixVariantSize > 0) {
                 if (variant == NULL) {
@@ -1815,7 +1754,7 @@ _canonicalize(const char* localeID,
             const char* id = CANONICALIZE_MAP[j].id;
             int32_t n = (int32_t)uprv_strlen(id);
             if (len == n && uprv_strncmp(name, id, n) == 0) {
-                if (n == 0 && tmpLocaleID != NULL) {
+                if (n == 0 && localeID != NULL) {
                     break; /* Don't remap "" if keywords present */
                 }
                 len = _copyCount(name, nameCapacity, CANONICALIZE_MAP[j].canonicalID);
@@ -1829,14 +1768,14 @@ _canonicalize(const char* localeID,
     }
 
     if (!OPTION_SET(options, _ULOC_STRIP_KEYWORDS)) {
-        if (tmpLocaleID!=NULL && keywordAssign!=NULL &&
+        if (localeID!=NULL && keywordAssign!=NULL &&
             (!separatorIndicator || separatorIndicator > keywordAssign)) {
             if(len<nameCapacity) {
                 name[len]='@';
             }
             ++len;
             ++fieldCount;
-            len += _getKeywords(tmpLocaleID+1, '@', name+len, nameCapacity-len, NULL, 0, NULL, TRUE,
+            len += _getKeywords(localeID+1, '@', name+len, nameCapacity-len, NULL, 0, NULL, TRUE,
                                 addKeyword, addValue, err);
         } else if (addKeyword != NULL) {
             U_ASSERT(addValue != NULL);
@@ -1969,47 +1908,36 @@ uloc_getVariant(const char* localeID,
                 int32_t variantCapacity,
                 UErrorCode* err) 
 {
-    char tempBuffer[ULOC_FULLNAME_CAPACITY];
-    const char* tmpLocaleID;
     int32_t i=0;
     
     if(err==NULL || U_FAILURE(*err)) {
         return 0;
     }
     
-    if (_hasBCP47Extension(localeID)) {
-        _ConvertBCP47(tmpLocaleID, localeID, tempBuffer, sizeof(tempBuffer), err);
-    } else {
-        if (localeID==NULL) {
-           localeID=uloc_getDefault();
-        }
-        tmpLocaleID=localeID;
+    if(localeID==NULL) {
+        localeID=uloc_getDefault();
     }
     
     /* Skip the language */
-    ulocimp_getLanguage(tmpLocaleID, NULL, 0, &tmpLocaleID);
-    if(_isIDSeparator(*tmpLocaleID)) {
+    ulocimp_getLanguage(localeID, NULL, 0, &localeID);
+    if(_isIDSeparator(*localeID)) {
         const char *scriptID;
         /* Skip the script if available */
-        ulocimp_getScript(tmpLocaleID+1, NULL, 0, &scriptID);
-        if(scriptID != tmpLocaleID+1) {
+        ulocimp_getScript(localeID+1, NULL, 0, &scriptID);
+        if(scriptID != localeID+1) {
             /* Found optional script */
-            tmpLocaleID = scriptID;
+            localeID = scriptID;
         }
         /* Skip the Country */
-        if (_isIDSeparator(*tmpLocaleID)) {
+        if (_isIDSeparator(*localeID)) {
             const char *cntryID;
-            ulocimp_getCountry(tmpLocaleID+1, NULL, 0, &cntryID);
-            if (cntryID != tmpLocaleID+1) {
+            ulocimp_getCountry(localeID+1, NULL, 0, &cntryID);
+            if (cntryID != localeID) {
                 /* Found optional country */
-                tmpLocaleID = cntryID;
+                localeID = cntryID;
             }
-            if(_isIDSeparator(*tmpLocaleID)) {
-                /* If there was no country ID, skip a possible extra IDSeparator */
-                if (tmpLocaleID != cntryID && _isIDSeparator(tmpLocaleID[1])) {
-                    tmpLocaleID++;
-                }
-                i=_getVariant(tmpLocaleID+1, *tmpLocaleID, variant, variantCapacity);
+            if(_isIDSeparator(*localeID)) {
+                i=_getVariant(localeID+1, *localeID, variant, variantCapacity);
             }
         }
     }
@@ -2126,6 +2054,146 @@ uloc_getLocaleForLCID(uint32_t hostid, char *locale, int32_t localeCapacity,
 }
 
 /* ### Default locale **************************************************/
+
+#if defined(ICU4C0)
+char _locid[999] = "en_US_POSIX";
+
+#if 0
+void locale_set_default_internal(const char *id)
+{
+    UErrorCode   status = U_ZERO_ERROR;
+    UBool canonicalize = FALSE;
+
+    /* // If given a NULL string for the locale id, grab the default */
+    /* //   name from the system. */
+    /* //   (Different from most other locale APIs, where a null name means use */
+    /* //    the current ICU default locale.) */
+    if (id == NULL) {
+        umtx_lock(NULL);
+        id = uprv_getDefaultLocaleID();
+        umtx_unlock(NULL);
+        canonicalize = TRUE; // always canonicalize host ID
+    }
+
+    // put the locale id into a canonical form,
+    //   in preparation for looking up this locale in the hash table of
+    //   already-created locale objects.
+    //
+    status = U_ZERO_ERROR;
+    char localeNameBuf[512];
+
+    if (canonicalize) {
+        uloc_canonicalize(id, localeNameBuf, sizeof(localeNameBuf)-1, &status);
+    } else {
+        uloc_getName(id, localeNameBuf, sizeof(localeNameBuf)-1, &status);
+    }
+    localeNameBuf[sizeof(localeNameBuf)-1] = 0;  // Force null termination in event of
+                                                 //   a long name filling the buffer.
+                                                 //   (long names are truncated.)
+
+    // Lazy creation of the hash table itself, if needed.
+    UBool isOnlyLocale;
+    UMTX_CHECK(NULL, (gDefaultLocale == NULL), isOnlyLocale);
+    if (isOnlyLocale) {
+        // We haven't seen this locale id before.
+        // Create a new Locale object for it.
+        Locale *newFirstDefault = new Locale(Locale::eBOGUS);
+        if (newFirstDefault == NULL) {
+            // No way to report errors from here.
+            return;
+        }
+        newFirstDefault->init(localeNameBuf, FALSE);
+        umtx_lock(NULL);
+        if (gDefaultLocale == NULL) {
+            gDefaultLocale = newFirstDefault;  // Assignment to gDefaultLocale must happen inside mutex
+            newFirstDefault = NULL;
+            ucln_common_registerCleanup(UCLN_COMMON_LOCALE, locale_cleanup);
+        }
+        // Else some other thread raced us through here, and set the new Locale.
+        // Use the hash table next.
+        umtx_unlock(NULL);
+        if (newFirstDefault == NULL) {
+            // We were successful in setting the locale, and we were the first one to set it.
+            return;
+        }
+        // else start using the hash table.
+    }
+
+    // Lazy creation of the hash table itself, if needed.
+    UBool hashTableNeedsInit;
+    UMTX_CHECK(NULL, (gDefaultLocalesHashT == NULL), hashTableNeedsInit);
+    if (hashTableNeedsInit) {
+        status = U_ZERO_ERROR;
+        UHashtable *tHashTable = uhash_open(uhash_hashChars, uhash_compareChars, NULL, &status);
+        if (U_FAILURE(status)) {
+            return;
+        }
+        uhash_setValueDeleter(tHashTable, deleteLocale);
+        umtx_lock(NULL);
+        if (gDefaultLocalesHashT == NULL) {
+            gDefaultLocalesHashT = tHashTable;
+            ucln_common_registerCleanup(UCLN_COMMON_LOCALE, locale_cleanup);
+        } else {
+            uhash_close(tHashTable);
+            hashTableNeedsInit = FALSE;
+        }
+        umtx_unlock(NULL);
+    }
+
+    // Hash table lookup, key is the locale full name
+    umtx_lock(NULL);
+    Locale *newDefault = (Locale *)uhash_get(gDefaultLocalesHashT, localeNameBuf);
+    if (newDefault != NULL) {
+        // We have the requested locale in the hash table already.
+        // Just set it as default.  Inside the mutex lock, for those troublesome processors.
+        gDefaultLocale = newDefault;
+        umtx_unlock(NULL);
+    } else {
+        umtx_unlock(NULL);
+        // We haven't seen this locale id before.
+        // Create a new Locale object for it.
+        newDefault = new Locale(Locale::eBOGUS);
+        if (newDefault == NULL) {
+            // No way to report errors from here.
+            return;
+        }
+        newDefault->init(localeNameBuf, FALSE);
+
+        // Add newly created Locale to the hash table of default Locales
+        const char *key = newDefault->getName();
+        U_ASSERT(uprv_strcmp(key, localeNameBuf) == 0);
+        umtx_lock(NULL);
+        Locale *hashTableVal = (Locale *)uhash_get(gDefaultLocalesHashT, key);
+        if (hashTableVal == NULL) {
+            if (hashTableNeedsInit) {
+                // This is the second request to set the locale.
+                // Cache the first one.
+                uhash_put(gDefaultLocalesHashT, (void *)gDefaultLocale->getName(), gDefaultLocale, &status);
+            }
+            uhash_put(gDefaultLocalesHashT, (void *)key, newDefault, &status);
+            gDefaultLocale = newDefault;
+            // ignore errors from hash table insert.  (Couldn't do anything anyway)
+            // We can still set the default Locale,
+            //  it just wont be cached, and will eventually leak.
+        } else {
+            // Some other thread raced us through here, and got the new Locale
+            //   into the hash table before us.  Use that one.
+            gDefaultLocale = hashTableVal;  // Assignment to gDefaultLocale must happen inside mutex
+            delete newDefault;
+        }
+        umtx_unlock(NULL);
+    }
+}
+#endif
+
+const char  *locale_get_default() {
+  return "en_US_POSIX";
+  /*  return _locid; */
+}
+void locale_set_default(const char *id) {
+  /*  strcpy(_locid, id); */
+}
+#endif
 
 U_CAPI const char*  U_EXPORT2
 uloc_getDefault()

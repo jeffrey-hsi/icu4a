@@ -79,15 +79,14 @@ converterData[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES]={
 
     &_SCSUData,
 
-#if UCONFIG_NO_LEGACY_CONVERSION
+#if UCONFIG_NO_LEGACY_CONVERSION || UCONFIG_NO_USET
     NULL,
 #else
     &_ISCIIData,
 #endif
 
     &_ASCIIData,
-    &_UTF7Data, &_Bocu1Data, &_UTF16Data, &_UTF32Data, &_CESU8Data, &_IMAPData,
-    &_CompoundTextData
+    &_UTF7Data, &_Bocu1Data, &_UTF16Data, &_UTF32Data, &_CESU8Data, &_IMAPData
 };
 
 /* Please keep this in binary sorted order for getAlgorithmicTypeFromName.
@@ -146,8 +145,7 @@ static struct {
   { "utf32platformendian", UCNV_UTF32_LittleEndian },
 #endif
   { "utf7", UCNV_UTF7 },
-  { "utf8", UCNV_UTF8 },
-  { "x11compoundtext", UCNV_COMPOUND_TEXT}
+  { "utf8", UCNV_UTF8 }
 };
 
 
@@ -1039,13 +1037,13 @@ ucnv_flushCache ()
     int32_t pos;
     int32_t tableDeletedNum = 0;
     const UHashElement *e;
-    /*UErrorCode status = U_ILLEGAL_ARGUMENT_ERROR;*/
+    UErrorCode status = U_ILLEGAL_ARGUMENT_ERROR;
     int32_t i, remaining;
 
     UTRACE_ENTRY_OC(UTRACE_UCNV_FLUSH_CACHE);
 
     /* Close the default converter without creating a new one so that everything will be flushed. */
-    u_flushDefaultConverter();
+    ucnv_close(u_getDefaultConverter(&status));
 
     /*if shared data hasn't even been lazy evaluated yet
     * return 0
@@ -1319,9 +1317,6 @@ ucnv_setDefaultName(const char *converterName) {
 
         /* The close may make the current name go away. */
         ucnv_close(cnv);
-  
-        /* reset the converter cache */
-        u_flushDefaultConverter();
     }
 #endif
 }

@@ -29,13 +29,9 @@
 #include "ustr.h"
 #include "reslist.h"
 #include "rbt_pars.h"
-#include "genrb.h"
 #include "unicode/ustring.h"
-#include "unicode/uscript.h"
 #include "unicode/putil.h"
 #include <stdio.h>
-
-extern UBool gIncludeUnihanColl;
 
 /* Number of tokens to read ahead of the current stream position */
 #define MAX_LOOKAHEAD   3
@@ -52,6 +48,9 @@ extern UBool gIncludeUnihanColl;
 #define ENDCOMMAND       0x005D
 #define OPENSQBRACKET    0x005B
 #define CLOSESQBRACKET   0x005D
+
+typedef struct SResource *
+ParseResourceFunction(char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status);
 
 struct Lookahead
 {
@@ -77,24 +76,20 @@ const char *tokenNames[TOK_TOKEN_COUNT] =
 /* Just to store "TRUE" */
 static const UChar trueValue[] = {0x0054, 0x0052, 0x0055, 0x0045, 0x0000};
 
-typedef struct {
-    struct Lookahead  lookahead[MAX_LOOKAHEAD + 1];
-    uint32_t          lookaheadPosition;
-    UCHARBUF         *buffer;
-    struct SRBRoot *bundle;
-    const char     *inputdir;
-    uint32_t        inputdirLength;
-    const char     *outputdir;
-    uint32_t        outputdirLength;
-} ParseState;
+static struct Lookahead  lookahead[MAX_LOOKAHEAD + 1];
+static uint32_t          lookaheadPosition;
+static UCHARBUF         *buffer;
+
+static struct SRBRoot *bundle;
+static const char     *inputdir;
+static uint32_t        inputdirLength;
+static const char     *outputdir;
+static uint32_t        outputdirLength;
 
 static UBool gMakeBinaryCollation = TRUE;
 static UBool gOmitCollationRules  = FALSE;
 
-typedef struct SResource *
-ParseResourceFunction(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status);
-
-static struct SResource *parseResource(ParseState* state, char *tag, const struct UString *comment, UErrorCode *status);
+static struct SResource *parseResource(char *tag, const struct UString *comment, UErrorCode *status);
 
 /* The nature of the lookahead buffer:
    There are MAX_LOOKAHEAD + 1 slots, used as a circular buffer.  This provides
@@ -110,7 +105,7 @@ static struct SResource *parseResource(ParseState* state, char *tag, const struc
    getToken(NULL,   NULL, status);       bad - value is now a different string
 */
 static void
-initLookahead(ParseState* state, UCHARBUF *buf, UErrorCode *status)
+initLookahead(UCHARBUF *buf, UErrorCode *status)
 {
     static uint32_t initTypeStrings = 0;
     uint32_t i;
@@ -120,14 +115,14 @@ initLookahead(ParseState* state, UCHARBUF *buf, UErrorCode *status)
         initTypeStrings = 1;
     }
 
-    state->lookaheadPosition   = 0;
-    state->buffer              = buf;
+    lookaheadPosition   = 0;
+    buffer              = buf;
 
     resetLineNumber();
 
     for (i = 0; i < MAX_LOOKAHEAD; i++)
     {
-        state->lookahead[i].type = getNextToken(state->buffer, &state->lookahead[i].value, &state->lookahead[i].line, &state->lookahead[i].comment, status);
+        lookahead[i].type = getNextToken(buffer, &lookahead[i].value, &lookahead[i].line, &lookahead[i].comment, status);
         if (U_FAILURE(*status))
         {
             return;
@@ -138,45 +133,45 @@ initLookahead(ParseState* state, UCHARBUF *buf, UErrorCode *status)
 }
 
 static void
-cleanupLookahead(ParseState* state)
+cleanupLookahead()
 {
     uint32_t i;
     for (i = 0; i < MAX_LOOKAHEAD; i++)
     {
-        ustr_deinit(&state->lookahead[i].value);
-        ustr_deinit(&state->lookahead[i].comment);
+        ustr_deinit(&lookahead[i].value);
+        ustr_deinit(&lookahead[i].comment);
     }
 
 }
 
 static enum ETokenType
-getToken(ParseState* state, struct UString **tokenValue, struct UString* comment, uint32_t *linenumber, UErrorCode *status)
+getToken(struct UString **tokenValue, struct UString* comment, uint32_t *linenumber, UErrorCode *status)
 {
     enum ETokenType result;
     uint32_t          i;
 
-    result = state->lookahead[state->lookaheadPosition].type;
+    result = lookahead[lookaheadPosition].type;
 
     if (tokenValue != NULL)
     {
-        *tokenValue = &state->lookahead[state->lookaheadPosition].value;
+        *tokenValue = &lookahead[lookaheadPosition].value;
     }
 
     if (linenumber != NULL)
     {
-        *linenumber = state->lookahead[state->lookaheadPosition].line;
+        *linenumber = lookahead[lookaheadPosition].line;
     }
 
     if (comment != NULL)
     {
-        ustr_cpy(comment, &(state->lookahead[state->lookaheadPosition].comment), status);
+        ustr_cpy(comment, &(lookahead[lookaheadPosition].comment), status);
     }
 
-    i = (state->lookaheadPosition + MAX_LOOKAHEAD) % (MAX_LOOKAHEAD + 1);
-    state->lookaheadPosition = (state->lookaheadPosition + 1) % (MAX_LOOKAHEAD + 1);
-    ustr_setlen(&state->lookahead[i].comment, 0, status);
-    ustr_setlen(&state->lookahead[i].value, 0, status);
-    state->lookahead[i].type = getNextToken(state->buffer, &state->lookahead[i].value, &state->lookahead[i].line, &state->lookahead[i].comment, status);
+    i = (lookaheadPosition + MAX_LOOKAHEAD) % (MAX_LOOKAHEAD + 1);
+    lookaheadPosition = (lookaheadPosition + 1) % (MAX_LOOKAHEAD + 1);
+    ustr_setlen(&lookahead[i].comment, 0, status);
+    ustr_setlen(&lookahead[i].value, 0, status);
+    lookahead[i].type = getNextToken(buffer, &lookahead[i].value, &lookahead[i].line, &lookahead[i].comment, status);
 
     /* printf("getToken, returning %s\n", tokenNames[result]); */
 
@@ -184,9 +179,9 @@ getToken(ParseState* state, struct UString **tokenValue, struct UString* comment
 }
 
 static enum ETokenType
-peekToken(ParseState* state, uint32_t lookaheadCount, struct UString **tokenValue, uint32_t *linenumber, struct UString *comment, UErrorCode *status)
+peekToken(uint32_t lookaheadCount, struct UString **tokenValue, uint32_t *linenumber, struct UString *comment, UErrorCode *status)
 {
-    uint32_t i = (state->lookaheadPosition + lookaheadCount) % (MAX_LOOKAHEAD + 1);
+    uint32_t i = (lookaheadPosition + lookaheadCount) % (MAX_LOOKAHEAD + 1);
 
     if (U_FAILURE(*status))
     {
@@ -201,27 +196,27 @@ peekToken(ParseState* state, uint32_t lookaheadCount, struct UString **tokenValu
 
     if (tokenValue != NULL)
     {
-        *tokenValue = &state->lookahead[i].value;
+        *tokenValue = &lookahead[i].value;
     }
 
     if (linenumber != NULL)
     {
-        *linenumber = state->lookahead[i].line;
+        *linenumber = lookahead[i].line;
     }
 
     if(comment != NULL){
-        ustr_cpy(comment, &(state->lookahead[state->lookaheadPosition].comment), status);
+        ustr_cpy(comment, &(lookahead[lookaheadPosition].comment), status);
     }
 
-    return state->lookahead[i].type;
+    return lookahead[i].type;
 }
 
 static void
-expect(ParseState* state, enum ETokenType expectedToken, struct UString **tokenValue, struct UString *comment, uint32_t *linenumber, UErrorCode *status)
+expect(enum ETokenType expectedToken, struct UString **tokenValue, struct UString *comment, uint32_t *linenumber, UErrorCode *status)
 {
     uint32_t        line;
 
-    enum ETokenType token = getToken(state, tokenValue, comment, &line, status);
+    enum ETokenType token = getToken(tokenValue, comment, &line, status);
 
     if (linenumber != NULL)
     {
@@ -244,13 +239,13 @@ expect(ParseState* state, enum ETokenType expectedToken, struct UString **tokenV
     }
 }
 
-static char *getInvariantString(ParseState* state, uint32_t *line, struct UString *comment, UErrorCode *status)
+static char *getInvariantString(uint32_t *line, struct UString *comment, UErrorCode *status)
 {
     struct UString *tokenValue;
     char           *result;
     uint32_t        count;
 
-    expect(state, TOK_STRING, &tokenValue, comment, line, status);
+    expect(TOK_STRING, &tokenValue, comment, line, status);
 
     if (U_FAILURE(*status))
     {
@@ -277,7 +272,7 @@ static char *getInvariantString(ParseState* state, uint32_t *line, struct UStrin
 }
 
 static struct SResource *
-parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
+parseUCARules(char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
 {
     struct SResource *result = NULL;
     struct UString   *tokenValue;
@@ -295,7 +290,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
     UChar *targetLimit = NULL;
     int32_t size = 0;
 
-    expect(state, TOK_STRING, &tokenValue, NULL, &line, status);
+    expect(TOK_STRING, &tokenValue, NULL, &line, status);
 
     if(isVerbose()){
         printf(" %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
@@ -306,11 +301,11 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
         return NULL;
     }
     /* make the filename including the directory */
-    if (state->inputdir != NULL)
+    if (inputdir != NULL)
     {
-        uprv_strcat(filename, state->inputdir);
+        uprv_strcat(filename, inputdir);
 
-        if (state->inputdir[state->inputdirLength - 1] != U_FILE_SEP_CHAR)
+        if (inputdir[inputdirLength - 1] != U_FILE_SEP_CHAR)
         {
             uprv_strcat(filename, U_FILE_SEP_STRING);
         }
@@ -318,7 +313,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
 
     u_UCharsToChars(tokenValue->fChars, cs, tokenValue->fLength);
 
-    expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+    expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
 
     if (U_FAILURE(*status))
     {
@@ -411,7 +406,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
         *target = 0x0000;
     }
 
-    result = string_open(state->bundle, tag, pTarget, (int32_t)(target - pTarget), NULL, status);
+    result = string_open(bundle, tag, pTarget, (int32_t)(target - pTarget), NULL, status);
 
 
     ucbuf_close(ucbuf);
@@ -422,7 +417,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
 }
 
 static struct SResource *
-parseTransliterator(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
+parseTransliterator(char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
 {
     struct SResource *result = NULL;
     struct UString   *tokenValue;
@@ -436,7 +431,7 @@ parseTransliterator(ParseState* state, char *tag, uint32_t startline, const stru
     const UChar *pSource     = NULL;
     int32_t size = 0;
 
-    expect(state, TOK_STRING, &tokenValue, NULL, &line, status);
+    expect(TOK_STRING, &tokenValue, NULL, &line, status);
 
     if(isVerbose()){
         printf(" %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
@@ -447,11 +442,11 @@ parseTransliterator(ParseState* state, char *tag, uint32_t startline, const stru
         return NULL;
     }
     /* make the filename including the directory */
-    if (state->inputdir != NULL)
+    if (inputdir != NULL)
     {
-        uprv_strcat(filename, state->inputdir);
+        uprv_strcat(filename, inputdir);
 
-        if (state->inputdir[state->inputdirLength - 1] != U_FILE_SEP_CHAR)
+        if (inputdir[inputdirLength - 1] != U_FILE_SEP_CHAR)
         {
             uprv_strcat(filename, U_FILE_SEP_STRING);
         }
@@ -459,7 +454,7 @@ parseTransliterator(ParseState* state, char *tag, uint32_t startline, const stru
 
     u_UCharsToChars(tokenValue->fChars, cs, tokenValue->fLength);
 
-    expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+    expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
 
     if (U_FAILURE(*status))
     {
@@ -489,7 +484,7 @@ parseTransliterator(ParseState* state, char *tag, uint32_t startline, const stru
     size = 0;
     fprintf(stderr, " Warning: writing empty transliteration data ( UCONFIG_NO_TRANSLITERATION ) \n");
 #endif
-    result = string_open(state->bundle, tag, pTarget, size, NULL, status);
+    result = string_open(bundle, tag, pTarget, size, NULL, status);
 
     ucbuf_close(ucbuf);
     uprv_free(pTarget);
@@ -500,7 +495,7 @@ parseTransliterator(ParseState* state, char *tag, uint32_t startline, const stru
 static struct SResource* dependencyArray = NULL;
 
 static struct SResource *
-parseDependency(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
+parseDependency(char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
 {
     struct SResource *result = NULL;
     struct SResource *elem = NULL;
@@ -509,7 +504,7 @@ parseDependency(ParseState* state, char *tag, uint32_t startline, const struct U
     char              filename[256] = { '\0' };
     char              cs[128]       = { '\0' };
     
-    expect(state, TOK_STRING, &tokenValue, NULL, &line, status);
+    expect(TOK_STRING, &tokenValue, NULL, &line, status);
 
     if(isVerbose()){
         printf(" %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
@@ -520,11 +515,11 @@ parseDependency(ParseState* state, char *tag, uint32_t startline, const struct U
         return NULL;
     }
     /* make the filename including the directory */
-    if (state->outputdir != NULL)
+    if (outputdir != NULL)
     {
-        uprv_strcat(filename, state->outputdir);
+        uprv_strcat(filename, outputdir);
 
-        if (state->outputdir[state->outputdirLength - 1] != U_FILE_SEP_CHAR)
+        if (outputdir[outputdirLength - 1] != U_FILE_SEP_CHAR)
         {
             uprv_strcat(filename, U_FILE_SEP_STRING);
         }
@@ -545,12 +540,12 @@ parseDependency(ParseState* state, char *tag, uint32_t startline, const struct U
         }
     }
     if(dependencyArray==NULL){
-        dependencyArray = array_open(state->bundle, "%%DEPENDENCY", NULL, status);
+        dependencyArray = array_open(bundle, "%%DEPENDENCY", NULL, status);
     }
     if(tag!=NULL){
-        result = string_open(state->bundle, tag, tokenValue->fChars, tokenValue->fLength, comment, status);
+        result = string_open(bundle, tag, tokenValue->fChars, tokenValue->fLength, comment, status);
     }
-    elem = string_open(state->bundle, NULL, tokenValue->fChars, tokenValue->fLength, comment, status);
+    elem = string_open(bundle, NULL, tokenValue->fChars, tokenValue->fLength, comment, status);
 
     array_add(dependencyArray, elem, status);
 
@@ -558,11 +553,11 @@ parseDependency(ParseState* state, char *tag, uint32_t startline, const struct U
     {
         return NULL;
     }
-    expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+    expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
     return result;
 }
 static struct SResource *
-parseString(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
+parseString(char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
 {
     struct UString   *tokenValue;
     struct SResource *result = NULL;
@@ -574,16 +569,16 @@ parseString(ParseState* state, char *tag, uint32_t startline, const struct UStri
     if(isVerbose()){
         printf(" string %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
     }
-    expect(state, TOK_STRING, &tokenValue, NULL, NULL, status);
+    expect(TOK_STRING, &tokenValue, NULL, NULL, status);
 
     if (U_SUCCESS(*status))
     {
         /* create the string now - tokenValue doesn't survive a call to getToken (and therefore
         doesn't survive expect either) */
 
-        result = string_open(state->bundle, tag, tokenValue->fChars, tokenValue->fLength, comment, status);
+        result = string_open(bundle, tag, tokenValue->fChars, tokenValue->fLength, comment, status);
         if(U_SUCCESS(*status) && result) {
-            expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+            expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
 
             if (U_FAILURE(*status))
             {
@@ -597,12 +592,12 @@ parseString(ParseState* state, char *tag, uint32_t startline, const struct UStri
 }
 
 static struct SResource *
-parseAlias(ParseState* state, char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
+parseAlias(char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
 {
     struct UString   *tokenValue;
     struct SResource *result  = NULL;
 
-    expect(state, TOK_STRING, &tokenValue, NULL, NULL, status);
+    expect(TOK_STRING, &tokenValue, NULL, NULL, status);
 
     if(isVerbose()){
         printf(" alias %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
@@ -613,9 +608,9 @@ parseAlias(ParseState* state, char *tag, uint32_t startline, const struct UStrin
         /* create the string now - tokenValue doesn't survive a call to getToken (and therefore
         doesn't survive expect either) */
 
-        result = alias_open(state->bundle, tag, tokenValue->fChars, tokenValue->fLength, comment, status);
+        result = alias_open(bundle, tag, tokenValue->fChars, tokenValue->fLength, comment, status);
 
-        expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+        expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
 
         if (U_FAILURE(*status))
         {
@@ -627,182 +622,8 @@ parseAlias(ParseState* state, char *tag, uint32_t startline, const struct UStrin
     return result;
 }
 
-typedef struct{
-    const char* inputDir;
-    const char* outputDir;
-} GenrbData;
-
-static struct SResource* resLookup(struct SResource* res, const char* key){
-    struct SResource *current = NULL;
-    struct SResTable *list;
-    if (res == res_none()) {
-        return NULL;
-    }
-
-    list = &(res->u.fTable);
-
-    current = list->fFirst;
-    while (current != NULL) {
-        if (uprv_strcmp(((list->fRoot->fKeys) + (current->fKey)), key) == 0) {
-            return current;
-        }
-        current = current->fNext;
-    }
-    return NULL;
-}
-
-static const UChar* importFromDataFile(void* context, const char* locale, const char* type, int32_t* pLength, UErrorCode* status){
-    struct SRBRoot *data         = NULL;
-    UCHARBUF       *ucbuf        = NULL;
-    GenrbData* genrbdata = (GenrbData*) context;
-    int localeLength = strlen(locale);
-    char* filename = (char*)uprv_malloc(localeLength+5);
-    char           *inputDirBuf  = NULL;
-    char           *openFileName = NULL;
-    const char* cp = "";
-    UChar* urules = NULL;
-    int32_t urulesLength = 0;
-    int32_t i = 0;
-    int32_t dirlen  = 0;
-    int32_t filelen = 0;
-    struct SResource* root;
-    struct SResource* collations;
-    struct SResource* collation;
-    struct SResource* sequence;
-
-    memcpy(filename, locale, localeLength);
-    for(i = 0; i < localeLength; i++){
-        if(filename[i] == '-'){
-            filename[i] = '_';
-        }
-    }
-    filename[localeLength]   = '.';
-    filename[localeLength+1] = 't';
-    filename[localeLength+2] = 'x';
-    filename[localeLength+3] = 't';
-    filename[localeLength+4] = 0;
-
-
-    if (status==NULL || U_FAILURE(*status)) {
-        return NULL;
-    }
-    if(filename==NULL){
-        *status=U_ILLEGAL_ARGUMENT_ERROR;
-        return NULL;
-    }else{
-        filelen = (int32_t)uprv_strlen(filename);
-    }
-    if(genrbdata->inputDir == NULL) {
-        const char *filenameBegin = uprv_strrchr(filename, U_FILE_SEP_CHAR);
-        openFileName = (char *) uprv_malloc(dirlen + filelen + 2);
-        openFileName[0] = '\0';
-        if (filenameBegin != NULL) {
-            /*
-             * When a filename ../../../data/root.txt is specified,
-             * we presume that the input directory is ../../../data
-             * This is very important when the resource file includes
-             * another file, like UCARules.txt or thaidict.brk.
-             */
-            int32_t filenameSize = (int32_t)(filenameBegin - filename + 1);
-            inputDirBuf = uprv_strncpy((char *)uprv_malloc(filenameSize), filename, filenameSize);
-
-            /* test for NULL */
-            if(inputDirBuf == NULL) {
-                *status = U_MEMORY_ALLOCATION_ERROR;
-                goto finish;
-            }
-
-            inputDirBuf[filenameSize - 1] = 0;
-            genrbdata->inputDir = inputDirBuf;
-            dirlen  = (int32_t)uprv_strlen(genrbdata->inputDir);
-        }
-    }else{
-        dirlen  = (int32_t)uprv_strlen(genrbdata->inputDir);
-
-        if(genrbdata->inputDir[dirlen-1] != U_FILE_SEP_CHAR) {
-            openFileName = (char *) uprv_malloc(dirlen + filelen + 2);
-
-            /* test for NULL */
-            if(openFileName == NULL) {
-                *status = U_MEMORY_ALLOCATION_ERROR;
-                goto finish;
-            }
-
-            openFileName[0] = '\0';
-            /*
-             * append the input dir to openFileName if the first char in
-             * filename is not file seperation char and the last char input directory is  not '.'.
-             * This is to support :
-             * genrb -s. /home/icu/data
-             * genrb -s. icu/data
-             * The user cannot mix notations like
-             * genrb -s. /icu/data --- the absolute path specified. -s redundant
-             * user should use
-             * genrb -s. icu/data  --- start from CWD and look in icu/data dir
-             */
-            if( (filename[0] != U_FILE_SEP_CHAR) && (genrbdata->inputDir[dirlen-1] !='.')){
-                uprv_strcpy(openFileName, genrbdata->inputDir);
-                openFileName[dirlen]     = U_FILE_SEP_CHAR;
-            }
-            openFileName[dirlen + 1] = '\0';
-        } else {
-            openFileName = (char *) uprv_malloc(dirlen + filelen + 1);
-
-            /* test for NULL */
-            if(openFileName == NULL) {
-                *status = U_MEMORY_ALLOCATION_ERROR;
-                goto finish;
-            }
-
-            uprv_strcpy(openFileName, genrbdata->inputDir);
-
-        }
-    }
-    uprv_strcat(openFileName, filename);
-    /* printf("%s\n", openFileName);  */
-    *status = U_ZERO_ERROR;
-    ucbuf = ucbuf_open(openFileName, &cp,getShowWarning(),TRUE, status);
-
-    if(*status == U_FILE_ACCESS_ERROR) {
-
-        fprintf(stderr, "couldn't open file %s\n", openFileName == NULL ? filename : openFileName);
-        goto finish;
-    }
-    if (ucbuf == NULL || U_FAILURE(*status)) {
-        fprintf(stderr, "An error occured processing file %s. Error: %s\n", openFileName == NULL ? filename : openFileName,u_errorName(*status));
-        goto finish;
-    }
-
-    /* Parse the data into an SRBRoot */
-    data = parse(ucbuf, genrbdata->inputDir, genrbdata->outputDir, status);
-
-    root = data->fRoot;
-    collations = resLookup(root, "collations");
-    collation = resLookup(collations, type);
-    sequence = resLookup(collation, "Sequence");
-    urules = sequence->u.fString.fChars;
-    urulesLength = sequence->u.fString.fLength;
-    *pLength = urulesLength;
-
-finish:
-
-    if (inputDirBuf != NULL) {
-        uprv_free(inputDirBuf);
-    }
-
-    if (openFileName != NULL) {
-        uprv_free(openFileName);
-    }
-
-    if(ucbuf) {
-        ucbuf_close(ucbuf);
-    }
-
-    return urules;
-}
-
 static struct SResource *
-addCollation(ParseState* state, struct SResource  *result, uint32_t startline, UErrorCode *status)
+addCollation(struct SResource  *result, uint32_t startline, UErrorCode *status)
 {
     struct SResource  *member = NULL;
     struct UString    *tokenValue;
@@ -812,14 +633,13 @@ addCollation(ParseState* state, struct SResource  *result, uint32_t startline, U
     UVersionInfo       version;
     UBool              override = FALSE;
     uint32_t           line;
-    GenrbData genrbdata;
     /* '{' . (name resource)* '}' */
     version[0]=0; version[1]=0; version[2]=0; version[3]=0;
 
     for (;;)
     {
         ustr_init(&comment);
-        token = getToken(state, &tokenValue, &comment, &line, status);
+        token = getToken(&tokenValue, &comment, &line, status);
 
         if (token == TOK_CLOSE_BRACE)
         {
@@ -851,7 +671,7 @@ addCollation(ParseState* state, struct SResource  *result, uint32_t startline, U
             return NULL;
         }
 
-        member = parseResource(state, subtag, NULL, status);
+        member = parseResource(subtag, NULL, status);
 
         if (U_FAILURE(*status))
         {
@@ -902,16 +722,10 @@ addCollation(ParseState* state, struct SResource  *result, uint32_t startline, U
                 int32_t     len   = 0;
                 uint8_t   *data  = NULL;
                 UCollator *coll  = NULL;
-                int32_t reorderCodes[USCRIPT_CODE_LIMIT + (UCOL_REORDER_CODE_LIMIT - UCOL_REORDER_CODE_FIRST)];
-                uint32_t reorderCodeCount;
-                int32_t reorderCodeIndex;
                 UParseError parseError;
 
-                genrbdata.inputDir = state->inputdir;
-                genrbdata.outputDir = state->outputdir;
-
-                coll = ucol_openRulesForImport(member->u.fString.fChars, member->u.fString.fLength,
-                                               UCOL_OFF, UCOL_DEFAULT_STRENGTH,&parseError, importFromDataFile, &genrbdata, &intStatus);
+                coll = ucol_openRules(member->u.fString.fChars, member->u.fString.fLength,
+                    UCOL_OFF, UCOL_DEFAULT_STRENGTH,&parseError, &intStatus);
 
                 if (U_SUCCESS(intStatus) && coll != NULL)
                 {
@@ -932,19 +746,9 @@ addCollation(ParseState* state, struct SResource  *result, uint32_t startline, U
 
                     if (U_SUCCESS(intStatus) && data != NULL)
                     {
-                        struct SResource *collationBin = bin_open(state->bundle, "%%CollationBin", len, data, NULL, NULL, status);
+                        struct SResource *collationBin = bin_open(bundle, "%%CollationBin", len, data, NULL, NULL, status);
                         table_add(result, collationBin, line, status);
                         uprv_free(data);
-                        
-                        reorderCodeCount = ucol_getReorderCodes(
-                            coll, reorderCodes, USCRIPT_CODE_LIMIT + (UCOL_REORDER_CODE_LIMIT - UCOL_REORDER_CODE_FIRST), &intStatus);
-                        if (U_SUCCESS(intStatus) && reorderCodeCount > 0) {
-                            struct SResource *reorderCodeRes = intvector_open(state->bundle, "%%ReorderCodes", NULL, status);
-                            for (reorderCodeIndex = 0; reorderCodeIndex < reorderCodeCount; reorderCodeIndex++) {
-                                intvector_add(reorderCodeRes, reorderCodes[reorderCodeIndex], status);
-                            }
-                            table_add(result, reorderCodeRes, line, status);
-                        }
                     }
                     else
                     {
@@ -979,7 +783,7 @@ addCollation(ParseState* state, struct SResource  *result, uint32_t startline, U
             /* in order to achieve smaller data files, we can direct genrb */
             /* to omit collation rules */
             if(gOmitCollationRules) {
-                bundle_closeString(state->bundle, member);
+                bundle_closeString(bundle, member);
             } else {
                 table_add(result, member, line, status);
             }
@@ -1003,7 +807,7 @@ addCollation(ParseState* state, struct SResource  *result, uint32_t startline, U
 }
 
 static struct SResource *
-parseCollationElements(ParseState* state, char *tag, uint32_t startline, UBool newCollation, UErrorCode *status)
+parseCollationElements(char *tag, uint32_t startline, UBool newCollation, UErrorCode *status)
 {
     struct SResource  *result = NULL;
     struct SResource  *member = NULL;
@@ -1014,7 +818,7 @@ parseCollationElements(ParseState* state, char *tag, uint32_t startline, UBool n
     char               subtag[1024], typeKeyword[1024];
     uint32_t           line;
 
-    result = table_open(state->bundle, tag, NULL, status);
+    result = table_open(bundle, tag, NULL, status);
 
     if (result == NULL || U_FAILURE(*status))
     {
@@ -1024,12 +828,12 @@ parseCollationElements(ParseState* state, char *tag, uint32_t startline, UBool n
         printf(" collation elements %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
     }
     if(!newCollation) {
-        return addCollation(state, result, startline, status);
+        return addCollation(result, startline, status);
     }
     else {
         for(;;) {
             ustr_init(&comment);
-            token = getToken(state, &tokenValue, &comment, &line, status);
+            token = getToken(&tokenValue, &comment, &line, status);
 
             if (token == TOK_CLOSE_BRACE)
             {
@@ -1063,7 +867,7 @@ parseCollationElements(ParseState* state, char *tag, uint32_t startline, UBool n
 
             if (uprv_strcmp(subtag, "default") == 0)
             {
-                member = parseResource(state, subtag, NULL, status);
+                member = parseResource(subtag, NULL, status);
 
                 if (U_FAILURE(*status))
                 {
@@ -1075,23 +879,20 @@ parseCollationElements(ParseState* state, char *tag, uint32_t startline, UBool n
             }
             else
             {
-                token = peekToken(state, 0, &tokenValue, &line, &comment, status);
+                token = peekToken(0, &tokenValue, &line, &comment, status);
                 /* this probably needs to be refactored or recursively use the parser */
                 /* first we assume that our collation table won't have the explicit type */
                 /* then, we cannot handle aliases */
                 if(token == TOK_OPEN_BRACE) {
-                    token = getToken(state, &tokenValue, &comment, &line, status);
-                    collationRes = table_open(state->bundle, subtag, NULL, status);
-                    collationRes = addCollation(state, collationRes, startline, status); /* need to parse the collation data regardless */
-                    if (gIncludeUnihanColl || uprv_strcmp(subtag, "unihan") != 0) {
-                        table_add(result, collationRes, startline, status);
-                    }
+                    token = getToken(&tokenValue, &comment, &line, status);
+                    collationRes = table_open(bundle, subtag, NULL, status);
+                    table_add(result, addCollation(collationRes, startline, status), startline, status);
                 } else if(token == TOK_COLON) { /* right now, we'll just try to see if we have aliases */
                     /* we could have a table too */
-                    token = peekToken(state, 1, &tokenValue, &line, &comment, status);
+                    token = peekToken(1, &tokenValue, &line, &comment, status);
                     u_UCharsToChars(tokenValue->fChars, typeKeyword, u_strlen(tokenValue->fChars) + 1);
                     if(uprv_strcmp(typeKeyword, "alias") == 0) {
-                        member = parseResource(state, subtag, NULL, status);
+                        member = parseResource(subtag, NULL, status);
 
                         if (U_FAILURE(*status))
                         {
@@ -1128,7 +929,7 @@ parseCollationElements(ParseState* state, char *tag, uint32_t startline, UBool n
 /* Necessary, because CollationElements requires the bundle->fRoot member to be present which,
    if this weren't special-cased, wouldn't be set until the entire file had been processed. */
 static struct SResource *
-realParseTable(ParseState* state, struct SResource *table, char *tag, uint32_t startline, UErrorCode *status)
+realParseTable(struct SResource *table, char *tag, uint32_t startline, UErrorCode *status)
 {
     struct SResource  *member = NULL;
     struct UString    *tokenValue=NULL;
@@ -1145,7 +946,7 @@ realParseTable(ParseState* state, struct SResource *table, char *tag, uint32_t s
     for (;;)
     {
         ustr_init(&comment);
-        token = getToken(state, &tokenValue, &comment, &line, status);
+        token = getToken(&tokenValue, &comment, &line, status);
 
         if (token == TOK_CLOSE_BRACE)
         {
@@ -1185,7 +986,7 @@ realParseTable(ParseState* state, struct SResource *table, char *tag, uint32_t s
             return NULL;
         }
 
-        member = parseResource(state, subtag, &comment, status);
+        member = parseResource(subtag, &comment, status);
 
         if (member == NULL || U_FAILURE(*status))
         {
@@ -1211,34 +1012,34 @@ realParseTable(ParseState* state, struct SResource *table, char *tag, uint32_t s
 }
 
 static struct SResource *
-parseTable(ParseState* state, char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
+parseTable(char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
 {
     struct SResource *result;
 
     if (tag != NULL && uprv_strcmp(tag, "CollationElements") == 0)
     {
-        return parseCollationElements(state, tag, startline, FALSE, status);
+        return parseCollationElements(tag, startline, FALSE, status);
     }
     if (tag != NULL && uprv_strcmp(tag, "collations") == 0)
     {
-        return parseCollationElements(state, tag, startline, TRUE, status);
+        return parseCollationElements(tag, startline, TRUE, status);
     }
     if(isVerbose()){
         printf(" table %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
     }
 
-    result = table_open(state->bundle, tag, comment, status);
+    result = table_open(bundle, tag, comment, status);
 
     if (result == NULL || U_FAILURE(*status))
     {
         return NULL;
     }
 
-    return realParseTable(state, result, tag, startline,  status);
+    return realParseTable(result, tag, startline,  status);
 }
 
 static struct SResource *
-parseArray(ParseState* state, char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
+parseArray(char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
 {
     struct SResource  *result = NULL;
     struct SResource  *member = NULL;
@@ -1247,7 +1048,7 @@ parseArray(ParseState* state, char *tag, uint32_t startline, const struct UStrin
     enum   ETokenType token;
     UBool             readToken = FALSE;
 
-    result = array_open(state->bundle, tag, comment, status);
+    result = array_open(bundle, tag, comment, status);
 
     if (result == NULL || U_FAILURE(*status))
     {
@@ -1266,12 +1067,12 @@ parseArray(ParseState* state, char *tag, uint32_t startline, const struct UStrin
         ustr_setlen(&memberComments, 0, status);
 
         /* check for end of array, but don't consume next token unless it really is the end */
-        token = peekToken(state, 0, &tokenValue, NULL, &memberComments, status);
+        token = peekToken(0, &tokenValue, NULL, &memberComments, status);
 
 
         if (token == TOK_CLOSE_BRACE)
         {
-            getToken(state, NULL, NULL, NULL, status);
+            getToken(NULL, NULL, NULL, status);
             if (!readToken) {
                 warning(startline, "Encountered empty array");
             }
@@ -1289,12 +1090,12 @@ parseArray(ParseState* state, char *tag, uint32_t startline, const struct UStrin
         /* string arrays are a special case */
         if (token == TOK_STRING)
         {
-            getToken(state, &tokenValue, &memberComments, NULL, status);
-            member = string_open(state->bundle, NULL, tokenValue->fChars, tokenValue->fLength, &memberComments, status);
+            getToken(&tokenValue, &memberComments, NULL, status);
+            member = string_open(bundle, NULL, tokenValue->fChars, tokenValue->fLength, &memberComments, status);
         }
         else
         {
-            member = parseResource(state, NULL, &memberComments, status);
+            member = parseResource(NULL, &memberComments, status);
         }
 
         if (member == NULL || U_FAILURE(*status))
@@ -1312,11 +1113,11 @@ parseArray(ParseState* state, char *tag, uint32_t startline, const struct UStrin
         }
 
         /* eat optional comma if present */
-        token = peekToken(state, 0, NULL, NULL, NULL, status);
+        token = peekToken(0, NULL, NULL, NULL, status);
 
         if (token == TOK_COMMA)
         {
-            getToken(state, NULL, NULL, NULL, status);
+            getToken(NULL, NULL, NULL, status);
         }
 
         if (U_FAILURE(*status))
@@ -1332,7 +1133,7 @@ parseArray(ParseState* state, char *tag, uint32_t startline, const struct UStrin
 }
 
 static struct SResource *
-parseIntVector(ParseState* state, char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
+parseIntVector(char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
 {
     struct SResource  *result = NULL;
     enum   ETokenType  token;
@@ -1343,7 +1144,7 @@ parseIntVector(ParseState* state, char *tag, uint32_t startline, const struct US
     uint32_t           len;
     struct UString     memberComments;
 
-    result = intvector_open(state->bundle, tag, comment, status);
+    result = intvector_open(bundle, tag, comment, status);
 
     if (result == NULL || U_FAILURE(*status))
     {
@@ -1360,12 +1161,12 @@ parseIntVector(ParseState* state, char *tag, uint32_t startline, const struct US
         ustr_setlen(&memberComments, 0, status);
 
         /* check for end of array, but don't consume next token unless it really is the end */
-        token = peekToken(state, 0, NULL, NULL,&memberComments, status);
+        token = peekToken(0, NULL, NULL,&memberComments, status);
 
         if (token == TOK_CLOSE_BRACE)
         {
             /* it's the end, consume the close brace */
-            getToken(state, NULL, NULL, NULL, status);
+            getToken(NULL, NULL, NULL, status);
             if (!readToken) {
                 warning(startline, "Encountered empty int vector");
             }
@@ -1373,7 +1174,7 @@ parseIntVector(ParseState* state, char *tag, uint32_t startline, const struct US
             return result;
         }
 
-        string = getInvariantString(state, NULL, NULL, status);
+        string = getInvariantString(NULL, NULL, status);
 
         if (U_FAILURE(*status))
         {
@@ -1389,7 +1190,7 @@ parseIntVector(ParseState* state, char *tag, uint32_t startline, const struct US
         {
             intvector_add(result, value, status);
             uprv_free(string);
-            token = peekToken(state, 0, NULL, NULL, NULL, status);
+            token = peekToken(0, NULL, NULL, NULL, status);
         }
         else
         {
@@ -1407,7 +1208,7 @@ parseIntVector(ParseState* state, char *tag, uint32_t startline, const struct US
         consecutive entries) so that a missing comma on the last entry isn't an error */
         if (token == TOK_COMMA)
         {
-            getToken(state, NULL, NULL, NULL, status);
+            getToken(NULL, NULL, NULL, status);
         }
         readToken = TRUE;
     }
@@ -1420,7 +1221,7 @@ parseIntVector(ParseState* state, char *tag, uint32_t startline, const struct US
 }
 
 static struct SResource *
-parseBinary(ParseState* state, char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
+parseBinary(char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
 {
     struct SResource *result = NULL;
     uint8_t          *value;
@@ -1432,14 +1233,14 @@ parseBinary(ParseState* state, char *tag, uint32_t startline, const struct UStri
     char             *stopstring;
     uint32_t          len;
 
-    string = getInvariantString(state, &line, NULL, status);
+    string = getInvariantString(&line, NULL, status);
 
     if (string == NULL || U_FAILURE(*status))
     {
         return NULL;
     }
 
-    expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+    expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
 
     if (U_FAILURE(*status))
     {
@@ -1479,7 +1280,7 @@ parseBinary(ParseState* state, char *tag, uint32_t startline, const struct UStri
                 }
             }
 
-            result = bin_open(state->bundle, tag, (i >> 1), value,NULL, comment, status);
+            result = bin_open(bundle, tag, (i >> 1), value,NULL, comment, status);
 
             uprv_free(value);
         }
@@ -1493,7 +1294,7 @@ parseBinary(ParseState* state, char *tag, uint32_t startline, const struct UStri
     }
     else
     {
-        result = bin_open(state->bundle, tag, 0, NULL, "",comment,status);
+        result = bin_open(bundle, tag, 0, NULL, "",comment,status);
         warning(startline, "Encountered empty binary tag");
     }
     uprv_free(string);
@@ -1502,7 +1303,7 @@ parseBinary(ParseState* state, char *tag, uint32_t startline, const struct UStri
 }
 
 static struct SResource *
-parseInteger(ParseState* state, char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
+parseInteger(char *tag, uint32_t startline, const struct UString *comment, UErrorCode *status)
 {
     struct SResource *result = NULL;
     int32_t           value;
@@ -1510,14 +1311,14 @@ parseInteger(ParseState* state, char *tag, uint32_t startline, const struct UStr
     char             *stopstring;
     uint32_t          len;
 
-    string = getInvariantString(state, NULL, NULL, status);
+    string = getInvariantString(NULL, NULL, status);
 
     if (string == NULL || U_FAILURE(*status))
     {
         return NULL;
     }
 
-    expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+    expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
 
     if (U_FAILURE(*status))
     {
@@ -1540,7 +1341,7 @@ parseInteger(ParseState* state, char *tag, uint32_t startline, const struct UStr
     len=(uint32_t)(stopstring-string);
     if(len==uprv_strlen(string))
     {
-        result = int_open(state->bundle, tag, value, comment, status);
+        result = int_open(bundle, tag, value, comment, status);
     }
     else
     {
@@ -1552,7 +1353,7 @@ parseInteger(ParseState* state, char *tag, uint32_t startline, const struct UStr
 }
 
 static struct SResource *
-parseImport(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
+parseImport(char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
 {
     struct SResource *result;
     FileStream       *file;
@@ -1562,14 +1363,14 @@ parseImport(ParseState* state, char *tag, uint32_t startline, const struct UStri
     uint32_t          line;
     char     *fullname = NULL;
     int32_t numRead = 0;
-    filename = getInvariantString(state, &line, NULL, status);
+    filename = getInvariantString(&line, NULL, status);
 
     if (U_FAILURE(*status))
     {
         return NULL;
     }
 
-    expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+    expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
 
     if (U_FAILURE(*status))
     {
@@ -1582,7 +1383,7 @@ parseImport(ParseState* state, char *tag, uint32_t startline, const struct UStri
     }
 
     /* Open the input file for reading */
-    if (state->inputdir == NULL)
+    if (inputdir == NULL)
     {
 #if 1
         /* 
@@ -1602,9 +1403,9 @@ parseImport(ParseState* state, char *tag, uint32_t startline, const struct UStri
 
         int32_t  count     = (int32_t)uprv_strlen(filename);
 
-        if (state->inputdir[state->inputdirLength - 1] != U_FILE_SEP_CHAR)
+        if (inputdir[inputdirLength - 1] != U_FILE_SEP_CHAR)
         {
-            fullname = (char *) uprv_malloc(state->inputdirLength + count + 2);
+            fullname = (char *) uprv_malloc(inputdirLength + count + 2);
 
             /* test for NULL */
             if(fullname == NULL)
@@ -1613,16 +1414,16 @@ parseImport(ParseState* state, char *tag, uint32_t startline, const struct UStri
                 return NULL;
             }
 
-            uprv_strcpy(fullname, state->inputdir);
+            uprv_strcpy(fullname, inputdir);
 
-            fullname[state->inputdirLength]      = U_FILE_SEP_CHAR;
-            fullname[state->inputdirLength + 1] = '\0';
+            fullname[inputdirLength]      = U_FILE_SEP_CHAR;
+            fullname[inputdirLength + 1] = '\0';
 
             uprv_strcat(fullname, filename);
         }
         else
         {
-            fullname = (char *) uprv_malloc(state->inputdirLength + count + 1);
+            fullname = (char *) uprv_malloc(inputdirLength + count + 1);
 
             /* test for NULL */
             if(fullname == NULL)
@@ -1631,7 +1432,7 @@ parseImport(ParseState* state, char *tag, uint32_t startline, const struct UStri
                 return NULL;
             }
 
-            uprv_strcpy(fullname, state->inputdir);
+            uprv_strcpy(fullname, inputdir);
             uprv_strcat(fullname, filename);
         }
 
@@ -1659,7 +1460,7 @@ parseImport(ParseState* state, char *tag, uint32_t startline, const struct UStri
     numRead = T_FileStream_read  (file, data, len);
     T_FileStream_close (file);
 
-    result = bin_open(state->bundle, tag, len, data, fullname, comment, status);
+    result = bin_open(bundle, tag, len, data, fullname, comment, status);
 
     uprv_free(data);
     uprv_free(filename);
@@ -1669,7 +1470,7 @@ parseImport(ParseState* state, char *tag, uint32_t startline, const struct UStri
 }
 
 static struct SResource *
-parseInclude(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
+parseInclude(char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
 {
     struct SResource *result;
     int32_t           len=0;
@@ -1683,7 +1484,7 @@ parseInclude(ParseState* state, char *tag, uint32_t startline, const struct UStr
     const char* cp = NULL;
     const UChar* uBuffer = NULL;
 
-    filename = getInvariantString(state, &line, NULL, status);
+    filename = getInvariantString(&line, NULL, status);
     count     = (int32_t)uprv_strlen(filename);
 
     if (U_FAILURE(*status))
@@ -1691,7 +1492,7 @@ parseInclude(ParseState* state, char *tag, uint32_t startline, const struct UStr
         return NULL;
     }
 
-    expect(state, TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
+    expect(TOK_CLOSE_BRACE, NULL, NULL, NULL, status);
 
     if (U_FAILURE(*status))
     {
@@ -1703,7 +1504,7 @@ parseInclude(ParseState* state, char *tag, uint32_t startline, const struct UStr
         printf(" include %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
     }
 
-    fullname = (char *) uprv_malloc(state->inputdirLength + count + 2);
+    fullname = (char *) uprv_malloc(inputdirLength + count + 2);
     /* test for NULL */
     if(fullname == NULL)
     {
@@ -1712,20 +1513,20 @@ parseInclude(ParseState* state, char *tag, uint32_t startline, const struct UStr
         return NULL;
     }
 
-    if(state->inputdir!=NULL){
-        if (state->inputdir[state->inputdirLength - 1] != U_FILE_SEP_CHAR)
+    if(inputdir!=NULL){
+        if (inputdir[inputdirLength - 1] != U_FILE_SEP_CHAR)
         {
 
-            uprv_strcpy(fullname, state->inputdir);
+            uprv_strcpy(fullname, inputdir);
 
-            fullname[state->inputdirLength]      = U_FILE_SEP_CHAR;
-            fullname[state->inputdirLength + 1] = '\0';
+            fullname[inputdirLength]      = U_FILE_SEP_CHAR;
+            fullname[inputdirLength + 1] = '\0';
 
             uprv_strcat(fullname, filename);
         }
         else
         {
-            uprv_strcpy(fullname, state->inputdir);
+            uprv_strcpy(fullname, inputdir);
             uprv_strcat(fullname, filename);
         }
     }else{
@@ -1740,7 +1541,7 @@ parseInclude(ParseState* state, char *tag, uint32_t startline, const struct UStr
     }
 
     uBuffer = ucbuf_getBuffer(ucbuf,&len,status);
-    result = string_open(state->bundle, tag, uBuffer, len, comment, status);
+    result = string_open(bundle, tag, uBuffer, len, comment, status);
 
     uprv_free(pTarget);
 
@@ -1819,6 +1620,8 @@ static struct {
 
 void initParser(UBool omitBinaryCollation, UBool omitCollationRules)
 {
+    uint32_t i;
+
     U_STRING_INIT(k_type_string,    "string",    6);
     U_STRING_INIT(k_type_binary,    "binary",    6);
     U_STRING_INIT(k_type_bin,       "bin",       3);
@@ -1837,7 +1640,11 @@ void initParser(UBool omitBinaryCollation, UBool omitCollationRules)
     U_STRING_INIT(k_type_plugin_collation,      "process(collation)",        18);
     U_STRING_INIT(k_type_plugin_transliterator, "process(transliterator)",   23);
     U_STRING_INIT(k_type_plugin_dependency,     "process(dependency)",       19);
-
+    
+    for (i = 0; i < MAX_LOOKAHEAD + 1; i++)
+    {
+        ustr_init(&lookahead[i].value);
+    }
     gMakeBinaryCollation = !omitBinaryCollation;
     gOmitCollationRules = omitCollationRules;
 }
@@ -1847,14 +1654,14 @@ static U_INLINE UBool isTable(enum EResourceType type) {
 }
 
 static enum EResourceType
-parseResourceType(ParseState* state, UErrorCode *status)
+parseResourceType(UErrorCode *status)
 {
     struct UString        *tokenValue;
     struct UString        comment;
     enum   EResourceType  result = RT_UNKNOWN;
     uint32_t              line=0;
     ustr_init(&comment);
-    expect(state, TOK_STRING, &tokenValue, &comment, &line, status);
+    expect(TOK_STRING, &tokenValue, &comment, &line, status);
 
     if (U_FAILURE(*status))
     {
@@ -1890,7 +1697,7 @@ parseResourceType(ParseState* state, UErrorCode *status)
 
 /* parse a non-top-level resource */
 static struct SResource *
-parseResource(ParseState* state, char *tag, const struct UString *comment, UErrorCode *status)
+parseResource(char *tag, const struct UString *comment, UErrorCode *status)
 {
     enum   ETokenType      token;
     enum   EResourceType  resType = RT_UNKNOWN;
@@ -1899,7 +1706,7 @@ parseResource(ParseState* state, char *tag, const struct UString *comment, UErro
     uint32_t                 startline;
     uint32_t                 line;
 
-    token = getToken(state, &tokenValue, NULL, &startline, status);
+    token = getToken(&tokenValue, NULL, &startline, status);
 
     if(isVerbose()){
         printf(" resource %s at line %i \n",  (tag == NULL) ? "(null)" : tag, (int)startline);
@@ -1921,8 +1728,8 @@ parseResource(ParseState* state, char *tag, const struct UString *comment, UErro
         return NULL;
 
     case TOK_COLON:
-        resType = parseResourceType(state, status);
-        expect(state, TOK_OPEN_BRACE, &tokenValue, NULL, &startline, status);
+        resType = parseResourceType(status);
+        expect(TOK_OPEN_BRACE, &tokenValue, NULL, &startline, status);
 
         if (U_FAILURE(*status))
         {
@@ -1954,7 +1761,7 @@ parseResource(ParseState* state, char *tag, const struct UString *comment, UErro
         { string }      => string
         */
 
-        token = peekToken(state, 0, NULL, &line, NULL,status);
+        token = peekToken(0, NULL, &line, NULL,status);
 
         if (U_FAILURE(*status))
         {
@@ -1967,7 +1774,7 @@ parseResource(ParseState* state, char *tag, const struct UString *comment, UErro
         }
         else if (token == TOK_STRING)
         {
-            token = peekToken(state, 1, NULL, &line, NULL, status);
+            token = peekToken(1, NULL, &line, NULL, status);
 
             if (U_FAILURE(*status))
             {
@@ -2004,7 +1811,7 @@ parseResource(ParseState* state, char *tag, const struct UString *comment, UErro
     function and return. */
     parseFunction = gResourceTypes[resType].parseFunction;
     if (parseFunction != NULL) {
-        return parseFunction(state, tag, startline, comment, status);
+        return parseFunction(tag, startline, comment, status);
     }
     else {
         *status = U_INTERNAL_PROGRAM_ERROR;
@@ -2023,51 +1830,39 @@ parse(UCHARBUF *buf, const char *inputDir, const char *outputDir, UErrorCode *st
     uint32_t           line;
     enum EResourceType bundleType;
     enum ETokenType    token;
-    ParseState state;
-    uint32_t i;
-    int encLength;
-    char* enc;
-    for (i = 0; i < MAX_LOOKAHEAD + 1; i++)
-    {
-        ustr_init(&state.lookahead[i].value);
-        ustr_init(&state.lookahead[i].comment);
-    }
 
-    initLookahead(&state, buf, status);
+    initLookahead(buf, status);
 
-    state.inputdir       = inputDir;
-    state.inputdirLength = (state.inputdir != NULL) ? (uint32_t)uprv_strlen(state.inputdir) : 0;
-    state.outputdir       = outputDir;
-    state.outputdirLength = (state.outputdir != NULL) ? (uint32_t)uprv_strlen(state.outputdir) : 0;
+    inputdir       = inputDir;
+    inputdirLength = (inputdir != NULL) ? (uint32_t)uprv_strlen(inputdir) : 0;
+    outputdir       = outputDir;
+    outputdirLength = (outputdir != NULL) ? (uint32_t)uprv_strlen(outputdir) : 0;
 
     ustr_init(&comment);
-    expect(&state, TOK_STRING, &tokenValue, &comment, NULL, status);
+    expect(TOK_STRING, &tokenValue, &comment, NULL, status);
 
-    state.bundle = bundle_open(&comment, FALSE, status);
+    bundle = bundle_open(&comment, FALSE, status);
 
-    if (state.bundle == NULL || U_FAILURE(*status))
+    if (bundle == NULL || U_FAILURE(*status))
     {
         return NULL;
     }
 
 
-    bundle_setlocale(state.bundle, tokenValue->fChars, status);
-
+    bundle_setlocale(bundle, tokenValue->fChars, status);
     /* The following code is to make Empty bundle work no matter with :table specifer or not */
-    token = getToken(&state, NULL, NULL, &line, status);
+    token = getToken(NULL, NULL, &line, status);
     if(token==TOK_COLON) {
         *status=U_ZERO_ERROR;
-        bundleType=parseResourceType(&state, status);
+        bundleType=parseResourceType(status);
 
         if(isTable(bundleType))
         {
-            expect(&state, TOK_OPEN_BRACE, NULL, NULL, &line, status);
+            expect(TOK_OPEN_BRACE, NULL, NULL, &line, status);
         }
         else
         {
             *status=U_PARSE_ERROR;
-            /* printf("asdsdweqdasdad\n"); */
-
             error(line, "parse error. Stopped parsing with %s", u_errorName(*status));
         }
     }
@@ -2090,7 +1885,7 @@ parse(UCHARBUF *buf, const char *inputDir, const char *outputDir, UErrorCode *st
 
     if (U_FAILURE(*status))
     {
-        bundle_close(state.bundle, status);
+        bundle_close(bundle, status);
         return NULL;
     }
 
@@ -2100,23 +1895,23 @@ parse(UCHARBUF *buf, const char *inputDir, const char *outputDir, UErrorCode *st
          * This is the same as a regular table, but also sets the
          * URES_ATT_NO_FALLBACK flag in indexes[URES_INDEX_ATTRIBUTES] .
          */
-        state.bundle->noFallback=TRUE;
+        bundle->noFallback=TRUE;
     }
     /* top-level tables need not handle special table names like "collations" */
-    realParseTable(&state, state.bundle->fRoot, NULL, line, status);
-
+    realParseTable(bundle->fRoot, NULL, line, status);
+    
     if(dependencyArray!=NULL){
-        table_add(state.bundle->fRoot, dependencyArray, 0, status);
+        table_add(bundle->fRoot, dependencyArray, 0, status);
         dependencyArray = NULL;
     }
     if (U_FAILURE(*status))
     {
-        bundle_close(state.bundle, status);
+        bundle_close(bundle, status);
         res_close(dependencyArray);
         return NULL;
     }
 
-    if (getToken(&state, NULL, NULL, &line, status) != TOK_EOF)
+    if (getToken(NULL, NULL, &line, status) != TOK_EOF)
     {
         warning(line, "extraneous text after resource bundle (perhaps unmatched braces)");
         if(isStrict()){
@@ -2125,7 +1920,8 @@ parse(UCHARBUF *buf, const char *inputDir, const char *outputDir, UErrorCode *st
         }
     }
 
-    cleanupLookahead(&state);
+    cleanupLookahead();
     ustr_deinit(&comment);
-    return state.bundle;
+    return bundle;
 }
+

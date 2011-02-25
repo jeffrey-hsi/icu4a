@@ -1,11 +1,9 @@
 /*
 ******************************************************************************
-* Copyright (C) 1998-2010, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 1998-2004, International Business Machines Corporation and   *
+* others. All Rights Reserved.                                               *
 ******************************************************************************
 */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/uchriter.h"
 #include "unicode/ustring.h"
@@ -68,7 +66,8 @@ UCharCharacterIterator::operator==(const ForwardCharacterIterator& that) const {
     if (this == &that) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(that)) {
+    
+    if (getDynamicClassID() != that.getDynamicClassID()) {
         return FALSE;
     }
 

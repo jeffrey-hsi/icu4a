@@ -55,7 +55,6 @@
 #include "propname.h"
 #include "rbbidata.h"
 #include "triedict.h"
-#include "utrie2.h"
 
 /* swapping implementations in i18n */
 
@@ -68,94 +67,9 @@
 
 #define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
-/* Unicode property (value) aliases data swapping --------------------------- */
-
-static int32_t
-upname_swap(const UDataSwapper *ds,
-            const void *inData, int32_t length, void *outData,
-            UErrorCode *pErrorCode) {
-    /* udata_swapDataHeader checks the arguments */
-    int32_t headerSize=udata_swapDataHeader(ds, inData, length, outData, pErrorCode);
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    /* check data format and format version */
-    const UDataInfo *pInfo=
-        reinterpret_cast<const UDataInfo *>(
-            reinterpret_cast<const char *>(inData)+4);
-    if(!(
-        pInfo->dataFormat[0]==0x70 &&   /* dataFormat="pnam" */
-        pInfo->dataFormat[1]==0x6e &&
-        pInfo->dataFormat[2]==0x61 &&
-        pInfo->dataFormat[3]==0x6d &&
-        pInfo->formatVersion[0]==2
-    )) {
-        udata_printError(ds, "upname_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not recognized as pnames.icu\n",
-                         pInfo->dataFormat[0], pInfo->dataFormat[1],
-                         pInfo->dataFormat[2], pInfo->dataFormat[3],
-                         pInfo->formatVersion[0]);
-        *pErrorCode=U_UNSUPPORTED_ERROR;
-        return 0;
-    }
-
-    const uint8_t *inBytes=reinterpret_cast<const uint8_t *>(inData)+headerSize;
-    uint8_t *outBytes=reinterpret_cast<uint8_t *>(outData)+headerSize;
-
-    if(length>=0) {
-        length-=headerSize;
-        // formatVersion 2 initially has indexes[8], 32 bytes.
-        if(length<32) {
-            udata_printError(ds, "upname_swap(): too few bytes (%d after header) for pnames.icu\n",
-                             (int)length);
-            *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
-            return 0;
-        }
-    }
-
-    const int32_t *inIndexes=reinterpret_cast<const int32_t *>(inBytes);
-    int32_t totalSize=udata_readInt32(ds, inIndexes[PropNameData::IX_TOTAL_SIZE]);
-    if(length>=0) {
-        if(length<totalSize) {
-            udata_printError(ds, "upname_swap(): too few bytes (%d after header, should be %d) "
-                             "for pnames.icu\n",
-                             (int)length, (int)totalSize);
-            *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
-            return 0;
-        }
-
-        int32_t numBytesIndexesAndValueMaps=
-            udata_readInt32(ds, inIndexes[PropNameData::IX_BYTE_TRIES_OFFSET]);
-
-        // Swap the indexes[] and the valueMaps[].
-        ds->swapArray32(ds, inBytes, numBytesIndexesAndValueMaps, outBytes, pErrorCode);
-
-        // Copy the rest of the data.
-        if(inBytes!=outBytes) {
-            uprv_memcpy(outBytes+numBytesIndexesAndValueMaps,
-                        inBytes+numBytesIndexesAndValueMaps,
-                        totalSize-numBytesIndexesAndValueMaps);
-        }
-
-        // We need not swap anything else:
-        //
-        // The ByteTries are already byte-serialized, and are fixed on ASCII.
-        // (On an EBCDIC machine, the input string is converted to lowercase ASCII
-        // while matching.)
-        //
-        // The name groups are mostly invariant characters, but since we only
-        // generate, and keep in subversion, ASCII versions of pnames.icu,
-        // and since only ICU4J uses the pnames.icu data file
-        // (the data is hardcoded in ICU4C) and ICU4J uses ASCII data files,
-        // we just copy those bytes too.
-    }
-
-    return headerSize+totalSize;
-}
-
 /* Unicode properties data swapping ----------------------------------------- */
 
-static int32_t
+U_CAPI int32_t U_EXPORT2
 uprops_swap(const UDataSwapper *ds,
             const void *inData, int32_t length, void *outData,
             UErrorCode *pErrorCode) {
@@ -178,10 +92,9 @@ uprops_swap(const UDataSwapper *ds,
         pInfo->dataFormat[1]==0x50 &&
         pInfo->dataFormat[2]==0x72 &&
         pInfo->dataFormat[3]==0x6f &&
-        (3<=pInfo->formatVersion[0] && pInfo->formatVersion[0]<=7) &&
-        (pInfo->formatVersion[0]>=7 ||
-            (pInfo->formatVersion[2]==UTRIE_SHIFT &&
-             pInfo->formatVersion[3]==UTRIE_INDEX_SHIFT))
+        (3<=pInfo->formatVersion[0] && pInfo->formatVersion[0]<=6) &&
+        pInfo->formatVersion[2]==UTRIE_SHIFT &&
+        pInfo->formatVersion[3]==UTRIE_INDEX_SHIFT
     )) {
         udata_printError(ds, "uprops_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not a Unicode properties file\n",
                          pInfo->dataFormat[0], pInfo->dataFormat[1],
@@ -209,18 +122,10 @@ uprops_swap(const UDataSwapper *ds,
      * comments are copied from the data format description in genprops/store.c
      * indexes[] constants are in uprops.h
      */
-    int32_t dataTop;
     if(length>=0) {
         int32_t *outData32;
 
-        /*
-         * In formatVersion 7, UPROPS_DATA_TOP_INDEX has the post-header data size.
-         * In earlier formatVersions, it is 0 and a lower dataIndexes entry
-         * has the top of the last item.
-         */
-        for(i=UPROPS_DATA_TOP_INDEX; i>0 && (dataTop=dataIndexes[i])==0; --i) {}
-
-        if((length-headerSize)<(4*dataTop)) {
+        if((length-headerSize)<(4*dataIndexes[UPROPS_RESERVED_INDEX])) {
             udata_printError(ds, "uprops_swap(): too few bytes (%d after header) for a Unicode properties file\n",
                              length-headerSize);
             *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
@@ -231,7 +136,7 @@ uprops_swap(const UDataSwapper *ds,
 
         /* copy everything for inaccessible data (padding) */
         if(inData32!=outData32) {
-            uprv_memcpy(outData32, inData32, 4*dataTop);
+            uprv_memcpy(outData32, inData32, 4*dataIndexes[UPROPS_RESERVED_INDEX]);
         }
 
         /* swap the indexes[16] */
@@ -241,7 +146,7 @@ uprops_swap(const UDataSwapper *ds,
          * swap the main properties UTrie
          * PT serialized properties trie, see utrie.h (byte size: 4*(i0-16))
          */
-        utrie2_swapAnyVersion(ds,
+        utrie_swap(ds,
             inData32+UPROPS_INDEX_COUNT,
             4*(dataIndexes[UPROPS_PROPS32_INDEX]-UPROPS_INDEX_COUNT),
             outData32+UPROPS_INDEX_COUNT,
@@ -272,7 +177,7 @@ uprops_swap(const UDataSwapper *ds,
          * swap the additional UTrie
          * i3 additionalTrieIndex; -- 32-bit unit index to the additional trie for more properties
          */
-        utrie2_swapAnyVersion(ds,
+        utrie_swap(ds,
             inData32+dataIndexes[UPROPS_ADDITIONAL_TRIE_INDEX],
             4*(dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX]-dataIndexes[UPROPS_ADDITIONAL_TRIE_INDEX]),
             outData32+dataIndexes[UPROPS_ADDITIONAL_TRIE_INDEX],
@@ -284,26 +189,18 @@ uprops_swap(const UDataSwapper *ds,
          */
         ds->swapArray32(ds,
             inData32+dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX],
-            4*(dataIndexes[UPROPS_SCRIPT_EXTENSIONS_INDEX]-dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX]),
+            4*(dataIndexes[UPROPS_RESERVED_INDEX]-dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX]),
             outData32+dataIndexes[UPROPS_ADDITIONAL_VECTORS_INDEX],
-            pErrorCode);
-
-        // swap the Script_Extensions data
-        // SCX const uint16_t scriptExtensions[2*(i7-i6)];
-        ds->swapArray16(ds,
-            inData32+dataIndexes[UPROPS_SCRIPT_EXTENSIONS_INDEX],
-            4*(dataIndexes[UPROPS_RESERVED_INDEX_7]-dataIndexes[UPROPS_SCRIPT_EXTENSIONS_INDEX]),
-            outData32+dataIndexes[UPROPS_SCRIPT_EXTENSIONS_INDEX],
             pErrorCode);
     }
 
-    /* i7 reservedIndex7; -- 32-bit unit index to the top of the Script_Extensions data */
-    return headerSize+4*dataIndexes[UPROPS_RESERVED_INDEX_7];
+    /* i6 reservedItemIndex; -- 32-bit unit index to the top of the properties vectors table */
+    return headerSize+4*dataIndexes[UPROPS_RESERVED_INDEX];
 }
 
 /* Unicode case mapping data swapping --------------------------------------- */
 
-static int32_t
+U_CAPI int32_t U_EXPORT2
 ucase_swap(const UDataSwapper *ds,
            const void *inData, int32_t length, void *outData,
            UErrorCode *pErrorCode) {
@@ -331,10 +228,9 @@ ucase_swap(const UDataSwapper *ds,
         pInfo->dataFormat[1]==UCASE_FMT_1 &&
         pInfo->dataFormat[2]==UCASE_FMT_2 &&
         pInfo->dataFormat[3]==UCASE_FMT_3 &&
-        ((pInfo->formatVersion[0]==1 &&
-          pInfo->formatVersion[2]==UTRIE_SHIFT &&
-          pInfo->formatVersion[3]==UTRIE_INDEX_SHIFT) ||
-         pInfo->formatVersion[0]==2)
+        pInfo->formatVersion[0]==1 &&
+        pInfo->formatVersion[2]==UTRIE_SHIFT &&
+        pInfo->formatVersion[3]==UTRIE_INDEX_SHIFT
     )) {
         udata_printError(ds, "ucase_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not recognized as case mapping data\n",
                          pInfo->dataFormat[0], pInfo->dataFormat[1],
@@ -389,7 +285,7 @@ ucase_swap(const UDataSwapper *ds,
 
         /* swap the UTrie */
         count=indexes[UCASE_IX_TRIE_SIZE];
-        utrie2_swapAnyVersion(ds, inBytes+offset, count, outBytes+offset, pErrorCode);
+        utrie_swap(ds, inBytes+offset, count, outBytes+offset, pErrorCode);
         offset+=count;
 
         /* swap the uint16_t exceptions[] and unfold[] */
@@ -405,7 +301,7 @@ ucase_swap(const UDataSwapper *ds,
 
 /* Unicode bidi/shaping data swapping --------------------------------------- */
 
-static int32_t
+U_CAPI int32_t U_EXPORT2
 ubidi_swap(const UDataSwapper *ds,
            const void *inData, int32_t length, void *outData,
            UErrorCode *pErrorCode) {
@@ -433,10 +329,9 @@ ubidi_swap(const UDataSwapper *ds,
         pInfo->dataFormat[1]==UBIDI_FMT_1 &&
         pInfo->dataFormat[2]==UBIDI_FMT_2 &&
         pInfo->dataFormat[3]==UBIDI_FMT_3 &&
-        ((pInfo->formatVersion[0]==1 &&
-          pInfo->formatVersion[2]==UTRIE_SHIFT &&
-          pInfo->formatVersion[3]==UTRIE_INDEX_SHIFT) ||
-         pInfo->formatVersion[0]==2)
+        pInfo->formatVersion[0]==1 &&
+        pInfo->formatVersion[2]==UTRIE_SHIFT &&
+        pInfo->formatVersion[3]==UTRIE_INDEX_SHIFT
     )) {
         udata_printError(ds, "ubidi_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not recognized as bidi/shaping data\n",
                          pInfo->dataFormat[0], pInfo->dataFormat[1],
@@ -491,7 +386,7 @@ ubidi_swap(const UDataSwapper *ds,
 
         /* swap the UTrie */
         count=indexes[UBIDI_IX_TRIE_SIZE];
-        utrie2_swapAnyVersion(ds, inBytes+offset, count, outBytes+offset, pErrorCode);
+        utrie_swap(ds, inBytes+offset, count, outBytes+offset, pErrorCode);
         offset+=count;
 
         /* swap the uint32_t mirrors[] */
@@ -513,7 +408,7 @@ ubidi_swap(const UDataSwapper *ds,
 
 #if !UCONFIG_NO_NORMALIZATION
 
-static int32_t
+U_CAPI int32_t U_EXPORT2
 unorm_swap(const UDataSwapper *ds,
            const void *inData, int32_t length, void *outData,
            UErrorCode *pErrorCode) {
@@ -637,7 +532,7 @@ unorm_swap(const UDataSwapper *ds,
 #endif
 
 /* Swap 'Test' data from gentest */
-static int32_t
+U_CAPI int32_t U_EXPORT2
 test_swap(const UDataSwapper *ds,
            const void *inData, int32_t length, void *outData,
            UErrorCode *pErrorCode) {

@@ -21,28 +21,26 @@ lt{
         "Latn",
     }
     NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"#,##0.00 ¤"}
-                decimalFormat{"#,##0.###"}
-                percentFormat{"#,##0%"}
-                scientificFormat{"#E0"}
-            }
-            symbols{
-                decimal{","}
-                exponential{"×10^"}
-                group{"."}
-                infinity{"∞"}
-                list{";"}
-                minusSign{"−"}
-                nan{"¤¤¤"}
-                perMille{"‰"}
-                percentSign{"%"}
-                plusSign{"+"}
-            }
-        }
+        ",",
+        ".",
+        ";",
+        "%",
+        "0",
+        "#",
+        "−",
+        "×10^",
+        "‰",
+        "∞",
+        "¤¤¤",
+        "+",
     }
-    Version{"2.0.50.94"}
+    NumberPatterns{
+        "#,##0.###",
+        "#,##0.00 ¤",
+        "#,##0%",
+        "#E0",
+    }
+    Version{"2.0.48.64"}
     calendar{
         buddhist{
             DateTimePatterns{

@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 2009-2011, International Business Machines Corporation and
+ * Copyright (c) 2009, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -77,7 +77,7 @@ void addUSpoofTest(TestNode** root)
 /*
  *  Identifiers for verifying that spoof checking is minimally alive and working.
  */
-const UChar goodLatin[] = {(UChar)0x75, (UChar)0x7a, 0};    /* "uz", all ASCII             */
+const UChar goodLatin[] = {(UChar)0x75, (UChar)0x77, 0};    /* "uw", all ASCII             */
                                                             /*   (not confusable)          */
 const UChar scMixed[]  = {(UChar)0x73, (UChar)0x0441, 0};   /* "sc", with Cyrillic 'c'     */
                                                             /*   (mixed script, confusable */
@@ -95,10 +95,8 @@ const UChar lll_Latin_b[] = {(UChar)0xff29, (UChar)0x217c, (UChar)0x196, 0};
 
 const UChar lll_Cyrl[]    = {(UChar)0x0406, (UChar)0x04C0, (UChar)0x31, 0};
 
-/* The skeleton transform for all of thes 'lll' lookalikes is all lower case l. */
-const UChar lll_Skel[]    = {(UChar)0x6c, (UChar)0x6c, (UChar)0x6c, 0};  
-
-const UChar han_Hiragana[] = {(UChar)0x3086, (UChar)0x308A, (UChar)0x0020, (UChar)0x77F3, (UChar)0x7530, 0};
+/* The skeleton transform for all of thes 'lll' lookalikes is all ascii digit 1. */
+const UChar lll_Skel[]    = {(UChar)0x31, (UChar)0x31, (UChar)0x31, 0};  
 
 /* Provide better code coverage */
 const char goodLatinUTF8[]    = {0x75, 0x77, 0};
@@ -289,25 +287,6 @@ static void TestUSpoofCAPI(void) {
         TEST_ASSERT_EQ(USPOOF_SINGLE_SCRIPT | USPOOF_MIXED_SCRIPT_CONFUSABLE, checkResults);
         uspoof_close(clone2);
     TEST_TEARDOWN;
-
-     /*
-     *  basic uspoof_check()
-     */
-     TEST_SETUP
-         int32_t result;
-         result = uspoof_check(sc, goodLatin, -1, NULL, &status);
-         TEST_ASSERT_SUCCESS(status);
-         TEST_ASSERT_EQ(0, result);
-
-         result = uspoof_check(sc, han_Hiragana, -1, NULL, &status);
-         TEST_ASSERT_SUCCESS(status);
-         TEST_ASSERT_EQ(0, result);
-
-         result = uspoof_check(sc, scMixed, -1, NULL, &status);
-         TEST_ASSERT_SUCCESS(status);
-         TEST_ASSERT_EQ(USPOOF_SINGLE_SCRIPT | USPOOF_MIXED_SCRIPT_CONFUSABLE, result);
-     TEST_TEARDOWN
-
 
     /*
      *  get & set Checks
@@ -513,8 +492,7 @@ static void TestUSpoofCAPI(void) {
         TEST_ASSERT_EQ(0, u_strcmp(lll_Skel, dest));
         TEST_ASSERT_EQ(u_strlen(lll_Skel), skelLength);
 
-        skelLength = uspoof_getSkeletonUTF8(sc, USPOOF_ANY_CASE, goodLatinUTF8, -1, (char*)dest, 
-                                            sizeof(dest)/sizeof(UChar), &status);
+        skelLength = uspoof_getSkeletonUTF8(sc, USPOOF_ANY_CASE, goodLatinUTF8, -1, dest, sizeof(dest)/sizeof(UChar), &status);
         TEST_ASSERT_SUCCESS(status);
 
         skelLength = uspoof_getSkeleton(sc, USPOOF_ANY_CASE, lll_Latin_a, -1, NULL, 0, &status);

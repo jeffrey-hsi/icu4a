@@ -64,7 +64,7 @@ sn{
             "Dhinari  re Aljeria",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Paundi re Ijipita",
         }
         ERN{

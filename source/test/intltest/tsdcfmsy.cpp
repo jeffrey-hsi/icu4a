@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2010, International Business Machines Corporation and
+ * Copyright (c) 1997-2009, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -124,15 +124,15 @@ void IntlTestDecimalFormatSymbols::testSymbols(/* char *par */)
 
     // Test get currency spacing before the currency.
     status = U_ZERO_ERROR;
-    for (int32_t i = 0; i < (int32_t)UNUM_CURRENCY_SPACING_COUNT; i++) {
+    for (int32_t i = 0; i < (int32_t)DecimalFormatSymbols::kCurrencySpacingCount; i++) {
         UnicodeString enCurrencyPattern = en.getPatternForCurrencySpacing(
-             (UCurrencySpacing)i, TRUE, status);
+             (DecimalFormatSymbols::ECurrencySpacing)i, TRUE, status);
         if(U_FAILURE(status)) {
             errln("Error: cannot get CurrencyMatch for locale:en");
             status = U_ZERO_ERROR;
         }
         UnicodeString frCurrencyPattern = fr.getPatternForCurrencySpacing(
-             (UCurrencySpacing)i, TRUE, status);
+             (DecimalFormatSymbols::ECurrencySpacing)i, TRUE, status);
         if(U_FAILURE(status)) {
             errln("Error: cannot get CurrencyMatch for locale:fr");
         }
@@ -142,15 +142,15 @@ void IntlTestDecimalFormatSymbols::testSymbols(/* char *par */)
     }
     // Test get currencySpacing after the currency.
     status = U_ZERO_ERROR;
-    for (int32_t i = 0; i < UNUM_CURRENCY_SPACING_COUNT; i++) {
+    for (int32_t i = 0; i < DecimalFormatSymbols::kCurrencySpacingCount; i++) {
         UnicodeString enCurrencyPattern = en.getPatternForCurrencySpacing(
-            (UCurrencySpacing)i, FALSE, status);
+            (DecimalFormatSymbols::ECurrencySpacing)i, FALSE, status);
         if(U_FAILURE(status)) {
             errln("Error: cannot get CurrencyMatch for locale:en");
             status = U_ZERO_ERROR;
         }
         UnicodeString frCurrencyPattern = fr.getPatternForCurrencySpacing(
-             (UCurrencySpacing)i, FALSE, status);
+             (DecimalFormatSymbols::ECurrencySpacing)i, FALSE, status);
         if(U_FAILURE(status)) {
             errln("Error: cannot get CurrencyMatch for locale:fr");
         }
@@ -161,9 +161,9 @@ void IntlTestDecimalFormatSymbols::testSymbols(/* char *par */)
     // Test set curerncySpacing APIs
     status = U_ZERO_ERROR;
     UnicodeString dash = UnicodeString("-");
-    en.setPatternForCurrencySpacing(UNUM_CURRENCY_INSERT, TRUE, dash);
+    en.setPatternForCurrencySpacing(DecimalFormatSymbols::kInsert, TRUE, dash);
     UnicodeString enCurrencyInsert = en.getPatternForCurrencySpacing(
-        UNUM_CURRENCY_INSERT, TRUE, status);
+        DecimalFormatSymbols::kInsert, TRUE, status);
     if (dash != enCurrencyInsert) {
         errln("Error: Failed to setCurrencyInsert for locale:en");
     }
@@ -202,13 +202,13 @@ void IntlTestDecimalFormatSymbols::testSymbols(/* char *par */)
 
     UnicodeString customDecSeperator("S");
     Verify(34.5, (UnicodeString)"00.00", sym, (UnicodeString)"34.50");
-    sym.setSymbol(DecimalFormatSymbols::kDecimalSeparatorSymbol, customDecSeperator);
+    sym.setSymbol((DecimalFormatSymbols::ENumberFormatSymbol)0, customDecSeperator);
     Verify(34.5, (UnicodeString)"00.00", sym, (UnicodeString)"34S50");
-    sym.setSymbol(DecimalFormatSymbols::kPercentSymbol, (UnicodeString)"P");
+    sym.setSymbol((DecimalFormatSymbols::ENumberFormatSymbol)3, (UnicodeString)"P");
     Verify(34.5, (UnicodeString)"00 %", sym, (UnicodeString)"3450 P");
-    sym.setSymbol(DecimalFormatSymbols::kCurrencySymbol, (UnicodeString)"D");
+    sym.setSymbol((DecimalFormatSymbols::ENumberFormatSymbol)8, (UnicodeString)"D");
     Verify(34.5, CharsToUnicodeString("\\u00a4##.##"), sym, (UnicodeString)"D34.5");
-    sym.setSymbol(DecimalFormatSymbols::kGroupingSeparatorSymbol, (UnicodeString)"|");
+    sym.setSymbol((DecimalFormatSymbols::ENumberFormatSymbol)1, (UnicodeString)"|");
     Verify(3456.5, (UnicodeString)"0,000.##", sym, (UnicodeString)"3|456S5");
 
 }

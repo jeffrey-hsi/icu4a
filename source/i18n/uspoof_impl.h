@@ -1,6 +1,6 @@
 /*
 ***************************************************************************
-* Copyright (C) 2008-2011, International Business Machines Corporation
+* Copyright (C) 2008-2009, International Business Machines Corporation
 * and others. All Rights Reserved.
 ***************************************************************************
 *
@@ -21,8 +21,6 @@
 
 
 #if !UCONFIG_NO_NORMALIZATION
-
-#ifdef XP_CPLUSPLUS
 
 U_NAMESPACE_BEGIN
 
@@ -97,6 +95,11 @@ public:
      */
     int32_t scriptScan(const UChar *text, int32_t length, int32_t &pos, UErrorCode &status) const;
 
+
+    // WholeScript and MixedScript check implementation.
+    //
+    ScriptSet *WholeScriptCheck(const UChar *text, int32_t length, UErrorCode &status) const;
+    
     static UClassID U_EXPORT2 getStaticClassID(void);
     virtual UClassID getDynamicClassID(void) const;
 
@@ -109,6 +112,8 @@ public:
 
     SpoofData        *fSpoofData;
     
+    int32_t           fCheckMask;         // Spoof table selector.  f(Check Type)
+	
     const UnicodeSet *fAllowedCharsSet;   // The UnicodeSet of allowed characters.
                                           //   for this Spoof Checker.  Defaults to all chars. 
 
@@ -214,7 +219,7 @@ class ScriptSet: public UMemory {
 
 //-------------------------------------------------------------------------------
 //
-//  NFDBuffer   A little class to handle the NFD normalization that is
+//  NFKDBuffer   A little class to handle the NFKD normalization that is
 //               needed on incoming identifiers to be checked.
 //               Takes care of buffer handling and normalization
 //
@@ -223,10 +228,10 @@ class ScriptSet: public UMemory {
 //               TODO:  how to map position offsets back to user values?
 //
 //--------------------------------------------------------------------------------
-class NFDBuffer: public UMemory {
+class NFKDBuffer: public UMemory {
 public:
-    NFDBuffer(const UChar *text, int32_t length, UErrorCode &status);
-    ~NFDBuffer();
+    NFKDBuffer(const UChar *text, int32_t length, UErrorCode &status);
+    ~NFKDBuffer();
     const UChar *getBuffer();
     int32_t getLength();
 
@@ -326,7 +331,7 @@ class SpoofData: public UMemory {
 //
 //---------------------------------------------------------------------------------------
 struct SpoofDataHeader {
-    int32_t       fMagic;                // (0x3845fdef)
+    int32_t       fMagic;                // (0x8345fdef)
     uint8_t       fFormatVersion[4];     // Data Format. Same as the value in struct UDataInfo
                                          //   if there is one associated with this data.
     int32_t       fLength;               // Total lenght in bytes of this spoof data,
@@ -390,7 +395,6 @@ struct SpoofDataHeader {
 
 
 U_NAMESPACE_END
-#endif /* XP_CPLUSPLUS */
 
 /**
   * Endianness swap function for binary spoof data.

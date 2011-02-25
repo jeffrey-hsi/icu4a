@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1999-2010, International Business Machines
+*   Copyright (C) 1999-2003, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************/
@@ -103,6 +103,7 @@ typedef struct {
  *     otherwise
  *         set an errorcode.
  */
-U_CFUNC void udata_checkCommonData(UDataMemory *pData, UErrorCode *pErrorCode);
+void   udata_checkCommonData(UDataMemory *pData, UErrorCode *pErrorCode);
+
 
 #endif

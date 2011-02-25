@@ -812,7 +812,7 @@ int main(int argc, char* argv[])
     UDate startTime, endTime;
     int32_t diffTime;
 
-    startTime = uprv_getRawUTCtime();
+    startTime = uprv_getUTCtime();
 
     /* Check whether ICU will initialize without forcing the build data directory into
     *  the ICU_DATA path.  Success here means either the data dll contains data, or that
@@ -870,7 +870,7 @@ int main(int argc, char* argv[])
     DataDrivenLogger::cleanUp();
     u_cleanup();
 
-    endTime = uprv_getRawUTCtime();
+    endTime = uprv_getUTCtime();
     diffTime = (int32_t)(endTime - startTime);
     printf("Elapsed Time: %02d:%02d:%02d.%03d\n",
         (int)((diffTime%U_MILLIS_PER_DAY)/U_MILLIS_PER_HOUR),

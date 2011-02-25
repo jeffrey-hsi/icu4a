@@ -14,7 +14,7 @@ haw{
     collations{
         standard{
             Sequence{
-                "&a<*eiouhk-npwʻ"
+                "&a<e<i<o<u<h<k<l<m<n<p<w<ʻ"
                 "&a<<<A"
                 "&e<<<E"
                 "&i<<<I"
@@ -28,7 +28,7 @@ haw{
                 "&p<<<P"
                 "&w<<<W"
             }
-            Version{"1.9"}
+            Version{"1.8.1"}
         }
     }
 }

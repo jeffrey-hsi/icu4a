@@ -1,11 +1,9 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2010, International Business Machines Corporation
+* Copyright (C) 1997-2009, International Business Machines Corporation
 * and others. All Rights Reserved.
 *******************************************************************************
 */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/rbnf.h"
 
@@ -874,7 +872,7 @@ RuleBasedNumberFormat::operator==(const Format& other) const
         return TRUE;
     }
 
-    if (typeid(*this) == typeid(other)) {
+    if (other.getDynamicClassID() == getStaticClassID()) {
         const RuleBasedNumberFormat& rhs = (const RuleBasedNumberFormat&)other;
         if (locale == rhs.locale &&
             lenient == rhs.lenient &&
@@ -1552,8 +1550,10 @@ RuleBasedNumberFormat::getCollator() const
         UErrorCode status = U_ZERO_ERROR;
 
         Collator* temp = Collator::createInstance(locale, status);
-        RuleBasedCollator* newCollator;
-        if (U_SUCCESS(status) && (newCollator = dynamic_cast<RuleBasedCollator*>(temp)) != NULL) {
+        if (U_SUCCESS(status) &&
+            temp->getDynamicClassID() == RuleBasedCollator::getStaticClassID()) {
+
+            RuleBasedCollator* newCollator = (RuleBasedCollator*)temp;
             if (lenientParseRules) {
                 UnicodeString rules(newCollator->getRules());
                 rules.append(*lenientParseRules);

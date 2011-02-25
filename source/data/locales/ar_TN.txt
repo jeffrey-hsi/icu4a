@@ -1,24 +1,25 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/ar_TN.xml
 // *
 // ***************************************************************************
 ar_TN{
-    NumberElements{
-        default{"latn"}
-        latn{
-            patterns{
-                currencyFormat{"¤#0.00"}
-                decimalFormat{"#0.###;#0.###-"}
-            }
-        }
+    NumberPatterns{
+        "#0.###;#0.###-",
+        "¤#0.00",
+        "#,##0%",
+        "#E0",
     }
     Version{"2.0.48.49"}
     calendar{
         gregorian{
+            DateTimeElements:intvector{
+                7,
+                4,
+            }
             DateTimePatterns{
                 "zzzz h:mm:ss a",
                 "z h:mm:ss a",
@@ -70,6 +71,13 @@ ar_TN{
                     d{"d‏-d MMM، y"}
                 }
             }
+            weekend:intvector{
+                6,
+                0,
+                7,
+                86400000,
+            }
         }
     }
+    defaultNumberingSystem{"latn"}
 }

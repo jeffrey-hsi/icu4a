@@ -11,9 +11,7 @@
  */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
+#include "unicode/utypes.h"
 #include "unicode/uobject.h"
 #include "ztrans.h"
 #include "unicode/tztrans.h"
@@ -97,5 +95,3 @@ U_CAPI UClassID U_EXPORT2
 ztrans_getDynamicClassID(ZTrans* trans){
     return ((TimeZoneTransition*)trans)->TimeZoneTransition::getDynamicClassID();
 }
-
-#endif

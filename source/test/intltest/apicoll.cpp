@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2010, International Business Machines Corporation and
+ * Copyright (c) 1997-2009, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 //===============================================================================
@@ -104,8 +104,9 @@ CollationAPITest::TestProperty(/* char* par */)
      * needs to be adjusted.
      * Same in cintltst/capitst.c.
      */
-    UVersionInfo currVersionArray = {0x31, 0xC0, 0x05, 0x2A};  // from ICU 4.4/UCA 5.2
+    UVersionInfo currVersionArray = {0x31, 0xC0, 0x00, 0x2A};
     UVersionInfo versionArray;
+    int i = 0;
 
     logln("The property tests begin : ");
     logln("Test ctors : ");
@@ -123,14 +124,12 @@ CollationAPITest::TestProperty(/* char* par */)
     delete kwEnum;
 
     col->getVersion(versionArray);
-    // Check for a version greater than some value rather than equality
-    // so that we need not update the expected version each time.
-    if (uprv_memcmp(versionArray, currVersionArray, 4)<0) {
-      errln("Testing Collator::getVersion() - unexpected result: %02x.%02x.%02x.%02x",
+    for (i=0; i<4; ++i) {
+      if (versionArray[i] != currVersionArray[i]) {
+        errln("Testing Collator::getVersion() - unexpected result: %02x.%02x.%02x.%02x",
             versionArray[0], versionArray[1], versionArray[2], versionArray[3]);
-    } else {
-      logln("Collator::getVersion() result: %02x.%02x.%02x.%02x",
-            versionArray[0], versionArray[1], versionArray[2], versionArray[3]);
+        break;
+      }
     }
 
     doAssert((col->compare("ab", "abc") == Collator::LESS), "ab < abc comparison failed");
@@ -138,7 +137,7 @@ CollationAPITest::TestProperty(/* char* par */)
     doAssert((col->compare("blackbird", "black-bird") == Collator::GREATER), "black-bird > blackbird comparison failed");
     doAssert((col->compare("black bird", "black-bird") == Collator::LESS), "black bird > black-bird comparison failed");
     doAssert((col->compare("Hello", "hello") == Collator::GREATER), "Hello > hello comparison failed");
-    doAssert((col->compare("","",success) == UCOL_EQUAL), "Comparison between empty strings failed");
+    doAssert((col->compare("","",success) == Collator::EQUAL), "Comparison between empty strings failed");
 
     doAssert((col->compareUTF8("\x61\x62\xc3\xa4", "\x61\x62\xc3\x9f", success) == UCOL_LESS), "ab a-umlaut < ab sharp-s UTF-8 comparison failed");
     success = U_ZERO_ERROR;
@@ -239,10 +238,10 @@ CollationAPITest::TestProperty(/* char* par */)
 
     doAssert(((RuleBasedCollator *)col)->getRules() == ((RuleBasedCollator *)junk)->getRules(),
                "The default collation should be returned.");
-    Collator *frCol = Collator::createInstance(Locale::getCanadaFrench(), success);
+    Collator *frCol = Collator::createInstance(Locale::getFrance(), success);
     if (U_FAILURE(success))
     {
-        errln("Creating fr_CA collator failed.");
+        errln("Creating French collator failed.");
         delete col;
         delete junk;
         return;
@@ -250,11 +249,11 @@ CollationAPITest::TestProperty(/* char* par */)
 
     // If the default locale isn't French, the French and non-French collators
     // should be different
-    if (frCol->getLocale(ULOC_ACTUAL_LOCALE, success) != Locale::getCanadaFrench()) {
-        doAssert((*frCol != *junk), "The junk is the same as the fr_CA collator.");
+    if (frCol->getLocale(ULOC_ACTUAL_LOCALE, success) != Locale::getFrench()) {
+        doAssert((*frCol != *junk), "The junk is the same as the French collator.");
     }
     Collator *aFrCol = frCol->clone();
-    doAssert((*frCol == *aFrCol), "The cloning of a fr_CA collator failed.");
+    doAssert((*frCol == *aFrCol), "The cloning of a French collator failed.");
     logln("Collator property test ended.");
 
     delete col;
@@ -382,8 +381,8 @@ CollationAPITest::TestRules()
     }
 
     coll->getRules(UCOL_TAILORING_ONLY, rules);
-    if (rules.length() != 0x00) {
-      errln("English tailored rules failed - length is 0x%x expected 0x%x", rules.length(), 0x00);
+    if (rules.length() != 0x0a) {
+      errln("English tailored rules failed - length is 0x%x expected 0x%x", rules.length(), 0x0e);
     }
 
     coll->getRules(UCOL_FULL_RULES, rules);
@@ -1284,23 +1283,23 @@ void CollationAPITest::TestMaxExpansion()
 
         size = coll.getMaxExpansion(order);
         if (U_FAILURE(status) || size < count) {
-            errln("Failure at codepoint U+%04X, maximum expansion count %d < %d",
-                  ch, size, count);
+            errln("Failure at codepoint %d, maximum expansion count < %d\n",
+                  ch, count);
         }
     }
 
     /* testing for exact max expansion */
-    int32_t size;
     ch = 0;
     while (ch < 0x61) {
         uint32_t order;
+        int32_t  size;
         str.setCharAt(0, ch);
         iter->setText(str, status);
         order = iter->previous(status);
         size  = coll.getMaxExpansion(order);
         if (U_FAILURE(status) || size != 1) {
-            errln("Failure at codepoint U+%04X, maximum expansion count %d < %d",
-                  ch, size, 1);
+            errln("Failure at codepoint %d, maximum expansion count < %d\n",
+                ch, 1);
         }
         ch ++;
     }
@@ -1309,29 +1308,29 @@ void CollationAPITest::TestMaxExpansion()
     str.setTo(ch);
     iter->setText(str, status);
     temporder = iter->previous(status);
-    size = coll.getMaxExpansion(temporder);
-    if (U_FAILURE(status) || size != 3) {
-        errln("Failure at codepoint U+%04X, CE %08x, maximum expansion count %d != %d",
-              ch, temporder, size, 3);
+
+    if (U_FAILURE(status) || coll.getMaxExpansion(temporder) != 3) {
+        errln("Failure at codepoint %d, maximum expansion count != %d\n",
+              ch, 3);
     }
 
     ch = 0x64;
     str.setTo(ch);
     iter->setText(str, status);
     temporder = iter->previous(status);
-    size = coll.getMaxExpansion(temporder);
-    if (U_FAILURE(status) || size != 1) {
-        errln("Failure at codepoint U+%04X, CE %08x, maximum expansion count %d != %d",
-              ch, temporder, size, 1);
+
+    if (U_FAILURE(status) || coll.getMaxExpansion(temporder) != 1) {
+        errln("Failure at codepoint %d, maximum expansion count != %d\n",
+                ch, 3);
     }
 
     str.setTo(unassigned);
     iter->setText(str, status);
     sorder = iter->previous(status);
-    size = coll.getMaxExpansion(sorder);
-    if (U_FAILURE(status) || size != 2) {
-        errln("Failure at supplementary codepoints, maximum expansion count %d < %d",
-              size, 2);
+
+    if (U_FAILURE(status) || coll.getMaxExpansion(sorder) != 2) {
+        errln("Failure at supplementary codepoints, maximum expansion count < %d\n",
+              2);
     }
 
     /* testing jamo */
@@ -1339,10 +1338,9 @@ void CollationAPITest::TestMaxExpansion()
     str.setTo(ch);
     iter->setText(str, status);
     temporder = iter->previous(status);
-    size = coll.getMaxExpansion(temporder);
-    if (U_FAILURE(status) || size > 3) {
-        errln("Failure at codepoint U+%04X, maximum expansion count %d > %d",
-              ch, size, 3);
+    if (U_FAILURE(status) || coll.getMaxExpansion(temporder) > 3) {
+        errln("Failure at codepoint %d, maximum expansion count > %d\n",
+              ch, 3);
     }
 
     delete iter;
@@ -1353,10 +1351,9 @@ void CollationAPITest::TestMaxExpansion()
     RuleBasedCollator jamocoll(rule, status);
     iter = jamocoll.createCollationElementIterator(str);
     temporder = iter->previous(status);
-    size = iter->getMaxExpansion(temporder);
-    if (U_FAILURE(status) || size != 6) {
-        errln("Failure at codepoint U+%04X, maximum expansion count %d > %d",
-              ch, size, 5);
+    if (U_FAILURE(status) || iter->getMaxExpansion(temporder) != 6) {
+        errln("Failure at codepoint %d, maximum expansion count > %d\n",
+              ch, 5);
     }
 
     delete iter;

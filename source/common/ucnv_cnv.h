@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2010, International Business Machines
+*   Copyright (C) 1999-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -190,6 +190,7 @@ typedef enum UConverterSetFilter {
     UCNV_SET_FILTER_COUNT
 } UConverterSetFilter;
 
+#if !UCONFIG_NO_USET
 /**
  * Fills the set of Unicode code points that can be converted by an ICU converter.
  * The API function ucnv_getUnicodeSet() clears the USet before calling
@@ -205,6 +206,13 @@ typedef void (*UConverterGetUnicodeSet) (const UConverter *cnv,
                                          const USetAdder *sa,
                                          UConverterUnicodeSet which,
                                          UErrorCode *pErrorCode);
+#else
+/* will not be called. */
+typedef void (*UConverterGetUnicodeSet) (const UConverter *cnv,
+                                         void *unused,
+                                         UConverterUnicodeSet which,
+                                         UErrorCode *pErrorCode);
+#endif
 
 UBool CONVERSION_U_SUCCESS (UErrorCode err);
 
@@ -257,7 +265,7 @@ extern const UConverterSharedData
     _LMBCSData1,_LMBCSData2, _LMBCSData3, _LMBCSData4, _LMBCSData5, _LMBCSData6,
     _LMBCSData8,_LMBCSData11,_LMBCSData16,_LMBCSData17,_LMBCSData18,_LMBCSData19,
     _HZData,_ISCIIData, _SCSUData, _ASCIIData,
-    _UTF7Data, _Bocu1Data, _UTF16Data, _UTF32Data, _CESU8Data, _IMAPData, _CompoundTextData;
+    _UTF7Data, _Bocu1Data, _UTF16Data, _UTF32Data, _CESU8Data, _IMAPData;
 
 U_CDECL_END
 

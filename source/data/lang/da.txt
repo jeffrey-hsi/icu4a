@@ -622,6 +622,7 @@ da{
         Phnx{"fønikisk"}
         Plrd{"pollardtegn"}
         Prti{"prti"}
+        Qaai{"arvet"}
         Rjng{"rejang"}
         Roro{"rongo-rongo"}
         Runr{"runer"}
@@ -655,7 +656,6 @@ da{
         Xpeo{"oldpersisk"}
         Xsux{"sumero-akkadisk cuneiform"}
         Yiii{"yi"}
-        Zinh{"arvet"}
         Zmth{"zmth"}
         Zsym{"zsym"}
         Zxxx{"ikke-skriftsprog"}
@@ -703,7 +703,7 @@ da{
         REVISED{"revideret retskrivning"}
         WADEGILE{"Wade-Giles"}
     }
-    Version{"2.0.50.96"}
+    Version{"2.0.48.64"}
     codePatterns{
         language{"Sprog: {0}"}
         script{"Instruks: {0}"}

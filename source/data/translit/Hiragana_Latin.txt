@@ -7,7 +7,7 @@
 # File: Hiragana_Latin.txt
 # Generated from CLDR 
 #
-:: [ぁ-ゔ\u3099ゝ-ゞガギグゲゴザジズゼゾダヂヅデドバビブベボヴヷ-ヺーヾ] ;
+:: [ぁ-ゔ\u3099ゝ-ゞガギグゲゴザジズゼゾダヂヅデドバビブベボヴヷ-ヺヾ] ;
 :: NFD ;
 :: Hiragana-Katakana;
 :: Katakana-Latin;

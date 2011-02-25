@@ -64,7 +64,7 @@ cgg{
             "Dinari ya Arigyeriya",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Paundi ya Misiri",
         }
         ERN{

@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/es_US.xml
@@ -9,12 +9,18 @@
 es_US{
     MeasurementSystem:int{1}
     NumberElements{
-        latn{
-            symbols{
-                decimal{"."}
-                group{","}
-            }
-        }
+        ".",
+        ",",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
     }
     PaperSize:intvector{
         279,
@@ -23,6 +29,10 @@ es_US{
     Version{"2.0.45.82"}
     calendar{
         gregorian{
+            DateTimeElements:intvector{
+                1,
+                4,
+            }
             DateTimePatterns{
                 "h:mm:ss a zzzz",
                 "h:mm:ss a z",

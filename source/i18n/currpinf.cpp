@@ -54,10 +54,7 @@ static const UChar gPluralCountOther[] = {0x6F, 0x74, 0x68, 0x65, 0x72, 0};
 static const UChar gPart0[] = {0x7B, 0x30, 0x7D, 0};
 static const UChar gPart1[] = {0x7B, 0x31, 0x7D, 0};
 
-static const char gNumberElementsTag[]="NumberElements";
-static const char gLatnTag[]="latn";
-static const char gPatternsTag[]="patterns";
-static const char gDecimalFormatTag[]="decimalFormat";
+static const char gNumberPatternsTag[]="NumberPatterns";
 static const char gCurrUnitPtnTag[]="CurrencyUnitPatterns";
 
 CurrencyPluralInfo::CurrencyPluralInfo(UErrorCode& status)
@@ -241,11 +238,11 @@ CurrencyPluralInfo::setupCurrencyPluralPattern(const Locale& loc, UErrorCode& st
 
     UErrorCode ec = U_ZERO_ERROR;
     UResourceBundle *rb = ures_open(NULL, loc.getName(), &ec);
-    rb = ures_getByKey(rb, gNumberElementsTag, rb, &ec);
-    rb = ures_getByKey(rb, gLatnTag, rb, &ec);
-    rb = ures_getByKey(rb, gPatternsTag, rb, &ec);
+    UResourceBundle *numberPatterns = ures_getByKey(rb, gNumberPatternsTag, NULL, &ec);
     int32_t ptnLen;
-    const UChar* numberStylePattern = ures_getStringByKeyWithFallback(rb, gDecimalFormatTag, &ptnLen, &ec);
+    // TODO: 0 to be NumberFormat::fNumberStyle
+    const UChar* numberStylePattern = ures_getStringByIndex(numberPatterns, 0, 
+                                                            &ptnLen, &ec);
     int32_t numberStylePatternLen = ptnLen;
     const UChar* negNumberStylePattern = NULL;
     int32_t negNumberStylePatternLen = 0;
@@ -263,6 +260,7 @@ CurrencyPluralInfo::setupCurrencyPluralPattern(const Locale& loc, UErrorCode& st
             }
         }
     }
+    ures_close(numberPatterns);
     ures_close(rb);
 
     if (U_FAILURE(ec)) {

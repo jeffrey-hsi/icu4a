@@ -1,11 +1,9 @@
 /*
 *******************************************************************************
-* Copyright (C) 2007-2010, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 2007, International Business Machines Corporation and         *
+* others. All Rights Reserved.                                                *
 *******************************************************************************
 */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -66,16 +64,16 @@ TimeZoneTransition::operator==(const TimeZoneTransition& that) const {
     if (this == &that) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(that)) {
+    if (getDynamicClassID() != that.getDynamicClassID()) {
         return FALSE;
     }
     if (fTime != that.fTime) {
         return FALSE;
     }
-    if ((fFrom == NULL && that.fFrom == NULL)
-        || (fFrom != NULL && that.fFrom != NULL && *fFrom == *(that.fFrom))) {
-        if ((fTo == NULL && that.fTo == NULL)
-            || (fTo != NULL && that.fTo != NULL && *fTo == *(that.fTo))) {
+    if (fFrom == NULL && that.fFrom == NULL
+        || fFrom != NULL && that.fFrom != NULL && *fFrom == *(that.fFrom)) {
+        if (fTo == NULL && that.fTo == NULL
+            || fTo != NULL && that.fTo != NULL && *fTo == *(that.fTo)) {
             return TRUE;
         }
     }

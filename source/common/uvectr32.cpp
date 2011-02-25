@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-* Copyright (C) 1999-2010, International Business Machines Corporation and   *
+* Copyright (C) 1999-2008, International Business Machines Corporation and   *
 * others. All Rights Reserved.                                               *
 ******************************************************************************
 *   Date        Name        Description
@@ -10,11 +10,10 @@
 
 #include "uvectr32.h"
 #include "cmemory.h"
-#include "putilimp.h"
 
 U_NAMESPACE_BEGIN
 
-#define DEFAULT_CAPACITY 8
+#define DEFUALT_CAPACITY 8
 
 /*
  * Constants for hinting whether a key is an integer
@@ -30,7 +29,7 @@ UVector32::UVector32(UErrorCode &status) :
     maxCapacity(0),
     elements(NULL)
 {
-    _init(DEFAULT_CAPACITY, status);
+    _init(DEFUALT_CAPACITY, status);
 }
 
 UVector32::UVector32(int32_t initialCapacity, UErrorCode &status) :
@@ -47,13 +46,10 @@ UVector32::UVector32(int32_t initialCapacity, UErrorCode &status) :
 void UVector32::_init(int32_t initialCapacity, UErrorCode &status) {
     // Fix bogus initialCapacity values; avoid malloc(0)
     if (initialCapacity < 1) {
-        initialCapacity = DEFAULT_CAPACITY;
+        initialCapacity = DEFUALT_CAPACITY;
     }
     if (maxCapacity>0 && maxCapacity<initialCapacity) {
         initialCapacity = maxCapacity;
-    }
-    if (initialCapacity > (int32_t)(INT32_MAX / sizeof(int32_t))) {
-        initialCapacity = uprv_min(DEFAULT_CAPACITY, maxCapacity);
     }
     elements = (int32_t *)uprv_malloc(sizeof(int32_t)*initialCapacity);
     if (elements == 0) {
@@ -196,19 +192,11 @@ int32_t UVector32::indexOf(int32_t key, int32_t startIndex) const {
 
 
 UBool UVector32::expandCapacity(int32_t minimumCapacity, UErrorCode &status) {
-    if (minimumCapacity < 0) {
-        status = U_ILLEGAL_ARGUMENT_ERROR;
-        return FALSE;
-    }
     if (capacity >= minimumCapacity) {
         return TRUE;
     }
     if (maxCapacity>0 && minimumCapacity>maxCapacity) {
         status = U_BUFFER_OVERFLOW_ERROR;
-        return FALSE;
-    }
-    if (capacity > (INT32_MAX - 1) / 2) {  // integer overflow check
-        status = U_ILLEGAL_ARGUMENT_ERROR;
         return FALSE;
     }
     int32_t newCap = capacity * 2;
@@ -217,11 +205,6 @@ UBool UVector32::expandCapacity(int32_t minimumCapacity, UErrorCode &status) {
     }
     if (maxCapacity > 0 && newCap > maxCapacity) {
         newCap = maxCapacity;
-    }
-    if (newCap > (int32_t)(INT32_MAX / sizeof(int32_t))) {  // integer overflow check
-        // We keep the original memory contents on bad minimumCapacity/maxCapacity.
-        status = U_ILLEGAL_ARGUMENT_ERROR;
-        return FALSE;
     }
     int32_t* newElems = (int32_t *)uprv_realloc(elements, sizeof(int32_t)*newCap);
     if (newElems == NULL) {
@@ -236,14 +219,10 @@ UBool UVector32::expandCapacity(int32_t minimumCapacity, UErrorCode &status) {
 
 void UVector32::setMaxCapacity(int32_t limit) {
     U_ASSERT(limit >= 0);
-    if (limit < 0) {
-        limit = 0;
-    }
-    if (limit > (int32_t)(INT32_MAX / sizeof(int32_t))) {  // integer overflow check for realloc
-        //  Something is very wrong, don't realloc, leave capacity and maxCapacity unchanged
-        return;
-    }
     maxCapacity = limit;
+    if (maxCapacity < 0) {
+        maxCapacity = 0;
+    }
     if (capacity <= maxCapacity || maxCapacity == 0) {
         // Current capacity is within the new limit.
         return;

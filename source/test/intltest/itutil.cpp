@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2011, International Business Machines Corporation and
+ * Copyright (c) 1997-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -29,9 +29,7 @@
 #include "aliastst.h"
 #include "usettest.h"
 
-extern IntlTest *createBytesTrieTest();
 static IntlTest *createLocalPointerTest();
-extern IntlTest *createUCharsTrieTest();
 
 #define CASE(id, test) case id:                               \
                           name = #test;                       \
@@ -46,20 +44,20 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
 {
     if (exec) logln("TestSuite Utilities: ");
     switch (index) {
-        CASE(0, MultithreadTest);
-        CASE(1, StringTest);
-        CASE(2, UnicodeStringTest);
-        CASE(3, LocaleTest);
-        CASE(4, CharIterTest);
-        CASE(5, UObjectTest);
-        CASE(6, UnicodeTest);
-        CASE(7, ResourceBundleTest);
-        CASE(8, NewResourceBundleTest);
-        CASE(9, PUtilTest);
-        CASE(10, UVector32Test);
-        CASE(11, UVectorTest);
-        CASE(12, UTextTest);
-        CASE(13, LocaleAliasTest);
+        CASE(0, MultithreadTest); 
+        CASE(1, StringTest); 
+        CASE(2, UnicodeStringTest); 
+        CASE(3, LocaleTest); 
+        CASE(4, CharIterTest); 
+        CASE(5, UnicodeTest); 
+        CASE(6, ResourceBundleTest); 
+        CASE(7, NewResourceBundleTest); 
+        CASE(8, PUtilTest); 
+        CASE(9, UObjectTest); 
+        CASE(10, UVector32Test); 
+        CASE(11, UVectorTest); 
+        CASE(12, UTextTest); 
+        CASE(13, LocaleAliasTest); 
         CASE(14, UnicodeSetTest);
         CASE(15, ErrorCodeTest);
         case 16:
@@ -67,22 +65,6 @@ void IntlTestUtilities::runIndexedTest( int32_t index, UBool exec, const char* &
             if (exec) {
                 logln("TestSuite LocalPointerTest---"); logln();
                 LocalPointer<IntlTest> test(createLocalPointerTest());
-                callTest(*test, par);
-            }
-            break;
-        case 17:
-            name = "ByteTrieTest";
-            if (exec) {
-                logln("TestSuite BytesTrieTest---"); logln();
-                LocalPointer<IntlTest> test(createBytesTrieTest());
-                callTest(*test, par);
-            }
-            break;
-        case 18:
-            name = "UCharTrieTest";
-            if (exec) {
-                logln("TestSuite UCharsTrieTest---"); logln();
-                LocalPointer<IntlTest> test(createUCharsTrieTest());
                 callTest(*test, par);
             }
             break;
@@ -289,7 +271,6 @@ void LocalPointerTest::TestLocalArray() {
 #include "unicode/ucnvsel.h"
 #include "unicode/ucal.h"
 #include "unicode/udatpg.h"
-#include "unicode/uidna.h"
 #include "unicode/uldnames.h"
 #include "unicode/umsg.h"
 #include "unicode/unorm2.h"
@@ -363,17 +344,6 @@ void LocalPointerTest::TestLocalXyzPointer() {
         return;
     }
 #endif /* !UCONFIG_NO_NORMALIZATION */
-
-#if !UCONFIG_NO_IDNA
-    LocalUIDNAPointer idna(uidna_openUTS46(0, errorCode));
-    if(errorCode.logIfFailureAndReset("uidna_openUTS46()")) {
-        return;
-    }
-    if(idna.isNull()) {
-        errln("LocalUIDNAPointer failure");
-        return;
-    }
-#endif  /* !UCONFIG_NO_IDNA */
 
 #if !UCONFIG_NO_REGULAR_EXPRESSIONS
     UnicodeString pattern=UNICODE_STRING_SIMPLE("abc|xy+z");

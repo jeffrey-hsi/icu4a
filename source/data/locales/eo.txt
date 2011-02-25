@@ -17,12 +17,18 @@ eo{
         "Latn",
     }
     NumberElements{
-        latn{
-            symbols{
-                decimal{","}
-                group{" "}
-            }
-        }
+        ",",
+        " ",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
     }
     Version{"2.0.47.67"}
     calendar{

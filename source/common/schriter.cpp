@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
-* Copyright (C) 1998-2010, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 1998-2007, International Business Machines Corporation and   *
+* others. All Rights Reserved.                                               *
 ******************************************************************************
 *
 * File schriter.cpp
@@ -12,8 +12,6 @@
 *  05/05/99     stephen     Cleaned up.
 ******************************************************************************
 */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/chariter.h"
 #include "unicode/schriter.h"
@@ -87,7 +85,7 @@ StringCharacterIterator::operator==(const ForwardCharacterIterator& that) const 
     // because that checks for array pointer equality
     // while we compare UnicodeString objects
 
-    if (typeid(*this) != typeid(that)) {
+    if (getDynamicClassID() != that.getDynamicClassID()) {
         return FALSE;
     }
 

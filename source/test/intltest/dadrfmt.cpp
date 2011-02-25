@@ -23,7 +23,7 @@
 #include "unicode/schriter.h"
 #include "unicode/regex.h"
 #include "unicode/smpdtfmt.h"
-#include "dbgutil.h"
+#include "unicode/dbgutil.h"
 #include "fldset.h"
 
 

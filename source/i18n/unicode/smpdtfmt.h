@@ -406,7 +406,7 @@ public:
      *                  are defined in UDateFormatField.
      * @param status    Input/output param set to success/failure code.
      * @return          Reference to 'appendTo' parameter.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     virtual UnicodeString& format(  Calendar& cal,
                                     UnicodeString& appendTo,
@@ -455,7 +455,7 @@ public:
      *                  are defined in UDateFormatField.
      * @param status    Input/output param set to success/failure code.
      * @return          Reference to 'appendTo' parameter.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     virtual UnicodeString& format(  const Formattable& obj,
                                     UnicodeString& appendTo,
@@ -486,7 +486,7 @@ public:
      *                      are defined in UDateFormatField.
      * @param status        Input/output param set to success/failure code.
      * @return              Reference to 'appendTo' parameter.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     UnicodeString& format(UDate date,
                           UnicodeString& appendTo,
@@ -1021,7 +1021,8 @@ private:
     /**
      * Get the numbering system to be used for a particular field.
      */
-     NumberFormat * getNumberFormatByIndex(UDateFormatField index) const;
+    using DateFormat::getNumberFormat;    // Do not hide visibility of base class function
+    NumberFormat * getNumberFormat(UDateFormatField index) const;
 
     /**
      * Parse the given override string and set up structures for number formats

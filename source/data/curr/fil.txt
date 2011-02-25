@@ -72,7 +72,7 @@ fil{
             "Estonian Kroon",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egyptian Pound",
         }
         EUR{

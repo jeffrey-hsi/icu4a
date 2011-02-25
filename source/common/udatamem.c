@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1999-2010, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************/
@@ -23,20 +23,20 @@
 
 #include "udatamem.h"
 
-U_CFUNC void UDataMemory_init(UDataMemory *This) {
+void UDataMemory_init(UDataMemory *This) {
     uprv_memset(This, 0, sizeof(UDataMemory));
     This->length=-1;
 }
 
 
-U_CFUNC void UDatamemory_assign(UDataMemory *dest, UDataMemory *source) {
+void UDatamemory_assign(UDataMemory *dest, UDataMemory *source) {
     /* UDataMemory Assignment.  Destination UDataMemory must be initialized first.  */
     UBool mallocedFlag = dest->heapAllocated;
     uprv_memcpy(dest, source, sizeof(UDataMemory));
     dest->heapAllocated = mallocedFlag;
 }
 
-U_CFUNC UDataMemory *UDataMemory_createNewInstance(UErrorCode *pErr) {
+UDataMemory *UDataMemory_createNewInstance(UErrorCode *pErr) {
     UDataMemory *This;
 
     if (U_FAILURE(*pErr)) {
@@ -53,7 +53,7 @@ U_CFUNC UDataMemory *UDataMemory_createNewInstance(UErrorCode *pErr) {
 }
 
 
-U_CFUNC const DataHeader *
+const DataHeader *
 UDataMemory_normalizeDataPointer(const void *p) {
     /* allow the data to be optionally prepended with an alignment-forcing double value */
     const DataHeader *pdh = (const DataHeader *)p;
@@ -81,7 +81,7 @@ UDataMemory_normalizeDataPointer(const void *p) {
 }
 
 
-U_CFUNC void UDataMemory_setData (UDataMemory *This, const void *dataAddr) {
+void UDataMemory_setData (UDataMemory *This, const void *dataAddr) {
     This->pHeader = UDataMemory_normalizeDataPointer(dataAddr);
 }
 
@@ -154,6 +154,7 @@ udata_getRawMemory(const UDataMemory *pData) {
     }
 }
 
-U_CFUNC UBool UDataMemory_isLoaded(const UDataMemory *This) {
+UBool  UDataMemory_isLoaded(UDataMemory *This) {
     return This->pHeader != NULL;
 }
+

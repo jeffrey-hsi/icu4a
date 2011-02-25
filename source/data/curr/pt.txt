@@ -255,10 +255,6 @@ pt{
             "CSK" /** ===  */,
             "Coroa Forte checoslovaca",
         }
-        CUC{
-            "CUC$",
-            "Peso cubano conversível",
-        }
         CUP{
             "CU$",
             "Peso cubano",
@@ -312,7 +308,7 @@ pt{
             "Coroa estoniana",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Libra egípcia",
         }
         ERN{
@@ -883,10 +879,6 @@ pt{
             "TMM",
             "Manat do Turcomenistão",
         }
-        TMT{
-            "TMT",
-            "Novo Manat do Turcomenistão",
-        }
         TND{
             "DT",
             "Dinar tunisiano",
@@ -1356,10 +1348,6 @@ pt{
         CSK{
             one{"Coroa forte tchecoslovaca"}
             other{"Coroas fortes tchecoslovacas"}
-        }
-        CUC{
-            one{"Peso cubano conversível"}
-            other{"Pesos cubanos conversíveis"}
         }
         CUP{
             one{"Peso cubano"}
@@ -2214,5 +2202,5 @@ pt{
         one{"{0} {1}"}
         other{"{0} {1}"}
     }
-    Version{"2.0.51.59"}
+    Version{"2.0.48.46"}
 }

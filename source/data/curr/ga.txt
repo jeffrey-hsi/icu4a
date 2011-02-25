@@ -288,7 +288,7 @@ ga{
             "Kroon na hEastóine",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Punt na hÉigipte",
         }
         ESP{

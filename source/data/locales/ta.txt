@@ -10,6 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/ta.xml
  */
 ta{
+    AuxExemplarCharacters{"[a g i m t]"}
     ExemplarCharacters{
         "[அ ஆ இ ஈ உ ஊ எ ஏ ஐ ஒ ஓ ஔ ஃ க ங ச ஞ ட ண த ந ப ம ய ர ல வ ழ ள ற ன ஜ ஷ ஸ ஹ ா ி "
         "\u0BC0 ு ூ ெ ே ை ொ ோ ௌ \u0BCD]"
@@ -22,16 +23,13 @@ ta{
     LocaleScript{
         "Taml",
     }
-    NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"¤ #,##,##0.00"}
-                decimalFormat{"#,##,##0.###"}
-                percentFormat{"#,##,##0%"}
-            }
-        }
+    NumberPatterns{
+        "#,##,##0.###",
+        "¤ #,##,##0.00",
+        "#,##,##0%",
+        "#E0",
     }
-    Version{"2.0.50.94"}
+    Version{"2.0.48.54"}
     calendar{
         gregorian{
             AmPmMarkers{

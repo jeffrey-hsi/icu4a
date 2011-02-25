@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2008-2011, International Business Machines
+*   Copyright (C) 2008-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -66,6 +66,7 @@ SpoofImpl::SpoofImpl(const SpoofImpl &src, UErrorCode &status)  :
     if (src.fSpoofData != NULL) {
         fSpoofData = src.fSpoofData->addReference();
     }
+    fCheckMask = src.fCheckMask;
     fAllowedCharsSet = static_cast<const UnicodeSet *>(src.fAllowedCharsSet->clone());
     if (fAllowedCharsSet == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -222,7 +223,7 @@ int32_t SpoofImpl::confusableLookup(UChar32 inChar, int32_t tableMask, UChar *de
 //
 //  wholeScriptCheck()
 //
-//      Input text is already normalized to NFD
+//      Input text is already normalized to NFKD
 //      Return the set of scripts, each of which can represent something that is
 //             confusable with the input text.  The script of the input text
 //             is included; input consisting of characters from a single script will
@@ -308,7 +309,7 @@ void SpoofImpl::setAllowedLocales(const char *localesList, UErrorCode &status) {
         tmpSet->freeze();
         delete fAllowedCharsSet;
         fAllowedCharsSet = tmpSet;
-        fChecks &= ~USPOOF_CHAR_LIMIT;
+        fCheckMask &= ~USPOOF_CHAR_LIMIT;
         return;
     }
 
@@ -338,7 +339,7 @@ void SpoofImpl::setAllowedLocales(const char *localesList, UErrorCode &status) {
     tmpSet->freeze();
     delete fAllowedCharsSet;
     fAllowedCharsSet = tmpSet;
-    fChecks |= USPOOF_CHAR_LIMIT;
+    fCheckMask |= USPOOF_CHAR_LIMIT;
 }
 
 
@@ -389,16 +390,6 @@ int32_t SpoofImpl::scriptScan
         if (sc == USCRIPT_COMMON || sc == USCRIPT_INHERITED || sc == USCRIPT_UNKNOWN) {
             continue;
         }
-
-        // Temporary fix: fold Japanese Hiragana and Katakana into Han.
-        //   Names are allowed to mix these scripts.
-        //   A more general solution will follow later for characters that are
-        //   used with multiple scripts.
-
-        if (sc == USCRIPT_HIRAGANA || sc == USCRIPT_KATAKANA || sc == USCRIPT_HANGUL) {
-            sc = USCRIPT_HAN;
-        }
-
         if (sc != lastScript) {
            scriptCount++;
            lastScript = sc;
@@ -769,11 +760,11 @@ int32_t ScriptSet::countMembers() {
 
 //-----------------------------------------------------------------------------
 //
-//  NFDBuffer Implementation.
+//  NFKDBuffer Implementation.
 //
 //-----------------------------------------------------------------------------
 
-NFDBuffer::NFDBuffer(const UChar *text, int32_t length, UErrorCode &status) {
+NFKDBuffer::NFKDBuffer(const UChar *text, int32_t length, UErrorCode &status) {
     fNormalizedText = NULL;
     fNormalizedTextLength = 0;
     fOriginalText = text;
@@ -782,32 +773,32 @@ NFDBuffer::NFDBuffer(const UChar *text, int32_t length, UErrorCode &status) {
     }
     fNormalizedText = fSmallBuf;
     fNormalizedTextLength = unorm_normalize(
-        text, length, UNORM_NFD, 0, fNormalizedText, USPOOF_STACK_BUFFER_SIZE, &status);
+        text, length, UNORM_NFKD, 0, fNormalizedText, USPOOF_STACK_BUFFER_SIZE, &status);
     if (status == U_BUFFER_OVERFLOW_ERROR) {
         status = U_ZERO_ERROR;
         fNormalizedText = (UChar *)uprv_malloc((fNormalizedTextLength+1)*sizeof(UChar));
         if (fNormalizedText == NULL) {
             status = U_MEMORY_ALLOCATION_ERROR;
         } else {
-            fNormalizedTextLength = unorm_normalize(text, length, UNORM_NFD, 0,
+            fNormalizedTextLength = unorm_normalize(text, length, UNORM_NFKD, 0,
                                         fNormalizedText, fNormalizedTextLength+1, &status);
         }
     }
 }
 
 
-NFDBuffer::~NFDBuffer() {
+NFKDBuffer::~NFKDBuffer() {
     if (fNormalizedText != fSmallBuf) {
         uprv_free(fNormalizedText);
     }
     fNormalizedText = 0;
 }
 
-const UChar *NFDBuffer::getBuffer() {
+const UChar *NFKDBuffer::getBuffer() {
     return fNormalizedText;
 }
 
-int32_t NFDBuffer::getLength() {
+int32_t NFKDBuffer::getLength() {
     return fNormalizedTextLength;
 }
 
@@ -951,22 +942,17 @@ uspoof_swap(const UDataSwapper *ds, const void *inData, int32_t length, void *ou
 
     // Script Sets.  The data is an array of int32_t
     sectionStart  = ds->readUInt32(spoofDH->fScriptSets);
-    sectionLength = ds->readUInt32(spoofDH->fScriptSetsLength) * sizeof(ScriptSet);
+    sectionLength = ds->readUInt32(spoofDH->fScriptSetsLength) * 4;
     ds->swapArray32(ds, inBytes+sectionStart, sectionLength, outBytes+sectionStart, status);
 
     // And, last, swap the header itself.
     //   int32_t   fMagic             // swap this
-    //   uint8_t   fFormatVersion[4]  // Do not swap this, just copy
-    //   int32_t   fLength and all the rest       // Swap the rest, all is 32 bit stuff.
+    //   uint8_t   fFormatVersion[4]  // Do not swap this
+    //   int32_t   all the rest       // Swap the rest, all is 32 bit stuff.
     //
     uint32_t magic = ds->readUInt32(spoofDH->fMagic);
     ds->writeUInt32((uint32_t *)&outputDH->fMagic, magic);
-
-    if (outputDH->fFormatVersion != spoofDH->fFormatVersion) {
-        uprv_memcpy(outputDH->fFormatVersion, spoofDH->fFormatVersion, sizeof(spoofDH->fFormatVersion));
-    }
-    // swap starting at fLength
-    ds->swapArray32(ds, &spoofDH->fLength, sizeof(SpoofDataHeader)-8 /* minus magic and fFormatVersion[4] */, &outputDH->fLength, status);
+    ds->swapArray32(ds, &spoofDH->fLength, sizeof(SpoofDataHeader)-8, &outputDH->fLength, status);
 
     return totalSize;
 }

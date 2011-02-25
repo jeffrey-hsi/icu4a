@@ -1,8 +1,8 @@
 /********************************************************************
- * COPYRIGHT:
+ * COPYRIGHT: 
  * Copyright (c) 1997-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
- * Copyright (C) 2010 , Yahoo! Inc.
+ * Copyright (C) 2010 , Yahoo! Inc. 
  ********************************************************************
  *
  * File SELFMT.CPP
@@ -11,10 +11,8 @@
  *
  *   Date        Name        Description
  *   11/11/09    kirtig      Finished first cut of implementation.
- *   11/16/09    kirtig      Improved version
+ *   11/16/09    kirtig      Improved version 
  ********************************************************************/
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 #include "unicode/ustring.h"
@@ -40,61 +38,41 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(SelectFormat)
 #define MAX_KEYWORD_SIZE 30
 static const UChar SELECT_KEYWORD_OTHER[] = {LOW_O, LOW_T, LOW_H, LOW_E, LOW_R, 0};
 
-SelectFormat::SelectFormat(const UnicodeString& pat, UErrorCode& status) : parsedValuesHash(NULL) {
+SelectFormat::SelectFormat(const UnicodeString& pat, UErrorCode& status) {
    if (U_FAILURE(status)) {
       return;
-   }
-   initHashTable(status);
+   } 
+   init(status);
    applyPattern(pat, status);
 }
 
-SelectFormat::SelectFormat(const SelectFormat& other) : Format(other), parsedValuesHash(NULL) {
+SelectFormat::SelectFormat(const SelectFormat& other) : Format(other) {
    UErrorCode status = U_ZERO_ERROR;
    pattern = other.pattern;
    copyHashtable(other.parsedValuesHash, status);
 }
 
 SelectFormat::~SelectFormat() {
-  cleanHashTable();
-}
-
-void SelectFormat::initHashTable(UErrorCode &status) {
-  if (U_FAILURE(status)) {
-    return;
-  }
-  // has inited
-  if (parsedValuesHash != NULL) {
-    return;
-  }
-
-  parsedValuesHash = new Hashtable(TRUE, status);
-  if (U_FAILURE(status)) {
-    cleanHashTable();
-    return;
-  } else {
-    if (parsedValuesHash == NULL) {
-      status = U_MEMORY_ALLOCATION_ERROR;
-      return;
-    }
-  }
-  // to use hashtable->equals(), must set Value Compartor.
-  parsedValuesHash->setValueComparator(uhash_compareCaselessUnicodeString);
-}
-
-void SelectFormat::cleanHashTable() {
-  if (parsedValuesHash != NULL) {
     delete parsedValuesHash;
-    parsedValuesHash = NULL;
-  }
 }
+
+void
+SelectFormat::init(UErrorCode& status) {
+    if (U_FAILURE(status)) {
+      return;
+    } 
+    parsedValuesHash = NULL;
+    pattern.remove();
+}
+
 
 void
 SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) {
     if (U_FAILURE(status)) {
       return;
-    }
+    } 
 
-    pattern = newPattern;
+    this->pattern = newPattern;
     enum State{ startState, keywordState, pastKeywordState, phraseState};
 
     //Initialization
@@ -103,13 +81,12 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
     UnicodeString* ptrPhrase ;
     int32_t braceCount = 0;
 
-    if (parsedValuesHash == NULL) {
-      initHashTable(status);
-      if (U_FAILURE(status)) {
+    delete parsedValuesHash;
+    this->parsedValuesHash = NULL;
+    parsedValuesHash = new Hashtable(TRUE, status);
+    if (U_FAILURE(status)) {
         return;
-      }
     }
-    parsedValuesHash->removeAll();
     parsedValuesHash->setValueDeleter(uhash_deleteUnicodeString);
 
     //Process the state machine
@@ -117,7 +94,7 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
     for (int32_t i = 0; i < pattern.length(); ++i) {
         //Get the character and check its type
         UChar ch = pattern.charAt(i);
-        CharacterClass type = classifyCharacter(ch);
+        CharacterClass type = classifyCharacter(ch); 
 
         //Allow any character in phrase but nowhere else
         if ( type == tOther ) {
@@ -126,7 +103,6 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
                 continue;
             }else {
                 status = U_PATTERN_SYNTAX_ERROR;
-                cleanHashTable();
                 return;
             }
         }
@@ -145,7 +121,6 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
                     //If anything else is encountered, it's a syntax error
                     default:
                         status = U_PATTERN_SYNTAX_ERROR;
-                        cleanHashTable();
                         return;
                 }//end of switch(type)
                 break;
@@ -166,7 +141,6 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
                     //If anything else is encountered, it's a syntax error
                     default:
                         status = U_PATTERN_SYNTAX_ERROR;
-                        cleanHashTable();
                         return;
                 }//end of switch(type)
                 break;
@@ -182,7 +156,6 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
                     //If anything else is encountered, it's a syntax error
                     default:
                         status = U_PATTERN_SYNTAX_ERROR;
-                        cleanHashTable();
                         return;
                 }//end of switch(type)
                 break;
@@ -200,12 +173,10 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
                             //Check validity of keyword
                             if (parsedValuesHash->get(keyword) != NULL) {
                                 status = U_DUPLICATE_KEYWORD;
-                                cleanHashTable();
-                                return;
+                                return; 
                             }
                             if (keyword.length() == 0) {
                                 status = U_PATTERN_SYNTAX_ERROR;
-                                cleanHashTable();
                                 return;
                             }
 
@@ -233,7 +204,6 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
             //Handle the  default case of switch(state)
             default:
                 status = U_PATTERN_SYNTAX_ERROR;
-                cleanHashTable();
                 return;
 
         }//end of switch(state)
@@ -242,14 +212,12 @@ SelectFormat::applyPattern(const UnicodeString& newPattern, UErrorCode& status) 
     //Check if the state machine is back to startState
     if ( state != startState){
         status = U_PATTERN_SYNTAX_ERROR;
-        cleanHashTable();
         return;
     }
 
-    //Check if "other" keyword is present
+    //Check if "other" keyword is present 
     if ( !checkSufficientDefinition() ) {
         status = U_DEFAULT_KEYWORD_MISSING;
-        cleanHashTable();
     }
     return;
 }
@@ -274,16 +242,11 @@ SelectFormat::format(const Formattable& obj,
 
 UnicodeString&
 SelectFormat::format(const UnicodeString& keyword,
-                     UnicodeString& appendTo,
-                     FieldPosition& /*pos */,
+                     UnicodeString& appendTo, 
+                     FieldPosition& pos,
                      UErrorCode& status) const {
 
     if (U_FAILURE(status)) return appendTo;
-
-    if (parsedValuesHash == NULL) {
-        status = U_INVALID_FORMAT_ERROR;
-        return appendTo;
-    }
 
     //Check for the validity of the keyword
     if ( !checkValidKeyword(keyword) ){
@@ -291,11 +254,16 @@ SelectFormat::format(const UnicodeString& keyword,
         return appendTo;
     }
 
+    if (parsedValuesHash == NULL) {
+        status = U_INVALID_FORMAT_ERROR;
+        return appendTo;
+    }
+
     UnicodeString *selectedPattern = (UnicodeString *)parsedValuesHash->get(keyword);
     if (selectedPattern == NULL) {
         selectedPattern = (UnicodeString *)parsedValuesHash->get(SELECT_KEYWORD_OTHER);
     }
-
+    
     return appendTo += *selectedPattern;
 }
 
@@ -319,7 +287,7 @@ SelectFormat::classifyCharacter(UChar ch) const{
         return tSpace;
     }
     switch (ch) {
-        case LEFTBRACE:
+        case LEFTBRACE: 
             return tLeftBrace;
         case RIGHTBRACE:
             return tRightBrace;
@@ -344,13 +312,13 @@ SelectFormat::checkValidKeyword(const UnicodeString& argKeyword ) const{
     if (len < 1){
         return FALSE;
     }
-    CharacterClass type = classifyCharacter(argKeyword.charAt(0));
+    CharacterClass type = classifyCharacter(argKeyword.charAt(0)); 
     if( type != tStartKeyword ){
         return FALSE;
     }
 
     for (int32_t i = 0; i < argKeyword.length(); ++i) {
-        type = classifyCharacter(argKeyword.charAt(i));
+        type = classifyCharacter(argKeyword.charAt(i)); 
         if( type != tStartKeyword && type != tContinueKeyword ){
             return FALSE;
         }
@@ -367,6 +335,7 @@ SelectFormat&
 SelectFormat::operator=(const SelectFormat& other) {
     if (this != &other) {
         UErrorCode status = U_ZERO_ERROR;
+        delete parsedValuesHash;
         pattern = other.pattern;
         copyHashtable(other.parsedValuesHash, status);
     }
@@ -378,7 +347,7 @@ SelectFormat::operator==(const Format& other) const {
     if( this == &other){
         return TRUE;
     }
-    if (typeid(*this) != typeid(other)) {
+    if( other.getDynamicClassID() != SelectFormat::getStaticClassID() ){
         return  FALSE;
     }
     SelectFormat* fmt = (SelectFormat*)&other;
@@ -387,7 +356,44 @@ SelectFormat::operator==(const Format& other) const {
         return TRUE;
     if ( parsedValuesHash == NULL || hashOther == NULL)
         return FALSE;
-    return parsedValuesHash->equals(*hashOther);
+    if ( hashOther->count() != parsedValuesHash->count() ){
+        return FALSE;
+    }
+
+    const UHashElement* elem = NULL;
+    int32_t pos = -1;
+    while ((elem = hashOther->nextElement(pos)) != NULL) {
+        const UHashTok otherKeyTok = elem->key;
+        UnicodeString* otherKey = (UnicodeString*)otherKeyTok.pointer;
+        const UHashTok otherKeyToVal = elem->value;
+        UnicodeString* otherValue = (UnicodeString*)otherKeyToVal.pointer; 
+
+        UnicodeString* thisElemValue = (UnicodeString*)parsedValuesHash->get(*otherKey);
+        if ( thisElemValue == NULL ){
+            return FALSE;
+        }
+        if ( *thisElemValue != *otherValue){
+            return FALSE;
+        }
+        
+    }
+    pos = -1;
+    while ((elem = parsedValuesHash->nextElement(pos)) != NULL) {
+        const UHashTok thisKeyTok = elem->key;
+        UnicodeString* thisKey = (UnicodeString*)thisKeyTok.pointer;
+        const UHashTok thisKeyToVal = elem->value;
+        UnicodeString* thisValue = (UnicodeString*)thisKeyToVal.pointer;
+
+        UnicodeString* otherElemValue = (UnicodeString*)hashOther->get(*thisKey);
+        if ( otherElemValue == NULL ){
+            return FALSE;
+        }
+        if ( *otherElemValue != *thisValue){
+            return FALSE;
+        }
+
+    }
+    return TRUE;
 }
 
 UBool
@@ -406,21 +412,14 @@ SelectFormat::parseObject(const UnicodeString& /*source*/,
 
 void
 SelectFormat::copyHashtable(Hashtable *other, UErrorCode& status) {
-    if (U_FAILURE(status)) {
-      return;
-    }
     if (other == NULL) {
-      cleanHashTable();
-      return;
-    }
-    if (parsedValuesHash == NULL) {
-      initHashTable(status);
-      if (U_FAILURE(status)) {
+        parsedValuesHash = NULL;
         return;
-      }
     }
-
-    parsedValuesHash->removeAll();
+    parsedValuesHash = new Hashtable(TRUE, status);
+    if (U_FAILURE(status)){
+        return;
+    }
     parsedValuesHash->setValueDeleter(uhash_deleteUnicodeString);
 
     int32_t pos = -1;
@@ -434,7 +433,6 @@ SelectFormat::copyHashtable(Hashtable *other, UErrorCode& status) {
         UnicodeString* otherValue = (UnicodeString*)otherKeyToVal.pointer;
         parsedValuesHash->put(*otherKey, new UnicodeString(*otherValue), status);
         if (U_FAILURE(status)){
-            cleanHashTable();
             return;
         }
     }

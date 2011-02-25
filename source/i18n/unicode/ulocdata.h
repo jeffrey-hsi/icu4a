@@ -86,7 +86,7 @@ U_NAMESPACE_BEGIN
  *
  * @see LocalPointerBase
  * @see LocalPointer
- * @stable ICU 4.4
+ * @draft ICU 4.4
  */
 U_DEFINE_LOCAL_OPEN_POINTER(LocalULocaleDataPointer, ULocaleData, ulocdata_close);
 

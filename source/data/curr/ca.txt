@@ -255,10 +255,6 @@ ca{
             "CSK" /** ===  */,
             "corona forta txecoslovaca",
         }
-        CUC{
-            "CUC$",
-            "peso convertible cubà",
-        }
         CUP{
             "CU$",
             "peso cubà",
@@ -312,7 +308,7 @@ ca{
             "corona estoniana",
         }
         EGP{
-            "EGP",
+            "EG£",
             "lliura egípcia",
         }
         ERN{
@@ -891,10 +887,6 @@ ca{
             "TMM",
             "manat turcman",
         }
-        TMT{
-            "TMT",
-            "nou manat turcman",
-        }
         TND{
             "DT",
             "dinar tunisià",
@@ -1110,10 +1102,6 @@ ca{
         ZWD{
             "Z$",
             "dòlar zimbabuès",
-        }
-        ZWL{
-            "ZWL",
-            "dòlar zimbabuès (2009)",
         }
     }
     CurrencyPlurals{
@@ -1360,10 +1348,6 @@ ca{
         CSK{
             one{"corona forta txecoslovaca"}
             other{"corones fortes txecoslovaques"}
-        }
-        CUC{
-            one{"peso convertible cubà"}
-            other{"pesos convertibles cubans"}
         }
         CUP{
             one{"peso cubà"}
@@ -1989,10 +1973,6 @@ ca{
             one{"manat turcman"}
             other{"manats turcmans"}
         }
-        TMT{
-            one{"nou manat turcman"}
-            other{"nous manats turcmans"}
-        }
         TND{
             one{"dinar tunisià"}
             other{"dinars tunisians"}
@@ -2209,14 +2189,10 @@ ca{
             one{"dòlar zimbabuès"}
             other{"dòlars zimbabuesos"}
         }
-        ZWL{
-            one{"dòlar zimbabuès (2009)"}
-            other{"dòlars zimbabuesos (2009)"}
-        }
     }
     CurrencyUnitPatterns{
         one{"{0} {1}"}
         other{"{0} {1}"}
     }
-    Version{"2.0.50.94"}
+    Version{"2.0.48.46"}
 }

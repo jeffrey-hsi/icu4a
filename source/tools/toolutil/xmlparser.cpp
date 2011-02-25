@@ -715,9 +715,8 @@ UXMLElement::appendText(UnicodeString &text, UBool recurse) const {
     int32_t i, count=fChildren.size();
     for(i=0; i<count; ++i) {
         node=(const UObject *)fChildren.elementAt(i);
-        const UnicodeString *s=dynamic_cast<const UnicodeString *>(node);
-        if(s!=NULL) {
-            text.append(*s);
+        if(node->getDynamicClassID()==UnicodeString::getStaticClassID()) {
+            text.append(*(const UnicodeString *)node);
         } else if(recurse) /* must be a UXMLElement */ {
             ((const UXMLElement *)node)->appendText(text, recurse);
         }
@@ -767,7 +766,7 @@ const UObject *
 UXMLElement::getChild(int32_t i, UXMLNodeType &type) const {
     if(0<=i && i<fChildren.size()) {
         const UObject *node=(const UObject *)fChildren.elementAt(i);
-        if(dynamic_cast<const UXMLElement *>(node)!=NULL) {
+        if(node->getDynamicClassID()==UXMLElement::getStaticClassID()) {
             type=UXML_NODE_TYPE_ELEMENT;
         } else {
             type=UXML_NODE_TYPE_STRING;
@@ -788,9 +787,10 @@ UXMLElement::nextChildElement(int32_t &i) const {
     int32_t count=fChildren.size();
     while(i<count) {
         node=(const UObject *)fChildren.elementAt(i++);
-        const UXMLElement *elem=dynamic_cast<const UXMLElement *>(node);
-        if(elem!=NULL) {
-            return elem;
+        // TODO: see if ICU can use C++ instanceof instead of its own poor man's RTTI
+        // if(node instanceof UXMLElement) {
+        if(node->getDynamicClassID()==UXMLElement::getStaticClassID()) {
+            return (const UXMLElement *)node;
         }
     }
     return NULL;
@@ -809,8 +809,8 @@ UXMLElement::getChildElement(const UnicodeString &name) const {
     int32_t i, count=fChildren.size();
     for(i=0; i<count; ++i) {
         node=(const UObject *)fChildren.elementAt(i);
-        const UXMLElement *elem=dynamic_cast<const UXMLElement *>(node);
-        if(elem!=NULL) {
+        if(node->getDynamicClassID()==UXMLElement::getStaticClassID()) {
+            const UXMLElement *elem=(const UXMLElement *)node;
             if(p==elem->fName) {
                 return elem;
             }

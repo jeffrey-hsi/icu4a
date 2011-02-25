@@ -23,12 +23,6 @@
 
 #include "unicode/utypes.h"
 
-/**
- * Is c an invariant-character whitespace?
- * @param c invariant character
- */
-#define U_IS_INV_WHITESPACE(c) ((c)==' ' || (c)=='\t' || (c)=='\r' || (c)=='\n')
-
 U_CDECL_BEGIN
 
 /**

@@ -10,11 +10,20 @@
  *  ICU <specials> source: <path>/xml/collation/th.xml
  */
 th{
-    Version{"2.0.50.5"}
+    Version{"2.0.41.26"}
     collations{
         standard{
-            Sequence{" [normalization on ]&[before 1]๏<ฯ<ๆ&๎<<์&ฮ<ํ&า<<<ๅ&ไ<ฺ"}
-            Version{"1.9"}
+            Sequence{
+                " [normalization on ]"
+                "&ฤ<ฤๅ"
+                "&ฦ<ฦๅ"
+                "&ไ<ๅ"
+                "&[before 2]็<<๎"
+                "&๋<<์<<ํ"
+                "&[last secondary ignorable ]<<<'\u0020'<<<'-'<<<'.'<<<'...'<<<ฯ<<<ๆ<"
+                "<<๏<<<๚<<<๛"
+            }
+            Version{"1.8.1"}
         }
     }
 }

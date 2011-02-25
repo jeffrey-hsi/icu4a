@@ -1,5 +1,5 @@
 /*************************************************************************
-* Copyright (c) 1997-2011, International Business Machines Corporation
+* Copyright (c) 1997-2010, International Business Machines Corporation
 * and others. All Rights Reserved.
 **************************************************************************
 *
@@ -458,36 +458,36 @@ public:
         LONG,
         /**
          * Selector for short generic display name
-         * @stable ICU 4.4
+         * @draft ICU 4.4
          */
         SHORT_GENERIC,
         /**
          * Selector for long generic display name
-         * @stable ICU 4.4
+         * @draft ICU 4.4
          */
         LONG_GENERIC,
         /**
          * Selector for short display name derived
          * from time zone offset
-         * @stable ICU 4.4
+         * @draft ICU 4.4
          */
         SHORT_GMT,
         /**
          * Selector for long display name derived
          * from time zone offset
-         * @stable ICU 4.4
+         * @draft ICU 4.4
          */
         LONG_GMT,
         /**
          * Selector for short display name derived
          * from the time zone's fallback name
-         * @stable ICU 4.4
+         * @draft ICU 4.4
          */
         SHORT_COMMONLY_USED,
         /**
          * Selector for long display name derived
          * from the time zone's fallback name
-         * @stable ICU 4.4
+         * @draft ICU 4.4
          */
         GENERIC_LOCATION
     };
@@ -554,16 +554,6 @@ public:
      * Queries if this time zone uses daylight savings time.
      * @return true if this time zone uses daylight savings time,
      * false, otherwise.
-     * <p><strong>Note:</strong>The default implementation of
-     * ICU TimeZone uses the tz database, which supports historic
-     * rule changes, for system time zones. With the implementation,
-     * there are time zones that used daylight savings time in the
-     * past, but no longer used currently. For example, Asia/Tokyo has
-     * never used daylight savings time since 1951. Most clients would
-     * expect that this method to return <code>FALSE</code> for such case.
-     * The default implementation of this method returns <code>TRUE</code>
-     * when the time zone uses daylight savings time in the current
-     * (Gregorian) calendar year.
      * @stable ICU 2.0
      */
     virtual UBool useDaylightTime(void) const = 0;
@@ -640,26 +630,6 @@ public:
      */
     virtual int32_t getDSTSavings() const;
 
-    /** 
-     * Gets the region code associated with the given
-     * system time zone ID. The region code is either ISO 3166
-     * 2-letter country code or UN M.49 3-digit area code.
-     * When the time zone is not associated with a specific location,
-     * for example - "Etc/UTC", "EST5EDT", then this method returns
-     * "001" (UN M.49 area code for World).
-     * 
-     * @param id            The system time zone ID.
-     * @param region        Output buffer for receiving the region code.
-     * @param capacity      The size of the output buffer.
-     * @param status        Receives the status.  When the given time zone ID
-     *                      is not a known system time zone ID,
-     *                      U_ILLEGAL_ARGUMENT_ERROR is set.
-     * @return The length of the output region code.
-     * @draft ICU 4.8 
-     */ 
-    static int32_t U_EXPORT2 getRegion(const UnicodeString& id, 
-        char *region, int32_t capacity, UErrorCode& status); 
-
 protected:
 
     /**
@@ -700,7 +670,6 @@ protected:
      */
     static UResourceBundle* loadRule(const UResourceBundle* top, const UnicodeString& ruleid, UResourceBundle* oldbundle, UErrorCode&status);
 
-
 private:
     friend class ZoneMeta;
 
@@ -718,8 +687,7 @@ private:
     static const UChar* dereferOlsonLink(const UnicodeString& id);
 
     /**
-     * Returns the region code associated with the given zone,
-     * or NULL if the zone is not known.
+     * Returns the region code associated with the given zone.
      * @param id zone id string
      * @return the region associated with the given zone
      */

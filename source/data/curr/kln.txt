@@ -64,7 +64,7 @@ kln{
             "Rabisiekab Algerian",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Pauditab Misri",
         }
         ERN{

@@ -64,7 +64,7 @@ luo{
             "Dinari ya Aljeria",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Paund mar Misri",
         }
         ERN{

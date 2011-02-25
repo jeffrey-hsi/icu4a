@@ -64,7 +64,7 @@ mfe{
             "dinar alzerien",
         }
         EGP{
-            "EGP",
+            "EG£",
             "liv ezipsien",
         }
         ERN{

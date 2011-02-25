@@ -17,15 +17,24 @@ kea{
         "Latn",
     }
     NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"#,##0.00¤"}
-            }
-            symbols{
-                decimal{","}
-                group{"."}
-            }
-        }
+        ",",
+        ".",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
+    }
+    NumberPatterns{
+        "#,##0.###",
+        "#,##0.00¤",
+        "#,##0%",
+        "#E0",
     }
     Version{"2.0.47.63"}
     calendar{
