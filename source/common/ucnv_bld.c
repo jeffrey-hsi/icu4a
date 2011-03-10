@@ -86,8 +86,7 @@ converterData[UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES]={
 #endif
 
     &_ASCIIData,
-    &_UTF7Data, &_Bocu1Data, &_UTF16Data, &_UTF32Data, &_CESU8Data, &_IMAPData,
-    &_CompoundTextData
+    &_UTF7Data, &_Bocu1Data, &_UTF16Data, &_UTF32Data, &_CESU8Data, &_IMAPData
 };
 
 /* Please keep this in binary sorted order for getAlgorithmicTypeFromName.
@@ -146,8 +145,7 @@ static struct {
   { "utf32platformendian", UCNV_UTF32_LittleEndian },
 #endif
   { "utf7", UCNV_UTF7 },
-  { "utf8", UCNV_UTF8 },
-  { "x11compoundtext", UCNV_COMPOUND_TEXT}
+  { "utf8", UCNV_UTF8 }
 };
 
 

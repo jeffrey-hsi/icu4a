@@ -68,94 +68,9 @@
 
 #define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
-/* Unicode property (value) aliases data swapping --------------------------- */
-
-static int32_t
-upname_swap(const UDataSwapper *ds,
-            const void *inData, int32_t length, void *outData,
-            UErrorCode *pErrorCode) {
-    /* udata_swapDataHeader checks the arguments */
-    int32_t headerSize=udata_swapDataHeader(ds, inData, length, outData, pErrorCode);
-    if(pErrorCode==NULL || U_FAILURE(*pErrorCode)) {
-        return 0;
-    }
-
-    /* check data format and format version */
-    const UDataInfo *pInfo=
-        reinterpret_cast<const UDataInfo *>(
-            reinterpret_cast<const char *>(inData)+4);
-    if(!(
-        pInfo->dataFormat[0]==0x70 &&   /* dataFormat="pnam" */
-        pInfo->dataFormat[1]==0x6e &&
-        pInfo->dataFormat[2]==0x61 &&
-        pInfo->dataFormat[3]==0x6d &&
-        pInfo->formatVersion[0]==2
-    )) {
-        udata_printError(ds, "upname_swap(): data format %02x.%02x.%02x.%02x (format version %02x) is not recognized as pnames.icu\n",
-                         pInfo->dataFormat[0], pInfo->dataFormat[1],
-                         pInfo->dataFormat[2], pInfo->dataFormat[3],
-                         pInfo->formatVersion[0]);
-        *pErrorCode=U_UNSUPPORTED_ERROR;
-        return 0;
-    }
-
-    const uint8_t *inBytes=reinterpret_cast<const uint8_t *>(inData)+headerSize;
-    uint8_t *outBytes=reinterpret_cast<uint8_t *>(outData)+headerSize;
-
-    if(length>=0) {
-        length-=headerSize;
-        // formatVersion 2 initially has indexes[8], 32 bytes.
-        if(length<32) {
-            udata_printError(ds, "upname_swap(): too few bytes (%d after header) for pnames.icu\n",
-                             (int)length);
-            *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
-            return 0;
-        }
-    }
-
-    const int32_t *inIndexes=reinterpret_cast<const int32_t *>(inBytes);
-    int32_t totalSize=udata_readInt32(ds, inIndexes[PropNameData::IX_TOTAL_SIZE]);
-    if(length>=0) {
-        if(length<totalSize) {
-            udata_printError(ds, "upname_swap(): too few bytes (%d after header, should be %d) "
-                             "for pnames.icu\n",
-                             (int)length, (int)totalSize);
-            *pErrorCode=U_INDEX_OUTOFBOUNDS_ERROR;
-            return 0;
-        }
-
-        int32_t numBytesIndexesAndValueMaps=
-            udata_readInt32(ds, inIndexes[PropNameData::IX_BYTE_TRIES_OFFSET]);
-
-        // Swap the indexes[] and the valueMaps[].
-        ds->swapArray32(ds, inBytes, numBytesIndexesAndValueMaps, outBytes, pErrorCode);
-
-        // Copy the rest of the data.
-        if(inBytes!=outBytes) {
-            uprv_memcpy(outBytes+numBytesIndexesAndValueMaps,
-                        inBytes+numBytesIndexesAndValueMaps,
-                        totalSize-numBytesIndexesAndValueMaps);
-        }
-
-        // We need not swap anything else:
-        //
-        // The ByteTries are already byte-serialized, and are fixed on ASCII.
-        // (On an EBCDIC machine, the input string is converted to lowercase ASCII
-        // while matching.)
-        //
-        // The name groups are mostly invariant characters, but since we only
-        // generate, and keep in subversion, ASCII versions of pnames.icu,
-        // and since only ICU4J uses the pnames.icu data file
-        // (the data is hardcoded in ICU4C) and ICU4J uses ASCII data files,
-        // we just copy those bytes too.
-    }
-
-    return headerSize+totalSize;
-}
-
 /* Unicode properties data swapping ----------------------------------------- */
 
-static int32_t
+U_CAPI int32_t U_EXPORT2
 uprops_swap(const UDataSwapper *ds,
             const void *inData, int32_t length, void *outData,
             UErrorCode *pErrorCode) {
@@ -303,7 +218,7 @@ uprops_swap(const UDataSwapper *ds,
 
 /* Unicode case mapping data swapping --------------------------------------- */
 
-static int32_t
+U_CAPI int32_t U_EXPORT2
 ucase_swap(const UDataSwapper *ds,
            const void *inData, int32_t length, void *outData,
            UErrorCode *pErrorCode) {
@@ -405,7 +320,7 @@ ucase_swap(const UDataSwapper *ds,
 
 /* Unicode bidi/shaping data swapping --------------------------------------- */
 
-static int32_t
+U_CAPI int32_t U_EXPORT2
 ubidi_swap(const UDataSwapper *ds,
            const void *inData, int32_t length, void *outData,
            UErrorCode *pErrorCode) {
@@ -513,7 +428,7 @@ ubidi_swap(const UDataSwapper *ds,
 
 #if !UCONFIG_NO_NORMALIZATION
 
-static int32_t
+U_CAPI int32_t U_EXPORT2
 unorm_swap(const UDataSwapper *ds,
            const void *inData, int32_t length, void *outData,
            UErrorCode *pErrorCode) {
@@ -637,7 +552,7 @@ unorm_swap(const UDataSwapper *ds,
 #endif
 
 /* Swap 'Test' data from gentest */
-static int32_t
+U_CAPI int32_t U_EXPORT2
 test_swap(const UDataSwapper *ds,
            const void *inData, int32_t length, void *outData,
            UErrorCode *pErrorCode) {
