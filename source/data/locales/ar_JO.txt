@@ -10,6 +10,10 @@ ar_JO{
     Version{"2.0.47.53"}
     calendar{
         gregorian{
+            DateTimeElements:intvector{
+                7,
+                4,
+            }
             dayNames{
                 format{
                     abbreviated{
@@ -40,6 +44,12 @@ ar_JO{
                         "كانون الأول",
                     }
                 }
+            }
+            weekend:intvector{
+                6,
+                0,
+                7,
+                86400000,
             }
         }
     }

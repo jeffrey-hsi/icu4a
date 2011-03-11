@@ -18,6 +18,10 @@ ar_SA{
     Version{"2.0.47.53"}
     calendar{
         gregorian{
+            DateTimeElements:intvector{
+                7,
+                4,
+            }
             dayNames{
                 format{
                     abbreviated{
@@ -30,6 +34,12 @@ ar_SA{
                         "السبت",
                     }
                 }
+            }
+            weekend:intvector{
+                5,
+                0,
+                6,
+                86400000,
             }
         }
     }

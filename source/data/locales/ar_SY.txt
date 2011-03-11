@@ -18,6 +18,10 @@ ar_SY{
     Version{"2.0.50.20"}
     calendar{
         gregorian{
+            DateTimeElements:intvector{
+                7,
+                4,
+            }
             dayNames{
                 format{
                     abbreviated{
@@ -48,6 +52,12 @@ ar_SY{
                         "كانون الأول",
                     }
                 }
+            }
+            weekend:intvector{
+                6,
+                0,
+                7,
+                86400000,
             }
         }
     }

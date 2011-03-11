@@ -10,6 +10,6 @@
  *  ICU <specials> source: <path>/xml/main/az_Cyrl.xml
  */
 az_Cyrl{
-    %%Parent{"root"}
+    %%ParentIsRoot:int{1}
     Version{"2.0.47.53"}
 }

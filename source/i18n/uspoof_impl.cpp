@@ -66,6 +66,7 @@ SpoofImpl::SpoofImpl(const SpoofImpl &src, UErrorCode &status)  :
     if (src.fSpoofData != NULL) {
         fSpoofData = src.fSpoofData->addReference();
     }
+    fCheckMask = src.fCheckMask;
     fAllowedCharsSet = static_cast<const UnicodeSet *>(src.fAllowedCharsSet->clone());
     if (fAllowedCharsSet == NULL) {
         status = U_MEMORY_ALLOCATION_ERROR;
@@ -308,7 +309,7 @@ void SpoofImpl::setAllowedLocales(const char *localesList, UErrorCode &status) {
         tmpSet->freeze();
         delete fAllowedCharsSet;
         fAllowedCharsSet = tmpSet;
-        fChecks &= ~USPOOF_CHAR_LIMIT;
+        fCheckMask &= ~USPOOF_CHAR_LIMIT;
         return;
     }
 
@@ -338,7 +339,7 @@ void SpoofImpl::setAllowedLocales(const char *localesList, UErrorCode &status) {
     tmpSet->freeze();
     delete fAllowedCharsSet;
     fAllowedCharsSet = tmpSet;
-    fChecks |= USPOOF_CHAR_LIMIT;
+    fCheckMask |= USPOOF_CHAR_LIMIT;
 }
 
 
@@ -389,16 +390,6 @@ int32_t SpoofImpl::scriptScan
         if (sc == USCRIPT_COMMON || sc == USCRIPT_INHERITED || sc == USCRIPT_UNKNOWN) {
             continue;
         }
-
-        // Temporary fix: fold Japanese Hiragana and Katakana into Han.
-        //   Names are allowed to mix these scripts.
-        //   A more general solution will follow later for characters that are
-        //   used with multiple scripts.
-
-        if (sc == USCRIPT_HIRAGANA || sc == USCRIPT_KATAKANA || sc == USCRIPT_HANGUL) {
-            sc = USCRIPT_HAN;
-        }
-
         if (sc != lastScript) {
            scriptCount++;
            lastScript = sc;
@@ -961,10 +952,7 @@ uspoof_swap(const UDataSwapper *ds, const void *inData, int32_t length, void *ou
     //
     uint32_t magic = ds->readUInt32(spoofDH->fMagic);
     ds->writeUInt32((uint32_t *)&outputDH->fMagic, magic);
-
-    if (outputDH->fFormatVersion != spoofDH->fFormatVersion) {
-        uprv_memcpy(outputDH->fFormatVersion, spoofDH->fFormatVersion, sizeof(spoofDH->fFormatVersion));
-    }
+    uprv_memcpy(outputDH->fFormatVersion, spoofDH->fFormatVersion, sizeof(spoofDH->fFormatVersion));
     // swap starting at fLength
     ds->swapArray32(ds, &spoofDH->fLength, sizeof(SpoofDataHeader)-8 /* minus magic and fFormatVersion[4] */, &outputDH->fLength, status);
 

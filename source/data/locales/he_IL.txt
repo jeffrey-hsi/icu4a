@@ -8,4 +8,18 @@
 // ***************************************************************************
 he_IL{
     Version{"2.0.41.23"}
+    calendar{
+        gregorian{
+            DateTimeElements:intvector{
+                1,
+                4,
+            }
+            weekend:intvector{
+                6,
+                0,
+                7,
+                86400000,
+            }
+        }
+    }
 }

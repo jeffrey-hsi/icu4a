@@ -14,6 +14,10 @@ ne_IN{
                 "पूर्वाह्न",
                 "अपराह्न",
             }
+            DateTimeElements:intvector{
+                1,
+                4,
+            }
             dayNames{
                 format{
                     wide{
@@ -83,6 +87,12 @@ ne_IN{
                         "चौथो पाउ",
                     }
                 }
+            }
+            weekend:intvector{
+                1,
+                0,
+                1,
+                86400000,
             }
         }
         indian{

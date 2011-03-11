@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/sr_Latn.xml
  */
 sr_Latn{
-    %%Parent{"root"}
+    %%ParentIsRoot:int{1}
     Keys{
         calendar{"Kalendar"}
         collation{"Sortiranje"}

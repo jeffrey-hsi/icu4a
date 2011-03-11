@@ -8,4 +8,18 @@
 // ***************************************************************************
 ps_AF{
     Version{"2.0.41.23"}
+    calendar{
+        gregorian{
+            DateTimeElements:intvector{
+                7,
+                4,
+            }
+            weekend:intvector{
+                5,
+                0,
+                6,
+                86400000,
+            }
+        }
+    }
 }

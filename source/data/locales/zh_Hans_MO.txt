@@ -8,4 +8,12 @@
 // ***************************************************************************
 zh_Hans_MO{
     Version{"2.0.45.82"}
+    calendar{
+        gregorian{
+            DateTimeElements:intvector{
+                1,
+                4,
+            }
+        }
+    }
 }

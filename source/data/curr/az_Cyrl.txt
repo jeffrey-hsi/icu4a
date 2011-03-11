@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/az_Cyrl.xml
  */
 az_Cyrl{
-    %%Parent{"root"}
+    %%ParentIsRoot:int{1}
     Currencies{
         AZN{
             "ман.",

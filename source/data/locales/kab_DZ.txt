@@ -8,4 +8,18 @@
 // ***************************************************************************
 kab_DZ{
     Version{"2.0.45.90"}
+    calendar{
+        gregorian{
+            DateTimeElements:intvector{
+                7,
+                4,
+            }
+            weekend:intvector{
+                5,
+                0,
+                6,
+                86400000,
+            }
+        }
+    }
 }

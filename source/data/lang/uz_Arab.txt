@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/uz_Arab.xml
  */
 uz_Arab{
-    %%Parent{"root"}
+    %%ParentIsRoot:int{1}
     Languages{
         fa{"دری"}
         ps{"پشتو"}

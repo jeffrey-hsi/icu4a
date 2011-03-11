@@ -1,6 +1,6 @@
 /************************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2011, International Business Machines Corporation
+ * Copyright (c) 1997-2010, International Business Machines Corporation
  * and others. All Rights Reserved.
  ************************************************************************/
 
@@ -227,13 +227,6 @@ void CalendarTest::runIndexedTest( int32_t index, UBool exec, const char* &name,
           if(exec) {
             logln("Test1624---"); logln("");
             Test1624();
-          }
-          break;
-        case 25:
-          name = "TestTimeStamp";
-          if(exec) {
-            logln("TestTimeStamp---"); logln("");
-            TestTimeStamp();
           }
           break;
         default: name = ""; break;
@@ -1307,7 +1300,7 @@ CalendarTest::TestEpochStartFields()
         if (U_FAILURE(status)) { errln("Calendar::setTime failed"); return; }
         for (int32_t i = 0; i < UCAL_ZONE_OFFSET;++i) {
             if (c->get((UCalendarDateFields)i, status) != EPOCH_FIELDS[i])
-                dataerrln(UnicodeString("Expected field ") + i + " to have value " + EPOCH_FIELDS[i] +
+                errln(UnicodeString("Expected field ") + i + " to have value " + EPOCH_FIELDS[i] +
                       "; saw " + c->get((UCalendarDateFields)i, status) + " instead");
             if (U_FAILURE(status)) { errln("Calendar::get failed"); return; }
         }
@@ -2163,41 +2156,6 @@ void CalendarTest::Test1624() {
         }
     }
     return;
-}
-
-void CalendarTest::TestTimeStamp() {
-    UErrorCode status = U_ZERO_ERROR;
-    UDate start, time;
-    Calendar *cal;
-
-    // Create a new Gregorian Calendar.
-    cal = Calendar::createInstance("en_US@calender=gregorian", status);
-    if (U_FAILURE(status)) {
-        dataerrln("Error creating Gregorian calendar.");
-        return;
-    }
-
-    for (int i = 0; i < 20000; i++) {
-        // Set the Gregorian Calendar to a specific date for testing.
-        cal->set(2009, UCAL_JULY, 3, 0, 49, 46);
-
-        time = cal->getTime(status);
-        if (U_FAILURE(status)) {
-            errln("Error calling getTime()");
-            break;
-        }
-
-        if (i == 0) {
-            start = time;
-        } else {
-            if (start != time) {
-                errln("start and time not equal.");
-                break;
-            }
-        }
-    }
-
-    delete cal;
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

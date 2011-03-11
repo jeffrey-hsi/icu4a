@@ -38,6 +38,10 @@ en_HK{
             }
         }
         gregorian{
+            DateTimeElements:intvector{
+                1,
+                4,
+            }
             DateTimePatterns{
                 "h:mm:ss a zzzz",
                 "h:mm:ss a z",

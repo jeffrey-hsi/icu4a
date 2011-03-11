@@ -14,6 +14,10 @@ en_CA{
     Version{"2.0.48.53"}
     calendar{
         gregorian{
+            DateTimeElements:intvector{
+                1,
+                4,
+            }
             DateTimePatterns{
                 "h:mm:ss a zzzz",
                 "h:mm:ss a z",

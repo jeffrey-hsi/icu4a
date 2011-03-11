@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/uz_Latn.xml
  */
 uz_Latn{
-    %%Parent{"root"}
+    %%ParentIsRoot:int{1}
     Languages{
         ar{"arabcha"}
         de{"olmoncha"}

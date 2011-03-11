@@ -42,7 +42,7 @@
  *  @stable ICU 2.4
  */
 #define U_COPYRIGHT_STRING \
-  " Copyright (C) 2010, International Business Machines Corporation and others. All Rights Reserved. "
+  " Copyright (C) 2011, International Business Machines Corporation and others. All Rights Reserved. "
 
 /** The current ICU major version as an integer. 
  *  This value will change in the subsequent releases of ICU
@@ -54,7 +54,7 @@
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_MINOR_NUM 7
+#define U_ICU_VERSION_MINOR_NUM 6
 
 /** The current ICU patchlevel version as an integer.  
  *  This value will change in the subsequent releases of ICU
@@ -74,7 +74,7 @@
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_SUFFIX _47
+#define U_ICU_VERSION_SUFFIX _46
 
 /** Glued version suffix function for renamers 
  *  This value will change in the subsequent releases of ICU.
@@ -83,7 +83,7 @@
  *  @stable ICU 4.2
  */
 #ifndef U_ICU_ENTRY_POINT_RENAME
-#define U_ICU_ENTRY_POINT_RENAME(x)    x ## _47
+#define U_ICU_ENTRY_POINT_RENAME(x)    x ## _46
 #endif
 
 /** The current ICU library version as a dotted-decimal string. The patchlevel
@@ -91,18 +91,18 @@
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.4
  */
-#define U_ICU_VERSION "4.7.1"
+#define U_ICU_VERSION "4.6.1"
 
 /** The current ICU library major/minor version as a string without dots, for library name suffixes. 
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_SHORT "47"
+#define U_ICU_VERSION_SHORT "46"
 
 /** Data version in ICU4C.
  * @internal ICU 4.4 Internal Use Only
  **/
-#define U_ICU_DATA_VERSION "4.7.1"
+#define U_ICU_DATA_VERSION "4.6"
 
 /*===========================================================================
  * ICU collation framework version information

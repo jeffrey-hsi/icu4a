@@ -22,6 +22,10 @@ zh_Hant_HK{
             }
         }
         gregorian{
+            DateTimeElements:intvector{
+                1,
+                4,
+            }
             DateTimePatterns{
                 "zzzzah時mm分ss秒",
                 "zah時mm分ss秒",
