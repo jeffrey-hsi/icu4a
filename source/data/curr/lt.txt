@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/lt.xml
@@ -352,7 +352,7 @@ lt{
             "Estijos krona",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egipto svaras",
         }
         ERN{
@@ -500,7 +500,7 @@ lt{
             "Izraelio šekelis",
         }
         INR{
-            "₹",
+            "Rs",
             "Indijos rupija",
         }
         IQD{
@@ -2642,5 +2642,5 @@ lt{
         one{"{0} {1}"}
         other{"{0} {1}"}
     }
-    Version{"2.0.50.94"}
+    Version{"2.0.48.64"}
 }

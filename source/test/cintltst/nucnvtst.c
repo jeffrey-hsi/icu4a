@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2011, International Business Machines Corporation and
+ * Copyright (c) 1997-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*******************************************************************************
@@ -65,12 +65,7 @@ static void TestISO_2022_JP_2(void);
 static void TestISO_2022_KR(void);
 static void TestISO_2022_KR_1(void);
 static void TestISO_2022_CN(void);
-#if 0
-   /*
-    * ICU 4.4 (ticket #7314) removes mappings for CNS 11643 planes 3..7
-    */
 static void TestISO_2022_CN_EXT(void);
-#endif
 static void TestJIS(void);
 static void TestHZ(void);
 #endif
@@ -83,12 +78,7 @@ static void TestGB18030(void);
 static void TestLMBCS(void);
 static void TestJitterbug255(void);
 static void TestEBCDICUS4XML(void);
-#if 0
-   /*
-    * ICU 4.4 (ticket #7314) removes mappings for CNS 11643 planes 3..7
-    */
 static void TestJitterbug915(void);
-#endif
 static void TestISCII(void);
 
 static void TestCoverageMBCS(void);
@@ -97,8 +87,6 @@ static void TestJitterbug2411(void);
 static void TestJB5275(void);
 static void TestJB5275_1(void);
 static void TestJitterbug6175(void);
-
-static void TestIsFixedWidth(void);
 #endif
 
 static void TestInBufSizes(void);
@@ -325,9 +313,8 @@ void addTestNewConvert(TestNode** root)
    addTest(root, &TestJitterbug2346, "tsconv/nucnvtst/TestJitterbug2346");
    addTest(root, &TestJitterbug2411, "tsconv/nucnvtst/TestJitterbug2411");
    addTest(root, &TestJitterbug6175, "tsconv/nucnvtst/TestJitterbug6175");
-
-   addTest(root, &TestIsFixedWidth, "tsconv/nucnvtst/TestIsFixedWidth");
 #endif
+
 }
 
 
@@ -441,7 +428,7 @@ static ETestConvertResult testConvertFromU( const UChar *source, int sourceLen, 
     log_verbose("\nConversion done [%d uchars in -> %d chars out]. \nResult :",
                 sourceLen, targ-junkout);
 
-    if(getTestOption(VERBOSITY_OPTION))
+    if(VERBOSITY)
     {
       char junk[9999];
       char offset_str[9999];
@@ -602,7 +589,7 @@ static ETestConvertResult testConvertToU( const uint8_t *source, int sourcelen, 
 
     log_verbose("\nConversion done. %d bytes -> %d chars.\nResult :",
         sourcelen, targ-junkout);
-    if(getTestOption(VERBOSITY_OPTION))
+    if(VERBOSITY)
     {
         char junk[9999];
         char offset_str[9999];
@@ -2654,10 +2641,13 @@ TestICCRunout() {
 
     const char *cnvName = "ibm-1363";
     UErrorCode status = U_ZERO_ERROR;
-    const char sourceData[] = { (char)0xa2, (char)0xae, (char)0xa2 };
-    /* UChar   expectUData[] = { 0x00a1, 0x001a }; */
-    const char *source = sourceData;
-    const char *sourceLim = sourceData+sizeof(sourceData);
+    const uint8_t sourceData[] = { 0xa2, 0xae, 0xa2 };
+    UChar   expectUData[] = { 0x00a1, 0x001a };
+    const uint8_t *source = sourceData;
+    const uint8_t *sourceLim = sourceData+sizeof(sourceData);
+    UChar   targetBuf[256];
+    UChar   *target = targetBuf;
+    UChar   *targetLim = target+256;
     UChar c1, c2, c3;
     UConverter *cnv=ucnv_open(cnvName, &status);
     if(U_FAILURE(status)) {
@@ -2666,10 +2656,6 @@ TestICCRunout() {
     }
     
 #if 0
-    {
-    UChar   targetBuf[256];
-    UChar   *target = targetBuf;
-    UChar   *targetLim = target+256;
     ucnv_toUnicode(cnv, &target, targetLim, &source, sourceLim, NULL, TRUE, &status);
 
     log_info("After convert: target@%d, source@%d, status%s\n",
@@ -2679,7 +2665,6 @@ TestICCRunout() {
 	log_err("Failed to convert: %s\n", u_errorName(status));
     } else {
 	
-    }
     }
 #endif
 
@@ -3545,7 +3530,7 @@ TestFullRoundtrip(const char* cp){
 
 static void
 TestRoundTrippingAllUTF(void){
-    if(!getTestOption(QUICK_OPTION)){
+    if(!QUICK){
         log_verbose("Running exhaustive round trip test for BOCU-1\n");
         TestFullRoundtrip("BOCU-1");
         log_verbose("Running exhaustive round trip test for SCSU\n");
@@ -3572,19 +3557,8 @@ TestRoundTrippingAllUTF(void){
         TestFullRoundtrip("UTF-7,version=1");
         log_verbose("Running exhaustive round trip test for IMAP-mailbox-name\n");
         TestFullRoundtrip("IMAP-mailbox-name");
-        /*
-         *
-         * With the update to GB18030 2005 (Ticket #8274), this test will fail because the 2005 version of
-         * GB18030 contains mappings to actual Unicode codepoints (which were previously mapped to PUA).
-         * The old mappings remain as fallbacks.
-         * This test may be reintroduced at a later time.
-         *
-         * 110118 - mow
-         */
-         /*
-         log_verbose("Running exhaustive round trip test for GB18030\n");
-         TestFullRoundtrip("GB18030");
-         */
+        log_verbose("Running exhaustive round trip test for GB18030\n");
+        TestFullRoundtrip("GB18030");
     }
 }
 
@@ -4261,10 +4235,6 @@ TestJIS(){
 
 }
 
-
-#if 0
- ICU 4.4 (ticket #7314) removes mappings for CNS 11643 planes 3..7
-
 static void TestJitterbug915(){
 /* tests for roundtripping of the below sequence
 \x1b$)G\x0E#!#"###$#%#&#'#(#)#*#+          / *plane 1 * /
@@ -4452,7 +4422,6 @@ TestISO_2022_CN_EXT() {
     free(cBuf);
     free(offsets);
 }
-#endif
 
 static void
 TestISO_2022_CN() {
@@ -5136,14 +5105,11 @@ TestLMBCS() {
          errorCode=U_ZERO_ERROR;
 
          /* negative source request should always return U_ILLEGAL_ARGUMENT_ERROR */
-         pUIn++;
-         ucnv_fromUnicode(cnv, &pLOut, pLOut+1, &pUIn, pUIn-1, off, FALSE, &errorCode);
+         ucnv_fromUnicode(cnv, &pLOut,pLOut+1,&pUIn,pUIn-1,off,FALSE, &errorCode);
          if (errorCode != U_ILLEGAL_ARGUMENT_ERROR)
          {
             log_err("Unexpected Error on negative source request to ucnv_fromUnicode: %s\n", u_errorName(errorCode));
          }
-         pUIn--;
-         
          errorCode=U_ZERO_ERROR;
          ucnv_toUnicode(cnv, &pUOut,pUOut+1,(const char **)&pLIn,(const char *)(pLIn-1),off,FALSE, &errorCode);
          if (errorCode != U_ILLEGAL_ARGUMENT_ERROR)
@@ -5540,52 +5506,4 @@ static void TestJB5275(){
         exp++;
     }
     ucnv_close(conv);
-}
-
-static void
-TestIsFixedWidth() {
-    UErrorCode status = U_ZERO_ERROR;
-    UConverter *cnv = NULL;
-    int32_t i;
-
-    const char *fixedWidth[] = {
-            "US-ASCII",
-            "UTF32",
-            "ibm-5478_P100-1995",
-            "UTF16"
-    };
-    int32_t fixedWidthLength = 4;
-
-    const char *notFixedWidth[] = {
-            "GB18030",
-            "UTF8",
-            "windows-949-2000"
-    };
-    int32_t notFixedWidthLength = 3;
-
-    for (i = 0; i < fixedWidthLength; i++) {
-        cnv = ucnv_open(fixedWidth[i], &status);
-        if (cnv == NULL || U_FAILURE(status)) {
-            log_data_err("Error open converter: %s - %s \n", fixedWidth[i], u_errorName(status));
-            continue;
-        }
-
-        if (!ucnv_isFixedWidth(cnv, &status)) {
-            log_err("%s is a fixedWidth converter but returned FALSE.\n", fixedWidth[i]);
-        }
-        ucnv_close(cnv);
-    }
-
-    for (i = 0; i < notFixedWidthLength; i++) {
-        cnv = ucnv_open(notFixedWidth[i], &status);
-        if (cnv == NULL || U_FAILURE(status)) {
-            log_data_err("Error open converter: %s - %s \n", fixedWidth[i], u_errorName(status));
-            continue;
-        }
-
-        if (ucnv_isFixedWidth(cnv, &status)) {
-            log_err("%s is NOT a fixedWidth converter but returned TRUE.\n", fixedWidth[i]);
-        }
-        ucnv_close(cnv);
-    }
 }

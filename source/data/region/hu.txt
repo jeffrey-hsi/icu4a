@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/hu.xml
@@ -282,7 +282,7 @@ hu{
         UA{"Ukrajna"}
         UG{"Uganda"}
         UM{"Amerikai Csendes-óceáni Szigetek"}
-        US{"Egyesült Államok"}
+        US{"Amerikai Egyesült Államok"}
         UY{"Uruguay"}
         UZ{"Üzbegisztán"}
         VA{"Vatikán"}
@@ -301,5 +301,5 @@ hu{
         ZW{"Zimbabwe"}
         ZZ{"Ismeretlen vagy érvénytelen körzet"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.64"}
 }

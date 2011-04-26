@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1996-2011, International Business Machines
+*   Copyright (C) 1996-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -37,7 +37,6 @@
 #include "unicode/utf.h"
 #include "unicode/uversion.h"
 #include "unicode/uconfig.h"
-#include "float.h"
 
 /*!
  * \file
@@ -179,7 +178,7 @@
  *   configuration option (see unicode/uconfig.h)
  * - the UCONFIG_NO_CONVERSION build option in uconfig.h is more usable
  *
- * @stable ICU 4.2
+ * @draft ICU 4.2
  * @see UCONFIG_NO_CONVERSION
  */
 #ifndef U_CHARSET_IS_UTF8
@@ -315,13 +314,6 @@ typedef double UDate;
 #define U_MILLIS_PER_HOUR       (3600000)
 /** The number of milliseconds per day @stable ICU 2.0 */
 #define U_MILLIS_PER_DAY       (86400000)
-
-/** Maximum and minimum UDate value 
- * @draft ICU 4.8 
- */ 
-#define U_DATE_MAX DBL_MAX
-#define U_DATE_MIN -U_DATE_MAX
-
 
 
 /*===========================================================================*/

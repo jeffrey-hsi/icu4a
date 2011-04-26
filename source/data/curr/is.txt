@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/is.xml
@@ -172,7 +172,7 @@ is{
             "Eistnesk króna",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egypskt pund",
         }
         ESP{
@@ -260,7 +260,7 @@ is{
             "Sikill",
         }
         INR{
-            "₹",
+            "Rs",
             "Indversk rúpía",
         }
         IQD{
@@ -662,5 +662,5 @@ is{
             other{"óþekktur eða ógildur gjaldeyrir"}
         }
     }
-    Version{"2.0.50.94"}
+    Version{"2.0.47.72"}
 }

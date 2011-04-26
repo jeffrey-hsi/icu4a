@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/af.xml
@@ -17,25 +17,26 @@ af{
         "Latn",
     }
     NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"¤#,##0.00"}
-                decimalFormat{"#,##0.###"}
-                percentFormat{"#,##0%"}
-                scientificFormat{"#E0"}
-            }
-            symbols{
-                decimal{","}
-                exponential{"E"}
-                group{" "}
-                infinity{"∞"}
-                minusSign{"-"}
-                percentSign{"%"}
-                plusSign{"+"}
-            }
-        }
+        ",",
+        " ",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
     }
-    Version{"2.0.53.54"}
+    NumberPatterns{
+        "#,##0.###",
+        "¤#,##0.00",
+        "#,##0%",
+        "#E0",
+    }
+    Version{"2.0.47.68"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -77,7 +78,6 @@ af{
                 yMMM{"MMM y"}
                 yMMMEd{"EEE, MMM d, y"}
                 yMMMM{"MMMM y"}
-                yMMMd{"d MMM y"}
                 yQ{"Q y"}
                 yQQQ{"QQQ y"}
             }

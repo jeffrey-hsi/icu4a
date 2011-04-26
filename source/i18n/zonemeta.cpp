@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 2007-2011, International Business Machines Corporation and    *
+* Copyright (C) 2007-2010, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 */
@@ -93,9 +93,8 @@ static const char gMetaZones[]          = "metaZones";
 static const char gMetazoneInfo[]       = "metazoneInfo";
 static const char gMapTimezonesTag[]    = "mapTimezones";
 
-static const char gTimeZoneTypes[]      = "timezoneTypes";
+static const char gKeyTypeData[]        = "keyTypeData";
 static const char gTypeAliasTag[]       = "typeAlias";
-static const char gTypeMapTag[]         = "typeMap";
 static const char gTimezoneTag[]        = "timezone";
 
 static const char gWorldTag[]           = "001";
@@ -185,96 +184,50 @@ parseDate (const UChar *text, UErrorCode &status) {
 }
 
 UnicodeString& U_EXPORT2
-ZoneMeta::getCanonicalCLDRID(const UnicodeString &tzid, UnicodeString &systemID, UErrorCode& status) {
-    int32_t len = tzid.length();
-    if ( len >= ZID_KEY_MAX ) {
-        status = U_ILLEGAL_ARGUMENT_ERROR;
-        systemID.remove();
-        return systemID;
-    }
+ZoneMeta::getCanonicalSystemID(const UnicodeString &tzid, UnicodeString &systemID, UErrorCode& status) {
+    // Dereference the input ID using the tz data first
+    const UChar *canonical = TimeZone::dereferOlsonLink(tzid);
+    if (canonical != NULL) {
+        // check canonical mapping in CLDR
+        char id[ZID_KEY_MAX];
+        int32_t len = u_strlen(canonical);
+        if (len < sizeof(id)) {
+            u_UCharsToChars(canonical, id, len + 1 /* include the terminator */);
+            // replace '/' with ':'
+            char *p = id;
+            while (*p) {
+                if (*p == '/') {
+                    *p = ':';
+                }
+                p++;
+            }
 
-    char id[ZID_KEY_MAX];
-    const UChar* idChars = tzid.getBuffer();
-
-    u_UCharsToChars(idChars,id,len);
-    id[len] = (char) 0; // Make sure it is null terminated.
-
-    // replace '/' with ':'
-    char *p = id;
-    while (*p++) {
-        if (*p == '/') {
-            *p = ':';
+            UErrorCode tmpStatus = U_ZERO_ERROR;
+            UResourceBundle *rb = ures_openDirect(NULL, gKeyTypeData, &tmpStatus);
+            ures_getByKey(rb, gTypeAliasTag, rb, &tmpStatus);
+            ures_getByKey(rb, gTimezoneTag, rb, &tmpStatus);
+            const UChar *cldrCanonical = ures_getStringByKey(rb, id, NULL, &tmpStatus);
+            if (U_SUCCESS(tmpStatus)) {
+                // canonical map found
+                canonical = cldrCanonical;
+            }
+            ures_close(rb);
         }
     }
-
-
-    UErrorCode tmpStatus = U_ZERO_ERROR;
-    UResourceBundle *top = ures_openDirect(NULL, gTimeZoneTypes, &tmpStatus);
-    UResourceBundle *rb = ures_getByKey(top, gTypeMapTag, NULL, &tmpStatus);
-    ures_getByKey(rb, gTimezoneTag, rb, &tmpStatus);
-    ures_getByKey(rb, id, rb, &tmpStatus);
-    if (U_SUCCESS(tmpStatus)) {
-        // direct map found
-        systemID.setTo(tzid);
-        ures_close(rb);
-        ures_close(top);
-        return systemID;
-    }
-
-    // If a map element not found, then look for an alias
-    tmpStatus = U_ZERO_ERROR;
-    ures_getByKey(top, gTypeAliasTag, rb, &tmpStatus);
-    ures_getByKey(rb, gTimezoneTag, rb, &tmpStatus);
-    const UChar *alias = ures_getStringByKey(rb,id,NULL,&tmpStatus);
-    if (U_SUCCESS(tmpStatus)) {
-        // alias found
-        ures_close(rb);
-        ures_close(top);
-        systemID.setTo(alias);
-        return systemID;
-    }
-
-    // Dereference the input ID using the tz data
-    const UChar *derefer = TimeZone::dereferOlsonLink(tzid);
-    if (derefer == NULL) {
+    if (canonical == NULL) {
         systemID.remove();
         status = U_ILLEGAL_ARGUMENT_ERROR;
     } else {
-
-        len = u_strlen(derefer);
-        u_UCharsToChars(derefer,id,len);
-        id[len] = (char) 0; // Make sure it is null terminated.
-
-        // replace '/' with ':'
-        char *p = id;
-        while (*p++) {
-            if (*p == '/') {
-                *p = ':';
-            }
-        }
-
-        // If a dereference turned something up then look for an alias.
-        // rb still points to the alias table, so we don't have to go looking
-        // for it.
-        tmpStatus = U_ZERO_ERROR;
-        const UChar *alias = ures_getStringByKey(rb,id,NULL,&tmpStatus);
-        if (U_SUCCESS(tmpStatus)) {
-            // alias found
-            systemID.setTo(alias);
-        } else {
-            systemID.setTo(derefer);
-        }
+        systemID.setTo(canonical);
     }
 
-     ures_close(rb);
-     ures_close(top);
-     return systemID;
+    return systemID;
 }
 
 UnicodeString& U_EXPORT2
 ZoneMeta::getCanonicalCountry(const UnicodeString &tzid, UnicodeString &canonicalCountry) {
     const UChar *region = TimeZone::getRegion(tzid);
-    if (region != NULL && u_strcmp(gWorld, region) != 0) {
+    if (u_strcmp(gWorld, region) != 0) {
         canonicalCountry.setTo(region, -1);
     } else {
         canonicalCountry.remove();
@@ -286,8 +239,8 @@ UnicodeString& U_EXPORT2
 ZoneMeta::getSingleCountry(const UnicodeString &tzid, UnicodeString &country) {
     // Get canonical country for the zone
     const UChar *region = TimeZone::getRegion(tzid);
-    if (region == NULL || u_strcmp(gWorld, region) == 0) {
-        // special case - unknown or "001"
+    if (u_strcmp(gWorld, region) == 0) {
+        // special case - "001"
         country.remove();
         return country;
     }
@@ -348,11 +301,27 @@ ZoneMeta::getSingleCountry(const UnicodeString &tzid, UnicodeString &country) {
         char buf[] = {0, 0, 0};
         u_UCharsToChars(region, buf, 2);
 
-        StringEnumeration *ids = TimeZone::createTimeZoneIDEnumeration(UCAL_ZONE_TYPE_CANONICAL_LOCATION, buf, NULL, status);
+        StringEnumeration *ids = TimeZone::createEnumeration(buf);
         int32_t idsLen = ids->count(status);
         if (U_SUCCESS(status) && idsLen > 1) {
-            // multiple canonical zones are available for the region
-            multiZones = TRUE;
+            // multiple zones are available for the region
+            UnicodeString canonical, tmp;
+            const UnicodeString *id = ids->snext(status);
+            getCanonicalSystemID(*id, canonical, status);
+            if (U_SUCCESS(status)) {
+                // check if there are any other canonical zone in the group
+                while (id = ids->snext(status)) {
+                    getCanonicalSystemID(*id, tmp, status);
+                    if (U_FAILURE(status)) {
+                        break;
+                    }
+                    if (canonical != tmp) {
+                        // another canonical zone was found
+                        multiZones = TRUE;
+                        break;
+                    }
+                }
+            }
         }
         if (U_FAILURE(status)) {
             // no single country by default for any error cases
@@ -503,7 +472,7 @@ ZoneMeta::createMetazoneMappings(const UnicodeString &tzid) {
     UnicodeString canonicalID;
     UResourceBundle *rb = ures_openDirect(NULL, gMetaZones, &status);
     ures_getByKey(rb, gMetazoneInfo, rb, &status);
-    getCanonicalCLDRID(tzid, canonicalID, status);
+    TimeZone::getCanonicalID(tzid, canonicalID, status);
 
     if (U_SUCCESS(status)) {
         char tzKey[ZID_KEY_MAX];

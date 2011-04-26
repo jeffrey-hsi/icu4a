@@ -281,43 +281,21 @@
 #define ULOC_KEYWORD_AND_VALUES_CAPACITY 100
 
 /**
- * Invariant character separating keywords from the locale string
+ * Character separating keywords from the locale string
+ * different for EBCDIC - TODO
  * @stable ICU 2.8
  */
 #define ULOC_KEYWORD_SEPARATOR '@'
-
 /**
-  * Unicode code point for '@' separating keywords from the locale string.
-  * @see ULOC_KEYWORD_SEPARATOR
-  * @draft ICU 4.6
-  */
-#define ULOC_KEYWORD_SEPARATOR_UNICODE 0x40
-
-/**
- * Invariant character for assigning value to a keyword
+ * Character for assigning value to a keyword
  * @stable ICU 2.8
  */
 #define ULOC_KEYWORD_ASSIGN '='
-
 /**
-  * Unicode code point for '=' for assigning value to a keyword.
-  * @see ULOC_KEYWORD_ASSIGN
-  * @draft ICU 4.6 
-  */
-#define ULOC_KEYWORD_ASSIGN_UNICODE 0x3D
-
-/**
- * Invariant character separating keywords
+ * Character separating keywords
  * @stable ICU 2.8
  */
 #define ULOC_KEYWORD_ITEM_SEPARATOR ';'
-
-/**
-  * Unicode code point for ';' separating keywords
-  * @see ULOC_KEYWORD_ITEM_SEPARATOR
-  * @draft ICU 4.6
-  */
-#define ULOC_KEYWORD_ITEM_SEPARATOR_UNICODE 0x3B
 
 /**
  * Constants for *_getLocale()

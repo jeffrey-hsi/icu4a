@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (c) 2002-2011, International Business Machines
+* Copyright (c) 2002-2010, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -92,42 +92,8 @@ static const UChar CHOICE_FORMAT_MARK = 0x003D; // Equals sign
 
 static const UChar EUR_STR[] = {0x0045,0x0055,0x0052,0};
 
-// ISO codes mapping table
-static UHashtable* gIsoCodes = NULL;
-static UBool gIsoCodesInitialized = FALSE;
-
-static UMTX gIsoCodesLock = NULL;
-
 //------------------------------------------------------------
 // Code
-
-/**
- * Cleanup callback func
- */
-static UBool U_CALLCONV 
-isoCodes_cleanup(void)
-{
-    if (gIsoCodesLock != NULL) {
-        umtx_destroy(&gIsoCodesLock);
-    }
-
-    if (gIsoCodes != NULL) {
-        uhash_close(gIsoCodes);
-        gIsoCodes = NULL;
-    }
-    gIsoCodesInitialized = FALSE;
-
-    return TRUE;
-}
-
-/**
- * Deleter for OlsonToMetaMappingEntry
- */
-static void U_CALLCONV
-deleteIsoCodeEntry(void *obj) {
-    IsoCodeEntry *entry = (IsoCodeEntry*)obj;
-    uprv_free(entry);
-}
 
 /**
  * Unfortunately, we have to convert the UChar* currency code to char*
@@ -346,11 +312,9 @@ static UBool U_CALLCONV currency_cleanup(void) {
     CReg::cleanup();
 #endif
     /*
-     * There might be some cached currency data or isoCodes data.
+     * There might be some cached currency data.
      */
     currency_cache_cleanup();
-    isoCodes_cleanup();
-
     return TRUE;
 }
 U_CDECL_END
@@ -397,8 +361,6 @@ ucurr_forLocale(const char* locale,
             if ((resLen = uloc_getKeywordValue(locale, "currency", id, ULOC_FULLNAME_CAPACITY, &localStatus))) {
                 // there is a currency keyword. Try to see if it's valid
                 if(buffCapacity > resLen) {
-                    /* Normalize the currency keyword value to upper case. */
-                    T_CString_toUpperCase(id);
                     u_charsToUChars(id, buff, resLen);
                 }
             } else {
@@ -552,10 +514,7 @@ ucurr_getName(const UChar* currency,
 
     char buf[ISO_COUNTRY_CODE_LENGTH+1];
     myUCharsToChars(buf, currency);
-    
-    /* Normalize the keyword value to uppercase */
-    T_CString_toUpperCase(buf);
-    
+
     const UChar* s = NULL;
     ec2 = U_ZERO_ERROR;
     UResourceBundle* rb = ures_open(U_ICUDATA_CURR, loc, &ec2);
@@ -916,8 +875,9 @@ collectCurrencyNames(const char* locale,
             // Add currency ISO code.
             (*currencySymbols)[*total_currency_symbol_count].IsoCode = iso;
             (*currencySymbols)[*total_currency_symbol_count].currencyName = (UChar*)uprv_malloc(sizeof(UChar)*3);
-            // Must convert iso[] into Unicode
-            u_charsToUChars(iso, (*currencySymbols)[*total_currency_symbol_count].currencyName, 3);
+            (*currencySymbols)[*total_currency_symbol_count].currencyName[0] = iso[0];
+            (*currencySymbols)[*total_currency_symbol_count].currencyName[1] = iso[1];
+            (*currencySymbols)[*total_currency_symbol_count].currencyName[2] = iso[2];
             (*currencySymbols)[*total_currency_symbol_count].flag = NEED_TO_BE_DELETED;
             (*currencySymbols)[(*total_currency_symbol_count)++].currencyNameLen = 3;
 
@@ -1566,7 +1526,7 @@ static const struct CurrencyList {
     {"DZD", UCURR_COMMON|UCURR_NON_DEPRECATED},
     {"ECS", UCURR_COMMON|UCURR_DEPRECATED},
     {"ECV", UCURR_UNCOMMON|UCURR_DEPRECATED},
-    {"EEK", UCURR_COMMON|UCURR_DEPRECATED},
+    {"EEK", UCURR_COMMON|UCURR_NON_DEPRECATED},
     {"EGP", UCURR_COMMON|UCURR_NON_DEPRECATED},
     {"EQE", UCURR_COMMON|UCURR_DEPRECATED},
     {"ERN", UCURR_COMMON|UCURR_NON_DEPRECATED},
@@ -1834,81 +1794,6 @@ ucurr_closeCurrencyList(UEnumeration *enumerator) {
     uprv_free(enumerator);
 }
 
-static void U_CALLCONV
-ucurr_createCurrencyList(UErrorCode* status){
-    UErrorCode localStatus = U_ZERO_ERROR;
-
-    // Look up the CurrencyMap element in the root bundle.
-    UResourceBundle *rb = ures_openDirect(U_ICUDATA_CURR, CURRENCY_DATA, &localStatus);
-    UResourceBundle *currencyMapArray = ures_getByKey(rb, CURRENCY_MAP, rb, &localStatus);
-
-    if (U_SUCCESS(localStatus)) {
-        // process each entry in currency map 
-        for (int32_t i=0; i<ures_getSize(currencyMapArray); i++) {
-            // get the currency resource
-            UResourceBundle *currencyArray = ures_getByIndex(currencyMapArray, i, NULL, &localStatus);
-            // process each currency 
-            if (U_SUCCESS(localStatus)) {
-                for (int32_t j=0; j<ures_getSize(currencyArray); j++) {
-                    // get the currency resource
-                    UResourceBundle *currencyRes = ures_getByIndex(currencyArray, j, NULL, &localStatus);
-                    IsoCodeEntry *entry = (IsoCodeEntry*)uprv_malloc(sizeof(IsoCodeEntry));
-                    if (entry == NULL) {
-                        *status = U_MEMORY_ALLOCATION_ERROR;
-                        return;
-                    }
-
-                    // get the ISO code
-                    int32_t isoLength = 0;
-                    UResourceBundle *idRes = ures_getByKey(currencyRes, "id", NULL, &localStatus);
-                    if (idRes == NULL) {
-                        continue;
-                    }
-                    const UChar *isoCode = ures_getString(idRes, &isoLength, &localStatus);
-
-                    // get the from date
-                    int32_t fromLength = 0;
-                    UResourceBundle *fromRes = ures_getByKey(currencyRes, "from", NULL, &localStatus);
-                    const int32_t *fromArray = ures_getIntVector(fromRes, &fromLength, &localStatus);
-                    int64_t currDate64 = (int64_t)fromArray[0] << 32;
-                    currDate64 |= ((int64_t)fromArray[1] & (int64_t)INT64_C(0x00000000FFFFFFFF));
-                    UDate fromDate = (UDate)currDate64;
-                    UDate toDate = U_DATE_MAX;
-
-                    if (ures_getSize(currencyRes)> 2) {
-                        int32_t toLength = 0;
-                        UResourceBundle *toRes = ures_getByKey(currencyRes, "to", NULL, &localStatus);
-                        const int32_t *toArray = ures_getIntVector(toRes, &toLength, &localStatus);
-
-                        currDate64 = (int64_t)toArray[0] << 32;
-                        currDate64 |= ((int64_t)toArray[1] & (int64_t)INT64_C(0x00000000FFFFFFFF));
-                        toDate = (UDate)currDate64;
-
-                        ures_close(toRes);
-                    } 
-
-                    ures_close(fromRes);  
-                    ures_close(idRes);
-                    ures_close(currencyRes);
-
-                    entry->isoCode = isoCode;
-                    entry->from = fromDate;
-                    entry->to = toDate;
-
-                    uhash_put(gIsoCodes, (UChar *)isoCode, entry, &localStatus);
-                }
-            } else {
-                *status = localStatus;
-            }
-            ures_close(currencyArray);
-        }
-    } else {
-        *status = localStatus;
-    }
-
-    ures_close(currencyMapArray);
-}
-
 static const UEnumeration gEnumCurrencyList = {
     NULL,
     NULL,
@@ -1919,49 +1804,6 @@ static const UEnumeration gEnumCurrencyList = {
     ucurr_resetCurrencyList
 };
 U_CDECL_END
-
-U_CAPI UBool U_EXPORT2
-ucurr_isAvailable(const UChar* isoCode, UDate from, UDate to, UErrorCode* eErrorCode) {
-    UErrorCode status = U_ZERO_ERROR;
-    UBool initialized;
-    UMTX_CHECK(&gIsoCodesLock, gIsoCodesInitialized, initialized);
-
-    if (!initialized) {
-        umtx_lock(&gIsoCodesLock);
-        gIsoCodes = uhash_open(uhash_hashUChars, uhash_compareUChars, NULL, &status);
-        if (U_FAILURE(status)) {
-            umtx_unlock(&gIsoCodesLock);
-            return FALSE;
-        }
-        uhash_setValueDeleter(gIsoCodes, deleteIsoCodeEntry);
-
-        ucln_i18n_registerCleanup(UCLN_I18N_CURRENCY, currency_cleanup);
-
-        ucurr_createCurrencyList(&status);
-        if (U_FAILURE(status)) {
-            umtx_unlock(&gIsoCodesLock);
-            return FALSE;
-        }
-
-        gIsoCodesInitialized = TRUE;
-        umtx_unlock(&gIsoCodesLock);
-    }
-
-    umtx_lock(&gIsoCodesLock);
-    IsoCodeEntry* result = (IsoCodeEntry *) uhash_get(gIsoCodes, isoCode);
-    umtx_unlock(&gIsoCodesLock);
-
-    if (result == NULL) {
-        return FALSE;
-    } else if (from > to) {
-        *eErrorCode = U_ILLEGAL_ARGUMENT_ERROR;
-        return FALSE;
-    } else if  ((from > result->to) || (to < result->from)) {
-        return FALSE;
-    }
-
-    return TRUE;
-}
 
 U_CAPI UEnumeration * U_EXPORT2
 ucurr_openISOCurrencies(uint32_t currType, UErrorCode *pErrorCode) {
@@ -1993,6 +1835,7 @@ ucurr_countCurrencies(const char* locale,
 {
     int32_t currCount = 0;
     int32_t resLen = 0;
+    const UChar* s = NULL;
 
     if (ec != NULL && U_SUCCESS(*ec)) 
     {
@@ -2029,6 +1872,7 @@ ucurr_countCurrencies(const char* locale,
             {
                 // get the currency resource
                 UResourceBundle *currencyRes = ures_getByIndex(countryArray, i, NULL, &localStatus);
+                s = ures_getStringByKey(currencyRes, "id", &resLen, &localStatus);
 
                 // get the from date
                 int32_t fromLength = 0;

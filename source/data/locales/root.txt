@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/root.xml
@@ -13,39 +13,35 @@ root{
     AuxExemplarCharacters{"[]"}
     ExemplarCharacters{"[]"}
     ExemplarCharactersCurrency{"[a b c č d e f g h i j k l ł m n o º p q r s t u v w x y z]"}
-    ExemplarCharactersPunctuation{"[\- , ; \: ! ? . ( ) \[ \] \{ \}]"}
     LocaleScript{
         "Zyyy",
     }
     MeasurementSystem:int{0}
     NumberElements{
-        default{"latn"}
-        latn{
-            patterns{
-                currencyFormat{"¤ #,##0.00"}
-                decimalFormat{"#,##0.###"}
-                percentFormat{"#,##0%"}
-                scientificFormat{"#E0"}
-            }
-            symbols{
-                decimal{"."}
-                exponential{"E"}
-                group{","}
-                infinity{"∞"}
-                list{";"}
-                minusSign{"-"}
-                nan{"NaN"}
-                perMille{"‰"}
-                percentSign{"%"}
-                plusSign{"+"}
-            }
-        }
+        ".",
+        ",",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
+    }
+    NumberPatterns{
+        "#,##0.###",
+        "¤ #,##0.00",
+        "#,##0%",
+        "#E0",
     }
     PaperSize:intvector{
         297,
         210,
     }
-    Version{"2.0.54.16"}
+    Version{"2.0.48.64"}
     calendar{
         buddhist{
             AmPmMarkers:alias{"/LOCALE/calendar/gregorian/AmPmMarkers"}
@@ -54,56 +50,18 @@ root{
                 "HH:mm:ss z",
                 "HH:mm:ss",
                 "HH:mm",
-                "EEEE, G y MMMM dd",
-                "G y MMMM d",
-                "G y MMM d",
-                "GGGGG yyyy-MM-dd",
+                "EEEE, MMMM d, y G",
+                "MMMM d, y G",
+                "MMM d, y G",
+                "M/d/yyyy",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
             }
-            appendItems{
-                Day{"{0} ({2}: {1})"}
-                Day-Of-Week{"{0} {1}"}
-                Era{"{0} {1}"}
-                Hour{"{0} ({2}: {1})"}
-                Minute{"{0} ({2}: {1})"}
-                Month{"{0} ({2}: {1})"}
-                Quarter{"{0} ({2}: {1})"}
-                Second{"{0} ({2}: {1})"}
-                Timezone{"{0} {1}"}
-                Week{"{0} ({2}: {1})"}
-                Year{"{0} {1}"}
-            }
-            availableFormats{
-                EEEd{"d EEE"}
-                Gy{"G y"}
-                H{"HH"}
-                Hm{"HH:mm"}
-                Hms{"HH:mm:ss"}
-                M{"L"}
-                MEd{"E, M-d"}
-                MMM{"LLL"}
-                MMMEd{"E MMM d"}
-                MMMd{"MMM d"}
-                Md{"M-d"}
-                d{"d"}
-                h{"h a"}
-                hm{"h:mm a"}
-                hms{"h:mm:ss a"}
-                ms{"mm:ss"}
-                y{"G y"}
-                yM{"GGGGG yyyy-MM"}
-                yMEd{"EEE, GGGGG yyyy-MM-dd"}
-                yMMM{"G y MMM"}
-                yMMMEd{"EEE, G y MMM d"}
-                yMMMd{"G y MMM d"}
-                yMd{"GGGGG yyyy-MM-dd"}
-                yQ{"GGGGG yyyy Q"}
-                yQQQ{"G y QQQ"}
-            }
+            appendItems:alias{"/LOCALE/calendar/gregorian/appendItems"}
+            availableFormats:alias{"/LOCALE/calendar/gregorian/availableFormats"}
             dayNames:alias{"/LOCALE/calendar/gregorian/dayNames"}
             eras{
                 abbreviated{
@@ -324,6 +282,10 @@ root{
                 "AM",
                 "PM",
             }
+            DateTimeElements:intvector{
+                2,
+                4,
+            }
             DateTimePatterns{
                 "HH:mm:ss zzzz",
                 "HH:mm:ss z",
@@ -373,8 +335,6 @@ root{
                 yMEd{"EEE, y-M-d"}
                 yMMM{"y MMM"}
                 yMMMEd{"EEE, y MMM d"}
-                yMMMd{"y MMM d"}
-                yMd{"y-M-d"}
                 yQ{"y Q"}
                 yQQQ{"y QQQ"}
             }
@@ -488,6 +448,9 @@ root{
                 MMMEd{
                     M{"E, MM-d – E, MM-d"}
                     d{"E, MM-d – E, MM-d"}
+                }
+                MMMM{
+                    M{"LLLL–LLLL"}
                 }
                 MMMd{
                     M{"MM-d – MM-d"}
@@ -616,6 +579,12 @@ root{
                     }
                     wide:alias{"/LOCALE/calendar/gregorian/quarters/format/wide"}
                 }
+            }
+            weekend:intvector{
+                7,
+                0,
+                1,
+                86400000,
             }
         }
         hebrew{
@@ -799,7 +768,7 @@ root{
                 "EEEE, G y MMMM dd",
                 "G y MMMM d",
                 "G y MMM d",
-                "GGGGG yy-MM-dd",
+                "G yy-MM-dd",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
@@ -820,32 +789,23 @@ root{
                 Year{"{0} {1}"}
             }
             availableFormats{
-                EEEd{"d EEE"}
-                Gy{"G y"}
+                Ed{"E d"}
                 H{"HH"}
                 Hm{"HH:mm"}
                 Hms{"HH:mm:ss"}
-                M{"L"}
-                MEd{"E, M-d"}
-                MMM{"LLL"}
                 MMMEd{"E MMM d"}
-                MMMd{"MMM d"}
+                MMMMd{"MMMM d"}
                 Md{"M-d"}
-                d{"d"}
-                h{"h a"}
-                hm{"h:mm a"}
-                hms{"h:mm:ss a"}
+                h{"hh a"}
+                hm{"hh:mm a"}
+                hms{"hh:mm:ss a"}
                 ms{"mm:ss"}
-                y{"G y"}
-                yyyy{"G y"}
+                yyyy{"yy GGG"}
                 yyyyM{"GGGGG yy-MM"}
-                yyyyMEd{"EEE, GGGGG yy-MM-dd"}
-                yyyyMMM{"G y MMM"}
-                yyyyMMMEd{"EEE, G y MMM d"}
-                yyyyMMMd{"G y MMM d"}
+                yyyyMMM{"GGGGG yy MMM"}
+                yyyyMMMd{"GGGGG yy MMM d"}
                 yyyyMd{"GGGGG yy-MM-dd"}
                 yyyyQ{"GGGGG yy Q"}
-                yyyyQQQ{"G y QQQ"}
             }
             dayNames:alias{"/LOCALE/calendar/gregorian/dayNames"}
             eras{
@@ -1393,10 +1353,10 @@ root{
                 "HH:mm:ss z",
                 "HH:mm:ss",
                 "HH:mm",
-                "EEEE, G y MMMM dd",
-                "G y MMMM d",
-                "G y MMM d",
-                "GGGGG yy-MM-dd",
+                "EEEE, MMMM d, G y",
+                "MMMM d, G y",
+                "MMM d, G y",
+                "G y/M/d",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
@@ -1417,32 +1377,24 @@ root{
                 Year{"{0} {1}"}
             }
             availableFormats{
-                EEEd{"d EEE"}
-                Gy{"G y"}
                 H{"HH"}
                 Hm{"HH:mm"}
                 Hms{"HH:mm:ss"}
-                M{"L"}
-                MEd{"E, M-d"}
-                MMM{"LLL"}
-                MMMEd{"E MMM d"}
+                MEd{"E, M/d"}
+                MMMEd{"E, MMM d"}
                 MMMd{"MMM d"}
-                Md{"M-d"}
-                d{"d"}
+                Md{"M/d"}
                 h{"h a"}
                 hm{"h:mm a"}
                 hms{"h:mm:ss a"}
                 ms{"mm:ss"}
-                y{"G y"}
                 yyyy{"G y"}
-                yyyyM{"GGGGG yy-MM"}
-                yyyyMEd{"EEE, GGGGG yy-MM-dd"}
-                yyyyMMM{"G y MMM"}
-                yyyyMMMEd{"EEE, G y MMM d"}
-                yyyyMMMd{"G y MMM d"}
-                yyyyMd{"GGGGG yy-MM-dd"}
-                yyyyQ{"GGGGG yy Q"}
-                yyyyQQQ{"G y QQQ"}
+                yyyyM{"G y/M"}
+                yyyyMEd{"EEE, G y/M/d"}
+                yyyyMMM{"MMM, G y"}
+                yyyyMMMEd{"EEE, MMM d, G y"}
+                yyyyQ{"Q G y"}
+                yyyyQQQ{"QQQ G y"}
             }
             dayNames:alias{"/LOCALE/calendar/gregorian/dayNames"}
             eras{
@@ -1458,6 +1410,7 @@ root{
             quarters:alias{"/LOCALE/calendar/gregorian/quarters"}
         }
     }
+    defaultNumberingSystem{"latn"}
     delimiters{
         alternateQuotationEnd{"’"}
         alternateQuotationStart{"‘"}
@@ -1477,7 +1430,6 @@ root{
         }
     }
     measurementSystemNames{
-        UK{"UK"}
         US{"US"}
         metric{"Metric"}
     }
@@ -1485,65 +1437,23 @@ root{
         day{
             other{"{0} d"}
         }
-        day-future{
-            other{"+{0} d"}
-        }
-        day-past{
-            other{"-{0} d"}
-        }
         hour{
             other{"{0} h"}
-        }
-        hour-future{
-            other{"+{0} h"}
-        }
-        hour-past{
-            other{"-{0} h"}
         }
         minute{
             other{"{0} min"}
         }
-        minute-future{
-            other{"+{0} min"}
-        }
-        minute-past{
-            other{"-{0} min"}
-        }
         month{
             other{"{0} m"}
-        }
-        month-future{
-            other{"+{0} m"}
-        }
-        month-past{
-            other{"-{0} m"}
         }
         second{
             other{"{0} s"}
         }
-        second-future{
-            other{"+{0} s"}
-        }
-        second-past{
-            other{"-{0} s"}
-        }
         week{
             other{"{0} w"}
         }
-        week-future{
-            other{"+{0} w"}
-        }
-        week-past{
-            other{"-{0} w"}
-        }
         year{
             other{"{0} y"}
-        }
-        year-future{
-            other{"+{0} y"}
-        }
-        year-past{
-            other{"-{0} y"}
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
  *************************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1996-2011, International Business Machines Corporation and
+ * Copyright (c) 1996-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  *************************************************************************
  */
@@ -105,12 +105,12 @@ UBool Normalizer::operator==(const Normalizer& that) const
 {
     return
         this==&that ||
-        (fUMode==that.fUMode &&
+        fUMode==that.fUMode &&
         fOptions==that.fOptions &&
         *text==*that.text &&
         buffer==that.buffer &&
         bufferPos==that.bufferPos &&
-        nextIndex==that.nextIndex);
+        nextIndex==that.nextIndex;
 }
 
 //-------------------------------------------------------------------------
@@ -203,7 +203,7 @@ Normalizer::isNormalized(const UnicodeString& source,
 }
 
 UnicodeString & U_EXPORT2
-Normalizer::concatenate(const UnicodeString &left, const UnicodeString &right,
+Normalizer::concatenate(UnicodeString &left, UnicodeString &right,
                         UnicodeString &result,
                         UNormalizationMode mode, int32_t options,
                         UErrorCode &errorCode) {

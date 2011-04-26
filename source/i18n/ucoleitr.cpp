@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-*   Copyright (C) 2001-2011, International Business Machines
+*   Copyright (C) 2001-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ******************************************************************************
 *
@@ -41,7 +41,7 @@ U_NAMESPACE_USE
 
 #define DELETE_ARRAY(array) uprv_free((void *) (array))
 
-typedef struct U_NAMESPACE_QUALIFIER collIterate collIterator;
+typedef struct collIterate collIterator;
 
 struct RCEI
 {
@@ -271,7 +271,7 @@ inline uint64_t processCE(UCollationElements *elems, uint32_t ce)
     // **** the *second* CE is marked as a continuation, so ****
     // **** we always have to peek ahead to know how long   ****
     // **** the primary is...                               ****
-    if ((elems->pce->toShift && elems->pce->variableTop > ce && primary != 0)
+    if (elems->pce->toShift && (elems->pce->variableTop > ce && primary != 0)
                 || (elems->pce->isShifted && primary == 0)) {
 
         if (primary == 0) {

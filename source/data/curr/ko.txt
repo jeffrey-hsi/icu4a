@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/ko.xml
@@ -255,10 +255,6 @@ ko{
             "CSK" /** ===  */,
             "체코슬로바키아 동전 코루나",
         }
-        CUC{
-            "CUC$",
-            "쿠바 태환 페소",
-        }
         CUP{
             "CU$",
             "쿠바 페소",
@@ -312,7 +308,7 @@ ko{
             "에스토니아 크룬",
         }
         EGP{
-            "EGP",
+            "EG£",
             "이집트 파운드",
         }
         ERN{
@@ -456,7 +452,7 @@ ko{
             "이스라엘 신권 세켈",
         }
         INR{
-            "₹",
+            "Rs",
             "인도 루피",
         }
         IQD{
@@ -1095,5 +1091,5 @@ ko{
     CurrencyUnitPatterns{
         other{"{0} {1}"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.56"}
 }

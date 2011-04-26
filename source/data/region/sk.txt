@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/sk.xml
@@ -296,5 +296,5 @@ sk{
         ZW{"Zimbabwe"}
         ZZ{"Neznámy alebo neplatný región"}
     }
-    Version{"2.0.50.88"}
+    Version{"2.0.48.56"}
 }

@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
- * Copyright (C) 1996-2011, International Business Machines Corporation and
- * others. All Rights Reserved.
+ * Copyright (C) 1996-2009, International Business Machines Corporation and   *
+ * others. All Rights Reserved.                                               *
  ******************************************************************************
  */
 
@@ -235,8 +235,8 @@ Collator::createUCollator(const char *loc,
     if (status && U_SUCCESS(*status) && hasService()) {
         Locale desiredLocale(loc);
         Collator *col = (Collator*)gService->get(desiredLocale, *status);
-        RuleBasedCollator *rbc;
-        if (col && (rbc = dynamic_cast<RuleBasedCollator *>(col))) {
+        if (col && col->getDynamicClassID() == RuleBasedCollator::getStaticClassID()) {
+            RuleBasedCollator *rbc = (RuleBasedCollator *)col;
             if (!rbc->dataIsOwned) {
                 result = ucol_safeClone(rbc->ucollator, NULL, NULL, status);
             } else {
@@ -831,39 +831,6 @@ Collator::getFunctionalEquivalent(const char* keyword, const Locale& locale,
         *loc = 0; // root
     }
     return Locale::createFromName(loc);
-}
-
-int32_t U_EXPORT2 
-Collator::getReorderCodes(int32_t *dest,
-                                 int32_t destCapacity,
-                                 UErrorCode& status) const
-{
-    if (U_SUCCESS(status)) {
-        status = U_UNSUPPORTED_ERROR;
-    }
-    return 0;
-}
-
-void U_EXPORT2 
-Collator::setReorderCodes(const int32_t *reorderCodes,
-                              int32_t reorderCodesLength,
-                              UErrorCode& status)
-{
-    if (U_SUCCESS(status)) {
-        status = U_UNSUPPORTED_ERROR;
-    }
-}
-
-int32_t U_EXPORT2
-Collator::getEquivalentReorderCodes(int32_t reorderCode,
-                                    int32_t *dest,
-                                    int32_t destCapacity,
-                                    UErrorCode& status)
-{
-    if (U_SUCCESS(status)) {
-        status = U_UNSUPPORTED_ERROR;
-    }
-    return 0;
 }
 
 // UCollator private data members ----------------------------------------

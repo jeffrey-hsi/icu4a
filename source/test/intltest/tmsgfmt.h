@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2011, International Business Machines Corporation and
+ * Copyright (c) 1997-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 #ifndef _TESTMESSAGEFORMAT
@@ -65,14 +65,12 @@ public:
      **/
     void testMsgFormatSelect(/* char* par */);
 
-    void testApostropheInPluralAndSelect();
-
     /** 
      * Internal method to format a MessageFormat object with passed args 
      **/
     void internalFormat(MessageFormat* msgFmt ,
         Formattable* args , int32_t numOfArgs ,
-        UnicodeString expected, const char* errMsg);
+        UnicodeString expected ,char* errMsg);
 
     /** 
      * Internal method to create a MessageFormat object with passed args 
@@ -91,10 +89,7 @@ public:
      */
     void TestRBNF();
 
-    void TestApostropheMode();
-
-    void TestCompatibleApostrophe();
-
+    //
     /** 
      * ------------ API tests ----------
      * These routines test various API functionality.
@@ -113,13 +108,11 @@ public:
     void testAdopt(void);
     void TestTurkishCasing(void);
     void testAutoQuoteApostrophe(void);
-    void TestTrimArgumentName();
 
     /* Provide better code coverage */
     void testCoverage(void);
 
 private:
-    UnicodeString GetPatternAndSkipSyntax(const MessagePattern& pattern);
 };
 
 #endif /* #if !UCONFIG_NO_FORMATTING */

@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-* Copyright (C) 1997-2011, International Business Machines Corporation and   *
+* Copyright (C) 1997-2010, International Business Machines Corporation and   *
 * others. All Rights Reserved.                                               *
 ******************************************************************************
 *
@@ -62,7 +62,7 @@ static UBool U_CALLCONV compareEntries(const UHashTok p1, const UHashTok p2) {
     name2.pointer = b2->fName;
     path1.pointer = b1->fPath;
     path2.pointer = b2->fPath;
-    return (UBool)(uhash_compareChars(name1, name2) &&
+    return (UBool)(uhash_compareChars(name1, name2) & 
         uhash_compareChars(path1, path2));
 }
 
@@ -565,23 +565,13 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
                    u1->fParent = t1;
                    r = u1;
                  } else {
-                   /* the USR override data wasn't found, set it to be deleted */
-                   u1->fCountExisting = 0;
+                   /* the USR override data wasn't found, delete it */
+                   uhash_remove(cache, u1);
+                   free_entry(u1);
                  }
                }
             }
             while (hasChopped && !isRoot && t1->fParent == NULL && !t1->fData.noFallback) {
-                if ( res_getResource(&t1->fData,"%%Parent") != RES_BOGUS) { /* An explicit parent was found */
-                    int32_t parentLocaleLen = 0;
-                    const UChar *parentLocaleName = res_getString(&(t1->fData), res_getResource(&t1->fData,"%%Parent") , &parentLocaleLen);
-                    if(parentLocaleName != NULL && parentLocaleLen > 0) {
-                        u_UCharsToChars(parentLocaleName, name, parentLocaleLen+1);
-                        if ( !uprv_strcmp(name,"root") ) { /* If parent is root, we just terminate the loop */
-                            hasChopped = FALSE;
-                            continue;
-                        }
-                    }
-                }
                 /* insert regular parents */
                 t2 = init_entry(name, t1->fPath, &parentStatus);
                 if ( usingUSRData ) {  /* This code inserts user override data into the inheritance chain */
@@ -594,17 +584,30 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
                     goto finishUnlock;
                 }
                 
-                if ( usingUSRData && u2->fBogus == U_ZERO_ERROR ) {
-                    t1->fParent = u2;
-                    u2->fParent = t2;
-                } else {
-                    t1->fParent = t2;
-                    if(usingUSRData) {
-                        /* the USR override data wasn't found, set it to be deleted */
-                        u2->fCountExisting = 0;
+                if ( res_getResource(&t1->fData,"%%ParentIsRoot") == RES_BOGUS) {
+                    if ( usingUSRData && u2->fBogus == U_ZERO_ERROR ) {
+                        t1->fParent = u2;
+                        u2->fParent = t2;
+                    } else {
+                        t1->fParent = t2;
+                        if(usingUSRData) {
+                          /* the USR override data wasn't found, delete it */
+                          uhash_remove(cache, u2);
+                          free_entry(u2);
+                        }
                     }
+                    t1 = t2;
+                } else {
+                    if (usingUSRData) {
+                        /* the USR override data wasn't found, delete it */
+                        uhash_remove(cache, u2);
+                        free_entry(u2);
+                    }
+                    /* t2->fCountExisting have to be decremented since the call to init_entry increments
+                     * it and if we hit this code, that means it is not set as the parent.
+                     */
+                    t2->fCountExisting--;
                 }
-                t1 = t2;
                 hasChopped = chopLocale(name);
             }
         }
@@ -621,17 +624,6 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
                 hasRealData = TRUE;
                 isDefault = TRUE;
                 while (hasChopped && t1->fParent == NULL) {
-                    if ( res_getResource(&t1->fData,"%%Parent") != RES_BOGUS) { /* An explicit parent was found */
-                        int32_t parentLocaleLen = 0;
-                        const UChar *parentLocaleName = res_getString(&(t1->fData), res_getResource(&t1->fData,"%%Parent") , &parentLocaleLen);
-                        if(parentLocaleName != NULL && parentLocaleLen > 0) {
-                            u_UCharsToChars(parentLocaleName, name, parentLocaleLen+1);
-                            if ( !uprv_strcmp(name,"root") ) { /* If parent is root, we just terminate the loop */
-                                hasChopped = FALSE;
-                                continue;
-                            }
-                        }
-                    }
                     /* insert chopped defaults */
                     t2 = init_entry(name, t1->fPath, &parentStatus);
                     /* Check for null pointer. */
@@ -673,7 +665,7 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
             if(!hasRealData) {
                 r->fBogus = U_USING_DEFAULT_WARNING;
             }
-            hasRealData = (UBool)((t2->fBogus == U_ZERO_ERROR) || hasRealData);
+            hasRealData = (UBool)((t2->fBogus == U_ZERO_ERROR) | hasRealData);
             t1->fParent = t2;
             t1 = t2;
         }
@@ -681,7 +673,7 @@ static UResourceDataEntry *entryOpen(const char* path, const char* localeID, UEr
         while(r != NULL && !isRoot && t1->fParent != NULL) {
             t1->fParent->fCountExisting++;
             t1 = t1->fParent;
-            hasRealData = (UBool)((t1->fBogus == U_ZERO_ERROR) || hasRealData);
+            hasRealData = (UBool)((t1->fBogus == U_ZERO_ERROR) | hasRealData);
         }
     } /* umtx_lock */
 finishUnlock:
@@ -1913,8 +1905,8 @@ ures_getUTF8StringByKey(const UResourceBundle *resB,
  *  INTERNAL: Get the name of the first real locale (not placeholder) 
  *  that has resource bundle data.
  */
-U_INTERNAL const char*  U_EXPORT2
-ures_getLocaleInternal(const UResourceBundle* resourceBundle, UErrorCode* status)
+U_CAPI const char*  U_EXPORT2
+ures_getLocale(const UResourceBundle* resourceBundle, UErrorCode* status)
 {
     if (status==NULL || U_FAILURE(*status)) {
         return NULL;
@@ -1926,14 +1918,6 @@ ures_getLocaleInternal(const UResourceBundle* resourceBundle, UErrorCode* status
       return resourceBundle->fData->fName;
     }
 }
-
-U_CAPI const char* U_EXPORT2 
-ures_getLocale(const UResourceBundle* resourceBundle, 
-               UErrorCode* status)
-{
-  return ures_getLocaleInternal(resourceBundle, status);
-}
-
 
 U_CAPI const char* U_EXPORT2 
 ures_getLocaleByType(const UResourceBundle* resourceBundle, 
@@ -2170,18 +2154,8 @@ ures_countArrayItems(const UResourceBundle* resourceBundle,
     }
 }
 
-/**
- * Internal function.
- * Return the version number associated with this ResourceBundle as a string.
- *
- * @param resourceBundle The resource bundle for which the version is checked.
- * @return  A version number string as specified in the resource bundle or its parent.
- *          The caller does not own this string.
- * @see ures_getVersion
- * @internal
- */
-U_INTERNAL const char* U_EXPORT2 
-ures_getVersionNumberInternal(const UResourceBundle *resourceBundle)
+U_CAPI const char*  U_EXPORT2
+ures_getVersionNumber(const UResourceBundle*   resourceBundle)
 {
     if (!resourceBundle) return NULL;
 
@@ -2224,16 +2198,10 @@ ures_getVersionNumberInternal(const UResourceBundle *resourceBundle)
     return resourceBundle->fVersion;
 }
 
-U_CAPI const char*  U_EXPORT2
-ures_getVersionNumber(const UResourceBundle*   resourceBundle)
-{
-    return ures_getVersionNumberInternal(resourceBundle);
-}
-
 U_CAPI void U_EXPORT2 ures_getVersion(const UResourceBundle* resB, UVersionInfo versionInfo) {
     if (!resB) return;
 
-    u_versionFromString(versionInfo, ures_getVersionNumberInternal(resB));
+    u_versionFromString(versionInfo, ures_getVersionNumber(resB));
 }
 
 /** Tree support functions *******************************/

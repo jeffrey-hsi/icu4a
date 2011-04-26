@@ -11,9 +11,7 @@
  */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
+#include "unicode/utypes.h"
 #include "unicode/uobject.h"
 #include "vzone.h"
 #include "unicode/vtzone.h"
@@ -181,5 +179,3 @@ U_CAPI UClassID U_EXPORT2
 vzone_getDynamicClassID(VZone* zone) {
     return ((VTimeZone*)zone)->VTimeZone::getDynamicClassID();
 }
-
-#endif

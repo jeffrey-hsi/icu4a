@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/es.xml
@@ -18,81 +18,27 @@ es{
         "Latn",
     }
     NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"¤ #,##0.00"}
-                decimalFormat{"#,##0.###"}
-                percentFormat{"#,##0%"}
-                scientificFormat{"#E0"}
-            }
-            symbols{
-                decimal{","}
-                exponential{"E"}
-                group{"."}
-                infinity{"∞"}
-                list{";"}
-                minusSign{"-"}
-                nan{"NaN"}
-                perMille{"‰"}
-                percentSign{"%"}
-                plusSign{"+"}
-            }
-        }
+        ",",
+        ".",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
     }
-    Version{"2.0.53.54"}
+    NumberPatterns{
+        "#,##0.###",
+        "¤ #,##0.00",
+        "#,##0%",
+        "#E0",
+    }
+    Version{"2.0.48.46"}
     calendar{
-        buddhist{
-            DateTimePatterns{
-                "HH:mm:ss zzzz",
-                "HH:mm:ss z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE d 'de' MMMM 'de' y G",
-                "d 'de' MMMM 'de' y G",
-                "dd/MM/y G",
-                "dd/MM/y G",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-            }
-            availableFormats{
-                EEEd{"EEE d"}
-                Gy{"y G"}
-                Hm{"HH:mm"}
-                Hms{"HH:mm:ss"}
-                M{"L"}
-                MEd{"E, d/M"}
-                MMM{"LLL"}
-                MMMEd{"E d MMM"}
-                MMMMd{"d 'de' MMMM"}
-                MMMd{"d MMM"}
-                MMMdd{"dd-MMM"}
-                MMd{"d/MM"}
-                Md{"d/M"}
-                d{"d"}
-                h{"hh a"}
-                hm{"hh:mm a"}
-                hms{"hh:mm:ss a"}
-                ms{"mm:ss"}
-                y{"y G"}
-                yM{"M/y G"}
-                yMEd{"EEE d/M/y G"}
-                yMMM{"MMM y G"}
-                yMMMEd{"EEE, d MMM y G"}
-                yMMMM{"MMMM 'de' y G"}
-                yMMMd{"d MMM y G"}
-                yMd{"d/M/y G"}
-                yQ{"Q y G"}
-                yQQQ{"QQQ y G"}
-                yyMM{"MM/y G"}
-                yyMMM{"MMM-y G"}
-                yyQ{"Q y G"}
-                yyQQQQ{"QQQQ 'de' y G"}
-                yyyyMM{"MM/y G"}
-            }
-        }
         gregorian{
             AmPmMarkers{
                 "a.m.",
@@ -137,8 +83,6 @@ es{
                 yMMM{"MMM y"}
                 yMMMEd{"EEE, d MMM y"}
                 yMMMM{"MMMM 'de' y"}
-                yMMMd{"d MMM y"}
-                yMd{"d/M/y"}
                 yQ{"Q y"}
                 yQQQ{"QQQ y"}
                 yyMM{"MM/yy"}
@@ -259,6 +203,9 @@ es{
                     M{"E d MMM – E d MMM"}
                     d{"E d MMM – E d MMM"}
                 }
+                MMMM{
+                    M{"LLLL–LLLL"}
+                }
                 MMMd{
                     M{"d MMM – d MMM"}
                     d{"d–d MMM"}
@@ -311,8 +258,8 @@ es{
                     y{"E d MMM y – E d MMM y"}
                 }
                 yMMMM{
-                    M{"MMMM–MMMM y"}
-                    y{"MMMM y – MMMM y"}
+                    M{"MM–MM yyyy"}
+                    y{"MM-yyyy – MM-yyyy"}
                 }
                 yMMMd{
                     M{"d MMM – d MMM y"}
@@ -388,221 +335,6 @@ es{
                         "4º trimestre",
                     }
                 }
-            }
-        }
-        islamic{
-            DateTimePatterns{
-                "HH:mm:ss zzzz",
-                "HH:mm:ss z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE d 'de' MMMM 'de' y G",
-                "d 'de' MMMM 'de' y G",
-                "dd/MM/y G",
-                "dd/MM/y G",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-            }
-            availableFormats{
-                EEEd{"EEE d"}
-                Hm{"HH:mm"}
-                Hms{"HH:mm:ss"}
-                M{"L"}
-                MEd{"E, d/M"}
-                MMM{"LLL"}
-                MMMEd{"E d MMM"}
-                MMMMd{"d 'de' MMMM"}
-                MMMd{"d MMM"}
-                MMMdd{"dd-MMM"}
-                MMd{"d/MM"}
-                Md{"d/M"}
-                d{"d"}
-                h{"hh a"}
-                hm{"hh:mm a"}
-                hms{"hh:mm:ss a"}
-                ms{"mm:ss"}
-                yyMM{"MM/y G"}
-                yyMMM{"MMM-y G"}
-                yyQ{"Q y G"}
-                yyQQQQ{"QQQQ 'de' y G"}
-                yyyy{"y G"}
-                yyyyM{"M/y G"}
-                yyyyMEd{"EEE d/M/y G"}
-                yyyyMMM{"MMM y G"}
-                yyyyMMMEd{"EEE, d MMM y G"}
-                yyyyMMMM{"MMMM 'de' y G"}
-                yyyyMMMd{"d MMM y G"}
-                yyyyMd{"d/M/y G"}
-                yyyyQ{"Q y G"}
-                yyyyQQQ{"QQQ y G"}
-            }
-            eras{
-                abbreviated{
-                    "AH",
-                }
-                narrow:alias{"/LOCALE/calendar/islamic/eras/abbreviated"}
-                wide:alias{"/LOCALE/calendar/islamic/eras/abbreviated"}
-            }
-            monthNames{
-                default{"format"}
-                format{
-                    abbreviated{
-                        "Muh.",
-                        "Saf.",
-                        "Rab. I",
-                        "Rab. II",
-                        "Jum. I",
-                        "Jum. II",
-                        "Raj.",
-                        "Sha.",
-                        "Ram.",
-                        "Shaw.",
-                        "Dhuʻl-Q.",
-                        "Dhuʻl-H.",
-                    }
-                    default{"wide"}
-                    narrow:alias{"/LOCALE/calendar/islamic/monthNames/stand-alone/narrow"}
-                    wide{
-                        "Muharram",
-                        "Safar",
-                        "Rabiʻ I",
-                        "Rabiʻ II",
-                        "Jumada I",
-                        "Jumada II",
-                        "Rajab",
-                        "Shaʻban",
-                        "Ramadan",
-                        "Shawwal",
-                        "Dhuʻl-Qiʻdah",
-                        "Dhuʻl-Hijjah",
-                    }
-                }
-                stand-alone{
-                    abbreviated:alias{"/LOCALE/calendar/islamic/monthNames/format/abbreviated"}
-                    narrow{
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                        "6",
-                        "7",
-                        "8",
-                        "9",
-                        "10",
-                        "11",
-                        "12",
-                    }
-                    wide:alias{"/LOCALE/calendar/islamic/monthNames/format/wide"}
-                }
-            }
-        }
-        japanese{
-            DateTimePatterns{
-                "HH:mm:ss zzzz",
-                "HH:mm:ss z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE d 'de' MMMM 'de' y G",
-                "d 'de' MMMM 'de' y G",
-                "dd/MM/y G",
-                "dd/MM/y GGGGG",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-            }
-            availableFormats{
-                EEEd{"EEE d"}
-                Gy{"y G"}
-                Hm{"HH:mm"}
-                Hms{"HH:mm:ss"}
-                M{"L"}
-                MEd{"E, d/M"}
-                MMM{"LLL"}
-                MMMEd{"E d MMM"}
-                MMMMd{"d 'de' MMMM"}
-                MMMd{"d MMM"}
-                MMMdd{"dd-MMM"}
-                MMd{"d/MM"}
-                Md{"d/M"}
-                d{"d"}
-                h{"hh a"}
-                hm{"hh:mm a"}
-                hms{"hh:mm:ss a"}
-                ms{"mm:ss"}
-                y{"y G"}
-                yyMM{"MM/y GGGGG"}
-                yyMMM{"MMM-y G"}
-                yyQ{"Q y G"}
-                yyQQQQ{"QQQQ 'de' y G"}
-                yyyy{"y G"}
-                yyyyM{"M/y GGGGG"}
-                yyyyMEd{"EEE d/M/y GGGGG"}
-                yyyyMMM{"MMM y G"}
-                yyyyMMMEd{"EEE, d MMM y G"}
-                yyyyMMMM{"MMMM 'de' y G"}
-                yyyyMMMd{"d MMM y G"}
-                yyyyMd{"d/M/y GGGGG"}
-                yyyyQ{"Q y G"}
-                yyyyQQQ{"QQQ y G"}
-            }
-        }
-        roc{
-            DateTimePatterns{
-                "HH:mm:ss zzzz",
-                "HH:mm:ss z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE d 'de' MMMM 'de' y G",
-                "d 'de' MMMM 'de' y G",
-                "dd/MM/y G",
-                "dd/MM/y GGGGG",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-                "{1} {0}",
-            }
-            availableFormats{
-                EEEd{"EEE d"}
-                Gy{"y G"}
-                Hm{"HH:mm"}
-                Hms{"HH:mm:ss"}
-                M{"L"}
-                MEd{"E, d/M"}
-                MMM{"LLL"}
-                MMMEd{"E d MMM"}
-                MMMMd{"d 'de' MMMM"}
-                MMMd{"d MMM"}
-                MMMdd{"dd-MMM"}
-                MMd{"d/MM"}
-                Md{"d/M"}
-                d{"d"}
-                h{"hh a"}
-                hm{"hh:mm a"}
-                hms{"hh:mm:ss a"}
-                ms{"mm:ss"}
-                y{"y G"}
-                yyMM{"MM/y GGGGG"}
-                yyMMM{"MMM-y G"}
-                yyQ{"Q y G"}
-                yyQQQQ{"QQQQ 'de' y G"}
-                yyyy{"y G"}
-                yyyyM{"M/y GGGGG"}
-                yyyyMEd{"EEE d/M/y GGGGG"}
-                yyyyMM{"MM/y G"}
-                yyyyMMM{"MMM y G"}
-                yyyyMMMEd{"EEE, d MMM y G"}
-                yyyyMMMM{"MMMM 'de' y G"}
-                yyyyMMMd{"d MMM y G"}
-                yyyyMd{"d/M/y GGGGG"}
-                yyyyQ{"Q y G"}
-                yyyyQQQ{"QQQ y G"}
             }
         }
     }

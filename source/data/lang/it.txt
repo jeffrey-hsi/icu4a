@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/it.xml
@@ -602,6 +602,7 @@ it{
         Phag{"phags-pa"}
         Phnx{"fenicio"}
         Plrd{"fonetica di pollard"}
+        Qaai{"ereditato"}
         Rjng{"rejang"}
         Roro{"rongorongo"}
         Runr{"runico"}
@@ -633,7 +634,6 @@ it{
         Xpeo{"persiano antico"}
         Xsux{"sumero-accadiano cuneiforme"}
         Yiii{"yi"}
-        Zinh{"ereditato"}
         Zxxx{"non scritto"}
         Zyyy{"comune"}
         Zzzz{"ignoto o non valido"}
@@ -675,7 +675,7 @@ it{
         ROZAJ{"resiano"}
         SAAHO{"saho"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.47.69"}
     localeDisplayPattern{
         pattern{"{0} ({1})"}
         separator{", "}

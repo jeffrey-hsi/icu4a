@@ -1,6 +1,6 @@
 /*  
 **********************************************************************
-*   Copyright (C) 2002-2011, International Business Machines
+*   Copyright (C) 2002-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   file name:  uconfig.h
@@ -44,6 +44,18 @@
  */
 #if defined(UCONFIG_USE_LOCAL)
 #include "uconfig_local.h"
+#endif
+
+#if defined(ICU4C0)
+#ifndef UCONFIG_NO_COLLATION
+#define UCONFIG_NO_COLLATION 1
+#endif
+#ifndef UCONFIG_NO_IDNA
+#   define UCONFIG_NO_IDNA 1
+#endif
+#ifndef UCONFIG_NO_TRANSLITERATION
+#   define UCONFIG_NO_TRANSLITERATION 1
+#endif
 #endif
 
 /**
@@ -135,6 +147,19 @@
 #endif
 
 /**
+ * @internal
+ */
+#ifndef UCONFIG_NO_USET
+# define UCONFIG_NO_USET 0
+#elif UCONFIG_NO_USET && !defined(ICU4C0)
+# ifndef UCONFIG_NO_NORMALIZATION
+#  define UCONFIG_NO_NORMALIZATION 1
+# elif !UCONFIG_NO_NORMALIZATION
+#  error UCONFIG_NO_USET=1 implies UCONFIG_NO_NORMALIZATION=1
+# endif
+#endif
+
+/**
  * \def UCONFIG_NO_NORMALIZATION
  * This switch turns off normalization.
  * It implies turning off several other services as well, for example
@@ -174,17 +199,6 @@
  */
 #ifndef UCONFIG_NO_IDNA
 #   define UCONFIG_NO_IDNA 0
-#endif
-
-/**
- * \def UCONFIG_MSGPAT_DEFAULT_APOSTROPHE_MODE
- * Determines the default UMessagePatternApostropheMode.
- * See the documentation for that enum.
- *
- * @draft ICU 4.8
- */
-#ifndef UCONFIG_MSGPAT_DEFAULT_APOSTROPHE_MODE
-#   define UCONFIG_MSGPAT_DEFAULT_APOSTROPHE_MODE UMSGPAT_APOS_DOUBLE_OPTIONAL
 #endif
 
 /* i18n library switches ---------------------------------------------------- */

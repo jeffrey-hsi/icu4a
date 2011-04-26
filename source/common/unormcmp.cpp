@@ -184,7 +184,7 @@ unorm_cmpEquivFold(const UChar *s1, int32_t length1,
         nfcImpl=NULL;
     }
     if((options&U_COMPARE_IGNORE_CASE)!=0) {
-        csp=ucase_getSingleton();
+        csp=ucase_getSingleton(pErrorCode);
     } else {
         csp=NULL;
     }

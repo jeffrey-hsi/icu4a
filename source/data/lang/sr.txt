@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/sr.xml
@@ -617,6 +617,7 @@ sr{
         Phnx{"Феничанско писмо"}
         Plrd{"поралд фонетско писмо"}
         Prti{"писани партиан"}
+        Qaai{"наследно писмо"}
         Rjng{"рејанг писмо"}
         Roro{"ронгоронго писмо"}
         Runr{"рунско писмо"}
@@ -650,7 +651,6 @@ sr{
         Xpeo{"староперсијско писмо"}
         Xsux{"сумерско-акадско кунеиформ писмо"}
         Yiii{"ји писмо"}
-        Zinh{"наследно писмо"}
         Zmth{"математичка нотација"}
         Zsym{"симболи"}
         Zxxx{"Неписани језик"}
@@ -708,7 +708,7 @@ sr{
         TARASK{"Тараскијевичка ортографија"}
         VALENCIA{"Валенцијска"}
     }
-    Version{"2.0.53.45"}
+    Version{"2.0.48.64"}
     codePatterns{
         language{"{0}"}
         script{"{0}"}

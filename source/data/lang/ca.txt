@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/ca.xml
@@ -617,6 +617,7 @@ ca{
         Phnx{"fenici"}
         Plrd{"Pollard Miao"}
         Prti{"parthià inscripcional"}
+        Qaai{"heretat"}
         Rjng{"rejang"}
         Roro{"rongo-rongo"}
         Runr{"rúnic"}
@@ -650,7 +651,6 @@ ca{
         Xpeo{"persa antic"}
         Xsux{"cuneïforme sumeri-accadi"}
         Yiii{"yi"}
-        Zinh{"heretat"}
         Zmth{"notació matemàtica"}
         Zsym{"símbols"}
         Zxxx{"sense escriptura"}
@@ -710,7 +710,7 @@ ca{
         VALENCIA{"valencià"}
         WADEGILE{"romanització Wade-Giles"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.46"}
     codePatterns{
         language{"Idioma: {0}"}
         script{"Escriptura: {0}"}

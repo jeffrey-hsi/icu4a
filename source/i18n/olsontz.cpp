@@ -9,8 +9,6 @@
 **********************************************************************
 */
 
-#include <typeinfo>  // for 'typeid' to work
-
 #include "olsontz.h"
 
 #if !UCONFIG_NO_FORMATTING
@@ -51,7 +49,7 @@ static UBool arrayEqual(const void *a1, const void *a2, int32_t size) {
     if (a1 == NULL && a2 == NULL) {
         return TRUE;
     }
-    if ((a1 != NULL && a2 == NULL) || (a1 == NULL && a2 != NULL)) {
+    if (a1 != NULL && a2 == NULL || a1 == NULL && a2 != NULL) {
         return FALSE;
     }
     if (a1 == a2) {
@@ -301,7 +299,7 @@ OlsonTimeZone::~OlsonTimeZone() {
  */
 UBool OlsonTimeZone::operator==(const TimeZone& other) const {
     return ((this == &other) ||
-            (typeid(*this) == typeid(other) &&
+            (getDynamicClassID() == other.getDynamicClassID() &&
             TimeZone::operator==(other) &&
             hasSameRules(other)));
 }
@@ -594,10 +592,10 @@ OlsonTimeZone::hasSameRules(const TimeZone &other) const {
     if (this == &other) {
         return TRUE;
     }
-    const OlsonTimeZone* z = dynamic_cast<const OlsonTimeZone*>(&other);
-    if (z == NULL) {
+    if (other.getDynamicClassID() != OlsonTimeZone::getStaticClassID()) {
         return FALSE;
     }
+    const OlsonTimeZone* z = (const OlsonTimeZone*) &other;
 
     // [sic] pointer comparison: typeMapData points into
     // memory-mapped or DLL space, so if two zones have the same
@@ -608,9 +606,9 @@ OlsonTimeZone::hasSameRules(const TimeZone &other) const {
     
     // If the pointers are not equal, the zones may still
     // be equal if their rules and transitions are equal
-    if ((finalZone == NULL && z->finalZone != NULL)
-        || (finalZone != NULL && z->finalZone == NULL)
-        || (finalZone != NULL && z->finalZone != NULL && *finalZone != *z->finalZone)) {
+    if (finalZone == NULL && z->finalZone != NULL
+        || finalZone != NULL && z->finalZone == NULL
+        || finalZone != NULL && z->finalZone != NULL && *finalZone != *z->finalZone) {
         return FALSE;
     }
 

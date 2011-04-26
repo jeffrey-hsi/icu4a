@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/de.xml
@@ -255,10 +255,6 @@ de{
             "CSK" /** ===  */,
             "Tschechoslowakische Krone",
         }
-        CUC{
-            "CUC$",
-            "Kubanischer Peso (konvertibel)",
-        }
         CUP{
             "CU$",
             "Kubanischer Peso",
@@ -312,7 +308,7 @@ de{
             "Estnische Krone",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Ägyptisches Pfund",
         }
         ERN{
@@ -456,7 +452,7 @@ de{
             "Schekel",
         }
         INR{
-            "₹",
+            "Rs",
             "Indische Rupie",
         }
         IQD{
@@ -875,10 +871,6 @@ de{
             "TMM",
             "Turkmenistan-Manat",
         }
-        TMT{
-            "TMT",
-            "Neuer Turkmenistan-Manat",
-        }
         TND{
             "DT",
             "Tunesischer Dinar",
@@ -1095,10 +1087,6 @@ de{
             "Z$",
             "Simbabwe-Dollar",
         }
-        ZWL{
-            "ZWL",
-            "Simbabwe-Dollar (2009)",
-        }
     }
     CurrencyPlurals{
         ADP{
@@ -1280,10 +1268,6 @@ de{
         }
         CSK{
             other{"Tschechoslowakische Kronen"}
-        }
-        CUC{
-            one{"Kubanischer Peso (konvertibel)"}
-            other{"Kubanische Pesos (konvertibel)"}
         }
         CUP{
             other{"Kubanische Pesos"}
@@ -1744,10 +1728,6 @@ de{
         TMM{
             other{"Turkmenistan-Manat"}
         }
-        TMT{
-            one{"Neuer Turkmenistan-Manat"}
-            other{"Neue Turkmenistan-Manat"}
-        }
         TND{
             other{"Tunesische Dinar"}
         }
@@ -1913,14 +1893,10 @@ de{
         ZWD{
             other{"Simbabwe-Dollar"}
         }
-        ZWL{
-            one{"Simbabwe-Dollar (2009)"}
-            other{"Simbabwe-Dollar (2009)"}
-        }
     }
     CurrencyUnitPatterns{
         one{"{0} {1}"}
         other{"{0} {1}"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.64"}
 }

@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2005-2011, International Business Machines
+*   Copyright (C) 2005-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -583,18 +583,21 @@ utext_caseCompare(UText *s1, int32_t length1,
     /* current code points */
     UChar32 c1, c2;
     uint8_t cLength1, cLength2;
-
+    
     /* argument checking */
-    if(U_FAILURE(*pErrorCode)) {
+    if(pErrorCode==0 || U_FAILURE(*pErrorCode)) {
         return 0;
     }
     if(s1==NULL || s2==NULL) {
         *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
+    }    
+    
+    csp=ucase_getSingleton(pErrorCode);
+    if(U_FAILURE(*pErrorCode)) {
+        return 0;
     }
-
-    csp=ucase_getSingleton();
-
+    
     /* for variable-length strings */
     if(length1 < 0) {
         length1 = INT32_MIN;
@@ -706,18 +709,21 @@ utext_caseCompareNativeLimit(UText *s1, int64_t limit1,
     
     /* native indexes into s1 and s2 */
     int64_t index1, index2;
-
+    
     /* argument checking */
-    if(U_FAILURE(*pErrorCode)) {
+    if(pErrorCode==0 || U_FAILURE(*pErrorCode)) {
         return 0;
     }
     if(s1==NULL || s2==NULL) {
         *pErrorCode=U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
+    }    
+    
+    csp=ucase_getSingleton(pErrorCode);
+    if(U_FAILURE(*pErrorCode)) {
+        return 0;
     }
-
-    csp=ucase_getSingleton();
-
+    
     /* initialize */
     index1 = (limit1 >= 0 ? UTEXT_GETNATIVEINDEX(s1) : 0);
     index2 = (limit2 >= 0 ? UTEXT_GETNATIVEINDEX(s2) : 0);
@@ -2620,9 +2626,20 @@ U_CDECL_END
 
 U_CAPI UText * U_EXPORT2
 utext_openUnicodeString(UText *ut, UnicodeString *s, UErrorCode *status) {
-    ut = utext_openConstUnicodeString(ut, s, status);
+    // TODO:  use openConstUnicodeString, then add in the differences.
+    //
+    ut = utext_setup(ut, 0, status);
     if (U_SUCCESS(*status)) {
-        ut->providerProperties |= I32_FLAG(UTEXT_PROVIDER_WRITABLE);
+        ut->pFuncs              = &unistrFuncs;
+        ut->context             = s;
+        ut->providerProperties  = I32_FLAG(UTEXT_PROVIDER_STABLE_CHUNKS)|
+                                  I32_FLAG(UTEXT_PROVIDER_WRITABLE);
+
+        ut->chunkContents       = s->getBuffer();
+        ut->chunkLength         = s->length();
+        ut->chunkNativeStart    = 0;
+        ut->chunkNativeLimit    = ut->chunkLength;
+        ut->nativeIndexingLimit = ut->chunkLength;
     }
     return ut;
 }
@@ -2631,13 +2648,6 @@ utext_openUnicodeString(UText *ut, UnicodeString *s, UErrorCode *status) {
 
 U_CAPI UText * U_EXPORT2
 utext_openConstUnicodeString(UText *ut, const UnicodeString *s, UErrorCode *status) {
-    if (U_SUCCESS(*status) && s->isBogus()) {
-        // The UnicodeString is bogus, but we still need to detach the UText
-        //   from whatever it was hooked to before, if anything.
-        utext_openUChars(ut, NULL, 0, status);
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return ut;
-    }
     ut = utext_setup(ut, 0, status);
     //    note:  use the standard (writable) function table for UnicodeString.
     //           The flag settings disable writing, so having the functions in
@@ -2842,7 +2852,7 @@ ucstrTextExtract(UText *ut,
         return 0;
     }
 
-    //const UChar *s=(const UChar *)ut->context;
+    const UChar *s=(const UChar *)ut->context;
     int32_t si, di;
 
     int32_t start32;
@@ -2852,8 +2862,8 @@ ucstrTextExtract(UText *ut,
     //   Pins 'start' to the length of the string, if it came in out-of-bounds.
     //   Snaps 'start' to the beginning of a code point.
     ucstrTextAccess(ut, start, TRUE);
-    const UChar *s=ut->chunkContents;
-    start32 = ut->chunkOffset;
+    U_ASSERT(start <= INT32_MAX);
+    start32 = (int32_t)start;
 
     int32_t strLength=(int32_t)ut->a;
     if (strLength >= 0) {

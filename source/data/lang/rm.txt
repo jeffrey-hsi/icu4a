@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/rm.xml
@@ -614,6 +614,7 @@ rm{
         Phnx{"fenizian"}
         Plrd{"fonetica da Pollard"}
         Prti{"partic dad inscripziuns"}
+        Qaai{"ertà"}
         Rjng{"rejang"}
         Roro{"rongorongo"}
         Runr{"runic"}
@@ -647,7 +648,6 @@ rm{
         Xpeo{"persian vegl"}
         Xsux{"scrittira a cugn sumeric-accadica"}
         Yiii{"yi"}
-        Zinh{"ertà"}
         Zmth{"notaziun matematica"}
         Zsym{"simbols"}
         Zxxx{"linguas na scrittas"}
@@ -710,7 +710,7 @@ rm{
         VALENCIA{"valencian"}
         XIANG{"xiang/hunanais"}
     }
-    Version{"2.0.53.45"}
+    Version{"2.0.47.63"}
     codePatterns{
         language{"Lingua: {0}"}
         script{"Scrittira: {0}"}

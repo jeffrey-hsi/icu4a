@@ -191,7 +191,10 @@ setTempCaseMapLocale(UCaseMap *csm, const char *locale, UErrorCode *pErrorCode) 
 static U_INLINE void
 setTempCaseMap(UCaseMap *csm, const char *locale, UErrorCode *pErrorCode) {
     if(csm->csp==NULL) {
-        csm->csp=ucase_getSingleton();
+        csm->csp=ucase_getSingleton(pErrorCode);
+        if(U_FAILURE(*pErrorCode)) {
+            return;
+        }
     }
     if(locale!=NULL && locale[0]==0) {
         csm->locale[0]=0;
@@ -619,7 +622,7 @@ u_strFoldCase(UChar *dest, int32_t destCapacity,
               uint32_t options,
               UErrorCode *pErrorCode) {
     UCaseMap csm={ NULL };
-    csm.csp=ucase_getSingleton();
+    csm.csp=ucase_getSingleton(pErrorCode);
     csm.options=options;
     return caseMap(&csm,
                    dest, destCapacity,
@@ -677,7 +680,7 @@ u_strcmpFold(const UChar *s1, int32_t length1,
      * assume that at least the option U_COMPARE_IGNORE_CASE is set
      * otherwise this function would have to behave exactly as uprv_strCompare()
      */
-    csp=ucase_getSingleton();
+    csp=ucase_getSingleton(pErrorCode);
     if(U_FAILURE(*pErrorCode)) {
         return 0;
     }

@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/zh_Hant.xml
@@ -10,6 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/zh_Hant.xml
  */
 zh_Hant{
+    %%ParentIsRoot:int{1}
     Currencies{
         ADP{
             "ADP" /** ===  */,
@@ -247,10 +248,6 @@ zh_Hant{
             "CSK" /** ===  */,
             "捷克斯洛伐克硬克朗",
         }
-        CUC{
-            "CUC$",
-            "古巴可轉換披索",
-        }
         CUP{
             "CU$",
             "古巴披索",
@@ -300,7 +297,7 @@ zh_Hant{
             "愛沙尼亞克朗",
         }
         EGP{
-            "EGP",
+            "EG£",
             "埃及鎊",
         }
         ERN{
@@ -346,10 +343,6 @@ zh_Hant{
         GHC{
             "₵",
             "迦納仙蔕 (1979-2007)",
-        }
-        GHS{
-            "GH₵",
-            "迦納仙蔕",
         }
         GIP{
             "GI£",
@@ -432,7 +425,7 @@ zh_Hant{
             "以色列新謝克爾",
         }
         INR{
-            "₹",
+            "Rs",
             "印度盧比",
         }
         IQD{
@@ -839,10 +832,6 @@ zh_Hant{
             "TMM",
             "土庫曼馬納特",
         }
-        TMT{
-            "TMT",
-            "土庫曼新馬納特",
-        }
         TND{
             "DT",
             "突尼西亞第納爾",
@@ -893,7 +882,7 @@ zh_Hant{
         }
         USD{
             "$",
-            "USD",
+            "美元",
         }
         USN{
             "USN" /** ===  */,
@@ -1056,5 +1045,5 @@ zh_Hant{
             "辛巴威元 (2009)",
         }
     }
-    Version{"2.0.54.33"}
+    Version{"2.0.48.57"}
 }

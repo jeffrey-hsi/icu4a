@@ -11,9 +11,7 @@
  */
 
 #include "unicode/utypes.h"
-
-#if !UCONFIG_NO_FORMATTING
-
+#include "unicode/utypes.h"
 #include "unicode/uobject.h"
 #include "zrule.h"
 #include "unicode/tzrule.h"
@@ -146,4 +144,3 @@ izrule_getDynamicClassID(IZRule* rule) {
     return ((InitialTimeZoneRule*)rule)->InitialTimeZoneRule::getDynamicClassID();
 }
 
-#endif

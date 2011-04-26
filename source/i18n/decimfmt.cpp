@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2011, International Business Machines Corporation and    *
+* Copyright (C) 1997-2010, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -52,9 +52,7 @@
 #include "unicode/curramt.h"
 #include "unicode/currpinf.h"
 #include "unicode/plurrule.h"
-#include "uresimp.h"
 #include "ucurrimp.h"
-#include "charstr.h"
 #include "cmemory.h"
 #include "util.h"
 #include "digitlst.h"
@@ -64,6 +62,7 @@
 #include "putilimp.h"
 #include <math.h>
 #include "hash.h"
+#include "decnumstr.h"
 
 
 U_NAMESPACE_BEGIN
@@ -227,12 +226,7 @@ const int32_t DecimalFormat::kMaxScientificIntegerDigits = 8;
  * These are the tags we expect to see in normal resource bundle files associated
  * with a locale.
  */
-const char DecimalFormat::fgNumberPatterns[]="NumberPatterns"; // Deprecated - not used
-static const char fgNumberElements[]="NumberElements";
-static const char fgLatn[]="latn";
-static const char fgPatterns[]="patterns";
-static const char fgDecimalFormat[]="decimalFormat";
-static const char fgCurrencyFormat[]="currencyFormat";
+const char DecimalFormat::fgNumberPatterns[]="NumberPatterns";
 static const UChar fgTripleCurrencySign[] = {0xA4, 0xA4, 0xA4, 0};
 
 inline int32_t _min(int32_t a, int32_t b) { return (a<b) ? a : b; }
@@ -392,11 +386,8 @@ DecimalFormat::construct(UErrorCode&             status,
         int32_t len = 0;
         UResourceBundle *resource = ures_open(NULL, Locale::getDefault().getName(), &status);
 
-        resource = ures_getByKeyWithFallback(resource, fgNumberElements, resource, &status);
-        // TODO : Get the pattern based on the active numbering system for the locale. Right now assumes "latn".
-        resource = ures_getByKeyWithFallback(resource, fgLatn, resource, &status);
-        resource = ures_getByKeyWithFallback(resource, fgPatterns, resource, &status);
-        const UChar *resStr = ures_getStringByKeyWithFallback(resource, fgDecimalFormat, &len, &status);
+        resource = ures_getByKey(resource, fgNumberPatterns, resource, &status);
+        const UChar *resStr = ures_getStringByIndex(resource, (int32_t)0, &len, &status);
         str.setTo(TRUE, resStr, len);
         pattern = &str;
         ures_close(resource);
@@ -487,15 +478,12 @@ DecimalFormat::setupCurrencyAffixPatterns(UErrorCode& status) {
     // Here, chose onlyApplyPatternWithoutExpandAffix without
     // expanding the affix patterns into affixes.
     UnicodeString currencyPattern;
-    UErrorCode error = U_ZERO_ERROR;   
-    
-    UResourceBundle *resource = ures_open(NULL, fSymbols->getLocale().getName(), &error);
-    resource = ures_getByKeyWithFallback(resource, fgNumberElements, resource, &error);
-    // TODO : Get the pattern based on the active numbering system for the locale. Right now assumes "latn".
-    resource = ures_getByKeyWithFallback(resource, fgLatn, resource, &error);
-    resource = ures_getByKeyWithFallback(resource, fgPatterns, resource, &error);
+    UErrorCode error = U_ZERO_ERROR;
+    UResourceBundle *resource = ures_open((char *)0, fSymbols->getLocale().getName(), &error);
+    UResourceBundle *numberPatterns = ures_getByKey(resource, fgNumberPatterns, NULL, &error);
     int32_t patLen = 0;
-    const UChar *patResStr = ures_getStringByKeyWithFallback(resource, fgCurrencyFormat,  &patLen, &error);
+    const UChar *patResStr = ures_getStringByIndex(numberPatterns, kCurrencyStyle,  &patLen, &error);
+    ures_close(numberPatterns);
     ures_close(resource);
 
     if (U_SUCCESS(error)) {
@@ -1120,17 +1108,19 @@ DecimalFormat::_format(const DigitList &number,
         return appendTo;
     }
 
-    if (fUseExponentialNotation || areSignificantDigitsUsed()) {
-        int32_t sigDigits = precision();
-        if (sigDigits > 0) {
-            adjustedNum.round(sigDigits);
+    if (fRoundingIncrement == NULL) {
+        if (fUseExponentialNotation || areSignificantDigitsUsed()) {
+            int32_t sigDigits = precision();
+            if (sigDigits > 0) {
+                adjustedNum.round(sigDigits);
+            }
+        } else {
+            // Fixed point format.  Round to a set number of fraction digits.
+            int32_t numFractionDigits = precision();
+            adjustedNum.roundFixedPoint(numFractionDigits);
         }
-    } else {
-        // Fixed point format.  Round to a set number of fraction digits.
-        int32_t numFractionDigits = precision();
-        adjustedNum.roundFixedPoint(numFractionDigits);
     }
- 
+
     return subformat(appendTo, handler, adjustedNum, FALSE);
 }
 
@@ -1178,22 +1168,9 @@ DecimalFormat::subformat(UnicodeString& appendTo,
                          DigitList&     digits,
                          UBool          isInteger) const
 {
-    // char zero = '0'; 
-    // DigitList returns digits as '0' thru '9', so we will need to 
-    // always need to subtract the character 0 to get the numeric value to use for indexing.
-
-    UChar32 localizedDigits[10];
-    localizedDigits[0] = getConstSymbol(DecimalFormatSymbols::kZeroDigitSymbol).char32At(0);
-    localizedDigits[1] = getConstSymbol(DecimalFormatSymbols::kOneDigitSymbol).char32At(0);
-    localizedDigits[2] = getConstSymbol(DecimalFormatSymbols::kTwoDigitSymbol).char32At(0);
-    localizedDigits[3] = getConstSymbol(DecimalFormatSymbols::kThreeDigitSymbol).char32At(0);
-    localizedDigits[4] = getConstSymbol(DecimalFormatSymbols::kFourDigitSymbol).char32At(0);
-    localizedDigits[5] = getConstSymbol(DecimalFormatSymbols::kFiveDigitSymbol).char32At(0);
-    localizedDigits[6] = getConstSymbol(DecimalFormatSymbols::kSixDigitSymbol).char32At(0);
-    localizedDigits[7] = getConstSymbol(DecimalFormatSymbols::kSevenDigitSymbol).char32At(0);
-    localizedDigits[8] = getConstSymbol(DecimalFormatSymbols::kEightDigitSymbol).char32At(0);
-    localizedDigits[9] = getConstSymbol(DecimalFormatSymbols::kNineDigitSymbol).char32At(0);
-
+    // Gets the localized zero Unicode character.
+    UChar32 zero = getConstSymbol(DecimalFormatSymbols::kZeroDigitSymbol).char32At(0);
+    int32_t zeroDelta = zero - '0'; // '0' is the DigitList representation of zero
     const UnicodeString *grouping ;
     if(fCurrencySignCount > fgCurrencySignCountZero) {
         grouping = &getConstSymbol(DecimalFormatSymbols::kMonetaryGroupingSeparatorSymbol);
@@ -1294,8 +1271,8 @@ DecimalFormat::subformat(UnicodeString& appendTo,
             }
             // Restores the digit character or pads the buffer with zeros.
             UChar32 c = (UChar32)((i < digits.getCount()) ?
-                          localizedDigits[digits.getDigitValue(i)] :
-                          localizedDigits[0]);
+                          (digits.getDigit(i) + zeroDelta) :
+                          zero);
             appendTo += c;
         }
 
@@ -1341,13 +1318,12 @@ DecimalFormat::subformat(UnicodeString& appendTo,
                 expDig = 1;
             }
             for (i=expDigits.getDecimalAt(); i<expDig; ++i)
-                appendTo += (localizedDigits[0]);
+                appendTo += (zero);
         }
         for (i=0; i<expDigits.getDecimalAt(); ++i)
         {
             UChar32 c = (UChar32)((i < expDigits.getCount()) ?
-                          localizedDigits[expDigits.getDigitValue(i)] : 
-                          localizedDigits[0]);
+                          (expDigits.getDigit(i) + zeroDelta) : zero);
             appendTo += c;
         }
 
@@ -1395,13 +1371,13 @@ DecimalFormat::subformat(UnicodeString& appendTo,
             if (i < digits.getDecimalAt() && digitIndex < digits.getCount() &&
                 sigCount < maxSigDig) {
                 // Output a real digit
-                appendTo += (UChar32)localizedDigits[digits.getDigitValue(digitIndex++)];
+                appendTo += ((UChar32)(digits.getDigit(digitIndex++) + zeroDelta));
                 ++sigCount;
             }
             else
             {
                 // Output a zero (leading or trailing)
-                appendTo += localizedDigits[0];
+                appendTo += (zero);
                 if (sigCount > 0) {
                     ++sigCount;
                 }
@@ -1430,7 +1406,7 @@ DecimalFormat::subformat(UnicodeString& appendTo,
         // integer digits, then print a zero.  Otherwise we won't print
         // _any_ digits, and we won't be able to parse this string.
         if (!fractionPresent && appendTo.length() == sizeBeforeIntegerPart)
-            appendTo += localizedDigits[0];
+            appendTo += (zero);
 
         currentLength = appendTo.length();
         handler.addAttribute(kIntegerField, intBegin, currentLength);
@@ -1468,16 +1444,16 @@ DecimalFormat::subformat(UnicodeString& appendTo,
             // significant digits.  These are only output if
             // abs(number being formatted) < 1.0.
             if (-1-i > (digits.getDecimalAt()-1)) {
-                appendTo += localizedDigits[0];
+                appendTo += zero;
                 continue;
             }
 
             // Output a digit, if we have any precision left, or a
             // zero if we don't.  We don't want to output noise digits.
             if (!isInteger && digitIndex < digits.getCount()) {
-                appendTo += (UChar32)localizedDigits[digits.getDigitValue(digitIndex++)];
+                appendTo += ((UChar32)(digits.getDigit(digitIndex++) + zeroDelta));
             } else {
-                appendTo += localizedDigits[0];
+                appendTo += zero;
             }
 
             // If we reach the maximum number of significant
@@ -1822,7 +1798,7 @@ UBool DecimalFormat::subparse(const UnicodeString& text,
     //  will be acceptable to the decNumber library, then at the end passes that string
     //  off for conversion to a decNumber.
     UErrorCode err = U_ZERO_ERROR;
-    CharString parsedNum;
+    DecimalNumberString  parsedNum;
     digits.setToZero();
 
     int32_t position = parsePosition.getIndex();
@@ -1916,20 +1892,6 @@ UBool DecimalFormat::subparse(const UnicodeString& text,
             {
                 digit = u_charDigitValue(ch);
             }
-            
-            // As a last resort, look through the localized digits if the zero digit
-            // is not a "standard" Unicode digit.
-            if ( (digit < 0 || digit > 9) && u_charDigitValue(zero) != 0) {
-                digit = 0;
-                if ( getConstSymbol((DecimalFormatSymbols::ENumberFormatSymbol)(DecimalFormatSymbols::kZeroDigitSymbol)).char32At(0) == ch ) {
-                    break;
-                }
-                for (digit = 1 ; digit < 10 ; digit++ ) {
-                    if ( getConstSymbol((DecimalFormatSymbols::ENumberFormatSymbol)(DecimalFormatSymbols::kOneDigitSymbol+digit-1)).char32At(0) == ch ) {
-                        break;
-                    }
-                }
-            }
 
             if (digit >= 0 && digit <= 9)
             {
@@ -1939,7 +1901,7 @@ UBool DecimalFormat::subparse(const UnicodeString& text,
                 sawDigit = TRUE;
                 // output a regular non-zero digit.
                 ++digitCount;
-                parsedNum.append((char)(digit + '0'), err);
+                parsedNum.append(digit + '0', err);
                 position += U16_LENGTH(ch);
             }
             else if (groupingLen > 0 && !text.compare(position, groupingLen, *grouping) && isGroupingUsed())
@@ -1962,7 +1924,7 @@ UBool DecimalFormat::subparse(const UnicodeString& text,
             else {
                 const UnicodeString *tmp;
                 tmp = &getConstSymbol(DecimalFormatSymbols::kExponentialSymbol);
-                if (!text.caseCompare(position, tmp->length(), *tmp, U_FOLD_CASE_DEFAULT))    // error code is set below if !sawDigit 
+                if (!text.compare(position, tmp->length(), *tmp))    // error code is set below if !sawDigit 
                 {
                     // Parse sign, if present
                     int32_t pos = position + tmp->length();
@@ -2071,14 +2033,14 @@ UBool DecimalFormat::subparse(const UnicodeString& text,
 
     parsePosition.setIndex(position);
 
-    parsedNum.data()[0] = (posMatch >= 0) ? '+' : '-';
+    parsedNum[0] = (posMatch >= 0) ? '+' : '-';
 
     if(parsePosition.getIndex() == oldStart)
     {
         parsePosition.setErrorIndex(position);
         return FALSE;
     }
-    digits.set(parsedNum.toStringPiece(), err);
+    digits.set(parsedNum, err);
 
     if (U_FAILURE(err)) {
         parsePosition.setErrorIndex(position);
@@ -3443,7 +3405,7 @@ DecimalFormat::toPattern(UnicodeString& result, UBool localized) const
     }
     if (fRoundingIncrement != NULL) {
         for(i=0; i<fRoundingIncrement->getCount(); ++i) {
-          roundingDigits.append(zero+(fRoundingIncrement->getDigitValue(i))); // Convert to Unicode digit
+            roundingDigits.append((UChar)fRoundingIncrement->getDigit(i));
         }
         roundingDecimalPos = fRoundingIncrement->getDecimalAt();
     }
@@ -4492,10 +4454,6 @@ DecimalFormat::initHashForAffix(UErrorCode& status) {
         status = U_MEMORY_ALLOCATION_ERROR;
         return NULL;
     }
-    if ( U_FAILURE(status) ) {
-        delete hTable; 
-        return NULL;
-    }
     hTable->setValueComparator(decimfmtAffixValueComparator);
     return hTable;
 }
@@ -4508,10 +4466,6 @@ DecimalFormat::initHashForAffixPattern(UErrorCode& status) {
     Hashtable* hTable;
     if ( (hTable = new Hashtable(TRUE, status)) == NULL ) {
         status = U_MEMORY_ALLOCATION_ERROR;
-        return NULL;
-    }
-    if ( U_FAILURE(status) ) {
-        delete hTable; 
         return NULL;
     }
     hTable->setValueComparator(decimfmtAffixPatternValueComparator);

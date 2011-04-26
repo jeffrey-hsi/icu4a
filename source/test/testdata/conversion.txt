@@ -1,6 +1,6 @@
 //*******************************************************************************
 //
-//   Copyright (C) 2003-2011, International Business Machines
+//   Copyright (C) 2003-2010, International Business Machines
 //   Corporation and others.  All Rights Reserved.
 //
 //   file name:  conversion.txt
@@ -23,7 +23,6 @@ conversion:table(nofallback) {
       "Run intltest conversion\n"
 
       "Charset names starting with '*' are for testdata names.\n"
-      "Charset names starting with '+' are for charsets currently not supported in ICU4J.\n"
 
       "ICU callbacks are specified as strings with pairs of characters, each optional.\n"
       "Callback function - '?'=Sub '0'=Skip '.'=Stop '&'=Escape\n"
@@ -56,31 +55,25 @@ conversion:table(nofallback) {
         { "UTF-16",             :bin{ feff0061 }, "a",            :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
         { "UTF-16",             :bin{ fffe0061 }, "\u6100",       :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
         // Java "Unicode" requires a BOM
-        { "+UTF-16,version=1",  :bin{ 00610062 }, "\\x00\\x61b",  :intvector{ 0,0,0,0,0,0,0,0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
-        { "+UTF-16,version=1",  :bin{ feff0061 }, "a",            :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
-        { "+UTF-16,version=1",  :bin{ fffe0061 }, "\u6100",       :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "UTF-16,version=1",   :bin{ 00610062 }, "\\x00\\x61b",  :intvector{ 0,0,0,0,0,0,0,0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "UTF-16,version=1",   :bin{ feff0061 }, "a",            :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "UTF-16,version=1",   :bin{ fffe0061 }, "\u6100",       :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
         // Standard UTF-16BE
         { "UTF-16BE",           :bin{ 00610062 }, "ab",           :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
         { "UTF-16BE",           :bin{ feff0061 }, "\ufeffa",      :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
         { "UTF-16BE",           :bin{ fffe0061 }, "\ufffea",      :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
         // Java "UnicodeBig" requires a BE BOM or no BOM; it consumes the BE BOM
-        { "UTF-16BE,version=1",:bin{ 00610062 }, "ab",           :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
-        { "UnicodeBig",        :bin{ feff0061 }, "a",            :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
-        { "UnicodeBig",        :bin{ fffe0061 }, "\\xFF\\xFEa",  :intvector{ 0,0,0,0,0,0,0,0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "UTF-16BE,version=1", :bin{ 00610062 }, "ab",           :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "UnicodeBig",         :bin{ feff0061 }, "a",            :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "UnicodeBig",         :bin{ fffe0061 }, "\\xFF\\xFEa",  :intvector{ 0,0,0,0,0,0,0,0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
         // Standard UTF-16LE
         { "UTF-16LE",           :bin{ 61006200 }, "ab",           :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
         { "UTF-16LE",           :bin{ fffe6100 }, "\ufeffa",      :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
         { "UTF-16LE",           :bin{ feff6100 }, "\ufffea",      :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
         // Java "UnicodeLittle" requires an LE BOM or no BOM; it consumes the LE BOM
-        { "UTF-16LE,version=1",:bin{ 61006200 }, "ab",           :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
-        { "UnicodeLittle",     :bin{ fffe6100 }, "a",            :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
-        { "x-UTF-16LE-BOM",    :bin{ feff6100 }, "\\xFE\\xFFa",  :intvector{ 0,0,0,0,0,0,0,0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
-
-        // Test ticket 7704: implement Java-compatible "UTF-16" converter.
-        // Same as standard UTF-16 but fromUnicode always writes big-endian byte stream.
-        { "+UTF-16,version=2",  :bin{ 00610062 }, "ab",           :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
-        { "+UTF-16,version=2",  :bin{ feff0061 }, "a",            :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
-        { "+UTF-16,version=2",  :bin{ fffe0061 }, "\u6100",       :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "UTF-16LE,version=1", :bin{ 61006200 }, "ab",           :intvector{ 0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "UnicodeLittle",      :bin{ fffe6100 }, "a",            :intvector{ 2 },   :int{1}, :int{0}, "", "&C", :bin{""} }
+        { "x-UTF-16LE-BOM",     :bin{ feff6100 }, "\\xFE\\xFFa",  :intvector{ 0,0,0,0,0,0,0,0,2 }, :int{1}, :int{0}, "", "&C", :bin{""} }
 
         // Test ticket 5691: consistent illegal sequences
         // The following test cases are for illegal character byte sequences.
@@ -108,9 +101,9 @@ conversion:table(nofallback) {
         }
         {
           "gb18030",
-          :bin{ 618130fc318130fc8181303c3e813cfc817afe90a8bc },
-          "a\u05ed\\x810\u9f07\\x810<>\\x81<\u9f07z\ue854\u1e3f",
-          :intvector{ 0,1,5,5,5,5,6,7,9,9,9,9,10,11,12,13,13,13,13,14,15,17,18,20 },
+          :bin{ 618130fc318130fc8181303c3e813cfc817a },
+          "a\u05ed\\x810\u9f07\\x810<>\\x81<\u9f07z",
+          :intvector{ 0,1,5,5,5,5,6,7,9,9,9,9,10,11,12,13,13,13,13,14,15,17 },
           :int{1}, :int{0}, "", "&C", :bin{""}
         }
         {
@@ -146,13 +139,6 @@ conversion:table(nofallback) {
           :bin{ 411b242941420e4141af4142affe41430f5a },
           "AB\u4eae\\xAF\u8c05\\xAF\\xFE\u64a9Z",
           :intvector{ 0,5,7,9,9,9,9,10,12,12,12,12,12,12,12,12,14,17 },
-          :int{1}, :int{0}, "", "&C", :bin{""}
-        }
-        {
-          "ISO-2022-CN-CNS",
-          :bin{ 411b2429470e21702541256f0f },
-          "A\u00a7\u03c4\u02c7",
-          :intvector{ 0,6,8,10 },
           :int{1}, :int{0}, "", "&C", :bin{""}
         }
         {
@@ -815,13 +801,6 @@ conversion:table(nofallback) {
           :intvector{ 0, 4, 8, 12 },
           :int{1}, :int{0}, "", "?", :bin{""}
         }
-        {
-          "x11-compound-text",
-          :bin{ 1b242944b5ac1b2d41a5e31b2d43d5f51b2d4dd01b2d41411b2d43bc1b2d42ff1b2d54df1b2d44c0b31b2d46b41b2d47b01b2d48e01b2d4ca1 },
-          "\u54A1\u00A5\u00E3\u0120\u0121\u011E\u0041\u0135\u02D9\u0E3F\u0100\u0157\u0384\u0660\u05D0\u0401",
-          :intvector{ },
-          :int{1}, :int{0}, "", "?", :bin{""}
-        }
         // Improve coverage of ISCII
         {
           "iscii-bng",
@@ -991,10 +970,6 @@ conversion:table(nofallback) {
         { "UTF-16LE", "a", :bin{ 6100 }, :intvector{ 0,0 }, :int{1}, :int{0}, "", "?", "" }
         // Java "UnicodeLittle" writes a BOM
         { "UnicodeLittle", "a", :bin{ fffe6100 }, :intvector{ -1,-1,0,0 }, :int{1}, :int{0}, "", "?", "" }
-
-        // Test ticket 7704: implement Java-compatible "UTF-16" converter.
-        // Same as standard UTF-16 but fromUnicode always writes big-endian byte stream.
-        { "+UTF-16,version=2", "a", :bin{ feff0061 }, :intvector{ -1,-1,0,0 }, :int{1}, :int{0}, "", "?", "" }
 
         // Test bug 6071 (1:2 Unicode:charset SBCS mapping).
         {
@@ -1658,13 +1633,6 @@ conversion:table(nofallback) {
           :intvector{ 0, 1, 1, 1, 1, 3, 3, 4, 5, 5, 5, 6, 7, 7, 7, 8, 9, 9, 9 },
           :int{1}, :int{0}, "", "?", ""
         }
-        {
-          "x11-compound-text",
-          "\u54A1\u00A5\u00E3\u0120\u0121\u011E\u0041\u0135\u02D9\u0E3F\u0100\u0157\u0384\u0660\u05D0\u0401",
-          :bin{ 1b242944b5ac1b2d41a5e31b2d43d5f51b2d4dd01b2d41411b2d43bc1b2d42ff1b2d54df1b2d44c0b31b2d46b41b2d47b01b2d48e01b2d4ca1 },
-          :intvector{ },
-          :int{1}, :int{0}, "", "?", ""
-        }
         // Test Gurmukhi (Bindi Tippi and Consonant clusters)
         {
           "iscii-gur",
@@ -1769,13 +1737,6 @@ conversion:table(nofallback) {
           "\ud899\udc7f\ud977\ud888\udc99\ud888\u0041",
           :bin{ 0fd899dc7fd888dc99e041 },
           :intvector{},
-          :int{1}, :int{0}, "", "0", ""
-        }
-        {
-          "gb18030",
-          "\U00020087\ue790\ue78f\u1e3f",
-          :bin{ 95329031a6dca6dba8bc },
-          :intvector{ 0,0,0,0,2,2,3,3,4,4 },
           :int{1}, :int{0}, "", "0", ""
         }
       }

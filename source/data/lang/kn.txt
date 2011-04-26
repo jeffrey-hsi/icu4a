@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/kn.xml
@@ -609,6 +609,7 @@ kn{
         Phnx{"ಫೀನಿಶಿಯನ್"}
         Plrd{"ಪೊಲ್ಲಾರ್ಡ್ ಫೊನೆಟಿಕ್"}
         Prti{"ಇನ್ಸ್‌ಕ್ರಿಪ್ಶನಲ್ ಪಾರ್ಥಿಯನ್"}
+        Qaai{"ಇನ್‍ಹೆರಿಟೆಡ್"}
         Rjng{"ರೆಜಾಂಗ್"}
         Roro{"ರೋಂಗೋರೋಂಗೋ"}
         Runr{"ರೂನಿಕ್"}
@@ -642,12 +643,11 @@ kn{
         Xpeo{"ಪ್ರಾಚೀನ ಪರ್ಶಿಯನ್"}
         Xsux{"ಸುಮೇರೋ-ಅಕ್ಕಾಡಿಯನ್ ಕ್ಯೂನಿಫಾರ್ಮ್"}
         Yiii{"ಯಿ"}
-        Zinh{"ಇನ್‍ಹೆರಿಟೆಡ್"}
         Zmth{"ಗಣೀತ ಸಂಕೇತಲಿಪಿ"}
         Zsym{"ಸಂಕೇತಗಳು"}
         Zxxx{"ಅಲಿಖಿತ"}
         Zyyy{"ಸಾಮಾನ್ಯ"}
         Zzzz{"ಅಜ್ಞಾತ ಅಥವ ಅಮಾನ್ಯವಾದ ಲಿಪಿ"}
     }
-    Version{"2.0.50.94"}
+    Version{"2.0.47.63"}
 }

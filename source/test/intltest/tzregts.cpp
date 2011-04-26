@@ -1,5 +1,5 @@
 /********************************************************************
- * Copyright (c) 1997-2011, International Business Machines
+ * Copyright (c) 1997-2010, International Business Machines
  * Corporation and others. All Rights Reserved.
  ********************************************************************/
  
@@ -482,7 +482,7 @@ void TimeZoneRegressionTest:: Test4126678()
     int32_t raw_offset = tz->getRawOffset();
 
     if (offset == raw_offset)
-        dataerrln("Offsets should match");
+        errln("Offsets should match");
 
     delete cal;
 }
@@ -506,10 +506,6 @@ void TimeZoneRegressionTest:: Test4151406() {
             UErrorCode ec = U_ZERO_ERROR;
             int32_t count;
             StringEnumeration* ids = TimeZone::createEnumeration(rawoffset);
-            if (ids == NULL) {
-                dataerrln("Fail: TimeZone::createEnumeration(rawoffset)");
-                continue;
-            }
             count = ids->count(ec);
             if (count> max) 
                 max = count;
@@ -1097,7 +1093,10 @@ TimeZoneRegressionTest::TestJDK12API()
         return;
     }
 
-    SimpleTimeZone *cst = dynamic_cast<SimpleTimeZone *>(cst1);
+    SimpleTimeZone *cst = 0;
+
+    if(cst1->getDynamicClassID() == SimpleTimeZone::getStaticClassID())
+        cst = (SimpleTimeZone*) cst1;
 
     if(pst->hasSameRules(*cst)) {
         errln("FAILURE: PST and CST have same rules");

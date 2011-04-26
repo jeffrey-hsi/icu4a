@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-*   Copyright (C) 1996-2011, International Business Machines
+*   Copyright (C) 1996-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *******************************************************************************
 * Modification History:
@@ -26,7 +26,6 @@
 #include "unicode/curramt.h"
 #include "uassert.h"
 #include "cpputils.h"
-#include "cstring.h"
 
 
 U_NAMESPACE_USE
@@ -100,10 +99,6 @@ unum_open(  UNumberFormatStyle    style,
             *status = U_MEMORY_ALLOCATION_ERROR;
             return 0;
         }
-        if (U_FAILURE(*status)) {
-            delete syms;
-            return 0;
-        }
 
         retVal = (UNumberFormat*)new DecimalFormat(pat, syms, *parseErr, *status);
         if(retVal == 0) {
@@ -167,14 +162,11 @@ unum_clone(const UNumberFormat *fmt,
         return 0;
     
     Format *res = 0;
-    const NumberFormat* nf = reinterpret_cast<const NumberFormat*>(fmt);
-    const DecimalFormat* df = dynamic_cast<const DecimalFormat*>(nf);
-    if (df != NULL) {
-        res = df->clone();
+    if (((const NumberFormat*)fmt)->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+        res = ((const DecimalFormat*)fmt)->clone();
     } else {
-        const RuleBasedNumberFormat* rbnf = dynamic_cast<const RuleBasedNumberFormat*>(nf);
-        U_ASSERT(rbnf != NULL);
-        res = rbnf->clone();
+        U_ASSERT(((const NumberFormat*)fmt)->getDynamicClassID() == RuleBasedNumberFormat::getStaticClassID());
+        res = ((const RuleBasedNumberFormat*)fmt)->clone();
     }
 
     if(res == 0) {
@@ -261,51 +253,6 @@ unum_formatDouble(    const    UNumberFormat*  fmt,
   
   return res.extract(result, resultLength, *status);
 }
-
-
-U_DRAFT int32_t U_EXPORT2 
-unum_formatDecimal(const    UNumberFormat*  fmt,
-            const char *    number,
-            int32_t         length,
-            UChar*          result,
-            int32_t         resultLength,
-            UFieldPosition  *pos, /* 0 if ignore */
-            UErrorCode*     status) {
-
-    if(U_FAILURE(*status)) {
-        return -1;
-    }
-    if ((result == NULL && resultLength != 0) || resultLength < 0) {
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return -1;
-    }
-
-    FieldPosition fp;
-    if(pos != 0) {
-        fp.setField(pos->field);
-    }
-
-    if (length < 0) {
-        length = uprv_strlen(number);
-    }
-    StringPiece numSP(number, length);
-    Formattable numFmtbl(numSP, *status);
-
-    UnicodeString resultStr;
-    if (resultLength > 0) {
-        // Alias the destination buffer.
-        resultStr.setTo(result, 0, resultLength);
-    }
-    ((const NumberFormat*)fmt)->format(numFmtbl, resultStr, fp, *status);
-    if(pos != 0) {
-        pos->beginIndex = fp.getBeginIndex();
-        pos->endIndex = fp.getEndIndex();
-    }
-    return resultStr.extract(result, resultLength, *status);
-}
-
-
-
 
 U_CAPI int32_t U_EXPORT2 
 unum_formatDoubleCurrency(const UNumberFormat* fmt,
@@ -416,38 +363,6 @@ unum_parseDouble(    const   UNumberFormat*  fmt,
     return res.getDouble(*status);
 }
 
-U_CAPI int32_t U_EXPORT2
-unum_parseDecimal(const UNumberFormat*  fmt,
-            const UChar*    text,
-            int32_t         textLength,
-            int32_t         *parsePos /* 0 = start */,
-            char            *outBuf,
-            int32_t         outBufLength,
-            UErrorCode      *status)
-{
-    if (U_FAILURE(*status)) {
-        return -1;
-    }
-    if ((outBuf == NULL && outBufLength != 0) || outBufLength < 0) {
-        *status = U_ILLEGAL_ARGUMENT_ERROR;
-        return -1;
-    }
-    Formattable res;
-    parseRes(res, fmt, text, textLength, parsePos, FALSE, status);
-    StringPiece sp = res.getDecimalNumber(*status);
-    if (U_FAILURE(*status)) {
-       return -1;
-    } else if (sp.size() > outBufLength) {
-        *status = U_BUFFER_OVERFLOW_ERROR;
-    } else if (sp.size() == outBufLength) {
-        uprv_strncpy(outBuf, sp.data(), sp.size());
-        *status = U_STRING_NOT_TERMINATED_WARNING;
-    } else {
-        uprv_strcpy(outBuf, sp.data());
-    }
-    return sp.size();
-}
-
 U_CAPI double U_EXPORT2
 unum_parseDoubleCurrency(const UNumberFormat* fmt,
                          const UChar* text,
@@ -458,9 +373,9 @@ unum_parseDoubleCurrency(const UNumberFormat* fmt,
     Formattable res;
     parseRes(res, fmt, text, textLength, parsePos, TRUE, status);
     currency[0] = 0;
-    const CurrencyAmount* c;
     if (res.getType() == Formattable::kObject &&
-        (c = dynamic_cast<const CurrencyAmount*>(res.getObject())) != NULL) {
+        res.getObject()->getDynamicClassID() == CurrencyAmount::getStaticClassID()) {
+        const CurrencyAmount* c = (const CurrencyAmount*) res.getObject();
         u_strcpy(currency, c->getISOCurrency());
     }
     return res.getDouble(*status);
@@ -482,9 +397,8 @@ U_CAPI int32_t U_EXPORT2
 unum_getAttribute(const UNumberFormat*          fmt,
           UNumberFormatAttribute  attr)
 {
-  const NumberFormat* nf = reinterpret_cast<const NumberFormat*>(fmt);
-  const DecimalFormat* df = dynamic_cast<const DecimalFormat*>(nf);
-  if (df != NULL) {
+  if (((const NumberFormat*)fmt)->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+    const DecimalFormat* df = (const DecimalFormat*) fmt;
     switch(attr) {
     case UNUM_PARSE_INT_ONLY:
         return df->isParseIntegerOnly();
@@ -547,11 +461,10 @@ unum_getAttribute(const UNumberFormat*          fmt,
         break;
     }
   } else {
-    const RuleBasedNumberFormat* rbnf = dynamic_cast<const RuleBasedNumberFormat*>(nf);
-    U_ASSERT(rbnf != NULL);
+    U_ASSERT(((const NumberFormat*)fmt)->getDynamicClassID() == RuleBasedNumberFormat::getStaticClassID());
     if (attr == UNUM_LENIENT_PARSE) {
 #if !UCONFIG_NO_COLLATION
-      return rbnf->isLenient();
+      return ((const RuleBasedNumberFormat*)fmt)->isLenient();
 #endif
     }
   }
@@ -564,9 +477,8 @@ unum_setAttribute(    UNumberFormat*          fmt,
             UNumberFormatAttribute  attr,
             int32_t                 newValue)
 {
-  NumberFormat* nf = reinterpret_cast<NumberFormat*>(fmt);
-  DecimalFormat* df = dynamic_cast<DecimalFormat*>(nf);
-  if (df != NULL) {
+  if (((NumberFormat*)fmt)->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+    DecimalFormat* df = (DecimalFormat*) fmt;
     switch(attr) {
     case UNUM_PARSE_INT_ONLY:
         df->setParseIntegerOnly(newValue!=0);
@@ -648,11 +560,10 @@ unum_setAttribute(    UNumberFormat*          fmt,
         break;
     }
   } else {
-    RuleBasedNumberFormat* rbnf = dynamic_cast<RuleBasedNumberFormat*>(nf);
-    U_ASSERT(rbnf != NULL);
+    U_ASSERT(((NumberFormat*)fmt)->getDynamicClassID() == RuleBasedNumberFormat::getStaticClassID());
     if (attr == UNUM_LENIENT_PARSE) {
 #if !UCONFIG_NO_COLLATION
-      rbnf->setLenient((UBool)newValue);
+      ((RuleBasedNumberFormat*)fmt)->setLenient((UBool)newValue);
 #endif
     }
   }
@@ -662,10 +573,9 @@ U_CAPI double U_EXPORT2
 unum_getDoubleAttribute(const UNumberFormat*          fmt,
           UNumberFormatAttribute  attr)
 {
-    const NumberFormat* nf = reinterpret_cast<const NumberFormat*>(fmt);
-    const DecimalFormat* df = dynamic_cast<const DecimalFormat*>(nf);
-    if (df != NULL &&  attr == UNUM_ROUNDING_INCREMENT) {
-        return df->getRoundingIncrement();
+    if (((const NumberFormat*)fmt)->getDynamicClassID() == DecimalFormat::getStaticClassID() && 
+    attr == UNUM_ROUNDING_INCREMENT) {
+        return ((const DecimalFormat*)fmt)->getRoundingIncrement();
     } else {
         return -1.0;
     }
@@ -676,10 +586,9 @@ unum_setDoubleAttribute(    UNumberFormat*          fmt,
             UNumberFormatAttribute  attr,
             double                 newValue)
 {
-    NumberFormat* nf = reinterpret_cast<NumberFormat*>(fmt);
-    DecimalFormat* df = dynamic_cast<DecimalFormat*>(nf);
-    if (df != NULL && attr == UNUM_ROUNDING_INCREMENT) {   
-        df->setRoundingIncrement(newValue);
+    if (((NumberFormat*)fmt)->getDynamicClassID() == DecimalFormat::getStaticClassID() && 
+    attr == UNUM_ROUNDING_INCREMENT) {   
+        ((DecimalFormat*)fmt)->setRoundingIncrement(newValue);
     }
 }
 
@@ -700,9 +609,8 @@ unum_getTextAttribute(const UNumberFormat*  fmt,
         res.setTo(result, 0, resultLength);
     }
 
-    const NumberFormat* nf = reinterpret_cast<const NumberFormat*>(fmt);
-    const DecimalFormat* df = dynamic_cast<const DecimalFormat*>(nf);
-    if (df != NULL) {
+    if (((const NumberFormat*)fmt)->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+        const DecimalFormat* df = (const DecimalFormat*) fmt;
         switch(tag) {
         case UNUM_POSITIVE_PREFIX:
             df->getPositivePrefix(res);
@@ -733,8 +641,8 @@ unum_getTextAttribute(const UNumberFormat*  fmt,
             return -1;
         }
     } else {
-        const RuleBasedNumberFormat* rbnf = dynamic_cast<const RuleBasedNumberFormat*>(nf);
-        U_ASSERT(rbnf != NULL);
+        U_ASSERT(((const NumberFormat*)fmt)->getDynamicClassID() == RuleBasedNumberFormat::getStaticClassID());
+        const RuleBasedNumberFormat* rbnf = (const RuleBasedNumberFormat*)fmt;
         if (tag == UNUM_DEFAULT_RULESET) {
             res = rbnf->getDefaultRuleSetName();
         } else if (tag == UNUM_PUBLIC_RULESETS) {
@@ -761,12 +669,12 @@ unum_setTextAttribute(    UNumberFormat*                    fmt,
 {
     if(U_FAILURE(*status))
         return;
-
+    
     int32_t len = (newValueLength == -1 ? u_strlen(newValue) : newValueLength);
     const UnicodeString val((UChar*)newValue, len, len);
-    NumberFormat* nf = reinterpret_cast<NumberFormat*>(fmt);
-    DecimalFormat* df = dynamic_cast<DecimalFormat*>(nf);
-    if (df != NULL) {
+    
+    if (((NumberFormat*)fmt)->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+      DecimalFormat* df = (DecimalFormat*) fmt;
       switch(tag) {
       case UNUM_POSITIVE_PREFIX:
         df->setPositivePrefix(val);
@@ -797,12 +705,11 @@ unum_setTextAttribute(    UNumberFormat*                    fmt,
         break;
       }
     } else {
-      RuleBasedNumberFormat* rbnf = dynamic_cast<RuleBasedNumberFormat*>(nf);
-      U_ASSERT(rbnf != NULL);
+      U_ASSERT(((NumberFormat*)fmt)->getDynamicClassID() == RuleBasedNumberFormat::getStaticClassID());
       if (tag == UNUM_DEFAULT_RULESET) {
-        rbnf->setDefaultRuleSet(newValue, *status);
+    ((RuleBasedNumberFormat*)fmt)->setDefaultRuleSet(newValue, *status);
       } else {
-        *status = U_UNSUPPORTED_ERROR;
+    *status = U_UNSUPPORTED_ERROR;
       }
     }
 }
@@ -824,17 +731,15 @@ unum_toPattern(    const    UNumberFormat*          fmt,
         pat.setTo(result, 0, resultLength);
     }
 
-    const NumberFormat* nf = reinterpret_cast<const NumberFormat*>(fmt);
-    const DecimalFormat* df = dynamic_cast<const DecimalFormat*>(nf);
-    if (df != NULL) {
+    if (((const NumberFormat*)fmt)->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+      const DecimalFormat* df = (const DecimalFormat*) fmt;
       if(isPatternLocalized)
         df->toLocalizedPattern(pat);
       else
         df->toPattern(pat);
     } else {
-      const RuleBasedNumberFormat* rbnf = dynamic_cast<const RuleBasedNumberFormat*>(nf);
-      U_ASSERT(rbnf != NULL);
-      pat = rbnf->getRules();
+      U_ASSERT(((const NumberFormat*)fmt)->getDynamicClassID() == RuleBasedNumberFormat::getStaticClassID());
+      pat = ((const RuleBasedNumberFormat*)fmt)->getRules();
     }
     return pat.extract(result, resultLength, *status);
 }
@@ -849,18 +754,18 @@ unum_getSymbol(const UNumberFormat *fmt,
     if(status==NULL || U_FAILURE(*status)) {
         return 0;
     }
-    if(fmt==NULL || symbol< 0 || symbol>=UNUM_FORMAT_SYMBOL_COUNT) {
+    
+    if(fmt==NULL || (uint16_t)symbol>=UNUM_FORMAT_SYMBOL_COUNT) {
         *status=U_ILLEGAL_ARGUMENT_ERROR;
         return 0;
     }
-    const NumberFormat *nf = reinterpret_cast<const NumberFormat *>(fmt);
-    const DecimalFormat *dcf = dynamic_cast<const DecimalFormat *>(nf);
-    if (dcf == NULL) {
+
+    if (((const NumberFormat*)fmt)->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
       *status = U_UNSUPPORTED_ERROR;
       return 0;
     }
 
-    return dcf->
+    return ((const DecimalFormat *)fmt)->
       getDecimalFormatSymbols()->
         getConstSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbol).
           extract(buffer, size, *status);
@@ -876,25 +781,25 @@ unum_setSymbol(UNumberFormat *fmt,
     if(status==NULL || U_FAILURE(*status)) {
         return;
     }
-    if(fmt==NULL || symbol< 0 || symbol>=UNUM_FORMAT_SYMBOL_COUNT || value==NULL || length<-1) {
+    
+    if(fmt==NULL || (uint16_t)symbol>=UNUM_FORMAT_SYMBOL_COUNT || value==NULL || length<-1) {
         *status=U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
-    NumberFormat *nf = reinterpret_cast<NumberFormat *>(fmt);
-    DecimalFormat *dcf = dynamic_cast<DecimalFormat *>(nf);
-    if (dcf == NULL) {
+    
+    if (((NumberFormat*)fmt)->getDynamicClassID() != DecimalFormat::getStaticClassID()) {
       *status = U_UNSUPPORTED_ERROR;
       return;
     }
 
-    DecimalFormatSymbols symbols(*dcf->getDecimalFormatSymbols());
+    DecimalFormatSymbols symbols(*((DecimalFormat *)fmt)->getDecimalFormatSymbols());
     symbols.setSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbol,
         UnicodeString(value, length));  /* UnicodeString can handle the case when length = -1. */
-    dcf->setDecimalFormatSymbols(symbols);
+    ((DecimalFormat *)fmt)->setDecimalFormatSymbols(symbols);
 }
 
 U_CAPI void U_EXPORT2
-unum_applyPattern(  UNumberFormat  *fmt,
+unum_applyPattern(  UNumberFormat  *format,
                     UBool          localized,
                     const UChar    *pattern,
                     int32_t        patternLength,
@@ -914,15 +819,13 @@ unum_applyPattern(  UNumberFormat  *fmt,
     
     int32_t len = (patternLength == -1 ? u_strlen(pattern) : patternLength);
     const UnicodeString pat((UChar*)pattern, len, len);
-
+    
     // Verify if the object passed is a DecimalFormat object
-    NumberFormat* nf = reinterpret_cast<NumberFormat*>(fmt);
-    DecimalFormat* df = dynamic_cast<DecimalFormat*>(nf);
-    if (df != NULL) {
+    if (((NumberFormat*)format)->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
       if(localized) {
-        df->applyLocalizedPattern(pat,*parseError, *status);
+        ((DecimalFormat*)format)->applyLocalizedPattern(pat,*parseError, *status);
       } else {
-        df->applyPattern(pat,*parseError, *status);
+        ((DecimalFormat*)format)->applyPattern(pat,*parseError, *status);
       }
     } else {
       *status = U_UNSUPPORTED_ERROR;

@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1999-2010, International Business Machines Corporation and
+ * Copyright (c) 1999-2004, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -113,8 +113,7 @@ setNumberFormatCurrency_2_4(NumberFormat &nf, const char *currency, UErrorCode &
     // check that the formatter is a DecimalFormat instance
     // necessary because we will cast to the DecimalFormat subclass to set
     // the currency symbol
-    DecimalFormat *dnf=dynamic_cast<DecimalFormat *>(&nf);
-    if(dnf==NULL) {
+    if(nf.getDynamicClassID()!=DecimalFormat::getStaticClassID()) {
         errorCode=U_ILLEGAL_ARGUMENT_ERROR;
         return;
     }
@@ -169,11 +168,12 @@ setNumberFormatCurrency_2_4(NumberFormat &nf, const char *currency, UErrorCode &
     nf.setMinimumFractionDigits(currencyMap[i].fractionDigits);
     nf.setMaximumFractionDigits(currencyMap[i].fractionDigits);
 
-    dnf->setRoundingIncrement(currencyMap[i].roundingIncrement);
+    DecimalFormat &dnf=(DecimalFormat &)nf;
+    dnf.setRoundingIncrement(currencyMap[i].roundingIncrement);
 
-    DecimalFormatSymbols symbols(*dnf->getDecimalFormatSymbols());
+    DecimalFormatSymbols symbols(*dnf.getDecimalFormatSymbols());
     symbols.setSymbol(DecimalFormatSymbols::kCurrencySymbol, currencyMap[i].symbol);
-    dnf->setDecimalFormatSymbols(symbols); // do not adopt symbols: Jitterbug 2889
+    dnf.setDecimalFormatSymbols(symbols); // do not adopt symbols: Jitterbug 2889
 }
 
 /*

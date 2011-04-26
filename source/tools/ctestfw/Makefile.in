@@ -1,6 +1,6 @@
 #******************************************************************************
 #
-#   Copyright (C) 1999-2010, International Business Machines
+#   Copyright (C) 1999-2011≈, International Business Machines
 #   Corporation and others.  All Rights Reserved.
 #
 #******************************************************************************
@@ -51,13 +51,14 @@ DEFS += -DT_CTEST_IMPLEMENTATION
 LDFLAGS += $(LDFLAGSCTESTFW)
 LIBS = $(LIBICUTOOLUTIL) $(LIBICUI18N) $(LIBICUUC) $(DEFAULT_LIBS)
 
-OBJECTS = ctest.o tstdtmod.o testdata.o datamap.o uperf.o ucln_ct.o
+OBJECTS = ctest.o tstdtmod.o testdata.o datamap.o uperf.o dbgutil.o udbgutil.o ucln_ct.o
 
 STATIC_OBJECTS = $(OBJECTS:.o=.$(STATIC_O))
 
 DEPS = $(OBJECTS:.o=.d)
 
 -include Makefile.local
+include icu4c0.mk
 
 ## List of phony targets
 .PHONY : all all-local install install-local clean clean-local	\

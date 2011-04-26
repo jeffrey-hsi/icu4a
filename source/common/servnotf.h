@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * Copyright (C) 2001-2011, International Business Machines Corporation and    *
+ * Copyright (C) 2001-2004, International Business Machines Corporation and    *
  * others. All Rights Reserved.                                                *
  *******************************************************************************
  */
@@ -70,6 +70,7 @@ public:
  */
 
 class U_COMMON_API ICUNotifier : public UMemory  {
+private: UMTX notifyLock;
 private: UVector* listeners;
          
 public: 

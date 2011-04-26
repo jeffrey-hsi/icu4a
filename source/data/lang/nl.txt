@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/nl.xml
@@ -618,6 +618,7 @@ nl{
         Phnx{"Foenicisch"}
         Plrd{"Pollard-fonetisch"}
         Prti{"Inscriptioneel Parthisch"}
+        Qaai{"Overgeërfd"}
         Rjng{"Rejang"}
         Roro{"Rongorongo"}
         Runr{"Runic"}
@@ -651,7 +652,6 @@ nl{
         Xpeo{"Oudperzisch"}
         Xsux{"Sumero-Akkadian Cuneiform"}
         Yiii{"Yi"}
-        Zinh{"Overgeërfd"}
         Zmth{"Wiskundige notatie"}
         Zsym{"Symbolen"}
         Zxxx{"Code voor ongeschreven talen"}
@@ -713,7 +713,7 @@ nl{
         VALENCIA{"Valenciaans"}
         WADEGILE{"Wade-Giles"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.46"}
     codePatterns{
         language{"Taal: {0}"}
         script{"Schrift: {0}"}

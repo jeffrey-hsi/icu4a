@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/cy.xml
@@ -19,18 +19,18 @@ cy{
     LocaleScript{
         "Latn",
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.47.68"}
     calendar{
         gregorian{
             DateTimePatterns{
-                "HH:mm:ss zzzz",
-                "HH:mm:ss z",
-                "HH:mm:ss",
-                "HH:mm",
-                "EEEE, d MMMM y",
-                "d MMMM y",
-                "d MMM y",
-                "dd/MM/yyyy",
+                "h:mm:ss a zzzz",
+                "h:mm:ss a z",
+                "h:mm:ss a",
+                "h:mm a",
+                "EEEE, y MMMM dd",
+                "y MMMM d",
+                "y MMM d",
+                "yyyy-MM-dd",
                 "{1} {0}",
                 "{1} {0}",
                 "{1} {0}",
@@ -38,16 +38,7 @@ cy{
                 "{1} {0}",
             }
             availableFormats{
-                MEd{"EEE, d/M"}
-                MMMEd{"EEE, d MMM"}
-                MMMd{"d MMM"}
                 Md{"d/M"}
-                yM{"M/y"}
-                yMEd{"EEE, d/M/y"}
-                yMMM{"MMM y"}
-                yMMMEd{"EEE, d MMM y"}
-                yMMMd{"d MMM y"}
-                yMd{"d/M/y"}
             }
             dayNames{
                 format{

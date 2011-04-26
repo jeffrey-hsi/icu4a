@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/ru.xml
@@ -255,10 +255,6 @@ ru{
             "CSK" /** ===  */,
             "Чехословацкая твердая крона",
         }
-        CUC{
-            "CUC$",
-            "Кубинское конвертируемое песо",
-        }
         CUP{
             "CU$",
             "Кубинское песо",
@@ -312,7 +308,7 @@ ru{
             "Эстонская крона",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Египетский фунт",
         }
         ERN{
@@ -456,7 +452,7 @@ ru{
             "Новый израильский шекель",
         }
         INR{
-            "₹",
+            "Rs",
             "Индийская рупия",
         }
         IQD{
@@ -875,10 +871,6 @@ ru{
             "TMM",
             "Туркменский манат",
         }
-        TMT{
-            "TMT",
-            "Туркменский новый манат",
-        }
         TND{
             "DT",
             "Тунисский динар",
@@ -1140,5 +1132,5 @@ ru{
             other{"новых турецких лир"}
         }
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.56"}
 }

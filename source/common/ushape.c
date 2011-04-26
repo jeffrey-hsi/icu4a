@@ -316,10 +316,17 @@ _shapeToArabicDigitsWithContext(UChar *s, int32_t length,
                                 UChar digitBase,
                                 UBool isLogical, UBool lastStrongWasAL) {
     const UBiDiProps *bdp;
+    UErrorCode errorCode;
+
     int32_t i;
     UChar c;
 
-    bdp=ubidi_getSingleton();
+    errorCode=U_ZERO_ERROR;
+    bdp=ubidi_getSingleton(&errorCode);
+    if(U_FAILURE(errorCode)) {
+        return;
+    }
+
     digitBase-=0x30;
 
     /* the iteration direction depends on the type of input */

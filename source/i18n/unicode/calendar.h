@@ -1203,7 +1203,7 @@ public:
      * @param dayOfWeek The day of the week whose type is desired (UCAL_SUNDAY..UCAL_SATURDAY).
      * @param status The error code for the operation.
      * @return The UCalendarWeekdayType for the day of the week.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     virtual UCalendarWeekdayType getDayOfWeekType(UCalendarDaysOfWeek dayOfWeek, UErrorCode &status) const;
 
@@ -1219,7 +1219,7 @@ public:
      * desired (UCAL_SUNDAY..UCAL_SATURDAY).
      * @param status The error code for the operation.
      * @return The milliseconds after midnight at which the weekend begins or ends.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     virtual int32_t getWeekendTransition(UCalendarDaysOfWeek dayOfWeek, UErrorCode &status) const;
 
@@ -1230,7 +1230,7 @@ public:
      * @param status The error code for the operation.
      * @return TRUE if the given UDate is in the weekend in
      * this calendar system, FALSE otherwise.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     virtual UBool isWeekend(UDate date, UErrorCode &status) const;
 
@@ -1239,7 +1239,7 @@ public:
      * this calendar system.
      * @return TRUE if this Calendar's current date-time is in the weekend in
      * this calendar system, FALSE otherwise.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     virtual UBool isWeekend(void) const;
 
@@ -1935,12 +1935,6 @@ private:
      * The next available value for fStamp[]
      */
     int32_t fNextStamp;// = MINIMUM_USER_STAMP;
-
-    /**
-     * Recalculates the time stamp array (fStamp).
-     * Resets fNextStamp to lowest next stamp value.
-     */
-    void recalculateStamp();
 
     /**
      * The current time set for the calendar.

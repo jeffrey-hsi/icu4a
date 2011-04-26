@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2011, International Business Machines Corporation and    *
+* Copyright (C) 1997-2010, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -124,7 +124,7 @@ static const int8_t kDateFieldsCount = 13;
 
 static const UDateFormatField kTimeFields[] = {
     UDAT_HOUR_OF_DAY1_FIELD,
-    UDAT_HOUR_OF_DAY0_FIELD,
+    UDAT_HOUR_OF_DAY1_FIELD,
     UDAT_MINUTE_FIELD,
     UDAT_SECOND_FIELD,
     UDAT_FRACTIONAL_SECOND_FIELD,
@@ -685,10 +685,8 @@ SimpleDateFormat::initialize(const Locale& locale,
         // show the decimal point, and recognizes integers only when parsing
 
         fNumberFormat->setGroupingUsed(FALSE);
-        DecimalFormat* decfmt = dynamic_cast<DecimalFormat*>(fNumberFormat);
-        if (decfmt != NULL) {
-            decfmt->setDecimalSeparatorAlwaysShown(FALSE);
-        }
+        if (fNumberFormat->getDynamicClassID() == DecimalFormat::getStaticClassID())
+            ((DecimalFormat*)fNumberFormat)->setDecimalSeparatorAlwaysShown(FALSE);
         fNumberFormat->setParseIntegerOnly(TRUE);
         fNumberFormat->setMinimumFractionDigits(0); // To prevent "Jan 1.00, 1997.00"
 
@@ -1056,7 +1054,7 @@ SimpleDateFormat::formatGMTDefault(NumberFormat *currentNumberFormat,UnicodeStri
 int32_t
 SimpleDateFormat::parseGMTDefault(const UnicodeString &text, ParsePosition &pos) const {
     int32_t start = pos.getIndex();
-    NumberFormat *currentNumberFormat = getNumberFormatByIndex(UDAT_TIMEZONE_RFC_FIELD);
+    NumberFormat *currentNumberFormat = getNumberFormat(UDAT_TIMEZONE_RFC_FIELD);
 
     if (start + kUtLen + 1 >= text.length()) {
         pos.setErrorIndex(start);
@@ -1319,7 +1317,7 @@ SimpleDateFormat::processOverrideString(const Locale &locale, const UnicodeStrin
     UBool moreToProcess = TRUE;
 
     while (moreToProcess) {
-        int32_t delimiterPosition = str.indexOf(ULOC_KEYWORD_ITEM_SEPARATOR_UNICODE,start);
+        int32_t delimiterPosition = str.indexOf((UChar)ULOC_KEYWORD_ITEM_SEPARATOR,start);
         if (delimiterPosition == -1) {
             moreToProcess = FALSE;
             len = str.length() - start;
@@ -1327,7 +1325,7 @@ SimpleDateFormat::processOverrideString(const Locale &locale, const UnicodeStrin
             len = delimiterPosition - start;
         }
         UnicodeString currentString(str,start,len);
-        int32_t equalSignPosition = currentString.indexOf(ULOC_KEYWORD_ASSIGN_UNICODE,0);
+        int32_t equalSignPosition = currentString.indexOf((UChar)ULOC_KEYWORD_ASSIGN,0);
         if (equalSignPosition == -1) { // Simple override string such as "hebrew"
             nsName.setTo(currentString);
             ovrField.setToBogus();
@@ -1365,10 +1363,8 @@ SimpleDateFormat::processOverrideString(const Locale &locale, const UnicodeStrin
 
                if (U_SUCCESS(status)) {
                    nf->setGroupingUsed(FALSE);
-                   DecimalFormat* decfmt = dynamic_cast<DecimalFormat*>(nf);
-                   if (decfmt != NULL) {
-                       decfmt->setDecimalSeparatorAlwaysShown(FALSE);
-                   }
+                   if (nf->getDynamicClassID() == DecimalFormat::getStaticClassID())
+                       ((DecimalFormat*)nf)->setDecimalSeparatorAlwaysShown(FALSE);
                    nf->setParseIntegerOnly(TRUE);
                    nf->setMinimumFractionDigits(0); // To prevent "Jan 1.00, 1997.00"
 
@@ -1469,7 +1465,7 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
         return;
     }
 
-    currentNumberFormat = getNumberFormatByIndex(patternCharIndex);
+    currentNumberFormat = getNumberFormat(patternCharIndex);
     switch (patternCharIndex) {
 
     // for any "G" symbol, write out the appropriate era string
@@ -1556,9 +1552,9 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
             currentNumberFormat->setMinimumIntegerDigits((count > 3) ? 3 : count);
             currentNumberFormat->setMaximumIntegerDigits(maxIntCount);
             if (count == 1) {
-                value /= 100;
+                value = (value + 50) / 100;
             } else if (count == 2) {
-                value /= 10;
+                value = (value + 5) / 10;
             }
             FieldPosition p(0);
             currentNumberFormat->format(value, appendTo, p);
@@ -1734,7 +1730,7 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
 //----------------------------------------------------------------------
 
 NumberFormat *
-SimpleDateFormat::getNumberFormatByIndex(UDateFormatField index) const {
+SimpleDateFormat::getNumberFormat(UDateFormatField index) const {
     if (fNumberFormatters != NULL) {
         return fNumberFormatters[index];
     } else {
@@ -1797,6 +1793,7 @@ SimpleDateFormat::parse(const UnicodeString& text, Calendar& cal, ParsePosition&
     int32_t abutStart = 0;
     int32_t abutPass = 0;
     UBool inQuote = FALSE;
+    UBool skipwhsp = FALSE;
 
     const UnicodeString numericFormatChars(NUMERIC_FORMAT_CHARS);
 
@@ -1903,26 +1900,7 @@ SimpleDateFormat::parse(const UnicodeString& text, Calendar& cal, ParsePosition&
                 int32_t s = subParse(text, pos, ch, count,
                                FALSE, TRUE, ambiguousYear, saveHebrewMonth, *workCal, i);
 
-                if (s == -pos-1) {
-                    // era not present, in special cases allow this to continue
-                    s++;
-
-                    if (i+1 < fPattern.length()) {
-                        // move to next pattern character
-                        UChar ch = fPattern.charAt(i+1);
-
-                        // check for whitespace
-                        if (uprv_isRuleWhiteSpace(ch)) {
-                            i++;
-                            // Advance over run in pattern
-                            while ((i+1)<fPattern.length() &&
-                                   uprv_isRuleWhiteSpace(fPattern.charAt(i+1))) {
-                                ++i;
-                            }
-                        }
-                    }
-                }
-                else if (s < 0) {
+                if (s < 0) {
                     status = U_PARSE_ERROR;
                     goto ExitParse;
                 }
@@ -1967,7 +1945,7 @@ SimpleDateFormat::parse(const UnicodeString& text, Calendar& cal, ParsePosition&
                        ( u_isUWhiteSpace(text.charAt(pos)) || uprv_isRuleWhiteSpace(text.charAt(pos)))) {
                     ++pos;
                 }
-
+                
                 // Must see at least one white space char in input
                 if (pos > s) {
                     continue;
@@ -2047,10 +2025,10 @@ SimpleDateFormat::parse(const UnicodeString& text, Calendar& cal, ParsePosition&
             const TimeZone & tz = cal.getTimeZone();
             BasicTimeZone *btz = NULL;
 
-            if (dynamic_cast<const OlsonTimeZone *>(&tz) != NULL
-                || dynamic_cast<const SimpleTimeZone *>(&tz) != NULL
-                || dynamic_cast<const RuleBasedTimeZone *>(&tz) != NULL
-                || dynamic_cast<const VTimeZone *>(&tz) != NULL) {
+            if (tz.getDynamicClassID() == OlsonTimeZone::getStaticClassID()
+                || tz.getDynamicClassID() == SimpleTimeZone::getStaticClassID()
+                || tz.getDynamicClassID() == RuleBasedTimeZone::getStaticClassID()
+                || tz.getDynamicClassID() == VTimeZone::getStaticClassID()) {
                 btz = (BasicTimeZone*)&tz;
             }
 
@@ -2372,7 +2350,6 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
     Formattable number;
     int32_t value = 0;
     int32_t i;
-    int32_t ps = 0;
     ParsePosition pos(0);
     UDateFormatField patternCharIndex;
     NumberFormat *currentNumberFormat;
@@ -2388,7 +2365,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
     }
 
     patternCharIndex = (UDateFormatField)(patternCharPtr - DateFormatSymbols::getPatternUChars());
-    currentNumberFormat = getNumberFormatByIndex(patternCharIndex);
+    currentNumberFormat = getNumberFormat(patternCharIndex);
     UCalendarDateFields field = fgPatternIndexToCalendarField[patternCharIndex];
 
     // If there are any spaces here, skip over them.  If we hit the end
@@ -2461,20 +2438,13 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
     switch (patternCharIndex) {
     case UDAT_ERA_FIELD:
         if (count == 5) {
-            ps = matchString(text, start, UCAL_ERA, fSymbols->fNarrowEras, fSymbols->fNarrowErasCount, cal);
-        } else if (count == 4) {
-            ps = matchString(text, start, UCAL_ERA, fSymbols->fEraNames, fSymbols->fEraNamesCount, cal);
-        } else {
-            ps = matchString(text, start, UCAL_ERA, fSymbols->fEras, fSymbols->fErasCount, cal);
+            return matchString(text, start, UCAL_ERA, fSymbols->fNarrowEras, fSymbols->fNarrowErasCount, cal);
+        }
+        if (count == 4) {
+            return matchString(text, start, UCAL_ERA, fSymbols->fEraNames, fSymbols->fEraNamesCount, cal);
         }
 
-        // check return position, if it equals -start, then matchString error
-        // special case the return code so we don't necessarily fail out until we
-        // verify no year information also
-        if (ps == -start)
-            ps--;
-
-        return ps;
+        return matchString(text, start, UCAL_ERA, fSymbols->fEras, fSymbols->fErasCount, cal);
 
     case UDAT_YEAR_FIELD:
         // If there are 3 or more YEAR pattern characters, this indicates
@@ -2931,7 +2901,9 @@ void SimpleDateFormat::parseInt(const UnicodeString& text,
                                 NumberFormat *fmt) const {
     UnicodeString oldPrefix;
     DecimalFormat* df = NULL;
-    if (!allowNegative && (df = dynamic_cast<DecimalFormat*>(fmt)) != NULL) {
+    if (!allowNegative &&
+        fmt->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
+        df = (DecimalFormat*)fmt;
         df->getNegativePrefix(oldPrefix);
         df->setNegativePrefix(SUPPRESS_NEGATIVE_PREFIX);
     }
@@ -3160,13 +3132,12 @@ SimpleDateFormat::checkIntSuffix(const UnicodeString& text, int32_t start,
     }
 
     // get the suffix
-    DecimalFormat* decfmt = dynamic_cast<DecimalFormat*>(fNumberFormat);
-    if (decfmt != NULL) {
+    if (fNumberFormat->getDynamicClassID() == DecimalFormat::getStaticClassID()) {
         if (isNegative) {
-            suf = decfmt->getNegativeSuffix(suf);
+            suf = ((DecimalFormat*)fNumberFormat)->getNegativeSuffix(suf);
         }
         else {
-            suf = decfmt->getPositiveSuffix(suf);
+            suf = ((DecimalFormat*)fNumberFormat)->getPositiveSuffix(suf);
         }
     }
 

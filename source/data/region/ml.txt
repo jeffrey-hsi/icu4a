@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/ml.xml
@@ -296,5 +296,5 @@ ml{
         ZW{"സിംബാബ്വേ"}
         ZZ{"അറിയപ്പെടാത്തതോ നിലവിലില്ലാത്തതോ ആയ പ്രദേശം"}
     }
-    Version{"2.0.50.94"}
+    Version{"2.0.47.63"}
 }

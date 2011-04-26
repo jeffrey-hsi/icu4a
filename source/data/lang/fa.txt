@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/fa.xml
@@ -581,6 +581,7 @@ fa{
         Phlv{"پهلوی کتابی"}
         Phnx{"فنیقی"}
         Prti{"پارتی کتیبه‌ای"}
+        Qaai{"موروثی"}
         Rjng{"رجنگی"}
         Runr{"رونی"}
         Samr{"سامری"}
@@ -605,7 +606,6 @@ fa{
         Xpeo{"فارسی باستان"}
         Xsux{"میخی سومری‐آکدی"}
         Yiii{"یی"}
-        Zinh{"موروثی"}
         Zxxx{"نوشته‌نشده"}
         Zyyy{"مشترک"}
         Zzzz{"خط نامشخص یا نامعتبر"}
@@ -643,7 +643,7 @@ fa{
         SAAHO{"ساهویی"}
         SCOTLAND{"انگلیسی معیار اسکاتلند"}
     }
-    Version{"2.0.53.45"}
+    Version{"2.0.47.72"}
     codePatterns{
         language{"زبان: {0}"}
         script{"خط: {0}"}

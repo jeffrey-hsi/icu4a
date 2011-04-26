@@ -1,11 +1,11 @@
 /**
  *******************************************************************************
- * Copyright (C) 2001-2010, International Business Machines Corporation and
- * others. All Rights Reserved.
+ * Copyright (C) 2001-2009, International Business Machines Corporation and    *
+ * others. All Rights Reserved.                                                *
+ *******************************************************************************
+ *
  *******************************************************************************
  */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -85,7 +85,7 @@ class Integer : public UObject {
 
     virtual UBool operator==(const UObject& other) const 
     {
-        return typeid(*this) == typeid(other) &&
+        return other.getDynamicClassID() == getStaticClassID() &&
             _val == ((Integer&)other)._val;
     }
 
@@ -116,9 +116,8 @@ class TestIntegerService : public ICUService {
 
     virtual ICUServiceFactory* createSimpleFactory(UObject* obj, const UnicodeString& id, UBool visible, UErrorCode& status) 
     {
-        Integer* i;
-        if (U_SUCCESS(status) && obj && (i = dynamic_cast<Integer*>(obj)) != NULL) {
-            return new SimpleFactory(i, id, visible);
+        if (U_SUCCESS(status) && obj && obj->getDynamicClassID() == Integer::getStaticClassID()) {
+            return new SimpleFactory((Integer*)obj, id, visible);
         }
         return NULL;
     }
@@ -157,15 +156,13 @@ UnicodeString append(UnicodeString& result, const UObject* obj)
     if (obj == NULL) {
         result.append("NULL");
     } else {
-        const UnicodeString* s;
-        const Locale* loc;
-        const Integer* i;
-        if ((s = dynamic_cast<const UnicodeString*>(obj)) != NULL) {
-            result.append(*s);
-        } else if ((loc = dynamic_cast<const Locale*>(obj)) != NULL) {
-            result.append(loc->getName());
-        } else if ((i = dynamic_cast<const Integer*>(obj)) != NULL) {
-            sprintf(buffer, "%d", (int)i->_val);
+        UClassID id = obj->getDynamicClassID();
+        if (id == UnicodeString::getStaticClassID()) {
+            result.append(*(UnicodeString*)obj);
+        } else if (id == Locale::getStaticClassID()) {
+            result.append(((Locale*)obj)->getName());
+        } else if (id == Integer::getStaticClassID()) {
+            sprintf(buffer, "%d", (int)((Integer*)obj)->_val);
             result.append(buffer);
         } else {
             sprintf(buffer, "%p", (const void*)obj);
@@ -481,7 +478,7 @@ public:
                 // have to implement cloneInstance.  Otherwise we could just tell the service
                 // what the object type is when we create it, and the default implementation
                 // could handle everything for us.  Phooey.
-        if (obj && dynamic_cast<UnicodeString*>(obj) != NULL) {
+        if (obj && obj->getDynamicClassID() == UnicodeString::getStaticClassID()) {
                         return ICUService::createSimpleFactory(obj, id, visible, status);
         }
         return NULL;
@@ -500,9 +497,8 @@ class TestStringService : public ICUService {
 
   virtual ICUServiceFactory* createSimpleFactory(UObject* obj, const UnicodeString& id, UBool visible, UErrorCode& /* status */) 
     {
-        UnicodeString* s;
-        if (obj && (s = dynamic_cast<UnicodeString*>(obj)) != NULL) {
-            return new SimpleFactory(s, id, visible);
+        if (obj && obj->getDynamicClassID() == UnicodeString::getStaticClassID()) {
+            return new SimpleFactory((UnicodeString*)obj, id, visible);
         }
         return NULL;
     }

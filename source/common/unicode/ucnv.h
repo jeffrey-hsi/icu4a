@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2011, International Business Machines
+*   Copyright (C) 1999-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
  *  ucnv.h:
@@ -124,7 +124,6 @@ typedef enum {
     UCNV_UTF32,
     UCNV_CESU8,
     UCNV_IMAP_MAILBOX,
-    UCNV_COMPOUND_TEXT,
 
     /* Number of converter types for which we have conversion routines. */
     UCNV_NUMBER_OF_SUPPORTED_CONVERTER_TYPES
@@ -536,7 +535,7 @@ U_NAMESPACE_BEGIN
  *
  * @see LocalPointerBase
  * @see LocalPointer
- * @stable ICU 4.4
+ * @draft ICU 4.4
  */
 U_DEFINE_LOCAL_OPEN_POINTER(LocalUConverterPointer, UConverter, ucnv_close);
 
@@ -900,6 +899,7 @@ typedef enum UConverterUnicodeSet {
     UCNV_SET_COUNT
 } UConverterUnicodeSet;
 
+#if !UCONFIG_NO_USET
 
 /**
  * Returns the set of Unicode code points that can be converted by an ICU converter.
@@ -951,9 +951,10 @@ ucnv_getUnicodeSet(const UConverter *cnv,
                    USet *setFillIn,
                    UConverterUnicodeSet whichSet,
                    UErrorCode *pErrorCode);
+#endif
 
 /**
- * Gets the current calback function used by the converter when an illegal
+ * Gets the current callback function used by the converter when an illegal
  *  or invalid codepage sequence is found. 
  * Context pointers are always owned by the caller.
  *
@@ -1991,23 +1992,6 @@ ucnv_fromUCountPending(const UConverter* cnv, UErrorCode* status);
  */
 U_STABLE int32_t U_EXPORT2
 ucnv_toUCountPending(const UConverter* cnv, UErrorCode* status);
-
-/**
- * Returns whether or not the charset of the converter has a fixed number of bytes
- * per charset character.
- * An example of this are converters that are of the type UCNV_SBCS or UCNV_DBCS.
- * Another example is UTF-32 which is always 4 bytes per character.  A UTF-32 code point
- * may represent more than one UTF-8 or UTF-16 code units but always have size of 4 bytes.
- * Note: This method is not intended to be used to determine whether the charset has a
- * fixed ratio of bytes to Unicode codes units for any particular Unicode encoding form.
- * FALSE is returned with the UErrorCode if error occurs or cnv is NULL.
- * @param cnv       The converter to be tested
- * @param status    ICU error code in/out paramter
- * @return TRUE if the converter is fixed-width
- * @draft ICU 4.8
- */
-U_DRAFT UBool U_EXPORT2
-ucnv_isFixedWidth(UConverter *cnv, UErrorCode *status);
 
 #endif
 

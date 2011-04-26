@@ -180,7 +180,7 @@
 U_NAMESPACE_BEGIN
 class U_COMMON_API Locale : public UObject {
 public:
-    /** Useful constant for the Root locale. @stable ICU 4.4 */
+    /** Useful constant for the Root locale. @draft ICU 4.4 */
     static const Locale &U_EXPORT2 getRoot(void);
     /** Useful constant for this language. @stable ICU 2.0 */
     static const Locale &U_EXPORT2 getEnglish(void);
@@ -463,14 +463,14 @@ public:
     /**
      * returns the locale's three-letter language code, as specified
      * in ISO draft standard ISO-639-2.
-     * @return      An alias to the code, or an empty string
+     * @return      An alias to the code, or NULL
      * @stable ICU 2.0
      */
     const char * getISO3Language() const;
 
     /**
      * Fills in "name" with the locale's three-letter ISO-3166 country code.
-     * @return      An alias to the code, or an empty string
+     * @return      An alias to the code, or NULL
      * @stable ICU 2.0
      */
     const char * getISO3Country() const;

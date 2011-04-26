@@ -1,11 +1,9 @@
 /*
 *******************************************************************************
-* Copyright (C) 2007-2010, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 2007-2008, International Business Machines Corporation and    *
+* others. All Rights Reserved.                                                *
 *******************************************************************************
 */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -90,7 +88,7 @@ RuleBasedTimeZone::operator==(const TimeZone& that) const {
     if (this == &that) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(that)
+    if (getDynamicClassID() != that.getDynamicClassID()
         || BasicTimeZone::operator==(that) == FALSE) {
         return FALSE;
     }
@@ -115,8 +113,8 @@ RuleBasedTimeZone::addTransitionRule(TimeZoneRule* rule, UErrorCode& status) {
     if (U_FAILURE(status)) {
         return;
     }
-    AnnualTimeZoneRule* atzrule = dynamic_cast<AnnualTimeZoneRule*>(rule);
-    if (atzrule != NULL && atzrule->getEndYear() == AnnualTimeZoneRule::MAX_YEAR) {
+    if (rule->getDynamicClassID() == AnnualTimeZoneRule::getStaticClassID()
+        && ((AnnualTimeZoneRule*)rule)->getEndYear() == AnnualTimeZoneRule::MAX_YEAR) {
         // A final rule
         if (fFinalRules == NULL) {
             fFinalRules = new UVector(status);
@@ -508,7 +506,7 @@ RuleBasedTimeZone::hasSameRules(const TimeZone& other) const {
     if (this == &other) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(other)) {
+    if (getDynamicClassID() != other.getDynamicClassID()) {
         return FALSE;
     }
     const RuleBasedTimeZone& that = (const RuleBasedTimeZone&)other;

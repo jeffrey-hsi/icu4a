@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/numberingSystems.xml
@@ -71,11 +71,6 @@ numberingSystems:table(nofallback){
         guru{
             algorithmic:int{0}
             desc{"੦੧੨੩੪੫੬੭੮੯"}
-            radix:int{10}
-        }
-        hanidec{
-            algorithmic:int{0}
-            desc{"〇一二三四五六七八九"}
             radix:int{10}
         }
         hans{

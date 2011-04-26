@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/fr.xml
@@ -617,6 +617,7 @@ fr{
         Phnx{"phénicien"}
         Plrd{"phonétique de Pollard"}
         Prti{"parthe des inscriptions"}
+        Qaai{"hérité"}
         Rjng{"rejang"}
         Roro{"rongorongo"}
         Runr{"runique"}
@@ -650,7 +651,6 @@ fr{
         Xpeo{"cunéiforme persépolitain"}
         Xsux{"cunéiforme suméro-akkadien"}
         Yiii{"yi"}
-        Zinh{"hérité"}
         Zmth{"notation mathématique"}
         Zsym{"symboles"}
         Zxxx{"non écrit"}
@@ -710,7 +710,7 @@ fr{
         VALENCIA{"valencien"}
         WADEGILE{"Wade-Giles"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.64"}
     codePatterns{
         language{"langue : {0}"}
         script{"écriture : {0}"}

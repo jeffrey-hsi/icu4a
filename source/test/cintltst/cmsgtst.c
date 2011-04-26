@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2011, International Business Machines Corporation and
+ * Copyright (c) 1997-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************
  *
@@ -219,18 +219,11 @@ static void MessageFormatTest( void )
                         austrdup(result), austrdup(testResultStrings[i]) );
                 }
 
-#if defined (U_DARWIN)  /* add platforms here .. */
-                log_verbose("Skipping potentially crashing test for mismatched varargs.\n");
-#else
-                log_verbose("Note: the next is a platform dependent test. If it crashes, add an exclusion for your platform near %s:%d\n", __FILE__, __LINE__); 
-
                 if (returnsNullForType(1, (double)2.0)) {
                     /* HP/UX and possibly other platforms don't properly check for this case.
                     We pass in a UDate, but the function expects a UDate *.  When va_arg is used,
                     most compilers will return NULL, but HP-UX won't do that and will return 2
-                    in this case.  This is a platform dependent test.  It crashes on some systems.
-            
-                    If you get a crash here, see the definition of returnsNullForType.
+                    in this case.  This is a platform dependent test.
 
                     This relies upon "undefined" behavior, as indicated by C99 7.15.1.1 paragraph 2
                     */
@@ -244,7 +237,6 @@ static void MessageFormatTest( void )
                 else {
                     log_verbose("Warning: Returning NULL for a mismatched va_arg type isn't supported on this platform.\n", i);
                 }
-#endif
 
                 umsg_parse(formatter,result,resultLength,&count,&ec,&one,&two,&d2);
                 if(U_FAILURE(ec)){
@@ -736,14 +728,8 @@ static void TestMsgFormatChoice(void)
     str=(UChar*)malloc(sizeof(UChar) * 25);
     u_uastrcpy(str, "MyDisk");
     log_verbose("Testing message format with choice test #6\n:");
-    /*
-     * Before ICU 4.8, umsg_xxx() did not detect conflicting argument types,
-     * and this pattern had {0,number,integer} as the inner argument.
-     * The choice argument has kDouble type while {0,number,integer} has kLong (int32_t).
-     * ICU 4.8 and above detects this as an error.
-     * We changed this pattern to work as intended.
-     */
-    u_uastrcpy(pattern, "The disk {1} contains {0,choice,0#no files|1#one file|1<{0,number} files}");
+    /*There {0,choice,0#are no files|1#is one file|1<are {0,number,integer} files}.*/
+    u_uastrcpy(pattern, "The disk {1} contains {0,choice,0#no files|1#one file|1<{0,number,integer} files}");
     u_uastrcpy(expected, "The disk MyDisk contains 100 files");
     resultlength=0;
     resultLengthOut=u_formatMessage( "en_US", pattern, u_strlen(pattern), NULL, resultlength, &status, 100., str);

@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2005-2010, International Business Machines
+*   Copyright (C) 2005-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -26,6 +26,7 @@
 // .dat package file representation ---------------------------------------- ***
 
 #define STRING_STORE_SIZE 100000
+#define MAX_FILE_COUNT 2000
 #define MAX_PKG_NAME_LENGTH 32
 
 typedef void CheckDependency(void *context, const char *itemName, const char *targetName);
@@ -117,18 +118,13 @@ public:
     UBool checkDependencies();
 
     /*
-     * Enumerate all the dependencies and give the results to context and call CheckDependency callback
-     * @param context user context (will be passed to check function)
-     * @param check will be called with context and any missing items
+     * Enumerate all the dependencies and give the results to context and check
      */
     void enumDependencies(void *context, CheckDependency check);
 
 private:
     void enumDependencies(Item *pItem, void *context, CheckDependency check);
 
-    /**
-     * Default CheckDependency function used by checkDependencies()
-     */
     static void checkDependency(void *context, const char *itemName, const char *targetName);
 
     /*
@@ -149,8 +145,7 @@ private:
     UBool inIsBigEndian;
 
     int32_t itemCount;
-    int32_t itemMax;
-    Item   *items;
+    Item items[MAX_FILE_COUNT];
 
     int32_t inStringTop, outStringTop;
     char inStrings[STRING_STORE_SIZE], outStrings[STRING_STORE_SIZE];
@@ -165,20 +160,8 @@ private:
 
     // state for checkDependencies()
     UBool isMissingItems;
-
-    /**
-     * Grow itemMax to new value
-     */
-    void setItemCapacity(int32_t max);
-
-    /**
-     * Grow itemMax to at least itemCount+1
-     */
-    void ensureItemCapacity();
 };
 
 U_NAMESPACE_END
 
 #endif
-
-

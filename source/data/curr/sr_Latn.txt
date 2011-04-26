@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/sr_Latn.xml
@@ -10,6 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/sr_Latn.xml
  */
 sr_Latn{
+    %%ParentIsRoot:int{1}
     Currencies{
         ADP{
             "ADP" /** ===  */,
@@ -268,7 +269,7 @@ sr_Latn{
             "Kipratska funta (CYP)",
         }
         CZK{
-            "Kč",
+            "Кч",
             "Češka kruna",
         }
         DDM{
@@ -308,7 +309,7 @@ sr_Latn{
             "Estonska kruna",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egipatska funta",
         }
         ERN{
@@ -456,7 +457,7 @@ sr_Latn{
             "Izraelski šekel",
         }
         INR{
-            "₹",
+            "Rs",
             "Indijski rupi",
         }
         IQD{
@@ -488,7 +489,7 @@ sr_Latn{
             "Jordanski dinar (JOD)",
         }
         JPY{
-            "JP¥",
+            "¥",
             "Japanski jen",
         }
         KES{
@@ -736,7 +737,7 @@ sr_Latn{
             "Pakistanski rupi",
         }
         PLN{
-            "zł",
+            "зл",
             "Poljski zlot (PLN)",
         }
         PLZ{
@@ -896,7 +897,7 @@ sr_Latn{
             "Stara turska lira (TRL)",
         }
         TRY{
-            "TL",
+            "Тл",
             "Turska lira",
         }
         TTD{
@@ -2723,5 +2724,5 @@ sr_Latn{
             other{"zimbabvejski dolari"}
         }
     }
-    Version{"2.0.53.45"}
+    Version{"2.0.48.46"}
 }

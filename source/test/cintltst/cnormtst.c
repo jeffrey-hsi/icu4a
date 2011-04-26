@@ -41,16 +41,20 @@ TestAPI(void);
 static void
 TestNormCoverage(void);
 
+#ifndef ICU4C0
 static void
 TestConcatenate(void);
 
 static void
 TestNextPrevious(void);
+#endif
 
 static void TestIsNormalized(void);
 
+#ifndef ICU4C0
 static void
 TestFCNFKCClosure(void);
+#endif
 
 static void
 TestQuickCheckPerCP(void);
@@ -58,13 +62,7 @@ TestQuickCheckPerCP(void);
 static void
 TestComposition(void);
 
-static void
-TestFCD(void);
-
-static void
-TestGetDecomposition(void);
-
-static const char* const canonTests[][3] = {
+const static char* canonTests[][3] = {
     /* Input*/                    /*Decomposed*/                /*Composed*/
     { "cat",                    "cat",                        "cat"                    },
     { "\\u00e0ardvark",            "a\\u0300ardvark",            "\\u00e0ardvark",        },
@@ -97,11 +95,10 @@ static const char* const canonTests[][3] = {
     { "\\uFF76\\uFF9E",            "\\uFF76\\uFF9E",            "\\uFF76\\uFF9E"        }, /* hw_ka + hw_ten*/
     { "\\u30AB\\uFF9E",            "\\u30AB\\uFF9E",            "\\u30AB\\uFF9E"        }, /* ka + hw_ten*/
     { "\\uFF76\\u3099",            "\\uFF76\\u3099",            "\\uFF76\\u3099"        },  /* hw_ka + ten*/
-    { "A\\u0300\\u0316",           "A\\u0316\\u0300",           "\\u00C0\\u0316"        },  /* hw_ka + ten*/
-    { "", "", "" }
+    { "A\\u0300\\u0316",           "A\\u0316\\u0300",           "\\u00C0\\u0316"        }  /* hw_ka + ten*/
 };
 
-static const char* const compatTests[][3] = {
+const static char* compatTests[][3] = {
     /* Input*/                        /*Decomposed    */                /*Composed*/
     { "cat",                        "cat",                            "cat"                },
 
@@ -120,14 +117,8 @@ static const char* const compatTests[][3] = {
 
     /*These two are broken in Unicode 2.1.2 but fixed in 2.1.5 and later*/
     { "\\uFF76\\uFF9E",                "\\u30AB\\u3099",                "\\u30AC"            }, /* hw_ka + hw_ten*/
-    { "\\u30AB\\uFF9E",                "\\u30AB\\u3099",                "\\u30AC"            }, /* ka + hw_ten*/
-    { "", "", "" }
-};
-
-static const char* const fcdTests[][3] = {
-    /* Added for testing the below-U+0300 prefix of a NUL-terminated string. */
-    { "\\u010e\\u0327", "D\\u0327\\u030c", NULL },  /* D-caron + cedilla */
-    { "\\u010e", "\\u010e", NULL }  /* D-caron */
+    { "\\u30AB\\uFF9E",                "\\u30AB\\u3099",                "\\u30AC"            } /* ka + hw_ten*/
+    
 };
 
 void addNormTest(TestNode** root);
@@ -135,93 +126,154 @@ void addNormTest(TestNode** root);
 void addNormTest(TestNode** root)
 {
     addTest(root, &TestAPI, "tsnorm/cnormtst/TestAPI");
+#ifndef ICU4C0
     addTest(root, &TestDecomp, "tsnorm/cnormtst/TestDecomp");
     addTest(root, &TestCompatDecomp, "tsnorm/cnormtst/TestCompatDecomp");
     addTest(root, &TestCanonDecompCompose, "tsnorm/cnormtst/TestCanonDecompCompose");
-    addTest(root, &TestCompatDecompCompose, "tsnorm/cnormtst/TestCompatDecompCompose");
-    addTest(root, &TestFCD, "tsnorm/cnormtst/TestFCD");
+    addTest(root, &TestCompatDecompCompose, "tsnorm/cnormtst/CompatDecompCompose");
+#endif
     addTest(root, &TestNull, "tsnorm/cnormtst/TestNull");
     addTest(root, &TestQuickCheck, "tsnorm/cnormtst/TestQuickCheck");
     addTest(root, &TestQuickCheckPerCP, "tsnorm/cnormtst/TestQuickCheckPerCP");
     addTest(root, &TestIsNormalized, "tsnorm/cnormtst/TestIsNormalized");
+#ifndef ICU4C0
     addTest(root, &TestCheckFCD, "tsnorm/cnormtst/TestCheckFCD");
+#endif
     addTest(root, &TestNormCoverage, "tsnorm/cnormtst/TestNormCoverage");
+#ifndef ICU4C0
     addTest(root, &TestConcatenate, "tsnorm/cnormtst/TestConcatenate");
     addTest(root, &TestNextPrevious, "tsnorm/cnormtst/TestNextPrevious");
     addTest(root, &TestFCNFKCClosure, "tsnorm/cnormtst/TestFCNFKCClosure");
+#endif
     addTest(root, &TestComposition, "tsnorm/cnormtst/TestComposition");
-    addTest(root, &TestGetDecomposition, "tsnorm/cnormtst/TestGetDecomposition");
 }
 
-static const char* const modeStrings[]={
-    "UNORM_NONE",
-    "UNORM_NFD",
-    "UNORM_NFKD",
-    "UNORM_NFC",
-    "UNORM_NFKC",
-    "UNORM_FCD",
-    "UNORM_MODE_COUNT"
-};
-
-static void TestNormCases(UNormalizationMode mode,
-                          const char* const cases[][3], int32_t lengthOfCases) {
-    int32_t x, neededLen, length2;
-    int32_t expIndex= (mode==UNORM_NFC || mode==UNORM_NFKC) ? 2 : 1;
-    UChar *source=NULL;
-    UChar result[16];
-    log_verbose("Testing unorm_normalize(%s)\n", modeStrings[mode]);
-    for(x=0; x < lengthOfCases; x++)
+void TestDecomp() 
+{
+    UErrorCode status = U_ZERO_ERROR;
+    int32_t x, neededLen, resLen;
+    UChar *source=NULL, *result=NULL; 
+    status = U_ZERO_ERROR;
+    resLen=0;
+    log_verbose("Testing unorm_normalize with  Decomp canonical\n");
+    for(x=0; x < LENGTHOF(canonTests); x++)
     {
-        UErrorCode status = U_ZERO_ERROR, status2 = U_ZERO_ERROR;
-        source=CharsToUChars(cases[x][0]);
-        neededLen= unorm_normalize(source, u_strlen(source), mode, 0, NULL, 0, &status);
-        length2= unorm_normalize(source, -1, mode, 0, NULL, 0, &status2);
-        if(neededLen!=length2) {
-          log_err("ERROR in unorm_normalize(%s)[%d]: "
-                  "preflight length/NUL %d!=%d preflight length/srcLength\n",
-                  modeStrings[mode], (int)x, (int)neededLen, (int)length2);
-        }
+        source=CharsToUChars(canonTests[x][0]);
+        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFD, 0, NULL, 0, &status); 
         if(status==U_BUFFER_OVERFLOW_ERROR)
         {
             status=U_ZERO_ERROR;
+            resLen=neededLen+1;
+            result=(UChar*)malloc(sizeof(UChar*) * resLen);
+            unorm_normalize(source, u_strlen(source), UNORM_NFD, 0, result, resLen, &status); 
         }
-        length2=unorm_normalize(source, u_strlen(source), mode, 0, result, LENGTHOF(result), &status); 
-        if(U_FAILURE(status) || neededLen!=length2) {
-            log_data_err("ERROR in unorm_normalize(%s/NUL) at %s:  %s - (Are you missing data?)\n",
-                         modeStrings[mode], austrdup(source), myErrorName(status));
+        if(U_FAILURE(status)){
+            log_data_err("ERROR in unorm_normalize at %s:  %s - (Are you missing data?)\n", austrdup(source), myErrorName(status) );
         } else {
-            assertEqual(result, cases[x][expIndex], x);
+          assertEqual(result, canonTests[x][1], x);
         }
-        length2=unorm_normalize(source, -1, mode, 0, result, LENGTHOF(result), &status); 
-        if(U_FAILURE(status) || neededLen!=length2) {
-            log_data_err("ERROR in unorm_normalize(%s/srcLength) at %s:  %s - (Are you missing data?)\n",
-                         modeStrings[mode], austrdup(source), myErrorName(status));
-        } else {
-            assertEqual(result, cases[x][expIndex], x);
-        }
+        free(result);
         free(source);
     }
 }
 
-void TestDecomp() {
-    TestNormCases(UNORM_NFD, canonTests, LENGTHOF(canonTests));
+void TestCompatDecomp() 
+{
+    UErrorCode status = U_ZERO_ERROR;
+    int32_t x, neededLen, resLen;
+    UChar *source=NULL, *result=NULL; 
+    status = U_ZERO_ERROR;
+    resLen=0;
+    log_verbose("Testing unorm_normalize with  Decomp compat\n");
+    for(x=0; x < LENGTHOF(compatTests); x++)
+    {
+        source=CharsToUChars(compatTests[x][0]);
+        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFKD, 0, NULL, 0, &status); 
+        if(status==U_BUFFER_OVERFLOW_ERROR)
+        {
+            status=U_ZERO_ERROR;
+            resLen=neededLen+1;
+            result=(UChar*)malloc(sizeof(UChar*) * resLen);
+            unorm_normalize(source, u_strlen(source), UNORM_NFKD, 0, result, resLen, &status); 
+        }
+        if(U_FAILURE(status)){
+            log_data_err("ERROR in unorm_normalize at %s:  %s - (Are you missing data?)\n", austrdup(source), myErrorName(status) );
+        } else {
+          assertEqual(result, compatTests[x][1], x);
+        }
+        free(result);
+        free(source);
+    }
 }
 
-void TestCompatDecomp() {
-    TestNormCases(UNORM_NFKD, compatTests, LENGTHOF(compatTests));
+void TestCanonDecompCompose() 
+{
+    UErrorCode status = U_ZERO_ERROR;
+    int32_t x, neededLen, resLen;
+    UChar *source=NULL, *result=NULL; 
+    status = U_ZERO_ERROR;
+    resLen=0;
+    log_verbose("Testing unorm_normalize with Decomp can compose compat\n");
+    for(x=0; x < LENGTHOF(canonTests); x++)
+    {
+        source=CharsToUChars(canonTests[x][0]);
+        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFC, 0, NULL, 0, &status); 
+        if(status==U_BUFFER_OVERFLOW_ERROR)
+        {
+            status=U_ZERO_ERROR;
+            resLen=neededLen+1;
+            result=(UChar*)malloc(sizeof(UChar*) * resLen);
+            unorm_normalize(source, u_strlen(source), UNORM_NFC, 0, result, resLen, &status); 
+        }
+        if(U_FAILURE(status)){
+            log_data_err("ERROR in unorm_normalize at %s:  %s - (Are you missing data?)\n", austrdup(source),myErrorName(status) );
+        } else {
+          assertEqual(result, canonTests[x][2], x);
+        }
+        free(result);
+        free(source);
+    }
 }
 
-void TestCanonDecompCompose() {
-    TestNormCases(UNORM_NFC, canonTests, LENGTHOF(canonTests));
+void TestCompatDecompCompose() 
+{
+    UErrorCode status = U_ZERO_ERROR;
+    int32_t x, neededLen, resLen;
+    UChar *source=NULL, *result=NULL;
+    status = U_ZERO_ERROR;
+    resLen=0;
+    log_verbose("Testing unorm_normalize with compat decomp compose can\n");
+    for(x=0; x < LENGTHOF(compatTests); x++)
+    {
+        source=CharsToUChars(compatTests[x][0]);
+        neededLen= unorm_normalize(source, u_strlen(source), UNORM_NFKC, 0, NULL, 0, &status); 
+        if(status==U_BUFFER_OVERFLOW_ERROR)
+        {
+            status=U_ZERO_ERROR;
+            resLen=neededLen+1;
+            result=(UChar*)malloc(sizeof(UChar*) * resLen);
+            unorm_normalize(source, u_strlen(source), UNORM_NFKC, 0, result, resLen, &status); 
+        }
+        if(U_FAILURE(status)){
+            log_data_err("ERROR in unorm_normalize at %s:  %s - (Are you missing data?)\n", austrdup(source), myErrorName(status) );
+        } else {
+          assertEqual(result, compatTests[x][2], x);
+        }
+        free(result);
+        free(source);
+    }
 }
 
-void TestCompatDecompCompose() {
-    TestNormCases(UNORM_NFKC, compatTests, LENGTHOF(compatTests));
-}
 
-void TestFCD() {
-    TestNormCases(UNORM_FCD, fcdTests, LENGTHOF(fcdTests));
+/*
+static void assertEqual(const UChar* result, const UChar* expected, int32_t index)
+{
+    if(u_strcmp(result, expected)!=0){
+        log_err("ERROR in decomposition at index = %d. EXPECTED: %s , GOT: %s\n", index, austrdup(expected),
+            austrdup(result) );
+    }
 }
+*/
 
 static void assertEqual(const UChar* result, const char* expected, int32_t index)
 {
@@ -296,6 +348,7 @@ void TestNull()
                    UNORM_NFC,
                    "UNORM_NFC");
 
+#ifndef ICU4C0
     TestNull_check(source_dcmp,
                    source_dcmp_len,
                    expect_dcmp,
@@ -310,6 +363,7 @@ void TestNull()
                    UNORM_NFKC,
                    "UNORM_NFKC");
 
+#endif
 
 }
 
@@ -332,18 +386,21 @@ static void TestQuickCheckResultNO()
 
   for (; count < SIZE; count ++)
   {
+#ifndef ICU4C0
     if (unorm_quickCheck(&(CPNFD[count]), 1, UNORM_NFD, &error) != 
                                                               UNORM_NO)
     {
       log_err("ERROR in NFD quick check at U+%04x\n", CPNFD[count]);
       return;
     }
+#endif
     if (unorm_quickCheck(&(CPNFC[count]), 1, UNORM_NFC, &error) != 
                                                               UNORM_NO)
     {
       log_err("ERROR in NFC quick check at U+%04x\n", CPNFC[count]);
       return;
     }
+#ifndef ICU4C0
     if (unorm_quickCheck(&(CPNFKD[count]), 1, UNORM_NFKD, &error) != 
                                                               UNORM_NO)
     {
@@ -356,6 +413,7 @@ static void TestQuickCheckResultNO()
       log_err("ERROR in NFKC quick check at U+%04x\n", CPNFKC[count]);
       return;
     }
+#endif
   }
 }
 
@@ -378,17 +436,20 @@ static void TestQuickCheckResultYES()
   UChar cp = 0;
   while (cp < 0xA0)
   {
+#ifndef ICU4C0
     if (unorm_quickCheck(&cp, 1, UNORM_NFD, &error) != UNORM_YES)
     {
       log_data_err("ERROR in NFD quick check at U+%04x - (Are you missing data?)\n", cp);
       return;
     }
+#endif
     if (unorm_quickCheck(&cp, 1, UNORM_NFC, &error) != 
                                                              UNORM_YES)
     {
       log_err("ERROR in NFC quick check at U+%04x\n", cp);
       return;
     }
+#ifndef ICU4C0
     if (unorm_quickCheck(&cp, 1, UNORM_NFKD, &error) != UNORM_YES)
     {
       log_err("ERROR in NFKD quick check at U+%04x\n", cp);
@@ -400,23 +461,27 @@ static void TestQuickCheckResultYES()
       log_err("ERROR in NFKC quick check at U+%04x\n", cp);
       return;
     }
+#endif
     cp ++;
   }
 
   for (; count < SIZE; count ++)
   {
+#ifndef ICU4C0
     if (unorm_quickCheck(&(CPNFD[count]), 1, UNORM_NFD, &error) != 
                                                              UNORM_YES)
     {
       log_err("ERROR in NFD quick check at U+%04x\n", CPNFD[count]);
       return;
     }
+#endif
     if (unorm_quickCheck(&(CPNFC[count]), 1, UNORM_NFC, &error) 
                                                           != UNORM_YES)
     {
       log_err("ERROR in NFC quick check at U+%04x\n", CPNFC[count]);
       return;
     }
+#ifndef ICU4C0
     if (unorm_quickCheck(&(CPNFKD[count]), 1, UNORM_NFKD, &error) != 
                                                              UNORM_YES)
     {
@@ -429,6 +494,7 @@ static void TestQuickCheckResultYES()
       log_err("ERROR in NFKC quick check at U+%04x\n", CPNFKC[count]);
       return;
     }
+#endif
   }
 }
 
@@ -454,12 +520,14 @@ static void TestQuickCheckResultMAYBE()
       log_data_err("ERROR in NFC quick check at U+%04x - (Are you missing data?)\n", CPNFC[count]);
       return;
     }
+#ifndef ICU4C0
     if (unorm_quickCheck(&(CPNFKC[count]), 1, UNORM_NFKC, &error) != 
                                                            UNORM_MAYBE)
     {
       log_err("ERROR in NFKC quick check at U+%04x\n", CPNFKC[count]);
       return;
     }
+#endif
   }
 }
 
@@ -474,12 +542,14 @@ static void TestQuickCheckStringResult()
   {
     d = CharsToUChars(canonTests[count][1]);
     c = CharsToUChars(canonTests[count][2]);
+#ifndef ICU4C0
     if (unorm_quickCheck(d, u_strlen(d), UNORM_NFD, &error) != 
                                                             UNORM_YES)
     {
       log_data_err("ERROR in NFD quick check for string at count %d - (Are you missing data?)\n", count);
       return;
     }
+#endif
 
     if (unorm_quickCheck(c, u_strlen(c), UNORM_NFC, &error) == 
                                                             UNORM_NO)
@@ -492,6 +562,7 @@ static void TestQuickCheckStringResult()
     free(c);
   }
 
+#ifndef ICU4C0
   for (count = 0; count < LENGTHOF(compatTests); count ++)
   {
     d = CharsToUChars(compatTests[count][1]);
@@ -513,6 +584,7 @@ static void TestQuickCheckStringResult()
     free(d);
     free(c);
   }  
+#endif
 }
 
 void TestQuickCheck() 
@@ -579,17 +651,21 @@ static void TestIsNormalized(void) {
         if(unorm_isNormalized(notNFC[i], -1, UNORM_NFC, &errorCode) || U_FAILURE(errorCode)) {
             log_data_err("error: isNormalized(notNFC[%d], NFC) is wrong (%s) - (Are you missing data?)\n", i, u_errorName(errorCode));
         }
+#ifndef ICU4C0
         errorCode=U_ZERO_ERROR;
         if(unorm_isNormalized(notNFC[i], -1, UNORM_NFKC, &errorCode) || U_FAILURE(errorCode)) {
             log_data_err("error: isNormalized(notNFC[%d], NFKC) is wrong (%s) - (Are you missing data?)\n", i, u_errorName(errorCode));
         }
+#endif
     }
+#ifndef ICU4C0
     for(i=0; i<LENGTHOF(notNFKC); ++i) {
         errorCode=U_ZERO_ERROR;
         if(unorm_isNormalized(notNFKC[i], -1, UNORM_NFKC, &errorCode) || U_FAILURE(errorCode)) {
             log_data_err("error: isNormalized(notNFKC[%d], NFKC) is wrong (%s) - (Are you missing data?)\n", i, u_errorName(errorCode));
         }
     }
+#endif
 }
 
 void TestCheckFCD() 
@@ -704,6 +780,7 @@ TestAPI() {
     UErrorCode errorCode;
     int32_t length;
 
+#ifndef ICU4C0
     /* try preflighting */
     errorCode=U_ZERO_ERROR;
     length=unorm_normalize(in, 2, UNORM_NFD, 0, NULL, 0, &errorCode);
@@ -722,16 +799,26 @@ TestAPI() {
         log_err("unorm_normalize(NFD ma<umlaut>)=%ld failed with out[]=U+%04x U+%04x U+%04x U+%04x\n", length, out[0], out[1], out[2], out[3]);
         return;
     }
-    length=unorm_normalize(NULL, 0, UNORM_NFC, 0, NULL, 0, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        log_err("unorm_normalize(src NULL[0], NFC, dest NULL[0])=%ld failed with %s\n", (long)length, u_errorName(errorCode));
+#endif
+    /* try preflighting */
+    errorCode=U_ZERO_ERROR;
+    length=unorm_normalize(in, 2, UNORM_NFC, 0, NULL, 0, &errorCode);
+    if(errorCode!=U_BUFFER_OVERFLOW_ERROR || length!=2) {
+        log_data_err("unorm_normalize(pure preflighting NFC)=%ld (should be =2) failed with %s - (Are you missing data?)\n", length, u_errorName(errorCode));
         return;
     }
-    length=unorm_normalize(NULL, 0, UNORM_NFC, 0, out, 20, &errorCode);
+
+    errorCode=U_ZERO_ERROR;
+    length=unorm_normalize(in, 2, UNORM_NFC, 0, out, 3, &errorCode);
     if(U_FAILURE(errorCode)) {
-        log_err("unorm_normalize(src NULL[0], NFC, dest out[20])=%ld failed with %s\n", (long)length, u_errorName(errorCode));
+        log_err("unorm_normalize(NFC)=%ld failed with %s\n", length, u_errorName(errorCode));
         return;
     }
+    if(length!=2 || u_strncmp(in,out,2)) {
+        log_err("unorm_normalize(NFC ma<umlaut>)=%ld failed with out[]=U+%04x U+%04x U+%04x U+%04x\n", length, out[0], out[1], out[2], out[3]);
+        return;
+    }
+
 }
 
 /* test cases to improve test code coverage */
@@ -821,6 +908,7 @@ TestNormCoverage() {
     input[inLength++]=HANGUL_K_KIYEOK;
     input[inLength++]=HANGUL_K_KIYEOK_SIOS;
 
+#ifndef ICU4C0
     /* quick checks */
     errorCode=U_ZERO_ERROR;
     if(UNORM_NO!=unorm_quickCheck(input, inLength, UNORM_NFD, &errorCode) || U_FAILURE(errorCode)) {
@@ -830,10 +918,12 @@ TestNormCoverage() {
     if(UNORM_NO!=unorm_quickCheck(input, inLength, UNORM_NFKD, &errorCode) || U_FAILURE(errorCode)) {
         log_data_err("error unorm_quickCheck(long input, UNORM_NFKD)!=NO (%s) - (Are you missing data?)\n", u_errorName(errorCode));
     }
+#endif
     errorCode=U_ZERO_ERROR;
     if(UNORM_NO!=unorm_quickCheck(input, inLength, UNORM_NFC, &errorCode) || U_FAILURE(errorCode)) {
         log_data_err("error unorm_quickCheck(long input, UNORM_NFC)!=NO (%s) - (Are you missing data?)\n", u_errorName(errorCode));
     }
+#ifndef ICU4C0
     errorCode=U_ZERO_ERROR;
     if(UNORM_NO!=unorm_quickCheck(input, inLength, UNORM_NFKC, &errorCode) || U_FAILURE(errorCode)) {
         log_data_err("error unorm_quickCheck(long input, UNORM_NFKC)!=NO (%s) - (Are you missing data?)\n", u_errorName(errorCode));
@@ -842,6 +932,7 @@ TestNormCoverage() {
     if(UNORM_NO!=unorm_quickCheck(input, inLength, UNORM_FCD, &errorCode) || U_FAILURE(errorCode)) {
         log_data_err("error unorm_quickCheck(long input, UNORM_FCD)!=NO (%s) - (Are you missing data?)\n", u_errorName(errorCode));
     }
+#endif
 
     /* NFKC */
     expectLength=0;
@@ -883,6 +974,7 @@ TestNormCoverage() {
     expect[expectLength++]=HANGUL_KIYEOK;
     expect[expectLength++]=HANGUL_KIYEOK_SIOS;
 
+#ifndef ICU4C0
     /* try destination overflow first */
     errorCode=U_ZERO_ERROR;
     preflightLength=unorm_normalize(input, inLength,
@@ -950,8 +1042,10 @@ TestNormCoverage() {
             }
         }
     }
+#endif
 }
 
+#ifndef ICU4C0
 /* API test for unorm_concatenate() - for real test strings see intltest/tstnorm.cpp */
 static void
 TestConcatenate(void) {
@@ -1014,6 +1108,7 @@ TestConcatenate(void) {
         log_data_err("error: unorm_concatenate(buffer=NULL)=%ld failed with %s - (Are you missing data?)\n", length, u_errorName(errorCode));
     }
 }
+#endif
 
 enum {
     _PLUS=0x2b
@@ -1023,6 +1118,7 @@ static const char *const _modeString[UNORM_MODE_COUNT]={
     "0", "NONE", "NFD", "NFKD", "NFC", "NFKC", "FCD"
 };
 
+#ifndef ICU4C0
 static void
 _testIter(const UChar *src, int32_t srcLength,
           UCharIterator *iter, UNormalizationMode mode, UBool forward,
@@ -1133,7 +1229,10 @@ _testIter(const UChar *src, int32_t srcLength,
         }
     }
 }
+#endif
 
+
+#ifndef ICU4C0
 static void
 TestNextPrevious() {
     static const UChar
@@ -1302,7 +1401,9 @@ TestNextPrevious() {
         return;
     }
 }
+#endif
 
+#ifndef ICU4C0
 static void
 TestFCNFKCClosure(void) {
     static const struct {
@@ -1348,6 +1449,8 @@ TestFCNFKCClosure(void) {
         log_err("u_getFC_NFKC_Closure(U_FAILURE) is wrong (%s)\n", u_errorName(errorCode));
     }
 }
+#endif
+
 
 static void
 TestQuickCheckPerCP() {
@@ -1358,12 +1461,17 @@ TestQuickCheckPerCP() {
     int32_t qc1, qc2;
 
     if(
+#ifndef ICU4C0
         u_getIntPropertyMaxValue(UCHAR_NFD_QUICK_CHECK)!=(int32_t)UNORM_YES ||
         u_getIntPropertyMaxValue(UCHAR_NFKD_QUICK_CHECK)!=(int32_t)UNORM_YES ||
+#endif
         u_getIntPropertyMaxValue(UCHAR_NFC_QUICK_CHECK)!=(int32_t)UNORM_MAYBE ||
+#ifndef ICU4C0
         u_getIntPropertyMaxValue(UCHAR_NFKC_QUICK_CHECK)!=(int32_t)UNORM_MAYBE ||
         u_getIntPropertyMaxValue(UCHAR_LEAD_CANONICAL_COMBINING_CLASS)!=u_getIntPropertyMaxValue(UCHAR_CANONICAL_COMBINING_CLASS) ||
-        u_getIntPropertyMaxValue(UCHAR_TRAIL_CANONICAL_COMBINING_CLASS)!=u_getIntPropertyMaxValue(UCHAR_CANONICAL_COMBINING_CLASS)
+        u_getIntPropertyMaxValue(UCHAR_TRAIL_CANONICAL_COMBINING_CLASS)!=u_getIntPropertyMaxValue(UCHAR_CANONICAL_COMBINING_CLASS) ||
+#endif
+        FALSE
     ) {
         log_err("wrong result from one of the u_getIntPropertyMaxValue(UCHAR_NF*_QUICK_CHECK) or UCHAR_*_CANONICAL_COMBINING_CLASS\n");
     }
@@ -1381,9 +1489,11 @@ TestQuickCheckPerCP() {
         qc1=u_getIntPropertyValue(c, UCHAR_NFC_QUICK_CHECK);
         qc2=unorm_quickCheck(s, length, UNORM_NFC, &errorCode);
         if(qc1!=qc2) {
-            log_data_err("u_getIntPropertyValue(NFC)=%d != %d=unorm_quickCheck(NFC) for U+%04x - (Are you missing data?)\n", qc1, qc2, c);
+          log_data_err("u_getIntPropertyValue(NFC,%d)=%d != %d=unorm_quickCheck(NFC) for U+%04x - (Are you missing data?)\n", length, qc1, qc2, c);
+        } else {
+          log_verbose("u_getIntPropertyValue(NFC,%d)=%d=unorm_quickCheck(NFC) for U+%04x\n", length, qc1, c);
         }
-
+#ifndef ICU4C0
         qc1=u_getIntPropertyValue(c, UCHAR_NFD_QUICK_CHECK);
         qc2=unorm_quickCheck(s, length, UNORM_NFD, &errorCode);
         if(qc1!=qc2) {
@@ -1406,7 +1516,9 @@ TestQuickCheckPerCP() {
         /* length-length == 0 is used to get around a compiler warning. */
         U16_GET(nfd, 0, length-length, length, lead);
         U16_GET(nfd, 0, length-1, length, trail);
+#endif
 
+#ifndef ICU4C0
         lccc1=u_getIntPropertyValue(c, UCHAR_LEAD_CANONICAL_COMBINING_CLASS);
         lccc2=u_getCombiningClass(lead);
         tccc1=u_getIntPropertyValue(c, UCHAR_TRAIL_CANONICAL_COMBINING_CLASS);
@@ -1420,9 +1532,13 @@ TestQuickCheckPerCP() {
             log_err("u_getIntPropertyValue(tccc)=%d != %d=u_getCombiningClass(trail) for U+%04x\n",
                     tccc1, tccc2, c);
         }
-
+#endif
         /* skip some code points */
-        c=(20*c)/19+1;
+        if(QUICK) {
+          c=(20*c)/19+1;
+        } else {
+          c++;
+        }
     }
 }
 
@@ -1452,7 +1568,7 @@ TestComposition(void) {
     UErrorCode errorCode;
     int32_t i, length;
 
-    for(i=0; i<LENGTHOF(cases); ++i) {
+    for(i=0 ; i<LENGTHOF(cases); ++i) {
         errorCode=U_ZERO_ERROR;
         length=unorm_normalize(
                     cases[i].input, -1,
@@ -1463,51 +1579,9 @@ TestComposition(void) {
             length!=u_strlen(cases[i].expect) ||
             0!=u_memcmp(output, cases[i].expect, length)
         ) {
-            log_data_err("unexpected result for case %d - (Are you missing data?)\n", i);
+          log_data_err("unexpected result for case %d ( status %s, length %d expect %d, memcmp:%d - (Are you missing data?)\n", i,
+                       u_errorName(errorCode), length, u_strlen(cases[i].expect), u_memcmp(output, cases[i].expect,length));
         }
-    }
-}
-
-static void
-TestGetDecomposition() {
-    UChar decomp[32];
-    int32_t length;
-
-    UErrorCode errorCode=U_ZERO_ERROR;
-    const UNormalizer2 *n2=unorm2_getInstance(NULL, "nfc", UNORM2_COMPOSE_CONTIGUOUS, &errorCode);
-    if(U_FAILURE(errorCode)) {
-        log_err_status(errorCode, "unorm2_getInstance(nfc/FCC) failed: %s\n", u_errorName(errorCode));
-        return;
-    }
-
-    length=unorm2_getDecomposition(n2, 0x20, decomp, LENGTHOF(decomp), &errorCode);
-    if(U_FAILURE(errorCode) || length>=0) {
-        log_err("unorm2_getDecomposition(space) failed\n");
-    }
-    errorCode=U_ZERO_ERROR;
-    length=unorm2_getDecomposition(n2, 0xe4, decomp, LENGTHOF(decomp), &errorCode);
-    if(U_FAILURE(errorCode) || length!=2 || decomp[0]!=0x61 || decomp[1]!=0x308 || decomp[2]!=0) {
-        log_err("unorm2_getDecomposition(a-umlaut) failed\n");
-    }
-    errorCode=U_ZERO_ERROR;
-    length=unorm2_getDecomposition(n2, 0xac01, decomp, LENGTHOF(decomp), &errorCode);
-    if(U_FAILURE(errorCode) || length!=3 || decomp[0]!=0x1100 || decomp[1]!=0x1161 || decomp[2]!=0x11a8 || decomp[3]!=0) {
-        log_err("unorm2_getDecomposition(Hangul syllable U+AC01) failed\n");
-    }
-    errorCode=U_ZERO_ERROR;
-    length=unorm2_getDecomposition(n2, 0xac01, NULL, 0, &errorCode);
-    if(errorCode!=U_BUFFER_OVERFLOW_ERROR || length!=3) {
-        log_err("unorm2_getDecomposition(Hangul syllable U+AC01) overflow failed\n");
-    }
-    errorCode=U_ZERO_ERROR;
-    length=unorm2_getDecomposition(n2, 0xac01, decomp, -1, &errorCode);
-    if(errorCode!=U_ILLEGAL_ARGUMENT_ERROR) {
-        log_err("unorm2_getDecomposition(capacity<0) failed\n");
-    }
-    errorCode=U_ZERO_ERROR;
-    length=unorm2_getDecomposition(n2, 0xac01, NULL, 4, &errorCode);
-    if(errorCode!=U_ILLEGAL_ARGUMENT_ERROR) {
-        log_err("unorm2_getDecomposition(decomposition=NULL) failed\n");
     }
 }
 

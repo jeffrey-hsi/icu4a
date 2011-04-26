@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2010, International Business Machines Corporation and
+ * Copyright (c) 1997-2011, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -32,7 +32,7 @@
 #include "unicode/uclean.h"
 #include "unicode/ucal.h"
 #include "uoptions.h"
-#include "putilimp.h" /* for uprv_getRawUTCtime() */
+#include "putilimp.h" /* for uprv_getUTCtime() */
 #ifdef URES_DEBUG
 #include "uresimp.h" /* for ures_dumpCacheContents() */
 #endif
@@ -82,7 +82,7 @@ int main(int argc, const char* const argv[])
 
     U_MAIN_INIT_ARGS(argc, argv);
 
-    startTime = uprv_getRawUTCtime();
+    startTime = uprv_getUTCtime();
 
     gOrigArgc = argc;
     gOrigArgv = argv;
@@ -111,7 +111,7 @@ int main(int argc, const char* const argv[])
     fprintf(stderr, "After initial u_cleanup: RB cache %s empty.\n", ures_dumpCacheContents()?"WAS NOT":"was");
 #endif
 
-    while (getTestOption(REPEAT_TESTS_OPTION) > 0) {   /* Loop runs once per complete execution of the tests
+    while (REPEAT_TESTS > 0) {   /* Loop runs once per complete execution of the tests 
                                   *   used for -r  (repeat) test option.                */
         if (!initArgs(argc, argv, NULL, NULL)) {
             /* Error already displayed. */
@@ -129,7 +129,7 @@ int main(int argc, const char* const argv[])
                 "#### ERROR! %s: u_init() failed with status = \"%s\".\n" 
                 "*** Check the ICU_DATA environment variable and \n"
                 "*** check that the data files are present.\n", argv[0], u_errorName(errorCode));
-                if(!getTestOption(WARN_ON_MISSING_DATA_OPTION)) {
+                if(!WARN_ON_MISSING_DATA) {
                     fprintf(stderr, "*** Exiting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                     u_cleanup();
                     return 1;
@@ -148,7 +148,7 @@ int main(int argc, const char* const argv[])
                     "*** %s! The converter for " TRY_CNV_2 " cannot be opened.\n"
                     "*** Check the ICU_DATA environment variable and \n"
                     "*** check that the data files are present.\n", warnOrErr);
-            if(!getTestOption(WARN_ON_MISSING_DATA_OPTION)) {
+            if(!WARN_ON_MISSING_DATA) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
                 return 1;
@@ -164,7 +164,7 @@ int main(int argc, const char* const argv[])
                     "*** %s! The \"en\" locale resource bundle cannot be opened.\n"
                     "*** Check the ICU_DATA environment variable and \n"
                     "*** check that the data files are present.\n", warnOrErr);
-            if(!getTestOption(WARN_ON_MISSING_DATA_OPTION)) {
+            if(!WARN_ON_MISSING_DATA) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
                 return 1;
@@ -183,7 +183,7 @@ int main(int argc, const char* const argv[])
         } else {
             fprintf(stderr,
                     "*** %s! Can not open a resource bundle for the default locale %s\n", warnOrErr, uloc_getDefault());
-            if(!getTestOption(WARN_ON_MISSING_DATA_OPTION)) {
+            if(!WARN_ON_MISSING_DATA) {
                 fprintf(stderr, "*** Exitting.  Use the '-w' option if data files were\n"
                     "*** purposely removed, to continue test anyway.\n");
                 u_cleanup();
@@ -197,12 +197,16 @@ int main(int argc, const char* const argv[])
         root = NULL;
         addAllTests(&root);
 
+        if(root==NULL) {
+          fprintf(stderr,"cintltst: no test root, exitting.\n");
+          return 1;
+        }
+
         /*  Tests acutally run HERE.   TODO:  separate command line option parsing & setting from test execution!! */
         nerrors = runTestRequest(root, argc, argv);
 
-        setTestOption(REPEAT_TESTS_OPTION, DECREMENT_OPTION_VALUE);
-        if (getTestOption(REPEAT_TESTS_OPTION) > 0) {
-            printf("Repeating tests %d more time(s)\n", getTestOption(REPEAT_TESTS_OPTION));
+        if (--REPEAT_TESTS > 0) {
+            printf("Repeating tests %d more time(s)\n", REPEAT_TESTS);
         }
         cleanUpTestTree(root);
 
@@ -226,7 +230,7 @@ int main(int argc, const char* const argv[])
         fprintf(stderr, "There were %d blocks leaked!\n", ALLOCATION_COUNT);
         nerrors++;
     }
-    endTime = uprv_getRawUTCtime();
+    endTime = uprv_getUTCtime();
     diffTime = (int32_t)(endTime - startTime);
     printf("Elapsed Time: %02d:%02d:%02d.%03d\n",
         (int)((diffTime%U_MILLIS_PER_DAY)/U_MILLIS_PER_HOUR),

@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/bem.xml
@@ -16,14 +16,13 @@ bem{
     LocaleScript{
         "Latn",
     }
-    NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"¤#,##0.00;(¤#,##0.00)"}
-            }
-        }
+    NumberPatterns{
+        "#,##0.###",
+        "¤#,##0.00;(¤#,##0.00)",
+        "#,##0%",
+        "#E0",
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.46.79"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -65,8 +64,6 @@ bem{
                 yMMM{"MMM y"}
                 yMMMEd{"EEE, MMM d, y"}
                 yMMMM{"MMMM y"}
-                yMMMd{"d MMM y"}
-                yMd{"d/M/y"}
                 yQ{"Q y"}
                 yQQQ{"QQQ y"}
             }

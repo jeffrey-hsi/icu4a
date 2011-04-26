@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/sv.xml
@@ -617,6 +617,7 @@ sv{
         Phnx{"fenikiska"}
         Plrd{"pollardtecken"}
         Prti{"tidig parthianska"}
+        Qaai{"ärvda"}
         Rjng{"rejang"}
         Roro{"rongo-rongo"}
         Runr{"runor"}
@@ -650,7 +651,6 @@ sv{
         Xpeo{"fornpersiska"}
         Xsux{"sumeo-akkadisk kilskrift"}
         Yiii{"yi"}
-        Zinh{"ärvda"}
         Zmth{"matematisk notation"}
         Zsym{"symboler"}
         Zxxx{"oskrivet språk"}
@@ -709,7 +709,7 @@ sv{
         VALENCIA{"valensisk dialekt"}
         WADEGILE{"Wade-Giles"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.64"}
     codePatterns{
         language{"språk: {0}"}
         script{"skrift: {0}"}

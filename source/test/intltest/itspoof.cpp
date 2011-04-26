@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (C) 2011, International Business Machines Corporation 
+* Copyright (C) 2009, International Business Machines Corporation 
 * and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -98,8 +98,7 @@ void IntlTestSpoof::runIndexedTest( int32_t index, UBool exec, const char* &name
 void IntlTestSpoof::testSpoofAPI() {
 
     TEST_SETUP
-        UnicodeString s("xyz");  // Many latin ranges are whole-script confusable with other scripts.
-                                 // If this test starts failing, consult confusablesWholeScript.txt
+        UnicodeString s("uvw");
         int32_t position = 666;
         int32_t checkResults = uspoof_checkUnicodeString(sc, s, &position, &status);
         TEST_ASSERT_SUCCESS(status);
@@ -120,7 +119,7 @@ void IntlTestSpoof::testSpoofAPI() {
         UnicodeString dest;
         UnicodeString &retStr = uspoof_getSkeletonUnicodeString(sc, USPOOF_ANY_CASE, s, dest, &status);
         TEST_ASSERT_SUCCESS(status);
-        TEST_ASSERT(UnicodeString("lllOO") == dest);
+        TEST_ASSERT(UnicodeString("11100") == dest);
         TEST_ASSERT(&dest == &retStr);
     TEST_TEARDOWN;
 }
@@ -143,34 +142,37 @@ void IntlTestSpoof::testSkeleton() {
 
     TEST_SETUP
         // A long "identifier" that will overflow implementation stack buffers, forcing heap allocations.
-        CHECK_SKELETON(SL, " A 1ong \\u02b9identifier' that will overflow implementation stack buffers, forcing heap allocations."
-                           " A 1ong 'identifier' that will overflow implementation stack buffers, forcing heap allocations."
-                           " A 1ong 'identifier' that will overflow implementation stack buffers, forcing heap allocations."
-                           " A 1ong 'identifier' that will overflow implementation stack buffers, forcing heap allocations.",
+        CHECK_SKELETON(SL, " A long 'identifier' that will overflow implementation stack buffers, forcing heap allocations."
+                           " A long 'identifier' that will overflow implementation stack buffers, forcing heap allocations."
+                           " A long 'identifier' that will overflow implementation stack buffers, forcing heap allocations."
+                           " A long 'identifier' that will overflow implementation stack buffers, forcing heap allocations.",
 
-               " A long 'identifier' that vvill overflovv irnplernentation stack buffers, forcing heap allocations."
-               " A long 'identifier' that vvill overflovv irnplernentation stack buffers, forcing heap allocations."
-               " A long 'identifier' that vvill overflovv irnplernentation stack buffers, forcing heap allocations."
-               " A long 'identifier' that vvill overflovv irnplernentation stack buffers, forcing heap allocations.")
+               " A 1ong \\u02b9identifier\\u02b9 that wi11 overf1ow imp1ementation stack buffers, forcing heap a11ocations."
+               " A 1ong \\u02b9identifier\\u02b9 that wi11 overf1ow imp1ementation stack buffers, forcing heap a11ocations."
+               " A 1ong \\u02b9identifier\\u02b9 that wi11 overf1ow imp1ementation stack buffers, forcing heap a11ocations."
+               " A 1ong \\u02b9identifier\\u02b9 that wi11 overf1ow imp1ementation stack buffers, forcing heap a11ocations.")
+
+        // FC5F ;	FE74 0651 ;   ML  #* ARABIC LIGATURE SHADDA WITH KASRATAN ISOLATED FORM to
+        //                                ARABIC KASRATAN ISOLATED FORM, ARABIC SHADDA	
+        //    This character NFKD normalizes to \u0020 \u064d \u0651, so its confusable mapping 
+        //    is never used in creating a skeleton.
+        CHECK_SKELETON(SL, "\\uFC5F", " \\u064d\\u0651");
 
         CHECK_SKELETON(SL, "nochange", "nochange");
-        CHECK_SKELETON(MA, "love", "love"); 
-        CHECK_SKELETON(MA, "1ove", "love");   // Digit 1 to letter l
+        CHECK_SKELETON(MA, "love", "1ove");   // lower case l to digit 1
         CHECK_SKELETON(ML, "OOPS", "OOPS");
-        CHECK_SKELETON(ML, "00PS", "00PS");   // Digit 0 unchanged in lower case mode.
-        CHECK_SKELETON(MA, "OOPS", "OOPS");
-        CHECK_SKELETON(MA, "00PS", "OOPS");   // Digit 0 to letter O in any case mode only
+        CHECK_SKELETON(MA, "OOPS", "00PS");   // Letter O to digit 0 in any case mode only
         CHECK_SKELETON(SL, "\\u059c", "\\u0301");
         CHECK_SKELETON(SL, "\\u2A74", "\\u003A\\u003A\\u003D");
-        CHECK_SKELETON(SL, "\\u247E", "\\u0028\\u006C\\u006C\\u0029");  // "(ll)"
+        CHECK_SKELETON(SL, "\\u247E", "\\u0028\\u0031\\u0031\\u0029");
         CHECK_SKELETON(SL, "\\uFDFB", "\\u062C\\u0644\\u0020\\u062C\\u0644\\u0627\\u0644\\u0647");
 
         // This mapping exists in the ML and MA tables, does not exist in SL, SA
         //0C83 ;	0C03 ;	
         CHECK_SKELETON(SL, "\\u0C83", "\\u0C83");
         CHECK_SKELETON(SA, "\\u0C83", "\\u0C83");
-        CHECK_SKELETON(ML, "\\u0C83", "\\u0983");
-        CHECK_SKELETON(MA, "\\u0C83", "\\u0983");
+        CHECK_SKELETON(ML, "\\u0C83", "\\u0C03");
+        CHECK_SKELETON(MA, "\\u0C83", "\\u0C03");
         
         // 0391 ; 0041 ;
         // This mapping exists only in the MA table.
@@ -186,17 +188,12 @@ void IntlTestSpoof::testSkeleton() {
         CHECK_SKELETON(SL, "\\u13CF", "\\u13CF");
         CHECK_SKELETON(SA, "\\u13CF", "\\u13CF");
 
-        // 0022 ;  0027 0027 ; 
+        // 0022 ;  02B9 02B9 ; 
         // all tables.
-        CHECK_SKELETON(SL, "\\u0022", "\\u0027\\u0027");
-        CHECK_SKELETON(SA, "\\u0022", "\\u0027\\u0027");
-        CHECK_SKELETON(ML, "\\u0022", "\\u0027\\u0027");
-        CHECK_SKELETON(MA, "\\u0022", "\\u0027\\u0027");
-
-        // 017F ;  0066 ;
-        // This mapping exists in the SA and MA tables
-        CHECK_SKELETON(MA, "\\u017F", "f");
-        CHECK_SKELETON(SA, "\\u017F", "f");
+        CHECK_SKELETON(SL, "\\u0022", "\\u02B9\\u02B9");
+        CHECK_SKELETON(SA, "\\u0022", "\\u02B9\\u02B9");
+        CHECK_SKELETON(ML, "\\u0022", "\\u02B9\\u02B9");
+        CHECK_SKELETON(MA, "\\u0022", "\\u02B9\\u02B9");
 
     TEST_TEARDOWN;
 }
@@ -353,16 +350,16 @@ void IntlTestSpoof::testConfData() {
     TEST_ASSERT_SUCCESS(status);
     while (parseLine.find()) {
         UnicodeString from = parseHex(parseLine.group(1, status));
-        if (!Normalizer::isNormalized(from, UNORM_NFD, status)) {
-            // The source character was not NFD.
-            // Skip this case; the first step in obtaining a skeleton is to NFD the input,
+        if (!Normalizer::isNormalized(from, UNORM_NFKD, status)) {
+            // The source character was not NFKD.
+            // Skip this case; the first step in obtaining a skeleton is to NFKD the input,
             //  so the mapping in this line of confusables.txt will never be applied.
             continue;
         }
 
         UnicodeString rawExpected = parseHex(parseLine.group(2, status));
         UnicodeString expected;
-        Normalizer::decompose(rawExpected, FALSE /*NFD*/, 0, expected, status);
+        Normalizer::decompose(rawExpected, TRUE, 0, expected, status);
         TEST_ASSERT_SUCCESS(status);
 
         int32_t skeletonType = 0;

@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-*   Copyright (C) 1997-2011, International Business Machines
+*   Copyright (C) 1997-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -31,91 +31,147 @@
 
 #if !UCONFIG_NO_FORMATTING
 
+#include "unicode/unistr.h"
+#include "unicode/numfmt.h"
 #include "unicode/fieldpos.h"
 #include "unicode/format.h"
-#include "unicode/messagepattern.h"
-#include "unicode/numfmt.h"
-#include "unicode/unistr.h"
 
 U_NAMESPACE_BEGIN
 
 class MessageFormat;
 
 /**
- * ChoiceFormat converts between ranges of numeric values and strings for those ranges.
- * The strings must conform to the MessageFormat pattern syntax.
- *
- * <p><em><code>ChoiceFormat</code> is probably not what you need.
- * Please use <code>MessageFormat</code>
- * with <code>plural</code> arguments for proper plural selection,
- * and <code>select</code> arguments for simple selection among a fixed set of choices!</em></p>
- *
- * <p>A <code>ChoiceFormat</code> splits
- * the real number line \htmlonly<code>-&#x221E;</code> to
- * <code>+&#x221E;</code>\endhtmlonly into two
+ * ChoiceFormat converts between ranges of numeric values
+ * and string names for those ranges. A <code>ChoiceFormat</code> splits
+ * the real number line <code>-Inf</code> to <code>+Inf</code> into two
  * or more contiguous ranges. Each range is mapped to a
- * string.</p>
- *
- * <p><code>ChoiceFormat</code> was originally intended
- * for displaying grammatically correct
- * plurals such as &quot;There is one file.&quot; vs. &quot;There are 2 files.&quot;
- * <em>However,</em> plural rules for many languages
- * are too complex for the capabilities of ChoiceFormat,
- * and its requirement of specifying the precise rules for each message
- * is unmanageable for translators.</p>
+ * string. <code>ChoiceFormat</code> is generally used in a
+ * <code>MessageFormat</code> for displaying grammatically correct
+ * plurals such as &quot;There are 2 files.&quot;</p>
  *
  * <p>There are two methods of defining a <code>ChoiceFormat</code>; both
  * are equivalent.  The first is by using a string pattern. This is the
  * preferred method in most cases.  The second method is through direct
- * specification of the arrays that logically make up the
+ * specification of the arrays that make up the
  * <code>ChoiceFormat</code>.</p>
  *
- * <p>Note: Typically, choice formatting is done (if done at all) via <code>MessageFormat</code>
- * with a <code>choice</code> argument type,
- * rather than using a stand-alone <code>ChoiceFormat</code>.</p>
+ * <p><strong>Patterns</strong></p>
  *
- * <h5>Patterns and Their Interpretation</h5>
+ * <p>In most cases, the preferred way to define a
+ * <code>ChoiceFormat</code> is with a pattern. Here is an example of a
+ * <code>ChoiceFormat</code> pattern:</p>
  *
- * <p>The pattern string defines the range boundaries and the strings for each number range.
- * Syntax:
- * <pre>
- * choiceStyle = number separator message ('|' number separator message)*
- * number = normal_number | ['-'] \htmlonly&#x221E;\endhtmlonly (U+221E, infinity)
- * normal_number = double value (unlocalized ASCII string)
- * separator = less_than | less_than_or_equal
- * less_than = '<'
- * less_than_or_equal = '#' | \htmlonly&#x2264;\endhtmlonly (U+2264)
- * message: see {@link MessageFormat}
- * </pre>
- * Pattern_White_Space between syntax elements is ignored, except
- * around each range's sub-message.</p>
+ * \htmlonly<pre>    0&#x2264;are no files|1&#x2264;is one file|1&lt;are many files</pre>\endhtmlonly
  *
- * <p>Each numeric sub-range extends from the current range's number
- * to the next range's number.
- * The number itself is included in its range if a <code>less_than_or_equal</code> sign is used,
- * and excluded from its range (and instead included in the previous range)
- * if a <code>less_than</code> sign is used.</p>
+ * <p>or equivalently,</p>
  *
- * <p>When a <code>ChoiceFormat</code> is constructed from
- * arrays of numbers, closure flags and strings,
- * they are interpreted just like
- * the sequence of <code>(number separator string)</code> in an equivalent pattern string.
- * <code>closure[i]==TRUE</code> corresponds to a <code>less_than</code> separator sign.
- * The equivalent pattern string will be constructed automatically.</p>
+ * \htmlonly<pre>    0#are no files|1#is one file|1&lt;are many files</pre>\endhtmlonly
  *
- * <p>During formatting, a number is mapped to the first range
- * where the number is not greater than the range's upper limit.
- * That range's message string is returned. A NaN maps to the very first range.</p>
+ * <p>The pattern consists of a number or <em>range specifiers</em>
+ * separated by vertical bars '|' (U+007C). There is no
+ * vertical bar after the last range.  Each range specifier is of the
+ * form:</p>
  *
- * <p>During parsing, a range is selected for the longest match of
- * any range's message. That range's number is returned, ignoring the separator/closure.
- * Only a simple string match is performed, without parsing of arguments that
- * might be specified in the message strings.</p>
+ * \htmlonly<blockquote><em>Number Separator String</em></blockquote>\endhtmlonly
  *
- * <p>Note that the first range's number is ignored in formatting
- * but may be returned from parsing.</p>
+ * <p><em>Number</em> is a floating point number that can be parsed by a
+ * default <code>NumberFormat</code> for the US locale. It gives the
+ * lower limit of this range. The lower limit is either inclusive or
+ * exclusive, depending on the <em>separator</em>. The upper limit is
+ * given by the lower limit of the next range.  The Unicode infinity
+ * sign \htmlonly&#x221E \endhtmlonly (U+221E) is recognized for positive infinity. It may be preceded by
+ * '-' (U+002D) to indicate negative infinity.</p>
  *
- * <h5>Examples</h5>
+ * <p><em>String</em> is the format string for this range, with special
+ * characters enclosed in single quotes (<code>'The #
+ * sign'</code>). Single quotes themselves are indicated by two single
+ * quotes in a row (<code>'o''clock'</code>).</p>
+ *
+ * <p><em>Separator</em> is one of the following single characters:
+ *
+ * <ul>
+ *   <li>\htmlonly'&#x2264;' \endhtmlonly (U+2264) or '#' (U+0023)
+ *   indicates that the lower limit given by <em>Number</em> is
+ *   inclusive.  (The two characters are equivalent to ChoiceFormat.)
+ *   This means that the limit value <em>Number</em> belongs to this
+ *   range.  Another way of saying this is that the corresponding
+ *   closure is <code>FALSE</code>.</li>
+ *
+ *   <li>'<' (U+003C) indicates that the lower limit given by
+ *   <em>Number</em> is exclusive.  This means that the value
+ *   <em>Number</em> belongs to the prior range.</li> Another way of
+ *   saying this is that the corresponding closure is
+ *   <code>TRUE</code>.
+ * </ul>
+ *
+ * <p>See below for more information about closures.</p>
+ *
+ * <p><strong>Arrays</strong></p>
+ *
+ * <p>A <code>ChoiceFormat</code> defining <code>n</code> intervals
+ * (<code>n</code> &gt;= 2) is specified by three arrays of
+ * <code>n</code> items:
+ *
+ * <ul>
+ *   <li><code>double limits[]</code> gives the start of each
+ *     interval. This must be a non-decreasing list of values, none of
+ *     which may be <code>NaN</code>.</li>
+ *   <li><code>UBool closures[]</code> determines whether each limit
+ *     value is contained in the interval below it or in the interval
+ *     above it. If <code>closures[i]</code> is <code>FALSE</code>, then
+ *     <code>limits[i]</code> is a member of interval
+ *     <code>i</code>. Otherwise it is a member of interval
+ *     <code>i+1</code>. If no closures array is specified, this is
+ *     equivalent to having all closures be <code>FALSE</code>. Closures
+ *     allow one to specify half-open, open, or closed intervals.</li>
+ *   <li><code>UnicodeString formats[]</code> gives the string label
+ *     associated with each interval.</li>
+ * </ul>
+ *
+ * <p><strong>Formatting and Parsing</strong></p>
+ *
+ * <p>During formatting, a number is converted to a
+ * string. <code>ChoiceFormat</code> accomplishes this by mapping the
+ * number to an interval using the following rule. Given a number
+ * <code>X</code> and and index value <code>j</code> in the range
+ * <code>0..n-1</code>, where <code>n</code> is the number of ranges:</p>
+ *
+ * \htmlonly<blockquote>\endhtmlonly<code>X</code> matches <code>j</code> if and only if
+ * <code>limit[j] &lt;= X &lt; limit[j+1]</code>
+ * \htmlonly</blockquote>\endhtmlonly
+ *
+ * <p>(This assumes that all closures are <code>FALSE</code>.  If some
+ * closures are <code>TRUE</code> then the relations must be changed to
+ * <code>&lt;=</code> or <code>&lt;</code> as appropriate.) If there is
+ * no match, then either the first or last index is used, depending on
+ * whether the number is too low or too high. Once a number is mapped to
+ * an interval <code>j</code>, the string <code>formats[j]</code> is
+ * output.</p>
+ *
+ * <p>During parsing, a string is converted to a
+ * number. <code>ChoiceFormat</code> finds the element
+ * <code>formats[j]</code> equal to the string, and returns
+ * <code>limits[j]</code> as the parsed value.</p>
+ *
+ * <p><strong>Notes</strong></p>
+ *
+ * <p>The first limit value does not define a range boundary. For
+ * example, in the pattern \htmlonly&quot;<code>1.0#a|2.0#b</code>&quot;\endhtmlonly, the
+ * intervals are [-Inf, 2.0) and [2.0, +Inf].  It appears that the first
+ * interval should be [1.0, 2.0).  However, since all values that are too
+ * small are mapped to range zero, the first interval is effectively
+ * [-Inf, 2.0).  However, the first limit value <em>is</em> used during
+ * formatting. In this example, <code>parse(&quot;a&quot;)</code> returns
+ * 1.0.</p>
+ *
+ * <p>There are no gaps between intervals and the entire number line is
+ * covered.  A <code>ChoiceFormat</code> maps <em>all</em> possible
+ * double values to a finite set of intervals.</p>
+ *
+ * <p>The non-number <code>NaN</code> is mapped to interval zero during
+ * formatting.</p>
+ *
+ * <p><strong>Examples</strong></p>
  *
  * <p>Here is an example of two arrays that map the number
  * <code>1..7</code> to the English day of the week abbreviations
@@ -127,15 +183,13 @@ class MessageFormat;
  *
  * <p>Here is an example that maps the ranges [-Inf, 1), [1, 1], and (1,
  * +Inf] to three strings. That is, the number line is split into three
- * ranges: x &lt; 1.0, x = 1.0, and x &gt; 1.0.
- * (The round parentheses in the notation above indicate an exclusive boundary,
- * like the turned bracket in European notation: [-Inf, 1) == [-Inf, 1[  )</p>
+ * ranges: x &lt; 1.0, x = 1.0, and x &gt; 1.0.</p>
  *
  * <pre>    {0, 1, 1},
  *     {FALSE, FALSE, TRUE},
  *     {&quot;no files&quot;, &quot;one file&quot;, &quot;many files&quot;}</pre>
  *
- * <p>Here is an example that shows formatting and parsing: </p>
+ * <p>Here is a simple example that shows formatting and parsing: </p>
  *
  * \code
  *   #include <unicode/choicfmt.h>
@@ -161,6 +215,43 @@ class MessageFormat;
  *   }
  * \endcode
  *
+ * <p>Here is a more complex example using a <code>ChoiceFormat</code>
+ * constructed from a pattern together with a
+ * <code>MessageFormat</code>.</p>
+ *
+ * \code
+ *   #include <unicode/choicfmt.h>
+ *   #include <unicode/msgfmt.h>
+ *   #include <unicode/unistr.h>
+ *   #include <iostream.h>
+ *
+ *   int main(int argc, char *argv[]) {
+ *       UErrorCode status = U_ZERO_ERROR;
+ *       double filelimits[] = {0,1,2};
+ *       UnicodeString filepart[] =
+ *           {"are no files","is one file","are {0} files"};
+ *       ChoiceFormat* fileform = new ChoiceFormat(filelimits, filepart, 3 );
+ *       Format* testFormats[] =
+ *           {fileform, NULL, NumberFormat::createInstance(status)};
+ *       MessageFormat pattform("There {0} on {1}", status );
+ *       pattform.adoptFormats(testFormats, 3);
+ *       Formattable testArgs[] = {0L, "Disk A"};
+ *       FieldPosition fp(0);
+ *       UnicodeString str;
+ *       char buf[256];
+ *       for (int32_t i = 0; i < 4; ++i) {
+ *           Formattable fInt(i);
+ *           testArgs[0] = fInt;
+ *           pattform.format(testArgs, 2, str, fp, status );
+ *           str.extract(0, str.length(), buf, "");
+ *           str.truncate(0);
+ *           cout << "Output for i=" << i << " : " << buf << endl;
+ *       }
+ *       cout << endl;
+ *       return 0;
+ *   }
+ * \endcode
+ *
  * <p><em>User subclasses are not supported.</em> While clients may write
  * subclasses, such code will not necessarily work and will not be
  * guaranteed to work stably from release to release.
@@ -168,7 +259,8 @@ class MessageFormat;
 class U_I18N_API ChoiceFormat: public NumberFormat {
 public:
     /**
-     * Constructs a new ChoiceFormat from the pattern string.
+     * Construct a new ChoiceFormat with the limits and the corresponding formats
+     * based on the pattern.
      *
      * @param pattern   Pattern used to construct object.
      * @param status    Output param to receive success code.  If the
@@ -180,31 +272,32 @@ public:
 
 
     /**
-     * Constructs a new ChoiceFormat with the given limits and message strings.
-     * All closure flags default to <code>FALSE</code>,
-     * equivalent to <code>less_than_or_equal</code> separators.
-     *
-     * Copies the limits and formats instead of adopting them.
+     * Construct a new ChoiceFormat with the given limits and formats.  Copy
+     * the limits and formats instead of adopting them.
      *
      * @param limits    Array of limit values.
      * @param formats   Array of formats.
      * @param count     Size of 'limits' and 'formats' arrays.
      * @stable ICU 2.0
      */
+
     ChoiceFormat(const double* limits,
                  const UnicodeString* formats,
                  int32_t count );
 
     /**
-     * Constructs a new ChoiceFormat with the given limits, closure flags and message strings.
-     *
-     * Copies the limits and formats instead of adopting them.
-     *
+     * Construct a new ChoiceFormat with the given limits and formats.
+     * Copy the limits and formats (instead of adopting them).  By
+     * default, each limit in the array specifies the inclusive lower
+     * bound of its range, and the exclusive upper bound of the previous
+     * range.  However, if the isLimitOpen element corresponding to a
+     * limit is TRUE, then the limit is the exclusive lower bound of its
+     * range, and the inclusive upper bound of the previous range.
      * @param limits Array of limit values
      * @param closures Array of booleans specifying whether each
      * element of 'limits' is open or closed.  If FALSE, then the
-     * corresponding limit number is a member of its range.
-     * If TRUE, then the limit number belongs to the previous range it.
+     * corresponding limit is a member of the range above it.  If TRUE,
+     * then the limit belongs to the range below it.
      * @param formats Array of formats
      * @param count Size of 'limits', 'closures', and 'formats' arrays
      * @stable ICU 2.4
@@ -237,8 +330,8 @@ public:
     virtual ~ChoiceFormat();
 
     /**
-     * Clones this Format object. The caller owns the
-     * result and must delete it when done.
+     * Clone this Format object polymorphically. The caller owns the
+     * result and should delete it when done.
      *
      * @return a copy of this object
      * @stable ICU 2.0
@@ -246,7 +339,7 @@ public:
     virtual Format* clone(void) const;
 
     /**
-     * Returns true if the given Format objects are semantically equal.
+     * Return true if the given Format objects are semantically equal.
      * Objects of different subclasses are considered unequal.
      *
      * @param other    ChoiceFormat object to be compared
@@ -269,7 +362,7 @@ public:
     /**
      * Sets the pattern.
      * @param pattern    The pattern to be applied.
-     * @param parseError Struct to receive information on position
+     * @param parseError Struct to recieve information on position
      *                   of error if an error is encountered
      * @param status     Output param set to success/failure code on
      *                   exit. If the pattern is invalid, this will be
@@ -282,7 +375,7 @@ public:
     /**
      * Gets the pattern.
      *
-     * @param pattern    Output param which will receive the pattern
+     * @param pattern    Output param which will recieve the pattern
      *                   Previous contents are deleted.
      * @return    A reference to 'pattern'
      * @stable ICU 2.0
@@ -290,8 +383,7 @@ public:
     virtual UnicodeString& toPattern(UnicodeString &pattern) const;
 
     /**
-     * Sets the choices to be used in formatting.
-     * For details see the constructor with the same parameter list.
+     * Set the choices to be used in formatting.
      *
      * @param limitsToCopy      Contains the top value that you want
      *                          parsed with that format,and should be in
@@ -307,9 +399,8 @@ public:
                             int32_t count );
 
     /**
-     * Sets the choices to be used in formatting.
-     * For details see the constructor with the same parameter list.
-     *
+     * Set the choices to be used in formatting.  See class description
+     * for documenatation of the limits, closures, and formats arrays.
      * @param limits Array of limits
      * @param closures Array of limit booleans
      * @param formats Array of format string
@@ -322,32 +413,30 @@ public:
                             int32_t count);
 
     /**
-     * Returns NULL and 0.
-     * Before ICU 4.8, this used to return the choice limits array.
+     * Get the limits passed in the constructor.
      *
-     * @param count Will be set to 0.
-     * @return NULL
-     * @deprecated ICU 4.8 Use the MessagePattern class to analyze a ChoiceFormat pattern.
+     * @param count    The size of the limits arrays
+     * @return the limits.
+     * @stable ICU 2.0
      */
     virtual const double* getLimits(int32_t& count) const;
 
     /**
-     * Returns NULL and 0.
-     * Before ICU 4.8, this used to return the limit booleans array.
+     * Get the limit booleans passed in the constructor.  The caller
+     * must not delete the result.
      *
-     * @param count Will be set to 0.
-     * @return NULL
-     * @deprecated ICU 4.8 Use the MessagePattern class to analyze a ChoiceFormat pattern.
+     * @param count   The size of the arrays
+     * @return the closures
+     * @stable ICU 2.4
      */
     virtual const UBool* getClosures(int32_t& count) const;
 
     /**
-     * Returns NULL and 0.
-     * Before ICU 4.8, this used to return the array of choice strings.
+     * Get the formats passed in the constructor.
      *
-     * @param count Will be set to 0.
-     * @return NULL
-     * @deprecated ICU 4.8 Use the MessagePattern class to analyze a ChoiceFormat pattern.
+     * @param count   The size of the arrays
+     * @return the formats.
+     * @stable ICU 2.0
      */
     virtual const UnicodeString* getFormats(int32_t& count) const;
 
@@ -355,7 +444,7 @@ public:
     using NumberFormat::format;
 
     /**
-     * Formats a double number using this object's choices.
+     * Format a double or long number using this object's choices.
      *
      * @param number    The value to be formatted.
      * @param appendTo  Output parameter to receive result.
@@ -369,7 +458,7 @@ public:
                                   UnicodeString& appendTo,
                                   FieldPosition& pos) const;
     /**
-     * Formats an int32_t number using this object's choices.
+     * Format a int_32t number using this object's choices.
      *
      * @param number    The value to be formatted.
      * @param appendTo  Output parameter to receive result.
@@ -384,7 +473,7 @@ public:
                                   FieldPosition& pos) const;
 
     /**
-     * Formats an int64_t number using this object's choices.
+     * Format an int64_t number using this object's choices.
      *
      * @param number    The value to be formatted.
      * @param appendTo  Output parameter to receive result.
@@ -399,7 +488,7 @@ public:
                                   FieldPosition& pos) const;
 
     /**
-     * Formats an array of objects using this object's choices.
+     * Format an array of objects using this object's choices.
      *
      * @param objs      The array of objects to be formatted.
      * @param cnt       The size of objs.
@@ -418,7 +507,7 @@ public:
                                   FieldPosition& pos,
                                   UErrorCode& success) const;
     /**
-     * Formats an object using this object's choices.
+     * Format an object using this object's choices.
      *
      *
      * @param obj       The object to be formatted.
@@ -453,7 +542,7 @@ public:
 
     /**
      * Redeclared NumberFormat method.
-     * Formats a double number. These methods call the NumberFormat
+     * Format a double number. These methods call the NumberFormat
      * pure virtual format() methods with the default FieldPosition.
      *
      * @param number    The value to be formatted.
@@ -467,7 +556,7 @@ public:
 
     /**
      * Redeclared NumberFormat method.
-     * Formats an int32_t number. These methods call the NumberFormat
+     * Format a long number. These methods call the NumberFormat
      * pure virtual format() methods with the default FieldPosition.
      *
      * @param number    The value to be formatted.
@@ -480,10 +569,13 @@ public:
                             UnicodeString& appendTo) const;
 
    /**
-    * Looks for the longest match of any message string on the input text and,
-    * if there is a match, sets the result object to the corresponding range's number.
-    *
-    * If no string matches, then the parsePosition is unchanged.
+    * Return a long if possible (e.g. within range LONG_MAX,
+    * LONG_MAX], and with no decimals), otherwise a double.  If
+    * IntegerOnly is set, will stop at a decimal point (or equivalent;
+    * e.g. for rational numbers "1 2/3", will stop after the 1).
+    * <P>
+    * If no object can be parsed, parsePosition is unchanged, and NULL is
+    * returned.
     *
     * @param text           The text to be parsed.
     * @param result         Formattable to be set to the parse result.
@@ -491,6 +583,7 @@ public:
     * @param parsePosition  The position to start parsing at on input.
     *                       On output, moved to after the last successfully
     *                       parse character. On parse failure, does not change.
+    * @see                  NumberFormat::isParseIntegerOnly
     * @stable ICU 2.0
     */
     virtual void parse(const UnicodeString& text,
@@ -498,23 +591,32 @@ public:
                        ParsePosition& parsePosition) const;
 
     /**
-     * Looks for the longest match of any message string on the input text and,
-     * if there is a match, sets the result object to the corresponding range's number.
-     *
-     * If no string matches, then the UErrorCode is set to U_INVALID_FORMAT_ERROR.
-     *
-     * @param text           The text to be parsed.
-     * @param result         Formattable to be set to the parse result.
-     *                       If parse fails, return contents are undefined.
-     * @param status         Output param with the formatted string.
-     * @stable ICU 2.0
-     */
+    * Return a long if possible (e.g. within range LONG_MAX,
+    * LONG_MAX], and with no decimals), otherwise a double.  If
+    * IntegerOnly is set, will stop at a decimal point (or equivalent;
+    * e.g. for rational numbers "1 2/3", will stop after the 1).
+    * <P>
+    * If no object can be parsed, parsePosition is unchanged, and NULL is
+    * returned.
+    *
+    * @param text           The text to be parsed.
+    * @param result         Formattable to be set to the parse result.
+    *                       If parse fails, return contents are undefined.
+    * @param status         Output param with the formatted string.
+    * @see                  NumberFormat::isParseIntegerOnly
+    * @stable ICU 2.0
+    */
     virtual void parse(const UnicodeString& text,
                        Formattable& result,
                        UErrorCode& status) const;
 
+
+public:
     /**
-     * Returns a unique class ID POLYMORPHICALLY. Part of ICU's "poor man's RTTI".
+     * Returns a unique class ID POLYMORPHICALLY.  Pure virtual override.
+     * This method is to implement a simple version of RTTI, since not all
+     * C++ compilers support genuine RTTI.  Polymorphic operator==() and
+     * clone() methods call this method.
      *
      * @return          The class ID for this object. All objects of a
      *                  given class have the same class ID.  Objects of
@@ -524,7 +626,7 @@ public:
     virtual UClassID getDynamicClassID(void) const;
 
     /**
-     * Returns the class ID for this class.  This is useful only for
+     * Return the class ID for this class.  This is useful only for
      * comparing to a return value from getDynamicClassID().  For example:
      * <pre>
      * .       Base* polymorphic_pointer = createPolymorphicObject();
@@ -537,9 +639,22 @@ public:
     static UClassID U_EXPORT2 getStaticClassID(void);
 
 private:
+    // static cache management (thread-safe)
+  //  static NumberFormat* getNumberFormat(UErrorCode &status); // call this function to 'check out' a numberformat from the cache.
+  //  static void          releaseNumberFormat(NumberFormat *adopt); // call this function to 'return' the number format to the cache.
+
     /**
-     * Converts a double value to a string.
-     * @param value the double number to be converted.
+     * Converts a string to a double value using a default NumberFormat object
+     * which is static (shared by all ChoiceFormat instances).
+     * @param string the string to be converted with.
+     * @return the converted double number.
+     */
+    static double stod(const UnicodeString& string);
+
+    /**
+     * Converts a double value to a string using a default NumberFormat object
+     * which is static (shared by all ChoiceFormat instances).
+     * @param value the double number to be converted with.
      * @param string the result string.
      * @return the converted string.
      */
@@ -552,7 +667,7 @@ private:
      * based on the pattern.
      *
      * @param newPattern   Pattern used to construct object.
-     * @param parseError   Struct to receive information on position
+     * @param parseError   Struct to recieve information on position
      *                     of error if an error is encountered.
      * @param status       Output param to receive success code.  If the
      *                     pattern cannot be parsed, set to failure code.
@@ -563,59 +678,7 @@ private:
                  UErrorCode& status);
 
     friend class MessageFormat;
-
-    virtual void setChoices(const double* limits,
-                            const UBool* closures,
-                            const UnicodeString* formats,
-                            int32_t count,
-                            UErrorCode &errorCode);
-
     /**
-     * Finds the ChoiceFormat sub-message for the given number.
-     * @param pattern A MessagePattern.
-     * @param partIndex the index of the first ChoiceFormat argument style part.
-     * @param number a number to be mapped to one of the ChoiceFormat argument's intervals
-     * @return the sub-message start part index.
-     */
-    static int32_t findSubMessage(const MessagePattern &pattern, int32_t partIndex, double number);
-
-    static double parseArgument(
-            const MessagePattern &pattern, int32_t partIndex,
-            const UnicodeString &source, ParsePosition &pos);
-
-    /**
-     * Matches the pattern string from the end of the partIndex to
-     * the beginning of the limitPartIndex,
-     * including all syntax except SKIP_SYNTAX,
-     * against the source string starting at sourceOffset.
-     * If they match, returns the length of the source string match.
-     * Otherwise returns -1.
-     */
-    static int32_t matchStringUntilLimitPart(
-            const MessagePattern &pattern, int32_t partIndex, int32_t limitPartIndex,
-            const UnicodeString &source, int32_t sourceOffset);
-
-    /**
-     * Some of the ChoiceFormat constructors do not have a UErrorCode paramater.
-     * We need _some_ way to provide one for the MessagePattern constructor.
-     * Alternatively, the MessagePattern could be a pointer field, but that is
-     * not nice either.
-     */
-    UErrorCode constructorErrorCode;
-
-    /**
-     * The MessagePattern which contains the parsed structure of the pattern string.
-     *
-     * Starting with ICU 4.8, the MessagePattern contains a sequence of
-     * numeric/selector/message parts corresponding to the parsed pattern.
-     * For details see the MessagePattern class API docs.
-     */
-    MessagePattern msgPattern;
-
-    /**
-     * Docs & fields from before ICU 4.8, before MessagePattern was used.
-     * Commented out, and left only for explanation of semantics.
-     * --------
      * Each ChoiceFormat divides the range -Inf..+Inf into fCount
      * intervals.  The intervals are:
      *
@@ -650,11 +713,12 @@ private:
      *
      * Because of the nature of interval 0, fClosures[0] has no
      * effect.
+
      */
-    // double*         fChoiceLimits;
-    // UBool*          fClosures;
-    // UnicodeString*  fChoiceFormats;
-    // int32_t         fCount;
+    double*         fChoiceLimits;
+    UBool*          fClosures;
+    UnicodeString*  fChoiceFormats;
+    int32_t         fCount;
 };
 
 inline UnicodeString&

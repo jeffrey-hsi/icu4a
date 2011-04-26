@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2000-2011, International Business Machines
+*   Copyright (C) 2000-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -379,11 +379,10 @@ static const UConverterImpl _DBCSUTF8Impl;
  * as of the re-released mapping tables from 2000-nov-30.
  */
 static const uint32_t
-gb18030Ranges[14][4]={
+gb18030Ranges[13][4]={
     {0x10000, 0x10FFFF, LINEAR(0x90308130), LINEAR(0xE3329A35)},
     {0x9FA6, 0xD7FF, LINEAR(0x82358F33), LINEAR(0x8336C738)},
-    {0x0452, 0x1E3E, LINEAR(0x8130D330), LINEAR(0x8135F436)},
-    {0x1E40, 0x200F, LINEAR(0x8135F438), LINEAR(0x8136A531)},
+    {0x0452, 0x200F, LINEAR(0x8130D330), LINEAR(0x8136A531)},
     {0xE865, 0xF92B, LINEAR(0x8336D030), LINEAR(0x84308534)},
     {0x2643, 0x2E80, LINEAR(0x8137A839), LINEAR(0x8138FD38)},
     {0xFA2A, 0xFE2F, LINEAR(0x84309C38), LINEAR(0x84318537)},
@@ -3939,10 +3938,8 @@ ucnv_MBCSFromUnicodeWithOffsets(UConverterFromUnicodeArgs *pArgs,
     uint32_t stage2Entry;
     uint32_t asciiRoundtrips;
     uint32_t value;
-    uint8_t si_value[2] = {0, 0}; 
-    uint8_t so_value[2] = {0, 0}; 
-    uint8_t si_value_length, so_value_length;
-    int32_t length = 0, prevLength;
+    uint8_t si_value[2], so_value[2], si_value_length, so_value_length;
+    int32_t length, prevLength;
     uint8_t unicodeMask;
 
     cnv=pArgs->converter;

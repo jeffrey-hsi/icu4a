@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/pt.xml
@@ -255,10 +255,6 @@ pt{
             "CSK" /** ===  */,
             "Coroa Forte checoslovaca",
         }
-        CUC{
-            "CUC$",
-            "Peso cubano conversível",
-        }
         CUP{
             "CU$",
             "Peso cubano",
@@ -312,7 +308,7 @@ pt{
             "Coroa estoniana",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Libra egípcia",
         }
         ERN{
@@ -460,7 +456,7 @@ pt{
             "Sheqel Novo israelita",
         }
         INR{
-            "₹",
+            "Rs",
             "Rúpia indiana",
         }
         IQD{
@@ -882,10 +878,6 @@ pt{
         TMM{
             "TMM",
             "Manat do Turcomenistão",
-        }
-        TMT{
-            "TMT",
-            "Novo Manat do Turcomenistão",
         }
         TND{
             "DT",
@@ -1356,10 +1348,6 @@ pt{
         CSK{
             one{"Coroa forte tchecoslovaca"}
             other{"Coroas fortes tchecoslovacas"}
-        }
-        CUC{
-            one{"Peso cubano conversível"}
-            other{"Pesos cubanos conversíveis"}
         }
         CUP{
             one{"Peso cubano"}
@@ -2214,5 +2202,5 @@ pt{
         one{"{0} {1}"}
         other{"{0} {1}"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.46"}
 }

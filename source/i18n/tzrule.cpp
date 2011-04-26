@@ -1,11 +1,9 @@
 /*
 *******************************************************************************
-* Copyright (C) 2007-2010, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 2007-2009, International Business Machines Corporation and         *
+* others. All Rights Reserved.                                                *
 *******************************************************************************
 */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -54,7 +52,7 @@ TimeZoneRule::operator=(const TimeZoneRule& right) {
 UBool
 TimeZoneRule::operator==(const TimeZoneRule& that) const {
     return ((this == &that) ||
-            (typeid(*this) == typeid(that) &&
+            (getDynamicClassID() == that.getDynamicClassID() &&
             fName == that.fName &&
             fRawOffset == that.fRawOffset &&
             fDSTSavings == that.fDSTSavings));
@@ -84,7 +82,7 @@ TimeZoneRule::getDSTSavings(void) const {
 UBool
 TimeZoneRule::isEquivalentTo(const TimeZoneRule& other) const {
     return ((this == &other) ||
-            (typeid(*this) == typeid(other) &&
+            (getDynamicClassID() == other.getDynamicClassID() &&
             fRawOffset == other.fRawOffset &&
             fDSTSavings == other.fDSTSavings));
 }
@@ -121,7 +119,7 @@ InitialTimeZoneRule::operator=(const InitialTimeZoneRule& right) {
 UBool
 InitialTimeZoneRule::operator==(const TimeZoneRule& that) const {
     return ((this == &that) ||
-            (typeid(*this) == typeid(that) &&
+            (getDynamicClassID() == that.getDynamicClassID() &&
             TimeZoneRule::operator==(that)));
 }
 
@@ -135,7 +133,8 @@ InitialTimeZoneRule::isEquivalentTo(const TimeZoneRule& other) const {
     if (this == &other) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(other) || TimeZoneRule::isEquivalentTo(other) == FALSE) {
+    if (getDynamicClassID() != other.getDynamicClassID() ||
+        TimeZoneRule::isEquivalentTo(other) == FALSE) {
         return FALSE;
     }
     return TRUE;
@@ -229,7 +228,7 @@ AnnualTimeZoneRule::operator==(const TimeZoneRule& that) const {
     if (this == &that) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(that)) {
+    if (getDynamicClassID() != that.getDynamicClassID()) {
         return FALSE;
     }
     AnnualTimeZoneRule *atzr = (AnnualTimeZoneRule*)&that;
@@ -321,7 +320,8 @@ AnnualTimeZoneRule::isEquivalentTo(const TimeZoneRule& other) const {
     if (this == &other) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(other) || TimeZoneRule::isEquivalentTo(other) == FALSE) {
+    if (getDynamicClassID() != other.getDynamicClassID() ||
+        TimeZoneRule::isEquivalentTo(other) == FALSE) {
         return FALSE;
     }
     AnnualTimeZoneRule* that = (AnnualTimeZoneRule*)&other;
@@ -448,7 +448,8 @@ TimeArrayTimeZoneRule::operator==(const TimeZoneRule& that) const {
     if (this == &that) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(that) || TimeZoneRule::operator==(that) == FALSE) {
+    if (getDynamicClassID() != that.getDynamicClassID()
+        || TimeZoneRule::operator==(that) == FALSE) {
         return FALSE;
     }
     TimeArrayTimeZoneRule *tatzr = (TimeArrayTimeZoneRule*)&that;
@@ -496,7 +497,8 @@ TimeArrayTimeZoneRule::isEquivalentTo(const TimeZoneRule& other) const {
     if (this == &other) {
         return TRUE;
     }
-    if (typeid(*this) != typeid(other) || TimeZoneRule::isEquivalentTo(other) == FALSE) {
+    if (getDynamicClassID() != other.getDynamicClassID()
+        || TimeZoneRule::isEquivalentTo(other) == FALSE) {
         return FALSE;
     }
     TimeArrayTimeZoneRule* that = (TimeArrayTimeZoneRule*)&other;

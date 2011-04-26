@@ -26,13 +26,11 @@
 #define DCFMTSYM_H
 
 #include "unicode/utypes.h"
-#include "unicode/uchar.h"
 
 #if !UCONFIG_NO_FORMATTING
 
 #include "unicode/uobject.h"
 #include "unicode/locid.h"
-#include "unum.h"
 
 /**
  * \file
@@ -127,45 +125,20 @@ public:
          * @stable ICU 3.6
          */
         kMonetaryGroupingSeparatorSymbol,
-        /** One
-         * @draft ICU 4.6
-         */
-        kOneDigitSymbol,
-        /** Two
-         * @draft ICU 4.6
-         */
-        kTwoDigitSymbol,
-        /** Three
-         * @draft ICU 4.6
-         */
-        kThreeDigitSymbol,
-        /** Four
-         * @draft ICU 4.6
-         */
-        kFourDigitSymbol,
-        /** Five
-         * @draft ICU 4.6
-         */
-        kFiveDigitSymbol,
-        /** Six
-         * @draft ICU 4.6
-         */
-        kSixDigitSymbol,
-        /** Seven
-         * @draft ICU 4.6
-         */
-        kSevenDigitSymbol,
-        /** Eight
-         * @draft ICU 4.6
-         */
-        kEightDigitSymbol,
-        /** Nine
-         * @draft ICU 4.6
-         */
-        kNineDigitSymbol,
         /** count symbol constants */
         kFormatSymbolCount
     };
+
+    /**
+      * Constants for specifying currency spacing
+      * @draft ICU 4.2
+      */
+     enum ECurrencySpacing {
+       kCurrencyMatch,
+       kSurroundingMatch,
+       kInsert,
+       kCurrencySpacingCount
+     };
 
     /**
      * Create a DecimalFormatSymbols object for the given locale.
@@ -243,12 +216,9 @@ public:
      *
      * @param symbol    Constant to indicate a number format symbol.
      * @param value     value of the format symbol
-     * @param propogateDigits If false, setting the zero digit will not automatically set 1-9.
-     *     The default behavior is to automatically set 1-9 if zero is being set and the value
-     *     it is being set to corresponds to a known Unicode zero digit.
      * @stable ICU 2.0
      */
-    void setSymbol(ENumberFormatSymbol symbol, const UnicodeString &value, const UBool propogateDigits);
+    void setSymbol(ENumberFormatSymbol symbol, const UnicodeString &value);
 
     /**
      * Returns the locale for which this object was constructed.
@@ -269,7 +239,7 @@ public:
       * This API gets the CurrencySpacing data from ResourceBundle. The pattern can
       * be empty if there is no data from current locale and its parent locales.
       *
-      * @param type :  UNUM_CURRENCY_MATCH, UNUM_CURRENCY_SURROUNDING_MATCH or UNUM_CURRENCY_INSERT.
+      * @param type :  kCurrencyMatch, kSurroundingMatch or kInsert.
       * @param beforeCurrency : true if the pattern is for before currency symbol.
       *                         false if the pattern is for after currency symbol.
       * @param status: Input/output parameter, set to success or
@@ -277,22 +247,22 @@ public:
       * @return pattern string for currencyMatch, surroundingMatch or spaceInsert.
       *     Return empty string if there is no data for this locale and its parent
       *     locales.
-      * @draft ICU 4.8
+      * @draft ICU 4.2
       */
-     const UnicodeString& getPatternForCurrencySpacing(UCurrencySpacing type,
+     const UnicodeString& getPatternForCurrencySpacing(ECurrencySpacing type,
                                                  UBool beforeCurrency,
                                                  UErrorCode& status) const;
      /**
        * Set pattern string for 'CurrencySpacing' that can be applied to
        * currency format.
        *
-       * @param type : UNUM_CURRENCY_MATCH, UNUM_CURRENCY_SURROUNDING_MATCH or UNUM_CURRENCY_INSERT.
+       * @param type : kCurrencyMatch, kSurroundingMatch or kInsert.
        * @param beforeCurrency : true if the pattern is for before currency symbol.
        *                         false if the pattern is for after currency symbol.
        * @param pattern : pattern string to override current setting.
-       * @draft ICU 4.8
+       * @draft ICU 4.2
        */
-     void setPatternForCurrencySpacing(UCurrencySpacing type,
+     void setPatternForCurrencySpacing(ECurrencySpacing type,
                                        UBool beforeCurrency,
                                        const UnicodeString& pattern);
 
@@ -324,6 +294,15 @@ private:
      * @param useLastResortData    determine if use last resort data
      */
     void initialize(const Locale& locale, UErrorCode& success, UBool useLastResortData = FALSE);
+
+    /**
+     * Initialize the symbols from the given array of UnicodeStrings.
+     * The array must be of the correct size.
+     *
+     * @param numberElements    the number format symbols
+     * @param numberElementsLength length of numberElements
+     */
+    void initialize(const UChar** numberElements, int32_t *numberElementsStrLen, int32_t numberElementsLength);
 
     /**
      * Initialize the symbols with default values.
@@ -382,8 +361,8 @@ private:
     char validLocale[ULOC_FULLNAME_CAPACITY];
     const UChar* currPattern;
 
-    UnicodeString currencySpcBeforeSym[UNUM_CURRENCY_SPACING_COUNT];
-    UnicodeString currencySpcAfterSym[UNUM_CURRENCY_SPACING_COUNT];
+    UnicodeString currencySpcBeforeSym[kCurrencySpacingCount];
+    UnicodeString currencySpcAfterSym[kCurrencySpacingCount];
 };
 
 // -------------------------------------
@@ -413,21 +392,9 @@ DecimalFormatSymbols::getConstSymbol(ENumberFormatSymbol symbol) const {
 // -------------------------------------
 
 inline void
-DecimalFormatSymbols::setSymbol(ENumberFormatSymbol symbol, const UnicodeString &value, const UBool propogateDigits = TRUE) {
+DecimalFormatSymbols::setSymbol(ENumberFormatSymbol symbol, const UnicodeString &value) {
     if(symbol<kFormatSymbolCount) {
         fSymbols[symbol]=value;
-    }
-
-    // If the zero digit is being set to a known zero digit according to Unicode,
-    // then we automatically set the corresponding 1-9 digits
-    if ( propogateDigits && symbol == kZeroDigitSymbol && value.countChar32() == 1 ) {
-        UChar32 sym = value.char32At(0);
-        if ( u_charDigitValue(sym) == 0 ) {
-            for ( int8_t i = 1 ; i<= 9 ; i++ ) {
-                sym++;
-                fSymbols[(int)kOneDigitSymbol+i-1] = UnicodeString(sym);
-            }
-        }
     }
 }
 

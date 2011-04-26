@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 2000-2011, International Business Machines
+*   Copyright (C) 2000-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -566,7 +566,7 @@ void RTTest::test2(UBool quickRt, int32_t density) {
         Transliterator::createInstance(transliteratorID, UTRANS_FORWARD, parseError,
                                        status));
     if ((Transliterator *)sourceToTarget == NULL) {
-        parent->dataerrln("FAIL: createInstance(" + transliteratorID +
+        parent->errln("FAIL: createInstance(" + transliteratorID +
                    ") returned NULL. Error: " + u_errorName(status)
                    + "\n\tpreContext : " + prettify(parseError.preContext) 
                    + "\n\tpostContext : " + prettify(parseError.postContext));
@@ -962,8 +962,8 @@ void RTTest::logRoundTripFailure(const UnicodeString& from,
     A bug has been filed to remind us to do this: #1979.
     */
 
-static const char KATAKANA[] = "[[[:katakana:][\\u30A1-\\u30FA\\u30FC]]-[\\u30FF\\u31F0-\\u31FF]-[:^age=5.2:]]";
-static const char HIRAGANA[] = "[[[:hiragana:][\\u3040-\\u3094]]-[\\u3095-\\u3096\\u309F-\\u30A0\\U0001F200-\\U0001F2FF]-[:^age=5.2:]]";
+static const char KATAKANA[] = "[[[:katakana:][\\u30A1-\\u30FA\\u30FC]]-[\\u30FF\\u31F0-\\u31FF]]";
+static const char HIRAGANA[] = "[[[:hiragana:][\\u3040-\\u3094]]-[\\u3095-\\u3096\\u309F-\\u30A0\\U0001F200-\\U0001F2FF]]";
 static const char LENGTH[] = "[\\u30FC]";
 static const char HALFWIDTH_KATAKANA[] = "[\\uFF65-\\uFF9D]";
 static const char KATAKANA_ITERATION[] = "[\\u30FD\\u30FE]";

@@ -1,7 +1,7 @@
 /*
  ******************************************************************************
- * Copyright (C) 1996-2011, International Business Machines Corporation and
- * others. All Rights Reserved.
+ * Copyright (C) 1996-2009, International Business Machines Corporation and   *
+ * others. All Rights Reserved.                                               *
  ******************************************************************************
  */
 
@@ -53,8 +53,6 @@
  *                          to implementation file.
  * 01/29/01     synwee      Modified into a C++ wrapper calling C APIs (ucol.h)
  */
-
-#include <typeinfo>  // for 'typeid' to work
 
 #include "unicode/utypes.h"
 
@@ -195,7 +193,7 @@ UBool RuleBasedCollator::operator==(const Collator& that) const
   if (Collator::operator==(that))
     return TRUE;
 
-  if (typeid(*this) != typeid(that))
+  if (getDynamicClassID() != that.getDynamicClassID())
     return FALSE;  /* not the same class */
 
   RuleBasedCollator& thatAlias = (RuleBasedCollator&)that;
@@ -248,7 +246,6 @@ Collator* RuleBasedCollator::clone() const
 {
     return new RuleBasedCollator(*this);
 }
-
 
 CollationElementIterator* RuleBasedCollator::createCollationElementIterator
                                            (const UnicodeString& source) const
@@ -588,29 +585,6 @@ void RuleBasedCollator::setStrength(ECollationStrength newStrength)
     ucol_setAttribute(ucollator, UCOL_STRENGTH, strength, &intStatus);
 }
 
-int32_t RuleBasedCollator::getReorderCodes(int32_t *dest,
-                                          int32_t destCapacity,
-                                          UErrorCode& status) const
-{
-    return ucol_getReorderCodes(ucollator, dest, destCapacity, &status);
-}
-
-void RuleBasedCollator::setReorderCodes(const int32_t *reorderCodes,
-                                       int32_t reorderCodesLength,
-                                       UErrorCode& status)
-{
-    checkOwned();
-    ucol_setReorderCodes(ucollator, reorderCodes, reorderCodesLength, &status);
-}
-
-int32_t RuleBasedCollator::getEquivalentReorderCodes(int32_t reorderCode,
-                                int32_t* dest,
-                                int32_t destCapacity,
-                                UErrorCode& status)
-{
-    return ucol_getEquivalentReorderCodes(reorderCode, dest, destCapacity, &status);
-}
-
 /**
 * Create a hash code for this collation. Just hash the main rule table -- that
 * should be good enough for almost any use.
@@ -713,9 +687,8 @@ void
 RuleBasedCollator::setUCollator(const char *locale,
                                 UErrorCode &status)
 {
-    if (U_FAILURE(status)) {
+    if (U_FAILURE(status))
         return;
-    }
     if (ucollator && dataIsOwned)
         ucol_close(ucollator);
     ucollator = ucol_open_internal(locale, &status);

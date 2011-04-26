@@ -28,8 +28,8 @@
 
 U_NAMESPACE_BEGIN
 
-class CharString;
-class DigitList;
+class   DecimalNumberString;
+class   DigitList;
 
 /**
  * Formattable objects can be passed to the Format class or
@@ -118,7 +118,7 @@ public:
      * @param status  the error code.  Possible errors include U_INVALID_FORMAT_ERROR
      *                if the format of the string does not conform to that of a
      *                decimal number.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     Formattable(const StringPiece &number, UErrorCode &status);
 
@@ -476,7 +476,7 @@ public:
      *
      * @param status the error code.
      * @return the unformatted string representation of a number.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     StringPiece getDecimalNumber(UErrorCode &status);
 
@@ -565,7 +565,7 @@ public:
      * @param numberString  a string representation of the unformatted decimal number.
      * @param status        the error code.  Set to U_INVALID_FORMAT_ERROR if the
      *                      incoming string is not a valid decimal number.
-     * @stable ICU 4.4
+     * @draft ICU 4.4
      */
     void             setDecimalNumber(const StringPiece &numberString,
                                       UErrorCode &status);
@@ -606,6 +606,7 @@ public:
      *  Adopt, and set value from, a DigitList
      *     Internal Function, do not use.
      *  @param dl the Digit List to be adopted
+     *  @param status reports errors
      *  @internal
      */
     void adoptDigitList(DigitList *dl);
@@ -616,7 +617,7 @@ private:
      * string or array objects.
      */
     void            dispose(void);
-
+    
     /**
      * Common initialization, for use by constructors.
      */
@@ -636,7 +637,7 @@ private:
         }               fArrayAndCount;
     } fValue;
 
-    CharString           *fDecimalStr;
+    DecimalNumberString  *fDecimalStr;
     DigitList            *fDecimalNum;
 
     Type                fType;
@@ -671,3 +672,4 @@ U_NAMESPACE_END
 
 #endif //_FMTABLE
 //eof
+

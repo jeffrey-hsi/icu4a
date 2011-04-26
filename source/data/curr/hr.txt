@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/hr.xml
@@ -255,10 +255,6 @@ hr{
             "CSK" /** ===  */,
             "Czechoslovak Hard Koruna",
         }
-        CUC{
-            "CUC$",
-            "kubanski konvertibilni pezo",
-        }
         CUP{
             "CU$",
             "kubanski pezo",
@@ -312,7 +308,7 @@ hr{
             "estonska kruna",
         }
         EGP{
-            "EGP",
+            "EG£",
             "egipatska funta",
         }
         ERN{
@@ -460,7 +456,7 @@ hr{
             "novi izraelski šekel",
         }
         INR{
-            "₹",
+            "Rs",
             "indijska rupija",
         }
         IQD{
@@ -883,10 +879,6 @@ hr{
             "TMM",
             "turkmenistanski manat",
         }
-        TMT{
-            "TMT",
-            "turkmenistanski novi manat",
-        }
         TND{
             "DT",
             "tuniski dinar",
@@ -1102,10 +1094,6 @@ hr{
         ZWD{
             "Z$",
             "zimbabveanski dolar",
-        }
-        ZWL{
-            "ZWL",
-            "zimbabveanski dolar (2009)",
         }
     }
     CurrencyPlurals{
@@ -1468,12 +1456,6 @@ hr{
             many{"čehoslovačkih kruna"}
             one{"čehoslovačka kruna"}
             other{"čehoslovačkih kruna"}
-        }
-        CUC{
-            few{"CUC"}
-            many{"CUC"}
-            one{"CUC"}
-            other{"CUC"}
         }
         CUP{
             few{"kubanska peza"}
@@ -2410,12 +2392,6 @@ hr{
             one{"turkmenistanski manat"}
             other{"turkmenistanskih manata"}
         }
-        TMT{
-            few{"turkmenistanska nova manata"}
-            many{"turkmenistanskih novih manata"}
-            one{"turkmenistanski novi manat"}
-            other{"turkmenistanskih novih manata"}
-        }
         TND{
             few{"tuniska dinara"}
             many{"tuniskih dinara"}
@@ -2738,12 +2714,6 @@ hr{
             one{"zimbabveanski dolar"}
             other{"zimbabveanskih dolara"}
         }
-        ZWL{
-            few{"zimbabveanska dolara (2009)"}
-            many{"zimbabveanskih dolara (2009)"}
-            one{"zimbabveanski dolar (2009)"}
-            other{"zimbabveanskih dolara (2009)"}
-        }
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.64"}
 }

@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/plurals.xml
@@ -20,8 +20,6 @@ plurals:table(nofallback){
         bm{""}
         bn{"set2"}
         bo{""}
-        br{"set18"}
-        brx{"set2"}
         bs{"set9"}
         ca{"set2"}
         chr{"set2"}
@@ -30,7 +28,6 @@ plurals:table(nofallback){
         da{"set2"}
         de{"set2"}
         dz{""}
-        ee{"set2"}
         el{"set2"}
         en{"set2"}
         eo{"set2"}
@@ -57,9 +54,9 @@ plurals:table(nofallback){
         hu{""}
         id{""}
         ig{""}
-        ii{""}
         is{"set2"}
         it{"set2"}
+        iw{"set2"}
         ja{""}
         jv{""}
         ka{""}
@@ -69,12 +66,10 @@ plurals:table(nofallback){
         km{""}
         kn{""}
         ko{""}
-        ksh{"set19"}
         ku{"set2"}
         lag{"set16"}
         lb{"set2"}
         ln{"set3"}
-        lo{""}
         lt{"set8"}
         lv{"set5"}
         mg{"set3"}
@@ -100,10 +95,10 @@ plurals:table(nofallback){
         pl{"set11"}
         ps{"set2"}
         pt{"set2"}
+        pt_PT{"set2"}
         rm{"set2"}
         ro{"set7"}
         ru{"set9"}
-        sah{""}
         se{"set6"}
         ses{""}
         sg{""}
@@ -133,7 +128,6 @@ plurals:table(nofallback){
         ur{"set2"}
         vi{""}
         wa{"set3"}
-        wae{"set2"}
         wo{""}
         yo{""}
         zh{""}
@@ -153,10 +147,6 @@ plurals:table(nofallback){
         }
         set11{
             few{"n mod 10 in 2..4 and n mod 100 not in 12..14"}
-            many{
-                "n is not 1 and n mod 10 in 0..1 or n mod 10 in 5..9 or n mod 100 in "
-                "12..14"
-            }
             one{"n is 1"}
         }
         set12{
@@ -173,11 +163,9 @@ plurals:table(nofallback){
             one{"n mod 10 is 1 and n is not 11"}
         }
         set15{
-            few{"n is 3"}
-            many{"n is 6"}
+            many{"n is 8 or n is 11"}
             one{"n is 1"}
             two{"n is 2"}
-            zero{"n is 0"}
         }
         set16{
             one{"n within 0..2 and n is not 0 and n is not 2"}
@@ -186,17 +174,6 @@ plurals:table(nofallback){
         set17{
             few{"n in 2..10"}
             one{"n within 0..1"}
-        }
-        set18{
-            few{"n is 3"}
-            many{"n is 6"}
-            one{"n is 1"}
-            two{"n is 2"}
-            zero{"n is 0"}
-        }
-        set19{
-            one{"n is 1"}
-            zero{"n is 0"}
         }
         set2{
             one{"n is 1"}

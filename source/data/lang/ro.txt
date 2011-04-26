@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/ro.xml
@@ -295,6 +295,7 @@ ro{
         Mong{"mongolă"}
         Mymr{"birmană"}
         Phnx{"feniciană"}
+        Qaai{"moștenită"}
         Runr{"runică"}
         Sinh{"singaleză"}
         Syrc{"siriacă"}
@@ -305,7 +306,6 @@ ro{
         Tibt{"tibetană"}
         Xpeo{"persană veche"}
         Xsux{"cuneiformă sumero-akkadiană"}
-        Zinh{"moștenită"}
         Zxxx{"nescrisă"}
         Zyyy{"comună"}
         Zzzz{"scriere necunoscută sau nevalidă"}
@@ -336,7 +336,7 @@ ro{
         PINYIN{"Pinyin"}
         WADEGILE{"Wade-Giles"}
     }
-    Version{"2.0.53.45"}
+    Version{"2.0.48.46"}
     codePatterns{
         language{"Limbă: {0}"}
         script{"Scriere: {0}"}

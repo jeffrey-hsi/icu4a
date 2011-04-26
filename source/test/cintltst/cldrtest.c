@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2011, International Business Machines Corporation and
+ * Copyright (c) 1997-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -15,6 +15,12 @@
 #include "cstring.h"
 #include "locmap.h"
 #include "uresimp.h"
+
+/*--------------------------------------------------------------------
+  Time bomb - allows temporary behavior that expires at a given
+              release
+ ---------------------------------------------------------------------*/
+static const UVersionInfo ICU_37 = {3,7,0,0};
 
 /*
 returns a new UnicodeSet that is a flattened form of the original
@@ -611,9 +617,77 @@ compareConsistentCountryInfo(const char *fromLocale, const char *toLocale) {
     }
     fromCalendar = ures_getByKey(fromLocaleBund, "calendar", NULL, &errorCode);
     fromGregorian = ures_getByKeyWithFallback(fromCalendar, "gregorian", NULL, &errorCode);
+    fromDateTimeElements = ures_getByKeyWithFallback(fromGregorian, "DateTimeElements", NULL, &errorCode);
 
     toCalendar = ures_getByKey(toLocaleBund, "calendar", NULL, &errorCode);
     toGregorian = ures_getByKeyWithFallback(toCalendar, "gregorian", NULL, &errorCode);
+    toDateTimeElements = ures_getByKeyWithFallback(toGregorian, "DateTimeElements", NULL, &errorCode);
+
+    if(U_FAILURE(errorCode)){
+        log_err("Did not get DateTimeElements from the bundle %s or %s\n", fromLocale, toLocale);
+        goto cleanup;
+    }
+
+    fromWeekendData = ures_getByKeyWithFallback(fromGregorian, "weekend", NULL, &errorCode);
+    if(U_FAILURE(errorCode)){
+        log_err("Did not get weekend data from the bundle %s to compare against %s\n", fromLocale, toLocale);
+        goto cleanup;
+    }
+    toWeekendData = ures_getByKeyWithFallback(toGregorian, "weekend", NULL, &errorCode);
+    if(U_FAILURE(errorCode)){
+        log_err("Did not get weekend data from the bundle %s to compare against %s\n", toLocale, fromLocale);
+        goto cleanup;
+    }
+
+    if (strcmp(fromLocale, "ar_IN") != 0)
+    {
+        int32_t fromSize;
+        int32_t toSize;
+        int32_t idx;
+        const int32_t *fromBundleArr = ures_getIntVector(fromDateTimeElements, &fromSize, &errorCode);
+        const int32_t *toBundleArr = ures_getIntVector(toDateTimeElements, &toSize, &errorCode);
+
+        if (fromSize > toSize) {
+            fromSize = toSize;
+            log_err("Arrays are different size with key \"DateTimeElements\" from \"%s\" to \"%s\"\n",
+                    fromLocale,
+                    toLocale);
+        }
+
+        for (idx = 0; idx < fromSize; idx++) {
+            if (fromBundleArr[idx] != toBundleArr[idx]) {
+                log_err("Difference with key \"DateTimeElements\" at index %d from \"%s\" to \"%s\"\n",
+                        idx,
+                        fromLocale,
+                        toLocale);
+            }
+        }
+    }
+
+    /* test for weekend data */
+    {
+        int32_t fromSize;
+        int32_t toSize;
+        int32_t idx;
+        const int32_t *fromBundleArr = ures_getIntVector(fromWeekendData, &fromSize, &errorCode);
+        const int32_t *toBundleArr = ures_getIntVector(toWeekendData, &toSize, &errorCode);
+
+        if (fromSize > toSize) {
+            fromSize = toSize;
+            log_err("Arrays are different size with key \"weekend\" data from \"%s\" to \"%s\"\n",
+                    fromLocale,
+                    toLocale);
+        }
+
+        for (idx = 0; idx < fromSize; idx++) {
+            if (fromBundleArr[idx] != toBundleArr[idx]) {
+                log_err("Difference with key \"weekend\" data at index %d from \"%s\" to \"%s\"\n",
+                        idx,
+                        fromLocale,
+                        toLocale);
+            }
+        }
+    }
 
     fromArray = ures_getByKey(fromLocaleBund, "CurrencyElements", NULL, &errorCode);
     toArray = ures_getByKey(toLocaleBund, "CurrencyElements", NULL, &errorCode);
@@ -656,6 +730,11 @@ compareConsistentCountryInfo(const char *fromLocale, const char *toLocale) {
     ures_close(toArray);
 
 cleanup:
+    ures_close(fromDateTimeElements);
+    ures_close(toDateTimeElements);
+    ures_close(fromWeekendData);
+    ures_close(toWeekendData);
+
     ures_close(fromCalendar);
     ures_close(toCalendar);
     ures_close(fromGregorian);
@@ -728,7 +807,7 @@ TestConsistentCountryInfo(void) {
 static int32_t
 findStringSetMismatch(const char *currLoc, const UChar *string, int32_t langSize,
                       const UChar *exemplarCharacters, int32_t exemplarLen,
-                      UBool ignoreNumbers, UChar* badCharPtr) {
+                      UBool ignoreNumbers) {
     UErrorCode errorCode = U_ZERO_ERROR;
     USet *origSet = uset_openPatternOptions(exemplarCharacters, exemplarLen, USET_CASE_INSENSITIVE, &errorCode);
     USet *exemplarSet = createFlattenSet(origSet, &errorCode);
@@ -745,17 +824,11 @@ findStringSetMismatch(const char *currLoc, const UChar *string, int32_t langSize
             && string[strIdx] != 0x200C && string[strIdx] != 0x200D) {
             if (!ignoreNumbers || (ignoreNumbers && (string[strIdx] < 0x30 || string[strIdx] > 0x39))) {
                 uset_close(exemplarSet);
-                if (badCharPtr) {
-                    *badCharPtr = string[strIdx];
-                }
                 return strIdx;
             }
         }
     }
     uset_close(exemplarSet);
-    if (badCharPtr) {
-        *badCharPtr = 0;
-    }
     return -1;
 }
 /* include non-invariant chars */
@@ -865,7 +938,6 @@ findSetMatch( UScriptCode *scriptCodes, int32_t scriptsLen,
 }
 
 static void VerifyTranslation(void) {
-    static const UVersionInfo icu47 = { 4, 7, 2, 0 };
     UResourceBundle *root, *currentLocale;
     int32_t locCount = uloc_countAvailable();
     int32_t locIndex;
@@ -910,7 +982,7 @@ static void VerifyTranslation(void) {
         if (U_FAILURE(errorCode)) {
             log_err("error ures_getStringByKey returned %s\n", u_errorName(errorCode));
         }
-        else if (getTestOption(QUICK_OPTION) && exemplarLen > 2048) {
+        else if (QUICK && exemplarLen > 2048) {
             log_verbose("skipping test for %s\n", currLoc);
         }
         else if (uprv_strncmp(currLoc,"bem",3) == 0) {
@@ -920,27 +992,26 @@ static void VerifyTranslation(void) {
             UChar langBuffer[128];
             int32_t langSize;
             int32_t strIdx;
-            UChar badChar;
             langSize = uloc_getDisplayLanguage(currLoc, currLoc, langBuffer, sizeof(langBuffer)/sizeof(langBuffer[0]), &errorCode);
             if (U_FAILURE(errorCode)) {
                 log_err("error uloc_getDisplayLanguage returned %s\n", u_errorName(errorCode));
             }
             else {
-                strIdx = findStringSetMismatch(currLoc, langBuffer, langSize, exemplarCharacters, exemplarLen, FALSE, &badChar);
+                strIdx = findStringSetMismatch(currLoc, langBuffer, langSize, exemplarCharacters, exemplarLen, FALSE);
                 if (strIdx >= 0) {
-                    log_err("getDisplayLanguage(%s) at index %d returned characters not in the exemplar characters: %04X.\n",
-                        currLoc, strIdx, badChar);
+                    log_err("getDisplayLanguage(%s) at index %d returned characters not in the exemplar characters.\n",
+                        currLoc, strIdx);
                 }
             }
             langSize = uloc_getDisplayCountry(currLoc, currLoc, langBuffer, sizeof(langBuffer)/sizeof(langBuffer[0]), &errorCode);
             if (U_FAILURE(errorCode)) {
                 log_err("error uloc_getDisplayCountry returned %s\n", u_errorName(errorCode));
             }
-            else if (uprv_strstr(currLoc, "ti_") != currLoc || isICUVersionAtLeast(icu47)) { /* TODO: restore DisplayCountry test for ti_* when cldrbug 3058 is fixed) */
-              strIdx = findStringSetMismatch(currLoc, langBuffer, langSize, exemplarCharacters, exemplarLen, FALSE, &badChar);
+            else {
+              strIdx = findStringSetMismatch(currLoc, langBuffer, langSize, exemplarCharacters, exemplarLen, FALSE);
                 if (strIdx >= 0) {
-                    log_err("getDisplayCountry(%s) at index %d returned characters not in the exemplar characters: %04X.\n",
-                        currLoc, strIdx, badChar);
+                    log_err("getDisplayCountry(%s) at index %d returned characters not in the exemplar characters.\n",
+                        currLoc, strIdx);
                 }
             }
             {
@@ -953,7 +1024,7 @@ static void VerifyTranslation(void) {
                 if (U_FAILURE(errorCode)) {
                     log_err("error ures_getByKey returned %s\n", u_errorName(errorCode));
                 }
-                if (getTestOption(QUICK_OPTION)) {
+                if (QUICK) {
                     end = 1;
                 }
                 else {
@@ -967,10 +1038,10 @@ static void VerifyTranslation(void) {
                         log_err("error ures_getStringByIndex(%d) returned %s\n", idx, u_errorName(errorCode));
                         continue;
                     }
-                    strIdx = findStringSetMismatch(currLoc, fromBundleStr, langSize, exemplarCharacters, exemplarLen, TRUE, &badChar);
+                    strIdx = findStringSetMismatch(currLoc, fromBundleStr, langSize, exemplarCharacters, exemplarLen, TRUE);
                     if (strIdx >= 0) {
-                        log_err("getDayNames(%s, %d) at index %d returned characters not in the exemplar characters: %04X.\n",
-                            currLoc, idx, strIdx, badChar);
+                        log_err("getDayNames(%s, %d) at index %d returned characters not in the exemplar characters.\n",
+                            currLoc, idx, strIdx);
                     }
                 }
                 ures_close(resArray);
@@ -983,7 +1054,7 @@ static void VerifyTranslation(void) {
                 if (U_FAILURE(errorCode)) {
                     log_err("error ures_getByKey returned %s\n", u_errorName(errorCode));
                 }
-                if (getTestOption(QUICK_OPTION)) {
+                if (QUICK) {
                     end = 1;
                 }
                 else {
@@ -996,10 +1067,10 @@ static void VerifyTranslation(void) {
                         log_err("error ures_getStringByIndex(%d) returned %s\n", idx, u_errorName(errorCode));
                         continue;
                     }
-                    strIdx = findStringSetMismatch(currLoc, fromBundleStr, langSize, exemplarCharacters, exemplarLen, TRUE, &badChar);
+                    strIdx = findStringSetMismatch(currLoc, fromBundleStr, langSize, exemplarCharacters, exemplarLen, TRUE);
                     if (strIdx >= 0) {
-                        log_err("getMonthNames(%s, %d) at index %d returned characters not in the exemplar characters: %04X.\n",
-                            currLoc, idx, strIdx, badChar);
+                        log_err("getMonthNames(%s, %d) at index %d returned characters not in the exemplar characters.\n",
+                            currLoc, idx, strIdx);
                     }
                 }
                 ures_close(resArray);
@@ -1043,7 +1114,7 @@ static void VerifyTranslation(void) {
                if(U_FAILURE(errorCode)){
                    log_err("ulocdata_getMeasurementSystem failed for locale %s with error: %s \n", currLoc, u_errorName(errorCode));
                }
-               if(strstr(currLoc, "_US")!=NULL || strstr(currLoc, "_MM")!=NULL || strstr(currLoc, "_LR")!=NULL){
+               if(strstr(currLoc, "_US")!=NULL){
                    if(measurementSystem != UMS_US){
                         log_err("ulocdata_getMeasurementSystem did not return expected data for locale %s \n", currLoc);
                    }
@@ -1186,7 +1257,7 @@ static void TestLocaleDisplayPattern(void){
     ULocaleData *uld = ulocdata_open(uloc_getDefault(), &status);
 
     if(U_FAILURE(status)){
-        log_data_err("ulocdata_open error");
+        log_err("ulocdata_open error");
         return;
     }
     ulocdata_getLocaleDisplayPattern(uld, pattern, 32, &status);
@@ -1215,7 +1286,7 @@ static void TestCoverage(void){
     ULocaleData *uld = ulocdata_open(uloc_getDefault(), &status);
 
     if(U_FAILURE(status)){
-        log_data_err("ulocdata_open error");
+        log_err("ulocdata_open error");
         return;
     }
 
@@ -1233,43 +1304,6 @@ static void TestCoverage(void){
     ulocdata_setNoSubstitute(uld,sub);
     ulocdata_close(uld);
 }
-
-static void TestIndexChars(void) {
-    /* Very basic test of ULOCDATA_ES_INDEX.
-     * No comprehensive test of data, just basic check that the code path is alive.
-     */
-    UErrorCode status = U_ZERO_ERROR;
-    ULocaleData  *uld;
-    USet *exemplarChars;
-    USet *indexChars;
-
-    uld = ulocdata_open("en", &status);
-    exemplarChars = uset_openEmpty();
-    indexChars = uset_openEmpty();
-    ulocdata_getExemplarSet(uld, exemplarChars, 0, ULOCDATA_ES_STANDARD, &status);
-    ulocdata_getExemplarSet(uld, indexChars, 0, ULOCDATA_ES_INDEX, &status);
-    if (U_FAILURE(status)) {
-        log_data_err("File %s, line %d, Failure opening exemplar chars: %s", __FILE__, __LINE__, u_errorName(status));
-        goto close_sets;
-    }
-    /* en data, standard exemplars are [a-z], lower case. */
-    /* en data, index characters are [A-Z], upper case. */
-    if ((uset_contains(exemplarChars, (UChar32)0x41) || uset_contains(indexChars, (UChar32)0x61))) {
-        log_err("File %s, line %d, Exemplar characters incorrect.", __FILE__, __LINE__ );
-        goto close_sets;
-    }
-    if (!(uset_contains(exemplarChars, (UChar32)0x61) && uset_contains(indexChars, (UChar32)0x41) )) {
-        log_err("File %s, line %d, Exemplar characters incorrect.", __FILE__, __LINE__ );
-        goto close_sets;
-    }
-
-  close_sets:
-    uset_close(exemplarChars);
-    uset_close(indexChars);
-    ulocdata_close(uld);
-}
-
-
 
 static void TestCurrencyList(void){
 #if !UCONFIG_NO_FORMATTING
@@ -1306,104 +1340,6 @@ static void TestCurrencyList(void){
 #endif
 }
 
-static void TestAvailableIsoCodes(void){
-    UErrorCode errorCode = U_ZERO_ERROR;
-    const char* eurCode = "EUR";
-    const char* usdCode = "USD";
-    const char* lastCode = "RHD";
-    const char* zzzCode = "ZZZ";
-    UDate date1950 = (UDate)-630720000000.0;/* year 1950 */
-    UDate date1970 = (UDate)0.0;            /* year 1970 */
-    UDate date1975 = (UDate)173448000000.0; /* year 1975 */
-    UDate date1978 = (UDate)260172000000.0; /* year 1978 */
-    UDate date1981 = (UDate)346896000000.0; /* year 1981 */
-    UDate date1992 = (UDate)693792000000.0; /* year 1992 */
-    UChar* isoCode = (UChar*)malloc(sizeof(UChar) * (uprv_strlen(usdCode) + 1));
-
-    /* testing available codes with no time ranges */
-    u_charsToUChars(eurCode, isoCode, uprv_strlen(usdCode) + 1);
-    if (ucurr_isAvailable(isoCode, U_DATE_MIN, U_DATE_MAX, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) is not found.\n", eurCode);
-    }
-
-    u_charsToUChars(usdCode, isoCode, uprv_strlen(zzzCode) + 1);
-    if (ucurr_isAvailable(isoCode, U_DATE_MIN, U_DATE_MAX, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) is not found.\n", usdCode);
-    }
-
-    u_charsToUChars(zzzCode, isoCode, uprv_strlen(zzzCode) + 1);
-    if (ucurr_isAvailable(isoCode, U_DATE_MIN, U_DATE_MAX, &errorCode) == TRUE) {
-       log_err("FAIL: ISO code (%s) is reported as available, but it doesn't exist.\n", zzzCode);
-    }
-
-    u_charsToUChars(lastCode, isoCode, uprv_strlen(zzzCode) + 1);
-    if (ucurr_isAvailable(isoCode, U_DATE_MIN, U_DATE_MAX, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) is not found.\n", lastCode);
-    }
-
-    /* RHD was used from 1970-02-17  to 1980-04-18*/
-    
-    /* to = null */
-    if (ucurr_isAvailable(isoCode, date1970, U_DATE_MAX, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) was available in time range >1970-01-01.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, date1975, U_DATE_MAX, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) was available in time range >1975.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, date1981, U_DATE_MAX, &errorCode) == TRUE) {
-       log_err("FAIL: ISO code (%s) was not available in time range >1981.\n", lastCode);
-    }
-
-    /* from = null */
-    if (ucurr_isAvailable(isoCode, U_DATE_MIN, date1970, &errorCode) == TRUE) {
-       log_err("FAIL: ISO code (%s) was not available in time range <1970.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, U_DATE_MIN, date1975, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) was available in time range <1975.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, U_DATE_MIN, date1981, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) was available in time range <1981.\n", lastCode);
-    }
-
-    /* full ranges */
-    if (ucurr_isAvailable(isoCode, date1975, date1978, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) was available in time range 1975-1978.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, date1970, date1975, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) was available in time range 1970-1975.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, date1975, date1981, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) was available in time range 1975-1981.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, date1970,  date1981, &errorCode) == FALSE) {
-       log_err("FAIL: ISO code (%s) was available in time range 1970-1981.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, date1981,  date1992, &errorCode) == TRUE) {
-       log_err("FAIL: ISO code (%s) was not available in time range 1981-1992.\n", lastCode);
-    }
-
-    if (ucurr_isAvailable(isoCode, date1950,  date1970, &errorCode) == TRUE) {
-       log_err("FAIL: ISO code (%s) was not available in time range 1950-1970.\n", lastCode);
-    }
-
-    /* wrong range - from > to*/
-    if (ucurr_isAvailable(isoCode, date1975,  date1970, &errorCode) == TRUE) {
-       log_err("FAIL: Wrong range 1975-1970 for ISO code (%s) was not reported.\n", lastCode);
-    } else if (errorCode != U_ILLEGAL_ARGUMENT_ERROR) {
-       log_err("FAIL: Error code not reported for wrong range 1975-1970 for ISO code (%s).\n", lastCode);
-    }
-
-    free(isoCode);
-}
-
 #define TESTCASE(name) addTest(root, &name, "tsutil/cldrtest/" #name)
 
 void addCLDRTest(TestNode** root);
@@ -1419,7 +1355,4 @@ void addCLDRTest(TestNode** root)
     TESTCASE(TestExemplarSet);
     TESTCASE(TestLocaleDisplayPattern);
     TESTCASE(TestCoverage);
-    TESTCASE(TestIndexChars);
-    TESTCASE(TestAvailableIsoCodes);
 }
-

@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/en.xml
@@ -10,13 +10,6 @@
  *  ICU <specials> source: <path>/xml/main/en.xml
  */
 en{
-    Keys{
-        calendar{"Calendar"}
-        collation{"Collation"}
-        currency{"Currency"}
-        numbers{"Numbers"}
-        x{"Private-Use"}
-    }
     Languages{
         aa{"Afar"}
         ab{"Abkhazian"}
@@ -79,7 +72,6 @@ en{
         bo{"Tibetan"}
         br{"Breton"}
         bra{"Braj"}
-        brx{"Bodo"}
         bs{"Bosnian"}
         btk{"Batak"}
         bua{"Buriat"}
@@ -425,7 +417,7 @@ en{
         rwk{"Rwa"}
         sa{"Sanskrit"}
         sad{"Sandawe"}
-        sah{"Sakha"}
+        sah{"Yakut"}
         sai{"South American Indian Language"}
         sal{"Salishan Language"}
         sam{"Samaritan Aramaic"}
@@ -524,7 +516,7 @@ en{
         uga{"Ugaritic"}
         uk{"Ukrainian"}
         umb{"Umbundu"}
-        und{"Unknown Language"}
+        und{"Unknown or Invalid Language"}
         ur{"Urdu"}
         uz{"Uzbek"}
         vai{"Vai"}
@@ -534,7 +526,6 @@ en{
         vot{"Votic"}
         vun{"Vunjo"}
         wa{"Walloon"}
-        wae{"Walser"}
         wak{"Wakashan Language"}
         wal{"Walamo"}
         war{"Waray"}
@@ -608,8 +599,8 @@ en{
         Hang{"Hangul"}
         Hani{"Han"}
         Hano{"Hanunoo"}
-        Hans{"Simplified"}
-        Hant{"Traditional"}
+        Hans{"Simplified Han"}
+        Hant{"Traditional Han"}
         Hebr{"Hebrew"}
         Hira{"Hiragana"}
         Hmng{"Pahawh Hmong"}
@@ -663,6 +654,7 @@ en{
         Phnx{"Phoenician"}
         Plrd{"Pollard Phonetic"}
         Prti{"Inscriptional Parthian"}
+        Qaai{"Inherited"}
         Rjng{"Rejang"}
         Roro{"Rongorongo"}
         Runr{"Runic"}
@@ -698,12 +690,11 @@ en{
         Xpeo{"Old Persian"}
         Xsux{"Sumero-Akkadian Cuneiform"}
         Yiii{"Yi"}
-        Zinh{"Inherited"}
         Zmth{"Mathematical Notation"}
         Zsym{"Symbols"}
         Zxxx{"Unwritten"}
         Zyyy{"Common"}
-        Zzzz{"Unknown Script"}
+        Zzzz{"Unknown or Invalid Script"}
     }
     Types{
         calendar{
@@ -719,21 +710,16 @@ en{
             islamic-civil{"Islamic-Civil Calendar"}
             japanese{"Japanese Calendar"}
             persian{"Persian Calendar"}
-            roc{"Minguo Calendar"}
+            roc{"Republic of China Calendar"}
         }
         collation{
             big5han{"Traditional Chinese Sort Order - Big5"}
-            dictionary{"Dictionary Sort Order"}
             direct{"Direct Sort Order"}
-            ducet{"Default Unicode Sort Order"}
             gb2312han{"Simplified Chinese Sort Order - GB2312"}
             phonebook{"Phonebook Sort Order"}
-            pinyin{"Pinyin Sort Order"}
-            reformed{"Reformed Sort Order"}
-            search{"General-Purpose Search"}
-            stroke{"Stroke Sort Order"}
+            pinyin{"Simplified Chinese Pinyin Sort Order"}
+            stroke{"Traditional Chinese Stroke Sort Order"}
             traditional{"Traditional Sort Order"}
-            unihan{"Radical-Stroke Sort Order"}
         }
         numbers{
             arab{"Arabic-Indic Digits"}
@@ -749,7 +735,6 @@ en{
             greklow{"Greek Lowercase Numerals"}
             gujr{"Gujarati Digits"}
             guru{"Gurmukhi Digits"}
-            hanidec{"Chinese Decimal Numerals"}
             hans{"Simplified Chinese Numerals"}
             hansfin{"Simplified Chinese Financial Numerals"}
             hant{"Traditional Chinese Numerals"}
@@ -814,7 +799,7 @@ en{
         VALENCIA{"Valencian"}
         WADEGILE{"Wade-Giles Romanization"}
     }
-    Version{"2.0.54.39"}
+    Version{"2.0.48.46"}
     codePatterns{
         language{"Language: {0}"}
         script{"Script: {0}"}

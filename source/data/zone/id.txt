@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/id.xml
@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/id.xml
  */
 id{
-    Version{"2.0.50.96"}
+    Version{"2.0.48.56"}
     zoneStrings{
         "meta:Acre"{
             ld{"Waktu Musim Panas Acre"}
@@ -512,6 +512,6 @@ id{
             ss{"Waktu Vostok"}
         }
         gmtFormat{"GMT{0}"}
-        hourFormat{"+HH:mm;-HH:mm"}
+        hourFormat{"+HH.mm;-HH.mm"}
     }
 }

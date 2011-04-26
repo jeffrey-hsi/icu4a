@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/hu.xml
@@ -255,10 +255,6 @@ hu{
             "CSK" /** ===  */,
             "Csehszlovák kemény korona",
         }
-        CUC{
-            "CUC$",
-            "Kubai konvertibilis peso",
-        }
         CUP{
             "CU$",
             "Kubai peso",
@@ -312,7 +308,7 @@ hu{
             "Észt korona",
         }
         EGP{
-            "EGP",
+            "EG£",
             "Egyiptomi font",
         }
         ERN{
@@ -456,7 +452,7 @@ hu{
             "Izraeli új sékel",
         }
         INR{
-            "₹",
+            "Rs",
             "indiai rúpia",
         }
         IQD{
@@ -875,10 +871,6 @@ hu{
             "TMM",
             "Türkmenisztáni manat",
         }
-        TMT{
-            "TMT",
-            "Türkmenisztáni új manat",
-        }
         TND{
             "DT",
             "Tunéziai dínár",
@@ -965,7 +957,7 @@ hu{
         }
         VND{
             "₫",
-            "Vietnami dong",
+            "Vietnámi dong",
         }
         VUV{
             "VT",
@@ -1094,10 +1086,6 @@ hu{
         ZWD{
             "Z$",
             "Zimbabwei dollár",
-        }
-        ZWL{
-            "ZWL",
-            "Zimbabwei dollár (2009)",
         }
     }
     CurrencyPlurals{
@@ -1309,5 +1297,5 @@ hu{
     CurrencyUnitPatterns{
         other{"{0} {1}"}
     }
-    Version{"2.0.53.54"}
+    Version{"2.0.48.64"}
 }

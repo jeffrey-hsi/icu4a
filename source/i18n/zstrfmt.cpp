@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 2007-2011, International Business Machines Corporation and    *
+* Copyright (C) 2007-2010, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 */
@@ -525,11 +525,6 @@ ZoneStringSearchResultHandler::clear(void) {
         fMatchLen[i] = 0;
     }
 }
-
-// Mutex for protecting the lazy load of a zone ID (or a full load) to ZoneStringFormat structures.
-static UMTX ZoneStringFormatMutex;
-
-
 // ----------------------------------------------------------------------------
 ZoneStringFormat::ZoneStringFormat(const UnicodeString* const* strings,
                                    int32_t rowCount, int32_t columnCount, UErrorCode &status)
@@ -540,8 +535,7 @@ ZoneStringFormat::ZoneStringFormat(const UnicodeString* const* strings,
   fStringPool(status),
   fZoneStringsArray(NULL),
   fMetazoneItem(NULL),
-  fZoneItem(NULL),
-  fIsFullyLoaded(FALSE)
+  fZoneItem(NULL)
 {
     if (U_FAILURE(status)) {
         return;
@@ -623,7 +617,6 @@ ZoneStringFormat::ZoneStringFormat(const UnicodeString* const* strings,
         }
     }
     fStringPool.freeze();
-    fIsFullyLoaded = TRUE;
     return;
 
 error_cleanup:
@@ -638,8 +631,7 @@ ZoneStringFormat::ZoneStringFormat(const Locale &locale, UErrorCode &status)
   fStringPool(status),
   fZoneStringsArray(NULL),
   fMetazoneItem(NULL),
-  fZoneItem(NULL),
-  fIsFullyLoaded(FALSE)
+  fZoneItem(NULL)
 {
     if (U_FAILURE(status)) {
         return;
@@ -654,98 +646,60 @@ ZoneStringFormat::ZoneStringFormat(const Locale &locale, UErrorCode &status)
                                 &status);
     uhash_setValueDeleter(fTzidToStrings, deleteZoneStrings);
     uhash_setValueDeleter(fMzidToStrings, deleteZoneStrings);
-}
 
-// Load only a single zone
-void
-ZoneStringFormat::loadZone(const UnicodeString &utzid, UErrorCode &status)
-{
-    if (fIsFullyLoaded) {
-        return;
-    }
-
+    fZoneStringsArray = ures_open(U_ICUDATA_ZONE, locale.getName(), &status);
+    fZoneStringsArray = ures_getByKeyWithFallback(fZoneStringsArray, gZoneStringsTag, fZoneStringsArray, &status);
     if (U_FAILURE(status)) {
-        return;
+        // If no locale bundles are available, zoneStrings will be null.
+        // We still want to go through the rest of zone strings initialization,
+        // because generic location format is generated from tzid for the case.
+        // The rest of code should work even zoneStrings is null.
+        status = U_ZERO_ERROR;
+        ures_close(fZoneStringsArray);
+        fZoneStringsArray = NULL;
     }
 
-    umtx_lock(&ZoneStringFormatMutex);
-
-    if (fZoneStringsArray == NULL) {
-        fZoneStringsArray = ures_open(U_ICUDATA_ZONE, fLocale.getName(), &status);
-        fZoneStringsArray = ures_getByKeyWithFallback(fZoneStringsArray, gZoneStringsTag, fZoneStringsArray, &status);
-        if (U_FAILURE(status)) {
-            // If no locale bundles are available, zoneStrings will be null.
-            // We still want to go through the rest of zone strings initialization,
-            // because generic location format is generated from tzid for the case.
-            // The rest of code should work even zoneStrings is null.
-            status = U_ZERO_ERROR;
-            ures_close(fZoneStringsArray);
-            fZoneStringsArray = NULL;
-        }
-    }
-
-    // Skip non-canonical IDs
-    UnicodeString canonicalID;
-    ZoneMeta::getCanonicalCLDRID(utzid, canonicalID, status);
-    if (U_FAILURE(status)) {
-        // Ignore unknown ID - we should not get here, but just in case.
-        //    status = U_ZERO_ERROR;
-        umtx_unlock(&ZoneStringFormatMutex);
-        return;
-    }
-
-    if (U_SUCCESS(status)) {
-        if (uhash_count(fTzidToStrings) > 0) {
-            ZoneStrings *zstrings = (ZoneStrings*)uhash_get(fTzidToStrings, canonicalID.getTerminatedBuffer());
-            if (zstrings != NULL) {
-                umtx_unlock(&ZoneStringFormatMutex);
-                return;    //    We already about this one
-            }
-        }
-    }
-
-    addSingleZone(canonicalID, status);
-
-    umtx_unlock(&ZoneStringFormatMutex);
-}
-
-// Load only a single zone
-void
-ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
-
-    if (uhash_count(fTzidToStrings) > 0) {
-        ZoneStrings *zstrings = (ZoneStrings*)uhash_get(fTzidToStrings, utzid.getTerminatedBuffer());
-        if (zstrings != NULL) {
-            return;    //    We already about this one
-        }
-    }
-
+    StringEnumeration *tzids = NULL;
     MessageFormat *fallbackFmt = NULL;
     MessageFormat *regionFmt = NULL;
 
-    fallbackFmt = getFallbackFormat(fLocale, status);
+    char zidkey[ZID_KEY_MAX];
+    const UChar *zstrarray[ZSIDX_COUNT];
+    const UChar *mzstrarray[ZSIDX_COUNT];
+    UnicodeString mzPartialLoc[MAX_METAZONES_PER_ZONE][4];
+
+    UnicodeString region;
+    getRegion(region);
+
+    fallbackFmt = getFallbackFormat(locale, status);
     if (U_FAILURE(status)) {
         goto error_cleanup;
     }
-    regionFmt = getRegionFormat(fLocale, status);
+    regionFmt = getRegionFormat(locale, status);
     if (U_FAILURE(status)) {
         goto error_cleanup;
     }
 
+    tzids = TimeZone::createEnumeration();
+    const char *tzid;
+    while ((tzid = tzids->next(NULL, status))) {
+        if (U_FAILURE(status)) {
+            goto error_cleanup;
+        }
+        // Skip non-canonical IDs
+        UnicodeString utzid(tzid, -1, US_INV);
+        UnicodeString canonicalID;
+        TimeZone::getCanonicalID(utzid, canonicalID, status);
+        if (U_FAILURE(status)) {
+            // Ignore unknown ID - we should not get here, but just in case.
+            status = U_ZERO_ERROR;
+            continue;
+        }
+        if (utzid != canonicalID) {
+            continue;
+        }
 
-    {
-        char zidkey[ZID_KEY_MAX+1];
-        char tzid[ZID_KEY_MAX+1];
-        utzid.extract(0, utzid.length(), zidkey, ZID_KEY_MAX, US_INV);
-        utzid.extract(0, utzid.length(), tzid, ZID_KEY_MAX, US_INV);
-
-        const UChar *zstrarray[ZSIDX_COUNT];
-        const UChar *mzstrarray[ZSIDX_COUNT];
-        UnicodeString mzPartialLoc[MAX_METAZONES_PER_ZONE][4];
+        uprv_strcpy(zidkey, tzid);
 
         // Replace '/' with ':'
         char *pCity = NULL;
@@ -757,7 +711,7 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
             }
             p++;
         }
-    
+
         if (fZoneStringsArray != NULL) {
             fZoneItem = ures_getByKeyWithFallback(fZoneStringsArray, zidkey, fZoneItem, &status);
             if (U_FAILURE(status)) {
@@ -767,17 +721,13 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                 status = U_ZERO_ERROR;
             }
         }
-    
-        UnicodeString region;
-        getRegion(region);
-
         zstrarray[ZSIDX_LONG_STANDARD]  = getZoneStringFromBundle(fZoneItem, gLongStandardTag);
         zstrarray[ZSIDX_SHORT_STANDARD] = getZoneStringFromBundle(fZoneItem, gShortStandardTag);
         zstrarray[ZSIDX_LONG_DAYLIGHT]  = getZoneStringFromBundle(fZoneItem, gLongDaylightTag);
         zstrarray[ZSIDX_SHORT_DAYLIGHT] = getZoneStringFromBundle(fZoneItem, gShortDaylightTag);
         zstrarray[ZSIDX_LONG_GENERIC]   = getZoneStringFromBundle(fZoneItem, gLongGenericTag);
         zstrarray[ZSIDX_SHORT_GENERIC]  = getZoneStringFromBundle(fZoneItem, gShortGenericTag);
-    
+
         // Compose location format string
         UnicodeString location;
         UnicodeString country;
@@ -797,7 +747,7 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                     }
                 }
             }
-            getLocalizedCountry(countryCode, fLocale, country);
+            getLocalizedCountry(countryCode, locale, country);
             UnicodeString singleCountry;
             ZoneMeta::getSingleCountry(utzid, singleCountry);
             FieldPosition fpos;
@@ -817,7 +767,7 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
             if (U_FAILURE(status)) {
                 goto error_cleanup;
             }
-    
+
             zstrarray[ZSIDX_LOCATION] = location.getTerminatedBuffer();
         } else {
             if (uprv_strlen(tzid) > 4 && uprv_strncmp(tzid, "Etc/", 4) == 0) {
@@ -851,9 +801,9 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                 }
             }
         }
-    
+
         UBool commonlyUsed = isCommonlyUsed(fZoneItem);
-    
+
         // Resolve metazones used by this zone
         int32_t mzPartialLocIdx = 0;
         const UVector *metazoneMappings = ZoneMeta::getMetazoneMappings(utzid);
@@ -884,7 +834,7 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                     mzstrarray[ZSIDX_LONG_GENERIC] = getZoneStringFromBundle(fMetazoneItem, gLongGenericTag);
                     mzstrarray[ZSIDX_SHORT_GENERIC] = getZoneStringFromBundle(fMetazoneItem, gShortGenericTag);
                     mzstrarray[ZSIDX_LOCATION] = NULL;
-    
+
                     int32_t lastNonNullIdx = ZSIDX_COUNT - 1;
                     while (lastNonNullIdx >= 0) {
                         if (mzstrarray[lastNonNullIdx] != NULL) {
@@ -897,14 +847,14 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                     if (lastNonNullIdx >= 0) {
                         // Create UnicodeString array and put strings to the zone string trie
                         strings_mz = new UnicodeString[lastNonNullIdx + 1];
-    
+
                         UnicodeString preferredIdForLocale;
                         ZoneMeta::getZoneIdByMetazone(mzid, region, preferredIdForLocale);
-    
+
                         for (int32_t typeidx = 0; typeidx <= lastNonNullIdx; typeidx++) {
                             if (mzstrarray[typeidx] != NULL) {
                                 strings_mz[typeidx].setTo(TRUE, mzstrarray[typeidx], -1);
-    
+
                                 // Add a metazone string to the zone string trie
                                 int32_t type = getTimeZoneTranslationType((TimeZoneTranslationTypeIndex)typeidx);
                                 ZoneStringInfo *zsinfo = new ZoneStringInfo(
@@ -927,23 +877,23 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                         // Create ZoneStrings with empty contents
                         tmp_mzStrings = new ZoneStrings(NULL, 0, FALSE, NULL, 0, 0, fStringPool, status);
                     }
-    
+
                     UChar *umzid = const_cast<UChar *>(fStringPool.get(mzid, status));
                     uhash_put(fMzidToStrings, umzid, tmp_mzStrings, &status);
                     if (U_FAILURE(status)) {
                         goto error_cleanup;
                     }
-    
+
                     mzStrings = tmp_mzStrings;
                 }
-    
+
                 // Compose generic partial location format
                 UnicodeString lg;
                 UnicodeString sg;
-    
+
                 mzStrings->getString(ZSIDX_LONG_GENERIC, lg);
                 mzStrings->getString(ZSIDX_SHORT_GENERIC, sg);
-    
+
                 if (!lg.isEmpty() || !sg.isEmpty()) {
                     UBool addMzPartialLocationNames = TRUE;
                     for (int32_t j = 0; j < mzPartialLocIdx; j++) {
@@ -970,7 +920,7 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                         mzPartialLoc[mzPartialLocIdx][1].remove();
                         mzPartialLoc[mzPartialLocIdx][2].remove();
                         mzPartialLoc[mzPartialLocIdx][3].remove();
-    
+
                         if (locationPart->length() != 0) {
                             FieldPosition fpos;
                             if (!lg.isEmpty()) {
@@ -1000,7 +950,7 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
             }
         }
         // Collected names for a zone
-    
+
         // Create UnicodeString array for localized zone strings
         int32_t lastIdx = ZSIDX_COUNT - 1;
         while (lastIdx >= 0) {
@@ -1011,13 +961,13 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
         }
         UnicodeString *strings = NULL;
         int32_t stringsCount = lastIdx + 1;
-    
+
         if (stringsCount > 0) {
             strings = new UnicodeString[stringsCount];
             for (int32_t i = 0; i < stringsCount; i++) {
                 if (zstrarray[i] != NULL) {
                     strings[i].setTo(zstrarray[i], -1);
-    
+
                     // Add names to the trie
                     int32_t type = getTimeZoneTranslationType((TimeZoneTranslationTypeIndex)i);
                     ZoneStringInfo *zsinfo = new ZoneStringInfo(utzid, 
@@ -1034,12 +984,12 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                 }
             }
         }
-    
+
         // Create UnicodeString array for generic partial location strings
         UnicodeString **genericPartialLocationNames = NULL;
         int32_t genericPartialRowCount = mzPartialLocIdx;
         int32_t genericPartialColCount = 4;
-    
+
         if (genericPartialRowCount != 0) {
             genericPartialLocationNames = 
                      (UnicodeString**)uprv_malloc(genericPartialRowCount * sizeof(UnicodeString*));
@@ -1069,12 +1019,12 @@ ZoneStringFormat::addSingleZone(UnicodeString &utzid, UErrorCode &status)
                 }
             }
         }
-    
+
         // Finally, create ZoneStrings instance and put it into the tzidToStinrgs map
         ZoneStrings *zstrings = new ZoneStrings(strings, stringsCount, commonlyUsed,
                                                 genericPartialLocationNames, genericPartialRowCount, 
                                                 genericPartialColCount, fStringPool, status);
-    
+
         UChar *uutzid = const_cast<UChar *>(fStringPool.get(utzid, status));
         uhash_put(fTzidToStrings, uutzid, zstrings, &status);
         if (U_FAILURE(status)) {
@@ -1090,80 +1040,11 @@ error_cleanup:
     if (regionFmt != NULL) {
         delete regionFmt;
     }
-    //    fStringPool.freeze();
-}
-
-void
-ZoneStringFormat::loadFull(UErrorCode &status)
-{
-    if (U_FAILURE(status)) {
-        return;
-    }
-    if (fIsFullyLoaded) {
-        return;
-    }
-
-    umtx_lock(&ZoneStringFormatMutex);
-
-    if (fZoneStringsArray == NULL) {
-        fZoneStringsArray = ures_open(U_ICUDATA_ZONE, fLocale.getName(), &status);
-        fZoneStringsArray = ures_getByKeyWithFallback(fZoneStringsArray, gZoneStringsTag, fZoneStringsArray, &status);
-        if (U_FAILURE(status)) {
-            // If no locale bundles are available, zoneStrings will be null.
-            // We still want to go through the rest of zone strings initialization,
-            // because generic location format is generated from tzid for the case.
-            // The rest of code should work even zoneStrings is null.
-            status = U_ZERO_ERROR;
-            ures_close(fZoneStringsArray);
-            fZoneStringsArray = NULL;
-        }
-    }
-
-    StringEnumeration *tzids = NULL;
-
-    tzids = TimeZone::createEnumeration();
-    const char *tzid;
-    while ((tzid = tzids->next(NULL, status))) {
-        if (U_FAILURE(status)) {
-            goto error_cleanup;
-        }
-        // Skip non-canonical IDs
-        UnicodeString utzid(tzid, -1, US_INV);
-        UnicodeString canonicalID;
-        ZoneMeta::getCanonicalCLDRID(utzid, canonicalID, status);
-        if (U_FAILURE(status)) {
-            // Ignore unknown ID - we should not get here, but just in case.
-            status = U_ZERO_ERROR;
-            continue;
-        }
-
-        if (U_SUCCESS(status)) {
-            if (uhash_count(fTzidToStrings) > 0) {
-                ZoneStrings *zstrings = (ZoneStrings*)uhash_get(fTzidToStrings, canonicalID.getTerminatedBuffer());
-                if (zstrings != NULL) {
-                    continue;    //    We already about this one
-                }
-            }
-        }
-
-        addSingleZone(canonicalID, status);
-        
-        if (U_FAILURE(status)) {
-            goto error_cleanup;
-        }
-    }
-
-    fIsFullyLoaded = TRUE;
-    
-error_cleanup:
     if (tzids != NULL) {
         delete tzids;
     }
     fStringPool.freeze();
-
-    umtx_unlock(&ZoneStringFormatMutex);
 }
-
 
 ZoneStringFormat::~ZoneStringFormat() {
     uhash_close(fTzidToStrings);
@@ -1191,9 +1072,6 @@ ZoneStringFormat::createZoneStringsArray(UDate date, int32_t &rowCount, int32_t 
     if (U_FAILURE(status)) {
         return NULL;
     }
-    ZoneStringFormat *nonConstThis = const_cast<ZoneStringFormat *>(this);
-    nonConstThis->loadFull(status);
-
     UnicodeString **result = NULL;
     rowCount = 0;
     colCount = 0;
@@ -1212,7 +1090,7 @@ ZoneStringFormat::createZoneStringsArray(UDate date, int32_t &rowCount, int32_t 
         }
         UnicodeString utzid(tzid);
         UnicodeString canonicalID;
-        ZoneMeta::getCanonicalCLDRID(UnicodeString(tzid), canonicalID, status);
+        TimeZone::getCanonicalID(UnicodeString(tzid), canonicalID, status);
         if (U_FAILURE(status)) {
             // Ignore unknown ID - we should not get here, but just in case.
             status = U_ZERO_ERROR;
@@ -1340,17 +1218,12 @@ ZoneStringFormat::findGenericLocation(const UnicodeString &text, int32_t start,
 UnicodeString&
 ZoneStringFormat::getString(const UnicodeString &tzid, TimeZoneTranslationTypeIndex typeIdx, UDate date,
                             UBool commonlyUsedOnly, UnicodeString& result) const {
-    UErrorCode status = U_ZERO_ERROR;
     result.remove();
-    if (!fIsFullyLoaded) {
-        // Lazy loading
-        ZoneStringFormat *nonConstThis = const_cast<ZoneStringFormat *>(this);
-        nonConstThis->loadZone(tzid, status);
-    }
 
     // ICU's own array does not have entries for aliases
     UnicodeString canonicalID;
-    ZoneMeta::getCanonicalCLDRID(tzid, canonicalID, status);
+    UErrorCode status = U_ZERO_ERROR;
+    TimeZone::getCanonicalID(tzid, canonicalID, status);
     if (U_FAILURE(status)) {
         // Unknown ID, but users might have their own data.
         canonicalID.setTo(tzid);
@@ -1422,15 +1295,9 @@ ZoneStringFormat::getGenericString(const Calendar &cal, UBool isShort, UBool com
     UnicodeString tzid;
     tz.getID(tzid);
 
-    if (!fIsFullyLoaded) {
-        // Lazy loading
-        ZoneStringFormat *nonConstThis = const_cast<ZoneStringFormat *>(this);
-        nonConstThis->loadZone(tzid, status);
-    }
-
     // ICU's own array does not have entries for aliases
     UnicodeString canonicalID;
-    ZoneMeta::getCanonicalCLDRID(tzid, canonicalID, status);
+    TimeZone::getCanonicalID(tzid, canonicalID, status);
     if (U_FAILURE(status)) {
         // Unknown ID, but users might have their own data.
         status = U_ZERO_ERROR;
@@ -1466,10 +1333,10 @@ ZoneStringFormat::getGenericString(const Calendar &cal, UBool isShort, UBool com
                 // Check if the zone actually uses daylight saving time around the time
                 TimeZone *tmptz = tz.clone();
                 BasicTimeZone *btz = NULL;
-                if (dynamic_cast<OlsonTimeZone *>(tmptz) != NULL
-                    || dynamic_cast<SimpleTimeZone *>(tmptz) != NULL
-                    || dynamic_cast<RuleBasedTimeZone *>(tmptz) != NULL
-                    || dynamic_cast<VTimeZone *>(tmptz) != NULL) {
+                if (tmptz->getDynamicClassID() == OlsonTimeZone::getStaticClassID()
+                    || tmptz->getDynamicClassID() == SimpleTimeZone::getStaticClassID()
+                    || tmptz->getDynamicClassID() == RuleBasedTimeZone::getStaticClassID()
+                    || tmptz->getDynamicClassID() == VTimeZone::getStaticClassID()) {
                     btz = (BasicTimeZone*)tmptz;
                 }
 
@@ -1583,20 +1450,14 @@ ZoneStringFormat::getGenericString(const Calendar &cal, UBool isShort, UBool com
 UnicodeString&
 ZoneStringFormat::getGenericPartialLocationString(const UnicodeString &tzid, UBool isShort,
                                                   UDate date, UBool commonlyUsedOnly, UnicodeString &result) const {
-    UErrorCode status = U_ZERO_ERROR;
     result.remove();
-    if (!fIsFullyLoaded) {
-        // Lazy loading
-        ZoneStringFormat *nonConstThis = const_cast<ZoneStringFormat *>(this);
-        nonConstThis->loadZone(tzid, status);
-    }
-
     if (uhash_count(fTzidToStrings) <= 0) {
         return result;
     }
 
     UnicodeString canonicalID;
-    ZoneMeta::getCanonicalCLDRID(tzid, canonicalID, status);
+    UErrorCode status = U_ZERO_ERROR;
+    TimeZone::getCanonicalID(tzid, canonicalID, status);
     if (U_FAILURE(status)) {
         // Unknown ID, so no corresponding meta data.
         return result;
@@ -1614,50 +1475,8 @@ ZoneStringFormat::getGenericPartialLocationString(const UnicodeString &tzid, UBo
     return result;
 }
 
-// This method does lazy zone string loading
 const ZoneStringInfo*
 ZoneStringFormat::find(const UnicodeString &text, int32_t start, int32_t types,
-                       int32_t &matchLength, UErrorCode &status) const {
-
-    if (U_FAILURE(status)) {
-        return NULL;
-    }
-
-    const ZoneStringInfo *    result = subFind(text, start, types, matchLength, status);
-    if (fIsFullyLoaded) {
-        return result;
-    }
-    // When zone string data is partially loaded,
-    // this method return the result only when
-    // the input text is fully consumed.
-    if (result != NULL) {
-        UnicodeString tmpString;
-        matchLength = (result->getString(tmpString)).length();
-        if (text.length() - start == matchLength) {
-            return result;
-        }
-    }
-    
-    // Now load all zone strings
-    ZoneStringFormat *nonConstThis = const_cast<ZoneStringFormat *>(this);
-    nonConstThis->loadFull(status);
-    
-    return subFind(text, start, types, matchLength, status);
-}
-
-
-/*
- * Find a prefix matching time zone for the given zone string types.
- * @param text The text contains a time zone string
- * @param start The start index within the text
- * @param types The bit mask representing a set of requested types
- * @return If any zone string matched for the requested types, returns a
- * ZoneStringInfo for the longest match.  If no matches are found for
- * the requested types, returns a ZoneStringInfo for the longest match
- * for any other types.  If nothing matches at all, returns null.
- */
-const ZoneStringInfo*
-ZoneStringFormat::subFind(const UnicodeString &text, int32_t start, int32_t types,
                        int32_t &matchLength, UErrorCode &status) const {
     matchLength = 0;
     if (U_FAILURE(status)) {
@@ -1666,7 +1485,6 @@ ZoneStringFormat::subFind(const UnicodeString &text, int32_t start, int32_t type
     if (fZoneStringsTrie.isEmpty()) {
         return NULL;
     }
-
     const ZoneStringInfo *result = NULL;
     const ZoneStringInfo *fallback = NULL;
     int32_t fallbackMatchLen = 0;
@@ -2031,7 +1849,6 @@ ZSFCache::get(const Locale &locale, UErrorCode &status) {
             status = U_MEMORY_ALLOCATION_ERROR;
             return NULL;
         }
-
         // Now add the new entry
         umtx_lock(&gZSFCacheLock);
         // Make sure no other threads already created the one for the same locale

@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2011, International Business Machines
+*   Copyright (C) 1999-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -15,7 +15,6 @@
 #include "ruleiter.h"
 #include "cmemory.h"
 #include "cstring.h"
-#include "patternprops.h"
 #include "uhash.h"
 #include "util.h"
 #include "uvector.h"
@@ -1927,7 +1926,7 @@ escapeUnprintable) {
         break;
     default:
         // Escape whitespace
-        if (PatternProps::isWhiteSpace(c)) {
+        if (uprv_isRuleWhiteSpace(c)) {
             buf.append(BACKSLASH);
         }
         break;

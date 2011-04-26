@@ -1,6 +1,6 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
 // * Source File:<path>/common/main/th.xml
@@ -25,28 +25,26 @@ th{
         "Thai",
     }
     NumberElements{
-        latn{
-            patterns{
-                currencyFormat{"¤#,##0.00;¤-#,##0.00"}
-                decimalFormat{"#,##0.###"}
-                percentFormat{"#,##0%"}
-                scientificFormat{"#E0"}
-            }
-            symbols{
-                decimal{"."}
-                exponential{"E"}
-                group{","}
-                infinity{"∞"}
-                list{";"}
-                minusSign{"-"}
-                nan{"NaN"}
-                perMille{"‰"}
-                percentSign{"%"}
-                plusSign{"+"}
-            }
-        }
+        ".",
+        ",",
+        ";",
+        "%",
+        "0",
+        "#",
+        "-",
+        "E",
+        "‰",
+        "∞",
+        "NaN",
+        "+",
     }
-    Version{"2.0.53.54"}
+    NumberPatterns{
+        "#,##0.###",
+        "¤#,##0.00;¤-#,##0.00",
+        "#,##0%",
+        "#E0",
+    }
+    Version{"2.0.48.64"}
     calendar{
         buddhist{
             DateTimePatterns{
@@ -63,36 +61,6 @@ th{
                 "{1}, {0}",
                 "{1}, {0}",
                 "{1}, {0}",
-            }
-            availableFormats{
-                EEEd{"EEE d"}
-                H{"H"}
-                Hm{"H:mm"}
-                Hms{"H:mm:ss"}
-                M{"L"}
-                MEd{"E, d/M"}
-                MMM{"LLL"}
-                MMMEd{"E d MMM"}
-                MMMMEd{"E d MMMM"}
-                MMMMd{"d MMMM"}
-                MMMd{"d MMM"}
-                Md{"d/M"}
-                d{"d"}
-                mmss{"mm:ss"}
-                ms{"mm:ss"}
-                y{"y G"}
-                yM{"M/yyyy"}
-                yMEd{"EEE d/M/yyyy"}
-                yMMM{"MMM y"}
-                yMMMEd{"EEE d MMM y"}
-                yMMMM{"MMMM y"}
-                yMMMd{"d MMM y"}
-                yMd{"d/M/yyyy"}
-                yQ{"Q yyyy"}
-                yQQQ{"QQQ y"}
-                yyQ{"Q yy"}
-                yyyyM{"M/yyyy"}
-                yyyyMMMM{"MMMM y"}
             }
             eras{
                 abbreviated{
@@ -134,6 +102,9 @@ th{
                 MMMEd{
                     M{"E d MMM – E d MMM"}
                     d{"E d – E d MMM"}
+                }
+                MMMM{
+                    M{"LLLL-LLLL"}
                 }
                 MMMd{
                     M{"d MMM – d MMM"}
@@ -187,8 +158,8 @@ th{
                     y{"E d MMM y – E d MMM y"}
                 }
                 yMMMM{
-                    M{"MMMM-MMMM y"}
-                    y{"MMMM y - MMMM y"}
+                    M{"M–M/yyyy"}
+                    y{"M/yyyy – M/yyyy"}
                 }
                 yMMMd{
                     M{"d MMM – d MMM y"}
@@ -245,8 +216,6 @@ th{
                 yMMM{"MMM y"}
                 yMMMEd{"EEE d MMM y"}
                 yMMMM{"MMMM y"}
-                yMMMd{"d MMM y"}
-                yMd{"d/M/yyyy"}
                 yQ{"Q yyyy"}
                 yQQQ{"QQQ y"}
                 yyQ{"Q yy"}
@@ -377,6 +346,9 @@ th{
                     M{"E d MMM – E d MMM"}
                     d{"E d – E d MMM"}
                 }
+                MMMM{
+                    M{"LLLL-LLLL"}
+                }
                 MMMd{
                     M{"d MMM – d MMM"}
                     d{"d – d MMM"}
@@ -429,8 +401,8 @@ th{
                     y{"E d MMM y – E d MMM y"}
                 }
                 yMMMM{
-                    M{"MMMM-MMMM y"}
-                    y{"MMMM y - MMMM y"}
+                    M{"M–M/yyyy"}
+                    y{"M/yyyy – M/yyyy"}
                 }
                 yMMMd{
                     M{"d MMM – d MMM y"}
@@ -580,16 +552,9 @@ th{
                 "{1} {0}",
             }
             availableFormats{
-                EEEd{"EEE d"}
-                MEd{"E, d/M"}
-                MMMEd{"E d MMM"}
-                MMMd{"d MMM"}
-                Md{"d/M"}
-                yyyy{"G yy"}
+                yyyy{"GGG yy"}
                 yyyyM{"M/GGGGG yy"}
-                yyyyMMM{"MMM G yy"}
-                yyyyMMMEd{"EEE d MMM G y"}
-                yyyyMMMd{"d MMM G y"}
+                yyyyMMM{"MMM GGGGG yy"}
                 yyyyQ{"Q GGGGG yy"}
             }
             eras{
@@ -1069,36 +1034,6 @@ th{
                     "ช",
                     "ฮ",
                 }
-            }
-        }
-        roc{
-            DateTimePatterns{
-                "H นาฬิกา m นาที ss วินาที zzzz",
-                "H นาฬิกา m นาที ss วินาที z",
-                "H:mm:ss",
-                "H:mm",
-                "EEEEที่ d MMMM ปีGที่ y",
-                "d MMMM ปีG y",
-                "d MMM G y",
-                "d/M/yy",
-                "{1}, {0}",
-                "{1}, {0}",
-                "{1}, {0}",
-                "{1}, {0}",
-                "{1}, {0}",
-            }
-            availableFormats{
-                EEEd{"EEE d"}
-                MEd{"E, d/M"}
-                MMMEd{"E d MMM"}
-                MMMd{"d MMM"}
-                Md{"d/M"}
-                yyyy{"G yy"}
-                yyyyM{"M/GGGGG yy"}
-                yyyyMMM{"MMM G yy"}
-                yyyyMMMEd{"EEE d MMM G y"}
-                yyyyMMMd{"d MMM G y"}
-                yyyyQ{"Q GGGGG yy"}
             }
         }
     }

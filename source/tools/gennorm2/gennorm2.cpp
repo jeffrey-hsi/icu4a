@@ -18,7 +18,8 @@
 */
 
 #include "unicode/utypes.h"
-#include "n2builder.h"
+#include "unicode/std_string.h"  // U_HAVE_STD_STRING, #include <string>
+#include "n2builder.h"  // UCONFIG_NO_NORMALIZATION=1 if !U_HAVE_STD_STRING
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +29,6 @@
 #include "unicode/putil.h"
 #include "unicode/uchar.h"
 #include "unicode/unistr.h"
-#include "charstr.h"
 #include "normalizer2impl.h"
 #include "toolutil.h"
 #include "uoptions.h"
@@ -136,9 +136,7 @@ main(int argc, char* argv[]) {
         "because UCONFIG_NO_NORMALIZATION is set, \n"
         "see icu/source/common/unicode/uconfig.h\n");
     udata_createDummy(NULL, NULL, options[OUTPUT_FILENAME].value, errorCode);
-    // Should not return an error since this is the expected behaviour if UCONFIG_NO_NORMALIZATION is on.
-    // return U_UNSUPPORTED_ERROR;
-    return 0;
+    return U_UNSUPPORTED_ERROR;
 
 #else
 
@@ -152,27 +150,27 @@ main(int argc, char* argv[]) {
     }
 
     // prepare the filename beginning with the source dir
-    CharString filename(options[SOURCEDIR].value, errorCode);
+    U_STD_NSQ string filename(options[SOURCEDIR].value);
     int32_t pathLength=filename.length();
     if( pathLength>0 &&
         filename[pathLength-1]!=U_FILE_SEP_CHAR &&
         filename[pathLength-1]!=U_FILE_ALT_SEP_CHAR
     ) {
-        filename.append(U_FILE_SEP_CHAR, errorCode);
+        filename.push_back(U_FILE_SEP_CHAR);
         pathLength=filename.length();
     }
 
     for(int i=1; i<argc; ++i) {
         printf("gennorm2: processing %s\n", argv[i]);
-        filename.append(argv[i], errorCode);
-        LocalStdioFilePointer f(fopen(filename.data(), "r"));
+        filename.append(argv[i]);
+        LocalStdioFilePointer f(fopen(filename.c_str(), "r"));
         if(f==NULL) {
-            fprintf(stderr, "gennorm2 error: unable to open %s\n", filename.data());
+            fprintf(stderr, "gennorm2 error: unable to open %s\n", filename.c_str());
             exit(U_FILE_ACCESS_ERROR);
         }
         builder->setOverrideHandling(Normalizer2DataBuilder::OVERRIDE_PREVIOUS);
         parseFile(f.getAlias(), *builder);
-        filename.truncate(pathLength);
+        filename.erase(pathLength);
     }
 
     builder->writeBinaryFile(options[OUTPUT_FILENAME].value);

@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-*   Copyright (C) 2004-2011, International Business Machines
+*   Copyright (C) 2004-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *******************************************************************************
 *
@@ -24,55 +24,83 @@
 #ifdef U_HIDE_DRAFT_API
 
 #    if U_DISABLE_RENAMING
-#        define StringPiece&amp;y) StringPiece&amp;y)_DRAFT_API_DO_NOT_USE
-#        define ubidi_getBaseDirection(const UChar *text, int32_t length) ubidi_getBaseDirection(const UChar *text, int32_t length)_DRAFT_API_DO_NOT_USE
-#        define ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, const char *region, const int32_t *rawOffset, UErrorCode *ec) ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, const char *region, const int32_t *rawOffset, UErrorCode *ec)_DRAFT_API_DO_NOT_USE
-#        define ucnv_isFixedWidth(UConverter *cnv, UErrorCode *status) ucnv_isFixedWidth(UConverter *cnv, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uidna_close(UIDNA *idna) uidna_close(UIDNA *idna)_DRAFT_API_DO_NOT_USE
-#        define uidna_openUTS46(uint32_t options, UErrorCode *pErrorCode) uidna_openUTS46(uint32_t options, UErrorCode *pErrorCode)_DRAFT_API_DO_NOT_USE
-#        define uloc_forLanguageTag(const char *langtag, char *localeID, int32_t localeIDCapacity, int32_t *parsedLength, UErrorCode *err) uloc_forLanguageTag(const char *langtag, char *localeID, int32_t localeIDCapacity, int32_t *parsedLength, UErrorCode *err)_DRAFT_API_DO_NOT_USE
-#        define uloc_toLanguageTag(const char *localeID, char *langtag, int32_t langtagCapacity, UBool strict, UErrorCode *err) uloc_toLanguageTag(const char *localeID, char *langtag, int32_t langtagCapacity, UBool strict, UErrorCode *err)_DRAFT_API_DO_NOT_USE
-#        define unorm2_getDecomposition(const UNormalizer2 *norm2, UChar32 c, UChar *decomposition, int32_t capacity, UErrorCode *pErrorCode) unorm2_getDecomposition(const UNormalizer2 *norm2, UChar32 c, UChar *decomposition, int32_t capacity, UErrorCode *pErrorCode)_DRAFT_API_DO_NOT_USE
-#        define uregex_end64(URegularExpression *regexp, int32_t groupNum, UErrorCode *status) uregex_end64(URegularExpression *regexp, int32_t groupNum, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_find64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status) uregex_find64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_getFindProgressCallback(const URegularExpression *regexp, URegexFindProgressCallback **callback, const void **context, UErrorCode *status) uregex_getFindProgressCallback(const URegularExpression *regexp, URegexFindProgressCallback **callback, const void **context, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_lookingAt64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status) uregex_lookingAt64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_matches64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status) uregex_matches64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_patternUText(const URegularExpression *regexp, UErrorCode *status) uregex_patternUText(const URegularExpression *regexp, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_regionEnd64(const URegularExpression *regexp, UErrorCode *status) uregex_regionEnd64(const URegularExpression *regexp, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_regionStart64(const URegularExpression *regexp, UErrorCode *status) uregex_regionStart64(const URegularExpression *regexp, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_reset64(URegularExpression *regexp, int64_t index, UErrorCode *status) uregex_reset64(URegularExpression *regexp, int64_t index, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_setFindProgressCallback(URegularExpression *regexp, URegexFindProgressCallback *callback, const void *context, UErrorCode *status) uregex_setFindProgressCallback(URegularExpression *regexp, URegexFindProgressCallback *callback, const void *context, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_setRegion64(URegularExpression *regexp, int64_t regionStart, int64_t regionLimit, UErrorCode *status) uregex_setRegion64(URegularExpression *regexp, int64_t regionStart, int64_t regionLimit, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_setRegionAndStart(URegularExpression *regexp, int64_t regionStart, int64_t regionLimit, int64_t startIndex, UErrorCode *status) uregex_setRegionAndStart(URegularExpression *regexp, int64_t regionStart, int64_t regionLimit, int64_t startIndex, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_start64(URegularExpression *regexp, int32_t groupNum, UErrorCode *status) uregex_start64(URegularExpression *regexp, int32_t groupNum, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uscript_getScriptExtensions(UChar32 c, UScriptCode *scripts, int32_t capacity, UErrorCode *pErrorCode) uscript_getScriptExtensions(UChar32 c, UScriptCode *scripts, int32_t capacity, UErrorCode *pErrorCode)_DRAFT_API_DO_NOT_USE
-#        define uscript_hasScript(UChar32 c, UScriptCode sc) uscript_hasScript(UChar32 c, UScriptCode sc)_DRAFT_API_DO_NOT_USE
+#        define bamuScriptCode bamuScriptCode_DRAFT_API_DO_NOT_USE
+#        define u_fadopt u_fadopt_DRAFT_API_DO_NOT_USE
+#        define u_strFromJavaModifiedUTF8WithSub u_strFromJavaModifiedUTF8WithSub_DRAFT_API_DO_NOT_USE
+#        define u_strToJavaModifiedUTF8 u_strToJavaModifiedUTF8_DRAFT_API_DO_NOT_USE
+#        define ucal_getDayOfWeekType ucal_getDayOfWeekType_DRAFT_API_DO_NOT_USE
+#        define ucal_getWeekendTransition ucal_getWeekendTransition_DRAFT_API_DO_NOT_USE
+#        define ucal_isWeekend ucal_isWeekend_DRAFT_API_DO_NOT_USE
+#        define udat_toCalendarDateField udat_toCalendarDateField_DRAFT_API_DO_NOT_USE
+#        define udatpg_getBestPatternWithOptions udatpg_getBestPatternWithOptions_DRAFT_API_DO_NOT_USE
+#        define udatpg_replaceFieldTypesWithOptions udatpg_replaceFieldTypesWithOptions_DRAFT_API_DO_NOT_USE
+#        define uldn_close uldn_close_DRAFT_API_DO_NOT_USE
+#        define uldn_getDialectHandling uldn_getDialectHandling_DRAFT_API_DO_NOT_USE
+#        define uldn_getLocale uldn_getLocale_DRAFT_API_DO_NOT_USE
+#        define uldn_keyDisplayName uldn_keyDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_keyValueDisplayName uldn_keyValueDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_languageDisplayName uldn_languageDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_localeDisplayName uldn_localeDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_open uldn_open_DRAFT_API_DO_NOT_USE
+#        define uldn_regionDisplayName uldn_regionDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_scriptCodeDisplayName uldn_scriptCodeDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_scriptDisplayName uldn_scriptDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_variantDisplayName uldn_variantDisplayName_DRAFT_API_DO_NOT_USE
+#        define uloc_forLanguageTag uloc_forLanguageTag_DRAFT_API_DO_NOT_USE
+#        define uloc_toLanguageTag uloc_toLanguageTag_DRAFT_API_DO_NOT_USE
+#        define unorm2_append unorm2_append_DRAFT_API_DO_NOT_USE
+#        define unorm2_close unorm2_close_DRAFT_API_DO_NOT_USE
+#        define unorm2_getInstance unorm2_getInstance_DRAFT_API_DO_NOT_USE
+#        define unorm2_hasBoundaryAfter unorm2_hasBoundaryAfter_DRAFT_API_DO_NOT_USE
+#        define unorm2_hasBoundaryBefore unorm2_hasBoundaryBefore_DRAFT_API_DO_NOT_USE
+#        define unorm2_isInert unorm2_isInert_DRAFT_API_DO_NOT_USE
+#        define unorm2_isNormalized unorm2_isNormalized_DRAFT_API_DO_NOT_USE
+#        define unorm2_normalize unorm2_normalize_DRAFT_API_DO_NOT_USE
+#        define unorm2_normalizeSecondAndAppend unorm2_normalizeSecondAndAppend_DRAFT_API_DO_NOT_USE
+#        define unorm2_openFiltered unorm2_openFiltered_DRAFT_API_DO_NOT_USE
+#        define unorm2_quickCheck unorm2_quickCheck_DRAFT_API_DO_NOT_USE
+#        define unorm2_spanQuickCheckYes unorm2_spanQuickCheckYes_DRAFT_API_DO_NOT_USE
+#        define unum_formatDecimal unum_formatDecimal_DRAFT_API_DO_NOT_USE
+#        define unum_parseDecimal unum_parseDecimal_DRAFT_API_DO_NOT_USE
 #    else
-#        define StringPiece&amp;y)_4_7 StringPiece&amp;y)_DRAFT_API_DO_NOT_USE
-#        define ubidi_getBaseDirection(const UChar *text, int32_t length)_4_7 ubidi_getBaseDirection(const UChar *text, int32_t length)_DRAFT_API_DO_NOT_USE
-#        define ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, const char *region, const int32_t *rawOffset, UErrorCode *ec)_4_7 ucal_openTimeZoneIDEnumeration(USystemTimeZoneType zoneType, const char *region, const int32_t *rawOffset, UErrorCode *ec)_DRAFT_API_DO_NOT_USE
-#        define ucnv_isFixedWidth(UConverter *cnv, UErrorCode *status)_4_7 ucnv_isFixedWidth(UConverter *cnv, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uidna_close(UIDNA *idna)_4_7 uidna_close(UIDNA *idna)_DRAFT_API_DO_NOT_USE
-#        define uidna_openUTS46(uint32_t options, UErrorCode *pErrorCode)_4_7 uidna_openUTS46(uint32_t options, UErrorCode *pErrorCode)_DRAFT_API_DO_NOT_USE
-#        define uloc_forLanguageTag(const char *langtag, char *localeID, int32_t localeIDCapacity, int32_t *parsedLength, UErrorCode *err)_4_7 uloc_forLanguageTag(const char *langtag, char *localeID, int32_t localeIDCapacity, int32_t *parsedLength, UErrorCode *err)_DRAFT_API_DO_NOT_USE
-#        define uloc_toLanguageTag(const char *localeID, char *langtag, int32_t langtagCapacity, UBool strict, UErrorCode *err)_4_7 uloc_toLanguageTag(const char *localeID, char *langtag, int32_t langtagCapacity, UBool strict, UErrorCode *err)_DRAFT_API_DO_NOT_USE
-#        define unorm2_getDecomposition(const UNormalizer2 *norm2, UChar32 c, UChar *decomposition, int32_t capacity, UErrorCode *pErrorCode)_4_7 unorm2_getDecomposition(const UNormalizer2 *norm2, UChar32 c, UChar *decomposition, int32_t capacity, UErrorCode *pErrorCode)_DRAFT_API_DO_NOT_USE
-#        define uregex_end64(URegularExpression *regexp, int32_t groupNum, UErrorCode *status)_4_7 uregex_end64(URegularExpression *regexp, int32_t groupNum, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_find64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_4_7 uregex_find64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_getFindProgressCallback(const URegularExpression *regexp, URegexFindProgressCallback **callback, const void **context, UErrorCode *status)_4_7 uregex_getFindProgressCallback(const URegularExpression *regexp, URegexFindProgressCallback **callback, const void **context, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_lookingAt64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_4_7 uregex_lookingAt64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_matches64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_4_7 uregex_matches64(URegularExpression *regexp, int64_t startIndex, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_patternUText(const URegularExpression *regexp, UErrorCode *status)_4_7 uregex_patternUText(const URegularExpression *regexp, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_regionEnd64(const URegularExpression *regexp, UErrorCode *status)_4_7 uregex_regionEnd64(const URegularExpression *regexp, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_regionStart64(const URegularExpression *regexp, UErrorCode *status)_4_7 uregex_regionStart64(const URegularExpression *regexp, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_reset64(URegularExpression *regexp, int64_t index, UErrorCode *status)_4_7 uregex_reset64(URegularExpression *regexp, int64_t index, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_setFindProgressCallback(URegularExpression *regexp, URegexFindProgressCallback *callback, const void *context, UErrorCode *status)_4_7 uregex_setFindProgressCallback(URegularExpression *regexp, URegexFindProgressCallback *callback, const void *context, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_setRegion64(URegularExpression *regexp, int64_t regionStart, int64_t regionLimit, UErrorCode *status)_4_7 uregex_setRegion64(URegularExpression *regexp, int64_t regionStart, int64_t regionLimit, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_setRegionAndStart(URegularExpression *regexp, int64_t regionStart, int64_t regionLimit, int64_t startIndex, UErrorCode *status)_4_7 uregex_setRegionAndStart(URegularExpression *regexp, int64_t regionStart, int64_t regionLimit, int64_t startIndex, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uregex_start64(URegularExpression *regexp, int32_t groupNum, UErrorCode *status)_4_7 uregex_start64(URegularExpression *regexp, int32_t groupNum, UErrorCode *status)_DRAFT_API_DO_NOT_USE
-#        define uscript_getScriptExtensions(UChar32 c, UScriptCode *scripts, int32_t capacity, UErrorCode *pErrorCode)_4_7 uscript_getScriptExtensions(UChar32 c, UScriptCode *scripts, int32_t capacity, UErrorCode *pErrorCode)_DRAFT_API_DO_NOT_USE
-#        define uscript_hasScript(UChar32 c, UScriptCode sc)_4_7 uscript_hasScript(UChar32 c, UScriptCode sc)_DRAFT_API_DO_NOT_USE
+#        define bamuScriptCode_4_4 bamuScriptCode_DRAFT_API_DO_NOT_USE
+#        define u_fadopt_4_4 u_fadopt_DRAFT_API_DO_NOT_USE
+#        define u_strFromJavaModifiedUTF8WithSub_4_4 u_strFromJavaModifiedUTF8WithSub_DRAFT_API_DO_NOT_USE
+#        define u_strToJavaModifiedUTF8_4_4 u_strToJavaModifiedUTF8_DRAFT_API_DO_NOT_USE
+#        define ucal_getDayOfWeekType_4_4 ucal_getDayOfWeekType_DRAFT_API_DO_NOT_USE
+#        define ucal_getWeekendTransition_4_4 ucal_getWeekendTransition_DRAFT_API_DO_NOT_USE
+#        define ucal_isWeekend_4_4 ucal_isWeekend_DRAFT_API_DO_NOT_USE
+#        define udat_toCalendarDateField_4_4 udat_toCalendarDateField_DRAFT_API_DO_NOT_USE
+#        define udatpg_getBestPatternWithOptions_4_4 udatpg_getBestPatternWithOptions_DRAFT_API_DO_NOT_USE
+#        define udatpg_replaceFieldTypesWithOptions_4_4 udatpg_replaceFieldTypesWithOptions_DRAFT_API_DO_NOT_USE
+#        define uldn_close_4_4 uldn_close_DRAFT_API_DO_NOT_USE
+#        define uldn_getDialectHandling_4_4 uldn_getDialectHandling_DRAFT_API_DO_NOT_USE
+#        define uldn_getLocale_4_4 uldn_getLocale_DRAFT_API_DO_NOT_USE
+#        define uldn_keyDisplayName_4_4 uldn_keyDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_keyValueDisplayName_4_4 uldn_keyValueDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_languageDisplayName_4_4 uldn_languageDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_localeDisplayName_4_4 uldn_localeDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_open_4_4 uldn_open_DRAFT_API_DO_NOT_USE
+#        define uldn_regionDisplayName_4_4 uldn_regionDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_scriptCodeDisplayName_4_4 uldn_scriptCodeDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_scriptDisplayName_4_4 uldn_scriptDisplayName_DRAFT_API_DO_NOT_USE
+#        define uldn_variantDisplayName_4_4 uldn_variantDisplayName_DRAFT_API_DO_NOT_USE
+#        define uloc_forLanguageTag_4_4 uloc_forLanguageTag_DRAFT_API_DO_NOT_USE
+#        define uloc_toLanguageTag_4_4 uloc_toLanguageTag_DRAFT_API_DO_NOT_USE
+#        define unorm2_append_4_4 unorm2_append_DRAFT_API_DO_NOT_USE
+#        define unorm2_close_4_4 unorm2_close_DRAFT_API_DO_NOT_USE
+#        define unorm2_getInstance_4_4 unorm2_getInstance_DRAFT_API_DO_NOT_USE
+#        define unorm2_hasBoundaryAfter_4_4 unorm2_hasBoundaryAfter_DRAFT_API_DO_NOT_USE
+#        define unorm2_hasBoundaryBefore_4_4 unorm2_hasBoundaryBefore_DRAFT_API_DO_NOT_USE
+#        define unorm2_isInert_4_4 unorm2_isInert_DRAFT_API_DO_NOT_USE
+#        define unorm2_isNormalized_4_4 unorm2_isNormalized_DRAFT_API_DO_NOT_USE
+#        define unorm2_normalizeSecondAndAppend_4_4 unorm2_normalizeSecondAndAppend_DRAFT_API_DO_NOT_USE
+#        define unorm2_normalize_4_4 unorm2_normalize_DRAFT_API_DO_NOT_USE
+#        define unorm2_openFiltered_4_4 unorm2_openFiltered_DRAFT_API_DO_NOT_USE
+#        define unorm2_quickCheck_4_4 unorm2_quickCheck_DRAFT_API_DO_NOT_USE
+#        define unorm2_spanQuickCheckYes_4_4 unorm2_spanQuickCheckYes_DRAFT_API_DO_NOT_USE
+#        define unum_formatDecimal_4_4 unum_formatDecimal_DRAFT_API_DO_NOT_USE
+#        define unum_parseDecimal_4_4 unum_parseDecimal_DRAFT_API_DO_NOT_USE
 #    endif /* U_DISABLE_RENAMING */
 
 #endif /* U_HIDE_DRAFT_API */

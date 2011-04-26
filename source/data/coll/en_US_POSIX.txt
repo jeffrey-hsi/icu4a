@@ -1,20 +1,17 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2011 International Business Machines
+// * Copyright (C) 2010 International Business Machines
 // * Corporation and others.  All Rights Reserved.
 // * Tool: com.ibm.icu.dev.tool.cldr.LDML2ICUConverter.java
-// * Source File:<path>/common/collation/en_US_POSIX.xml
+// * Source File:<path>/icu-config.xml & build.xml
 // *
 // ***************************************************************************
 /**
- *  ICU <specials> source: <path>/xml/collation/en_US_POSIX.xml
+ * validSubLocale of "en"
  */
 en_US_POSIX{
-    Version{"2.0.52.4"}
-    collations{
-        standard{
-            Sequence{"&A<*'\u0020'-'/'0-'@'A-Z'['-'`'a-z'{'-'\u007F'"}
-            Version{"1.9.9"}
-        }
-    }
+    /**
+     * so genrb doesn't issue warnings
+     */
+    ___{""}
 }
