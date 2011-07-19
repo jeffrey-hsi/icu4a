@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2011, International Business Machines
+*   Copyright (C) 1999-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -56,8 +56,7 @@ ucnv_canCreateConverter(const char *converterName, UErrorCode *err);
  * @param err The error code
  * @return the newly created converter
  */
-U_CAPI UConverter *
-ucnv_createConverter(UConverter *myUConverter, const char *converterName, UErrorCode * err);
+UConverter *ucnv_createConverter (UConverter *myUConverter, const char *converterName, UErrorCode * err);
 
 /*
  * Open a purely algorithmic converter, specified by a type constant.
@@ -82,14 +81,14 @@ ucnv_createAlgorithmicConverter(UConverter *myUConverter,
  * unload mySharedConverterData, except via ucnv_close(return value)
  * if this function is successful.
  */
-U_CFUNC UConverter *
+UConverter*
 ucnv_createConverterFromSharedData(UConverter *myUConverter,
                                    UConverterSharedData *mySharedConverterData,
                                    UConverterLoadArgs *pArgs,
                                    UErrorCode *err);
 
-U_CFUNC UConverter *
-ucnv_createConverterFromPackage(const char *packageName, const char *converterName, UErrorCode *err);
+UConverter* ucnv_createConverterFromPackage(const char *packageName, const char *converterName,  
+                                            UErrorCode *err);
 
 /**
  * Load a converter but do not create a UConverter object.
@@ -106,7 +105,7 @@ ucnv_createConverterFromPackage(const char *packageName, const char *converterNa
  * - pieces!=NULL && args!=NULL
  * @internal
  */
-U_CFUNC UConverterSharedData *
+UConverterSharedData *
 ucnv_loadSharedData(const char *converterName,
                     UConverterNamePieces *pieces,
                     UConverterLoadArgs *pArgs,
@@ -116,13 +115,13 @@ ucnv_loadSharedData(const char *converterName,
  * This may unload the shared data in a thread safe manner.
  * This will only unload the data if no other converters are sharing it.
  */
-U_CFUNC void
+void
 ucnv_unloadSharedDataIfReady(UConverterSharedData *sharedData);
 
 /**
  * This is a thread safe way to increment the reference count.
  */
-U_CFUNC void
+void
 ucnv_incrementRefCount(UConverterSharedData *sharedData);
 
 /**

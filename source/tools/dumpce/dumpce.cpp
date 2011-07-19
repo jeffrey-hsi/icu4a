@@ -1017,6 +1017,7 @@ int getScriptElementsFromExemplars(ScriptElement scriptelem[], const char* local
             UTF16_APPEND_CHAR_UNSAFE(scriptelem[count].ch, scriptelem[count].count, codepoint);
             scriptelem[count].tailored = FALSE;
         }
+        delete []pattern;
 
         count++;
     }

@@ -149,8 +149,6 @@ Cleanly installed Solaris can use this #define.
 #include "icucfg.h"
 #endif
 
-#define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
-
 /* Define the extension for data files, again... */
 #define DATA_TYPE "dat"
 
@@ -812,7 +810,7 @@ static const char* remapShortTimeZone(const char *stdID, const char *dstID, int3
 #ifdef DEBUG_TZNAME
     fprintf(stderr, "TZ=%s std=%s dst=%s daylight=%d offset=%d\n", getenv("TZ"), stdID, dstID, daylightType, offset);
 #endif
-    for (idx = 0; idx < LENGTHOF(OFFSET_ZONE_MAPPINGS); idx++)
+    for (idx = 0; idx < (int32_t)sizeof(OFFSET_ZONE_MAPPINGS)/sizeof(OFFSET_ZONE_MAPPINGS[0]); idx++)
     {
         if (offset == OFFSET_ZONE_MAPPINGS[idx].offsetSeconds
             && daylightType == OFFSET_ZONE_MAPPINGS[idx].daylightType
@@ -1486,7 +1484,7 @@ The leftmost codepage (.xxx) wins.
 
     if ((p = uprv_strchr(posixID, '.')) != NULL) {
         /* assume new locale can't be larger than old one? */
-        correctedPOSIXLocale = reinterpret_cast<char *>(uprv_malloc(uprv_strlen(posixID)+1));
+        correctedPOSIXLocale = uprv_malloc(uprv_strlen(posixID)+1);
         /* Exit on memory allocation error. */
         if (correctedPOSIXLocale == NULL) {
             return NULL;
@@ -1503,7 +1501,7 @@ The leftmost codepage (.xxx) wins.
     /* Note that we scan the *uncorrected* ID. */
     if ((p = uprv_strrchr(posixID, '@')) != NULL) {
         if (correctedPOSIXLocale == NULL) {
-            correctedPOSIXLocale = reinterpret_cast<char *>(uprv_malloc(uprv_strlen(posixID)+1));
+            correctedPOSIXLocale = uprv_malloc(uprv_strlen(posixID)+1);
             /* Exit on memory allocation error. */
             if (correctedPOSIXLocale == NULL) {
                 return NULL;
@@ -1854,7 +1852,7 @@ getCodepageFromPOSIXID(const char *localeName, char * buffer, int32_t buffCapaci
         localeBuf[localeCapacity-1] = 0; /* ensure NULL termination */
         name = uprv_strncpy(buffer, name+1, buffCapacity);
         buffer[buffCapacity-1] = 0; /* ensure NULL termination */
-        if ((variant = const_cast<char *>(uprv_strchr(name, '@'))) != NULL) {
+        if ((variant = (uprv_strchr(name, '@'))) != NULL) {
             *variant = 0;
         }
         name = remapPlatformDependentCodepage(localeBuf, name);
@@ -2120,16 +2118,21 @@ uprv_dl_close(void *lib, UErrorCode *status) {
 U_INTERNAL UVoidFunction* U_EXPORT2
 uprv_dlsym_func(void *lib, const char* sym, UErrorCode *status) {
   union {
-      UVoidFunction *fp;
-      void *vp;
-  } uret;
-  uret.fp = NULL;
-  if(U_FAILURE(*status)) return uret.fp;
-  uret.vp = dlsym(lib, sym);
-  if(uret.vp == NULL) {
+      void* voidPtr;
+      UVoidFunction* voidFunc;
+  } ret;
+  ret.voidPtr = NULL;
+  if(U_FAILURE(*status)) return NULL;
+  /*
+   * ISO forbids the following cast, but it's needed for dlsym.
+   *  See: http://pubs.opengroup.org/onlinepubs/009695399/functions/dlsym.html
+   *  See: http://www.trilithium.com/johan/2004/12/problem-with-dlsym/ 
+   */
+  ret.voidPtr = dlsym(lib, sym);
+  if(ret.voidPtr == NULL) {
     *status = U_MISSING_RESOURCE_ERROR;
   }
-  return uret.fp;
+  return ret.voidFunc;
 }
 
 #else

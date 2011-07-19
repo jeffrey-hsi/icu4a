@@ -11,7 +11,6 @@
 #include "uvector.h"
 #include "cmemory.h"
 #include "uarrsort.h"
-#include "uelement.h"
 
 U_NAMESPACE_BEGIN
 
@@ -47,7 +46,7 @@ UVector::UVector(int32_t initialCapacity, UErrorCode &status) :
     _init(initialCapacity, status);
 }
 
-UVector::UVector(UObjectDeleter *d, UElementsAreEqual *c, UErrorCode &status) :
+UVector::UVector(UObjectDeleter *d, UKeyComparator *c, UErrorCode &status) :
     count(0),
     capacity(0),
     elements(0),
@@ -57,7 +56,7 @@ UVector::UVector(UObjectDeleter *d, UElementsAreEqual *c, UErrorCode &status) :
     _init(DEFAULT_CAPACITY, status);
 }
 
-UVector::UVector(UObjectDeleter *d, UElementsAreEqual *c, int32_t initialCapacity, UErrorCode &status) :
+UVector::UVector(UObjectDeleter *d, UKeyComparator *c, int32_t initialCapacity, UErrorCode &status) :
     count(0),
     capacity(0),
     elements(0),
@@ -72,10 +71,10 @@ void UVector::_init(int32_t initialCapacity, UErrorCode &status) {
         return;
     }
     // Fix bogus initialCapacity values; avoid malloc(0) and integer overflow
-    if ((initialCapacity < 1) || (initialCapacity > (int32_t)(INT32_MAX / sizeof(UElement)))) {
+    if ((initialCapacity < 1) || (initialCapacity > (int32_t)(INT32_MAX / sizeof(UHashTok)))) {
         initialCapacity = DEFAULT_CAPACITY;
     }
-    elements = (UElement *)uprv_malloc(sizeof(UElement)*initialCapacity);
+    elements = (UHashTok *)uprv_malloc(sizeof(UHashTok)*initialCapacity);
     if (elements == 0) {
         status = U_MEMORY_ALLOCATION_ERROR;
     } else {
@@ -93,7 +92,7 @@ UVector::~UVector() {
  * Assign this object to another (make this a copy of 'other').
  * Use the 'assign' function to assign each element.
  */
-void UVector::assign(const UVector& other, UElementAssigner *assign, UErrorCode &ec) {
+void UVector::assign(const UVector& other, UTokenAssigner *assign, UErrorCode &ec) {
     if (ensureCapacity(other.count, ec)) {
         setSize(other.count, ec);
         if (U_SUCCESS(ec)) {
@@ -273,7 +272,7 @@ UBool   UVector::equals(const UVector &other) const {
             }
         }
     } else {
-        UElement key;
+        UHashTok key;
         for (i=0; i<count; i++) {
             key.pointer = &other.elements[i];
             if (!(*comparer)(key, elements[i])) {
@@ -287,19 +286,19 @@ UBool   UVector::equals(const UVector &other) const {
 
 
 int32_t UVector::indexOf(void* obj, int32_t startIndex) const {
-    UElement key;
+    UHashTok key;
     key.pointer = obj;
     return indexOf(key, startIndex, HINT_KEY_POINTER);
 }
 
 int32_t UVector::indexOf(int32_t obj, int32_t startIndex) const {
-    UElement key;
+    UHashTok key;
     key.integer = obj;
     return indexOf(key, startIndex, HINT_KEY_INTEGER);
 }
 
 // This only works if this object has a non-null comparer
-int32_t UVector::indexOf(UElement key, int32_t startIndex, int8_t hint) const {
+int32_t UVector::indexOf(UHashTok key, int32_t startIndex, int8_t hint) const {
     int32_t i;
     if (comparer != 0) {
         for (i=startIndex; i<count; ++i) {
@@ -340,12 +339,12 @@ UBool UVector::ensureCapacity(int32_t minimumCapacity, UErrorCode &status) {
         if (newCap < minimumCapacity) {
             newCap = minimumCapacity;
         }
-        if (newCap > (int32_t)(INT32_MAX / sizeof(UElement))) {	// integer overflow check
+        if (newCap > (int32_t)(INT32_MAX / sizeof(UHashTok))) {	// integer overflow check
         	// We keep the original memory contents on bad minimumCapacity.
         	status = U_ILLEGAL_ARGUMENT_ERROR;
         	return FALSE;
         }
-        UElement* newElems = (UElement *)uprv_realloc(elements, sizeof(UElement)*newCap);
+        UHashTok* newElems = (UHashTok *)uprv_realloc(elements, sizeof(UHashTok)*newCap);
         if (newElems == NULL) {
             // We keep the original contents on the memory failure on realloc or bad minimumCapacity.
             status = U_MEMORY_ALLOCATION_ERROR;
@@ -372,7 +371,7 @@ void UVector::setSize(int32_t newSize, UErrorCode &status) {
         if (!ensureCapacity(newSize, status)) {
             return;
         }
-        UElement empty;
+        UHashTok empty;
         empty.pointer = NULL;
         empty.integer = 0;
         for (i=count; i<newSize; ++i) {
@@ -404,8 +403,8 @@ UObjectDeleter *UVector::setDeleter(UObjectDeleter *d) {
     return old;
 }
 
-UElementsAreEqual *UVector::setComparer(UElementsAreEqual *d) {
-    UElementsAreEqual *old = comparer;
+UKeyComparator *UVector::setComparer(UKeyComparator *d) {
+    UKeyComparator *old = comparer;
     comparer = d;
     return old;
 }
@@ -437,10 +436,10 @@ void* UVector::orphanElementAt(int32_t index) {
  * as defined by 'compare'.  The current elements are assumed to
  * be sorted already.
  */
-void UVector::sortedInsert(void* obj, UElementComparator *compare, UErrorCode& ec) {
-    UElement e;
-    e.pointer = obj;
-    sortedInsert(e, compare, ec);
+void UVector::sortedInsert(void* obj, USortComparator *compare, UErrorCode& ec) {
+    UHashTok tok;
+    tok.pointer = obj;
+    sortedInsert(tok, compare, ec);
 }
 
 /**
@@ -448,14 +447,14 @@ void UVector::sortedInsert(void* obj, UElementComparator *compare, UErrorCode& e
  * as defined by 'compare'.  The current elements are assumed to
  * be sorted already.
  */
-void UVector::sortedInsert(int32_t obj, UElementComparator *compare, UErrorCode& ec) {
-    UElement e;
-    e.integer = obj;
-    sortedInsert(e, compare, ec);
+void UVector::sortedInsert(int32_t obj, USortComparator *compare, UErrorCode& ec) {
+    UHashTok tok;
+    tok.integer = obj;
+    sortedInsert(tok, compare, ec);
 }
 
 // ASSUME elements[] IS CURRENTLY SORTED
-void UVector::sortedInsert(UElement e, UElementComparator *compare, UErrorCode& ec) {
+void UVector::sortedInsert(UHashTok tok, USortComparator *compare, UErrorCode& ec) {
     // Perform a binary search for the location to insert tok at.  Tok
     // will be inserted between two elements a and b such that a <=
     // tok && tok < b, where there is a 'virtual' elements[-1] always
@@ -464,7 +463,7 @@ void UVector::sortedInsert(UElement e, UElementComparator *compare, UErrorCode& 
     int32_t min = 0, max = count;
     while (min != max) {
         int32_t probe = (min + max) / 2;
-        int8_t c = (*compare)(elements[probe], e);
+        int8_t c = (*compare)(elements[probe], tok);
         if (c > 0) {
             max = probe;
         } else {
@@ -476,7 +475,7 @@ void UVector::sortedInsert(UElement e, UElementComparator *compare, UErrorCode& 
         for (int32_t i=count; i>min; --i) {
             elements[i] = elements[i-1];
         }
-        elements[min] = e;
+        elements[min] = tok;
         ++count;
     }
 }
@@ -494,10 +493,10 @@ void UVector::sortedInsert(UElement e, UElementComparator *compare, UErrorCode& 
   */
 static int32_t U_CALLCONV
 sortComparator(const void *context, const void *left, const void *right) {
-    UElementComparator *compare = *static_cast<UElementComparator * const *>(context);
-    UElement e1 = *static_cast<const UElement *>(left);
-    UElement e2 = *static_cast<const UElement *>(right);
-    int32_t result = (*compare)(e1, e2);
+    USortComparator *compare = *static_cast<USortComparator * const *>(context);
+    UHashTok tok1 = *static_cast<const UHashTok *>(left);
+    UHashTok tok2 = *static_cast<const UHashTok *>(right);
+    int32_t result = (*compare)(tok1, tok2);
     return result;
 }
 
@@ -508,22 +507,22 @@ sortComparator(const void *context, const void *left, const void *right) {
   */
 static int32_t U_CALLCONV
 sortiComparator(const void * /*context */, const void *left, const void *right) {
-    const UElement *e1 = static_cast<const UElement *>(left);
-    const UElement *e2 = static_cast<const UElement *>(right);
-    int32_t result = e1->integer < e2->integer? -1 :
-                     e1->integer == e2->integer? 0 : 1;
+    const UHashTok *tok1 = static_cast<const UHashTok *>(left);
+    const UHashTok *tok2 = static_cast<const UHashTok *>(right);
+    int32_t result = tok1->integer < tok2->integer? -1 :
+                     tok1->integer == tok2->integer? 0 : 1;
     return result;
 }
 
 /**
   * Sort the vector, assuming it constains ints.
   *     (A more general sort would take a comparison function, but it's
-  *     not clear whether UVector's UElementComparator or
+  *     not clear whether UVector's USortComparator or
   *     UComparator from uprv_sortAray would be more appropriate.)
   */
 void UVector::sorti(UErrorCode &ec) {
     if (U_SUCCESS(ec)) {
-        uprv_sortArray(elements, count, sizeof(UElement),
+        uprv_sortArray(elements, count, sizeof(UHashTok),
                        sortiComparator, NULL,  FALSE, &ec);
     }
 }
@@ -543,9 +542,9 @@ void UVector::sorti(UErrorCode &ec) {
  *    as  a (void *) data pointer, so instead we pass a (data) pointer to a
  *    pointer-to-function variable.
  */
-void UVector::sort(UElementComparator *compare, UErrorCode &ec) {
+void UVector::sort(USortComparator *compare, UErrorCode &ec) {
     if (U_SUCCESS(ec)) {
-        uprv_sortArray(elements, count, sizeof(UElement),
+        uprv_sortArray(elements, count, sizeof(UHashTok),
                        sortComparator, &compare, FALSE, &ec);
     }
 }
@@ -556,7 +555,7 @@ void UVector::sort(UElementComparator *compare, UErrorCode &ec) {
  */
 void UVector::sortWithUComparator(UComparator *compare, const void *context, UErrorCode &ec) {
     if (U_SUCCESS(ec)) {
-        uprv_sortArray(elements, count, sizeof(UElement),
+        uprv_sortArray(elements, count, sizeof(UHashTok),
                        compare, context, FALSE, &ec);
     }
 }

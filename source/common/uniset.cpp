@@ -16,12 +16,13 @@
 #include "cmemory.h"
 #include "cstring.h"
 #include "patternprops.h"
-#include "uelement.h"
+#include "uhash.h"
 #include "util.h"
 #include "uvector.h"
 #include "charstr.h"
 #include "ustrfmt.h"
 #include "uassert.h"
+#include "hash.h"
 #include "bmpset.h"
 #include "unisetspan.h"
 
@@ -123,11 +124,11 @@ static inline void _dbgdt(UnicodeSet* set) {
 // UnicodeString in UVector support
 //----------------------------------------------------------------
 
-static void U_CALLCONV cloneUnicodeString(UElement *dst, UElement *src) {
+static void U_CALLCONV cloneUnicodeString(UHashTok *dst, UHashTok *src) {
     dst->pointer = new UnicodeString(*(UnicodeString*)src->pointer);
 }
 
-static int8_t U_CALLCONV compareUnicodeString(UElement t1, UElement t2) {
+static int8_t U_CALLCONV compareUnicodeString(UHashTok t1, UHashTok t2) {
     const UnicodeString &a = *(const UnicodeString*)t1.pointer;
     const UnicodeString &b = *(const UnicodeString*)t2.pointer;
     return a.compare(b);
@@ -1558,7 +1559,7 @@ UBool UnicodeSet::allocateStrings(UErrorCode &status) {
     if (U_FAILURE(status)) {
         return FALSE;
     }
-    strings = new UVector(uprv_deleteUObject,
+    strings = new UVector(uhash_deleteUnicodeString,
                           uhash_compareUnicodeString, 1, status);
     if (strings == NULL) { // Check for memory allocation error.
         status = U_MEMORY_ALLOCATION_ERROR;

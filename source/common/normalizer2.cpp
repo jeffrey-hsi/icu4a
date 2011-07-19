@@ -189,11 +189,6 @@ public:
         return TRUE;
     }
 
-    virtual uint8_t
-    getCombiningClass(UChar32 c) const {
-        return impl.getCC(impl.getNorm16(c));
-    }
-
     // quick checks
     virtual UBool
     isNormalized(const UnicodeString &s, UErrorCode &errorCode) const {
@@ -637,11 +632,6 @@ Normalizer2::getInstance(const char *packageName,
     return NULL;
 }
 
-uint8_t
-Normalizer2::getCombiningClass(UChar32 /*c*/) const {
-    return 0;
-}
-
 UOBJECT_DEFINE_NO_RTTI_IMPLEMENTATION(Normalizer2)
 
 U_NAMESPACE_END
@@ -792,11 +782,6 @@ unorm2_getDecomposition(const UNormalizer2 *norm2,
     }
 }
 
-U_DRAFT uint8_t U_EXPORT2
-unorm2_getCombiningClass(const UNormalizer2 *norm2, UChar32 c) {
-    return reinterpret_cast<const Normalizer2 *>(norm2)->getCombiningClass(c);
-}
-
 U_DRAFT UBool U_EXPORT2
 unorm2_isNormalized(const UNormalizer2 *norm2,
                     const UChar *s, int32_t length,
@@ -859,18 +844,7 @@ unorm2_isInert(const UNormalizer2 *norm2, UChar32 c) {
 
 // Some properties APIs ---------------------------------------------------- ***
 
-U_CAPI uint8_t U_EXPORT2
-u_getCombiningClass(UChar32 c) {
-    UErrorCode errorCode=U_ZERO_ERROR;
-    const Normalizer2 *nfd=Normalizer2Factory::getNFDInstance(errorCode);
-    if(U_SUCCESS(errorCode)) {
-        return nfd->getCombiningClass(c);
-    } else {
-        return 0;
-    }
-}
-
-U_CFUNC UNormalizationCheckResult
+U_CFUNC UNormalizationCheckResult U_EXPORT2
 unorm_getQuickCheck(UChar32 c, UNormalizationMode mode) {
     if(mode<=UNORM_NONE || UNORM_FCD<=mode) {
         return UNORM_YES;
@@ -881,17 +855,6 @@ unorm_getQuickCheck(UChar32 c, UNormalizationMode mode) {
         return ((const Normalizer2WithImpl *)norm2)->getQuickCheck(c);
     } else {
         return UNORM_MAYBE;
-    }
-}
-
-U_CFUNC uint16_t
-unorm_getFCD16Simple(UChar32 c) {
-    UErrorCode errorCode=U_ZERO_ERROR;
-    const UTrie2 *trie=Normalizer2Factory::getFCDTrie(errorCode);
-    if(U_SUCCESS(errorCode)) {
-        return UTRIE2_GET16(trie, c);
-    } else {
-        return 0;
     }
 }
 

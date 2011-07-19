@@ -178,9 +178,9 @@ for(;@ARGV; shift(@ARGV)) {
                 } elsif($CppName[0] =~ /^~/) {
                     &verbose ("Skipping C++ destructor: $_\n");
                 } else {
-                    &verbose( "Skipping C++ class: '$CppName[0]': $_ \n");
-                    # $CppClasses{$CppName[0]}++;
-                    # $symbolCount++;
+		    &verbose( " Class: '$CppName[0]': $_ \n");
+                    $CppClasses{$CppName[0]}++;
+		    $symbolCount++;
                 }
 	    } elsif ( my ($cfn) = m/^([A-Za-z0-9_]*)\(.*/ ) {
 		&verbose ( "$ARGV[0]:  got global C++ function  $cfn with '$_'\n" );
@@ -228,6 +228,15 @@ foreach(sort keys(%CFuncs)) {
 #    print HEADER "#define $_ $_$U_ICU_VERSION_SUFFIX\n";
 }
 
+print HEADER "\n\n";
+print HEADER "/* C++ class names renaming defines */\n\n";
+print HEADER "#ifdef XP_CPLUSPLUS\n";
+print HEADER "#if !U_HAVE_NAMESPACE\n\n";
+foreach(sort keys(%CppClasses)) {
+    print HEADER "#define $_ U_ICU_ENTRY_POINT_RENAME($_)\n";
+}
+print HEADER "\n#endif\n";
+print HEADER "#endif\n";
 print HEADER "\n#endif\n";
 print HEADER "\n#endif\n";
 
@@ -255,3 +264,4 @@ EndHelpText
     exit 0;
 
 }
+

@@ -1,5 +1,5 @@
 /******************************************************************************
- *   Copyright (C) 2009-2011, International Business Machines
+ *   Copyright (C) 2009-2010, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *******************************************************************************
  */
@@ -13,18 +13,17 @@
 
 static int32_t currentBufferSize = DEFAULT_BUFFER_SIZE;
 
-static int32_t extractFlag(char* buffer, int32_t bufferSize, char* flag, int32_t flagSize, const char ** flagNames, int32_t numOfFlags, UErrorCode *status);
+static void extractFlag(char* buffer, int32_t bufferSize, char* flag, int32_t flagSize, UErrorCode *status);
 static int32_t getFlagOffset(const char *buffer, int32_t bufferSize);
 
 /*
  * Opens the given fileName and reads in the information storing the data in flagBuffer.
  */
 U_CAPI int32_t U_EXPORT2
-parseFlagsFile(const char *fileName, char **flagBuffer, int32_t flagBufferSize, const char ** flagNames, int32_t numOfFlags, UErrorCode *status) {
+parseFlagsFile(const char *fileName, char **flagBuffer, int32_t flagBufferSize, int32_t numOfFlags, UErrorCode *status) {
     char* buffer = uprv_malloc(sizeof(char) * currentBufferSize);
-    char* tmpFlagBuffer = uprv_malloc(sizeof(char) * flagBufferSize);
     UBool allocateMoreSpace = FALSE;
-    int32_t index, i;
+    int32_t i;
     int32_t result = 0;
 
     FileStream *f = T_FileStream_open(fileName, "r");
@@ -45,18 +44,14 @@ parseFlagsFile(const char *fileName, char **flagBuffer, int32_t flagBufferSize, 
             uprv_free(buffer);
             buffer = uprv_malloc(sizeof(char) * currentBufferSize);
             if (buffer == NULL) {
-                uprv_free(tmpFlagBuffer);
                 *status = U_MEMORY_ALLOCATION_ERROR;
                 return -1;
             }
         }
-        for (i = 0; i < numOfFlags;) {
+        for (i = 0; i < numOfFlags; i++) {
             if (T_FileStream_readLine(f, buffer, currentBufferSize) == NULL) {
-                /* End of file reached. */
+                *status = U_FILE_ACCESS_ERROR;
                 break;
-            }
-            if (buffer[0] == '#') {
-                continue;
             }
 
             if (uprv_strlen(buffer) == (currentBufferSize - 1) && buffer[currentBufferSize-2] != '\n') {
@@ -65,7 +60,7 @@ parseFlagsFile(const char *fileName, char **flagBuffer, int32_t flagBufferSize, 
                 T_FileStream_rewind(f);
                 break;
             } else {
-                index = extractFlag(buffer, currentBufferSize, tmpFlagBuffer, flagBufferSize, flagNames, numOfFlags, status);
+                extractFlag(buffer, currentBufferSize, flagBuffer[i], flagBufferSize, status);
                 if (U_FAILURE(*status)) {
                     if (*status == U_BUFFER_OVERFLOW_ERROR) {
                         result = currentBufferSize;
@@ -73,23 +68,11 @@ parseFlagsFile(const char *fileName, char **flagBuffer, int32_t flagBufferSize, 
                         result = -1;
                     }
                     break;
-                } else {
-                    if (flagNames != NULL) {
-                        if (index >= 0) {
-                            uprv_strcpy(flagBuffer[index], tmpFlagBuffer);
-                        } else {
-                            /* No match found.  Skip it. */
-                            continue;
-                        }
-                    } else {
-                        uprv_strcpy(flagBuffer[i++], tmpFlagBuffer);
-                    }
                 }
             }
         }
     } while (allocateMoreSpace && U_SUCCESS(*status));
 
-    uprv_free(tmpFlagBuffer);
     uprv_free(buffer);
 
     T_FileStream_close(f);
@@ -105,8 +88,8 @@ parseFlagsFile(const char *fileName, char **flagBuffer, int32_t flagBufferSize, 
 /*
  * Extract the setting after the '=' and store it in flag excluding the newline character.
  */
-static int32_t extractFlag(char* buffer, int32_t bufferSize, char* flag, int32_t flagSize, const char **flagNames, int32_t numOfFlags, UErrorCode *status) {
-    int32_t i, index = -1;
+static void extractFlag(char* buffer, int32_t bufferSize, char* flag, int32_t flagSize, UErrorCode *status) {
+    int32_t i;
     char *pBuffer;
     int32_t offset;
     UBool bufferWritten = FALSE;
@@ -118,7 +101,7 @@ static int32_t extractFlag(char* buffer, int32_t bufferSize, char* flag, int32_t
         for(i = 0;;i++) {
             if (i >= flagSize) {
                 *status = U_BUFFER_OVERFLOW_ERROR;
-                return -1;
+                return;
             }
             if (pBuffer[i+1] == 0) {
                 /* Indicates a new line character. End here. */
@@ -136,18 +119,6 @@ static int32_t extractFlag(char* buffer, int32_t bufferSize, char* flag, int32_t
     if (!bufferWritten) {
         flag[0] = 0;
     }
-
-    if (flagNames != NULL) {
-        offset--;  /* Move offset back 1 because of '='*/
-        for (i = 0; i < numOfFlags; i++) {
-            if (uprv_strncmp(buffer, flagNames[i], offset) == 0) {
-                index = i;
-                break;
-            }
-        }
-    }
-
-    return index;
 }
 
 /*

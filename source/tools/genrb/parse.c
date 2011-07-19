@@ -6,7 +6,7 @@
 *
 *******************************************************************************
 *
-* File parse.cpp
+* File parse.c
 *
 * Modification History:
 *
@@ -34,6 +34,8 @@
 #include "unicode/uscript.h"
 #include "unicode/putil.h"
 #include <stdio.h>
+
+extern UBool gIncludeUnihanColl;
 
 /* Number of tokens to read ahead of the current stream position */
 #define MAX_LOOKAHEAD   3
@@ -262,7 +264,7 @@ static char *getInvariantString(ParseState* state, uint32_t *line, struct UStrin
         return NULL;
     }
 
-    result = reinterpret_cast<char *>(uprv_malloc(count+1));
+    result = uprv_malloc(count+1);
 
     if (result == NULL)
     {
@@ -275,7 +277,7 @@ static char *getInvariantString(ParseState* state, uint32_t *line, struct UStrin
 }
 
 static struct SResource *
-parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct UString* /*comment*/, UErrorCode *status)
+parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
 {
     struct SResource *result = NULL;
     struct UString   *tokenValue;
@@ -378,7 +380,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
         {
             c = unescape(ucbuf, status);
 
-            if (c == (UChar32)U_ERR)
+            if (c == U_ERR)
             {
                 uprv_free(pTarget);
                 T_FileStream_close(file);
@@ -394,7 +396,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
         }
 
         /* Append UChar * after dissembling if c > 0xffff*/
-        if (c != (UChar32)U_EOF)
+        if (c != U_EOF)
         {
             U_APPEND_CHAR32(c, target,len);
         }
@@ -420,7 +422,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
 }
 
 static struct SResource *
-parseTransliterator(ParseState* state, char *tag, uint32_t startline, const struct UString* /*comment*/, UErrorCode *status)
+parseTransliterator(ParseState* state, char *tag, uint32_t startline, const struct UString* comment, UErrorCode *status)
 {
     struct SResource *result = NULL;
     struct UString   *tokenValue;
@@ -933,7 +935,7 @@ addCollation(ParseState* state, struct SResource  *result, uint32_t startline, U
                         struct SResource *collationBin = bin_open(state->bundle, "%%CollationBin", len, data, NULL, NULL, status);
                         table_add(result, collationBin, line, status);
                         uprv_free(data);
-
+                        
                         reorderCodeCount = ucol_getReorderCodes(
                             coll, reorderCodes, USCRIPT_CODE_LIMIT + (UCOL_REORDER_CODE_LIMIT - UCOL_REORDER_CODE_FIRST), &intStatus);
                         if (U_SUCCESS(intStatus) && reorderCodeCount > 0) {
@@ -1452,7 +1454,7 @@ parseBinary(ParseState* state, char *tag, uint32_t startline, const struct UStri
     count = (uint32_t)uprv_strlen(string);
     if (count > 0){
         if((count % 2)==0){
-            value = reinterpret_cast<uint8_t *>(uprv_malloc(sizeof(uint8_t) * count));
+            value = uprv_malloc(sizeof(uint8_t) * count);
 
             if (value == NULL)
             {
@@ -1840,7 +1842,7 @@ void initParser(UBool omitBinaryCollation, UBool omitCollationRules)
     gOmitCollationRules = omitCollationRules;
 }
 
-static inline UBool isTable(enum EResourceType type) {
+static U_INLINE UBool isTable(enum EResourceType type) {
     return (UBool)(type==RT_TABLE || type==RT_TABLE_NO_FALLBACK);
 }
 
@@ -1863,7 +1865,7 @@ parseResourceType(ParseState* state, UErrorCode *status)
 
     /* Search for normal types */
     result=RT_UNKNOWN;
-    while ((result=(EResourceType)(result+1)) < RT_RESERVED) {
+    while (++result < RT_RESERVED) {
         if (u_strcmp(tokenValue->fChars, gResourceTypes[result].nameUChars) == 0) {
             break;
         }

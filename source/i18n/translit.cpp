@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 1999-2011, International Business Machines
+ *   Copyright (C) 1999-2010, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
  *   Date        Name        Description
@@ -93,11 +93,14 @@ static UMTX registryMutex = 0;
 /**
  * System transliterator registry; non-null when initialized.
  */
-static icu::TransliteratorRegistry* registry = 0;
+static U_NAMESPACE_QUALIFIER TransliteratorRegistry* registry = 0;
 
 // Macro to check/initialize the registry. ONLY USE WITHIN
 // MUTEX. Avoids function call when registry is initialized.
 #define HAVE_REGISTRY(status) (registry!=0 || initializeRegistry(status))
+
+// Empty string
+static const UChar EMPTY[] = {0}; //""
 
 U_NAMESPACE_BEGIN
 
@@ -595,7 +598,7 @@ void Transliterator::filteredTransliterate(Replaceable& text,
                     int32_t rs = rollbackStart + delta - (index.limit - passStart);
 
                     // Delete the partially transliterated text
-                    text.handleReplaceBetween(passStart, index.limit, UnicodeString());
+                    text.handleReplaceBetween(passStart, index.limit, EMPTY);
 
                     // Copy the rollback text back
                     text.copy(rs, rs + uncommittedLength, passStart);
@@ -633,7 +636,7 @@ void Transliterator::filteredTransliterate(Replaceable& text,
             globalLimit += totalDelta;
 
             // Delete the rollback copy
-            text.handleReplaceBetween(rollbackOrigin, rollbackOrigin + runLength, UnicodeString());
+            text.handleReplaceBetween(rollbackOrigin, rollbackOrigin + runLength, EMPTY);
 
             // Move start past committed text
             index.start = passStart;
@@ -1107,8 +1110,7 @@ Transliterator::createFromRules(const UnicodeString& ID,
             }
             if (!parser.dataVector.isEmpty()) {
                 TransliterationRuleData* data = (TransliterationRuleData*)parser.dataVector.orphanElementAt(0);
-                // TODO: Should passNumber be turned into a decimal-string representation (1 -> "1")?
-                RuleBasedTransliterator* temprbt = new RuleBasedTransliterator(UnicodeString(CompoundTransliterator::PASS_STRING) + UnicodeString(passNumber++),
+                RuleBasedTransliterator* temprbt = new RuleBasedTransliterator(UnicodeString(CompoundTransliterator::PASS_STRING) + (passNumber++),
                         data, TRUE);
                 // Check if NULL before adding it to transliterators to avoid future usage of NULL pointer.
                 if (temprbt == NULL) {

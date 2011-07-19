@@ -1,11 +1,11 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2004-2011, International Business Machines
+*   Copyright (C) 2004-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
-*   file name:  ucase.cpp
+*   file name:  ucase.c
 *   encoding:   US-ASCII
 *   tab size:   8 (not used)
 *   indentation:4
@@ -33,7 +33,7 @@ struct UCaseProps {
     UDataMemory *mem;
     const int32_t *indexes;
     const uint16_t *exceptions;
-    const uint16_t *unfold;
+    const UChar *unfold;
 
     UTrie2 trie;
     uint8_t formatVersion[4];
@@ -52,7 +52,7 @@ ucase_getSingleton() {
 /* set of property starts for UnicodeSet ------------------------------------ */
 
 static UBool U_CALLCONV
-_enumPropertyStartsRange(const void *context, UChar32 start, UChar32 /*end*/, uint32_t /*value*/) {
+_enumPropertyStartsRange(const void *context, UChar32 start, UChar32 end, uint32_t value) {
     /* add the start code point to the USet */
     const USetAdder *sa=(const USetAdder *)context;
     sa->add(sa->set, start);
@@ -308,7 +308,7 @@ ucase_addCaseClosure(const UCaseProps *csp, UChar32 c, const USetAdder *sa) {
  * compare s, which has a length, with t, which has a maximum length or is NUL-terminated
  * must be length>0 and max>0 and length<=max
  */
-static inline int32_t
+static U_INLINE int32_t
 strcmpMax(const UChar *s, int32_t length, const UChar *t, int32_t max) {
     int32_t c1, c2;
 
@@ -335,6 +335,7 @@ strcmpMax(const UChar *s, int32_t length, const UChar *t, int32_t max) {
 
 U_CFUNC UBool U_EXPORT2
 ucase_addStringCaseClosure(const UCaseProps *csp, const UChar *s, int32_t length, const USetAdder *sa) {
+    const UChar *unfold, *p;
     int32_t i, start, limit, result, unfoldRows, unfoldRowWidth, unfoldStringWidth;
 
     if(csp->unfold==NULL || s==NULL) {
@@ -351,7 +352,7 @@ ucase_addStringCaseClosure(const UCaseProps *csp, const UChar *s, int32_t length
         return FALSE;
     }
 
-    const uint16_t *unfold=csp->unfold;
+    unfold=csp->unfold;
     unfoldRows=unfold[UCASE_UNFOLD_ROWS];
     unfoldRowWidth=unfold[UCASE_UNFOLD_ROW_WIDTH];
     unfoldStringWidth=unfold[UCASE_UNFOLD_STRING_WIDTH];
@@ -367,7 +368,7 @@ ucase_addStringCaseClosure(const UCaseProps *csp, const UChar *s, int32_t length
     limit=unfoldRows;
     while(start<limit) {
         i=(start+limit)/2;
-        const UChar *p=reinterpret_cast<const UChar *>(unfold+(i*unfoldRowWidth));
+        p=unfold+(i*unfoldRowWidth);
         result=strcmpMax(s, length, p, unfoldStringWidth);
 
         if(result==0) {
@@ -414,7 +415,7 @@ ucase_getTypeOrIgnorable(const UCaseProps *csp, UChar32 c) {
 }
 
 /** @return UCASE_NO_DOT, UCASE_SOFT_DOTTED, UCASE_ABOVE, UCASE_OTHER_ACCENT */
-static inline int32_t
+static U_INLINE int32_t
 getDotType(const UCaseProps *csp, UChar32 c) {
     uint16_t props=UTRIE2_GET16(&csp->trie, c);
     if(!PROPS_HAS_EXCEPTION(props)) {
@@ -898,7 +899,7 @@ ucase_toFullLower(const UCaseProps *csp, UChar32 c,
             full&=UCASE_FULL_LOWER;
             if(full!=0) {
                 /* set the output pointer to the lowercase mapping */
-                *pString=reinterpret_cast<const UChar *>(pe+1);
+                *pString=pe+1;
 
                 /* return the string length */
                 return full;
@@ -986,7 +987,7 @@ toUpperOrTitle(const UCaseProps *csp, UChar32 c,
 
             if(full!=0) {
                 /* set the output pointer to the result string */
-                *pString=reinterpret_cast<const UChar *>(pe);
+                *pString=pe;
 
                 /* return the string length */
                 return full;
@@ -1177,7 +1178,7 @@ ucase_toFullFolding(const UCaseProps *csp, UChar32 c,
 
             if(full!=0) {
                 /* set the output pointer to the result string */
-                *pString=reinterpret_cast<const UChar *>(pe);
+                *pString=pe;
 
                 /* return the string length */
                 return full;

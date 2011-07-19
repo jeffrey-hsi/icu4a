@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-*   Copyright (C) 1996-2011, International Business Machines
+*   Copyright (C) 1996-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -23,7 +23,6 @@
 #include "unicode/uchar.h"
 #include "unicode/uscript.h"
 #include "unicode/udata.h"
-#include "uassert.h"
 #include "umutex.h"
 #include "cmemory.h"
 #include "ucln_cmn.h"
@@ -476,7 +475,7 @@ u_forDigit(int32_t digit, int8_t radix) {
     }
 }
 
-/* miscellaneous, and support for uprops.cpp -------------------------------- */
+/* miscellaneous, and support for uprops.c ---------------------------------- */
 
 U_CAPI void U_EXPORT2
 u_getUnicodeVersion(UVersionInfo versionArray) {
@@ -486,19 +485,19 @@ u_getUnicodeVersion(UVersionInfo versionArray) {
 }
 
 U_CFUNC uint32_t
-u_getMainProperties(UChar32 c) {
-    uint32_t props;
-    GET_PROPS(c, props);
-    return props;
-}
-
-U_CFUNC uint32_t
 u_getUnicodeProperties(UChar32 c, int32_t column) {
-    U_ASSERT(column>=0);
-    if(column>=propsVectorsColumns) {
+    uint16_t vecIndex;
+
+    if(column==-1) {
+        uint32_t props;
+        GET_PROPS(c, props);
+        return props;
+    } else if(
+               column<0 || column>=propsVectorsColumns
+    ) {
         return 0;
     } else {
-        uint16_t vecIndex=UTRIE2_GET16(&propsVectorsTrie, c);
+        vecIndex=UTRIE2_GET16(&propsVectorsTrie, c);
         return propsVectors[vecIndex+column];
     }
 }

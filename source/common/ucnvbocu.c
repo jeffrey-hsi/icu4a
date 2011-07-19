@@ -1,11 +1,11 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2002-2011, International Business Machines
+*   Copyright (C) 2002-2005, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
-*   file name:  ucnvbocu.cpp
+*   file name:  ucnvbocu.c
 *   encoding:   US-ASCII
 *   tab size:   8 (not used)
 *   indentation:4
@@ -217,7 +217,7 @@ bocu1TrailToByte[BOCU1_TRAIL_CONTROLS_COUNT]={
  * @param c current code point, 0x3040..0xd7a3 (rest handled by macro below)
  * @return "previous code point" state value
  */
-static inline int32_t
+static U_INLINE int32_t
 bocu1Prev(int32_t c) {
     /* compute new prev */
     if(/* 0x3040<=c && */ c<=0x309f) {
@@ -857,7 +857,7 @@ getTrail:
  *          BOCU1_MIN<=b<BOCU1_START_NEG_2 or BOCU1_START_POS_2<=b<BOCU1_MAX_LEAD
  * @return (diff<<2)|count
  */
-static inline int32_t
+static U_INLINE int32_t
 decodeBocu1LeadByte(int32_t b) {
     int32_t diff, count;
 
@@ -906,7 +906,7 @@ decodeBocu1LeadByte(int32_t b) {
  *
  * @see decodeBocu1
  */
-static inline int32_t
+static U_INLINE int32_t
 decodeBocu1TrailByte(int32_t count, int32_t b) {
     if(b<=0x20) {
         /* skip some C0 controls and make the trail byte range contiguous */
@@ -1368,10 +1368,7 @@ static const UConverterImpl _Bocu1Impl={
     NULL,
     NULL,
     NULL,
-    ucnv_getCompleteUnicodeSet,
-
-    NULL,
-    NULL
+    ucnv_getCompleteUnicodeSet
 };
 
 static const UConverterStaticData _Bocu1StaticData={
@@ -1390,8 +1387,7 @@ static const UConverterStaticData _Bocu1StaticData={
 const UConverterSharedData _Bocu1Data={
     sizeof(UConverterSharedData), ~((uint32_t)0),
     NULL, NULL, &_Bocu1StaticData, FALSE, &_Bocu1Impl,
-    0,
-    UCNV_MBCS_TABLE_INITIALIZER
+    0
 };
 
 #endif

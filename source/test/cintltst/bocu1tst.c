@@ -250,7 +250,7 @@ decodeBocu1(Bocu1Rx *pRx, uint8_t b);
  * @param c current code point, 0..0x10ffff
  * @return "previous code point" state value
  */
-static int32_t
+static U_INLINE int32_t
 bocu1Prev(int32_t c) {
     /* compute new prev */
     if(0x3040<=c && c<=0x309f) {
@@ -749,7 +749,7 @@ readString(const uint8_t *p, int32_t length, UChar *s) {
     return sLength;
 }
 
-static char
+static U_INLINE char
 hexDigit(uint8_t digit) {
     return digit<=9 ? (char)('0'+digit) : (char)('a'-10+digit);
 }

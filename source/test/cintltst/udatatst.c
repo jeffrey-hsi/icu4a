@@ -1109,10 +1109,10 @@ static void TestICUDataName()
         break;
     }
 
-    /* Only major number is needed. */
-    sprintf(expectDataName, "%s%d%c",
+    sprintf(expectDataName, "%s%d%d%c",
                 "icudt",
                 (int)icuVersion[0],
+                (int)icuVersion[1],
                 typeChar);
 
     log_verbose("Expected: %s\n", expectDataName);

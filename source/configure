@@ -2601,8 +2601,7 @@ fi
 # Compute a reasonable library version from the release version. This is
 # very bad, but that's wanted... We want to make sure that the LIB_VERSION
 # has at least a dot in it, so we'll add a .0 if needed.
-#[LIB_VERSION=`echo $VERSION | sed -e 's/\.//' -e 's/^\([^.]*\)$/\1.0/'`]
-LIB_VERSION=$VERSION
+LIB_VERSION=`echo $VERSION | sed -e 's/\.//' -e 's/^\([^.]*\)$/\1.0/'`
 LIB_VERSION_MAJOR=`echo $LIB_VERSION | sed 's/\..*//'`
 
 
@@ -5376,19 +5375,14 @@ U_USE_GCC_VISIBILITY_ATTRIBUTE=0
 OLD_CFLAGS="${CFLAGS}"
 OLD_CXXFLAGS="${CXXFLAGS}"
 if test "$ac_cv_c_compiler_gnu" = yes; then
-    case "${host}" in
-    *-pc-cygwin*|*-pc-mingw*|*-*-aix*)
-        # Cygwin and AIX GCC does not have the visibility attribute
-        ;;
-    *)
-        LIBCFLAGS="-fvisibility=hidden"
-        LIBCXXFLAGS="-fvisibility=hidden"
-        CFLAGS="${CFLAGS} ${LIBCFLAGS}"
-        CXXFLAGS="${CXXFLAGS} ${LIBCXXFLAGS}"
-        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+    LIBCFLAGS="-fvisibility=hidden"
+    LIBCXXFLAGS="-fvisibility=hidden"
+    CFLAGS="${CFLAGS} ${LIBCFLAGS}"
+    CXXFLAGS="${CXXFLAGS} ${LIBCXXFLAGS}"
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 __attribute__ ((visibility ("default"))) void f(void);
-        #include <stdlib.h>
+#include <stdlib.h>
 int
 main ()
 {
@@ -5404,13 +5398,12 @@ else
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-        if test "$SHAREDLIBEXPORT" = no; then
-            LIBCFLAGS=
-            LIBCXXFLAGS=
-        else
-            U_USE_GCC_VISIBILITY_ATTRIBUTE=1
-        fi
-    esac
+    if test "$SHAREDLIBEXPORT" = no; then
+        LIBCFLAGS=
+        LIBCXXFLAGS=
+    else
+        U_USE_GCC_VISIBILITY_ATTRIBUTE=1
+    fi
 else
     case "${host}" in
     *-*-solaris*)

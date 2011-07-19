@@ -69,24 +69,20 @@
 
 /**
  * Define what support for C++ streams is available.
- *
- * If U_IOSTREAM_SOURCE is set to 199711, then &lt;iostream&gt; is available
- * (the ISO/IEC C++ FDIS was published in November 1997), and then
+ *     If U_IOSTREAM_SOURCE is set to 199711, then &lt;iostream&gt; is available
+ * (1997711 is the date the ISO/IEC C++ FDIS was published), and then
  * one should qualify streams using the std namespace in ICU header
  * files.
- * Starting with ICU 49, this is the only supported version.
- *
- * If U_IOSTREAM_SOURCE is set to 198506, then &lt;iostream.h&gt; is
- * available instead (in June 1985 Stroustrup published
+ *     If U_IOSTREAM_SOURCE is set to 198506, then &lt;iostream.h&gt; is
+ * available instead (198506 is the date when Stroustrup published
  * "An Extensible I/O Facility for C++" at the summer USENIX conference).
- * Starting with ICU 49, this version is not supported any more.
- *
- * If U_IOSTREAM_SOURCE is 0 (or any value less than 199711),
- * then C++ streams are not available and
+ *     If U_IOSTREAM_SOURCE is 0, then C++ streams are not available and
  * support for them will be silently suppressed in ICU.
+ *
  */
+
 #ifndef U_IOSTREAM_SOURCE
-#define U_IOSTREAM_SOURCE 199711
+#define U_IOSTREAM_SOURCE @U_IOSTREAM_SOURCE@
 #endif
 
 /**
@@ -139,6 +135,11 @@
 /*===========================================================================*/
 /** @{ Compiler and environment features                                     */
 /*===========================================================================*/
+
+/* Define whether namespace is supported */
+#ifndef U_HAVE_NAMESPACE
+#define U_HAVE_NAMESPACE @U_HAVE_NAMESPACE@
+#endif
 
 /* Determines the endianness of the platform
    It's done this way in case multiple architectures are being built at once.
@@ -293,7 +294,7 @@
 /** @} */
 
 /*===========================================================================*/
-/** @{ Symbol import-export control                                          */
+/** @{ Symbol import-export control                                              */
 /*===========================================================================*/
 
 #ifdef U_STATIC_IMPLEMENTATION
@@ -322,8 +323,16 @@
 /* @} */
 
 /*===========================================================================*/
-/** @{ Code alignment                                                        */
+/** @{ Code alignment and C function inlining                                    */
 /*===========================================================================*/
+
+#ifndef U_INLINE
+#   ifdef __cplusplus
+#       define U_INLINE inline
+#   else
+#       define U_INLINE @U_INLINE@
+#   endif
+#endif
 
 #ifndef U_ALIGN_CODE
 #define U_ALIGN_CODE(n) 
@@ -332,7 +341,7 @@
 /** @} */
 
 /*===========================================================================*/
-/** @{ GCC built in functions for atomic memory operations                   */
+/** @{ GCC built in functions for atomic memory operations                       */
 /*===========================================================================*/
 
 /**
@@ -385,7 +394,7 @@
 # ifndef U_ICU_ENTRY_POINT_RENAME
 /* Renaming pattern:    u_strcpy_41_suffix */
 #  define U_ICU_ENTRY_POINT_RENAME(x)    x ## _ ## @LIB_VERSION_MAJOR@ ## @ICULIBSUFFIXCNAME@
-#  define U_DEF_ICUDATA_ENTRY_POINT(major) icudt##@ICULIBSUFFIXCNAME@##major##_dat
+#  define U_DEF_ICUDATA_ENTRY_POINT(major, minor) icudt##@ICULIBSUFFIXCNAME@##major##minor##_dat
 
 # endif
 #endif

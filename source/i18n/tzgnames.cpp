@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
-* Copyright (C) 2011, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 2011, International Business Machines Corporation and         *
+* others. All Rights Reserved.                                                *
 *******************************************************************************
 */
 
@@ -66,10 +66,10 @@ hashPartialLocationKey(const UHashTok key) {
     PartialLocationKey *p = (PartialLocationKey *)key.pointer;
     UnicodeString str(p->tzID);
     str.append((UChar)0x26)
-        .append(p->mzID, -1)
+        .append(p->mzID)
         .append((UChar)0x23)
         .append((UChar)(p->isLong ? 0x4C : 0x53));
-    return str.hashCode();
+    return uhash_hashUCharsN(str.getBuffer(), str.length());
 }
 
 /**
@@ -209,7 +209,7 @@ GNameSearchHandler::handleMatch(int32_t matchLength, const CharacterNode *node, 
             if ((nameinfo->type & fTypes) != 0) {
                 // matches a requested type
                 if (fResults == NULL) {
-                    fResults = new UVector(uprv_free, NULL, status);
+                    fResults = new UVector(uhash_freeBlock, NULL, status);
                     if (fResults == NULL) {
                         status = U_MEMORY_ALLOCATION_ERROR;
                     }
@@ -303,17 +303,17 @@ TimeZoneGenericNames::initialize(const Locale& locale, UErrorCode& status) {
     if (U_SUCCESS(tmpsts)) {
         const UChar *regionPattern = ures_getStringByKeyWithFallback(zoneStrings, gRegionFormatTag, NULL, &tmpsts);
         if (U_SUCCESS(tmpsts) && u_strlen(regionPattern) > 0) {
-            rpat.setTo(regionPattern, -1);
+            rpat.setTo(regionPattern);
         }
         tmpsts = U_ZERO_ERROR;
         const UChar *fallbackRegionPattern = ures_getStringByKeyWithFallback(zoneStrings, gFallbackRegionFormatTag, NULL, &tmpsts);
         if (U_SUCCESS(tmpsts) && u_strlen(fallbackRegionPattern) > 0) {
-            frpat.setTo(fallbackRegionPattern, -1);
+            frpat.setTo(fallbackRegionPattern);
         }
         tmpsts = U_ZERO_ERROR;
         const UChar *fallbackPattern = ures_getStringByKeyWithFallback(zoneStrings, gFallbackFormatTag, NULL, &tmpsts);
         if (U_SUCCESS(tmpsts) && u_strlen(fallbackPattern) > 0) {
-            fpat.setTo(fallbackPattern, -1);
+            fpat.setTo(fallbackPattern);
         }
     }
     ures_close(zoneStrings);
@@ -350,7 +350,7 @@ TimeZoneGenericNames::initialize(const Locale& locale, UErrorCode& status) {
         cleanup();
         return;
     }
-    uhash_setKeyDeleter(fPartialLocationNamesMap, uprv_free);
+    uhash_setKeyDeleter(fPartialLocationNamesMap, uhash_freeBlock);
     // no value deleter
 
     // target region

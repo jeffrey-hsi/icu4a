@@ -1,9 +1,9 @@
 /*
 **********************************************************************
-*   Copyright (C) 2000-2011, International Business Machines
+*   Copyright (C) 2000-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
-*   file name:  ucnv2022.cpp
+*   file name:  ucnv2022.c
 *   encoding:   US-ASCII
 *   tab size:   8 (not used)
 *   indentation:4
@@ -393,19 +393,15 @@ static void
 T_UConverter_toUnicode_ISO_2022_OFFSETS_LOGIC(UConverterToUnicodeArgs* args, UErrorCode* err);
 #endif
 
-namespace {
-
 /*const UConverterSharedData _ISO2022Data;*/
-extern const UConverterSharedData _ISO2022JPData;
-extern const UConverterSharedData _ISO2022KRData;
-extern const UConverterSharedData _ISO2022CNData;
-
-}  // namespace
+static const UConverterSharedData _ISO2022JPData;
+static const UConverterSharedData _ISO2022KRData;
+static const UConverterSharedData _ISO2022CNData;
 
 /*************** Converter implementations ******************/
 
 /* The purpose of this function is to get around gcc compiler warnings. */
-static inline void
+static U_INLINE void
 fromUWriteUInt8(UConverter *cnv,
                  const char *bytes, int32_t length,
                  uint8_t **target, const char *targetLimit,
@@ -420,8 +416,8 @@ fromUWriteUInt8(UConverter *cnv,
 
 }
 
-static inline void
-setInitialStateToUnicodeKR(UConverter* /*converter*/, UConverterDataISO2022 *myConverterData){
+static U_INLINE void
+setInitialStateToUnicodeKR(UConverter* converter, UConverterDataISO2022 *myConverterData){
     if(myConverterData->version == 1) {
         UConverter *cnv = myConverterData->currentConverter;
 
@@ -431,7 +427,7 @@ setInitialStateToUnicodeKR(UConverter* /*converter*/, UConverterDataISO2022 *myC
     }
 }
 
-static inline void
+static U_INLINE void
 setInitialStateFromUnicodeKR(UConverter* converter,UConverterDataISO2022 *myConverterData){
    /* in ISO-2022-KR the designator sequence appears only once
     * in a file so we append it only once
@@ -460,7 +456,7 @@ _ISO2022Open(UConverter *cnv, UConverterLoadArgs *pArgs, UErrorCode *errorCode){
     cnv->extraInfo = uprv_malloc (sizeof (UConverterDataISO2022));
     if(cnv->extraInfo != NULL) {
         UConverterNamePieces stackPieces;
-        UConverterLoadArgs stackArgs=UCNV_LOAD_ARGS_INITIALIZER;
+        UConverterLoadArgs stackArgs={ (int32_t)sizeof(UConverterLoadArgs) };
         UConverterDataISO2022 *myConverterData=(UConverterDataISO2022 *) cnv->extraInfo;
         uint32_t version;
 
@@ -1009,10 +1005,10 @@ DONE:
  *to determine the longest possible convertible
  *data stream
  */
-static inline const char*
+static U_INLINE const char*
 getEndOfBuffer_2022(const char** source,
                    const char* sourceLimit,
-                   UBool /*flush*/){
+                   UBool flush){
 
     const char* mySource = *source;
 
@@ -1061,7 +1057,7 @@ getEndOfBuffer_2022(const char** source,
  * any future change in _MBCSFromUChar32() function should be reflected here.
  * @return number of bytes in *value; negative number if fallback; 0 if no mapping
  */
-static inline int32_t
+static U_INLINE int32_t
 MBCS_FROM_UCHAR32_ISO2022(UConverterSharedData* sharedData,
                                          UChar32 c,
                                          uint32_t* value,
@@ -1132,7 +1128,7 @@ MBCS_FROM_UCHAR32_ISO2022(UConverterSharedData* sharedData,
  * @param retval pointer to output byte
  * @return 1 roundtrip byte  0 no mapping  -1 fallback byte
  */
-static inline int32_t
+static U_INLINE int32_t
 MBCS_SINGLE_FROM_UCHAR32(UConverterSharedData* sharedData,
                                        UChar32 c,
                                        uint32_t* retval,
@@ -1165,7 +1161,7 @@ MBCS_SINGLE_FROM_UCHAR32(UConverterSharedData* sharedData,
  * to move it to the ISO 2022 range 21..7E.
  * Return 0 if out of range.
  */
-static inline uint32_t
+static U_INLINE uint32_t
 _2022FromGR94DBCS(uint32_t value) {
     if( (uint16_t)(value - 0xa1a1) <= (0xfefe - 0xa1a1) &&
         (uint8_t)(value - 0xa1) <= (0xfe - 0xa1)
@@ -1182,7 +1178,7 @@ _2022FromGR94DBCS(uint32_t value) {
  * 2 byte value that is in the range A1..FE for each byte. Otherwise it returns the 2022 code point
  * unchanged. 
  */
-static inline uint32_t
+static U_INLINE uint32_t
 _2022ToGR94DBCS(uint32_t value) {
     uint32_t returnValue = value + 0x8080;
     if( (uint16_t)(returnValue - 0xa1a1) <= (0xfefe - 0xa1a1) &&
@@ -1434,7 +1430,7 @@ static  const int8_t escSeqCharsLen[] ={
 */
 
 /* Map 00..7F to Unicode according to JIS X 0201. */
-static inline uint32_t
+static U_INLINE uint32_t
 jisx201ToU(uint32_t value) {
     if(value < 0x5c) {
         return value;
@@ -1448,7 +1444,7 @@ jisx201ToU(uint32_t value) {
 }
 
 /* Map Unicode to 00..7F according to JIS X 0201. Return U+FFFE if unmappable. */
-static inline uint32_t
+static U_INLINE uint32_t
 jisx201FromU(uint32_t value) {
     if(value<=0x7f) {
         if(value!=0x5c && value!=0x7e) {
@@ -1467,7 +1463,7 @@ jisx201FromU(uint32_t value) {
  * to JIS X 0208, and convert it to a pair of 21..7E bytes.
  * Return 0 if the byte pair is out of range.
  */
-static inline uint32_t
+static U_INLINE uint32_t
 _2022FromSJIS(uint32_t value) {
     uint8_t trail;
 
@@ -1505,7 +1501,7 @@ _2022FromSJIS(uint32_t value) {
  * Some invalid byte values already turn into equally invalid Shift-JIS
  * byte values and need not be tested explicitly.
  */
-static inline void
+static U_INLINE void
 _2022ToSJIS(uint8_t c1, uint8_t c2, char bytes[2]) {
     if(c1&1) {
         ++c1;
@@ -3736,10 +3732,7 @@ static const UConverterImpl _ISO2022Impl={
     _ISO2022getName,
     _ISO_2022_WriteSub,
     _ISO_2022_SafeClone,
-    _ISO_2022_GetUnicodeSet,
-
-    NULL,
-    NULL
+    _ISO_2022_GetUnicodeSet
 };
 static const UConverterStaticData _ISO2022StaticData={
     sizeof(UConverterStaticData),
@@ -3765,7 +3758,7 @@ const UConverterSharedData _ISO2022Data={
     &_ISO2022StaticData,
     FALSE,
     &_ISO2022Impl,
-    0, UCNV_MBCS_TABLE_INITIALIZER
+    0
 };
 
 /*************JP****************/
@@ -3789,10 +3782,7 @@ static const UConverterImpl _ISO2022JPImpl={
     _ISO2022getName,
     _ISO_2022_WriteSub,
     _ISO_2022_SafeClone,
-    _ISO_2022_GetUnicodeSet,
-
-    NULL,
-    NULL
+    _ISO_2022_GetUnicodeSet
 };
 static const UConverterStaticData _ISO2022JPStaticData={
     sizeof(UConverterStaticData),
@@ -3810,10 +3800,7 @@ static const UConverterStaticData _ISO2022JPStaticData={
     0,
     { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } /* reserved */
 };
-
-namespace {
-
-const UConverterSharedData _ISO2022JPData={
+static const UConverterSharedData _ISO2022JPData={
     sizeof(UConverterSharedData),
     ~((uint32_t) 0),
     NULL,
@@ -3821,10 +3808,8 @@ const UConverterSharedData _ISO2022JPData={
     &_ISO2022JPStaticData,
     FALSE,
     &_ISO2022JPImpl,
-    0, UCNV_MBCS_TABLE_INITIALIZER
+    0
 };
-
-}  // namespace
 
 /************* KR ***************/
 static const UConverterImpl _ISO2022KRImpl={
@@ -3847,10 +3832,7 @@ static const UConverterImpl _ISO2022KRImpl={
     _ISO2022getName,
     _ISO_2022_WriteSub,
     _ISO_2022_SafeClone,
-    _ISO_2022_GetUnicodeSet,
-
-    NULL,
-    NULL
+    _ISO_2022_GetUnicodeSet
 };
 static const UConverterStaticData _ISO2022KRStaticData={
     sizeof(UConverterStaticData),
@@ -3868,10 +3850,7 @@ static const UConverterStaticData _ISO2022KRStaticData={
     0,
     { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } /* reserved */
 };
-
-namespace {
-
-const UConverterSharedData _ISO2022KRData={
+static const UConverterSharedData _ISO2022KRData={
     sizeof(UConverterSharedData),
     ~((uint32_t) 0),
     NULL,
@@ -3879,10 +3858,8 @@ const UConverterSharedData _ISO2022KRData={
     &_ISO2022KRStaticData,
     FALSE,
     &_ISO2022KRImpl,
-    0, UCNV_MBCS_TABLE_INITIALIZER
+    0
 };
-
-}  // namespace
 
 /*************** CN ***************/
 static const UConverterImpl _ISO2022CNImpl={
@@ -3906,10 +3883,7 @@ static const UConverterImpl _ISO2022CNImpl={
     _ISO2022getName,
     _ISO_2022_WriteSub,
     _ISO_2022_SafeClone,
-    _ISO_2022_GetUnicodeSet,
-
-    NULL,
-    NULL
+    _ISO_2022_GetUnicodeSet
 };
 static const UConverterStaticData _ISO2022CNStaticData={
     sizeof(UConverterStaticData),
@@ -3927,10 +3901,7 @@ static const UConverterStaticData _ISO2022CNStaticData={
     0,
     { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } /* reserved */
 };
-
-namespace {
-
-const UConverterSharedData _ISO2022CNData={
+static const UConverterSharedData _ISO2022CNData={
     sizeof(UConverterSharedData),
     ~((uint32_t) 0),
     NULL,
@@ -3938,9 +3909,9 @@ const UConverterSharedData _ISO2022CNData={
     &_ISO2022CNStaticData,
     FALSE,
     &_ISO2022CNImpl,
-    0, UCNV_MBCS_TABLE_INITIALIZER
+    0
 };
 
-}  // namespace
+
 
 #endif /* #if !UCONFIG_NO_LEGACY_CONVERSION */

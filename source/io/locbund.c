@@ -1,12 +1,12 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1998-2011, International Business Machines
+*   Copyright (C) 1998-2007, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
 *
-* File locbund.cpp
+* File locbund.c
 *
 * Modification History:
 *
@@ -45,7 +45,7 @@ static UBool U_CALLCONV locbund_cleanup(void) {
 U_CDECL_END
 
 
-static inline UNumberFormat * copyInvariantFormatter(ULocaleBundle *result, UNumberFormatStyle style) {
+static U_INLINE UNumberFormat * copyInvariantFormatter(ULocaleBundle *result, UNumberFormatStyle style) {
     if (result->fNumberFormat[style-1] == NULL) {
         UErrorCode status = U_ZERO_ERROR;
         UBool needsInit;
@@ -69,7 +69,7 @@ static inline UNumberFormat * copyInvariantFormatter(ULocaleBundle *result, UNum
     return result->fNumberFormat[style-1];
 }
 
-U_CAPI ULocaleBundle *
+ULocaleBundle*        
 u_locbund_init(ULocaleBundle *result, const char *loc)
 {
     int32_t len;
@@ -96,14 +96,14 @@ u_locbund_init(ULocaleBundle *result, const char *loc)
     return result;
 }
 
-/*U_CAPI ULocaleBundle *
+/*ULocaleBundle*        
 u_locbund_new(const char *loc)
 {
     ULocaleBundle *result = (ULocaleBundle*) uprv_malloc(sizeof(ULocaleBundle));
     return u_locbund_init(result, loc);
 }
 
-U_CAPI ULocaleBundle *
+ULocaleBundle*
 u_locbund_clone(const ULocaleBundle *bundle)
 {
     ULocaleBundle *result = (ULocaleBundle*)uprv_malloc(sizeof(ULocaleBundle));
@@ -141,7 +141,7 @@ u_locbund_clone(const ULocaleBundle *bundle)
     return result;
 }*/
 
-U_CAPI void
+void
 u_locbund_close(ULocaleBundle *bundle)
 {
     int32_t styleIdx;
@@ -158,7 +158,7 @@ u_locbund_close(ULocaleBundle *bundle)
 /*    uprv_free(bundle);*/
 }
 
-U_CAPI UNumberFormat *
+UNumberFormat*
 u_locbund_getNumberFormat(ULocaleBundle *bundle, UNumberFormatStyle style)
 {
     UNumberFormat *formatAlias = NULL;

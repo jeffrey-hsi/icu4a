@@ -141,7 +141,7 @@ static UHashtable * NumberingSystem_cache = NULL;
 static UMTX nscacheMutex = NULL;
 
 #if !UCONFIG_NO_SERVICE
-static icu::ICULocaleService* gService = NULL;
+static U_NAMESPACE_QUALIFIER ICULocaleService* gService = NULL;
 #endif
 
 /**
@@ -150,7 +150,7 @@ static icu::ICULocaleService* gService = NULL;
 U_CDECL_BEGIN
 static void U_CALLCONV
 deleteNumberingSystem(void *obj) {
-    delete (icu::NumberingSystem *)obj;
+    delete (U_NAMESPACE_QUALIFIER NumberingSystem *)obj;
 }
 
 static UBool U_CALLCONV numfmt_cleanup(void) {
@@ -1283,8 +1283,7 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
         // replace single currency sign in the pattern with double currency sign
         // if the style is UNUM_CURRENCY_ISO
         if (style == UNUM_CURRENCY_ISO) {
-            pattern.findAndReplace(UnicodeString(TRUE, gSingleCurrencySign, 1),
-                                   UnicodeString(TRUE, gDoubleCurrencySign, 2));
+            pattern.findAndReplace(gSingleCurrencySign, gDoubleCurrencySign);
         }
 
         // "new DecimalFormat()" does not adopt the symbols if its memory allocation fails.

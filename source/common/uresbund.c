@@ -876,8 +876,8 @@ static UResourceBundle *init_resb_result(const ResourceData *rdata, Resource r,
                 if(capacity < len) {
                     capacity = len;
                 }
-                if(capacity <= (int32_t)sizeof(stackAlias)) {
-                    capacity = (int32_t)sizeof(stackAlias);
+                if(capacity <= sizeof(stackAlias)) {
+                    capacity = sizeof(stackAlias);
                     chAlias = stackAlias;
                 } else {
                     chAlias = (char *)uprv_malloc(capacity);
@@ -1685,6 +1685,7 @@ ures_getByKeyWithFallback(const UResourceBundle *resB,
     /*UResourceDataEntry *realData = NULL;*/
     const char *key = inKey;
     UResourceBundle *helper = NULL;
+	int32_t type;
 
     if (status==NULL || U_FAILURE(*status)) {
         return fillIn;
@@ -1694,7 +1695,7 @@ ures_getByKeyWithFallback(const UResourceBundle *resB,
         return fillIn;
     }
 
-    int32_t type = RES_GET_TYPE(resB->fRes);
+    type = RES_GET_TYPE(resB->fRes);
     if(URES_IS_TABLE(type)) {
         int32_t t;
         res = res_getTableItemByKey(&(resB->fResData), resB->fRes, &t, &key);
@@ -1762,6 +1763,7 @@ U_CAPI UResourceBundle* U_EXPORT2 ures_getByKey(const UResourceBundle *resB, con
     Resource res = RES_BOGUS;
     UResourceDataEntry *realData = NULL;
     const char *key = inKey;
+	int32_t type;
 
     if (status==NULL || U_FAILURE(*status)) {
         return fillIn;
@@ -1771,7 +1773,7 @@ U_CAPI UResourceBundle* U_EXPORT2 ures_getByKey(const UResourceBundle *resB, con
         return fillIn;
     }
 
-    int32_t type = RES_GET_TYPE(resB->fRes);
+    type = RES_GET_TYPE(resB->fRes);
     if(URES_IS_TABLE(type)) {
         int32_t t;
         res = res_getTableItemByKey(&(resB->fResData), resB->fRes, &t, &key);
@@ -1814,6 +1816,7 @@ U_CAPI UResourceBundle* U_EXPORT2 ures_getByKey(const UResourceBundle *resB, con
 U_CAPI const UChar* U_EXPORT2 ures_getStringByKey(const UResourceBundle *resB, const char* inKey, int32_t* len, UErrorCode *status) {
     Resource res = RES_BOGUS;
     UResourceDataEntry *realData = NULL;
+	int32_t type;
     const char* key = inKey;
 
     if (status==NULL || U_FAILURE(*status)) {
@@ -1824,7 +1827,7 @@ U_CAPI const UChar* U_EXPORT2 ures_getStringByKey(const UResourceBundle *resB, c
         return NULL;
     }
 
-    int32_t type = RES_GET_TYPE(resB->fRes);
+    type = RES_GET_TYPE(resB->fRes);
     if(URES_IS_TABLE(type)) {
         int32_t t=0;
 
@@ -2257,7 +2260,7 @@ ures_loc_closeLocales(UEnumeration *enumerator) {
 }
 
 static int32_t U_CALLCONV
-ures_loc_countLocales(UEnumeration *en, UErrorCode * /*status*/) {
+ures_loc_countLocales(UEnumeration *en, UErrorCode *status) {
     ULocalesContext *ctx = (ULocalesContext *)en->context;
     return ures_getSize(&ctx->installed);
 }
@@ -2283,7 +2286,7 @@ ures_loc_nextLocale(UEnumeration* en,
 
 static void U_CALLCONV 
 ures_loc_resetLocales(UEnumeration* en, 
-                      UErrorCode* /*status*/) {
+                      UErrorCode* status) {
     UResourceBundle *res = &((ULocalesContext *)en->context)->installed;
     ures_resetIterator(res);
 }
@@ -2306,11 +2309,11 @@ ures_openAvailableLocales(const char *path, UErrorCode *status)
     UResourceBundle *idx = NULL;
     UEnumeration *en = NULL;
     ULocalesContext *myContext = NULL;
-
+    
     if(U_FAILURE(*status)) {
         return NULL;
     }
-    myContext = reinterpret_cast<ULocalesContext *>(uprv_malloc(sizeof(ULocalesContext)));
+    myContext = uprv_malloc(sizeof(ULocalesContext));
     en =  (UEnumeration *)uprv_malloc(sizeof(UEnumeration));
     if(!en || !myContext) {
         *status = U_MEMORY_ALLOCATION_ERROR;
@@ -2319,7 +2322,7 @@ ures_openAvailableLocales(const char *path, UErrorCode *status)
         return NULL;
     }
     uprv_memcpy(en, &gLocalesEnum, sizeof(UEnumeration));
-
+    
     ures_initStackObject(&myContext->installed);
     ures_initStackObject(&myContext->curr);
     idx = ures_openDirect(path, INDEX_LOCALE_NAME, status);

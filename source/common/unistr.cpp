@@ -25,14 +25,18 @@
 #include "cmemory.h"
 #include "unicode/ustring.h"
 #include "unicode/unistr.h"
-#include "uelement.h"
+#include "uhash.h"
 #include "ustr_imp.h"
 #include "umutex.h"
 
 #if 0
 
+#if U_IOSTREAM_SOURCE >= 199711
 #include <iostream>
 using namespace std;
+#elif U_IOSTREAM_SOURCE >= 198506
+#include <iostream.h>
+#endif
 
 //DEBUGGING
 void
@@ -87,7 +91,7 @@ us_arrayCopy(const UChar *src, int32_t srcStart,
 U_CDECL_BEGIN
 static UChar U_CALLCONV
 UnicodeString_charAt(int32_t offset, void *context) {
-    return ((icu::UnicodeString*) context)->charAt(offset);
+    return ((U_NAMESPACE_QUALIFIER UnicodeString*) context)->charAt(offset);
 }
 U_CDECL_END
 
@@ -1478,7 +1482,7 @@ UnicodeString::doHashCode() const
 {
     /* Delegate hash computation to uhash.  This makes UnicodeString
      * hashing consistent with UChar* hashing.  */
-    int32_t hashCode = ustr_hashUCharsN(getArrayStart(), length());
+    int32_t hashCode = uhash_hashUCharsN(getArrayStart(), length());
     if (hashCode == kInvalidHashCode) {
         hashCode = kEmptyHashCode;
     }
@@ -1670,29 +1674,6 @@ UnicodeStringAppendable::getAppendBuffer(int32_t minCapacity,
 
 U_NAMESPACE_END
 
-U_NAMESPACE_USE
-
-U_CAPI int32_t U_EXPORT2
-uhash_hashUnicodeString(const UElement key) {
-    const UnicodeString *str = (const UnicodeString*) key.pointer;
-    return (str == NULL) ? 0 : str->hashCode();
-}
-
-// Moved here from uhash_us.cpp so that using a UVector of UnicodeString*
-// does not depend on hashtable code.
-U_CAPI UBool U_EXPORT2
-uhash_compareUnicodeString(const UElement key1, const UElement key2) {
-    const UnicodeString *str1 = (const UnicodeString*) key1.pointer;
-    const UnicodeString *str2 = (const UnicodeString*) key2.pointer;
-    if (str1 == str2) {
-        return TRUE;
-    }
-    if (str1 == NULL || str2 == NULL) {
-        return FALSE;
-    }
-    return *str1 == *str2;
-}
-
 #ifdef U_STATIC_IMPLEMENTATION
 /*
 This should never be called. It is defined here to make sure that the
@@ -1702,6 +1683,7 @@ but defining it here makes sure that it is included with this object file.
 This makes sure that static library dependencies are kept to a minimum.
 */
 static void uprv_UnicodeStringDummy(void) {
+    U_NAMESPACE_USE
     delete [] (new UnicodeString[2]);
 }
 #endif

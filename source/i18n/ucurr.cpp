@@ -252,7 +252,7 @@ struct CReg;
 static UMTX gCRegLock = 0;
 static CReg* gCRegHead = 0;
 
-struct CReg : public icu::UMemory {
+struct CReg : public U_NAMESPACE_QUALIFIER UMemory {
     CReg *next;
     UChar iso[ISO_COUNTRY_CODE_LENGTH+1];
     char  id[ULOC_FULLNAME_CAPACITY];
@@ -769,7 +769,7 @@ getCurrencyNameCount(const char* loc, int32_t* total_currency_name_count, int32_
                 }
             }
             if (isChoice) {
-                ChoiceFormat fmt(UnicodeString(TRUE, s, len), ec2);
+                ChoiceFormat fmt(s, ec2);
                 int32_t fmt_count;
                 fmt.getFormats(fmt_count);
                 *total_currency_symbol_count += fmt_count;
@@ -801,15 +801,16 @@ getCurrencyNameCount(const char* loc, int32_t* total_currency_name_count, int32_
     }
 }
 
+// TODO: locale dependent
 static UChar* 
-toUpperCase(const UChar* source, int32_t len, const char* locale) {
+toUpperCase(const UChar* source, int32_t len) {
     UChar* dest = NULL;
     UErrorCode ec = U_ZERO_ERROR;
-    int32_t destLen = u_strToUpper(dest, 0, source, len, locale, &ec);
+    int32_t destLen = u_strToUpper(dest, 0, source, len, NULL, &ec);
 
     ec = U_ZERO_ERROR;
     dest = (UChar*)uprv_malloc(sizeof(UChar) * MAX(destLen, len));
-    u_strToUpper(dest, destLen, source, len, locale, &ec);
+    u_strToUpper(dest, destLen, source, len, NULL, &ec);
     if (U_FAILURE(ec)) {
         uprv_memcpy(dest, source, sizeof(UChar) * len);
     } 
@@ -817,7 +818,7 @@ toUpperCase(const UChar* source, int32_t len, const char* locale) {
 }
 
 
-// Collect all available currency names associated with the given locale
+// Collect all available currency names associated with the give locale
 // (enable fallback chain).
 // Read currenc names defined in resource bundle "Currencies" and
 // "CurrencyPlural", enable fallback chain.
@@ -891,7 +892,7 @@ collectCurrencyNames(const char* locale,
                 }
             }
             if (isChoice) {
-                ChoiceFormat fmt(UnicodeString(TRUE, s, len), ec2);
+                ChoiceFormat fmt(s, ec2);
                 int32_t fmt_count;
                 const UnicodeString* formats = fmt.getFormats(fmt_count);
                 for (int i = 0; i < fmt_count; ++i) {
@@ -915,7 +916,7 @@ collectCurrencyNames(const char* locale,
             // Add currency long name.
             s = ures_getStringByIndex(names, UCURR_LONG_NAME, &len, &ec2);
             (*currencyNames)[*total_currency_name_count].IsoCode = iso;
-            UChar* upperName = toUpperCase(s, len, locale);
+            UChar* upperName = toUpperCase(s, len);
             (*currencyNames)[*total_currency_name_count].currencyName = upperName;
             (*currencyNames)[*total_currency_name_count].flag = NEED_TO_BE_DELETED;
             (*currencyNames)[(*total_currency_name_count)++].currencyNameLen = len;
@@ -957,7 +958,7 @@ collectCurrencyNames(const char* locale,
                 // currency long name?
                 s = ures_getStringByIndex(names, j, &len, &ec3);
                 (*currencyNames)[*total_currency_name_count].IsoCode = iso;
-                UChar* upperName = toUpperCase(s, len, locale);
+                UChar* upperName = toUpperCase(s, len);
                 (*currencyNames)[*total_currency_name_count].currencyName = upperName;
                 (*currencyNames)[*total_currency_name_count].flag = NEED_TO_BE_DELETED;
                 (*currencyNames)[(*total_currency_name_count)++].currencyNameLen = len;
@@ -1267,8 +1268,8 @@ currency_cache_cleanup(void) {
 
 U_CFUNC void
 uprv_parseCurrency(const char* locale,
-                   const icu::UnicodeString& text,
-                   icu::ParsePosition& pos,
+                   const U_NAMESPACE_QUALIFIER UnicodeString& text,
+                   U_NAMESPACE_QUALIFIER ParsePosition& pos,
                    int8_t type,
                    UChar* result,
                    UErrorCode& ec)
@@ -1365,7 +1366,7 @@ uprv_parseCurrency(const char* locale,
     int32_t textLen = MIN(MAX_CURRENCY_NAME_LEN, text.length() - start);
     text.extract(start, textLen, inputText);
     UErrorCode ec1 = U_ZERO_ERROR;
-    textLen = u_strToUpper(upperText, MAX_CURRENCY_NAME_LEN, inputText, textLen, locale, &ec1);
+    textLen = u_strToUpper(upperText, MAX_CURRENCY_NAME_LEN, inputText, textLen, NULL, &ec1);
 
     int32_t max = 0;
     int32_t matchIndex = -1;
@@ -1420,7 +1421,7 @@ uprv_parseCurrency(const char* locale,
  */
 U_CFUNC void
 uprv_getStaticCurrencyName(const UChar* iso, const char* loc,
-                           icu::UnicodeString& result, UErrorCode& ec)
+                           U_NAMESPACE_QUALIFIER UnicodeString& result, UErrorCode& ec)
 {
     U_NAMESPACE_USE
 
@@ -1433,14 +1434,14 @@ uprv_getStaticCurrencyName(const UChar* iso, const char* loc,
         // arbitrary value; pick something != 1; more common.
         result.truncate(0);
         if (isChoiceFormat) {
-            ChoiceFormat f(UnicodeString(TRUE, currname, len), ec);
+            ChoiceFormat f(currname, ec);
             if (U_SUCCESS(ec)) {
                 f.format(2.0, result);
             } else {
-                result.setTo(iso, -1);
+                result = iso;
             }
         } else {
-            result.setTo(currname, -1);
+            result = currname;
         }
     }
 }

@@ -37,13 +37,13 @@ static UHashtable *gOlsonToMeta = NULL;
 static UBool gOlsonToMetaInitialized = FALSE;
 
 // Available metazone IDs vector and table
-static icu::UVector *gMetaZoneIDs = NULL;
+static U_NAMESPACE_QUALIFIER UVector *gMetaZoneIDs = NULL;
 static UHashtable *gMetaZoneIDTable = NULL;
 static UBool gMetaZoneIDsInitialized = FALSE;
 
 // Country info vectors
-static icu::UVector *gSingleZoneCountries = NULL;
-static icu::UVector *gMultiZonesCountries = NULL;
+static U_NAMESPACE_QUALIFIER UVector *gSingleZoneCountries = NULL;
+static U_NAMESPACE_QUALIFIER UVector *gMultiZonesCountries = NULL;
 static UBool gCountryInfoVectorsInitialized = FALSE;
 
 U_CDECL_BEGIN
@@ -96,7 +96,7 @@ deleteUCharString(void *obj) {
  */
 static void U_CALLCONV
 deleteUVector(void *obj) {
-   delete (icu::UVector*) obj;
+   delete (U_NAMESPACE_QUALIFIER UVector*) obj;
 }
 
 /**
@@ -104,7 +104,7 @@ deleteUVector(void *obj) {
  */
 static void U_CALLCONV
 deleteOlsonToMetaMappingEntry(void *obj) {
-    icu::OlsonToMetaMappingEntry *entry = (icu::OlsonToMetaMappingEntry*)obj;
+    U_NAMESPACE_QUALIFIER OlsonToMetaMappingEntry *entry = (U_NAMESPACE_QUALIFIER OlsonToMetaMappingEntry*)obj;
     uprv_free(entry);
 }
 
@@ -763,7 +763,7 @@ ZoneMeta::initAvailableMetaZoneIDs () {
             if (!gMetaZoneIDsInitialized) {
                 UErrorCode status = U_ZERO_ERROR;
                 UHashtable *metaZoneIDTable = uhash_open(uhash_hashUnicodeString, uhash_compareUnicodeString, NULL, &status);
-                uhash_setKeyDeleter(metaZoneIDTable, uprv_deleteUObject);
+                uhash_setKeyDeleter(metaZoneIDTable, uhash_deleteUnicodeString);
                 // No valueDeleter, because the vector maintain the value objects
                 UVector *metaZoneIDs = NULL;
                 if (U_SUCCESS(status)) {
@@ -775,7 +775,7 @@ ZoneMeta::initAvailableMetaZoneIDs () {
                     uhash_close(metaZoneIDTable);
                 }
                 if (U_SUCCESS(status)) {
-                    metaZoneIDs->setDeleter(uprv_free);
+                    metaZoneIDs->setDeleter(uhash_freeBlock);
 
                     UResourceBundle *rb = ures_openDirect(NULL, gMetaZones, &status);
                     UResourceBundle *bundle = ures_getByKey(rb, gMapTimezonesTag, NULL, &status);

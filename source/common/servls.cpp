@@ -15,6 +15,7 @@
 #include "cmemory.h"
 #include "servloc.h"
 #include "ustrfmt.h"
+#include "uhash.h"
 #include "charstr.h"
 #include "ucln_cmn.h"
 #include "uassert.h"
@@ -162,7 +163,7 @@ private:
     ServiceEnumeration(const ICULocaleService* service, UErrorCode &status)
         : _service(service)
         , _timestamp(service->getTimestamp())
-        , _ids(uprv_deleteUObject, NULL, status)
+        , _ids(uhash_deleteUnicodeString, NULL, status)
         , _pos(0)
     {
         _service->getVisibleIDs(_ids, status);
@@ -171,7 +172,7 @@ private:
     ServiceEnumeration(const ServiceEnumeration &other, UErrorCode &status)
         : _service(other._service)
         , _timestamp(other._timestamp)
-        , _ids(uprv_deleteUObject, NULL, status)
+        , _ids(uhash_deleteUnicodeString, NULL, status)
         , _pos(0)
     {
         if(U_SUCCESS(status)) {
