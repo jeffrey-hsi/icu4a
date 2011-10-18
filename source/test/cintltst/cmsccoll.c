@@ -37,7 +37,6 @@
 #include "unicode/ucnv.h"
 #include "unicode/ures.h"
 #include "unicode/uscript.h"
-#include "unicode/utf16.h"
 #include "uparse.h"
 #include "putilimp.h"
 
@@ -663,7 +662,7 @@ static UCollationResult ucaTest(void *collator, const int object, const UChar *s
 
 /*
 static UCollationResult winTest(void *collator, const int object, const UChar *source, const int sLen, const UChar *target, const int tLen) {
-#if U_PLATFORM_HAS_WIN32_API
+#ifdef U_WINDOWS
   LCID lcid = (LCID)collator;
   return (UCollationResult)CompareString(lcid, 0, source, sLen, target, tLen);
 #else
@@ -902,7 +901,7 @@ static uint32_t testSwitch(tst_strcoll* func, void *collator, int opts, uint32_t
   realResult = func(collator, opts, first, sLen, second, tLen);
   realStrength = probeStrength(func, collator, opts, first, sLen, second, tLen, realResult);
 
-  if(strength == UCOL_IDENTICAL && realResult != UCOL_EQUAL) {
+  if(strength == UCOL_IDENTICAL && realResult != UCOL_IDENTICAL) {
     logFailure(msg, "tailoring", first, sLen, second, tLen, realResult, realStrength, UCOL_EQUAL, strength, error);
     diffs++;
   } else if(realResult != UCOL_LESS || realStrength != strength) {
@@ -1679,7 +1678,7 @@ static void TestComposeDecompose(void) {
     for(u = 0; u < charsToTestSize; u++) {
         UChar32 ch = uset_charAt(charsToTest, u);
         len = 0;
-        U16_APPEND_UNSAFE(comp, len, ch);
+        UTF_APPEND_CHAR_UNSAFE(comp, len, ch);
         nfcSize = unorm_normalize(comp, len, UNORM_NFC, 0, t[noCases]->NFC, NORM_BUFFER_TEST_LEN, &status);
         nfdSize = unorm_normalize(comp, len, UNORM_NFD, 0, t[noCases]->NFD, NORM_BUFFER_TEST_LEN, &status);
 
@@ -1713,7 +1712,7 @@ static void TestComposeDecompose(void) {
       uprv_memset(t[noCases], 0, sizeof(tester));
       t[noCases]->u = u;
       len = 0;
-      U16_APPEND_UNSAFE(comp, len, u);
+      UTF_APPEND_CHAR_UNSAFE(comp, len, u);
       comp[len] = 0;
       nfcSize = unorm_normalize(comp, len, UNORM_NFC, 0, t[noCases]->NFC, NORM_BUFFER_TEST_LEN, &status);
       nfdSize = unorm_normalize(comp, len, UNORM_NFD, 0, t[noCases]->NFD, NORM_BUFFER_TEST_LEN, &status);

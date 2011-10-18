@@ -18,7 +18,7 @@
     <ClCompile Include="gencnvex.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="genmbcs.cpp">
+    <ClCompile Include="genmbcs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="makeconv.c">

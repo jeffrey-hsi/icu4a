@@ -16,7 +16,6 @@
 #include "unicode/appendable.h"
 #include "unicode/ucharstrie.h"
 #include "unicode/uobject.h"
-#include "unicode/utf16.h"
 #include "cmemory.h"
 #include "uassert.h"
 
@@ -36,24 +35,6 @@ UCharsTrie::current() const {
         return (remainingMatchLength_<0 && (node=*pos)>=kMinValueLead) ?
                 valueResult(node) : USTRINGTRIE_NO_VALUE;
     }
-}
-
-UStringTrieResult
-UCharsTrie::firstForCodePoint(UChar32 cp) {
-    return cp<=0xffff ?
-        first(cp) :
-        (USTRINGTRIE_HAS_NEXT(first(U16_LEAD(cp))) ?
-            next(U16_TRAIL(cp)) :
-            USTRINGTRIE_NO_MATCH);
-}
-
-UStringTrieResult
-UCharsTrie::nextForCodePoint(UChar32 cp) {
-    return cp<=0xffff ?
-        next(cp) :
-        (USTRINGTRIE_HAS_NEXT(next(U16_LEAD(cp))) ?
-            next(U16_TRAIL(cp)) :
-            USTRINGTRIE_NO_MATCH);
 }
 
 UStringTrieResult

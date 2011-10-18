@@ -34,13 +34,10 @@
 
 
 #include "unicode/umachine.h"
+#include "unicode/utf.h"
 #include "unicode/uversion.h"
 #include "unicode/uconfig.h"
-#include <float.h>
-
-#if !U_NO_DEFAULT_INCLUDE_UTF_HEADERS
-#   include "unicode/utf.h"
-#endif
+#include "float.h"
 
 /*!
  * \file
@@ -57,7 +54,7 @@
  * \def U_SHOW_CPLUSPLUS_API
  * @internal
  */
-#ifdef __cplusplus
+#ifdef XP_CPLUSPLUS
 #   ifndef U_SHOW_CPLUSPLUS_API
 #       define U_SHOW_CPLUSPLUS_API 1
 #   endif
@@ -85,7 +82,115 @@
 #define U_HIDE_INTERNAL_API 1
 #endif
 
+#ifdef U_HIDE_DRAFT_API
+#include "unicode/udraft.h"
+#endif
+
+#ifdef U_HIDE_DEPRECATED_API
+#include "unicode/udeprctd.h"
+#endif
+
+#ifdef U_HIDE_DEPRECATED_API
+#include "unicode/uobslete.h"
+#endif
+
+#ifdef U_HIDE_INTERNAL_API
+#include "unicode/uintrnal.h"
+#endif
+
+#ifdef U_HIDE_SYSTEM_API
+#include "unicode/usystem.h"
+#endif
+
 /** @} */
+
+
+/*===========================================================================*/
+/* char Character set family                                                 */
+/*===========================================================================*/
+
+/**
+ * U_CHARSET_FAMILY is equal to this value when the platform is an ASCII based platform.
+ * @stable ICU 2.0
+ */
+#define U_ASCII_FAMILY 0
+
+/**
+ * U_CHARSET_FAMILY is equal to this value when the platform is an EBCDIC based platform.
+ * @stable ICU 2.0
+ */
+#define U_EBCDIC_FAMILY 1
+
+/**
+ * \def U_CHARSET_FAMILY
+ *
+ * <p>These definitions allow to specify the encoding of text
+ * in the char data type as defined by the platform and the compiler.
+ * It is enough to determine the code point values of "invariant characters",
+ * which are the ones shared by all encodings that are in use
+ * on a given platform.</p>
+ *
+ * <p>Those "invariant characters" should be all the uppercase and lowercase
+ * latin letters, the digits, the space, and "basic punctuation".
+ * Also, '\\n', '\\r', '\\t' should be available.</p>
+ *
+ * <p>The list of "invariant characters" is:<br>
+ * \code
+ *    A-Z  a-z  0-9  SPACE  "  %  &amp;  '  (  )  *  +  ,  -  .  /  :  ;  <  =  >  ?  _
+ * \endcode
+ * <br>
+ * (52 letters + 10 numbers + 20 punc/sym/space = 82 total)</p>
+ *
+ * <p>This matches the IBM Syntactic Character Set (CS 640).</p>
+ *
+ * <p>In other words, all the graphic characters in 7-bit ASCII should
+ * be safely accessible except the following:</p>
+ *
+ * \code
+ *    '\' <backslash>
+ *    '[' <left bracket>
+ *    ']' <right bracket>
+ *    '{' <left brace>
+ *    '}' <right brace>
+ *    '^' <circumflex>
+ *    '~' <tilde>
+ *    '!' <exclamation mark>
+ *    '#' <number sign>
+ *    '|' <vertical line>
+ *    '$' <dollar sign>
+ *    '@' <commercial at>
+ *    '`' <grave accent>
+ * \endcode
+ * @stable ICU 2.0
+ */
+
+#ifndef U_CHARSET_FAMILY
+#   define U_CHARSET_FAMILY 0
+#endif
+
+/**
+ * \def U_CHARSET_IS_UTF8
+ *
+ * Hardcode the default charset to UTF-8.
+ *
+ * If this is set to 1, then
+ * - ICU will assume that all non-invariant char*, StringPiece, std::string etc.
+ *   contain UTF-8 text, regardless of what the system API uses
+ * - some ICU code will use fast functions like u_strFromUTF8()
+ *   rather than the more general and more heavy-weight conversion API (ucnv.h)
+ * - ucnv_getDefaultName() always returns "UTF-8"
+ * - ucnv_setDefaultName() is disabled and will not change the default charset
+ * - static builds of ICU are smaller
+ * - more functionality is available with the UCONFIG_NO_CONVERSION build-time
+ *   configuration option (see unicode/uconfig.h)
+ * - the UCONFIG_NO_CONVERSION build option in uconfig.h is more usable
+ *
+ * @stable ICU 4.2
+ * @see UCONFIG_NO_CONVERSION
+ */
+#ifndef U_CHARSET_IS_UTF8
+#   define U_CHARSET_IS_UTF8 0
+#endif
 
 /*===========================================================================*/
 /* ICUDATA naming scheme                                                     */
@@ -134,11 +239,9 @@
  * ICU 1.8.x on EBCDIC, etc..
  * @stable ICU 2.0
  */
-#define U_ICUDATA_NAME    "icudt" U_ICU_VERSION_SHORT U_ICUDATA_TYPE_LETTER
-#ifndef U_HIDE_INTERNAL_API
+#define U_ICUDATA_NAME    "icudt" U_ICU_VERSION_SHORT U_ICUDATA_TYPE_LETTER  /**< @internal */
 #define U_USRDATA_NAME    "usrdt" U_ICU_VERSION_SHORT U_ICUDATA_TYPE_LETTER  /**< @internal */
 #define U_USE_USRDATA     1  /**< @internal */
-#endif  /* U_HIDE_INTERNAL_API */
 
 /**
  *  U_ICU_ENTRY_POINT is the name of the DLL entry point to the ICU data library.
@@ -151,28 +254,38 @@
  *                                  \#define U_ICU_ENTRY_POINT icudt19_dat
  * @stable ICU 2.4
  */
-#define U_ICUDATA_ENTRY_POINT  U_DEF2_ICUDATA_ENTRY_POINT(U_ICU_VERSION_MAJOR_NUM,U_LIB_SUFFIX_C_NAME)
+#define U_ICUDATA_ENTRY_POINT  U_DEF2_ICUDATA_ENTRY_POINT(U_ICU_VERSION_MAJOR_NUM, U_ICU_VERSION_MINOR_NUM)
 
-#ifndef U_HIDE_INTERNAL_API
 /**
- * Do not use. Note that it's OK for the 2nd argument to be undefined (literal).
+ * Do not use.
  * @internal
  */
-#define U_DEF2_ICUDATA_ENTRY_POINT(major,suff) U_DEF_ICUDATA_ENTRY_POINT(major,suff)
-
+#define U_DEF2_ICUDATA_ENTRY_POINT(major, minor) U_DEF_ICUDATA_ENTRY_POINT(major, minor)
 /**
  * Do not use.
  * @internal
  */
 #ifndef U_DEF_ICUDATA_ENTRY_POINT
 /* affected by symbol renaming. See platform.h */
-#ifndef U_LIB_SUFFIX_C_NAME
-#define U_DEF_ICUDATA_ENTRY_POINT(major, suff) icudt##major##_dat
+#define U_DEF_ICUDATA_ENTRY_POINT(major, minor) icudt##major##minor##_dat
+#endif
+
+/**
+ * \def U_CALLCONV
+ * Similar to U_CDECL_BEGIN/U_CDECL_END, this qualifier is necessary
+ * in callback function typedefs to make sure that the calling convention
+ * is compatible.
+ *
+ * This is only used for non-ICU-API functions.
+ * When a function is a public ICU API,
+ * you must use the U_CAPI and U_EXPORT2 qualifiers.
+ * @stable ICU 2.0
+ */
+#if defined(OS390) && defined(XP_CPLUSPLUS)
+#    define U_CALLCONV __cdecl
 #else
-#define U_DEF_ICUDATA_ENTRY_POINT(major, suff) icudt##suff ## major##_dat
+#    define U_CALLCONV U_EXPORT2
 #endif
-#endif
-#endif  /* U_HIDE_INTERNAL_API */
 
 /**
  * \def NULL
@@ -180,7 +293,7 @@
  * @stable ICU 2.0
  */
 #ifndef NULL
-#ifdef __cplusplus
+#ifdef XP_CPLUSPLUS
 #define NULL    0
 #else
 #define NULL    ((void *)0)
@@ -209,7 +322,6 @@ typedef double UDate;
 /** The number of milliseconds per day @stable ICU 2.0 */
 #define U_MILLIS_PER_DAY       (86400000)
 
-#ifndef U_HIDE_DRAFT_API
 /** 
  * Maximum UDate value 
  * @draft ICU 4.8 
@@ -221,7 +333,56 @@ typedef double UDate;
  * @draft ICU 4.8 
  */ 
 #define U_DATE_MIN -U_DATE_MAX
-#endif  /* U_HIDE_DRAFT_API */
+
+
+
+/*===========================================================================*/
+/* UClassID-based RTTI */
+/*===========================================================================*/
+
+/**
+ * UClassID is used to identify classes without using RTTI, since RTTI
+ * is not yet supported by all C++ compilers.  Each class hierarchy which needs
+ * to implement polymorphic clone() or operator==() defines two methods,
+ * described in detail below.  UClassID values can be compared using
+ * operator==(). Nothing else should be done with them.
+ *
+ * \par
+ * getDynamicClassID() is declared in the base class of the hierarchy as
+ * a pure virtual.  Each concrete subclass implements it in the same way:
+ *
+ * \code
+ *      class Base {
+ *      public:
+ *          virtual UClassID getDynamicClassID() const = 0;
+ *      }
+ *
+ *      class Derived {
+ *      public:
+ *          virtual UClassID getDynamicClassID() const
+ *            { return Derived::getStaticClassID(); }
+ *      }
+ * \endcode
+ *
+ * Each concrete class implements getStaticClassID() as well, which allows
+ * clients to test for a specific type.
+ *
+ * \code
+ *      class Derived {
+ *      public:
+ *          static UClassID U_EXPORT2 getStaticClassID();
+ *      private:
+ *          static char fgClassID;
+ *      }
+ *
+ *      // In Derived.cpp:
+ *      UClassID Derived::getStaticClassID()
+ *        { return (UClassID)&Derived::fgClassID; }
+ *      char Derived::fgClassID = 0; // Value is irrelevant
+ * \endcode
+ * @stable ICU 2.0
+ */
+typedef void* UClassID;
 
 /*===========================================================================*/
 /* Shared library/DLL import-export API control                              */
@@ -232,7 +393,7 @@ typedef double UDate;
  * ICU is separated into three libraries.
  */
 
-/**
+/*
  * \def U_COMBINED_IMPLEMENTATION
  * Set to export library symbols from inside the ICU library
  * when all of ICU is in a single library.
@@ -399,9 +560,9 @@ typedef double UDate;
  *
  * Note: This is currently only done on Windows because
  * some Linux/Unix compilers have problems with defining global new/delete.
- * On Windows, it is _MSC_VER>=1200 for MSVC 6.0 and higher.
+ * On Windows, U_WINDOWS is defined, and it is _MSC_VER>=1200 for MSVC 6.0 and higher.
  */
-#if defined(__cplusplus) && U_DEBUG && U_OVERRIDE_CXX_ALLOCATION && (_MSC_VER>=1200) && !defined(U_STATIC_IMPLEMENTATION) && (defined(U_COMMON_IMPLEMENTATION) || defined(U_I18N_IMPLEMENTATION) || defined(U_IO_IMPLEMENTATION) || defined(U_LAYOUT_IMPLEMENTATION) || defined(U_LAYOUTEX_IMPLEMENTATION))
+#if defined(XP_CPLUSPLUS) && defined(U_WINDOWS) && U_DEBUG && U_OVERRIDE_CXX_ALLOCATION && (_MSC_VER>=1200) && !defined(U_STATIC_IMPLEMENTATION) && (defined(U_COMMON_IMPLEMENTATION) || defined(U_I18N_IMPLEMENTATION) || defined(U_IO_IMPLEMENTATION) || defined(U_LAYOUT_IMPLEMENTATION) || defined(U_LAYOUTEX_IMPLEMENTATION))
 
 #ifndef U_HIDE_INTERNAL_API
 /**
@@ -686,7 +847,7 @@ typedef enum UErrorCode {
 /* Use the following to determine if an UErrorCode represents */
 /* operational success or failure. */
 
-#ifdef __cplusplus
+#ifdef XP_CPLUSPLUS
     /**
      * Does the error code indicate success?
      * @stable ICU 2.0

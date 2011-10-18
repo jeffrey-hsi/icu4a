@@ -1,6 +1,6 @@
 /*  
 **********************************************************************
-*   Copyright (C) 2002-2011, International Business Machines
+*   Copyright (C) 2002-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   file name:  ucnv_u32.c
@@ -19,7 +19,6 @@
 #if !UCONFIG_NO_CONVERSION
 
 #include "unicode/ucnv.h"
-#include "unicode/utf.h"
 #include "ucnv_bld.h"
 #include "ucnv_cnv.h"
 #include "cmemory.h"
@@ -247,7 +246,7 @@ T_UConverter_fromUnicode_UTF32_BE(UConverterFromUnicodeArgs * args,
     while (mySource < sourceLimit && myTarget < targetLimit) {
         ch = *(mySource++);
 
-        if (U_IS_SURROGATE(ch)) {
+        if (UTF_IS_SURROGATE(ch)) {
             if (U_IS_LEAD(ch)) {
 lowsurogate:
                 if (mySource < sourceLimit) {
@@ -351,7 +350,7 @@ T_UConverter_fromUnicode_UTF32_BE_OFFSET_LOGIC(UConverterFromUnicodeArgs * args,
     while (mySource < sourceLimit && myTarget < targetLimit) {
         ch = *(mySource++);
 
-        if (U_IS_SURROGATE(ch)) {
+        if (UTF_IS_SURROGATE(ch)) {
             if (U_IS_LEAD(ch)) {
 lowsurogate:
                 if (mySource < sourceLimit) {
@@ -727,14 +726,14 @@ T_UConverter_fromUnicode_UTF32_LE(UConverterFromUnicodeArgs * args,
     {
         ch = *(mySource++);
 
-        if (U16_IS_SURROGATE(ch)) {
-            if (U16_IS_LEAD(ch))
+        if (UTF_IS_SURROGATE(ch)) {
+            if (U_IS_LEAD(ch))
             {
 lowsurogate:
                 if (mySource < sourceLimit)
                 {
                     ch2 = *mySource;
-                    if (U16_IS_TRAIL(ch2)) {
+                    if (U_IS_TRAIL(ch2)) {
                         ch = ((ch - SURROGATE_HIGH_START) << HALF_SHIFT) + ch2 + SURROGATE_LOW_BASE;
                         mySource++;
                     }
@@ -839,14 +838,14 @@ T_UConverter_fromUnicode_UTF32_LE_OFFSET_LOGIC(UConverterFromUnicodeArgs * args,
     {
         ch = *(mySource++);
 
-        if (U16_IS_SURROGATE(ch)) {
-            if (U16_IS_LEAD(ch))
+        if (UTF_IS_SURROGATE(ch)) {
+            if (U_IS_LEAD(ch))
             {
 lowsurogate:
                 if (mySource < sourceLimit)
                 {
                     ch2 = *mySource;
-                    if (U16_IS_TRAIL(ch2))
+                    if (U_IS_TRAIL(ch2))
                     {
                         ch = ((ch - SURROGATE_HIGH_START) << HALF_SHIFT) + ch2 + SURROGATE_LOW_BASE;
                         mySource++;

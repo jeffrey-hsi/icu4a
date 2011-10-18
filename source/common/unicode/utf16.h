@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2011, International Business Machines
+*   Copyright (C) 1999-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -19,9 +19,11 @@
  * \brief C API: 16-bit Unicode handling macros
  * 
  * This file defines macros to deal with 16-bit Unicode (UTF-16) code units and strings.
+ * utf16.h is included by utf.h after unicode/umachine.h
+ * and some common definitions.
  *
  * For more information see utf.h and the ICU User Guide Strings chapter
- * (http://userguide.icu-project.org/strings).
+ * (http://icu-project.org/userguide/strings.html).
  *
  * <em>Usage:</em>
  * ICU coding guidelines for if() statements should be followed when using these macros.
@@ -32,7 +34,7 @@
 #ifndef __UTF16_H__
 #define __UTF16_H__
 
-#include "unicode/umachine.h"
+/* utf.h must be included first. */
 #ifndef __UTF_H__
 #   include "unicode/utf.h"
 #endif

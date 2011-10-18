@@ -30,7 +30,7 @@ bn{
                 nan{"সংখ্যা না"}
             }
         }
-        default{"latn"}
+        default{"beng"}
         latn{
             patterns{
                 currencyFormat{"#,##,##0.00¤;(#,##,##0.00¤)"}
@@ -52,7 +52,7 @@ bn{
             }
         }
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.63"}
     calendar{
         gregorian{
             AmPmMarkers{

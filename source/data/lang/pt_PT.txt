@@ -102,10 +102,6 @@ pt_PT{
         Zxxx{"não escrito"}
         Zzzz{"inválido ou desconhecido"}
     }
-    Scripts%stand-alone{
-        Hans{"Han Simplificado"}
-        Hant{"Han Tradicional"}
-    }
     Types{
         calendar{
             coptic{"Calendário Copta"}
@@ -178,5 +174,5 @@ pt_PT{
         SOLBA{"dialecto stolvizza/solbica"}
         WADEGILE{"Romanização Wade-Giles"}
     }
-    Version{"2.0.61.44"}
+    Version{"2.0.59.5"}
 }

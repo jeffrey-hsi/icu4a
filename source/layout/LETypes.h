@@ -1,6 +1,6 @@
 /*
  *
- * (C) Copyright IBM Corp. 1998-2011 - All Rights Reserved
+ * (C) Copyright IBM Corp. 1998-2009 - All Rights Reserved
  *
  */
 
@@ -13,7 +13,7 @@
 
 #include "unicode/utypes.h"
 
-#ifdef __cplusplus
+#ifdef XP_CPLUSPLUS
 #include "unicode/uobject.h"
 #endif
 
@@ -229,14 +229,12 @@ typedef UChar LEUnicode16;
  */
 typedef UChar32 LEUnicode32;
 
-#ifndef U_HIDE_DEPRECATED_API
 /**
  * Used to represent 16-bit Unicode code points.
  *
  * @deprecated since ICU 2.4. Use LEUnicode16 instead
  */
 typedef UChar LEUnicode;
-#endif  /* U_HIDE_DEPRECATED_API */
 
 /**
  * Used to hold a pair of (x, y) values which represent a point.
@@ -260,7 +258,7 @@ struct LEPoint
     float fY;
 };
 
-#ifndef __cplusplus
+#ifndef XP_CPLUSPLUS
 /**
  * Used to hold a pair of (x, y) values which represent a point.
  *
@@ -270,7 +268,6 @@ typedef struct LEPoint LEPoint;
 #endif
 
 
-#ifndef U_HIDE_INTERNAL_API
 /**
  * A convenience macro to get the length of an array.
  *
@@ -310,7 +307,6 @@ typedef struct LEPoint LEPoint;
  */
 #define LE_DELETE_ARRAY(array) uprv_free((void *) (array))
 #endif
-#endif  /* U_HIDE_INTERNAL_API */
 
 /**
  * A macro to construct the four-letter tags used to
@@ -546,7 +542,7 @@ enum LEErrorCode {
     LE_MISSING_FONT_TABLE_ERROR     = U_MISSING_RESOURCE_ERROR   /**< The requested font table does not exist. */
 };
 
-#ifndef __cplusplus
+#ifndef XP_CPLUSPLUS
 /**
  * Error codes returned by the LayoutEngine.
  *

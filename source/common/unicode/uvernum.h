@@ -48,13 +48,13 @@
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.4
  */
-#define U_ICU_VERSION_MAJOR_NUM 49
+#define U_ICU_VERSION_MAJOR_NUM 4
 
 /** The current ICU minor version as an integer. 
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_MINOR_NUM 0
+#define U_ICU_VERSION_MINOR_NUM 8
 
 /** The current ICU patchlevel version as an integer.  
  *  This value will change in the subsequent releases of ICU
@@ -67,41 +67,23 @@
  *  @stable ICU 4.0
  */
 #ifndef U_ICU_VERSION_BUILDLEVEL_NUM
-#define U_ICU_VERSION_BUILDLEVEL_NUM 0
+#define U_ICU_VERSION_BUILDLEVEL_NUM 1
 #endif
 
 /** Glued version suffix for renamers 
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_SUFFIX _49
+#define U_ICU_VERSION_SUFFIX _48
 
-/**
- * \def U_DEF2_ICU_ENTRY_POINT_RENAME
- * @internal
- */
-/**
- * \def U_DEF_ICU_ENTRY_POINT_RENAME
- * @internal
- */
 /** Glued version suffix function for renamers 
  *  This value will change in the subsequent releases of ICU.
  *  If a custom suffix (such as matching library suffixes) is desired, this can be modified.
  *  Note that if present, platform.h may contain an earlier definition of this macro.
- *  \def U_ICU_ENTRY_POINT_RENAME
  *  @stable ICU 4.2
  */
-
 #ifndef U_ICU_ENTRY_POINT_RENAME
-#ifdef U_HAVE_LIB_SUFFIX
-#define U_DEF_ICU_ENTRY_POINT_RENAME(x,y,z) x ## y ##  z
-#define U_DEF2_ICU_ENTRY_POINT_RENAME(x,y,z) U_DEF_ICU_ENTRY_POINT_RENAME(x,y,z)
-#define U_ICU_ENTRY_POINT_RENAME(x)    U_DEF2_ICU_ENTRY_POINT_RENAME(x,U_ICU_VERSION_SUFFIX,U_LIB_SUFFIX_C_NAME)
-#else
-#define U_DEF_ICU_ENTRY_POINT_RENAME(x,y) x ## y
-#define U_DEF2_ICU_ENTRY_POINT_RENAME(x,y) U_DEF_ICU_ENTRY_POINT_RENAME(x,y)
-#define U_ICU_ENTRY_POINT_RENAME(x)    U_DEF2_ICU_ENTRY_POINT_RENAME(x,U_ICU_VERSION_SUFFIX)
-#endif
+#define U_ICU_ENTRY_POINT_RENAME(x)    x ## _48
 #endif
 
 /** The current ICU library version as a dotted-decimal string. The patchlevel
@@ -109,20 +91,18 @@
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.4
  */
-#define U_ICU_VERSION "49.0.1"
+#define U_ICU_VERSION "4.8.1.1"
 
 /** The current ICU library major/minor version as a string without dots, for library name suffixes. 
  *  This value will change in the subsequent releases of ICU
  *  @stable ICU 2.6
  */
-#define U_ICU_VERSION_SHORT "49"
+#define U_ICU_VERSION_SHORT "48"
 
-#ifndef U_HIDE_INTERNAL_API
 /** Data version in ICU4C.
  * @internal ICU 4.4 Internal Use Only
  **/
-#define U_ICU_DATA_VERSION "49.0.1"
-#endif  /* U_HIDE_INTERNAL_API */
+#define U_ICU_DATA_VERSION "4.8.1"
 
 /*===========================================================================
  * ICU collation framework version information

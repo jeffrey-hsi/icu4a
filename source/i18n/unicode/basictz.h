@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
-* Copyright (C) 2007-2011, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 2007-2008, International Business Machines Corporation and         *
+* others. All Rights Reserved.                                                *
 *******************************************************************************
 */
 #ifndef BASICTZ_H
@@ -141,7 +141,6 @@ public:
         AnnualTimeZoneRule*& std, AnnualTimeZoneRule*& dst, UErrorCode& status) /*const*/;
 
 
-#ifndef U_HIDE_INTERNAL_API
     /**
      * The time type option bit flags used by getOffsetFromLocal
      * @internal
@@ -152,7 +151,6 @@ public:
         kFormer = 0x04,
         kLatter = 0x0C
     };
-#endif  /* U_HIDE_INTERNAL_API */
 
     /**
      * Get time zone offsets from local wall time.
@@ -163,7 +161,6 @@ public:
 
 protected:
 
-#ifndef U_HIDE_INTERNAL_API
     /**
      * The time type option bit masks used by getOffsetFromLocal
      * @internal
@@ -172,7 +169,6 @@ protected:
         kStdDstMask = kDaylight,
         kFormerLatterMask = kLatter
     };
-#endif  /* U_HIDE_INTERNAL_API */
 
     /**
      * Default constructor.

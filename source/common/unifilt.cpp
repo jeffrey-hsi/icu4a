@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-* Copyright (c) 2001-2011, International Business Machines
+* Copyright (c) 2001-2004, International Business Machines
 * Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -10,7 +10,6 @@
 
 #include "unicode/unifilt.h"
 #include "unicode/rep.h"
-#include "unicode/utf16.h"
 
 U_NAMESPACE_BEGIN
 UOBJECT_DEFINE_ABSTRACT_RTTI_IMPLEMENTATION(UnicodeFilter)
@@ -44,7 +43,7 @@ UMatchDegree UnicodeFilter::matches(const Replaceable& text,
     UChar32 c;
     if (offset < limit &&
         contains(c = text.char32At(offset))) {
-        offset += U16_LENGTH(c);
+        offset += UTF_CHAR_LENGTH(c);
         return U_MATCH;
     }
     if (offset > limit &&
@@ -54,7 +53,7 @@ UMatchDegree UnicodeFilter::matches(const Replaceable& text,
         // the lead surrogate).
         --offset;
         if (offset >= 0) {
-            offset -= U16_LENGTH(text.char32At(offset)) - 1;
+            offset -= UTF_CHAR_LENGTH(text.char32At(offset)) - 1;
         }
         return U_MATCH;
     }

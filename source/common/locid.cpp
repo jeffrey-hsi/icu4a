@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 1997-2011, International Business Machines
+ *   Copyright (C) 1997-2010, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
 *
@@ -32,14 +32,12 @@
 
 #include "unicode/locid.h"
 #include "unicode/uloc.h"
-#include "putilimp.h"
 #include "umutex.h"
 #include "uassert.h"
 #include "cmemory.h"
 #include "cstring.h"
 #include "uhash.h"
 #include "ucln_cmn.h"
-#include "ustr_imp.h"
 
 #define LENGTHOF(array) (int32_t)(sizeof(array)/sizeof((array)[0]))
 
@@ -77,9 +75,9 @@ U_CFUNC int32_t locale_getKeywords(const char *localeID,
             UBool valuesToo,
             UErrorCode *status);
 
-static icu::Locale *gLocaleCache = NULL;
-static icu::Locale *gDefaultLocale = NULL;
-static UHashtable *gDefaultLocalesHashT = NULL;
+static U_NAMESPACE_QUALIFIER Locale *gLocaleCache         = NULL;
+static U_NAMESPACE_QUALIFIER Locale *gDefaultLocale       = NULL;
+static UHashtable                   *gDefaultLocalesHashT = NULL;
 
 U_CDECL_BEGIN
 //
@@ -87,7 +85,7 @@ U_CDECL_BEGIN
 //
 static void U_CALLCONV
 deleteLocale(void *obj) {
-    delete (icu::Locale *) obj;
+    delete (U_NAMESPACE_QUALIFIER Locale *) obj;
 }
 
 static UBool U_CALLCONV locale_cleanup(void)
@@ -637,7 +635,9 @@ Locale& Locale::init(const char* localeID, UBool canonicalize)
 int32_t
 Locale::hashCode() const
 {
-    return ustr_hashCharsN(fullName, uprv_strlen(fullName));
+    UHashTok hashKey;
+    hashKey.pointer = fullName;
+    return uhash_hashChars(hashKey);
 }
 
 void
@@ -983,7 +983,9 @@ public:
         }
     }
 
-    virtual ~KeywordEnumeration();
+    virtual ~KeywordEnumeration() {
+        uprv_free(keywords);
+    }
 
     virtual StringEnumeration * clone() const
     {
@@ -1032,10 +1034,6 @@ public:
 };
 
 const char KeywordEnumeration::fgClassID = '\0';
-
-KeywordEnumeration::~KeywordEnumeration() {
-    uprv_free(keywords);
-}
 
 StringEnumeration *
 Locale::createKeywords(UErrorCode &status) const

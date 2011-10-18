@@ -10,9 +10,8 @@
 */
 #include "ruleiter.h"
 #include "unicode/parsepos.h"
-#include "unicode/symtable.h"
 #include "unicode/unistr.h"
-#include "unicode/utf16.h"
+#include "unicode/symtable.h"
 #include "patternprops.h"
 
 /* \U87654321 or \ud800\udc00 */
@@ -41,7 +40,7 @@ UChar32 RuleCharacterIterator::next(int32_t options, UBool& isEscaped, UErrorCod
 
     for (;;) {
         c = _current();
-        _advance(U16_LENGTH(c));
+        _advance(UTF_CHAR_LENGTH(c));
 
         if (c == SymbolTable::SYMBOL_REF && buf == 0 &&
             (options & PARSE_VARIABLES) != 0 && sym != 0) {
@@ -103,7 +102,7 @@ void RuleCharacterIterator::skipIgnored(int32_t options) {
         for (;;) {
             UChar32 a = _current();
             if (!PatternProps::isWhiteSpace(a)) break;
-            _advance(U16_LENGTH(a));
+            _advance(UTF_CHAR_LENGTH(a));
         }
     }
 }

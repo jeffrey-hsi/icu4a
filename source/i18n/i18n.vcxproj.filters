@@ -30,6 +30,9 @@
     <ClCompile Include="bmsearch.cpp">
       <Filter>collation</Filter>
     </ClCompile>
+    <ClCompile Include="bocsu.c">
+      <Filter>collation</Filter>
+    </ClCompile>
     <ClCompile Include="coleitr.cpp">
       <Filter>collation</Filter>
     </ClCompile>
@@ -489,7 +492,6 @@
     <ClCompile Include="tznames_impl.cpp">
       <Filter>formatting</Filter>
     </ClCompile>
-    <ClCompile Include="bocsu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bocsu.h">
@@ -775,9 +777,6 @@
       <Filter>formatting</Filter>
     </ClInclude>
     <ClInclude Include="tznames_impl.h">
-      <Filter>formatting</Filter>
-    </ClInclude>
-    <ClInclude Include="numsys_impl.h">
       <Filter>formatting</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,177 +19,6 @@
 #include "unicode/utypes.h"
 #include "unicode/putil.h"
 
-/** Define this to 1 if your platform supports IEEE 754 floating point,
-   to 0 if it does not. */
-#ifndef IEEE_754
-#   define IEEE_754 1
-#endif
-
-/**
- * uintptr_t is an optional part of the standard definitions in stdint.h.
- * The opengroup.org documentation for stdint.h says
- * "On XSI-conformant systems, the intptr_t and uintptr_t types are required;
- * otherwise, they are optional."
- * We assume that when uintptr_t is defined, UINTPTR_MAX is defined as well.
- *
- * Do not use ptrdiff_t since it is signed. size_t is unsigned.
- */
-#if !defined(__intptr_t_defined) && !defined(UINTPTR_MAX)
-typedef size_t uintptr_t;
-#endif
-
-/**
- * \def U_HAVE_MSVC_2003_OR_EARLIER
- * Flag for workaround of MSVC 2003 optimization bugs
- * @internal
- */
-#if !defined(U_HAVE_MSVC_2003_OR_EARLIER) && defined(_MSC_VER) && (_MSC_VER < 1400)
-#define U_HAVE_MSVC_2003_OR_EARLIER
-#endif
-
-/*===========================================================================*/
-/** @{ Information about POSIX support                                       */
-/*===========================================================================*/
-
-#ifdef U_HAVE_NL_LANGINFO_CODESET
-    /* Use the predefined value. */
-#elif U_PLATFORM_HAS_WIN32_API
-#   define U_HAVE_NL_LANGINFO_CODESET 0
-#else
-#   define U_HAVE_NL_LANGINFO_CODESET 1
-#endif
-
-#ifdef U_NL_LANGINFO_CODESET
-    /* Use the predefined value. */
-#elif !U_HAVE_NL_LANGINFO_CODESET
-#   define U_NL_LANGINFO_CODESET -1
-#elif U_PLATFORM == U_PF_OS400
-   /* not defined */
-#else
-#   define U_NL_LANGINFO_CODESET CODESET
-#endif
-
-#ifdef U_TZSET
-    /* Use the predefined value. */
-#elif U_PLATFORM_USES_ONLY_WIN32_API
-#   define U_TZSET _tzset
-#elif U_PLATFORM == U_PF_OS400
-   /* not defined */
-#else
-#   define U_TZSET tzset
-#endif
-
-#ifdef U_TIMEZONE
-    /* Use the predefined value. */
-#elif U_PLATFORM_IS_LINUX_BASED
-#   define U_TIMEZONE __timezone
-#elif U_PLATFORM_USES_ONLY_WIN32_API
-#   define U_TIMEZONE _timezone
-#elif U_PLATFORM == U_PF_OS400
-   /* not defined */
-#else
-#   define U_TIMEZONE timezone
-#endif
-
-#ifdef U_TZNAME
-    /* Use the predefined value. */
-#elif U_PLATFORM_USES_ONLY_WIN32_API
-#   define U_TZNAME _tzname
-#elif U_PLATFORM == U_PF_OS400
-   /* not defined */
-#else
-#   define U_TZNAME tzname
-#endif
-
-#ifdef U_HAVE_MMAP
-    /* Use the predefined value. */
-#elif U_PLATFORM_HAS_WIN32_API
-#   define U_HAVE_MMAP 0
-#else
-#   define U_HAVE_MMAP 1
-#endif
-
-#ifdef U_HAVE_POPEN
-    /* Use the predefined value. */
-#elif U_PLATFORM_USES_ONLY_WIN32_API
-#   define U_HAVE_POPEN 0
-#elif U_PLATFORM == U_PF_OS400
-#   define U_HAVE_POPEN 0
-#else
-#   define U_HAVE_POPEN 1
-#endif
-
-/**
- * \def U_HAVE_DIRENT_H
- * Defines whether dirent.h is available.
- * @internal
- */
-#ifdef U_HAVE_DIRENT_H
-    /* Use the predefined value. */
-#elif U_PLATFORM_HAS_WIN32_API
-#   define U_HAVE_DIRENT_H 0
-#else
-#   define U_HAVE_DIRENT_H 1
-#endif
-
-/** @} */
-
-/*===========================================================================*/
-/** @{ GCC built in functions for atomic memory operations                   */
-/*===========================================================================*/
-
-/**
- * \def U_HAVE_GCC_ATOMICS
- * @internal
- */
-#ifdef U_HAVE_GCC_ATOMICS
-    /* Use the predefined value. */
-#elif defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 401)
-#   define U_HAVE_GCC_ATOMICS 1
-#else
-#   define U_HAVE_GCC_ATOMICS 0
-#endif
-
-/** @} */
-
-/*===========================================================================*/
-/** @{ Code alignment                                                        */
-/*===========================================================================*/
-
-/**
- * \def U_ALIGN_CODE
- * This is used to align code fragments to a specific byte boundary.
- * This is useful for getting consistent performance test results.
- * @internal
- */
-#ifdef U_ALIGN_CODE
-    /* Use the predefined value. */
-#elif defined(_MSC_VER) && defined(_M_IX86) && !defined(_MANAGED)
-#   define U_ALIGN_CODE(boundarySize) __asm  align boundarySize
-#else
-#   define U_ALIGN_CODE(boundarySize) 
-#endif
-
-/** @} */
-
-/*===========================================================================*/
-/** @{ Programs used by ICU code                                             */
-/*===========================================================================*/
-
-/**
- * \def U_MAKE_IS_NMAKE
- * Defines whether the "make" program is Windows nmake.
- */
-#ifdef U_MAKE_IS_NMAKE
-    /* Use the predefined value. */
-#elif U_PLATFORM == U_PF_WINDOWS
-#   define U_MAKE_IS_NMAKE 1
-#else
-#   define U_MAKE_IS_NMAKE 0
-#endif
-
-/** @} */
-
 /*==========================================================================*/
 /* Platform utilities                                                       */
 /*==========================================================================*/
@@ -330,29 +159,6 @@ U_INTERNAL double  U_EXPORT2 uprv_round(double x);
 /*U_INTERNAL int32_t  U_EXPORT2 uprv_digitsAfterDecimal(double x);*/
 #endif
 
-#if !U_CHARSET_IS_UTF8
-/**
- * Please use ucnv_getDefaultName() instead.
- * Return the default codepage for this platform and locale.
- * This function can call setlocale() on Unix platforms. Please read the
- * platform documentation on setlocale() before calling this function.
- * @return the default codepage for this platform 
- * @internal
- */
-U_INTERNAL const char*  U_EXPORT2 uprv_getDefaultCodepage(void);
-#endif
-
-/**
- * Please use uloc_getDefault() instead.
- * Return the default locale ID string by querying ths system, or
- *     zero if one cannot be found. 
- * This function can call setlocale() on Unix platforms. Please read the
- * platform documentation on setlocale() before calling this function.
- * @return the default locale ID string
- * @internal
- */
-U_INTERNAL const char*  U_EXPORT2 uprv_getDefaultLocaleID(void);
-
 /**
  * Time zone utilities
  *
@@ -453,10 +259,10 @@ U_INTERNAL void * U_EXPORT2 uprv_maximumPtr(void *base);
  * @internal
  */
 #ifndef U_MAX_PTR
-#  if U_PLATFORM == U_PF_OS390 && !defined(_LP64)
+#  if defined(OS390) && !defined(_LP64)
     /* We have 31-bit pointers. */
 #    define U_MAX_PTR(base) ((void *)0x7fffffff)
-#  elif U_PLATFORM == U_PF_OS400
+#  elif defined(OS400)
 #    define U_MAX_PTR(base) uprv_maximumPtr((void *)base)
 #  elif 0
     /*
@@ -517,7 +323,7 @@ U_INTERNAL UVoidFunction* U_EXPORT2 uprv_dlsym_func( void *lib, const char *symb
  * Define malloc and related functions
  * @internal
  */
-#if U_PLATFORM == U_PF_OS400
+#if defined(OS400)
 # define uprv_default_malloc(x) _C_TS_malloc(x)
 # define uprv_default_realloc(x,y) _C_TS_realloc(x,y)
 # define uprv_default_free(x) _C_TS_free(x)

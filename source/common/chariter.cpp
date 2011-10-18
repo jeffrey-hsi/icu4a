@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1999-2011, International Business Machines
+*   Copyright (C) 1999-2004, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 */
@@ -62,8 +62,6 @@ CharacterIterator::CharacterIterator(int32_t length, int32_t textBegin, int32_t 
         pos = end;
     }
 }
-
-CharacterIterator::~CharacterIterator() {}
 
 CharacterIterator::CharacterIterator(const CharacterIterator &that) :
 ForwardCharacterIterator(that),

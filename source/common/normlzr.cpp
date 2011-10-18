@@ -16,7 +16,6 @@
 #include "unicode/schriter.h"
 #include "unicode/uchriter.h"
 #include "unicode/normlzr.h"
-#include "unicode/utf16.h"
 #include "cmemory.h"
 #include "normalizer2impl.h"
 #include "uprops.h"  // for uniset_getUnicode32Instance()
@@ -263,7 +262,7 @@ UChar32 Normalizer::current() {
 UChar32 Normalizer::next() {
     if(bufferPos<buffer.length() ||  nextNormalize()) {
         UChar32 c=buffer.char32At(bufferPos);
-        bufferPos+=U16_LENGTH(c);
+        bufferPos+=UTF_CHAR_LENGTH(c);
         return c;
     } else {
         return DONE;
@@ -278,7 +277,7 @@ UChar32 Normalizer::next() {
 UChar32 Normalizer::previous() {
     if(bufferPos>0 || previousNormalize()) {
         UChar32 c=buffer.char32At(bufferPos-1);
-        bufferPos-=U16_LENGTH(c);
+        bufferPos-=UTF_CHAR_LENGTH(c);
         return c;
     } else {
         return DONE;

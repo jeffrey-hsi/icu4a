@@ -671,10 +671,6 @@ el{
         Zyyy{"Κοινό"}
         Zzzz{"Άγνωστη ή ακατάλληλη γραφή"}
     }
-    Scripts%stand-alone{
-        Hans{"Απλοποιημένα Χαν"}
-        Hant{"Παραδοσιακά Χαν"}
-    }
     Types{
         calendar{
             buddhist{"Βουδιστικό ημερολόγιο"}
@@ -778,7 +774,7 @@ el{
         VALENCIA{"Βαλενθιανά"}
         WADEGILE{"Εκλατινισμένα Γουάντ-Γκιλς"}
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.68"}
     codePatterns{
         language{"Γλώσσα: {0}"}
         script{"Σύστημα γραφής: {0}"}

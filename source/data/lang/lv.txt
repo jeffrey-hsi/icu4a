@@ -598,10 +598,6 @@ lv{
         Zyyy{"vispārējs"}
         Zzzz{"nezināma vai nederīga rakstība"}
     }
-    Scripts%stand-alone{
-        Hans{"hanu [vienkāršotā]"}
-        Hant{"hanu [tradicionālā]"}
-    }
     Types{
         calendar{
             buddhist{"budistu kalendārs"}
@@ -691,7 +687,7 @@ lv{
         VALENCIA{"valensiešu"}
         WADEGILE{"Veida-Džailza romanizācija"}
     }
-    Version{"2.0.61.44"}
+    Version{"2.0.59.68"}
     codePatterns{
         language{"Valoda: {0}"}
         script{"Rakstība: {0}"}

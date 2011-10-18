@@ -21,11 +21,11 @@
 #include "unicode/normalizer2.h"
 #include "unicode/udata.h"
 #include "unicode/ustring.h"
-#include "unicode/utf16.h"
 #include "cmemory.h"
 #include "mutex.h"
 #include "normalizer2impl.h"
 #include "uassert.h"
+#include "uhash.h"
 #include "uset_imp.h"
 #include "utrie2.h"
 #include "uvector.h"
@@ -1713,7 +1713,7 @@ const UChar *Normalizer2Impl::findNextFCDBoundary(const UChar *p, const UChar *l
 
 CanonIterData::CanonIterData(UErrorCode &errorCode) :
         trie(utrie2_open(0, 0, &errorCode)),
-        canonStartSets(uprv_deleteUObject, NULL, errorCode) {}
+        canonStartSets(uhash_deleteUObject, NULL, errorCode) {}
 
 CanonIterData::~CanonIterData() {
     utrie2_close(trie);

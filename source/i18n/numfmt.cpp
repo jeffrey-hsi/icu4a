@@ -141,7 +141,7 @@ static UHashtable * NumberingSystem_cache = NULL;
 static UMTX nscacheMutex = NULL;
 
 #if !UCONFIG_NO_SERVICE
-static icu::ICULocaleService* gService = NULL;
+static U_NAMESPACE_QUALIFIER ICULocaleService* gService = NULL;
 #endif
 
 /**
@@ -150,7 +150,7 @@ static icu::ICULocaleService* gService = NULL;
 U_CDECL_BEGIN
 static void U_CALLCONV
 deleteNumberingSystem(void *obj) {
-    delete (icu::NumberingSystem *)obj;
+    delete (U_NAMESPACE_QUALIFIER NumberingSystem *)obj;
 }
 
 static UBool U_CALLCONV numfmt_cleanup(void) {
@@ -755,15 +755,11 @@ NumberFormat::getAvailableLocales(int32_t& count)
 // -------------------------------------
 
 class ICUNumberFormatFactory : public ICUResourceBundleFactory {
-public:
-    virtual ~ICUNumberFormatFactory();
 protected:
     virtual UObject* handleCreate(const Locale& loc, int32_t kind, const ICUService* /* service */, UErrorCode& status) const {
         return NumberFormat::makeInstance(loc, (UNumberFormatStyle)kind, status);
     }
 };
-
-ICUNumberFormatFactory::~ICUNumberFormatFactory() {}
 
 // -------------------------------------
 
@@ -780,7 +776,11 @@ public:
     {
     }
 
-    virtual ~NFFactory();
+    virtual ~NFFactory()
+    {
+        delete _delegate;
+        delete _ids;
+    }
 
     virtual UObject* create(const ICUServiceKey& key, const ICUService* service, UErrorCode& status) const
     {
@@ -824,12 +824,6 @@ protected:
     }
 };
 
-NFFactory::~NFFactory()
-{
-    delete _delegate;
-    delete _ids;
-}
-
 class ICUNumberFormatService : public ICULocaleService {
 public:
     ICUNumberFormatService()
@@ -838,8 +832,6 @@ public:
         UErrorCode status = U_ZERO_ERROR;
         registerFactory(new ICUNumberFormatFactory(), status);
     }
-
-    virtual ~ICUNumberFormatService();
 
     virtual UObject* cloneInstance(UObject* instance) const {
         return ((NumberFormat*)instance)->clone();
@@ -857,8 +849,6 @@ public:
         return countFactories() == 1;
     }
 };
-
-ICUNumberFormatService::~ICUNumberFormatService() {}
 
 // -------------------------------------
 
@@ -1120,7 +1110,7 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
         return NULL;
     }
 
-#if U_PLATFORM_USES_ONLY_WIN32_API
+#ifdef U_WINDOWS
     char buffer[8];
     int32_t count = desiredLocale.getKeywordValue("compat", buffer, sizeof(buffer), status);
 
@@ -1151,6 +1141,54 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
         }
     }
 #endif
+
+    LocalPointer<DecimalFormatSymbols> symbolsToAdopt;
+    UnicodeString pattern;
+    LocalUResourceBundlePointer ownedResource(ures_open(NULL, desiredLocale.getName(), &status));
+    if (U_FAILURE(status)) {
+        // We don't appear to have resource data available -- use the last-resort data
+        status = U_USING_FALLBACK_WARNING;
+        // When the data is unavailable, and locale isn't passed in, last resort data is used.
+        symbolsToAdopt.adoptInstead(new DecimalFormatSymbols(status));
+        if (symbolsToAdopt.isNull()) {
+            status = U_MEMORY_ALLOCATION_ERROR;
+            return NULL;
+        }
+
+        // Creates a DecimalFormat instance with the last resort number patterns.
+        pattern.setTo(TRUE, gLastResortNumberPatterns[style], -1);
+    }
+    else {
+        // Loads the decimal symbols of the desired locale.
+        symbolsToAdopt.adoptInstead(new DecimalFormatSymbols(desiredLocale, status));
+        if (symbolsToAdopt.isNull()) {
+            status = U_MEMORY_ALLOCATION_ERROR;
+            return NULL;
+        }
+
+        UResourceBundle *resource = ownedResource.orphan();
+        resource = ures_getByKeyWithFallback(resource, gNumberElements, resource, &status);
+        // TODO : Get patterns on a per numbering system basis, for right now assumes "latn" for patterns
+        resource = ures_getByKeyWithFallback(resource, gLatn, resource, &status);
+        resource = ures_getByKeyWithFallback(resource, gPatterns, resource, &status);
+        ownedResource.adoptInstead(resource);
+
+        int32_t patLen = 0;
+        const UChar *patResStr = ures_getStringByKeyWithFallback(resource, gFormatKeys[style], &patLen, &status);
+
+        // Creates the specified decimal format style of the desired locale.
+        pattern.setTo(TRUE, patResStr, patLen);
+    }
+    if (U_FAILURE(status)) {
+        return NULL;
+    }
+    if(style==UNUM_CURRENCY || style == UNUM_CURRENCY_ISO){
+        const UChar* currPattern = symbolsToAdopt->getCurrencyPattern();
+        if(currPattern!=NULL){
+            pattern.setTo(currPattern, u_strlen(currPattern));
+        }
+    }
+
     // Use numbering system cache hashtable
     UHashtable *cache;
     UMTX_CHECK(&nscacheMutex, NumberingSystem_cache, cache);
@@ -1205,63 +1243,6 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
         return NULL;
     }
 
-    LocalPointer<DecimalFormatSymbols> symbolsToAdopt;
-    UnicodeString pattern;
-    LocalUResourceBundlePointer ownedResource(ures_open(NULL, desiredLocale.getName(), &status));
-    if (U_FAILURE(status)) {
-        // We don't appear to have resource data available -- use the last-resort data
-        status = U_USING_FALLBACK_WARNING;
-        // When the data is unavailable, and locale isn't passed in, last resort data is used.
-        symbolsToAdopt.adoptInstead(new DecimalFormatSymbols(status));
-        if (symbolsToAdopt.isNull()) {
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return NULL;
-        }
-
-        // Creates a DecimalFormat instance with the last resort number patterns.
-        pattern.setTo(TRUE, gLastResortNumberPatterns[style], -1);
-    }
-    else {
-        // Loads the decimal symbols of the desired locale.
-        symbolsToAdopt.adoptInstead(new DecimalFormatSymbols(desiredLocale, status));
-        if (symbolsToAdopt.isNull()) {
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return NULL;
-        }
-
-        UResourceBundle *resource = ownedResource.orphan();
-        UResourceBundle *numElements = ures_getByKeyWithFallback(resource, gNumberElements, NULL, &status);
-        resource = ures_getByKeyWithFallback(numElements, ns->getName(), resource, &status);
-        resource = ures_getByKeyWithFallback(resource, gPatterns, resource, &status);
-        ownedResource.adoptInstead(resource);
-
-        int32_t patLen = 0;
-        const UChar *patResStr = ures_getStringByKeyWithFallback(resource, gFormatKeys[style], &patLen, &status);
-
-        // Didn't find a pattern specific to the numbering system, so fall back to "latn"
-        if ( status == U_MISSING_RESOURCE_ERROR && uprv_strcmp(gLatn,ns->getName())) {  
-            status = U_ZERO_ERROR;
-            resource = ures_getByKeyWithFallback(numElements, gLatn, resource, &status);
-            resource = ures_getByKeyWithFallback(resource, gPatterns, resource, &status);
-            patResStr = ures_getStringByKeyWithFallback(resource, gFormatKeys[style], &patLen, &status);
-        }
-
-        ures_close(numElements);
-
-        // Creates the specified decimal format style of the desired locale.
-        pattern.setTo(TRUE, patResStr, patLen);
-    }
-    if (U_FAILURE(status)) {
-        return NULL;
-    }
-    if(style==UNUM_CURRENCY || style == UNUM_CURRENCY_ISO){
-        const UChar* currPattern = symbolsToAdopt->getCurrencyPattern();
-        if(currPattern!=NULL){
-            pattern.setTo(currPattern, u_strlen(currPattern));
-        }
-    }
-
-
     NumberFormat *f;
     if (ns->isAlgorithmic()) {
         UnicodeString nsDesc;
@@ -1302,8 +1283,7 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
         // replace single currency sign in the pattern with double currency sign
         // if the style is UNUM_CURRENCY_ISO
         if (style == UNUM_CURRENCY_ISO) {
-            pattern.findAndReplace(UnicodeString(TRUE, gSingleCurrencySign, 1),
-                                   UnicodeString(TRUE, gDoubleCurrencySign, 2));
+            pattern.findAndReplace(gSingleCurrencySign, gDoubleCurrencySign);
         }
 
         // "new DecimalFormat()" does not adopt the symbols if its memory allocation fails.

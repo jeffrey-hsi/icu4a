@@ -25,8 +25,6 @@
 #include "unicode/uobject.h"
 #include "unicode/ustringtrie.h"
 
-#ifndef U_HIDE_DRAFT_API
-
 U_NAMESPACE_BEGIN
 
 class ByteSink;
@@ -518,5 +516,4 @@ private:
 
 U_NAMESPACE_END
 
-#endif  /* U_HIDE_DRAFT_API */
 #endif  // __BYTESTRIE_H__

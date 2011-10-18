@@ -20,7 +20,6 @@
 #include "unicode/uset.h"
 #include "unicode/ucnv_err.h"
 #include "unicode/ucnv_cb.h"
-#include "unicode/utf16.h"
 #include "ucnv_imp.h"
 #include "ucnv_bld.h"
 #include "ucnv_cnv.h"
@@ -181,7 +180,7 @@ _CompoundTextgetName(const UConverter* cnv);
 static int32_t findNextEsc(const char *source, const char *sourceLimit) {
     int32_t length = sourceLimit - source;
     int32_t i;
-    for (i = 1; i < length; i++) {
+    for (i = 0; i < length; i++) {
         if (*(source + i) == 0x1B) {
             return i;
         }
@@ -357,16 +356,16 @@ UConverter_fromUnicode_CompoundText_OFFSETS(UConverterFromUnicodeArgs* args, UEr
 
             sourceChar  = *(source++);
             /*check if the char is a First surrogate*/
-             if(U16_IS_SURROGATE(sourceChar)) {
-                if(U16_IS_SURROGATE_LEAD(sourceChar)) {
+             if(UTF_IS_SURROGATE(sourceChar)) {
+                if(UTF_IS_SURROGATE_FIRST(sourceChar)) {
 getTrail:
                     /*look ahead to find the trail surrogate*/
                     if(source < sourceLimit) {
                         /* test the following code unit */
                         UChar trail=(UChar) *source;
-                        if(U16_IS_TRAIL(trail)) {
+                        if(UTF_IS_SECOND_SURROGATE(trail)) {
                             source++;
-                            sourceChar=U16_GET_SUPPLEMENTARY(sourceChar, trail);
+                            sourceChar=UTF16_GET_PAIR_VALUE(sourceChar, trail);
                             cnv->fromUChar32=0x00;
                             /* convert this supplementary code point */
                             /* exit this condition tree */

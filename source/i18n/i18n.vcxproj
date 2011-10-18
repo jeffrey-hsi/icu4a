@@ -107,7 +107,7 @@
       <AdditionalIncludeDirectories>../common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <OutputFile>..\..\bin\icuin49.dll</OutputFile>
+      <OutputFile>..\..\bin\icuin48.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\..\..\lib\icuin.pdb</ProgramDatabaseFile>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -151,7 +151,7 @@
       <AdditionalIncludeDirectories>../common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <OutputFile>..\..\bin\icuin49d.dll</OutputFile>
+      <OutputFile>..\..\bin\icuin48d.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\..\..\lib\icuind.pdb</ProgramDatabaseFile>
@@ -192,7 +192,7 @@
       <AdditionalIncludeDirectories>../common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <OutputFile>..\..\bin64\icuin49.dll</OutputFile>
+      <OutputFile>..\..\bin64\icuin48.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\..\..\lib64\icuin.pdb</ProgramDatabaseFile>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -234,7 +234,7 @@
       <AdditionalIncludeDirectories>../common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <OutputFile>..\..\bin64\icuin49d.dll</OutputFile>
+      <OutputFile>..\..\bin64\icuin48d.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\..\..\lib64\icuind.pdb</ProgramDatabaseFile>
@@ -577,7 +577,6 @@
 </Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\..\include\unicode\%(Filename)%(Extension);%(Outputs)</Outputs>
     </CustomBuild>
-    <ClInclude Include="numsys_impl.h" />
     <ClInclude Include="tzfmt.h" />
     <ClInclude Include="tzgnames.h" />
     <ClInclude Include="tznames.h" />

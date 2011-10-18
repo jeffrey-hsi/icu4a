@@ -27,8 +27,6 @@
 #include "unicode/ucnv.h"
 #include "unicode/ucnv_err.h"
 #include "unicode/uset.h"
-#include "unicode/utf.h"
-#include "unicode/utf16.h"
 #include "putilimp.h"
 #include "cmemory.h"
 #include "cstring.h"

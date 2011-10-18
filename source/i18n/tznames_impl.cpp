@@ -39,6 +39,7 @@ static const char gMZPrefix[]           = "meta:";
 static const char* KEYS[]               = {"lg", "ls", "ld", "sg", "ss", "sd"};
 static const int32_t KEYS_SIZE = (sizeof KEYS / sizeof KEYS[0]);
 
+static const char gCuTag[]              = "cu";
 static const char gEcTag[]              = "ec";
 
 static const char EMPTY[]               = "<empty>";   // place holder for empty ZNames/TZNames
@@ -46,6 +47,7 @@ static const char EMPTY[]               = "<empty>";   // place holder for empty
 static const UTimeZoneNameType ALL_NAME_TYPES[] = {
     UTZNM_LONG_GENERIC, UTZNM_LONG_STANDARD, UTZNM_LONG_DAYLIGHT,
     UTZNM_SHORT_GENERIC, UTZNM_SHORT_STANDARD, UTZNM_SHORT_DAYLIGHT,
+    UTZNM_SHORT_STANDARD_COMMONLY_USED, UTZNM_SHORT_DAYLIGHT_COMMONLY_USED,
     UTZNM_UNKNOWN // unknown as the last one
 };
 
@@ -491,15 +493,16 @@ public:
     const UChar* getName(UTimeZoneNameType type);
 
 protected:
-    ZNames(const UChar** names);
-    static const UChar** loadData(UResourceBundle* rb, const char* key);
+    ZNames(const UChar** names, UBool shortCommonlyUsed);
+    static const UChar** loadData(UResourceBundle* rb, const char* key, UBool& shortCommonlyUsed);
 
 private:
     const UChar** fNames;
+    UBool fShortCommonlyUsed;
 };
 
-ZNames::ZNames(const UChar** names)
-: fNames(names) {
+ZNames::ZNames(const UChar** names, UBool shortCommonlyUsed)
+: fNames(names), fShortCommonlyUsed(shortCommonlyUsed) {
 }
 
 ZNames::~ZNames() {
@@ -510,12 +513,13 @@ ZNames::~ZNames() {
 
 ZNames*
 ZNames::createInstance(UResourceBundle* rb, const char* key) {
-    const UChar** names = loadData(rb, key);
+    UBool shortCommonlyUsed = FALSE;
+    const UChar** names = loadData(rb, key, shortCommonlyUsed);
     if (names == NULL) {
         // No names data available
         return NULL; 
     }
-    return new ZNames(names);
+    return new ZNames(names, shortCommonlyUsed);
 }
 
 const UChar*
@@ -535,13 +539,25 @@ ZNames::getName(UTimeZoneNameType type) {
         name = fNames[2];
         break;
     case UTZNM_SHORT_GENERIC:
-        name = fNames[3];
+        if (fShortCommonlyUsed) {
+            name = fNames[3];
+        }
         break;
     case UTZNM_SHORT_STANDARD:
         name = fNames[4];
         break;
     case UTZNM_SHORT_DAYLIGHT:
         name = fNames[5];
+        break;
+    case UTZNM_SHORT_STANDARD_COMMONLY_USED:
+        if (fShortCommonlyUsed) {
+            name = fNames[4];
+        }
+        break;
+    case UTZNM_SHORT_DAYLIGHT_COMMONLY_USED:
+        if (fShortCommonlyUsed) {
+            name = fNames[5];
+        }
         break;
     default:
         name = NULL;
@@ -550,7 +566,7 @@ ZNames::getName(UTimeZoneNameType type) {
 }
 
 const UChar**
-ZNames::loadData(UResourceBundle* rb, const char* key) {
+ZNames::loadData(UResourceBundle* rb, const char* key, UBool& shortCommonlyUsed) {
     if (rb == NULL || key == NULL || *key == 0) {
         return NULL;
     }
@@ -581,6 +597,16 @@ ZNames::loadData(UResourceBundle* rb, const char* key) {
                 names = NULL;
             }
         }
+
+        if (names != NULL) {
+            status = U_ZERO_ERROR;
+            UResourceBundle* cuRes = ures_getByKeyWithFallback(rbTable, gCuTag, NULL, &status);
+            int32_t cu = ures_getInt(cuRes, &status);
+            if (U_SUCCESS(status)) {
+                shortCommonlyUsed = (cu != 0);
+            }
+            ures_close(cuRes);
+        }
     }
     ures_close(rbTable);
     return names;
@@ -597,12 +623,12 @@ public:
     const UChar* getLocationName(void);
 
 private:
-    TZNames(const UChar** names, const UChar* locationName);
+    TZNames(const UChar** names, UBool shortCommonlyUsed, const UChar* locationName);
     const UChar* fLocationName;
 };
 
-TZNames::TZNames(const UChar** names, const UChar* locationName)
-: ZNames(names), fLocationName(locationName) {
+TZNames::TZNames(const UChar** names, UBool shortCommonlyUsed, const UChar* locationName)
+: ZNames(names, shortCommonlyUsed), fLocationName(locationName) {
 }
 
 TZNames::~TZNames() {
@@ -628,10 +654,11 @@ TZNames::createInstance(UResourceBundle* rb, const char* key) {
             locationName = NULL;
         }
 
-        const UChar** names = loadData(rb, key);
+        UBool shortCommonlyUsed = FALSE;
+        const UChar** names = loadData(rb, key, shortCommonlyUsed);
 
         if (locationName != NULL || names != NULL) {
-            tznames = new TZNames(names, locationName);
+            tznames = new TZNames(names, shortCommonlyUsed, locationName);
         }
     }
     ures_close(rbTable);

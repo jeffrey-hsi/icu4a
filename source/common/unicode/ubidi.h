@@ -446,7 +446,6 @@ enum UBiDiDirection {
    * @stable ICU 2.0
    */
   UBIDI_MIXED,
-#ifndef U_HIDE_DRAFT_API
   /** No strongly directional text.
    * <p>As return value for <code>ubidi_getBaseDirection()</code>, it means
    *    that the source string is missing or empty, or contains neither left-to-right
@@ -454,7 +453,6 @@ enum UBiDiDirection {
    * @draft ICU 4.6
    */
   UBIDI_NEUTRAL
-#endif  /* U_HIDE_DRAFT_API */
 };
 
 /** @stable ICU 2.0 */
@@ -1046,7 +1044,6 @@ ubidi_setReorderingOptions(UBiDi *pBiDi, uint32_t reorderingOptions);
 U_STABLE uint32_t U_EXPORT2
 ubidi_getReorderingOptions(UBiDi *pBiDi);
 
-#ifndef U_HIDE_DRAFT_API
 /**
  * Set the context before a call to ubidi_setPara().<p>
  *
@@ -1136,7 +1133,6 @@ ubidi_setContext(UBiDi *pBiDi,
                  const UChar *prologue, int32_t proLength,
                  const UChar *epilogue, int32_t epiLength,
                  UErrorCode *pErrorCode);
-#endif  /* U_HIDE_DRAFT_API */
 
 /**
  * Perform the Unicode Bidi algorithm. It is defined in the
@@ -1292,7 +1288,6 @@ ubidi_setLine(const UBiDi *pParaBiDi,
 U_STABLE UBiDiDirection U_EXPORT2
 ubidi_getDirection(const UBiDi *pBiDi);
 
-#ifndef U_HIDE_DRAFT_API
 /**
  * Gets the base direction of the text provided according
  * to the Unicode Bidirectional Algorithm. The base direction
@@ -1322,7 +1317,6 @@ ubidi_getDirection(const UBiDi *pBiDi);
  */
 U_DRAFT UBiDiDirection U_EXPORT2
 ubidi_getBaseDirection(const UChar *text,  int32_t length );
-#endif  /* U_HIDE_DRAFT_API */
 
 /**
  * Get the pointer to the text.

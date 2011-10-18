@@ -280,6 +280,11 @@ static void TestVersion(void)
     u_getDataVersion(version, &status);
     if (U_FAILURE(status)) {
         log_data_err("ERROR: Unable to get data version. %s\n", u_errorName(status));
+    } else {
+        u_isDataOlder(version, &isModified, &status);
+        if (U_FAILURE(status)) {
+            log_err("ERROR: Unable to compare data version. %s\n", u_errorName(status));
+        }
     }
 }
 

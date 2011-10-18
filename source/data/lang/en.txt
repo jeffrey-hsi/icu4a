@@ -726,10 +726,6 @@ en{
         Zyyy{"Common"}
         Zzzz{"Unknown Script"}
     }
-    Scripts%stand-alone{
-        Hans{"Simplified Han"}
-        Hant{"Traditional Han"}
-    }
     Types{
         calendar{
             buddhist{"Buddhist Calendar"}
@@ -769,7 +765,6 @@ en{
             beng{"Bengali Digits"}
             deva{"Devanagari Digits"}
             ethi{"Ethiopic Numerals"}
-            finance{"Financial Numerals"}
             fullwide{"Full Width Digits"}
             geor{"Georgian Numerals"}
             grek{"Greek Numerals"}
@@ -791,7 +786,6 @@ en{
             mlym{"Malayalam Digits"}
             mong{"Mongolian Digits"}
             mymr{"Myanmar Digits"}
-            native{"Native Digits"}
             orya{"Oriya Digits"}
             roman{"Roman Numerals"}
             romanlow{"Roman Lowercase Numerals"}
@@ -800,7 +794,6 @@ en{
             telu{"Telugu Digits"}
             thai{"Thai Digits"}
             tibt{"Tibetan Digits"}
-            traditional{"Traditional Numerals"}
         }
     }
     Variants{
@@ -844,7 +837,7 @@ en{
         VALENCIA{"Valencian"}
         WADEGILE{"Wade-Giles Romanization"}
     }
-    Version{"2.0.61.76"}
+    Version{"2.0.59.91"}
     codePatterns{
         language{"Language: {0}"}
         script{"Script: {0}"}

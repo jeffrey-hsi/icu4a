@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/eu.xml
  */
 eu{
-    Version{"2.0.61.44"}
+    Version{"2.0.59.53"}
     zoneStrings{
         "Africa:Djibouti"{
             ec{"Djibuti"}
@@ -142,22 +142,16 @@ eu{
             ls{"Choibalsango ordua"}
         }
         "meta:Europe_Central"{
-            sd{"CEST"}
-            sg{"CET"}
-            ss{"CET"}
+            cu:int{1}
         }
         "meta:Europe_Eastern"{
-            sd{"EEST"}
-            sg{"EET"}
-            ss{"EET"}
+            cu:int{1}
         }
         "meta:Europe_Western"{
-            sd{"WEST"}
-            sg{"WET"}
-            ss{"WET"}
+            cu:int{1}
         }
         "meta:GMT"{
-            ss{"GMT"}
+            cu:int{1}
         }
         "meta:Hawaii_Aleutian"{
             lg{"Hawaii Aleuteko ordua"}

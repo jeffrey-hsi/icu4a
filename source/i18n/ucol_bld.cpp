@@ -27,7 +27,6 @@
 #include "unicode/uniset.h"
 #include "unicode/uscript.h"
 #include "unicode/ustring.h"
-#include "unicode/utf16.h"
 #include "normalizer2impl.h"
 #include "ucol_bld.h"
 #include "ucol_elm.h"
@@ -983,7 +982,7 @@ _processUCACompleteIgnorables(const void *context, UChar32 start, UChar32 limit,
                 el.cPoints = el.uchars;
 
                 el.cSize = 0;
-                U16_APPEND_UNSAFE(el.uchars, el.cSize, start);
+                UTF_APPEND_CHAR(el.uchars, el.cSize, 1024, start);
 
                 el.noOfCEs = 1;
                 el.CEs[0] = 0;
@@ -1398,7 +1397,7 @@ static const char* ReorderingTokenNames[] = {
 
 static void toUpper(const char* src, char* dst, uint32_t length) {
    for (uint32_t i = 0; *src != '\0' && i < length - 1; ++src, ++dst, ++i) {
-       *dst = uprv_toupper(*src);
+       *dst = toupper(*src);
    }
    *dst = '\0';
 }

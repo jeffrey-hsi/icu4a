@@ -357,7 +357,7 @@ public:
     BasicCalendarFactory()
         : LocaleKeyFactory(LocaleKeyFactory::INVISIBLE) { }
 
-    virtual ~BasicCalendarFactory();
+        virtual ~BasicCalendarFactory() {}
 
 protected:
     //virtual UBool isSupportedID( const UnicodeString& id, UErrorCode& status) const { 
@@ -416,7 +416,6 @@ protected:
     }
 };
 
-BasicCalendarFactory::~BasicCalendarFactory() {}
 
 /** 
 * A factory which looks up the DefaultCalendar resource to determine which class of calendar to use
@@ -424,8 +423,7 @@ BasicCalendarFactory::~BasicCalendarFactory() {}
 
 class DefaultCalendarFactory : public ICUResourceBundleFactory {
 public:
-    DefaultCalendarFactory() : ICUResourceBundleFactory() { }
-    virtual ~DefaultCalendarFactory();
+    DefaultCalendarFactory():  ICUResourceBundleFactory() { } 
 protected:
     virtual UObject* create(const ICUServiceKey& key, const ICUService* /*service*/, UErrorCode& status) const  {
 
@@ -445,8 +443,6 @@ protected:
     }
 };
 
-DefaultCalendarFactory::~DefaultCalendarFactory() {}
-
 // -------------------------------------
 class CalendarService : public ICULocaleService {
 public:
@@ -456,8 +452,6 @@ public:
         UErrorCode status = U_ZERO_ERROR;
         registerFactory(new DefaultCalendarFactory(), status);
     }
-
-    virtual ~CalendarService();
 
     virtual UObject* cloneInstance(UObject* instance) const {
         UnicodeString *s = dynamic_cast<UnicodeString *>(instance);
@@ -497,8 +491,6 @@ public:
         return countFactories() == 1;
     }
 };
-
-CalendarService::~CalendarService() {}
 
 // -------------------------------------
 
@@ -1813,8 +1805,7 @@ void Calendar::add(UCalendarDateFields field, int32_t amount, UErrorCode& status
 
     // We handle most fields in the same way.  The algorithm is to add
     // a computed amount of millis to the current millis.  The only
-    // wrinkle is with DST (and/or a change to the zone's UTC offset, which
-    // we'll include with DST) -- for some fields, like the DAY_OF_MONTH,
+    // wrinkle is with DST -- for some fields, like the DAY_OF_MONTH,
     // we don't want the HOUR to shift due to changes in DST.  If the
     // result of the add operation is to move from DST to Standard, or
     // vice versa, we need to adjust by an hour forward or back,
@@ -1900,30 +1891,30 @@ void Calendar::add(UCalendarDateFields field, int32_t amount, UErrorCode& status
     }
 
     // In order to keep the hour invariant (for fields where this is
-    // appropriate), check the combined DST & ZONE offset before and
-    // after the add() operation. If it changes, then adjust the millis
-    // to compensate.
-    int32_t prevOffset = 0;
+    // appropriate), record the DST_OFFSET before and after the add()
+    // operation.  If it has changed, then adjust the millis to
+    // compensate.
+    int32_t dst = 0;
     int32_t hour = 0;
     if (keepHourInvariant) {
-        prevOffset = get(UCAL_DST_OFFSET, status) + get(UCAL_ZONE_OFFSET, status);
+        dst = get(UCAL_DST_OFFSET, status);
         hour = internalGet(UCAL_HOUR_OF_DAY);
     }
 
     setTimeInMillis(getTimeInMillis(status) + delta, status);
 
     if (keepHourInvariant) {
-        int32_t newOffset = get(UCAL_DST_OFFSET, status) + get(UCAL_ZONE_OFFSET, status);
-        if (newOffset != prevOffset) {
+        dst -= get(UCAL_DST_OFFSET, status);
+        if (dst != 0) {
             // We have done an hour-invariant adjustment but the
-            // combined offset has changed. We adjust millis to keep
-            // the hour constant. In cases such as midnight after
+            // DST offset has altered.  We adjust millis to keep
+            // the hour constant.  In cases such as midnight after
             // a DST change which occurs at midnight, there is the
-            // danger of adjusting into a different day. To avoid
+            // danger of adjusting into a different day.  To avoid
             // this we make the adjustment only if it actually
             // maintains the hour.
             double t = internalGetTime();
-            setTimeInMillis(t + prevOffset - newOffset, status);
+            setTimeInMillis(t + dst, status);
             if (get(UCAL_HOUR_OF_DAY, status) != hour) {
                 setTimeInMillis(t, status);
             }

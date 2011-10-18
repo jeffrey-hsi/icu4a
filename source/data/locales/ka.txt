@@ -24,7 +24,6 @@ ka{
         "Geor",
     }
     NumberElements{
-        default{"latn"}
         latn{
             patterns{
                 currencyFormat{"#,##0.00 ¤"}
@@ -45,7 +44,7 @@ ka{
             }
         }
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.53"}
     calendar{
         gregorian{
             availableFormats{

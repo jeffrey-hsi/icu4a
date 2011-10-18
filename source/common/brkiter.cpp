@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2011, International Business Machines Corporation and
+* Copyright (C) 1997-2010, International Business Machines Corporation and
 * others. All Rights Reserved.
 *******************************************************************************
 *
@@ -94,7 +94,7 @@ BreakIterator::buildInstance(const Locale& loc, const char *type, int32_t kind, 
         // Use the string if we found it
         if (U_SUCCESS(status) && brkfname) {
             uprv_strncpy(actualLocale,
-                ures_getLocaleInternal(brkName, &status),
+                ures_getLocale(brkName, &status),
                 sizeof(actualLocale)/sizeof(actualLocale[0]));
 
             UChar* extStart=u_strchr(brkfname, 0x002e);
@@ -222,15 +222,11 @@ BreakIterator::~BreakIterator()
 // -------------------------------------
 
 class ICUBreakIteratorFactory : public ICUResourceBundleFactory {
-public:
-    virtual ~ICUBreakIteratorFactory();
 protected:
     virtual UObject* handleCreate(const Locale& loc, int32_t kind, const ICUService* /*service*/, UErrorCode& status) const {
         return BreakIterator::makeInstance(loc, kind, status);
     }
 };
-
-ICUBreakIteratorFactory::~ICUBreakIteratorFactory() {}
 
 // -------------------------------------
 
@@ -242,8 +238,6 @@ public:
         UErrorCode status = U_ZERO_ERROR;
         registerFactory(new ICUBreakIteratorFactory(), status);
     }
-
-    virtual ~ICUBreakIteratorService();
 
     virtual UObject* cloneInstance(UObject* instance) const {
         return ((BreakIterator*)instance)->clone();
@@ -262,15 +256,13 @@ public:
     }
 };
 
-ICUBreakIteratorService::~ICUBreakIteratorService() {}
-
 // -------------------------------------
 
 U_NAMESPACE_END
 
 // defined in ucln_cmn.h
 
-static icu::ICULocaleService* gService = NULL;
+static U_NAMESPACE_QUALIFIER ICULocaleService* gService = NULL;
 
 /**
  * Release all static memory held by breakiterator.

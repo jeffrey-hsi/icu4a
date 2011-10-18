@@ -115,7 +115,6 @@ void NumberFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &n
         CASE(49,TestExponentParse); 
         CASE(50,TestExplicitParents); 
         CASE(51,TestLenientParse);
-        CASE(52,TestAvailableNumberingSystems);
         default: name = ""; break;
     }
 }
@@ -377,7 +376,7 @@ NumberFormatTest::TestExponential(void)
                 a = af.getLong();
             else if (af.getType() == Formattable::kDouble) {
                 a = af.getDouble();
-#if U_PF_OS390 <= U_PLATFORM && U_PLATFORM <= U_PF_OS400
+#if defined(OS390) || defined(OS400)
                 // S/390 will show a failure like this:
                 //| -3.141592652999999e-271 -format-> -3.1416E-271
                 //|                          -parse-> -3.1416e-271
@@ -1824,7 +1823,7 @@ void NumberFormatTest::TestCurrencyNames(void) {
                                              UCURR_SYMBOL_NAME,
                                              &isChoiceFormat, &len, &ec)),
                                              possibleDataError);
-    assertEquals("USD.getName(SYMBOL_NAME) in en_AU",
+    assertEquals("USD.getName(SYMBOL_NAME)",
                  UnicodeString("US$"),
                  UnicodeString(ucurr_getName(USD, "en_AU",
                                              UCURR_SYMBOL_NAME,
@@ -1922,49 +1921,37 @@ void NumberFormatTest::TestCurrencyAmount(void){
 
 void NumberFormatTest::TestSymbolsWithBadLocale(void) {
     Locale locDefault;
-    static const char *badLocales[] = {
-        // length < ULOC_FULLNAME_CAPACITY
-        "x-crazy_ZZ_MY_SPECIAL_ADMINISTRATION_REGION_NEEDS_A_SPECIAL_VARIANT_WITH_A_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_LONG_NAME",
+    Locale locBad("x-crazy_ZZ_MY_SPECIAL_ADMINISTRATION_REGION_NEEDS_A_SPECIAL_VARIANT_WITH_A_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_LONG_NAME");
+    UErrorCode status = U_ZERO_ERROR;
+    UnicodeString intlCurrencySymbol((UChar)0xa4);
 
-        // length > ULOC_FULLNAME_CAPACITY
-        "x-crazy_ZZ_MY_SPECIAL_ADMINISTRATION_REGION_NEEDS_A_SPECIAL_VARIANT_WITH_A_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_REALLY_LONG_NAME"
-    }; // expect U_USING_DEFAULT_WARNING for both
+    intlCurrencySymbol.append((UChar)0xa4);
 
-    int i;
-    for (i = 0; i < sizeof(badLocales) / sizeof(char*); i++) {
-        const char *localeName = badLocales[i];
-        Locale locBad(localeName);
-        UErrorCode status = U_ZERO_ERROR;
-        UnicodeString intlCurrencySymbol((UChar)0xa4);
-
-        intlCurrencySymbol.append((UChar)0xa4);
-
-        logln("Current locale is %s", Locale::getDefault().getName());
-        Locale::setDefault(locBad, status);
-        logln("Current locale is %s", Locale::getDefault().getName());
-        DecimalFormatSymbols mySymbols(status);
-        if (status != U_USING_DEFAULT_WARNING) {
-            errln("DecimalFormatSymbols should return U_USING_DEFAULT_WARNING.");
-        }
-        if (strcmp(mySymbols.getLocale().getName(), locBad.getName()) != 0) {
-            errln("DecimalFormatSymbols does not have the right locale.", locBad.getName());
-        }
-        int symbolEnum = (int)DecimalFormatSymbols::kDecimalSeparatorSymbol;
-        for (; symbolEnum < (int)DecimalFormatSymbols::kFormatSymbolCount; symbolEnum++) {
-            UnicodeString symbolString = mySymbols.getSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbolEnum);
-            logln(UnicodeString("DecimalFormatSymbols[") + symbolEnum + UnicodeString("] = ") + prettify(symbolString));
-            if (symbolString.length() == 0
-                && symbolEnum != (int)DecimalFormatSymbols::kGroupingSeparatorSymbol
-                && symbolEnum != (int)DecimalFormatSymbols::kMonetaryGroupingSeparatorSymbol)
-            {
-                errln("DecimalFormatSymbols has an empty string at index %d.", symbolEnum);
-            }
-        }
-
-        status = U_ZERO_ERROR;
-        Locale::setDefault(locDefault, status);
-        logln("Current locale is %s", Locale::getDefault().getName());
+    logln("Current locale is %s", Locale::getDefault().getName());
+    Locale::setDefault(locBad, status);
+    logln("Current locale is %s", Locale::getDefault().getName());
+    DecimalFormatSymbols mySymbols(status);
+    if (status != U_USING_FALLBACK_WARNING) {
+        errln("DecimalFormatSymbols should returned U_USING_FALLBACK_WARNING.");
     }
+    if (strcmp(mySymbols.getLocale().getName(), locBad.getName()) != 0) {
+        errln("DecimalFormatSymbols does not have the right locale.");
+    }
+    int symbolEnum = (int)DecimalFormatSymbols::kDecimalSeparatorSymbol;
+    for (; symbolEnum < (int)DecimalFormatSymbols::kFormatSymbolCount; symbolEnum++) {
+        logln(UnicodeString("DecimalFormatSymbols[") + symbolEnum + UnicodeString("] = ")
+            + prettify(mySymbols.getSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbolEnum)));
+
+        if (mySymbols.getSymbol((DecimalFormatSymbols::ENumberFormatSymbol)symbolEnum).length() == 0
+            && symbolEnum != (int)DecimalFormatSymbols::kGroupingSeparatorSymbol
+            && symbolEnum != (int)DecimalFormatSymbols::kMonetaryGroupingSeparatorSymbol)
+        {
+            errln("DecimalFormatSymbols has an empty string at index %d.", symbolEnum);
+        }
+    }
+    status = U_ZERO_ERROR;
+    Locale::setDefault(locDefault, status);
+    logln("Current locale is %s", Locale::getDefault().getName());
 }
 
 /**
@@ -2633,7 +2620,7 @@ void NumberFormatTest::TestJB3832(){
 
 void NumberFormatTest::TestHost()
 {
-#if U_PLATFORM_USES_ONLY_WIN32_API
+#ifdef U_WINDOWS
     Win32NumberTest::testLocales(this);
 #endif
     Locale loc("en_US@compat=host");
@@ -6461,37 +6448,5 @@ void NumberFormatTest::TestExplicitParents() {
         delete fmt;
     }
 
-}
-
-/**
- * Test available numbering systems API.
- */
-void NumberFormatTest::TestAvailableNumberingSystems() {
-    UErrorCode status = U_ZERO_ERROR;
-    StringEnumeration *availableNumberingSystems = NumberingSystem::getAvailableNames(status);
-    CHECK_DATA(status, "NumberingSystem::getAvailableNames()")
-
-    int32_t nsCount = availableNumberingSystems->count(status);
-    if ( nsCount < 36 ) {
-        errln("FAIL: Didn't get as many numbering systems as we had hoped for. Need at least 36, got %d",nsCount);
-    }
-
-    /* A relatively simple test of the API.  We call getAvailableNames() and cycle through */
-    /* each name returned, attempting to create a numbering system based on that name and  */
-    /* verifying that the name returned from the resulting numbering system is the same    */
-    /* one that we initially thought.                                                      */
-
-    int32_t len;
-    for ( int32_t i = 0 ; i < nsCount ; i++ ) {
-        const char *nsname = availableNumberingSystems->next(&len,status);
-        NumberingSystem* ns = NumberingSystem::createInstanceByName(nsname,status);
-        if ( uprv_strcmp(nsname,ns->getName()) ) {
-            errln("FAIL: Numbering system name didn't match for name = %s\n",nsname);
-        }
-
-        delete ns;
-    }
-
-    delete availableNumberingSystems;
 }
 #endif /* #if !UCONFIG_NO_FORMATTING */

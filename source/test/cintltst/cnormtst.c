@@ -16,7 +16,6 @@
 /*tests for u_normalization*/
 #include "unicode/utypes.h"
 #include "unicode/unorm.h"
-#include "unicode/utf16.h"
 #include "cintltst.h"
 
 #if UCONFIG_NO_NORMALIZATION
@@ -812,13 +811,13 @@ TestNormCoverage() {
 
     hangulPrefixLength=inLength;
 
-    input[inLength++]=U16_LEAD(MUSICAL_HALF_NOTE);
-    input[inLength++]=U16_TRAIL(MUSICAL_HALF_NOTE);
+    input[inLength++]=UTF16_LEAD(MUSICAL_HALF_NOTE);
+    input[inLength++]=UTF16_TRAIL(MUSICAL_HALF_NOTE);
     for(i=0; i<200; ++i) {
-        input[inLength++]=U16_LEAD(MUSICAL_STACCATO);
-        input[inLength++]=U16_TRAIL(MUSICAL_STACCATO);
-        input[inLength++]=U16_LEAD(MUSICAL_STEM);
-        input[inLength++]=U16_TRAIL(MUSICAL_STEM);
+        input[inLength++]=UTF16_LEAD(MUSICAL_STACCATO);
+        input[inLength++]=UTF16_TRAIL(MUSICAL_STACCATO);
+        input[inLength++]=UTF16_LEAD(MUSICAL_STEM);
+        input[inLength++]=UTF16_TRAIL(MUSICAL_STEM);
     }
 
     /* (compatibility) Jamo L, T do not compose */
@@ -871,17 +870,17 @@ TestNormCoverage() {
 
     expect[expectLength++]=HANGUL_AC00+14*28;
 
-    expect[expectLength++]=U16_LEAD(MUSICAL_VOID_NOTEHEAD);
-    expect[expectLength++]=U16_TRAIL(MUSICAL_VOID_NOTEHEAD);
-    expect[expectLength++]=U16_LEAD(MUSICAL_STEM);
-    expect[expectLength++]=U16_TRAIL(MUSICAL_STEM);
+    expect[expectLength++]=UTF16_LEAD(MUSICAL_VOID_NOTEHEAD);
+    expect[expectLength++]=UTF16_TRAIL(MUSICAL_VOID_NOTEHEAD);
+    expect[expectLength++]=UTF16_LEAD(MUSICAL_STEM);
+    expect[expectLength++]=UTF16_TRAIL(MUSICAL_STEM);
     for(i=0; i<200; ++i) {
-        expect[expectLength++]=U16_LEAD(MUSICAL_STEM);
-        expect[expectLength++]=U16_TRAIL(MUSICAL_STEM);
+        expect[expectLength++]=UTF16_LEAD(MUSICAL_STEM);
+        expect[expectLength++]=UTF16_TRAIL(MUSICAL_STEM);
     }
     for(i=0; i<200; ++i) {
-        expect[expectLength++]=U16_LEAD(MUSICAL_STACCATO);
-        expect[expectLength++]=U16_TRAIL(MUSICAL_STACCATO);
+        expect[expectLength++]=UTF16_LEAD(MUSICAL_STACCATO);
+        expect[expectLength++]=UTF16_TRAIL(MUSICAL_STACCATO);
     }
 
     expect[expectLength++]=HANGUL_KIYEOK;
@@ -922,17 +921,17 @@ TestNormCoverage() {
     u_memcpy(expect, input, hangulPrefixLength);
     expectLength=hangulPrefixLength;
 
-    expect[expectLength++]=U16_LEAD(MUSICAL_VOID_NOTEHEAD);
-    expect[expectLength++]=U16_TRAIL(MUSICAL_VOID_NOTEHEAD);
-    expect[expectLength++]=U16_LEAD(MUSICAL_STEM);
-    expect[expectLength++]=U16_TRAIL(MUSICAL_STEM);
+    expect[expectLength++]=UTF16_LEAD(MUSICAL_VOID_NOTEHEAD);
+    expect[expectLength++]=UTF16_TRAIL(MUSICAL_VOID_NOTEHEAD);
+    expect[expectLength++]=UTF16_LEAD(MUSICAL_STEM);
+    expect[expectLength++]=UTF16_TRAIL(MUSICAL_STEM);
     for(i=0; i<200; ++i) {
-        expect[expectLength++]=U16_LEAD(MUSICAL_STEM);
-        expect[expectLength++]=U16_TRAIL(MUSICAL_STEM);
+        expect[expectLength++]=UTF16_LEAD(MUSICAL_STEM);
+        expect[expectLength++]=UTF16_TRAIL(MUSICAL_STEM);
     }
     for(i=0; i<200; ++i) {
-        expect[expectLength++]=U16_LEAD(MUSICAL_STACCATO);
-        expect[expectLength++]=U16_TRAIL(MUSICAL_STACCATO);
+        expect[expectLength++]=UTF16_LEAD(MUSICAL_STACCATO);
+        expect[expectLength++]=UTF16_TRAIL(MUSICAL_STACCATO);
     }
 
     expect[expectLength++]=HANGUL_K_KIYEOK;

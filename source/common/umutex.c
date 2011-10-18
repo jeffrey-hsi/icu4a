@@ -27,13 +27,17 @@
  * platform independent set of mutex operations.  For internal ICU use only.
  */
 
-#if U_PLATFORM_HAS_WIN32_API
-    /* Prefer native Windows APIs even if POSIX is implemented (i.e., on Cygwin). */
-#   undef POSIX
-#elif U_PLATFORM_IMPLEMENTS_POSIX
-#   define POSIX
-#else
-#   undef POSIX
+/* Assume POSIX, and modify as necessary below */
+#define POSIX
+
+#if defined(U_WINDOWS)
+#undef POSIX
+#endif
+#if defined(macintosh)
+#undef POSIX
+#endif
+#if defined(OS2)
+#undef POSIX
 #endif
 
 #if defined(POSIX) && (ICU_USE_THREADS==1)
@@ -41,7 +45,7 @@
 
 #endif /* POSIX && (ICU_USE_THREADS==1) */
 
-#if U_PLATFORM_HAS_WIN32_API
+#ifdef U_WINDOWS
 # define WIN32_LEAN_AND_MEAN
 # define VC_EXTRALEAN
 # define NOUSER
@@ -96,7 +100,7 @@
             mutexed_compare_and_swap(dest, newval, oldval)
 
 
-#elif U_PLATFORM_HAS_WIN32_API
+#elif defined(U_WINDOWS)
 #define MUTEX_TYPE CRITICAL_SECTION
 #define PLATFORM_MUTEX_INIT(m) InitializeCriticalSection(m)
 #define PLATFORM_MUTEX_LOCK(m) EnterCriticalSection(m)
@@ -489,21 +493,18 @@ umtx_atomic_inc(int32_t *p)  {
     if (pIncFn) {
         retVal = (*pIncFn)(gIncDecContext, p);
     } else {
-        #if !ICU_USE_THREADS
-            /* ICU thread support compiled out. */
-            retVal = ++(*p);
-        #elif U_PLATFORM_HAS_WIN32_API
+        #if defined (U_WINDOWS) && ICU_USE_THREADS == 1
             retVal = InterlockedIncrement((LONG*)p);
         #elif defined(USE_MAC_OS_ATOMIC_INCREMENT)
             retVal = OSAtomicIncrement32Barrier(p);
         #elif (U_HAVE_GCC_ATOMICS == 1)
             retVal = __sync_add_and_fetch(p, 1);
-        #elif defined (POSIX)
+        #elif defined (POSIX) && ICU_USE_THREADS == 1
             umtx_lock(&gIncDecMutex);
             retVal = ++(*p);
             umtx_unlock(&gIncDecMutex);
         #else
-            /* Unknown Platform. */
+            /* Unknown Platform, or ICU thread support compiled out. */
             retVal = ++(*p);
         #endif
     }
@@ -516,21 +517,18 @@ umtx_atomic_dec(int32_t *p) {
     if (pDecFn) {
         retVal = (*pDecFn)(gIncDecContext, p);
     } else {
-        #if !ICU_USE_THREADS
-            /* ICU thread support compiled out. */
-            retVal = --(*p);
-        #elif U_PLATFORM_HAS_WIN32_API
+        #if defined (U_WINDOWS) && ICU_USE_THREADS == 1
             retVal = InterlockedDecrement((LONG*)p);
         #elif defined(USE_MAC_OS_ATOMIC_INCREMENT)
             retVal = OSAtomicDecrement32Barrier(p);
         #elif (U_HAVE_GCC_ATOMICS == 1)
             retVal = __sync_sub_and_fetch(p, 1);
-        #elif defined (POSIX)
+        #elif defined (POSIX) && ICU_USE_THREADS == 1
             umtx_lock(&gIncDecMutex);
             retVal = --(*p);
             umtx_unlock(&gIncDecMutex);
         #else
-            /* Unknown Platform. */
+            /* Unknown Platform, or ICU thread support compiled out. */
             retVal = --(*p);
         #endif
     }
@@ -560,7 +558,7 @@ u_setAtomicIncDecFunctions(const void *context, UMtxAtomicFn *ip, UMtxAtomicFn *
     pDecFn = dp;
     gIncDecContext = context;
 
-#if U_DEBUG
+#if !U_RELEASE
     {
         int32_t   testInt = 0;
         U_ASSERT(umtx_atomic_inc(&testInt) == 1);     /* Sanity Check.    Do the functions work at all? */

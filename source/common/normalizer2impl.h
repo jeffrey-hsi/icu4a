@@ -25,7 +25,6 @@
 #include "unicode/udata.h"
 #include "unicode/unistr.h"
 #include "unicode/unorm.h"
-#include "unicode/utf16.h"
 #include "mutex.h"
 #include "uset_imp.h"
 #include "utrie2.h"
@@ -548,15 +547,8 @@ unorm2_swap(const UDataSwapper *ds,
  * Get the NF*_QC property for a code point, for u_getIntPropertyValue().
  * @internal
  */
-U_CFUNC UNormalizationCheckResult
+U_CFUNC UNormalizationCheckResult U_EXPORT2
 unorm_getQuickCheck(UChar32 c, UNormalizationMode mode);
-
-/**
- * Get the 16-bit FCD value (lead & trail CCs) for a code point, for u_getIntPropertyValue().
- * @internal
- */
-U_CFUNC uint16_t
-unorm_getFCD16Simple(UChar32 c);
 
 /**
  * Internal API, used by collation code.

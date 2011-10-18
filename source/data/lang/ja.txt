@@ -648,10 +648,6 @@ ja{
         Zyyy{"共用文字"}
         Zzzz{"言語不明または無効な文字"}
     }
-    Scripts%stand-alone{
-        Hans{"漢字（簡体字）"}
-        Hant{"漢字（繁体字）"}
-    }
     Types{
         calendar{
             buddhist{"タイ仏教暦"}
@@ -742,7 +738,7 @@ ja{
         VALENCIA{"バレンシア方言"}
         WADEGILE{"ウェード式ローマ字表記法"}
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.53"}
     codePatterns{
         language{"言語: {0}"}
         script{"文字: {0}"}

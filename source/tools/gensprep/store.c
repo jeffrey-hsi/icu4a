@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 1999-2011, International Business Machines
+*   Copyright (C) 1999-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -22,7 +22,6 @@
 #include "cstring.h"
 #include "filestrm.h"
 #include "unicode/udata.h"
-#include "unicode/utf16.h"
 #include "utrie.h"
 #include "unewdata.h"
 #include "gensprep.h"
@@ -468,8 +467,8 @@ storeMapping(uint32_t codepoint, uint32_t* mapping,int32_t length,
         if(mapping[i] <= 0xFFFF){
             map[i] = (uint16_t)mapping[i];
         }else{
-            map[i]   = U16_LEAD(mapping[i]);
-            map[i+1] = U16_TRAIL(mapping[i]);
+            map[i]   = UTF16_LEAD(mapping[i]);
+            map[i+1] = UTF16_TRAIL(mapping[i]);
         }
         i++;
     }

@@ -642,10 +642,6 @@ id{
         Zyyy{"Umum"}
         Zzzz{"Skrip Tak Dikenal"}
     }
-    Scripts%stand-alone{
-        Hans{"Han Sederhana"}
-        Hant{"Han Tradisional"}
-    }
     Types{
         calendar{
             buddhist{"Kalender Buddha"}
@@ -755,7 +751,7 @@ id{
         VALENCIA{"Valencia"}
         WADEGILE{"Wade-Giles Latin"}
     }
-    Version{"2.0.61.44"}
+    Version{"2.0.59.53"}
     codePatterns{
         language{"Bahasa: {0}"}
         script{"Skrip: {0}"}

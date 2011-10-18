@@ -102,6 +102,7 @@ metadata:table(nofallback){
         "CW",
         "CX",
         "CY",
+        "CS",
         "CZ",
         "DD",
         "DE",

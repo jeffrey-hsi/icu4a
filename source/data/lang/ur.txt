@@ -224,10 +224,6 @@ ur{
         Zyyy{"عام"}
         Zzzz{"نامعلوم رسم الخط"}
     }
-    Scripts%stand-alone{
-        Hans{"آسان ہان"}
-        Hant{"روایتی ہان"}
-    }
     Types{
         calendar{
             buddhist{"بودھ کلینڈر"}
@@ -296,7 +292,7 @@ ur{
             tibt{"تبتی اعداد"}
         }
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.69"}
     localeDisplayPattern{
         separator{"،"}
     }

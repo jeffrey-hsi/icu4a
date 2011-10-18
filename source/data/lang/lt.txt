@@ -659,10 +659,6 @@ lt{
         Zyyy{"bendras"}
         Zzzz{"nežinomi rašmenys"}
     }
-    Scripts%stand-alone{
-        Hans{"Supaprastintas Han"}
-        Hant{"Tradicinis Han"}
-    }
     Types{
         calendar{
             buddhist{"Budistų kalendorius"}

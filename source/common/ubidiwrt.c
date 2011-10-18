@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2000-2011, International Business Machines
+*   Copyright (C) 2000-2007, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -26,7 +26,6 @@
 #include "unicode/ustring.h"
 #include "unicode/uchar.h"
 #include "unicode/ubidi.h"
-#include "unicode/utf16.h"
 #include "cmemory.h"
 #include "ustr_imp.h"
 #include "ubidiimp.h"
@@ -87,9 +86,9 @@ doWriteForward(const UChar *src, int32_t srcLength,
             return srcLength;
         }
         do {
-            U16_NEXT(src, i, srcLength, c);
+            UTF_NEXT_CHAR(src, i, srcLength, c);
             c=u_charMirror(c);
-            U16_APPEND_UNSAFE(dest, j, c);
+            UTF_APPEND_CHAR_UNSAFE(dest, j, c);
         } while(i<srcLength);
         return srcLength;
     }
@@ -124,7 +123,7 @@ doWriteForward(const UChar *src, int32_t srcLength,
         UChar32 c;
         do {
             i=0;
-            U16_NEXT(src, i, srcLength, c);
+            UTF_NEXT_CHAR(src, i, srcLength, c);
             src+=i;
             srcLength-=i;
             if(!IS_BIDI_CONTROL_CHAR(c)) {
@@ -143,7 +142,7 @@ doWriteForward(const UChar *src, int32_t srcLength,
                     return destSize-remaining;
                 }
                 c=u_charMirror(c);
-                U16_APPEND_UNSAFE(dest, j, c);
+                UTF_APPEND_CHAR_UNSAFE(dest, j, c);
             }
         } while(srcLength>0);
         return j;
@@ -198,7 +197,7 @@ doWriteReverse(const UChar *src, int32_t srcLength,
             i=srcLength;
 
             /* collect code units for one base character */
-            U16_BACK_1(src, 0, srcLength);
+            UTF_BACK_1(src, 0, srcLength);
 
             /* copy this base character */
             j=srcLength;
@@ -227,7 +226,7 @@ doWriteReverse(const UChar *src, int32_t srcLength,
 
             /* collect code units and modifier letters for one base character */
             do {
-                U16_PREV(src, 0, srcLength, c);
+                UTF_PREV_CHAR(src, 0, srcLength, c);
             } while(srcLength>0 && IS_COMBINING(u_charType(c)));
 
             /* copy this "user character" */
@@ -275,11 +274,11 @@ doWriteReverse(const UChar *src, int32_t srcLength,
             i=srcLength;
 
             /* collect code units for one base character */
-            U16_PREV(src, 0, srcLength, c);
+            UTF_PREV_CHAR(src, 0, srcLength, c);
             if(options&UBIDI_KEEP_BASE_COMBINING) {
                 /* collect modifier letters for this base character */
                 while(srcLength>0 && IS_COMBINING(u_charType(c))) {
-                    U16_PREV(src, 0, srcLength, c);
+                    UTF_PREV_CHAR(src, 0, srcLength, c);
                 }
             }
 
@@ -294,7 +293,7 @@ doWriteReverse(const UChar *src, int32_t srcLength,
                 /* mirror only the base character */
                 int32_t k=0;
                 c=u_charMirror(c);
-                U16_APPEND_UNSAFE(dest, k, c);
+                UTF_APPEND_CHAR_UNSAFE(dest, k, c);
                 dest+=k;
                 j+=k;
             }

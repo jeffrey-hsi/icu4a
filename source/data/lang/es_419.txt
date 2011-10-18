@@ -10,10 +10,6 @@ es_419{
     Keys{
         numbers{"Números"}
     }
-    Scripts%stand-alone{
-        Hans{"Han simplificado"}
-        Hant{"Han tradicional"}
-    }
     Types{
         calendar{
             coptic{"Calendario cóptico"}
@@ -66,5 +62,5 @@ es_419{
             tibt{"Dígitos tibetanos"}
         }
     }
-    Version{"2.0.61.44"}
+    Version{"2.0.59.5"}
 }

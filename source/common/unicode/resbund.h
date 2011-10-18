@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1996-2011, International Business Machines Corporation
+*   Copyright (C) 1996-2007, International Business Machines Corporation
 *   and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -409,7 +409,6 @@ public:
       getStringEx(const char* key,
                   UErrorCode& status) const;
 
-#ifndef U_HIDE_DEPRECATED_API
     /**
      * Return the version number associated with this ResourceBundle as a string. Please
      * use getVersion, as this method is going to be deprecated.
@@ -421,7 +420,6 @@ public:
      */
     const char*
       getVersionNumber(void) const;
-#endif  /* U_HIDE_DEPRECATED_API */
 
     /**
      * Return the version number associated with this ResourceBundle as a UVersionInfo array.
@@ -433,7 +431,6 @@ public:
     void
       getVersion(UVersionInfo versionInfo) const;
 
-#ifndef U_HIDE_DEPRECATED_API
     /**
      * Return the Locale associated with this ResourceBundle.
      *
@@ -442,7 +439,6 @@ public:
      */
     const Locale&
       getLocale(void) const;
-#endif  /* U_HIDE_DEPRECATED_API */
 
     /**
      * Return the Locale associated with this ResourceBundle.
@@ -456,14 +452,12 @@ public:
      */
     const Locale
       getLocale(ULocDataLocaleType type, UErrorCode &status) const;
-#ifndef U_HIDE_INTERNAL_API
     /**
      * This API implements multilevel fallback
      * @internal
      */
     ResourceBundle
         getWithFallback(const char* key, UErrorCode& status);
-#endif  /* U_HIDE_INTERNAL_API */
     /**
      * ICU "poor man's RTTI", returns a UClassID for the actual class.
      *

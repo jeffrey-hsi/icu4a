@@ -33,12 +33,8 @@ U_NAMESPACE_BEGIN
 
 // Public API dispatch via Normalizer2 subclasses -------------------------- ***
 
-Normalizer2::~Normalizer2() {}
-
 // Normalizer2 implementation for the old UNORM_NONE.
 class NoopNormalizer2 : public Normalizer2 {
-    virtual ~NoopNormalizer2();
-
     virtual UnicodeString &
     normalize(const UnicodeString &src,
               UnicodeString &dest,
@@ -99,14 +95,11 @@ class NoopNormalizer2 : public Normalizer2 {
     virtual UBool isInert(UChar32) const { return TRUE; }
 };
 
-NoopNormalizer2::~NoopNormalizer2() {}
-
 // Intermediate class:
 // Has Normalizer2Impl and does boilerplate argument checking and setup.
 class Normalizer2WithImpl : public Normalizer2 {
 public:
     Normalizer2WithImpl(const Normalizer2Impl &ni) : impl(ni) {}
-    virtual ~Normalizer2WithImpl();
 
     // normalize
     virtual UnicodeString &
@@ -196,11 +189,6 @@ public:
         return TRUE;
     }
 
-    virtual uint8_t
-    getCombiningClass(UChar32 c) const {
-        return impl.getCC(impl.getNorm16(c));
-    }
-
     // quick checks
     virtual UBool
     isNormalized(const UnicodeString &s, UErrorCode &errorCode) const {
@@ -241,12 +229,9 @@ public:
     const Normalizer2Impl &impl;
 };
 
-Normalizer2WithImpl::~Normalizer2WithImpl() {}
-
 class DecomposeNormalizer2 : public Normalizer2WithImpl {
 public:
     DecomposeNormalizer2(const Normalizer2Impl &ni) : Normalizer2WithImpl(ni) {}
-    virtual ~DecomposeNormalizer2();
 
 private:
     virtual void
@@ -274,13 +259,10 @@ private:
     virtual UBool isInert(UChar32 c) const { return impl.isDecompInert(c); }
 };
 
-DecomposeNormalizer2::~DecomposeNormalizer2() {}
-
 class ComposeNormalizer2 : public Normalizer2WithImpl {
 public:
     ComposeNormalizer2(const Normalizer2Impl &ni, UBool fcc) :
         Normalizer2WithImpl(ni), onlyContiguous(fcc) {}
-    virtual ~ComposeNormalizer2();
 
 private:
     virtual void
@@ -348,12 +330,9 @@ private:
     const UBool onlyContiguous;
 };
 
-ComposeNormalizer2::~ComposeNormalizer2() {}
-
 class FCDNormalizer2 : public Normalizer2WithImpl {
 public:
     FCDNormalizer2(const Normalizer2Impl &ni) : Normalizer2WithImpl(ni) {}
-    virtual ~FCDNormalizer2();
 
 private:
     virtual void
@@ -377,8 +356,6 @@ private:
     virtual UBool hasBoundaryAfter(UChar32 c) const { return impl.hasFCDBoundaryAfter(c); }
     virtual UBool isInert(UChar32 c) const { return impl.isFCDInert(c); }
 };
-
-FCDNormalizer2::~FCDNormalizer2() {}
 
 // instance cache ---------------------------------------------------------- ***
 
@@ -655,11 +632,6 @@ Normalizer2::getInstance(const char *packageName,
     return NULL;
 }
 
-uint8_t
-Normalizer2::getCombiningClass(UChar32 /*c*/) const {
-    return 0;
-}
-
 UOBJECT_DEFINE_NO_RTTI_IMPLEMENTATION(Normalizer2)
 
 U_NAMESPACE_END
@@ -810,11 +782,6 @@ unorm2_getDecomposition(const UNormalizer2 *norm2,
     }
 }
 
-U_DRAFT uint8_t U_EXPORT2
-unorm2_getCombiningClass(const UNormalizer2 *norm2, UChar32 c) {
-    return reinterpret_cast<const Normalizer2 *>(norm2)->getCombiningClass(c);
-}
-
 U_DRAFT UBool U_EXPORT2
 unorm2_isNormalized(const UNormalizer2 *norm2,
                     const UChar *s, int32_t length,
@@ -877,18 +844,7 @@ unorm2_isInert(const UNormalizer2 *norm2, UChar32 c) {
 
 // Some properties APIs ---------------------------------------------------- ***
 
-U_CAPI uint8_t U_EXPORT2
-u_getCombiningClass(UChar32 c) {
-    UErrorCode errorCode=U_ZERO_ERROR;
-    const Normalizer2 *nfd=Normalizer2Factory::getNFDInstance(errorCode);
-    if(U_SUCCESS(errorCode)) {
-        return nfd->getCombiningClass(c);
-    } else {
-        return 0;
-    }
-}
-
-U_CFUNC UNormalizationCheckResult
+U_CFUNC UNormalizationCheckResult U_EXPORT2
 unorm_getQuickCheck(UChar32 c, UNormalizationMode mode) {
     if(mode<=UNORM_NONE || UNORM_FCD<=mode) {
         return UNORM_YES;
@@ -899,17 +855,6 @@ unorm_getQuickCheck(UChar32 c, UNormalizationMode mode) {
         return ((const Normalizer2WithImpl *)norm2)->getQuickCheck(c);
     } else {
         return UNORM_MAYBE;
-    }
-}
-
-U_CFUNC uint16_t
-unorm_getFCD16Simple(UChar32 c) {
-    UErrorCode errorCode=U_ZERO_ERROR;
-    const UTrie2 *trie=Normalizer2Factory::getFCDTrie(errorCode);
-    if(U_SUCCESS(errorCode)) {
-        return UTRIE2_GET16(trie, c);
-    } else {
-        return 0;
     }
 }
 

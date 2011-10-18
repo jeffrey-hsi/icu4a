@@ -1,6 +1,6 @@
 /*
 ************************************************************************
-* Copyright (c) 1997-2011, International Business Machines
+* Copyright (c) 1997-2010, International Business Machines
 * Corporation and others.  All Rights Reserved.
 ************************************************************************
 */
@@ -10,12 +10,12 @@
 
 #include "unicode/utypes.h"
 
-#if U_PLATFORM_HAS_WIN32_API
+#if defined(U_WINDOWS)
 #   define VC_EXTRALEAN
 #   define WIN32_LEAN_AND_MEAN
 #   include <windows.h>
 #else
-#   if U_PLATFORM == U_PF_OS390
+#   if defined(OS390)
 #     define __UU  /* Universal Unix - for struct timeval */
 #   endif
 #   include <time.h>
@@ -88,7 +88,7 @@
  *                  }
  *
  *                  retVal= fn(fileLines[line].name,len,dest,destCapacity,&error);
- *      #if U_PLATFORM_HAS_WIN32_API
+ *      #if defined(U_WINDOWS)
  *                  if(retVal==0 ){
  *                      fprintf(stderr,"Normalization of string in Windows API failed for mode %s. ErrorNo: %i at line number %i\n",mode,GetLastError(),line);
  *                      return 0;
@@ -160,7 +160,7 @@ typedef struct UTimer UTimer;
 typedef void FuntionToBeTimed(void* param);
 
 
-#if U_PLATFORM_HAS_WIN32_API
+#if defined(U_WINDOWS)
 
     struct UTimer{
         LARGE_INTEGER start;
@@ -214,7 +214,7 @@ typedef void FuntionToBeTimed(void* param);
  *
  * @param timer A pointer to UTimer struct to recieve the current time
  */
-static inline void U_EXPORT2
+static U_INLINE void U_EXPORT2
 utimer_getTime(UTimer* timer){
     uprv_initFrequency(timer);
     uprv_start(timer);
@@ -228,7 +228,7 @@ utimer_getTime(UTimer* timer){
  * @param timer2 A pointer to UTimer struct to be used as end time
  * @return Time in seconds
  */
-static inline double U_EXPORT2
+static U_INLINE double U_EXPORT2
 utimer_getDeltaSeconds(UTimer* timer1, UTimer* timer2){
     if(uprv_compareFrequency(timer1,timer2)){
         return uprv_delta(timer1,timer2);
@@ -243,7 +243,7 @@ utimer_getDeltaSeconds(UTimer* timer1, UTimer* timer2){
  * @param timer A pointer to UTimer struct to be used as starting time
  * @return Time elapsed in seconds
  */
-static inline double U_EXPORT2
+static U_INLINE double U_EXPORT2
 utimer_getElapsedSeconds(UTimer* timer){
     UTimer temp;
     utimer_getTime(&temp);
@@ -259,7 +259,7 @@ utimer_getElapsedSeconds(UTimer* timer){
  * @param param Parameters to be passed to the fn
  * @return the time elapsed in seconds
  */
-static inline double U_EXPORT2
+static U_INLINE double U_EXPORT2
 utimer_loopUntilDone(double thresholdTimeVal,
                      int32_t* loopCount, 
                      FuntionToBeTimed fn, 

@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 2001-2011, International Business Machines
+*   Copyright (C) 2001-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -27,9 +27,6 @@
 #endif
 
 #include "unicode/utypes.h"
-#include "unicode/utf.h"
-#include "unicode/utf8.h"
-#include "unicode/utf16.h"
 #include "cmemory.h"
 #include "utrie2.h"
 #include "utrie2_impl.h"
@@ -82,7 +79,7 @@ utrie2_get32FromLeadSurrogateCodeUnit(const UTrie2 *trie, UChar32 c) {
     }
 }
 
-static inline int32_t
+static U_INLINE int32_t
 u8Index(const UTrie2 *trie, UChar32 c, int32_t i) {
     int32_t idx=
         _UTRIE2_INDEX_FROM_CP(

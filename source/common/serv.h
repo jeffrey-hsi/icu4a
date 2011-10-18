@@ -211,7 +211,6 @@ public:
   */
 class U_COMMON_API ICUServiceFactory : public UObject {
  public:
-    virtual ~ICUServiceFactory();
 
     /**
      * <p>Create a service object from the key, if this factory
@@ -368,8 +367,6 @@ public:
  */
 class U_COMMON_API ServiceListener : public EventListener {
 public:
-    virtual ~ServiceListener();
-
     /**
      * <p>This method is called when the service changes. At the time of the
      * call this listener is registered with the service.  It must

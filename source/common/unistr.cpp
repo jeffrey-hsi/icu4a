@@ -25,16 +25,18 @@
 #include "cmemory.h"
 #include "unicode/ustring.h"
 #include "unicode/unistr.h"
-#include "unicode/utf.h"
-#include "unicode/utf16.h"
-#include "uelement.h"
+#include "uhash.h"
 #include "ustr_imp.h"
 #include "umutex.h"
 
 #if 0
 
+#if U_IOSTREAM_SOURCE >= 199711
 #include <iostream>
 using namespace std;
+#elif U_IOSTREAM_SOURCE >= 198506
+#include <iostream.h>
+#endif
 
 //DEBUGGING
 void
@@ -89,7 +91,7 @@ us_arrayCopy(const UChar *src, int32_t srcStart,
 U_CDECL_BEGIN
 static UChar U_CALLCONV
 UnicodeString_charAt(int32_t offset, void *context) {
-    return ((icu::UnicodeString*) context)->charAt(offset);
+    return ((U_NAMESPACE_QUALIFIER UnicodeString*) context)->charAt(offset);
 }
 U_CDECL_END
 
@@ -160,7 +162,7 @@ UnicodeString::UnicodeString(int32_t capacity, UChar32 c, int32_t count)
     allocate(capacity);
   } else {
     // count > 0, allocate and fill the new string with count c's
-    int32_t unitCount = U16_LENGTH(c), length = count * unitCount;
+    int32_t unitCount = UTF_CHAR_LENGTH(c), length = count * unitCount;
     if(capacity < length) {
       capacity = length;
     }
@@ -176,8 +178,8 @@ UnicodeString::UnicodeString(int32_t capacity, UChar32 c, int32_t count)
         }
       } else {
         // get the code units for c
-        UChar units[U16_MAX_LENGTH];
-        U16_APPEND_UNSAFE(units, i, c);
+        UChar units[UTF_MAX_CHAR_LENGTH];
+        UTF_APPEND_CHAR_UNSAFE(units, i, c);
 
         // now it must be i==unitCount
         i = 0;
@@ -688,43 +690,6 @@ UnicodeString::getChar32At(int32_t offset) const {
   return char32At(offset);
 }
 
-UChar32
-UnicodeString::char32At(int32_t offset) const
-{
-  int32_t len = length();
-  if((uint32_t)offset < (uint32_t)len) {
-    const UChar *array = getArrayStart();
-    UChar32 c;
-    U16_GET(array, 0, offset, len, c);
-    return c;
-  } else {
-    return kInvalidUChar;
-  }
-}
-
-int32_t
-UnicodeString::getChar32Start(int32_t offset) const {
-  if((uint32_t)offset < (uint32_t)length()) {
-    const UChar *array = getArrayStart();
-    U16_SET_CP_START(array, 0, offset);
-    return offset;
-  } else {
-    return 0;
-  }
-}
-
-int32_t
-UnicodeString::getChar32Limit(int32_t offset) const {
-  int32_t len = length();
-  if((uint32_t)offset < (uint32_t)len) {
-    const UChar *array = getArrayStart();
-    U16_SET_CP_LIMIT(array, 0, offset, len);
-    return offset;
-  } else {
-    return len;
-  }
-}
-
 int32_t
 UnicodeString::countChar32(int32_t start, int32_t length) const {
   pinIndices(start, length);
@@ -751,9 +716,9 @@ UnicodeString::moveIndex32(int32_t index, int32_t delta) const {
 
   const UChar *array = getArrayStart();
   if(delta>0) {
-    U16_FWD_N(array, index, len, delta);
+    UTF_FWD_N(array, index, len, delta);
   } else {
-    U16_BACK_N(array, 0, index, -delta);
+    UTF_BACK_N(array, 0, index, -delta);
   }
 
   return index;
@@ -1236,26 +1201,6 @@ UnicodeString::setCharAt(int32_t offset,
 }
 
 UnicodeString&
-UnicodeString::replace(int32_t start,
-               int32_t _length,
-               UChar32 srcChar) {
-  UChar buffer[U16_MAX_LENGTH];
-  int32_t count = 0;
-  UBool isError = FALSE;
-  U16_APPEND(buffer, count, U16_MAX_LENGTH, srcChar, isError);
-  return doReplace(start, _length, buffer, 0, count);
-}
-
-UnicodeString&
-UnicodeString::append(UChar32 srcChar) {
-  UChar buffer[U16_MAX_LENGTH];
-  int32_t _length = 0;
-  UBool isError = FALSE;
-  U16_APPEND(buffer, _length, U16_MAX_LENGTH, srcChar, isError);
-  return doReplace(length(), 0, buffer, 0, _length);
-}
-
-UnicodeString&
 UnicodeString::doReplace( int32_t start,
               int32_t length,
               const UnicodeString& src,
@@ -1537,7 +1482,7 @@ UnicodeString::doHashCode() const
 {
     /* Delegate hash computation to uhash.  This makes UnicodeString
      * hashing consistent with UChar* hashing.  */
-    int32_t hashCode = ustr_hashUCharsN(getArrayStart(), length());
+    int32_t hashCode = uhash_hashUCharsN(getArrayStart(), length());
     if (hashCode == kInvalidHashCode) {
         hashCode = kEmptyHashCode;
     }
@@ -1685,8 +1630,6 @@ UnicodeString::cloneArrayIfNeeded(int32_t newCapacity,
 
 // UnicodeStringAppendable ------------------------------------------------- ***
 
-UnicodeStringAppendable::~UnicodeStringAppendable() {}
-
 UBool
 UnicodeStringAppendable::appendCodeUnit(UChar c) {
   return str.doReplace(str.length(), 0, &c, 0, 1).isWritable();
@@ -1731,29 +1674,6 @@ UnicodeStringAppendable::getAppendBuffer(int32_t minCapacity,
 
 U_NAMESPACE_END
 
-U_NAMESPACE_USE
-
-U_CAPI int32_t U_EXPORT2
-uhash_hashUnicodeString(const UElement key) {
-    const UnicodeString *str = (const UnicodeString*) key.pointer;
-    return (str == NULL) ? 0 : str->hashCode();
-}
-
-// Moved here from uhash_us.cpp so that using a UVector of UnicodeString*
-// does not depend on hashtable code.
-U_CAPI UBool U_EXPORT2
-uhash_compareUnicodeString(const UElement key1, const UElement key2) {
-    const UnicodeString *str1 = (const UnicodeString*) key1.pointer;
-    const UnicodeString *str2 = (const UnicodeString*) key2.pointer;
-    if (str1 == str2) {
-        return TRUE;
-    }
-    if (str1 == NULL || str2 == NULL) {
-        return FALSE;
-    }
-    return *str1 == *str2;
-}
-
 #ifdef U_STATIC_IMPLEMENTATION
 /*
 This should never be called. It is defined here to make sure that the
@@ -1763,6 +1683,7 @@ but defining it here makes sure that it is included with this object file.
 This makes sure that static library dependencies are kept to a minimum.
 */
 static void uprv_UnicodeStringDummy(void) {
+    U_NAMESPACE_USE
     delete [] (new UnicodeString[2]);
 }
 #endif

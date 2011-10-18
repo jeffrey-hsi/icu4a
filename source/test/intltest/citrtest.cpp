@@ -1,6 +1,6 @@
 /****************************************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2011, International Business Machines Corporation and
+ * Copyright (c) 1997-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  * Modification History:
  *
@@ -18,7 +18,6 @@
 #include "unicode/uchriter.h"
 #include "unicode/uiter.h"
 #include "unicode/putil.h"
-#include "unicode/utf16.h"
 #include "citrtest.h"
 
 
@@ -103,20 +102,20 @@ public:
         case kStart:
             pos = begin;
             if(delta > 0) {
-                U16_FWD_N(text, pos, end, delta);
+                UTF_FWD_N(text, pos, end, delta);
             }
             break;
         case kCurrent:
             if(delta > 0) {
-                U16_FWD_N(text, pos, end, delta);
+                UTF_FWD_N(text, pos, end, delta);
             } else {
-                U16_BACK_N(text, begin, pos, -delta);
+                UTF_BACK_N(text, begin, pos, -delta);
             }
             break;
         case kEnd:
             pos = end;
             if(delta < 0) {
-                U16_BACK_N(text, begin, pos, -delta);
+                UTF_BACK_N(text, begin, pos, -delta);
             }
             break;
         default:
@@ -667,7 +666,7 @@ void CharIterTest::TestIterationUChar32() {
         c=iter.first32PostInc();
         if(c != text.char32At(i))
             errln("first32PostInc failed.  Expected->%X Got->%X", text.char32At(i), c);
-        if(iter.getIndex() != U16_LENGTH(c) + i)
+        if(iter.getIndex() != UTF16_CHAR_LENGTH(c) + i)
             errln((UnicodeString)"getIndex() after first32PostInc() failed");
 
         iter.setToStart();

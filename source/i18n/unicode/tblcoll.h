@@ -697,7 +697,6 @@ public:
                                 int32_t reorderCodesLength,
                                 UErrorCode& status) ;
 
-#ifndef U_HIDE_DRAFT_API
     /**
      * Retrieves the reorder codes that are grouped with the given reorder code. Some reorder
      * codes will be grouped and must reorder together.
@@ -718,7 +717,7 @@ public:
                                 int32_t* dest,
                                 int32_t destCapacity,
                                 UErrorCode& status);
-#endif  /* U_HIDE_DRAFT_API */
+
 
 private:
 
@@ -860,14 +859,12 @@ private:
     void setUCollator(UCollator *collator);
 
 public:
-#ifndef U_HIDE_INTERNAL_API
     /**
     * Get UCollator data struct. Used only by StringSearch & intltest.
     * @return UCollator data struct
     * @internal
     */
     const UCollator * getUCollator();
-#endif  /* U_HIDE_INTERNAL_API */
 
 protected:
    /**
@@ -934,12 +931,10 @@ inline void RuleBasedCollator::setUCollator(UCollator     *collator)
     setRuleStringFromCollator();
 }
 
-#ifndef U_HIDE_INTERNAL_API
 inline const UCollator * RuleBasedCollator::getUCollator()
 {
     return ucollator;
 }
-#endif
 
 inline Collator::EComparisonResult RuleBasedCollator::getEComparisonResult(
                                            const UCollationResult &result) const

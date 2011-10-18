@@ -4,9 +4,8 @@
  * others. All Rights Reserved.
  ********************************************************************/
 
-// Defines _XOPEN_SOURCE for access to POSIX functions.
-// Must be before any other #includes.
-#include "uposixdefs.h"
+/* z/OS needs this definition for timeval */
+#include "platform_xopen_source_extended.h"
 
 #include "unicode/uperf.h"
 #include "uoptions.h"
@@ -15,9 +14,6 @@
 #include <stdlib.h>
 
 #if !UCONFIG_NO_CONVERSION
-
-UPerfFunction::~UPerfFunction() {}
-
 static const char delim = '/';
 static int32_t execCount = 0;
 UPerfTest* UPerfTest::gTest = NULL;

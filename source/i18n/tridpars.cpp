@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2002-2011, International Business Machines Corporation
+*   Copyright (c) 2002-2009, International Business Machines Corporation
 *   and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -72,7 +72,7 @@ TransliteratorIDParser::SingleID::SingleID(const UnicodeString& c, const Unicode
 Transliterator* TransliteratorIDParser::SingleID::createInstance() {
     Transliterator* t;
     if (basicID.length() == 0) {
-        t = createBasicInstance(UnicodeString(TRUE, ANY_NULL, 8), &canonID);
+        t = createBasicInstance(ANY_NULL, &canonID);
     } else {
         t = createBasicInstance(basicID, &canonID);
     }
@@ -498,7 +498,7 @@ void TransliteratorIDParser::instantiateList(UVector& list,
 
     // An empty list is equivalent to a NULL transliterator.
     if (tlist.size() == 0) {
-        t = createBasicInstance(UnicodeString(TRUE, ANY_NULL, 8), NULL);
+        t = createBasicInstance(ANY_NULL, NULL);
         if (t == NULL) {
             // Should never happen
             ec = U_INTERNAL_TRANSLITERATOR_ERROR;
@@ -547,7 +547,7 @@ void TransliteratorIDParser::IDtoSTV(const UnicodeString& id,
                                      UnicodeString& target,
                                      UnicodeString& variant,
                                      UBool& isSourcePresent) {
-    source.setTo(ANY, 3);
+    source = ANY;
     target.truncate(0);
     variant.truncate(0);
 
@@ -596,7 +596,7 @@ void TransliteratorIDParser::STVtoID(const UnicodeString& source,
                                      UnicodeString& id) {
     id = source;
     if (id.length() == 0) {
-        id.setTo(ANY, 3);
+        id = ANY;
     }
     id.append(TARGET_SEP).append(target);
     if (variant.length() != 0) {
@@ -791,11 +791,11 @@ TransliteratorIDParser::parseFilterID(const UnicodeString& id, int32_t& pos,
     // Empty source or target defaults to ANY
     UBool sawSource = TRUE;
     if (source.length() == 0) {
-        source.setTo(ANY, 3);
+        source = ANY;
         sawSource = FALSE;
     }
     if (target.length() == 0) {
-        target.setTo(ANY, 3);
+        target = ANY;
     }
 
     return new Specs(source, target, variant, sawSource, filter);
@@ -848,7 +848,7 @@ TransliteratorIDParser::specsToID(const Specs* specs, int32_t dir) {
  */
 TransliteratorIDParser::SingleID*
 TransliteratorIDParser::specsToSpecialInverse(const Specs& specs, UErrorCode &status) {
-    if (0!=specs.source.caseCompare(ANY, 3, U_FOLD_CASE_DEFAULT)) {
+    if (0!=specs.source.caseCompare(ANY, U_FOLD_CASE_DEFAULT)) {
         return NULL;
     }
     init(status);
@@ -868,11 +868,11 @@ TransliteratorIDParser::specsToSpecialInverse(const Specs& specs, UErrorCode &st
             buf.append(specs.filter);
         }
         if (specs.sawSource) {
-            buf.append(ANY, 3).append(TARGET_SEP);
+            buf.append(ANY).append(TARGET_SEP);
         }
         buf.append(*inverseTarget);
 
-        UnicodeString basicID(TRUE, ANY, 3);
+        UnicodeString basicID(ANY);
         basicID.append(TARGET_SEP).append(*inverseTarget);
 
         if (specs.variant.length() != 0) {
@@ -907,7 +907,7 @@ void TransliteratorIDParser::init(UErrorCode &status) {
     	status = U_MEMORY_ALLOCATION_ERROR;
     	return;
     }
-    special_inverses->setValueDeleter(uprv_deleteUObject);
+    special_inverses->setValueDeleter(uhash_deleteUnicodeString);
 
     umtx_lock(&LOCK);
     if (SPECIAL_INVERSES == NULL) {

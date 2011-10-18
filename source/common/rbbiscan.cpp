@@ -23,6 +23,7 @@
 #include "unicode/uchriter.h"
 #include "unicode/parsepos.h"
 #include "unicode/parseerr.h"
+#include "util.h"
 #include "cmemory.h"
 #include "cstring.h"
 
@@ -71,7 +72,7 @@ static const UChar kAny[] = {0x61, 0x6e, 0x79, 0x00};  // "any"
 
 U_CDECL_BEGIN
 static void U_CALLCONV RBBISetTable_deleter(void *p) {
-    icu::RBBISetTableEl *px = (icu::RBBISetTableEl *)p;
+    U_NAMESPACE_QUALIFIER RBBISetTableEl *px = (U_NAMESPACE_QUALIFIER RBBISetTableEl *)p;
     delete px->key;
     // Note:  px->val is owned by the linked list "fSetsListHead" in scanner.
     //        Don't delete the value nodes here.
@@ -120,20 +121,19 @@ RBBIRuleScanner::RBBIRuleScanner(RBBIRuleBuilder *rb)
     //            all instances of RBBIRuleScanners.  BUT this is quite a bit simpler,
     //            and the time to build these few sets should be small compared to a
     //            full break iterator build.
-    fRuleSets[kRuleSet_rule_char-128]
-        = UnicodeSet(UnicodeString(gRuleSet_rule_char_pattern),       *rb->fStatus);
-    // fRuleSets[kRuleSet_white_space-128] = [:Pattern_White_Space:]
-    fRuleSets[kRuleSet_white_space-128].
-        add(9, 0xd).add(0x20).add(0x85).add(0x200e, 0x200f).add(0x2028, 0x2029);
-    fRuleSets[kRuleSet_name_char-128]
-        = UnicodeSet(UnicodeString(gRuleSet_name_char_pattern),       *rb->fStatus);
-    fRuleSets[kRuleSet_name_start_char-128]
-        = UnicodeSet(UnicodeString(gRuleSet_name_start_char_pattern), *rb->fStatus);
-    fRuleSets[kRuleSet_digit_char-128]
-        = UnicodeSet(UnicodeString(gRuleSet_digit_char_pattern),      *rb->fStatus);
+    fRuleSets[kRuleSet_rule_char-128]       = UnicodeSet(gRuleSet_rule_char_pattern,       *rb->fStatus);
+    UnicodeSet *whitespaceSet = uprv_openPatternWhiteSpaceSet(rb->fStatus);
+    if (U_FAILURE(*rb->fStatus)) {
+        return;
+    }
+    fRuleSets[kRuleSet_white_space-128]     = *whitespaceSet;
+    delete whitespaceSet;
+    fRuleSets[kRuleSet_name_char-128]       = UnicodeSet(gRuleSet_name_char_pattern,       *rb->fStatus);
+    fRuleSets[kRuleSet_name_start_char-128] = UnicodeSet(gRuleSet_name_start_char_pattern, *rb->fStatus);
+    fRuleSets[kRuleSet_digit_char-128]      = UnicodeSet(gRuleSet_digit_char_pattern,      *rb->fStatus);
     if (*rb->fStatus == U_ILLEGAL_ARGUMENT_ERROR) {
         // This case happens if ICU's data is missing.  UnicodeSet tries to look up property
-        //   names from the init string, can't find them, and claims an illegal argument.
+        //   names from the init string, can't find them, and claims an illegal arguement.
         //   Change the error so that the actual problem will be clearer to users.
         *rb->fStatus = U_BRK_INIT_ERROR;
     }
@@ -419,7 +419,7 @@ UBool RBBIRuleScanner::doParseActions(int32_t action)
         // sets that just happen to contain only one character.
         {
             n = pushNewNode(RBBINode::setRef);
-            findSetFor(UnicodeString(fC.fChar), n);
+            findSetFor(fC.fChar, n);
             n->fFirstPos = fScanIndex;
             n->fLastPos  = fNextIndex;
             fRB->fRules.extractBetween(n->fFirstPos, n->fLastPos, n->fText);
@@ -430,7 +430,7 @@ UBool RBBIRuleScanner::doParseActions(int32_t action)
         // scanned a ".", meaning match any single character.
         {
             n = pushNewNode(RBBINode::setRef);
-            findSetFor(UnicodeString(TRUE, kAny, 3), n);
+            findSetFor(kAny, n);
             n->fFirstPos = fScanIndex;
             n->fLastPos  = fNextIndex;
             fRB->fRules.extractBetween(n->fFirstPos, n->fLastPos, n->fText);
@@ -1051,7 +1051,7 @@ void RBBIRuleScanner::parse() {
     if (fRB->fReverseTree == NULL) {
         fRB->fReverseTree  = pushNewNode(RBBINode::opStar);
         RBBINode  *operand = pushNewNode(RBBINode::setRef);
-        findSetFor(UnicodeString(TRUE, kAny, 3), operand);
+        findSetFor(kAny, operand);
         fRB->fReverseTree->fLeftChild = operand;
         operand->fParent              = fRB->fReverseTree;
         fNodeStackPtr -= 2;
@@ -1146,11 +1146,12 @@ void RBBIRuleScanner::scanSet() {
     pos.setIndex(fScanIndex);
     startPos = fScanIndex;
     UErrorCode localStatus = U_ZERO_ERROR;
-    uset = new UnicodeSet();
+    uset = new UnicodeSet(fRB->fRules, pos, USET_IGNORE_SPACE,
+                         fSymbolTable,
+                         localStatus);
     if (uset == NULL) {
         localStatus = U_MEMORY_ALLOCATION_ERROR;
     }
-    uset->applyPatternIgnoreSpace(fRB->fRules, pos, fSymbolTable, localStatus);
     if (U_FAILURE(localStatus)) {
         //  TODO:  Get more accurate position of the error from UnicodeSet's return info.
         //         UnicodeSet appears to not be reporting correctly at this time.

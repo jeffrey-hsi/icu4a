@@ -643,10 +643,6 @@ it{
         Zyyy{"comune"}
         Zzzz{"ignoto o non valido"}
     }
-    Scripts%stand-alone{
-        Hans{"han semplificati"}
-        Hant{"han tradizionali"}
-    }
     Types{
         calendar{
             buddhist{"calendario buddista"}
@@ -731,7 +727,7 @@ it{
         ROZAJ{"resiano"}
         SAAHO{"saho"}
     }
-    Version{"2.0.61.44"}
+    Version{"2.0.59.68"}
     localeDisplayPattern{
         pattern{"{0} ({1})"}
         separator{", "}

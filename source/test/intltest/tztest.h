@@ -95,7 +95,6 @@ public:
     virtual void TestDisplayNamesMeta();
 
     void TestGetRegion(void);
-    void TestGetUnknown();
 
     static const UDate INTERVAL;
 

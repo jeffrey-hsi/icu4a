@@ -678,10 +678,6 @@ nb{
         Zyyy{"felles"}
         Zzzz{"ukjent skrift"}
     }
-    Scripts%stand-alone{
-        Hans{"forenklet han"}
-        Hant{"tradisjonell han"}
-    }
     Types{
         calendar{
             buddhist{"buddhistisk kalender"}
@@ -782,7 +778,7 @@ nb{
         VALENCIA{"valensisk dialekt"}
         WADEGILE{"Wade-Giles"}
     }
-    Version{"2.0.61.44"}
+    Version{"2.0.59.68"}
     codePatterns{
         language{"Språk: {0}"}
         script{"Skrift: {0}"}

@@ -20,7 +20,7 @@ ne{
         "Deva",
     }
     NumberElements{
-        default{"latn"}
+        default{"deva"}
         latn{
             symbols{
                 decimal{"."}
@@ -30,7 +30,7 @@ ne{
             }
         }
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.53"}
     calendar{
         gregorian{
             AmPmMarkers{

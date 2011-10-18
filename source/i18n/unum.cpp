@@ -723,7 +723,8 @@ unum_setTextAttribute(    UNumberFormat*                    fmt,
     if(U_FAILURE(*status))
         return;
 
-    UnicodeString val(newValue, newValueLength);
+    int32_t len = (newValueLength == -1 ? u_strlen(newValue) : newValueLength);
+    const UnicodeString val((UChar*)newValue, len, len);
     NumberFormat* nf = reinterpret_cast<NumberFormat*>(fmt);
     DecimalFormat* df = dynamic_cast<DecimalFormat*>(nf);
     if (df != NULL) {
@@ -745,11 +746,11 @@ unum_setTextAttribute(    UNumberFormat*                    fmt,
         break;
         
       case UNUM_PADDING_CHARACTER:
-        df->setPadCharacter(val);
+        df->setPadCharacter(*newValue);
         break;
         
       case UNUM_CURRENCY_CODE:
-        df->setCurrency(val.getTerminatedBuffer(), *status);
+        df->setCurrency(newValue, *status);
         break;
         
       default:
@@ -760,7 +761,7 @@ unum_setTextAttribute(    UNumberFormat*                    fmt,
       RuleBasedNumberFormat* rbnf = dynamic_cast<RuleBasedNumberFormat*>(nf);
       U_ASSERT(rbnf != NULL);
       if (tag == UNUM_DEFAULT_RULESET) {
-        rbnf->setDefaultRuleSet(val, *status);
+        rbnf->setDefaultRuleSet(newValue, *status);
       } else {
         *status = U_UNSUPPORTED_ERROR;
       }

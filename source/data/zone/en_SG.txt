@@ -7,22 +7,16 @@
 // *
 // ***************************************************************************
 en_SG{
-    Version{"2.0.61.44"}
+    Version{"2.0.59.62"}
     zoneStrings{
         "meta:Europe_Central"{
-            sd{"∅∅∅"}
-            sg{"∅∅∅"}
-            ss{"∅∅∅"}
+            cu:int{0}
         }
         "meta:Europe_Eastern"{
-            sd{"∅∅∅"}
-            sg{"∅∅∅"}
-            ss{"∅∅∅"}
+            cu:int{0}
         }
         "meta:Europe_Western"{
-            sd{"∅∅∅"}
-            sg{"∅∅∅"}
-            ss{"∅∅∅"}
+            cu:int{0}
         }
     }
 }

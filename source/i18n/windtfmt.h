@@ -14,7 +14,7 @@
 
 #include "unicode/utypes.h"
 
-#if U_PLATFORM_HAS_WIN32_API
+#ifdef U_WINDOWS
 
 #if !UCONFIG_NO_FORMATTING
 
@@ -135,6 +135,6 @@ U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
-#endif // U_PLATFORM_HAS_WIN32_API
+#endif // #ifdef U_WINDOWS
 
 #endif // __WINDTFMT

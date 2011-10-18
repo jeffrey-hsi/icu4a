@@ -1,6 +1,6 @@
 /**
  *******************************************************************************
- * Copyright (C) 2006-2011, International Business Machines Corporation        *
+ * Copyright (C) 2006-2008, International Business Machines Corporation        *
  * and others. All Rights Reserved.                                            *
  *******************************************************************************
  */
@@ -249,9 +249,10 @@ public:
         fBranchStack.push(kLessThan, status);
         unistr.remove();
     }
-
-    virtual ~MutableTrieEnumeration();
-
+    
+    virtual ~MutableTrieEnumeration() {
+    }
+    
     virtual StringEnumeration *clone() const {
         UErrorCode status = U_ZERO_ERROR;
         return new MutableTrieEnumeration(fRoot, status);
@@ -338,8 +339,6 @@ public:
         unistr.remove();
     }
 };
-
-MutableTrieEnumeration::~MutableTrieEnumeration() {}
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(MutableTrieEnumeration)
 
@@ -559,9 +558,10 @@ public:
         fIndexStack.push(0, status);
         unistr.remove();
     }
-
-    virtual ~CompactTrieEnumeration();
-
+    
+    virtual ~CompactTrieEnumeration() {
+    }
+    
     virtual StringEnumeration *clone() const {
         UErrorCode status = U_ZERO_ERROR;
         return new CompactTrieEnumeration(fHeader, status);
@@ -587,8 +587,6 @@ public:
         unistr.remove();
     }
 };
-
-CompactTrieEnumeration::~CompactTrieEnumeration() {}
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CompactTrieEnumeration)
 
@@ -691,9 +689,10 @@ class BuildCompactTrieNode: public UMemory {
         fNodeID = nodes.size();
         nodes.push(this, status);
     }
-
-    virtual ~BuildCompactTrieNode();
-
+    
+    virtual ~BuildCompactTrieNode() {
+    }
+    
     virtual uint32_t size() {
         return sizeof(uint16_t);
     }
@@ -706,8 +705,6 @@ class BuildCompactTrieNode: public UMemory {
     }
 };
 
-BuildCompactTrieNode::~BuildCompactTrieNode() {}
-
 class BuildCompactTrieHorizontalNode: public BuildCompactTrieNode {
  public:
     UStack          fLinks;
@@ -716,9 +713,10 @@ class BuildCompactTrieHorizontalNode: public BuildCompactTrieNode {
     BuildCompactTrieHorizontalNode(UBool parentEndsWord, UStack &nodes, UErrorCode &status)
         : BuildCompactTrieNode(parentEndsWord, FALSE, nodes, status), fLinks(status) {
     }
-
-    virtual ~BuildCompactTrieHorizontalNode();
-
+    
+    virtual ~BuildCompactTrieHorizontalNode() {
+    }
+    
     virtual uint32_t size() {
         return offsetof(CompactTrieHorizontalNode,entries) +
                 (fChars.length()*sizeof(CompactTrieHorizontalEntry));
@@ -747,8 +745,6 @@ class BuildCompactTrieHorizontalNode: public BuildCompactTrieNode {
     }
 };
 
-BuildCompactTrieHorizontalNode::~BuildCompactTrieHorizontalNode() {}
-
 class BuildCompactTrieVerticalNode: public BuildCompactTrieNode {
  public:
     BuildCompactTrieNode    *fEqual;
@@ -758,9 +754,10 @@ class BuildCompactTrieVerticalNode: public BuildCompactTrieNode {
         : BuildCompactTrieNode(parentEndsWord, TRUE, nodes, status) {
         fEqual = NULL;
     }
-
-    virtual ~BuildCompactTrieVerticalNode();
-
+    
+    virtual ~BuildCompactTrieVerticalNode() {
+    }
+    
     virtual uint32_t size() {
         return offsetof(CompactTrieVerticalNode,chars) + (fChars.length()*sizeof(uint16_t));
     }
@@ -788,8 +785,6 @@ class BuildCompactTrieVerticalNode: public BuildCompactTrieNode {
         fEqual = node;
     }
 };
-
-BuildCompactTrieVerticalNode::~BuildCompactTrieVerticalNode() {}
 
 // Forward declaration
 static void walkHorizontal(const TernaryNode *node,

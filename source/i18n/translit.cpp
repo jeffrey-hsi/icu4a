@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 1999-2011, International Business Machines
+ *   Copyright (C) 1999-2010, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
  *   Date        Name        Description
@@ -24,7 +24,6 @@
 #include "unicode/uniset.h"
 #include "unicode/uscript.h"
 #include "unicode/strenum.h"
-#include "unicode/utf16.h"
 #include "cpdtrans.h"
 #include "nultrans.h"
 #include "rbt_data.h"
@@ -94,11 +93,14 @@ static UMTX registryMutex = 0;
 /**
  * System transliterator registry; non-null when initialized.
  */
-static icu::TransliteratorRegistry* registry = 0;
+static U_NAMESPACE_QUALIFIER TransliteratorRegistry* registry = 0;
 
 // Macro to check/initialize the registry. ONLY USE WITHIN
 // MUTEX. Avoids function call when registry is initialized.
 #define HAVE_REGISTRY(status) (registry!=0 || initializeRegistry(status))
+
+// Empty string
+static const UChar EMPTY[] = {0}; //""
 
 U_NAMESPACE_BEGIN
 
@@ -369,7 +371,7 @@ void Transliterator::_transliterate(Replaceable& text,
     }
 
     if (index.limit > 0 &&
-        U16_IS_LEAD(text.charAt(index.limit - 1))) {
+        UTF_IS_LEAD(text.charAt(index.limit - 1))) {
         // Oops, there is a dangling lead surrogate in the buffer.
         // This will break most transliterators, since they will
         // assume it is part of a pair.  Don't transliterate until
@@ -408,7 +410,7 @@ void Transliterator::_transliterate(Replaceable& text,
     int32_t n = getMaximumContextLength();
     while (newCS > originalStart && n-- > 0) {
         --newCS;
-        newCS -= U16_LENGTH(text.char32At(newCS)) - 1;
+        newCS -= UTF_CHAR_LENGTH(text.char32At(newCS)) - 1;
     }
     index.contextStart = uprv_max(newCS, originalStart);
 #endif
@@ -479,14 +481,14 @@ void Transliterator::filteredTransliterate(Replaceable& text,
             UChar32 c;
             while (index.start < globalLimit &&
                    !filter->contains(c=text.char32At(index.start))) {
-                index.start += U16_LENGTH(c);
+                index.start += UTF_CHAR_LENGTH(c);
             }
 
             // Find the end of this run of unfiltered chars
             index.limit = index.start;
             while (index.limit < globalLimit &&
                    filter->contains(c=text.char32At(index.limit))) {
-                index.limit += U16_LENGTH(c);
+                index.limit += UTF_CHAR_LENGTH(c);
             }
         }
 
@@ -569,7 +571,8 @@ void Transliterator::filteredTransliterate(Replaceable& text,
             // transliterations and commit complete transliterations.
             for (;;) {
                 // Length of additional code point, either one or two
-                int32_t charLength = U16_LENGTH(text.char32At(passLimit));
+                int32_t charLength =
+                    UTF_CHAR_LENGTH(text.char32At(passLimit));
                 passLimit += charLength;
                 if (passLimit > runLimit) {
                     break;
@@ -595,7 +598,7 @@ void Transliterator::filteredTransliterate(Replaceable& text,
                     int32_t rs = rollbackStart + delta - (index.limit - passStart);
 
                     // Delete the partially transliterated text
-                    text.handleReplaceBetween(passStart, index.limit, UnicodeString());
+                    text.handleReplaceBetween(passStart, index.limit, EMPTY);
 
                     // Copy the rollback text back
                     text.copy(rs, rs + uncommittedLength, passStart);
@@ -633,7 +636,7 @@ void Transliterator::filteredTransliterate(Replaceable& text,
             globalLimit += totalDelta;
 
             // Delete the rollback copy
-            text.handleReplaceBetween(rollbackOrigin, rollbackOrigin + runLength, UnicodeString());
+            text.handleReplaceBetween(rollbackOrigin, rollbackOrigin + runLength, EMPTY);
 
             // Move start past committed text
             index.start = passStart;
@@ -1107,8 +1110,7 @@ Transliterator::createFromRules(const UnicodeString& ID,
             }
             if (!parser.dataVector.isEmpty()) {
                 TransliterationRuleData* data = (TransliterationRuleData*)parser.dataVector.orphanElementAt(0);
-                // TODO: Should passNumber be turned into a decimal-string representation (1 -> "1")?
-                RuleBasedTransliterator* temprbt = new RuleBasedTransliterator(UnicodeString(CompoundTransliterator::PASS_STRING) + UnicodeString(passNumber++),
+                RuleBasedTransliterator* temprbt = new RuleBasedTransliterator(UnicodeString(CompoundTransliterator::PASS_STRING) + (passNumber++),
                         data, TRUE);
                 // Check if NULL before adding it to transliterators to avoid future usage of NULL pointer.
                 if (temprbt == NULL) {
@@ -1144,7 +1146,7 @@ UnicodeString& Transliterator::toRules(UnicodeString& rulesSource,
             if (!ICU_Utility::escapeUnprintable(rulesSource, c)) {
                 rulesSource.append(c);
             }
-            i += U16_LENGTH(c);
+            i += UTF_CHAR_LENGTH(c);
         }
     } else {
         rulesSource = getID();

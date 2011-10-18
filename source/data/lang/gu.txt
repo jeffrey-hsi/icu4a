@@ -661,10 +661,6 @@ gu{
         Zyyy{"સામાન્ય"}
         Zzzz{"અજ્ઞાત અથવા અમાન્ય લિપિ"}
     }
-    Scripts%stand-alone{
-        Hans{"સરળીકૃત હેન"}
-        Hant{"પરંપરાગત હાન"}
-    }
     Types{
         calendar{
             buddhist{"બુદ્ધિસ્ટ કેલેન્ડર"}
@@ -737,7 +733,7 @@ gu{
         PINYIN{"પિનયિન રોમનાઇઝેશન"}
         WADEGILE{"વેડ-ગિલ્સ રોમનાઇઝેશન"}
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.63"}
     localeDisplayPattern{
         separator{","}
     }

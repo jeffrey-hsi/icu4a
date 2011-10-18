@@ -66,8 +66,9 @@ struct UResourceBundleAIterator {
 
 /* Must be C linkage to pass function pointer to the sort function */
 
-U_CDECL_BEGIN
-
+#if !defined (OS390) && !defined (OS400)
+extern "C"
+#endif
 static int32_t U_CALLCONV
 ures_a_codepointSort(const void *context, const void *left, const void *right) {
     //CompareContext *cmp=(CompareContext *)context;
@@ -75,7 +76,6 @@ ures_a_codepointSort(const void *context, const void *left, const void *right) {
                     ((const UResAEntry *)right)->key);
 }
 
-U_CDECL_END
 
 static void ures_a_open(UResourceBundleAIterator *aiter, UResourceBundle *bund, UErrorCode *status) {
     if(U_FAILURE(*status)) {
@@ -1539,8 +1539,6 @@ PatternMap::getDuplicateElem(
 DateTimeMatcher::DateTimeMatcher(void) {
 }
 
-DateTimeMatcher::~DateTimeMatcher() {}
-
 DateTimeMatcher::DateTimeMatcher(const DateTimeMatcher& other) {
     copyFrom(other.skeleton);
 }
@@ -1833,8 +1831,6 @@ FormatParser::isPatternSeparator(UnicodeString& field) {
     }
     return TRUE;
 }
-
-DistanceInfo::~DistanceInfo() {}
 
 void
 DistanceInfo::setTo(DistanceInfo &other) {

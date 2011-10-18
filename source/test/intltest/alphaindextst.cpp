@@ -15,8 +15,6 @@
 #include "unicode/tblcoll.h"
 #include "unicode/uniset.h"
 
-#if !UCONFIG_NO_COLLATION && !UCONFIG_NO_NORMALIZATION
-
 // #include <string>
 // #include <iostream>
 
@@ -58,6 +56,7 @@ void AlphabeticIndexTest::runIndexedTest( int32_t index, UBool exec, const char*
 //             Does not attempt to check complete functionality.
 //
 void AlphabeticIndexTest::APITest() {
+
     //
     //  Simple constructor and destructor,  getBucketCount()
     //
@@ -416,4 +415,3 @@ void AlphabeticIndexTest::HackPinyinTest() {
     TEST_ASSERT(bucketCount > 25);
     TEST_ASSERT(filledBucketCount > 15);
 }
-#endif

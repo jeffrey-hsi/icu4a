@@ -26,14 +26,13 @@ ti{
         "Ethi",
     }
     NumberElements{
-        default{"latn"}
         latn{
             patterns{
                 currencyFormat{"¤#,##0.00"}
             }
         }
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.57.98"}
     calendar{
         gregorian{
             AmPmMarkers{

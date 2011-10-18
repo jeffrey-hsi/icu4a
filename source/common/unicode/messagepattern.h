@@ -23,7 +23,6 @@
 #include "unicode/utypes.h"
 
 #if !UCONFIG_NO_FORMATTING
-/* #ifndef U_HIDE_DRAFT_API -- cannot be hidden, as this API is used by other API public classes. */
 
 #include "unicode/parseerr.h"
 #include "unicode/unistr.h"
@@ -143,10 +142,6 @@ enum UMessagePatternPartType {
      * Start of an argument.
      * The length is 1 for the '{'.
      * The value is the ordinal value of the ArgType. Use getArgType().
-     * <p>
-     * This part is followed by either an ARG_NUMBER or ARG_NAME,
-     * followed by optional argument sub-parts (see UMessagePatternArgType constants)
-     * and finally an ARG_LIMIT part.
      * @draft ICU 4.8
      */
     UMSGPAT_PART_TYPE_ARG_START,
@@ -154,6 +149,10 @@ enum UMessagePatternPartType {
      * End of an argument.
      * The length is 1 for the '}'.
      * The value is the ordinal value of the ArgType. Use getArgType().
+     * <p>
+     * This part is followed by either an ARG_NUMBER or ARG_NAME,
+     * followed by optional argument sub-parts (see UMessagePatternArgType constants)
+     * and finally an ARG_LIMIT part.
      * @draft ICU 4.8
      */
     UMSGPAT_PART_TYPE_ARG_LIMIT,
@@ -724,7 +723,7 @@ public:
         /**
          * Returns the length of the pattern substring associated with this Part.
          * This is 0 for some parts.
-         * @return this part's pattern substring length.
+         * @return this part's pattern string index.
          * @draft ICU 4.8
          */
         int32_t getLength() const {

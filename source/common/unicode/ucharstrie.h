@@ -26,8 +26,6 @@
 #include "unicode/uobject.h"
 #include "unicode/ustringtrie.h"
 
-#ifndef U_HIDE_DRAFT_API
-
 U_NAMESPACE_BEGIN
 
 class Appendable;
@@ -174,7 +172,13 @@ public:
      * @return The match/value Result.
      * @draft ICU 4.8
      */
-    UStringTrieResult firstForCodePoint(UChar32 cp);
+    inline UStringTrieResult firstForCodePoint(UChar32 cp) {
+        return cp<=0xffff ?
+            first(cp) :
+            (USTRINGTRIE_HAS_NEXT(first(U16_LEAD(cp))) ?
+                next(U16_TRAIL(cp)) :
+                USTRINGTRIE_NO_MATCH);
+    }
 
     /**
      * Traverses the trie from the current state for this input UChar.
@@ -191,7 +195,13 @@ public:
      * @return The match/value Result.
      * @draft ICU 4.8
      */
-    UStringTrieResult nextForCodePoint(UChar32 cp);
+    inline UStringTrieResult nextForCodePoint(UChar32 cp) {
+        return cp<=0xffff ?
+            next(cp) :
+            (USTRINGTRIE_HAS_NEXT(next(U16_LEAD(cp))) ?
+                next(U16_TRAIL(cp)) :
+                USTRINGTRIE_NO_MATCH);
+    }
 
     /**
      * Traverses the trie from the current state for this string.
@@ -575,5 +585,4 @@ private:
 
 U_NAMESPACE_END
 
-#endif  /* U_HIDE_DRAFT_API */
 #endif  // __UCHARSTRIE_H__

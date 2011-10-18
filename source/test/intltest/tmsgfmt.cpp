@@ -187,13 +187,18 @@ void TestMessageFormat::testBug2()
 }
 
 #if 0
-#if defined(_DEBUG) && U_IOSTREAM_SOURCE >= 199711
+#if defined(_DEBUG) && U_IOSTREAM_SOURCE!=0
 //----------------------------------------------------
 // console I/O
 //----------------------------------------------------
 
-#include <iostream>
-std::ostream& operator<<(std::ostream& stream,  const Formattable&   obj);
+#if U_IOSTREAM_SOURCE >= 199711
+#   include <iostream>
+    std::ostream& operator<<(std::ostream& stream,  const Formattable&   obj);
+#elif U_IOSTREAM_SOURCE >= 198506
+#   include <iostream.h>
+    ostream& operator<<(ostream& stream,  const Formattable&   obj);
+#endif
 
 #include "unicode/datefmt.h"
 #include <stdlib.h>
@@ -238,7 +243,7 @@ operator<<( IntlTest&           stream,
     }
     return stream;
 }
-#endif /* defined(_DEBUG) && U_IOSTREAM_SOURCE >= 199711 */
+#endif /* defined(_DEBUG) && U_IOSTREAM_SOURCE!=0 */
 #endif
 
 void TestMessageFormat::PatternTest() 

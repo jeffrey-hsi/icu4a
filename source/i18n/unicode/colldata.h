@@ -1,6 +1,6 @@
 /*
  ******************************************************************************
- *   Copyright (C) 1996-2011, International Business Machines                 *
+ *   Copyright (C) 1996-2010, International Business Machines                 *
  *   Corporation and others.  All Rights Reserved.                            *
  ******************************************************************************
  */
@@ -23,7 +23,6 @@
 
 U_NAMESPACE_BEGIN
 
-#ifndef U_HIDE_INTERNAL_API
 /**
  * The size of the internal buffer for the Collator's short description string.
  * @internal ICU 4.0.1 technology preview
@@ -251,7 +250,6 @@ private:
     static int32_t _histogram[101];
 #endif
 };
-#endif  /* U_HIDE_INTERNAL_API */
 
 /*
  * Forward references to internal classes.
@@ -260,7 +258,6 @@ class StringToCEsMap;
 class CEToStringsMap;
 class CollDataCache;
 
-#ifndef U_HIDE_INTERNAL_API
 /**
  * CollData
  *
@@ -448,7 +445,6 @@ private:
 
     uint32_t jamoLimits[4];
 };
-#endif  /* U_HIDE_INTERNAL_API */
 
 U_NAMESPACE_END
 

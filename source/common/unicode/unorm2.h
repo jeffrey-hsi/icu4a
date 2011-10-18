@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2009-2011, International Business Machines
+*   Copyright (C) 2009-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -259,7 +259,6 @@ unorm2_append(const UNormalizer2 *norm2,
               const UChar *second, int32_t secondLength,
               UErrorCode *pErrorCode);
 
-#ifndef U_HIDE_DRAFT_API
 /**
  * Gets the decomposition mapping of c. Equivalent to unorm2_normalize(string(c))
  * on a UNORM2_DECOMPOSE UNormalizer2 instance, but much faster.
@@ -280,19 +279,6 @@ U_DRAFT int32_t U_EXPORT2
 unorm2_getDecomposition(const UNormalizer2 *norm2,
                         UChar32 c, UChar *decomposition, int32_t capacity,
                         UErrorCode *pErrorCode);
-
-/**
- * Gets the combining class of c.
- * The default implementation returns 0
- * but all standard implementations return the Unicode Canonical_Combining_Class value.
- * @param norm2 UNormalizer2 instance
- * @param c code point
- * @return c's combining class
- * @draft ICU 49
- */
-U_DRAFT uint8_t U_EXPORT2
-unorm2_getCombiningClass(const UNormalizer2 *norm2, UChar32 c);
-#endif  /* U_HIDE_DRAFT_API */
 
 /**
  * Tests if the string is normalized.

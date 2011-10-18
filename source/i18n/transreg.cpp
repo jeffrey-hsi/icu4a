@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (c) 2001-2011, International Business Machines
+*   Copyright (c) 2001-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *   Date        Name        Description
@@ -44,10 +44,8 @@ static const UChar LOCALE_SEP  = 95; // '_'
 //static const UChar VARIANT_SEP = 0x002F; // '/'
 
 // String constants
+static const UChar NO_VARIANT[] = { 0 }; // empty string
 static const UChar ANY[] = { 65, 110, 121, 0 }; // Any
-
-// empty string
-#define NO_VARIANT UnicodeString()
 
 /**
  * Resource bundle key for the RuleBasedTransliterator rule.
@@ -519,7 +517,7 @@ TransliteratorRegistry::TransliteratorRegistry(UErrorCode& status) :
     availableIDs(status)
 {
     registry.setValueDeleter(deleteEntry);
-    availableIDs.setDeleter(uprv_deleteUObject);
+    availableIDs.setDeleter(uhash_deleteUnicodeString);
     availableIDs.setComparer(uhash_compareCaselessUnicodeString);
     specDAG.setValueDeleter(uhash_deleteHashtable);
 }
@@ -870,7 +868,7 @@ void TransliteratorRegistry::registerEntry(const UnicodeString& source,
     UnicodeString ID;
     UnicodeString s(source);
     if (s.length() == 0) {
-        s.setTo(TRUE, ANY, 3);
+        s = ANY;
     }
     TransliteratorIDParser::STVtoID(source, target, variant, ID);
     registerEntry(ID, s, target, variant, adopted, visible);
@@ -938,12 +936,12 @@ void TransliteratorRegistry::registerSTV(const UnicodeString& source,
         if (U_FAILURE(status) || targets == 0) {
             return;
         }
-        targets->setValueDeleter(uprv_deleteUObject);
+        targets->setValueDeleter(uhash_deleteUObject);
         specDAG.put(source, targets, status);
     }
     UVector *variants = (UVector*) targets->get(target);
     if (variants == 0) {
-        variants = new UVector(uprv_deleteUObject,
+        variants = new UVector(uhash_deleteUnicodeString,
                                uhash_compareCaselessUnicodeString, status);
         if (variants == 0) {
             return;
@@ -961,7 +959,7 @@ void TransliteratorRegistry::registerSTV(const UnicodeString& source,
         		variants->addElement(tempus, status);
         	}
         } else {
-        	tempus = new UnicodeString();  // = NO_VARIANT
+        	tempus = new UnicodeString(NO_VARIANT) ;
         	if (tempus != NULL) {
         		variants->insertElementAt(tempus, 0, status);
         	}
@@ -1075,9 +1073,9 @@ TransliteratorEntry* TransliteratorRegistry::findInBundle(const TransliteratorSp
         // but must be consistent and documented.
         if (pass == 0) {
             utag.append(direction == UTRANS_FORWARD ?
-                        TRANSLITERATE_TO : TRANSLITERATE_FROM, -1);
+                        TRANSLITERATE_TO : TRANSLITERATE_FROM);
         } else {
-            utag.append(TRANSLITERATE, -1);
+            utag.append(TRANSLITERATE);
         }
         UnicodeString s(specToFind.get());
         utag.append(s.toUpper(""));
@@ -1284,8 +1282,7 @@ Transliterator* TransliteratorRegistry::instantiateEntry(const UnicodeString& ID
             }
             int32_t passNumber = 1;
             for (int32_t i = 0; U_SUCCESS(status) && i < entry->u.dataVector->size(); i++) {
-                // TODO: Should passNumber be turned into a decimal-string representation (1 -> "1")?
-                Transliterator* t = new RuleBasedTransliterator(UnicodeString(CompoundTransliterator::PASS_STRING) + UnicodeString(passNumber++),
+                Transliterator* t = new RuleBasedTransliterator(UnicodeString(CompoundTransliterator::PASS_STRING) + (passNumber++),
                     (TransliterationRuleData*)(entry->u.dataVector->elementAt(i)), FALSE);
                 if (t == 0)
                     status = U_MEMORY_ALLOCATION_ERROR;

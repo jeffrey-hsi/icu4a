@@ -226,10 +226,6 @@ fil{
         Zyyy{"Common"}
         Zzzz{"Hindi Kilalang Script"}
     }
-    Scripts%stand-alone{
-        Hans{"Simplified Han"}
-        Hant{"Tradisyunal Han"}
-    }
     Types{
         calendar{
             buddhist{"Kalendaryo ng Buddhist"}

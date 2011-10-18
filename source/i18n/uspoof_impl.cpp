@@ -10,7 +10,6 @@
 #include "unicode/unorm.h"
 #include "unicode/uchar.h"
 #include "unicode/uniset.h"
-#include "unicode/utf16.h"
 #include "utrie2.h"
 #include "cmemory.h"
 #include "cstring.h"

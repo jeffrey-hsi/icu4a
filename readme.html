@@ -3,7 +3,7 @@
 
 <html lang="en-US" xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US">
   <head>
-    <title>ReadMe for ICU 49</title>
+    <title>ReadMe for ICU 4.8.1.1</title>
     <meta name="COPYRIGHT" content=
     "Copyright (c) 1997-2011 IBM Corporation and others. All Rights Reserved." />
     <meta name="KEYWORDS" content=
@@ -16,15 +16,9 @@
 
   <body class="draft">
     <h1>International Components for Unicode<br />
-     <abbr title="International Components for Unicode">ICU</abbr> 49 (DRAFT - M1) ReadMe</h1>
+     <abbr title="International Components for Unicode">ICU</abbr> 4.8.1.1 ReadMe</h1>
 
-  	<p><b>Note:</b> This is a development milestone release of ICU4J 49.
-			The contents of this document may not reflect the recent changes done
-			for ICU 49 development. This milestone is inteneded for those wishing
-			to get an early look at ICU 4.8 new features and API changes. It is not
-			recommended for production use.
-		</p>
-    <p>Last updated: 2011-Oct-4<br />
+    <p>Last updated: 2011-Sep-20<br />
      Copyright &copy; 1997-2011 International Business Machines Corporation and
     others. All Rights Reserved.</p>
     <!-- Remember that there is a copyright at the end too -->
@@ -48,8 +42,6 @@
 
         <ul >
           <li><a href="#RecBuild">Recommended Build Options</a></li>
-
-          <li><a href="#UserConfig">User-Configurable Settings</a></li>
 
           <li><a href="#HowToBuildWindows">Windows</a></li>
 
@@ -213,7 +205,9 @@
     <h2><a name="News" href="#News" id="News">What is new in this
     release?</a></h2>
 
-    <p>To see which APIs are new or changed in this release, view the <a href="APIChangeReport.html">ICU4C API Change Report</a>. </p>
+	<p>This is a maintenance release of ICU 4.8. No new APIs were added.</p>
+
+    <p>To see which APIs are new or changed in the 4.8 release, view the <a href="APIChangeReport.html">ICU4C API Change Report</a>. </p>
 
     <p>The following list concentrates on <em>changes that affect existing
     applications migrating from previous ICU releases</em>.
@@ -221,32 +215,17 @@
     this release, see the <a href="http://site.icu-project.org/download">ICU
     download page</a>.</p>
 
-    <h3>C++ namespace support required</h3>
-    <p>ICU4C 49 requires C++ namespace support.
-    As a result, for example, rather than <code>U_NAMESPACE_QUALIFIER UnicodeString</code>
-    you can now simply write <code>icu::UnicodeString</code>.</p>
+    <h3>MessageFormat Changes</h3>
+    <p>MessageFormat and related classes (choice/plural/select) have been reimplemented,
+    with several improvements and some incompatible changes.
+    See the <a href="http://site.icu-project.org/download/48">ICU 4.8 download</a> page for details.</p>
 
-    <h3>One shared platform.h</h3>
-    <p>ICU4C 49 does not generate any source code files via autoconf any more.
-    Instead, platform.h itself is now a normal source header file,
-    and determines platform-specific settings via <code>#if ...</code> etc.</p>
-
-    <p>As a result, it is easier to cross-compile ICU4C and/or use different build systems.
-    No more headers are <code>#include</code>d from the build-output directory,
-    and all platforms use the same set of source code files.</p>
-
-    <p>However, it is likely that ICU4C 49 will not compile on some platforms
-    (non-POSIX and/or older/unusual compilers etc.) that the ICU team did not test.
-    As a temporary workaround, any platform-dependent macro for which <code>platform.h</code>
-    does not determine the correct value can be predefined via <code>CPPFLAGS</code>
-    or by adding an explicit <code>#define ...</code> into <code>platform.h</code>
-    before it first tests that macro.</p>
-
-    <p>Please submit a bug ticket per platform with details about your compiler,
-    its version and its predefined macros.
-    (For example, preprocessing an empty source file with gcc's <code>-dM</code> option
-    outputs all of gcc's predefined macros: <code>gcc -E -dM -x c /dev/null | sort</code>)
-    A patch to fix the problem would be welcome too!</p>
+    <h3>Unknown system time zone - Etc/Unknown</h3>
+    <p>The behavior of the time zone factory method TimeZone::createTimeZone(const UnicodeString&amp;) has changed in this release.
+    When an unknown time zone ID is specified in the method, previous versions return a TimeZone instance
+    with ID "GMT" (offset 0 and no daylight saving time). In ICU 4.8, the method uses "Etc/Unknown" as the
+    time zone ID (but still offset 0 and no daylight saving time) for the case. Existing software checking
+    the returned time zone ID to validate the input ID may need to be updated to support the new behavior.</p>
 
     <h2><a name="Download" href="#Download" id="Download">How To Download the
     Source Code</a></h2>
@@ -565,9 +544,7 @@
         and statically linked ICU libraries become smaller.
         (See the <a href="http://icu-project.org/apiref/icu4c/utypes_8h.html#0a33e1edf3cd23d9e9c972b63c9f7943">U_CHARSET_IS_UTF8</a>
         API documentation for more details.)<br>
-        You can <code>-DU_CHARSET_IS_UTF8=1</code> or
-        modify unicode/utypes.h (in ICU 4.8 and below)
-        or modify unicode/platform.h (in ICU 49 and higher):
+        You can <code>-DU_CHARSET_IS_UTF8=1</code> or modify unicode/utypes.h:
 <pre>Index: source/common/unicode/utypes.h
 ===================================================================
 --- source/common/unicode/utypes.h      (revision 26606)
@@ -582,33 +559,6 @@
 
  /*===========================================================================*/
 </pre></li>
-      <li><b>UnicodeString constructors:</b> The UnicodeString class has
-        several single-argument constructors that are not marked "explicit"
-        for historical reasons.
-        This can lead to inadvertent construction of a <code>UnicodeString</code>
-        with a single character by using an integer,
-        and it can lead to inadvertent dependency on the conversion framework
-        by using a C string literal.<br>
-        Beginning with ICU 49, you should do the following:
-        <ul>
-          <li>Consider marking the from-<code>UChar</code>
-            and from-<code>UChar32</code> constructors explicit via
-            <code>-DUNISTR_FROM_CHAR_EXPLICIT=explicit</code> or similar.</li>
-          <li>Consider marking the from-<code>const char*</code> and
-            from-<code>const UChar*</code></li> constructors explicit via
-            <code>-DUNISTR_FROM_STRING_EXPLICIT=explicit</code> or similar.</li>
-        Note: The ICU test suites cannot be compiled with these settings.
-      </li>
-      <li><b>utf.h, utf8.h, utf16.h, utf_old.h:</b>
-        By default, utypes.h (and thus almost every public ICU header)
-        includes all of these header files.
-        Often, none of them are needed, or only one or two of them.
-        All of utf_old.h is deprecated or obsolete.<br>
-        Beginning with ICU 49,
-        you should define <code>U_NO_DEFAULT_INCLUDE_UTF_HEADERS</code> to 1
-        (via -D or uconfig.h, as above)
-        and include those header files explicitly that you actually need.<br>
-        Note: The ICU test suites cannot be compiled with this setting.</li>
       <li><b>.dat file:</b> By default, the ICU data is built into
         a shared library (DLL). This is convenient because it requires no
         install-time or runtime configuration,
@@ -693,22 +643,6 @@
         The public header files from this configuration must be installed
         for applications to include and get the correct entry point names.</li>
     </ul>
-
-    <h3><a name="UserConfig" href="#UserConfig" id="UserConfig">User-Configurable Settings</a></h3>
-    <p>ICU4C can be customized via a number of user-configurable settings.
-    Many of them are controlled by preprocessor macros which are
-    defined in the <code>source/common/unicode/uconfig.h</code> header file.
-    Some turn off parts of ICU, for example conversion or collation,
-    trading off a smaller library for reduced functionality.
-    Other settings are recommended (see previous section)
-    but their default values are set for better source code compatibility.</p>
-
-    <p>In order to change such user-configurable settings, you can
-    either modify the <code>uconfig.h</code> header file by adding
-    a specific <code>#define ...</code> for one or more of the macros
-    before they are first tested,
-    or set the compiler's preprocessor flags (<code>CPPFLAGS</code>) to include
-    an equivalent <code>-D</code> macro definition.</p>
 
     <h3><a name="HowToBuildWindows" href="#HowToBuildWindows" id=
     "HowToBuildWindows">How To Build And Install On Windows</a></h3>
@@ -1203,10 +1137,11 @@ Data set name type  : PDS</samp>
 
       <li>ILE C/C++ Compiler installed on the system</li>
 
-      <li>The latest IBM tools for Developers for IBM i &mdash;
-        <a href='http://www.ibm.com/servers/enable/site/porting/tools/'>http://www.ibm.com/servers/enable/site/porting/tools/</a>
-        <!-- formerly: http://www.ibm.com/servers/enable/site/porting/iseries/overview/gnu_utilities.html -->
-      </li>
+      <li>The latest GNU facilities (You can get the GNU facilities 
+      from <a href=
+      "http://www.ibm.com/servers/enable/site/porting/iseries/overview/gnu_utilities.html">
+      http://www.ibm.com/servers/enable/site/porting/iseries/overview/gnu_utilities.html</a>).
+      Older versions may not work properly.</li>
     </ul>
 
     <p>The following describes how to setup and build ICU. For background

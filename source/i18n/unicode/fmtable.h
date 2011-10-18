@@ -584,7 +584,6 @@ public:
      */
     static UClassID U_EXPORT2 getStaticClassID();
 
-#ifndef U_HIDE_DEPRECATED_API
     /**
      * Deprecated variant of getLong(UErrorCode&).
      * @param status the error code
@@ -592,9 +591,7 @@ public:
      * @deprecated ICU 3.0 use getLong(UErrorCode&) instead
      */ 
     inline int32_t getLong(UErrorCode* status) const;
-#endif  /* U_HIDE_DEPRECATED_API */
 
-#ifndef U_HIDE_INTERNAL_API
     /**
      * Internal function, do not use.
      * TODO:  figure out how to make this be non-public.
@@ -612,7 +609,6 @@ public:
      *  @internal
      */
     void adoptDigitList(DigitList *dl);
-#endif  /* U_HIDE_INTERNAL_API */
 
 private:
     /**
@@ -665,12 +661,9 @@ inline UnicodeString& Formattable::getString(void) {
     return *fValue.fString;
 }
 
-#ifndef U_HIDE_DEPRECATED_API
 inline int32_t Formattable::getLong(UErrorCode* status) const {
     return getLong(*status);
 }
-#endif
-
 
 U_NAMESPACE_END
 

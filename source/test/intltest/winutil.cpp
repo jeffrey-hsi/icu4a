@@ -1,6 +1,6 @@
 /*
 ********************************************************************************
-*   Copyright (C) 2005-2011, International Business Machines
+*   Copyright (C) 2005-2009, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 ********************************************************************************
 *
@@ -11,7 +11,7 @@
 
 #include "unicode/utypes.h"
 
-#if U_PLATFORM_HAS_WIN32_API
+#ifdef U_WINDOWS
 
 #if !UCONFIG_NO_FORMATTING
 
@@ -88,4 +88,4 @@ void Win32Utilities::freeLocales(LCIDRecord *records)
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
-#endif /* U_PLATFORM_HAS_WIN32_API */
+#endif /* #ifdef U_WINDOWS */

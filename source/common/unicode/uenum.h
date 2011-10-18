@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
 *
-*   Copyright (C) 2002-2011, International Business Machines
+*   Copyright (C) 2002-2010, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 *******************************************************************************
@@ -157,7 +157,6 @@ uenum_reset(UEnumeration* en, UErrorCode* status);
 
 #if U_SHOW_CPLUSPLUS_API
 
-#ifndef U_HIDE_DRAFT_API
 /**
  * Given a StringEnumeration, wrap it in a UEnumeration.  The
  * StringEnumeration is adopted; after this call, the caller must not
@@ -168,8 +167,7 @@ uenum_reset(UEnumeration* en, UErrorCode* status);
  * @draft ICU 4.2
  */
 U_CAPI UEnumeration* U_EXPORT2
-uenum_openFromStringEnumeration(icu::StringEnumeration* adopted, UErrorCode* ec);
-#endif  /* U_HIDE_DRAFT_API */
+uenum_openFromStringEnumeration(U_NAMESPACE_QUALIFIER StringEnumeration* adopted, UErrorCode* ec);
 
 #endif
 

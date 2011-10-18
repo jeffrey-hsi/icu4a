@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
-* Copyright (C) 2011, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 2011, International Business Machines Corporation and         *
+* others. All Rights Reserved.                                                *
 *******************************************************************************
 */
 
@@ -66,10 +66,10 @@ hashPartialLocationKey(const UHashTok key) {
     PartialLocationKey *p = (PartialLocationKey *)key.pointer;
     UnicodeString str(p->tzID);
     str.append((UChar)0x26)
-        .append(p->mzID, -1)
+        .append(p->mzID)
         .append((UChar)0x23)
         .append((UChar)(p->isLong ? 0x4C : 0x53));
-    return str.hashCode();
+    return uhash_hashUCharsN(str.getBuffer(), str.length());
 }
 
 /**
@@ -209,7 +209,7 @@ GNameSearchHandler::handleMatch(int32_t matchLength, const CharacterNode *node, 
             if ((nameinfo->type & fTypes) != 0) {
                 // matches a requested type
                 if (fResults == NULL) {
-                    fResults = new UVector(uprv_free, NULL, status);
+                    fResults = new UVector(uhash_freeBlock, NULL, status);
                     if (fResults == NULL) {
                         status = U_MEMORY_ALLOCATION_ERROR;
                     }
@@ -303,17 +303,17 @@ TimeZoneGenericNames::initialize(const Locale& locale, UErrorCode& status) {
     if (U_SUCCESS(tmpsts)) {
         const UChar *regionPattern = ures_getStringByKeyWithFallback(zoneStrings, gRegionFormatTag, NULL, &tmpsts);
         if (U_SUCCESS(tmpsts) && u_strlen(regionPattern) > 0) {
-            rpat.setTo(regionPattern, -1);
+            rpat.setTo(regionPattern);
         }
         tmpsts = U_ZERO_ERROR;
         const UChar *fallbackRegionPattern = ures_getStringByKeyWithFallback(zoneStrings, gFallbackRegionFormatTag, NULL, &tmpsts);
         if (U_SUCCESS(tmpsts) && u_strlen(fallbackRegionPattern) > 0) {
-            frpat.setTo(fallbackRegionPattern, -1);
+            frpat.setTo(fallbackRegionPattern);
         }
         tmpsts = U_ZERO_ERROR;
         const UChar *fallbackPattern = ures_getStringByKeyWithFallback(zoneStrings, gFallbackFormatTag, NULL, &tmpsts);
         if (U_SUCCESS(tmpsts) && u_strlen(fallbackPattern) > 0) {
-            fpat.setTo(fallbackPattern, -1);
+            fpat.setTo(fallbackPattern);
         }
     }
     ures_close(zoneStrings);
@@ -350,7 +350,7 @@ TimeZoneGenericNames::initialize(const Locale& locale, UErrorCode& status) {
         cleanup();
         return;
     }
-    uhash_setKeyDeleter(fPartialLocationNamesMap, uprv_free);
+    uhash_setKeyDeleter(fPartialLocationNamesMap, uhash_freeBlock);
     // no value deleter
 
     // target region
@@ -637,7 +637,7 @@ TimeZoneGenericNames::formatGenericNonLocationName(const TimeZone& tz, UTimeZone
         }
         if (useStandard) {
             UTimeZoneNameType stdNameType = (nameType == UTZNM_LONG_GENERIC)
-                ? UTZNM_LONG_STANDARD : UTZNM_SHORT_STANDARD;
+                ? UTZNM_LONG_STANDARD : UTZNM_SHORT_STANDARD_COMMONLY_USED;
             UnicodeString stdName;
             fTimeZoneNames->getDisplayName(tzID, stdNameType, date, stdName);
             if (!stdName.isEmpty()) {
@@ -868,8 +868,7 @@ TimeZoneGenericNames::findBestMatch(const UnicodeString& text, int32_t start, ui
     int32_t bestMatchLen = 0;
     UTimeZoneTimeType bestMatchTimeType = UTZFMT_TIME_TYPE_UNKNOWN;
     UnicodeString bestMatchTzID;
-    UBool isLongStandard = FALSE;   // workaround - see the comments below
-    UBool isStandard = FALSE;       // TODO: Temporary hack (on hack) for short standard name/location name conflict (found in zh_Hant), should be removed after CLDR 21m1 integration
+    UBool isLongStandard = FALSE;  // workaround - see the comments below
 
     if (tznamesMatches != NULL) {
         UnicodeString mzID;
@@ -888,11 +887,12 @@ TimeZoneGenericNames::findBestMatch(const UnicodeString& text, int32_t start, ui
                 switch (nameType) {
                 case UTZNM_LONG_STANDARD:
                     isLongStandard = TRUE;
-                case UTZNM_SHORT_STANDARD:  // this one is never used for generic, but just in case
-                    isStandard = TRUE;      // TODO: Remove this later, see the comments above.
+                case UTZNM_SHORT_STANDARD_COMMONLY_USED:
+                case UTZNM_SHORT_STANDARD: // this one is never used for generic, but just in case
                     bestMatchTimeType = UTZFMT_TIME_TYPE_STANDARD;
                     break;
                 case UTZNM_LONG_DAYLIGHT:
+                case UTZNM_SHORT_DAYLIGHT_COMMONLY_USED:
                 case UTZNM_SHORT_DAYLIGHT: // this one is never used for generic, but just in case
                     bestMatchTimeType = UTZFMT_TIME_TYPE_DAYLIGHT;
                     break;
@@ -914,20 +914,7 @@ TimeZoneGenericNames::findBestMatch(const UnicodeString& text, int32_t start, ui
             // and the location name. When the match is a long standard name,
             // then we need to check if the name is same with the location name.
             // This is probably a data error or a design bug.
-/*
             if (!isLongStandard) {
-                tzID.setTo(bestMatchTzID);
-                timeType = bestMatchTimeType;
-                return bestMatchLen;
-            }
-*/
-            // TODO The deprecation of commonlyUsed flag introduced the name
-            // conflict not only for long standard names, but short standard names too.
-            // These short names (found in zh_Hant) should be gone once we clean
-            // up CLDR time zone display name data. Once the short name conflict
-            // problem (with location name) is resolved, we should change the condition
-            // below back to the original one above. -Yoshito (2011-09-14)
-            if (!isStandard) {
                 tzID.setTo(bestMatchTzID);
                 timeType = bestMatchTimeType;
                 return bestMatchLen;
@@ -1060,7 +1047,7 @@ TimeZoneGenericNames::findTimeZoneNames(const UnicodeString& text, int32_t start
         nameTypes |= (UTZNM_LONG_GENERIC | UTZNM_LONG_STANDARD);
     }
     if (types & UTZGNM_SHORT) {
-        nameTypes |= (UTZNM_SHORT_GENERIC | UTZNM_SHORT_STANDARD);
+        nameTypes |= (UTZNM_SHORT_GENERIC | UTZNM_SHORT_STANDARD_COMMONLY_USED);
     }
 
     if (types) {

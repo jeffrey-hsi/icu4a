@@ -23,7 +23,7 @@ ta{
         "Taml",
     }
     NumberElements{
-        default{"latn"}
+        default{"tamldec"}
         latn{
             patterns{
                 currencyFormat{"¤ #,##,##0.00"}
@@ -37,7 +37,7 @@ ta{
             }
         }
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.63"}
     calendar{
         gregorian{
             AmPmMarkers{

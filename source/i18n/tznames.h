@@ -27,7 +27,9 @@ typedef enum UTimeZoneNameType {
     UTZNM_LONG_DAYLIGHT     = 0x04,
     UTZNM_SHORT_GENERIC     = 0x08,
     UTZNM_SHORT_STANDARD    = 0x10,
-    UTZNM_SHORT_DAYLIGHT    = 0x20
+    UTZNM_SHORT_DAYLIGHT    = 0x20,
+    UTZNM_SHORT_STANDARD_COMMONLY_USED  = 0x40,
+    UTZNM_SHORT_DAYLIGHT_COMMONLY_USED  = 0x80
 } UTimeZoneNameType;
 
 U_CDECL_END
@@ -44,6 +46,10 @@ public:
     virtual UnicodeString& getTimeZoneID(int32_t index, UnicodeString& tzID) const = 0;
     virtual UnicodeString& getMetaZoneID(int32_t index, UnicodeString& mzID) const = 0;
 };
+
+inline
+TimeZoneNameMatchInfo::~TimeZoneNameMatchInfo() {
+}
 
 class U_I18N_API TimeZoneNames : public UMemory {
 public:
@@ -65,6 +71,10 @@ public:
 
     virtual TimeZoneNameMatchInfo* find(const UnicodeString& text, int32_t start, uint32_t types, UErrorCode& status) const = 0;
 };
+
+inline
+TimeZoneNames::~TimeZoneNames() {
+}
 
 U_NAMESPACE_END
 #endif

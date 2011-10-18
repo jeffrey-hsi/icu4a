@@ -74,9 +74,6 @@ keyTypeData:table(nofallback){
             secondary{"level2"}
             tertiary{"level3"}
         }
-        numbers{
-            traditional{"traditio"}
-        }
         timezone:alias{"/ICUDATA/timezoneTypes/typeMap/timezone"}
     }
 }

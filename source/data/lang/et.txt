@@ -626,10 +626,6 @@ et{
         Zyyy{"üldine"}
         Zzzz{"määramata"}
     }
-    Scripts%stand-alone{
-        Hans{"lihtsustatud han"}
-        Hant{"traditsiooniline han"}
-    }
     Types{
         calendar{
             buddhist{"budistlik kalender"}

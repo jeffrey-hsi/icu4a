@@ -21,7 +21,7 @@ pa{
         "Guru",
     }
     NumberElements{
-        default{"latn"}
+        default{"guru"}
         latn{
             patterns{
                 currencyFormat{"¤ #,##,##0.00"}
@@ -30,7 +30,7 @@ pa{
             }
         }
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.63"}
     calendar{
         gregorian{
             AmPmMarkers{

@@ -28,7 +28,7 @@
 #include "ccapitst.h"
 
 /* for not including "cstring.h" -begin*/    
-#if U_PLATFORM_USES_ONLY_WIN32_API
+#ifdef U_WINDOWS
 #   define ctest_stricmp(str1, str2) U_STANDARD_CPP_NAMESPACE _stricmp(str1, str2)
 #elif defined(POSIX) 
 #   define ctest_stricmp(str1, str2) U_STANDARD_CPP_NAMESPACE strcasecmp(str1, str2) 
@@ -583,7 +583,7 @@ static void TestConvert()
         if (!ucs_file_in) 
         {
             log_data_err("Couldn't open the Unicode file [%s]... Exiting...\n", ucs_file_name);
-            return;
+            break;
         }
 
         /*Creates a converter and testing ucnv_openCCSID(u_int code_page, platform, errstatus*/
@@ -3346,14 +3346,14 @@ TestToUCountPending(){
     }
     ucnv_setToUCallBack(cnv, UCNV_TO_U_CALLBACK_STOP, NULL, oldToUAction, NULL, &status);
     for(i=0; i<LENGTHOF(toUnicodeTests); ++i) {
-        UChar tgt[20];
+        UChar tgt[10];
         UChar* target = tgt;
         UChar* targetLimit = target + 20;
         const char* source = toUnicodeTests[i].input;
         const char* sourceLimit = source + toUnicodeTests[i].len; 
         int32_t len = 0;
         ucnv_reset(cnv);
-        ucnv_toUnicode(cnv, &target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
+        ucnv_toUnicode(cnv,&target, targetLimit, &source, sourceLimit, NULL, FALSE, &status);
         len = ucnv_toUCountPending(cnv,&status);
         if(U_FAILURE(status)){
             log_err("ucnv_toUnicode call did not succeed. Error: %s\n", u_errorName(status));
@@ -3482,7 +3482,7 @@ static void TestDefaultName(void) {
 
 /* Test that ucnv_compareNames() matches names according to spec. ----------- */
 
-static int
+static U_INLINE int
 sign(int n) {
     if(n==0) {
         return 0;

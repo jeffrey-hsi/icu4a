@@ -45,7 +45,6 @@
 #include "unicode/basictz.h"
 #include "unicode/simpletz.h"
 #include "unicode/rbtz.h"
-#include "unicode/utf16.h"
 #include "unicode/vtzone.h"
 #include "olsontz.h"
 #include "patternprops.h"
@@ -1729,7 +1728,7 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
                 if (patternCharIndex == UDAT_TIMEZONE_FIELD) {
                     if (count < 4) {
                         // "z", "zz", "zzz"
-                        tzFormat()->format(UTZFMT_STYLE_SPECIFIC_SHORT, tz, date, zoneString);
+                        tzFormat()->format(UTZFMT_STYLE_SPECIFIC_SHORT_COMMONLY_USED, tz, date, zoneString);
                     } else {
                         // "zzzz"
                         tzFormat()->format(UTZFMT_STYLE_SPECIFIC_LONG, tz, date, zoneString);
@@ -2563,7 +2562,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
         if (!u_isUWhiteSpace(c) /*||*/ && !PatternProps::isWhiteSpace(c)) {
             break;
         }
-        start += U16_LENGTH(c);
+        start += UTF_CHAR_LENGTH(c);
     }
     pos.setIndex(start);
 
@@ -3080,7 +3079,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
                 switch (patternCharIndex) {
                 case UDAT_TIMEZONE_FIELD:
                     if (count < 4) {
-                        tzFormat()->parse(UTZFMT_STYLE_SPECIFIC_SHORT, text, tmpPos, parsedID, &parsedTimeType);
+                        tzFormat()->parse(UTZFMT_STYLE_SPECIFIC_SHORT_COMMONLY_USED, text, tmpPos, parsedID, &parsedTimeType);
                     } else {
                         tzFormat()->parse(UTZFMT_STYLE_SPECIFIC_LONG, text, tmpPos, parsedID, &parsedTimeType);
                     }

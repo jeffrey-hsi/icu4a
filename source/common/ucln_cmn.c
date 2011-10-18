@@ -1,6 +1,6 @@
 /*
 ******************************************************************************
-* Copyright (C) 2001-2011, International Business Machines
+* Copyright (C) 2001-2010, International Business Machines
 *                Corporation and others. All Rights Reserved.
 ******************************************************************************
 *   file name:  ucln_cmn.c
@@ -15,6 +15,7 @@
 #include "unicode/utypes.h"
 #include "unicode/uclean.h"
 #include "utracimp.h"
+#include "ustr_imp.h"
 #include "ucln_cmn.h"
 #include "umutex.h"
 #include "ucln.h"
@@ -22,43 +23,24 @@
 #include "uassert.h"
 
 /**  Auto-client for UCLN_COMMON **/
-#define UCLN_TYPE_IS_COMMON
+#define UCLN_TYPE UCLN_COMMON
 #include "ucln_imp.h"
-
-U_CDECL_BEGIN
-
-UBool gICUInitialized = FALSE;
-UMTX  gICUInitMutex   = NULL;
-
-U_CDECL_END
 
 static cleanupFunc *gCommonCleanupFunctions[UCLN_COMMON_COUNT];
 static cleanupFunc *gLibCleanupFunctions[UCLN_COMMON];
 
-/************************************************
- The cleanup order is important in this function.
- Please be sure that you have read ucln.h
- ************************************************/
-U_CAPI void U_EXPORT2
-u_cleanup(void)
-{
-    UTRACE_ENTRY_OC(UTRACE_U_CLEANUP);
-    umtx_lock(NULL);     /* Force a memory barrier, so that we are sure to see   */
-    umtx_unlock(NULL);   /*   all state left around by any other threads.        */
 
-    ucln_lib_cleanup();
+/* Enables debugging information about when a library is cleaned up. */
+#ifndef UCLN_DEBUG_CLEANUP
+#define UCLN_DEBUG_CLEANUP 0
+#endif
 
-    umtx_destroy(&gICUInitMutex);
-    umtx_cleanup();
-    cmemory_cleanup();       /* undo any heap functions set by u_setMemoryFunctions(). */
-    gICUInitialized = FALSE;
-    UTRACE_EXIT();           /* Must be before utrace_cleanup(), which turns off tracing. */
-/*#if U_ENABLE_TRACING*/
-    utrace_cleanup();
-/*#endif*/
-}
 
-U_CAPI void U_EXPORT2 ucln_cleanupOne(ECleanupLibraryType libType) 
+#if defined(UCLN_DEBUG_CLEANUP)
+#include <stdio.h>
+#endif
+
+static void ucln_cleanup_internal(ECleanupLibraryType libType) 
 {
     if (gLibCleanupFunctions[libType])
     {
@@ -66,6 +48,22 @@ U_CAPI void U_EXPORT2 ucln_cleanupOne(ECleanupLibraryType libType)
         gLibCleanupFunctions[libType] = NULL;
     }
 }
+
+U_CAPI void U_EXPORT2 ucln_cleanupOne(ECleanupLibraryType libType)
+{
+    if(libType==UCLN_COMMON) {
+#if UCLN_DEBUG_CLEANUP
+        fprintf(stderr, "Cleaning up: UCLN_COMMON with u_cleanup, type %d\n", (int)libType);
+#endif
+        u_cleanup();
+    } else {
+#if UCLN_DEBUG_CLEANUP
+        fprintf(stderr, "Cleaning up: using ucln_cleanup_internal, type %d\n", (int)libType);
+#endif
+        ucln_cleanup_internal(libType);
+    }
+}
+
 
 U_CFUNC void
 ucln_common_registerCleanup(ECleanupCommonType type,
@@ -97,7 +95,7 @@ U_CFUNC UBool ucln_lib_cleanup(void) {
     ECleanupCommonType commonFunc = UCLN_COMMON_START;
 
     for (libType++; libType<UCLN_COMMON; libType++) {
-        ucln_cleanupOne(libType);
+        ucln_cleanup_internal(libType);
     }
 
     for (commonFunc++; commonFunc<UCLN_COMMON_COUNT; commonFunc++) {

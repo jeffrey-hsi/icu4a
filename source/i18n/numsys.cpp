@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 2010-2011, International Business Machines Corporation and
+* Copyright (C) 2010, International Business Machines Corporation and
 * others. All Rights Reserved.
 *******************************************************************************
 *
@@ -24,7 +24,6 @@
 #include "unicode/numsys.h"
 #include "cstring.h"
 #include "uresimp.h"
-#include "numsys_impl.h"
 
 #if !UCONFIG_NO_FORMATTING
 
@@ -43,7 +42,6 @@ static const char gLatn[] = "latn";
 
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(NumberingSystem)
-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(NumsysNameEnumeration)
 
     /**
      * Default Constructor.
@@ -145,36 +143,41 @@ NumberingSystem::createInstance(UErrorCode& status) {
 
 NumberingSystem* U_EXPORT2
 NumberingSystem::createInstanceByName(const char *name, UErrorCode& status) {
-    UResourceBundle *numberingSystemsInfo = NULL;
-    UResourceBundle *nsTop, *nsCurrent;
-    int32_t radix = 10;
-    int32_t algorithmic = 0;
+    
+     UResourceBundle *numberingSystemsInfo = NULL;
+     UResourceBundle *nsTop, *nsCurrent;
+     const UChar* description = NULL;
+     int32_t radix = 10;
+     int32_t algorithmic = 0;
+     int32_t len;
 
-    numberingSystemsInfo = ures_openDirect(NULL,gNumberingSystems, &status);
-    nsCurrent = ures_getByKey(numberingSystemsInfo,gNumberingSystems,NULL,&status);
-    nsTop = ures_getByKey(nsCurrent,name,NULL,&status);
-    UnicodeString nsd = ures_getUnicodeStringByKey(nsTop,gDesc,&status);
+     numberingSystemsInfo = ures_openDirect(NULL,gNumberingSystems, &status);
+     nsCurrent = ures_getByKey(numberingSystemsInfo,gNumberingSystems,NULL,&status);
+     nsTop = ures_getByKey(nsCurrent,name,NULL,&status);
+     description = ures_getStringByKey(nsTop,gDesc,&len,&status);
 
-    ures_getByKey(nsTop,gRadix,nsCurrent,&status);
-    radix = ures_getInt(nsCurrent,&status);
+	 ures_getByKey(nsTop,gRadix,nsCurrent,&status);
+     radix = ures_getInt(nsCurrent,&status);
 
-    ures_getByKey(nsTop,gAlgorithmic,nsCurrent,&status);
-    algorithmic = ures_getInt(nsCurrent,&status);
+     ures_getByKey(nsTop,gAlgorithmic,nsCurrent,&status);
+     algorithmic = ures_getInt(nsCurrent,&status);
 
-    UBool isAlgorithmic = ( algorithmic == 1 );
+     UBool isAlgorithmic = ( algorithmic == 1 );
+     UnicodeString nsd;
+     nsd.setTo(description);
 
-    ures_close(nsCurrent);
-    ures_close(nsTop);
-    ures_close(numberingSystemsInfo);
+	 ures_close(nsCurrent);
+	 ures_close(nsTop);
+     ures_close(numberingSystemsInfo);
 
-    if (U_FAILURE(status)) {
-        status = U_UNSUPPORTED_ERROR;
-        return NULL;
-    }
+     if (U_FAILURE(status)) {
+         status = U_UNSUPPORTED_ERROR;
+         return NULL;
+     }
 
-    NumberingSystem* ns = NumberingSystem::createInstance(radix,isAlgorithmic,nsd,status);
-    ns->setName(name);
-    return ns;
+     NumberingSystem* ns = NumberingSystem::createInstance(radix,isAlgorithmic,nsd,status);
+     ns->setName(name);
+     return ns;
 }
 
     /**
@@ -219,44 +222,6 @@ UBool NumberingSystem::isAlgorithmic() const {
     return ( algorithmic );
 }
 
-StringEnumeration* NumberingSystem::getAvailableNames(UErrorCode &status) {
-
-    static StringEnumeration* availableNames = NULL;
-
-    if (U_FAILURE(status)) {
-        return NULL;
-    }
-
-    if ( availableNames == NULL ) {
-        UVector *fNumsysNames = new UVector(uprv_deleteUObject, NULL, status);
-        if (U_FAILURE(status)) {
-            status = U_MEMORY_ALLOCATION_ERROR;
-            return NULL;
-        }
-        
-        UErrorCode rbstatus = U_ZERO_ERROR;
-        UResourceBundle *numberingSystemsInfo = ures_openDirect(NULL, "numberingSystems", &rbstatus);
-        numberingSystemsInfo = ures_getByKey(numberingSystemsInfo,"numberingSystems",numberingSystemsInfo,&rbstatus);
-        if(U_FAILURE(rbstatus)) {
-            status = U_MISSING_RESOURCE_ERROR;
-            ures_close(numberingSystemsInfo);
-            return NULL;
-        }
-
-        while ( ures_hasNext(numberingSystemsInfo) ) {
-            UResourceBundle *nsCurrent = ures_getNextResource(numberingSystemsInfo,NULL,&rbstatus);
-            const char *nsName = ures_getKey(nsCurrent);
-            fNumsysNames->addElement(new UnicodeString(nsName, -1, US_INV),status);
-            ures_close(nsCurrent);
-        }
-
-        ures_close(numberingSystemsInfo);
-        availableNames = new NumsysNameEnumeration(fNumsysNames,status);
-
-    }
-
-    return availableNames;
-}
 
 UBool NumberingSystem::isValidDigitString(const UnicodeString& str) {
 
@@ -274,33 +239,6 @@ UBool NumberingSystem::isValidDigitString(const UnicodeString& str) {
        prev = c;
     }
     return TRUE;   
-}
-
-NumsysNameEnumeration::NumsysNameEnumeration(UVector *fNameList, UErrorCode& /*status*/) {
-    pos=0;
-    fNumsysNames = fNameList;
-}
-
-const UnicodeString*
-NumsysNameEnumeration::snext(UErrorCode& status) {
-    if (U_SUCCESS(status) && pos < fNumsysNames->size()) {
-        return (const UnicodeString*)fNumsysNames->elementAt(pos++);
-    }
-    return NULL;
-}
-
-void
-NumsysNameEnumeration::reset(UErrorCode& /*status*/) {
-    pos=0;
-}
-
-int32_t
-NumsysNameEnumeration::count(UErrorCode& /*status*/) const {
-    return (fNumsysNames==NULL) ? 0 : fNumsysNames->size();
-}
-
-NumsysNameEnumeration::~NumsysNameEnumeration() {
-    delete fNumsysNames;
 }
 U_NAMESPACE_END
 

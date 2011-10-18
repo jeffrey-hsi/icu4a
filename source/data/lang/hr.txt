@@ -661,10 +661,6 @@ hr{
         Zyyy{"zajedničko pismo"}
         Zzzz{"nepoznato ili nevažeće pismo"}
     }
-    Scripts%stand-alone{
-        Hans{"Pojednostavljeno pismo han"}
-        Hant{"Tradicionalno pismo han"}
-    }
     Types{
         calendar{
             buddhist{"budistički kalendar"}
@@ -764,7 +760,7 @@ hr{
         VALENCIA{"valencijski"}
         WADEGILE{"Wade-Giles romanizacija"}
     }
-    Version{"2.0.61.44"}
+    Version{"2.0.59.68"}
     codePatterns{
         language{"Jezik: {0}"}
         script{"Pismo: {0}"}

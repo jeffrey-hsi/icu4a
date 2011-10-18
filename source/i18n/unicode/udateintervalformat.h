@@ -11,15 +11,11 @@
 #include "unicode/utypes.h"
 
 #if !UCONFIG_NO_FORMATTING
-#ifndef U_HIDE_DRAFT_API
 
 #include "unicode/umisc.h"
 #include "unicode/localpointer.h"
 
 /**
- * \file
- * \brief C API: Format a date interval.
- *
  * A UDateIntervalFormat is used to format the range between two UDate values
  * in a locale-sensitive way, using a skeleton that specifies the precision and
  * completeness of the information to show. If the range smaller than the resolution
@@ -177,7 +173,6 @@ udtitvfmt_format(const UDateIntervalFormat* formatter,
                 UFieldPosition* position,
                 UErrorCode*     status);
 
-#endif  /* U_HIDE_DRAFT_API */
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
 #endif

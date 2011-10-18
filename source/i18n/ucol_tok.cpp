@@ -135,6 +135,12 @@ U_CDECL_END
 #endif
 
 
+/*static inline void U_CALLCONV
+uhash_freeBlockWrapper(void *obj) {
+    uhash_freeBlock(obj);
+}*/
+
+
 typedef struct {
     uint32_t startCE;
     uint32_t startContCE;
@@ -2361,7 +2367,7 @@ void ucol_tok_initTokenList(
     if(U_FAILURE(*status)) {
         return;
     }
-    uhash_setValueDeleter(src->tailored, uprv_free);
+    uhash_setValueDeleter(src->tailored, uhash_freeBlock);
 
     src->opts = (UColOptionSet *)uprv_malloc(sizeof(UColOptionSet));
     /* test for NULL */

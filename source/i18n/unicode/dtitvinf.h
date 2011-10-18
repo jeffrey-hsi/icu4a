@@ -1,6 +1,6 @@
 /*
  *******************************************************************************
- * Copyright (C) 2008-2011, International Business Machines Corporation and
+ * Copyright (C) 2008-2010, International Business Machines Corporation and
  * others. All Rights Reserved.
  *******************************************************************************
  *
@@ -25,6 +25,14 @@
 #include "unicode/locid.h"
 #include "unicode/ucal.h"
 #include "unicode/dtptngen.h"
+//#include "dtitv_impl.h"
+
+/**
+ * @internal ICU 4.0
+ */
+ 
+union UHashTok;
+
 
 U_NAMESPACE_BEGIN
 
@@ -150,7 +158,6 @@ U_NAMESPACE_BEGIN
 
 class U_I18N_API DateIntervalInfo : public UObject {
 public:
-#ifndef U_HIDE_INTERNAL_API
     /**
      * Default constructor.
      * It does not initialize any interval patterns except
@@ -165,7 +172,6 @@ public:
      * @internal ICU 4.0
      */
     DateIntervalInfo(UErrorCode& status);
-#endif  /* U_HIDE_INTERNAL_API */
 
 
     /** 
@@ -356,15 +362,13 @@ private:
         kIPI_MAX_INDEX
     };
 public:
-#ifndef U_HIDE_INTERNAL_API
     /**
      * Max index for stored interval patterns
      * @internal ICU 4.4 
      */
      enum {
-         kMaxIntervalPatternIndex = kIPI_MAX_INDEX
+     	kMaxIntervalPatternIndex = kIPI_MAX_INDEX
      };
-#endif  /* U_HIDE_INTERNAL_API */
 private:
 
 

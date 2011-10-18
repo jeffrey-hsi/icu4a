@@ -128,29 +128,9 @@ public:
     virtual ~TimeZone();
 
     /**
-     * Returns the "unknown" time zone.
-     * It behaves like the GMT/UTC time zone but has the
-     * <code>UCAL_UNKNOWN_ZONE_ID</code> = "Etc/Unknown".
-     * createTimeZone() returns a mutable clone of this time zone if the input ID is not recognized.
-     *
-     * @return the "unknown" time zone.
-     * @see UCAL_UNKNOWN_ZONE_ID
-     * @see createTimeZone
-     * @see getGMT
-     * @draft ICU 49
-     */
-    static const TimeZone& U_EXPORT2 getUnknown();
-
-    /**
-     * The GMT (=UTC) time zone has a raw offset of zero and does not use daylight
+     * The GMT time zone has a raw offset of zero and does not use daylight
      * savings time. This is a commonly used time zone.
-     *
-     * <p>Note: For backward compatibility reason, the ID used by the time
-     * zone returned by this method is "GMT", although the ICU's canonical
-     * ID for the GMT time zone is "Etc/GMT".
-     *
-     * @return the GMT/UTC time zone.
-     * @see getUnknown
+     * @return the GMT time zone.
      * @stable ICU 2.0
      */
     static const TimeZone* U_EXPORT2 getGMT(void);
@@ -159,16 +139,15 @@ public:
      * Creates a <code>TimeZone</code> for the given ID.
      * @param ID the ID for a <code>TimeZone</code>, such as "America/Los_Angeles",
      * or a custom ID such as "GMT-8:00".
-     * @return the specified <code>TimeZone</code>, or a mutable clone of getUnknown()
-     * if the given ID cannot be understood.
-     * The return result is guaranteed to be non-NULL.
-     * If you require that the specific zone asked for be returned,
-     * compare the result with getUnknown() or check the ID of the return result.
+     * @return the specified <code>TimeZone</code>, or the GMT zone with ID
+     * <code>UCAL_UNKNOWN_ZONE_ID</code> ("Etc/Unknown") if the given ID cannot be understood.
+     * Return result guaranteed to be non-null. If you require that the specific zone asked
+     * for be returned, check the ID of the return result.
      * @stable ICU 2.0
      */
     static TimeZone* U_EXPORT2 createTimeZone(const UnicodeString& ID);
 
-#ifndef U_HIDE_DRAFT_API
+
     /**
      * Returns an enumeration over system time zone IDs with the given
      * filter conditions.
@@ -189,7 +168,6 @@ public:
         const char* region,
         const int32_t* rawOffset,
         UErrorCode& ec);
-#endif  /* U_HIDE_DRAFT_API */
 
     /**
      * Returns an enumeration over all recognized time zone IDs. (i.e.,
@@ -294,17 +272,14 @@ public:
      */
     static void U_EXPORT2 adoptDefault(TimeZone* zone);
 
-#ifndef U_HIDE_SYSTEM_API
     /**
      * Same as adoptDefault(), except that the TimeZone object passed in is NOT adopted;
      * the caller remains responsible for deleting it.
      *
      * @param zone  The given timezone.
      * @system
-     * @stable ICU 2.0
      */
     static void U_EXPORT2 setDefault(const TimeZone& zone);
-#endif  /* U_HIDE_SYSTEM_API */
 
     /**
      * Returns the timezone data version currently used by ICU.
@@ -688,8 +663,7 @@ public:
      */
     virtual int32_t getDSTSavings() const;
 
-#ifndef U_HIDE_DRAFT_API
-    /**
+    /** 
      * Gets the region code associated with the given
      * system time zone ID. The region code is either ISO 3166
      * 2-letter country code or UN M.49 3-digit area code.
@@ -708,7 +682,6 @@ public:
      */ 
     static int32_t U_EXPORT2 getRegion(const UnicodeString& id, 
         char *region, int32_t capacity, UErrorCode& status); 
-#endif  /* U_HIDE_DRAFT_API */
 
 protected:
 
@@ -739,7 +712,6 @@ protected:
      */
     TimeZone& operator=(const TimeZone& right);
 
-#ifndef U_HIDE_INTERNAL_API
     /**
      * Utility function. For internally loading rule data.
      * @param top Top resource bundle for tz data
@@ -750,7 +722,7 @@ protected:
      * @internal
      */
     static UResourceBundle* loadRule(const UResourceBundle* top, const UnicodeString& ruleid, UResourceBundle* oldbundle, UErrorCode&status);
-#endif  /* U_HIDE_INTERNAL_API */
+
 
 private:
     friend class ZoneMeta;

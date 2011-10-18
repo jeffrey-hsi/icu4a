@@ -9,7 +9,6 @@
 */
 
 #include "unicode/uchar.h"
-#include "unicode/utf16.h"
 #include "patternprops.h"
 #include "util.h"
 
@@ -160,7 +159,7 @@ UnicodeString ICU_Utility::parseUnicodeIdentifier(const UnicodeString& str, int3
                 break;
             }
         }
-        p += U16_LENGTH(ch);
+        p += UTF_CHAR_LENGTH(ch);
     }
     pos = p;
     return buf;

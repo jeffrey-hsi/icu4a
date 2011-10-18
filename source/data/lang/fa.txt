@@ -619,10 +619,6 @@ fa{
         Zyyy{"مشترک"}
         Zzzz{"خط نامشخص"}
     }
-    Scripts%stand-alone{
-        Hans{"هان ساده‌شده"}
-        Hant{"هان سنتی"}
-    }
     Types{
         calendar{
             buddhist{"تقویم بودایی"}
@@ -701,7 +697,7 @@ fa{
         SAAHO{"ساهویی"}
         SCOTLAND{"انگلیسی معیار اسکاتلند"}
     }
-    Version{"2.0.61.77"}
+    Version{"2.0.59.53"}
     codePatterns{
         language{"زبان: {0}"}
         script{"خط: {0}"}

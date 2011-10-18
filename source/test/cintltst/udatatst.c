@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#if U_PLATFORM_USES_ONLY_WIN32_API
+#ifdef U_WINDOWS
 #include <io.h>
 #else
 #include <unistd.h>
@@ -1109,10 +1109,10 @@ static void TestICUDataName()
         break;
     }
 
-    /* Only major number is needed. */
-    sprintf(expectDataName, "%s%d%c",
+    sprintf(expectDataName, "%s%d%d%c",
                 "icudt",
                 (int)icuVersion[0],
+                (int)icuVersion[1],
                 typeChar);
 
     log_verbose("Expected: %s\n", expectDataName);
@@ -1151,7 +1151,7 @@ static void TestICUDataName()
 
 /* test data swapping ------------------------------------------------------- */
 
-#if U_PLATFORM == U_PF_OS400
+#ifdef OS400
 /* See comments in genccode.c on when this special implementation can be removed. */
 static const struct {
     double bogus;

@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 2002-2011, International Business Machines
+ *   Copyright (C) 2002-2010, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
  */
@@ -498,8 +498,6 @@ public:
      * @stable ICU 3.2
      */
     inline void reflow();
-
-#ifndef U_HIDE_INTERNAL_API
     /**
      *
      * Convenience method for determining if paragraph layout processing is complete ( i.e. there
@@ -510,7 +508,6 @@ public:
      * @internal 
      */
     inline le_bool isDone() const;
-#endif  /* U_HIDE_INTERNAL_API */
 
     /**
      * Return a <code>ParagraphLayout::Line</code> object which represents next line

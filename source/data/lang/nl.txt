@@ -663,10 +663,6 @@ nl{
         Zyyy{"Algemeen"}
         Zzzz{"Code voor ongecodeerde schriftsystemen"}
     }
-    Scripts%stand-alone{
-        Hans{"Vereenvoudigd Chinees"}
-        Hant{"Traditioneel Chinees"}
-    }
     Types{
         calendar{
             buddhist{"Boeddhistische kalender"}
@@ -790,7 +786,7 @@ nl{
         VALLADER{"Vallader"}
         WADEGILE{"Wade-Giles"}
     }
-    Version{"2.0.61.44"}
+    Version{"2.0.59.68"}
     codePatterns{
         language{"Taal: {0}"}
         script{"Schrift: {0}"}

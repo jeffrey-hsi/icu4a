@@ -22,12 +22,12 @@ U_CDECL_BEGIN
 
 static int32_t U_CALLCONV
 hashStringTrieNode(const UHashTok key) {
-    return icu::StringTrieBuilder::hashNode(key.pointer);
+    return U_NAMESPACE_QUALIFIER StringTrieBuilder::hashNode(key.pointer);
 }
 
 static UBool U_CALLCONV
 equalStringTrieNodes(const UHashTok key1, const UHashTok key2) {
-    return icu::StringTrieBuilder::equalNodes(key1.pointer, key2.pointer);
+    return U_NAMESPACE_QUALIFIER StringTrieBuilder::equalNodes(key1.pointer, key2.pointer);
 }
 
 U_CDECL_END
@@ -51,7 +51,7 @@ StringTrieBuilder::createCompactBuilder(int32_t sizeGuess, UErrorCode &errorCode
         errorCode=U_MEMORY_ALLOCATION_ERROR;
     }
     if(U_SUCCESS(errorCode)) {
-        uhash_setKeyDeleter(nodes, uprv_deleteUObject);
+        uhash_setKeyDeleter(nodes, uhash_deleteUObject);
     }
 }
 
@@ -329,7 +329,7 @@ StringTrieBuilder::registerNode(Node *newNode, UErrorCode &errorCode) {
     }
     // If uhash_puti() returns a non-zero value from an equivalent, previously
     // registered node, then uhash_find() failed to find that and we will leak newNode.
-#if U_DEBUG
+#if !U_RELEASE
     int32_t oldValue=  // Only in debug mode to avoid a compiler warning about unused oldValue.
 #endif
     uhash_puti(nodes, newNode, 1, &errorCode);
@@ -358,7 +358,7 @@ StringTrieBuilder::registerFinalValue(int32_t value, UErrorCode &errorCode) {
     }
     // If uhash_puti() returns a non-zero value from an equivalent, previously
     // registered node, then uhash_find() failed to find that and we will leak newNode.
-#if U_DEBUG
+#if !U_RELEASE
     int32_t oldValue=  // Only in debug mode to avoid a compiler warning about unused oldValue.
 #endif
     uhash_puti(nodes, newNode, 1, &errorCode);

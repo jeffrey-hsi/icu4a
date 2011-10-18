@@ -22,8 +22,6 @@
 
 #include "unicode/utypes.h"
 
-#ifndef U_HIDE_DRAFT_API
-
 /**
  * Return values for BytesTrie::next(), UCharsTrie::next() and similar methods.
  * @see USTRINGTRIE_MATCHES
@@ -93,5 +91,4 @@ enum UStringTrieResult {
  */
 #define USTRINGTRIE_HAS_NEXT(result) ((result)&1)
 
-#endif  /* U_HIDE_DRAFT_API */
 #endif  /* __USTRINGTRIE_H__ */

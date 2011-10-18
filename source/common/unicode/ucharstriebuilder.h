@@ -20,8 +20,6 @@
 #include "unicode/ucharstrie.h"
 #include "unicode/unistr.h"
 
-#ifndef U_HIDE_DRAFT_API
-
 U_NAMESPACE_BEGIN
 
 class UCharsTrieElement;
@@ -139,7 +137,6 @@ private:
     virtual int32_t getMinLinearMatch() const { return UCharsTrie::kMinLinearMatch; }
     virtual int32_t getMaxLinearMatchLength() const { return UCharsTrie::kMaxLinearMatchLength; }
 
-#ifndef U_HIDE_INTERNAL_API
     class UCTLinearMatchNode : public LinearMatchNode {
     public:
         UCTLinearMatchNode(const UChar *units, int32_t len, Node *nextNode);
@@ -148,7 +145,6 @@ private:
     private:
         const UChar *s;
     };
-#endif
 
     virtual Node *createLinearMatchNode(int32_t i, int32_t unitIndex, int32_t length,
                                         Node *nextNode) const;
@@ -175,5 +171,4 @@ private:
 
 U_NAMESPACE_END
 
-#endif  /* U_HIDE_DRAFT_API */
 #endif  // __UCHARSTRIEBUILDER_H__

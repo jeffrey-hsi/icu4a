@@ -78,12 +78,6 @@ U_NAMESPACE_BEGIN
 class U_COMMON_API Normalizer2 : public UObject {
 public:
     /**
-     * Destructor.
-     * @stable ICU 4.4
-     */
-    ~Normalizer2();
-
-    /**
      * Returns a Normalizer2 instance which uses the specified data file
      * (packageName/name similar to ucnv_openPackage() and ures_open()/ResourceBundle)
      * and which composes or decomposes text according to the specified mode.
@@ -195,17 +189,6 @@ public:
      */
     virtual UBool
     getDecomposition(UChar32 c, UnicodeString &decomposition) const = 0;
-
-    /**
-     * Gets the combining class of c.
-     * The default implementation returns 0
-     * but all standard implementations return the Unicode Canonical_Combining_Class value.
-     * @param c code point
-     * @return c's combining class
-     * @draft ICU 49
-     */
-    virtual uint8_t
-    getCombiningClass(UChar32 c) const;
 
     /**
      * Tests if the string is normalized.
@@ -345,12 +328,6 @@ public:
             norm2(n2), set(filterSet) {}
 
     /**
-     * Destructor.
-     * @stable ICU 4.4
-     */
-    ~FilteredNormalizer2();
-
-    /**
      * Writes the normalized form of the source string to the destination string
      * (replacing its contents) and returns the destination string.
      * The source and destination strings must be different objects.
@@ -416,17 +393,6 @@ public:
      */
     virtual UBool
     getDecomposition(UChar32 c, UnicodeString &decomposition) const;
-
-    /**
-     * Gets the combining class of c.
-     * The default implementation returns 0
-     * but all standard implementations return the Unicode Canonical_Combining_Class value.
-     * @param c code point
-     * @return c's combining class
-     * @draft ICU 49
-     */
-    virtual uint8_t
-    getCombiningClass(UChar32 c) const;
 
     /**
      * Tests if the string is normalized.

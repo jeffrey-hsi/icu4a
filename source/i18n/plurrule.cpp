@@ -25,6 +25,7 @@
 #include "plurrule_impl.h"
 #include "putilimp.h"
 #include "ucln_in.h"
+#include "uhash.h"
 #include "ustrfmt.h"
 #include "locutil.h"
 
@@ -140,7 +141,7 @@ PluralRules::createRules(const UnicodeString& description, UErrorCode& status) {
 
 PluralRules* U_EXPORT2
 PluralRules::createDefaultRules(UErrorCode& status) {
-    return createRules(UnicodeString(TRUE, PLURAL_DEFAULT_RULE, -1), status);
+    return createRules(PLURAL_DEFAULT_RULE, status);
 }
 
 PluralRules* U_EXPORT2
@@ -175,7 +176,7 @@ PluralRules::forLocale(const Locale& locale, UErrorCode& status) {
 UnicodeString
 PluralRules::select(int32_t number) const {
     if (mRules == NULL) {
-        return UnicodeString(TRUE, PLURAL_DEFAULT_RULE, -1);
+        return PLURAL_DEFAULT_RULE;
     }
     else {
         return mRules->select(number);
@@ -185,7 +186,7 @@ PluralRules::select(int32_t number) const {
 UnicodeString
 PluralRules::select(double number) const {
     if (mRules == NULL) {
-        return UnicodeString(TRUE, PLURAL_DEFAULT_RULE, -1);
+        return PLURAL_DEFAULT_RULE;
     }
     else {
         return mRules->select(number);
@@ -270,7 +271,7 @@ PluralRules::getSamplesInternal(const UnicodeString &keyword, double *dest,
 
 UBool
 PluralRules::isKeyword(const UnicodeString& keyword) const {
-    if (0 == keyword.compare(PLURAL_KEYWORD_OTHER, 5)) {
+    if ( keyword == PLURAL_KEYWORD_OTHER ) {
         return true;
     }
     else {
@@ -285,7 +286,7 @@ PluralRules::isKeyword(const UnicodeString& keyword) const {
 
 UnicodeString
 PluralRules::getKeywordOther() const {
-    return UnicodeString(TRUE, PLURAL_KEYWORD_OTHER, 5);
+    return PLURAL_KEYWORD_OTHER;
 }
 
 UBool
@@ -351,7 +352,7 @@ PluralRules::parseDescription(UnicodeString& data, RuleChain& rules, UErrorCode 
     if (U_FAILURE(status)) {
         return;
     }
-    UnicodeString ruleData = data.toLower("");
+    UnicodeString ruleData = data.toLower();
     while (ruleIndex< ruleData.length()) {
         mParser->getNextToken(ruleData, &ruleIndex, token, type, status);
         if (U_FAILURE(status)) {
@@ -492,7 +493,7 @@ PluralRules::getKeywordIndex(const UnicodeString& keyword,
             }
             rc = rc->next;
         }
-        if (0 == keyword.compare(PLURAL_KEYWORD_OTHER, 5)) {
+        if (keyword == PLURAL_KEYWORD_OTHER) {
             return n;
         }
     }
@@ -528,7 +529,7 @@ PluralRules::initSamples(UErrorCode& status) {
     RuleChain* rc = mRules;
     while (rc != NULL) {
         if (rc->ruleHeader != NULL) {
-            if (otherIndex == -1 && 0 == rc->keyword.compare(PLURAL_KEYWORD_OTHER, 5)) {
+            if (otherIndex == -1 && rc->keyword == PLURAL_KEYWORD_OTHER) {
                 otherIndex = maxIndex;
             }
             ++maxIndex;
@@ -981,7 +982,7 @@ RuleChain::select(double number) const {
        return next->select(number);
    }
    else {
-       return UnicodeString(TRUE, PLURAL_KEYWORD_OTHER, 5);
+       return PLURAL_KEYWORD_OTHER;
    }
 
 }
@@ -1054,11 +1055,11 @@ RuleChain::dumpRules(UnicodeString& result) {
                     }
                 }
                 if ( (andRule=andRule->next) != NULL) {
-                    result.append(PK_AND, 3);
+                    result += PK_AND;
                 }
             }
             if ( (orRule = orRule->next) != NULL ) {
-                result.append(PK_OR, 2);
+                result += PK_OR;
             }
         }
     }
@@ -1341,28 +1342,28 @@ RuleParser::getKeyType(const UnicodeString& token, tokenType& keyType, UErrorCod
     }
     if ( keyType==tNumber) {
     }
-    else if (0 == token.compare(PK_VAR_N, 1)) {
+    else if (token==PK_VAR_N) {
         keyType = tVariableN;
     }
-    else if (0 == token.compare(PK_IS, 2)) {
+    else if (token==PK_IS) {
         keyType = tIs;
     }
-    else if (0 == token.compare(PK_AND, 3)) {
+    else if (token==PK_AND) {
         keyType = tAnd;
     }
-    else if (0 == token.compare(PK_IN, 2)) {
+    else if (token==PK_IN) {
         keyType = tIn;
     }
-    else if (0 == token.compare(PK_WITHIN, 6)) {
+    else if (token==PK_WITHIN) {
         keyType = tWithin;
     }
-    else if (0 == token.compare(PK_NOT, 3)) {
+    else if (token==PK_NOT) {
         keyType = tNot;
     }
-    else if (0 == token.compare(PK_MOD, 3)) {
+    else if (token==PK_MOD) {
         keyType = tMod;
     }
-    else if (0 == token.compare(PK_OR, 2)) {
+    else if (token==PK_OR) {
         keyType = tOr;
     }
     else if ( isValidKeyword(token) ) {
@@ -1383,7 +1384,7 @@ PluralKeywordEnumeration::PluralKeywordEnumeration(RuleChain *header, UErrorCode
     if (U_FAILURE(status)) {
         return;
     }
-    fKeywordNames.setDeleter(uprv_deleteUObject);
+    fKeywordNames.setDeleter(uhash_deleteUObject);
     UBool  addKeywordOther=TRUE;
     RuleChain *node=header;
     while(node!=NULL) {
@@ -1391,7 +1392,7 @@ PluralKeywordEnumeration::PluralKeywordEnumeration(RuleChain *header, UErrorCode
         if (U_FAILURE(status)) {
             return;
         }
-        if (0 == node->keyword.compare(PLURAL_KEYWORD_OTHER, 5)) {
+        if (node->keyword == PLURAL_KEYWORD_OTHER) {
             addKeywordOther= FALSE;
         }
         node=node->next;

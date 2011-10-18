@@ -173,8 +173,6 @@ public: // package
 
     void TestStandAloneGMTParse(void);
 
-    void TestParsePosition(void);
-
 public:
     /**
      * Test host-specific formatting.

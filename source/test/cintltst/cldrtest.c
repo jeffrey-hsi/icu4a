@@ -867,7 +867,7 @@ findSetMatch( UScriptCode *scriptCodes, int32_t scriptsLen,
 }
 
 static void VerifyTranslation(void) {
-    static const UVersionInfo icu49 = { 49, 1, 0, 0 };
+    static const UVersionInfo icu49 = { 4, 9, 0, 0 };
     UResourceBundle *root, *currentLocale;
     int32_t locCount = uloc_countAvailable();
     int32_t locIndex;
@@ -1309,7 +1309,6 @@ static void TestCurrencyList(void){
 }
 
 static void TestAvailableIsoCodes(void){
-#if !UCONFIG_NO_FORMATTING
     UErrorCode errorCode = U_ZERO_ERROR;
     const char* eurCode = "EUR";
     const char* usdCode = "USD";
@@ -1405,7 +1404,6 @@ static void TestAvailableIsoCodes(void){
     }
 
     free(isoCode);
-#endif
 }
 
 #define TESTCASE(name) addTest(root, &name, "tsutil/cldrtest/" #name)

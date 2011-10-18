@@ -7,21 +7,19 @@
 // *
 // ***************************************************************************
 en_ZA{
-    Version{"2.0.61.44"}
+    Version{"2.0.57.19"}
     zoneStrings{
         "meta:Africa_Central"{
-            ss{"CAT"}
+            cu:int{1}
         }
         "meta:Africa_Eastern"{
-            ss{"EAT"}
+            cu:int{1}
         }
         "meta:Africa_Southern"{
-            ss{"SAST"}
+            cu:int{1}
         }
         "meta:Africa_Western"{
-            sd{"WAST"}
-            sg{"WAT"}
-            ss{"WAT"}
+            cu:int{1}
         }
     }
 }

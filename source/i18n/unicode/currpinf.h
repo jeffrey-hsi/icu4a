@@ -18,6 +18,8 @@
 
 #include "unicode/unistr.h"
 
+union UHashTok;
+
 U_NAMESPACE_BEGIN
 
 class Locale;

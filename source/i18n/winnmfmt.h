@@ -14,7 +14,7 @@
 
 #include "unicode/utypes.h"
 
-#if U_PLATFORM_USES_ONLY_WIN32_API
+#ifdef U_WINDOWS
 
 #include "unicode/format.h"
 #include "unicode/datefmt.h"
@@ -156,6 +156,6 @@ U_NAMESPACE_END
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
 
-#endif // U_PLATFORM_USES_ONLY_WIN32_API
+#endif // #ifdef U_WINDOWS
 
 #endif // __WINNMFMT

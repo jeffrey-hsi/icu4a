@@ -23,8 +23,6 @@
 #include "unicode/utypes.h"
 #include "unicode/uobject.h"
 
-#ifndef U_HIDE_DRAFT_API
-
 U_NAMESPACE_BEGIN
 
 class UnicodeString;
@@ -50,12 +48,6 @@ class UnicodeString;
  */
 class U_COMMON_API Appendable : public UObject {
 public:
-    /**
-     * Destructor.
-     * @draft ICU 4.8
-     */
-    ~Appendable();
-
     /**
      * Appends a 16-bit code unit.
      * @param c code unit
@@ -164,12 +156,6 @@ public:
     explicit UnicodeStringAppendable(UnicodeString &s) : str(s) {}
 
     /**
-     * Destructor.
-     * @draft ICU 4.8
-     */
-    ~UnicodeStringAppendable();
-
-    /**
      * Appends a 16-bit code unit to the string.
      * @param c code unit
      * @return TRUE if the operation succeeded
@@ -235,5 +221,4 @@ private:
 
 U_NAMESPACE_END
 
-#endif  /* U_HIDE_DRAFT_API */
 #endif  // __APPENDABLE_H__

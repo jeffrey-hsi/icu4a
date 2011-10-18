@@ -102,9 +102,6 @@ static void sweepCache() {
     }
 }
 
-TimeZoneNameMatchInfo::~TimeZoneNameMatchInfo() {
-}
-
 class TimeZoneNamesDelegate : public TimeZoneNames {
 public:
     TimeZoneNamesDelegate(const Locale& locale, UErrorCode& status);
@@ -263,9 +260,6 @@ TimeZoneNamesDelegate::find(const UnicodeString& text, int32_t start, uint32_t t
 }
 
 
-
-TimeZoneNames::~TimeZoneNames() {
-}
 
 TimeZoneNames*
 TimeZoneNames::createInstance(const Locale& locale, UErrorCode& status) {

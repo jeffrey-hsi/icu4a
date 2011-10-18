@@ -120,8 +120,6 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ICUServiceKey)
 ******************************************************************
 */
 
-ICUServiceFactory::~ICUServiceFactory() {}
-
 SimpleFactory::SimpleFactory(UObject* instanceToAdopt, const UnicodeString& id, UBool visible) 
 : _instance(instanceToAdopt), _id(id), _visible(visible)
 {
@@ -189,8 +187,6 @@ UOBJECT_DEFINE_RTTI_IMPLEMENTATION(SimpleFactory)
 /*
 ******************************************************************
 */
-
-ServiceListener::~ServiceListener() {}
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(ServiceListener)
 
@@ -282,7 +278,7 @@ public:
     DNCache(const Locale& _locale) 
         : cache(), locale(_locale) 
     {
-        // cache.setKeyDeleter(uprv_deleteUObject);
+        // cache.setKeyDeleter(uhash_deleteUnicodeString);
     }
 };
 
@@ -523,7 +519,7 @@ ICUService::getKey(ICUServiceKey& key, UnicodeString* actualReturn, const ICUSer
             // fallback to the one that succeeded, we want to hit the
             // cache the first time next goaround.
             if (cacheDescriptorList._obj == NULL) {
-                cacheDescriptorList._obj = new UVector(uprv_deleteUObject, NULL, 5, status);
+                cacheDescriptorList._obj = new UVector(uhash_deleteUnicodeString, NULL, 5, status);
                 if (U_FAILURE(status)) {
                     return NULL;
                 }

@@ -218,10 +218,6 @@ ms{
         Zyyy{"Biasa"}
         Zzzz{"Skrip Tidak Diketahui"}
     }
-    Scripts%stand-alone{
-        Hans{"Han Ringkas"}
-        Hant{"Han Tradisional"}
-    }
     Types{
         calendar{
             buddhist{"Kalendar Buddha"}

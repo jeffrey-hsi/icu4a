@@ -728,7 +728,6 @@ public:
      */
     virtual void adoptCalendar(Calendar* calendarToAdopt);
 
-#ifndef U_HIDE_INTERNAL_API
     /**
      * This is for ICU internal use only. Please do not use.
      * Check whether the 'field' is smaller than all the fields covered in
@@ -756,6 +755,8 @@ public:
     static UBool isFieldUnitIgnored(const UnicodeString& pattern,
                                     UCalendarDateFields field);
 
+
+
     /**
      * This is for ICU internal use only. Please do not use.
      * Get the locale of this simple date formatter.
@@ -765,7 +766,7 @@ public:
      * @internal ICU 4.0
      */
     const Locale& getSmpFmtLocale(void) const;
-#endif  /* U_HIDE_INTERNAL_API */
+
 
 private:
     friend class DateFormat;

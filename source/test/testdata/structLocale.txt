@@ -4928,10 +4928,6 @@ structLocale:table(nofallback){
         Zyyy{""}
         Zzzz{""}
     }
-    Scripts%stand-alone{
-        Hans{""}
-        Hant{""}
-    }
     Types{
         calendar{
             buddhist{""}
@@ -8737,6 +8733,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "AET"{
             ld{""}
@@ -8746,6 +8743,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "AGT"{
             ld{""}
@@ -8755,6 +8753,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "ART"{
             ld{""}
@@ -8764,6 +8763,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "AST"{
             ld{""}
@@ -8773,6 +8773,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Abidjan"{
             ld{""}
@@ -8782,6 +8783,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Accra"{
             ld{""}
@@ -8791,6 +8793,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Addis_Ababa"{
             ld{""}
@@ -8800,6 +8803,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Algiers"{
             ld{""}
@@ -8809,6 +8813,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Asmera"{
             ld{""}
@@ -8818,6 +8823,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Bamako"{
             ld{""}
@@ -8827,6 +8833,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Bangui"{
             ld{""}
@@ -8836,6 +8843,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Banjul"{
             ld{""}
@@ -8845,6 +8853,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Bissau"{
             ld{""}
@@ -8854,6 +8863,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Blantyre"{
             ld{""}
@@ -8863,6 +8873,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Brazzaville"{
             ld{""}
@@ -8872,6 +8883,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Bujumbura"{
             ld{""}
@@ -8881,6 +8893,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Cairo"{
             ld{""}
@@ -8890,6 +8903,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Casablanca"{
             ld{""}
@@ -8899,6 +8913,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Ceuta"{
             ld{""}
@@ -8908,6 +8923,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Conakry"{
             ld{""}
@@ -8917,6 +8933,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Dakar"{
             ld{""}
@@ -8926,6 +8943,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Dar_es_Salaam"{
             ld{""}
@@ -8935,6 +8953,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Djibouti"{
             ld{""}
@@ -8944,6 +8963,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Douala"{
             ld{""}
@@ -8953,6 +8973,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:El_Aaiun"{
             ld{""}
@@ -8962,6 +8983,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Freetown"{
             ld{""}
@@ -8971,6 +8993,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Gaborone"{
             ld{""}
@@ -8980,6 +9003,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Harare"{
             ld{""}
@@ -8989,6 +9013,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Johannesburg"{
             ld{""}
@@ -8998,6 +9023,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Kampala"{
             ld{""}
@@ -9007,6 +9033,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Khartoum"{
             ld{""}
@@ -9016,6 +9043,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Kigali"{
             ld{""}
@@ -9025,6 +9053,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Kinshasa"{
             ld{""}
@@ -9034,6 +9063,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Lagos"{
             ld{""}
@@ -9043,6 +9073,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Libreville"{
             ld{""}
@@ -9052,6 +9083,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Lome"{
             ld{""}
@@ -9061,6 +9093,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Luanda"{
             ld{""}
@@ -9070,6 +9103,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Lubumbashi"{
             ld{""}
@@ -9079,6 +9113,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Lusaka"{
             ld{""}
@@ -9088,6 +9123,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Malabo"{
             ld{""}
@@ -9097,6 +9133,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Maputo"{
             ld{""}
@@ -9106,6 +9143,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Maseru"{
             ld{""}
@@ -9115,6 +9153,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Mbabane"{
             ld{""}
@@ -9124,6 +9163,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Mogadishu"{
             ld{""}
@@ -9133,6 +9173,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Monrovia"{
             ld{""}
@@ -9142,6 +9183,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Nairobi"{
             ld{""}
@@ -9151,6 +9193,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Ndjamena"{
             ld{""}
@@ -9160,6 +9203,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Niamey"{
             ld{""}
@@ -9169,6 +9213,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Nouakchott"{
             ld{""}
@@ -9178,6 +9223,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Ouagadougou"{
             ld{""}
@@ -9187,6 +9233,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Porto-Novo"{
             ld{""}
@@ -9196,6 +9243,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Sao_Tome"{
             ld{""}
@@ -9205,6 +9253,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Timbuktu"{
             ld{""}
@@ -9214,6 +9263,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Tripoli"{
             ld{""}
@@ -9223,6 +9273,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Tunis"{
             ld{""}
@@ -9232,6 +9283,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Africa:Windhoek"{
             ld{""}
@@ -9241,6 +9293,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Adak"{
             ld{""}
@@ -9250,6 +9303,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Anchorage"{
             ld{""}
@@ -9259,6 +9313,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Anguilla"{
             ld{""}
@@ -9268,6 +9323,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Antigua"{
             ld{""}
@@ -9277,6 +9333,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Araguaina"{
             ld{""}
@@ -9286,6 +9343,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Buenos_Aires"{
             ld{""}
@@ -9295,6 +9353,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Catamarca"{
             ld{""}
@@ -9304,6 +9363,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:ComodRivadavia"{
             ld{""}
@@ -9313,6 +9373,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Cordoba"{
             ld{""}
@@ -9322,6 +9383,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Jujuy"{
             ld{""}
@@ -9331,6 +9393,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:La_Rioja"{
             ld{""}
@@ -9340,6 +9403,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Mendoza"{
             ld{""}
@@ -9349,6 +9413,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Rio_Gallegos"{
             ld{""}
@@ -9358,6 +9423,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Salta"{
             ld{""}
@@ -9367,6 +9433,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:San_Juan"{
             ld{""}
@@ -9376,6 +9443,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:San_Luis"{
             ld{""}
@@ -9385,6 +9453,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Tucuman"{
             ld{""}
@@ -9394,6 +9463,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Argentina:Ushuaia"{
             ld{""}
@@ -9403,6 +9473,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Aruba"{
             ld{""}
@@ -9412,6 +9483,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Asuncion"{
             ld{""}
@@ -9421,6 +9493,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Atka"{
             ld{""}
@@ -9430,6 +9503,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Bahia"{
             ld{""}
@@ -9439,6 +9513,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Barbados"{
             ld{""}
@@ -9448,6 +9523,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Belem"{
             ld{""}
@@ -9457,6 +9533,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Belize"{
             ld{""}
@@ -9466,6 +9543,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Blanc-Sablon"{
             ld{""}
@@ -9475,6 +9553,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Boa_Vista"{
             ld{""}
@@ -9484,6 +9563,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Bogota"{
             ld{""}
@@ -9493,6 +9573,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Boise"{
             ld{""}
@@ -9502,6 +9583,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Buenos_Aires"{
             ld{""}
@@ -9511,6 +9593,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Cambridge_Bay"{
             ld{""}
@@ -9520,6 +9603,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Campo_Grande"{
             ld{""}
@@ -9529,6 +9613,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Cancun"{
             ld{""}
@@ -9538,6 +9623,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Caracas"{
             ld{""}
@@ -9547,6 +9633,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Catamarca"{
             ld{""}
@@ -9556,6 +9643,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Cayenne"{
             ld{""}
@@ -9565,6 +9653,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Cayman"{
             ld{""}
@@ -9574,6 +9663,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Chicago"{
             ld{""}
@@ -9583,6 +9673,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Chihuahua"{
             ld{""}
@@ -9592,6 +9683,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
          "America:Coral_Harbour"{
             ld{""}
@@ -9601,6 +9693,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Cordoba"{
             ld{""}
@@ -9610,6 +9703,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Costa_Rica"{
             ld{""}
@@ -9619,6 +9713,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Cuiaba"{
             ld{""}
@@ -9628,6 +9723,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Curacao"{
             ld{""}
@@ -9637,6 +9733,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Danmarkshavn"{
             ld{""}
@@ -9646,6 +9743,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Dawson"{
             ld{""}
@@ -9655,6 +9753,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Dawson_Creek"{
             ld{""}
@@ -9664,6 +9763,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Denver"{
             ld{""}
@@ -9673,6 +9773,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Detroit"{
             ld{""}
@@ -9682,6 +9783,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Dominica"{
             ld{""}
@@ -9691,6 +9793,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Edmonton"{
             ld{""}
@@ -9700,6 +9803,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Eirunepe"{
             ld{""}
@@ -9709,6 +9813,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:El_Salvador"{
             ld{""}
@@ -9718,6 +9823,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Ensenada"{
             ld{""}
@@ -9727,6 +9833,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Fort_Wayne"{
             ld{""}
@@ -9736,6 +9843,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Fortaleza"{
             ld{""}
@@ -9745,6 +9853,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Glace_Bay"{
             ld{""}
@@ -9754,6 +9863,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Godthab"{
             ld{""}
@@ -9763,6 +9873,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Goose_Bay"{
             ld{""}
@@ -9772,6 +9883,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Grand_Turk"{
             ld{""}
@@ -9781,6 +9893,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Grenada"{
             ld{""}
@@ -9790,6 +9903,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Guadeloupe"{
             ld{""}
@@ -9799,6 +9913,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Guatemala"{
             ld{""}
@@ -9808,6 +9923,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Guayaquil"{
             ld{""}
@@ -9817,6 +9933,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Guyana"{
             ld{""}
@@ -9826,6 +9943,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Halifax"{
             ld{""}
@@ -9835,6 +9953,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Havana"{
             ld{""}
@@ -9844,6 +9963,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Hermosillo"{
             ld{""}
@@ -9853,6 +9973,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indiana:Indianapolis"{
             ld{""}
@@ -9862,6 +9983,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indiana:Knox"{
             ld{""}
@@ -9871,6 +9993,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indiana:Marengo"{
             ld{""}
@@ -9880,6 +10003,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indiana:Petersburg"{
             ld{""}
@@ -9889,6 +10013,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indiana:Tell_City"{
             ld{""}
@@ -9898,6 +10023,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indiana:Vevay"{
             ld{""}
@@ -9907,6 +10033,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indiana:Vincennes"{
             ld{""}
@@ -9916,6 +10043,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indiana:Winamac"{
             ld{""}
@@ -9925,6 +10053,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Indianapolis"{
             ld{""}
@@ -9934,6 +10063,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Inuvik"{
             ld{""}
@@ -9943,6 +10073,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Iqaluit"{
             ld{""}
@@ -9952,6 +10083,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Jamaica"{
             ld{""}
@@ -9961,6 +10093,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Jujuy"{
             ld{""}
@@ -9970,6 +10103,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Juneau"{
             ld{""}
@@ -9979,6 +10113,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Kentucky:Louisville"{
             ld{""}
@@ -9988,6 +10123,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Kentucky:Monticello"{
             ld{""}
@@ -9997,6 +10133,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Knox_IN"{
             ld{""}
@@ -10006,6 +10143,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:La_Paz"{
             ld{""}
@@ -10015,6 +10153,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Lima"{
             ld{""}
@@ -10024,6 +10163,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Los_Angeles"{
             ld{""}
@@ -10033,6 +10173,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Louisville"{
             ld{""}
@@ -10042,6 +10183,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Maceio"{
             ld{""}
@@ -10051,6 +10193,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Managua"{
             ld{""}
@@ -10060,6 +10203,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Manaus"{
             ld{""}
@@ -10069,6 +10213,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Martinique"{
             ld{""}
@@ -10078,6 +10223,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Mazatlan"{
             ld{""}
@@ -10087,6 +10233,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Mendoza"{
             ld{""}
@@ -10096,6 +10243,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Menominee"{
             ld{""}
@@ -10105,6 +10253,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Merida"{
             ld{""}
@@ -10114,6 +10263,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Mexico_City"{
             ld{""}
@@ -10123,6 +10273,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Miquelon"{
             ld{""}
@@ -10132,6 +10283,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Moncton"{
             ld{""}
@@ -10141,6 +10293,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Monterrey"{
             ld{""}
@@ -10150,6 +10303,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Montevideo"{
             ld{""}
@@ -10159,6 +10313,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Montreal"{
             ld{""}
@@ -10168,6 +10323,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Montserrat"{
             ld{""}
@@ -10177,6 +10333,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Nassau"{
             ld{""}
@@ -10186,6 +10343,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:New_York"{
             ld{""}
@@ -10195,6 +10353,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Nipigon"{
             ld{""}
@@ -10204,6 +10363,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Nome"{
             ld{""}
@@ -10213,6 +10373,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Noronha"{
             ld{""}
@@ -10222,6 +10383,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:North_Dakota:Center"{
             ld{""}
@@ -10231,6 +10393,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:North_Dakota:New_Salem"{
             ld{""}
@@ -10240,6 +10403,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Panama"{
             ld{""}
@@ -10249,6 +10413,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Pangnirtung"{
             ld{""}
@@ -10258,6 +10423,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Paramaribo"{
             ld{""}
@@ -10267,6 +10433,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Phoenix"{
             ld{""}
@@ -10276,6 +10443,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Port-au-Prince"{
             ld{""}
@@ -10285,6 +10453,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Port_of_Spain"{
             ld{""}
@@ -10294,6 +10463,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Porto_Acre"{
             ld{""}
@@ -10303,6 +10473,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Porto_Velho"{
             ld{""}
@@ -10312,6 +10483,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Puerto_Rico"{
             ld{""}
@@ -10321,6 +10493,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Rainy_River"{
             ld{""}
@@ -10330,6 +10503,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Rankin_Inlet"{
             ld{""}
@@ -10339,6 +10513,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Recife"{
             ld{""}
@@ -10348,6 +10523,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Regina"{
             ld{""}
@@ -10357,6 +10533,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Resolute"{
             ld{""}
@@ -10366,6 +10543,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Rio_Branco"{
             ld{""}
@@ -10375,6 +10553,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Rosario"{
             ld{""}
@@ -10384,6 +10563,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Santarem"{
             ld{""}
@@ -10393,6 +10573,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Santiago"{
             ld{""}
@@ -10402,6 +10583,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Santo_Domingo"{
             ld{""}
@@ -10411,6 +10593,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Sao_Paulo"{
             ld{""}
@@ -10420,6 +10603,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Scoresbysund"{
             ld{""}
@@ -10429,6 +10613,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Shiprock"{
             ld{""}
@@ -10438,6 +10623,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:St_Johns"{
             ld{""}
@@ -10447,6 +10633,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:St_Kitts"{
             ld{""}
@@ -10456,6 +10643,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:St_Lucia"{
             ld{""}
@@ -10465,6 +10653,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:St_Thomas"{
             ld{""}
@@ -10474,6 +10663,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:St_Vincent"{
             ld{""}
@@ -10483,6 +10673,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Swift_Current"{
             ld{""}
@@ -10492,6 +10683,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Tegucigalpa"{
             ld{""}
@@ -10501,6 +10693,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Thule"{
             ld{""}
@@ -10510,6 +10703,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Thunder_Bay"{
             ld{""}
@@ -10519,6 +10713,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Tijuana"{
             ld{""}
@@ -10528,6 +10723,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Toronto"{
             ld{""}
@@ -10537,6 +10733,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Tortola"{
             ld{""}
@@ -10546,6 +10743,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Vancouver"{
             ld{""}
@@ -10555,6 +10753,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Virgin"{
             ld{""}
@@ -10564,6 +10763,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Whitehorse"{
             ld{""}
@@ -10573,6 +10773,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Winnipeg"{
             ld{""}
@@ -10582,6 +10783,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Yakutat"{
             ld{""}
@@ -10591,6 +10793,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "America:Yellowknife"{
             ld{""}
@@ -10600,6 +10803,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:Casey"{
             ld{""}
@@ -10609,6 +10813,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:Davis"{
             ld{""}
@@ -10618,6 +10823,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:DumontDUrville"{
             ld{""}
@@ -10627,6 +10833,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:Mawson"{
             ld{""}
@@ -10636,6 +10843,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:McMurdo"{
             ld{""}
@@ -10645,6 +10853,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:Palmer"{
             ld{""}
@@ -10654,6 +10863,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:Rothera"{
             ld{""}
@@ -10663,6 +10873,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:South_Pole"{
             ld{""}
@@ -10672,6 +10883,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:Syowa"{
             ld{""}
@@ -10681,6 +10893,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Antarctica:Vostok"{
             ld{""}
@@ -10690,6 +10903,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Arctic:Longyearbyen"{
             ld{""}
@@ -10699,6 +10913,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Aden"{
             ld{""}
@@ -10708,6 +10923,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Almaty"{
             ld{""}
@@ -10717,6 +10933,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Amman"{
             ld{""}
@@ -10726,6 +10943,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Anadyr"{
             ld{""}
@@ -10735,6 +10953,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Aqtau"{
             ld{""}
@@ -10744,6 +10963,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Aqtobe"{
             ld{""}
@@ -10753,6 +10973,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Ashgabat"{
             ld{""}
@@ -10762,6 +10983,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Ashkhabad"{
             ld{""}
@@ -10771,6 +10993,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Baghdad"{
             ld{""}
@@ -10780,6 +11003,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Bahrain"{
             ld{""}
@@ -10789,6 +11013,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Baku"{
             ld{""}
@@ -10798,6 +11023,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Bangkok"{
             ld{""}
@@ -10807,6 +11033,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Beirut"{
             ld{""}
@@ -10816,6 +11043,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Bishkek"{
             ld{""}
@@ -10825,6 +11053,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Brunei"{
             ld{""}
@@ -10834,6 +11063,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Calcutta"{
             ld{""}
@@ -10843,6 +11073,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Choibalsan"{
             ld{""}
@@ -10852,6 +11083,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Chongqing"{
             ld{""}
@@ -10861,6 +11093,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Chungking"{
             ld{""}
@@ -10870,6 +11103,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Colombo"{
             ld{""}
@@ -10879,6 +11113,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Dacca"{
             ld{""}
@@ -10888,6 +11123,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Damascus"{
             ld{""}
@@ -10897,6 +11133,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Dhaka"{
             ld{""}
@@ -10906,6 +11143,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Dili"{
             ld{""}
@@ -10915,6 +11153,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Dubai"{
             ld{""}
@@ -10924,6 +11163,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Dushanbe"{
             ld{""}
@@ -10933,6 +11173,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Gaza"{
             ld{""}
@@ -10942,6 +11183,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Harbin"{
             ld{""}
@@ -10951,6 +11193,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Hong_Kong"{
             ld{""}
@@ -10960,6 +11203,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Hovd"{
             ld{""}
@@ -10969,6 +11213,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Irkutsk"{
             ld{""}
@@ -10978,6 +11223,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Istanbul"{
             ld{""}
@@ -10987,6 +11233,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Jakarta"{
             ld{""}
@@ -10996,6 +11243,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Jayapura"{
             ld{""}
@@ -11005,6 +11253,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Jerusalem"{
             ld{""}
@@ -11014,6 +11263,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Kabul"{
             ld{""}
@@ -11023,6 +11273,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Kamchatka"{
             ld{""}
@@ -11032,6 +11283,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Karachi"{
             ld{""}
@@ -11041,6 +11293,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Kashgar"{
             ld{""}
@@ -11050,6 +11303,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Katmandu"{
             ld{""}
@@ -11059,6 +11313,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Krasnoyarsk"{
             ld{""}
@@ -11068,6 +11323,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Kuala_Lumpur"{
             ld{""}
@@ -11077,6 +11333,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Kuching"{
             ld{""}
@@ -11086,6 +11343,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Kuwait"{
             ld{""}
@@ -11095,6 +11353,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Macao"{
             ld{""}
@@ -11104,6 +11363,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Macau"{
             ld{""}
@@ -11113,6 +11373,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Magadan"{
             ld{""}
@@ -11122,6 +11383,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Makassar"{
             ld{""}
@@ -11131,6 +11393,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Manila"{
             ld{""}
@@ -11140,6 +11403,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Muscat"{
             ld{""}
@@ -11149,6 +11413,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Nicosia"{
             ld{""}
@@ -11158,6 +11423,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Novosibirsk"{
             ld{""}
@@ -11167,6 +11433,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Omsk"{
             ld{""}
@@ -11176,6 +11443,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Oral"{
             ld{""}
@@ -11185,6 +11453,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Phnom_Penh"{
             ld{""}
@@ -11194,6 +11463,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Pontianak"{
             ld{""}
@@ -11203,6 +11473,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Pyongyang"{
             ld{""}
@@ -11212,6 +11483,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Qatar"{
             ld{""}
@@ -11221,6 +11493,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Qyzylorda"{
             ld{""}
@@ -11230,6 +11503,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Rangoon"{
             ld{""}
@@ -11239,6 +11513,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Riyadh"{
             ld{""}
@@ -11248,6 +11523,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Riyadh87"{
             ld{""}
@@ -11257,6 +11533,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Riyadh88"{
             ld{""}
@@ -11266,6 +11543,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Riyadh89"{
             ld{""}
@@ -11275,6 +11553,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Saigon"{
             ld{""}
@@ -11284,6 +11563,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Sakhalin"{
             ld{""}
@@ -11293,6 +11573,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Samarkand"{
             ld{""}
@@ -11302,6 +11583,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Seoul"{
             ld{""}
@@ -11311,6 +11593,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Shanghai"{
             ld{""}
@@ -11320,6 +11603,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Singapore"{
             ld{""}
@@ -11329,6 +11613,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Taipei"{
             ld{""}
@@ -11338,6 +11623,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Tashkent"{
             ld{""}
@@ -11347,6 +11633,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Tbilisi"{
             ld{""}
@@ -11356,6 +11643,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Tehran"{
             ld{""}
@@ -11365,6 +11653,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Tel_Aviv"{
             ld{""}
@@ -11374,6 +11663,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Thimbu"{
             ld{""}
@@ -11383,6 +11673,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Thimphu"{
             ld{""}
@@ -11392,6 +11683,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Tokyo"{
             ld{""}
@@ -11401,6 +11693,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Ujung_Pandang"{
             ld{""}
@@ -11410,6 +11703,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Ulaanbaatar"{
             ld{""}
@@ -11419,6 +11713,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Ulan_Bator"{
             ld{""}
@@ -11428,6 +11723,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Urumqi"{
             ld{""}
@@ -11437,6 +11733,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Vientiane"{
             ld{""}
@@ -11446,6 +11743,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Vladivostok"{
             ld{""}
@@ -11455,6 +11753,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Yakutsk"{
             ld{""}
@@ -11464,6 +11763,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Yekaterinburg"{
             ld{""}
@@ -11473,6 +11773,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Asia:Yerevan"{
             ld{""}
@@ -11482,6 +11783,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Azores"{
             ld{""}
@@ -11491,6 +11793,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Bermuda"{
             ld{""}
@@ -11500,6 +11803,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Canary"{
             ld{""}
@@ -11509,6 +11813,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Cape_Verde"{
             ld{""}
@@ -11518,6 +11823,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Faeroe"{
             ld{""}
@@ -11527,6 +11833,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Jan_Mayen"{
             ld{""}
@@ -11536,6 +11843,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Madeira"{
             ld{""}
@@ -11545,6 +11853,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Reykjavik"{
             ld{""}
@@ -11554,6 +11863,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:South_Georgia"{
             ld{""}
@@ -11563,6 +11873,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:St_Helena"{
             ld{""}
@@ -11572,6 +11883,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Atlantic:Stanley"{
             ld{""}
@@ -11581,6 +11893,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:ACT"{
             ld{""}
@@ -11590,6 +11903,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Adelaide"{
             ld{""}
@@ -11599,6 +11913,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Brisbane"{
             ld{""}
@@ -11608,6 +11923,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Broken_Hill"{
             ld{""}
@@ -11617,6 +11933,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Canberra"{
             ld{""}
@@ -11626,6 +11943,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Currie"{
             ld{""}
@@ -11635,6 +11953,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Darwin"{
             ld{""}
@@ -11644,6 +11963,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Eucla"{
             ld{""}
@@ -11653,6 +11973,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Hobart"{
             ld{""}
@@ -11662,6 +11983,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:LHI"{
             ld{""}
@@ -11671,6 +11993,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Lindeman"{
             ld{""}
@@ -11680,6 +12003,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Lord_Howe"{
             ld{""}
@@ -11689,6 +12013,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Melbourne"{
             ld{""}
@@ -11698,6 +12023,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:NSW"{
             ld{""}
@@ -11707,6 +12033,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:North"{
             ld{""}
@@ -11716,6 +12043,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Perth"{
             ld{""}
@@ -11725,6 +12053,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Queensland"{
             ld{""}
@@ -11734,6 +12063,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:South"{
             ld{""}
@@ -11743,6 +12073,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Sydney"{
             ld{""}
@@ -11752,6 +12083,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Tasmania"{
             ld{""}
@@ -11761,6 +12093,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Victoria"{
             ld{""}
@@ -11770,6 +12103,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:West"{
             ld{""}
@@ -11779,6 +12113,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Australia:Yancowinna"{
             ld{""}
@@ -11788,6 +12123,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "BET"{
             ld{""}
@@ -11797,6 +12133,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "BST"{
             ld{""}
@@ -11806,6 +12143,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Brazil:Acre"{
             ld{""}
@@ -11815,6 +12153,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Brazil:DeNoronha"{
             ld{""}
@@ -11824,6 +12163,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Brazil:East"{
             ld{""}
@@ -11833,6 +12173,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Brazil:West"{
             ld{""}
@@ -11842,6 +12183,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "CAT"{
             ld{""}
@@ -11851,6 +12193,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "CET"{
             ld{""}
@@ -11860,6 +12203,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "CNT"{
             ld{""}
@@ -11869,6 +12213,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "CST"{
             ld{""}
@@ -11878,6 +12223,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "CST6CDT"{
             ld{""}
@@ -11887,6 +12233,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "CTT"{
             ld{""}
@@ -11896,6 +12243,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:Atlantic"{
             ld{""}
@@ -11905,6 +12253,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:Central"{
             ld{""}
@@ -11914,6 +12263,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:East-Saskatchewan"{
             ld{""}
@@ -11923,6 +12273,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:Eastern"{
             ld{""}
@@ -11932,6 +12283,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:Mountain"{
             ld{""}
@@ -11941,6 +12293,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:Newfoundland"{
             ld{""}
@@ -11950,6 +12303,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:Pacific"{
             ld{""}
@@ -11959,6 +12313,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:Saskatchewan"{
             ld{""}
@@ -11968,6 +12323,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Canada:Yukon"{
             ld{""}
@@ -11977,6 +12333,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Chile:Continental"{
             ld{""}
@@ -11986,6 +12343,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Chile:EasterIsland"{
             ld{""}
@@ -11995,6 +12353,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Cuba"{
             ld{""}
@@ -12004,6 +12363,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "EAT"{
             ld{""}
@@ -12013,6 +12373,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "ECT"{
             ld{""}
@@ -12022,6 +12383,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "EET"{
             ld{""}
@@ -12031,6 +12393,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "EST"{
             ld{""}
@@ -12040,6 +12403,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "EST5EDT"{
             ld{""}
@@ -12049,6 +12413,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Egypt"{
             ld{""}
@@ -12058,6 +12423,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Eire"{
             ld{""}
@@ -12067,6 +12433,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT"{
             ld{""}
@@ -12076,6 +12443,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+0"{
             ld{""}
@@ -12085,6 +12453,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+1"{
             ld{""}
@@ -12094,6 +12463,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+10"{
             ld{""}
@@ -12103,6 +12473,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+11"{
             ld{""}
@@ -12112,6 +12483,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+12"{
             ld{""}
@@ -12121,6 +12493,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+2"{
             ld{""}
@@ -12130,6 +12503,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+3"{
             ld{""}
@@ -12139,6 +12513,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+4"{
             ld{""}
@@ -12148,6 +12523,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+5"{
             ld{""}
@@ -12157,6 +12533,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+6"{
             ld{""}
@@ -12166,6 +12543,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+7"{
             ld{""}
@@ -12175,6 +12553,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+8"{
             ld{""}
@@ -12184,6 +12563,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT+9"{
             ld{""}
@@ -12193,6 +12573,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-0"{
             ld{""}
@@ -12202,6 +12583,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-1"{
             ld{""}
@@ -12211,6 +12593,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-10"{
             ld{""}
@@ -12220,6 +12603,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-11"{
             ld{""}
@@ -12229,6 +12613,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-12"{
             ld{""}
@@ -12238,6 +12623,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-13"{
             ld{""}
@@ -12247,6 +12633,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-14"{
             ld{""}
@@ -12256,6 +12643,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-2"{
             ld{""}
@@ -12265,6 +12653,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-3"{
             ld{""}
@@ -12274,6 +12663,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-4"{
             ld{""}
@@ -12283,6 +12673,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-5"{
             ld{""}
@@ -12292,6 +12683,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-6"{
             ld{""}
@@ -12301,6 +12693,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-7"{
             ld{""}
@@ -12310,6 +12703,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-8"{
             ld{""}
@@ -12319,6 +12713,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT-9"{
             ld{""}
@@ -12328,6 +12723,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:GMT0"{
             ld{""}
@@ -12337,6 +12733,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:Greenwich"{
             ld{""}
@@ -12346,6 +12743,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:UCT"{
             ld{""}
@@ -12355,6 +12753,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:UTC"{
             ld{""}
@@ -12364,6 +12763,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:Universal"{
             ld{""}
@@ -12373,6 +12773,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:Unknown"{
             ld{""}
@@ -12382,6 +12783,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Etc:Zulu"{
             ld{""}
@@ -12391,6 +12793,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Amsterdam"{
             ld{""}
@@ -12400,6 +12803,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Andorra"{
             ld{""}
@@ -12409,6 +12813,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Athens"{
             ld{""}
@@ -12418,6 +12823,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Belfast"{
             ld{""}
@@ -12427,6 +12833,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Belgrade"{
             ld{""}
@@ -12436,6 +12843,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Berlin"{
             ld{""}
@@ -12445,6 +12853,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Bratislava"{
             ld{""}
@@ -12454,6 +12863,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Brussels"{
             ld{""}
@@ -12463,6 +12873,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Bucharest"{
             ld{""}
@@ -12472,6 +12883,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Budapest"{
             ld{""}
@@ -12481,6 +12893,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Chisinau"{
             ld{""}
@@ -12490,6 +12903,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Copenhagen"{
             ld{""}
@@ -12499,6 +12913,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Dublin"{
             ld{""}
@@ -12508,6 +12923,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Gibraltar"{
             ld{""}
@@ -12517,6 +12933,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Helsinki"{
             ld{""}
@@ -12535,6 +12952,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Kaliningrad"{
             ld{""}
@@ -12544,6 +12962,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Kiev"{
             ld{""}
@@ -12553,6 +12972,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Lisbon"{
             ld{""}
@@ -12562,6 +12982,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Ljubljana"{
             ld{""}
@@ -12571,6 +12992,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:London"{
             ld{""}
@@ -12580,6 +13002,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Luxembourg"{
             ld{""}
@@ -12589,6 +13012,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Madrid"{
             ld{""}
@@ -12598,6 +13022,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Malta"{
             ld{""}
@@ -12607,6 +13032,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Mariehamn"{
             ld{""}
@@ -12616,6 +13042,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Minsk"{
             ld{""}
@@ -12625,6 +13052,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Monaco"{
             ld{""}
@@ -12634,6 +13062,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Moscow"{
             ld{""}
@@ -12643,6 +13072,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Nicosia"{
             ld{""}
@@ -12652,6 +13082,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Oslo"{
             ld{""}
@@ -12661,6 +13092,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Paris"{
             ld{""}
@@ -12670,6 +13102,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Podgorica"{
             ld{""}
@@ -12679,6 +13112,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Prague"{
             ld{""}
@@ -12688,6 +13122,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Riga"{
             ld{""}
@@ -12697,6 +13132,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Rome"{
             ld{""}
@@ -12706,6 +13142,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Samara"{
             ld{""}
@@ -12715,6 +13152,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:San_Marino"{
             ld{""}
@@ -12724,6 +13162,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Sarajevo"{
             ld{""}
@@ -12733,6 +13172,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Simferopol"{
             ld{""}
@@ -12742,6 +13182,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Skopje"{
             ld{""}
@@ -12751,6 +13192,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Sofia"{
             ld{""}
@@ -12760,6 +13202,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Stockholm"{
             ld{""}
@@ -12769,6 +13212,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Tallinn"{
             ld{""}
@@ -12778,6 +13222,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Tirane"{
             ld{""}
@@ -12787,6 +13232,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Tiraspol"{
             ld{""}
@@ -12796,6 +13242,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Uzhgorod"{
             ld{""}
@@ -12805,6 +13252,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Vaduz"{
             ld{""}
@@ -12814,6 +13262,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Vatican"{
             ld{""}
@@ -12823,6 +13272,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Vienna"{
             ld{""}
@@ -12832,6 +13282,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Vilnius"{
             ld{""}
@@ -12841,6 +13292,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Volgograd"{
             ld{""}
@@ -12850,6 +13302,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Warsaw"{
             ld{""}
@@ -12859,6 +13312,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Zagreb"{
             ld{""}
@@ -12868,6 +13322,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Zaporozhye"{
             ld{""}
@@ -12877,6 +13332,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Europe:Zurich"{
             ld{""}
@@ -12886,6 +13342,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Factory"{
             ld{""}
@@ -12895,6 +13352,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "GB"{
             ld{""}
@@ -12904,6 +13362,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "GB-Eire"{
             ld{""}
@@ -12913,6 +13372,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "GMT"{
             ld{""}
@@ -12922,6 +13382,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "GMT+0"{
             ld{""}
@@ -12931,6 +13392,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "GMT-0"{
             ld{""}
@@ -12940,6 +13402,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "GMT0"{
             ld{""}
@@ -12949,6 +13412,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Greenwich"{
             ld{""}
@@ -12958,6 +13422,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "HST"{
             ld{""}
@@ -12967,6 +13432,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Hongkong"{
             ld{""}
@@ -12976,6 +13442,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "IET"{
             ld{""}
@@ -12985,6 +13452,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "IST"{
             ld{""}
@@ -12994,6 +13462,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Iceland"{
             ld{""}
@@ -13003,6 +13472,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Antananarivo"{
             ld{""}
@@ -13012,6 +13482,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Chagos"{
             ld{""}
@@ -13021,6 +13492,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Christmas"{
             ld{""}
@@ -13030,6 +13502,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Cocos"{
             ld{""}
@@ -13039,6 +13512,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Comoro"{
             ld{""}
@@ -13048,6 +13522,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Kerguelen"{
             ld{""}
@@ -13057,6 +13532,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Mahe"{
             ld{""}
@@ -13066,6 +13542,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Maldives"{
             ld{""}
@@ -13075,6 +13552,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Mauritius"{
             ld{""}
@@ -13084,6 +13562,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Mayotte"{
             ld{""}
@@ -13093,6 +13572,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Indian:Reunion"{
             ld{""}
@@ -13102,6 +13582,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Iran"{
             ld{""}
@@ -13111,6 +13592,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Israel"{
             ld{""}
@@ -13120,6 +13602,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "JST"{
             ld{""}
@@ -13129,6 +13612,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Jamaica"{
             ld{""}
@@ -13138,6 +13622,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Japan"{
             ld{""}
@@ -13147,6 +13632,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Kwajalein"{
             ld{""}
@@ -13156,6 +13642,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Libya"{
             ld{""}
@@ -13165,6 +13652,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "MET"{
             ld{""}
@@ -13174,6 +13662,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "MIT"{
             ld{""}
@@ -13183,6 +13672,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "MST"{
             ld{""}
@@ -13192,6 +13682,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "MST7MDT"{
             ld{""}
@@ -13201,6 +13692,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Mexico:BajaNorte"{
             ld{""}
@@ -13210,6 +13702,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Mexico:BajaSur"{
             ld{""}
@@ -13219,6 +13712,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Mexico:General"{
             ld{""}
@@ -13228,6 +13722,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Mideast:Riyadh87"{
             ld{""}
@@ -13237,6 +13732,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Mideast:Riyadh88"{
             ld{""}
@@ -13246,6 +13742,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Mideast:Riyadh89"{
             ld{""}
@@ -13255,6 +13752,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "NET"{
             ld{""}
@@ -13264,6 +13762,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "NST"{
             ld{""}
@@ -13273,6 +13772,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "NZ"{
             ld{""}
@@ -13282,6 +13782,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "NZ-CHAT"{
             ld{""}
@@ -13291,6 +13792,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Navajo"{
             ld{""}
@@ -13300,6 +13802,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "PLT"{
             ld{""}
@@ -13309,6 +13812,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "PNT"{
             ld{""}
@@ -13318,6 +13822,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "PRC"{
             ld{""}
@@ -13327,6 +13832,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "PRT"{
             ld{""}
@@ -13336,6 +13842,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "PST"{
             ld{""}
@@ -13345,6 +13852,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "PST8PDT"{
             ld{""}
@@ -13354,6 +13862,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Apia"{
             ld{""}
@@ -13363,6 +13872,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Auckland"{
             ld{""}
@@ -13372,6 +13882,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Chatham"{
             ld{""}
@@ -13381,6 +13892,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Easter"{
             ld{""}
@@ -13390,6 +13902,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Efate"{
             ld{""}
@@ -13399,6 +13912,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Enderbury"{
             ld{""}
@@ -13408,6 +13922,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Fakaofo"{
             ld{""}
@@ -13417,6 +13932,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Fiji"{
             ld{""}
@@ -13426,6 +13942,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Funafuti"{
             ld{""}
@@ -13435,6 +13952,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Galapagos"{
             ld{""}
@@ -13444,6 +13962,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Gambier"{
             ld{""}
@@ -13453,6 +13972,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Guadalcanal"{
             ld{""}
@@ -13462,6 +13982,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Guam"{
             ld{""}
@@ -13471,6 +13992,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Honolulu"{
             ld{""}
@@ -13480,6 +14002,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Johnston"{
             ld{""}
@@ -13489,6 +14012,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Kiritimati"{
             ld{""}
@@ -13498,6 +14022,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Kosrae"{
             ld{""}
@@ -13507,6 +14032,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Kwajalein"{
             ld{""}
@@ -13516,6 +14042,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Majuro"{
             ld{""}
@@ -13525,6 +14052,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Marquesas"{
             ld{""}
@@ -13534,6 +14062,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Midway"{
             ld{""}
@@ -13543,6 +14072,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Nauru"{
             ld{""}
@@ -13552,6 +14082,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Niue"{
             ld{""}
@@ -13561,6 +14092,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Norfolk"{
             ld{""}
@@ -13570,6 +14102,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Noumea"{
             ld{""}
@@ -13579,6 +14112,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Pago_Pago"{
             ld{""}
@@ -13588,6 +14122,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Palau"{
             ld{""}
@@ -13597,6 +14132,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Pitcairn"{
             ld{""}
@@ -13606,6 +14142,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Ponape"{
             ld{""}
@@ -13615,6 +14152,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Port_Moresby"{
             ld{""}
@@ -13624,6 +14162,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Rarotonga"{
             ld{""}
@@ -13633,6 +14172,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Saipan"{
             ld{""}
@@ -13642,6 +14182,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Samoa"{
             ld{""}
@@ -13651,6 +14192,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Tahiti"{
             ld{""}
@@ -13660,6 +14202,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Tarawa"{
             ld{""}
@@ -13669,6 +14212,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Tongatapu"{
             ld{""}
@@ -13678,6 +14222,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Truk"{
             ld{""}
@@ -13687,6 +14232,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Wake"{
             ld{""}
@@ -13696,6 +14242,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Wallis"{
             ld{""}
@@ -13705,6 +14252,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Pacific:Yap"{
             ld{""}
@@ -13714,6 +14262,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Poland"{
             ld{""}
@@ -13723,6 +14272,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Portugal"{
             ld{""}
@@ -13732,6 +14282,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "ROC"{
             ld{""}
@@ -13741,6 +14292,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "ROK"{
             ld{""}
@@ -13750,6 +14302,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SST"{
             ld{""}
@@ -13759,6 +14312,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Singapore"{
             ld{""}
@@ -13768,6 +14322,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:AST4"{
             ld{""}
@@ -13777,6 +14332,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:AST4ADT"{
             ld{""}
@@ -13786,6 +14342,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:CST6"{
             ld{""}
@@ -13795,6 +14352,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:CST6CDT"{
             ld{""}
@@ -13804,6 +14362,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:EST5"{
             ld{""}
@@ -13813,6 +14372,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:EST5EDT"{
             ld{""}
@@ -13822,6 +14382,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:HST10"{
             ld{""}
@@ -13831,6 +14392,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:MST7"{
             ld{""}
@@ -13840,6 +14402,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:MST7MDT"{
             ld{""}
@@ -13849,6 +14412,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:PST8"{
             ld{""}
@@ -13858,6 +14422,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:PST8PDT"{
             ld{""}
@@ -13867,6 +14432,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:YST9"{
             ld{""}
@@ -13876,6 +14442,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "SystemV:YST9YDT"{
             ld{""}
@@ -13885,6 +14452,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Turkey"{
             ld{""}
@@ -13894,6 +14462,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "UCT"{
             ld{""}
@@ -13903,6 +14472,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Alaska"{
             ld{""}
@@ -13912,6 +14482,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Aleutian"{
             ld{""}
@@ -13921,6 +14492,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Arizona"{
             ld{""}
@@ -13930,6 +14502,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Central"{
             ld{""}
@@ -13939,6 +14512,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:East-Indiana"{
             ld{""}
@@ -13948,6 +14522,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Eastern"{
             ld{""}
@@ -13957,6 +14532,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Hawaii"{
             ld{""}
@@ -13966,6 +14542,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Indiana-Starke"{
             ld{""}
@@ -13975,6 +14552,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Michigan"{
             ld{""}
@@ -13984,6 +14562,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Mountain"{
             ld{""}
@@ -13993,6 +14572,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Pacific"{
             ld{""}
@@ -14002,6 +14582,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Pacific-New"{
             ld{""}
@@ -14011,6 +14592,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "US:Samoa"{
             ld{""}
@@ -14020,6 +14602,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "UTC"{
             ld{""}
@@ -14029,6 +14612,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Universal"{
             ld{""}
@@ -14038,6 +14622,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "VST"{
             ld{""}
@@ -14047,6 +14632,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "W-SU"{
             ld{""}
@@ -14056,6 +14642,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "WET"{
             ld{""}
@@ -14065,6 +14652,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "Zulu"{
             ld{""}
@@ -14074,6 +14662,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             ec{""}
+            cu:int{0}
         }
         "meta:Acre"{
             ld{""}
@@ -14083,6 +14672,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Afghanistan"{
             ld{""}
@@ -14092,6 +14682,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Africa_Central"{
             ld{""}
@@ -14101,6 +14692,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Africa_Eastern"{
             ld{""}
@@ -14110,6 +14702,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Africa_FarWestern"{
             ld{""}
@@ -14119,6 +14712,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Africa_Southern"{
             ld{""}
@@ -14128,6 +14722,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Africa_Western"{
             ld{""}
@@ -14137,6 +14732,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Aktyubinsk"{
             ld{""}
@@ -14146,6 +14742,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Alaska"{
             ld{""}
@@ -14155,6 +14752,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Alaska_Hawaii"{
             ld{""}
@@ -14164,6 +14762,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Almaty"{
             ld{""}
@@ -14173,6 +14772,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Amazon"{
             ld{""}
@@ -14182,6 +14782,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:America_Central"{
             ld{""}
@@ -14191,6 +14792,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:America_Eastern"{
             ld{""}
@@ -14200,6 +14802,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:America_Mountain"{
             ld{""}
@@ -14209,6 +14812,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:America_Pacific"{
             ld{""}
@@ -14218,6 +14822,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Anadyr"{
             ld{""}
@@ -14227,6 +14832,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Aqtau"{
             ld{""}
@@ -14236,6 +14842,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Aqtobe"{
             ld{""}
@@ -14245,6 +14852,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Arabian"{
             ld{""}
@@ -14254,6 +14862,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Argentina"{
             ld{""}
@@ -14263,6 +14872,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Argentina_Western"{
             ld{""}
@@ -14272,6 +14882,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Armenia"{
             ld{""}
@@ -14281,6 +14892,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Ashkhabad"{
             ld{""}
@@ -14290,6 +14902,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Atlantic"{
             ld{""}
@@ -14299,6 +14912,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Australia_Central"{
             ld{""}
@@ -14308,6 +14922,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Australia_CentralWestern"{
             ld{""}
@@ -14317,6 +14932,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Australia_Eastern"{
             ld{""}
@@ -14326,6 +14942,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Australia_Western"{
             ld{""}
@@ -14335,6 +14952,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Azerbaijan"{
             ld{""}
@@ -14344,6 +14962,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Azores"{
             ld{""}
@@ -14353,6 +14972,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Baku"{
             ld{""}
@@ -14362,6 +14982,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Bangladesh"{
             ld{""}
@@ -14371,6 +14992,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Bering"{
             ld{""}
@@ -14380,6 +15002,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Bhutan"{
             ld{""}
@@ -14389,6 +15012,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Bolivia"{
             ld{""}
@@ -14398,6 +15022,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Borneo"{
             ld{""}
@@ -14407,6 +15032,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Brasilia"{
             ld{""}
@@ -14416,6 +15042,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:British"{
             ld{""}
@@ -14425,6 +15052,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Brunei"{
             ld{""}
@@ -14434,6 +15062,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Cape_Verde"{
             ld{""}
@@ -14443,6 +15072,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Chamorro"{
             ld{""}
@@ -14452,6 +15082,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Changbai"{
             ld{""}
@@ -14461,6 +15092,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Chatham"{
             ld{""}
@@ -14470,6 +15102,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Chile"{
             ld{""}
@@ -14479,6 +15112,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:China"{
             ld{""}
@@ -14488,6 +15122,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Choibalsan"{
             ld{""}
@@ -14497,6 +15132,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Christmas"{
             ld{""}
@@ -14506,6 +15142,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Cocos"{
             ld{""}
@@ -14515,6 +15152,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Colombia"{
             ld{""}
@@ -14524,6 +15162,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Cook"{
             ld{""}
@@ -14533,6 +15172,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Cuba"{
             ld{""}
@@ -14542,6 +15182,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Dacca"{
             ld{""}
@@ -14551,6 +15192,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Davis"{
             ld{""}
@@ -14560,6 +15202,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Dominican"{
             ld{""}
@@ -14569,6 +15212,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:DumontDUrville"{
             ld{""}
@@ -14578,6 +15222,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Dushanbe"{
             ld{""}
@@ -14587,6 +15232,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Dutch_Guiana"{
             ld{""}
@@ -14596,6 +15242,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Easter"{
             ld{""}
@@ -14605,6 +15252,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:East_Timor"{
             ld{""}
@@ -14614,6 +15262,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Ecuador"{
             ld{""}
@@ -14623,6 +15272,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Europe_Central"{
             ld{""}
@@ -14632,6 +15282,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Europe_Eastern"{
             ld{""}
@@ -14641,6 +15292,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Europe_Western"{
             ld{""}
@@ -14650,6 +15302,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Falkland"{
             ld{""}
@@ -14659,6 +15312,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Fiji"{
             ld{""}
@@ -14668,6 +15322,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:French_Guiana"{
             ld{""}
@@ -14677,6 +15332,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:French_Southern"{
             ld{""}
@@ -14686,6 +15342,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Frunze"{
             ld{""}
@@ -14695,6 +15352,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:GMT"{
             ld{""}
@@ -14704,6 +15362,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Galapagos"{
             ld{""}
@@ -14713,6 +15372,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Gambier"{
             ld{""}
@@ -14722,6 +15382,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Georgia"{
             ld{""}
@@ -14731,6 +15392,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Goose_Bay"{
             ld{""}
@@ -14740,6 +15402,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Greenland_Central"{
             ld{""}
@@ -14749,6 +15412,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Greenland_Eastern"{
             ld{""}
@@ -14758,6 +15422,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Greenland_Western"{
             ld{""}
@@ -14767,6 +15432,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Gilbert_Islands"{
             ld{""}
@@ -14776,6 +15442,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Guam"{
             ld{""}
@@ -14785,6 +15452,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Gulf"{
             ld{""}
@@ -14794,6 +15462,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Guyana"{
             ld{""}
@@ -14803,6 +15472,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Hawaii"{
             ld{""}
@@ -14812,6 +15482,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Hawaii_Aleutian"{
             ld{""}
@@ -14821,6 +15492,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Hong_Kong"{
             ld{""}
@@ -14830,6 +15502,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Hovd"{
             ld{""}
@@ -14839,6 +15512,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:India"{
             ld{""}
@@ -14848,6 +15522,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Indian_Ocean"{
             ld{""}
@@ -14857,6 +15532,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Indochina"{
             ld{""}
@@ -14866,6 +15542,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Indonesia_Central"{
             ld{""}
@@ -14875,6 +15552,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Indonesia_Eastern"{
             ld{""}
@@ -14884,6 +15562,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Indonesia_Western"{
             ld{""}
@@ -14893,6 +15572,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Iran"{
             ld{""}
@@ -14902,6 +15582,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Irish"{
             ld{""}
@@ -14911,6 +15592,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Irkutsk"{
             ld{""}
@@ -14920,6 +15602,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Israel"{
             ld{""}
@@ -14929,6 +15612,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Japan"{
             ld{""}
@@ -14938,6 +15622,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kamchatka"{
             ld{""}
@@ -14947,6 +15632,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Karachi"{
             ld{""}
@@ -14956,6 +15642,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kashgar"{
             ld{""}
@@ -14965,6 +15652,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kazakhstan_Eastern"{
             ld{""}
@@ -14974,6 +15662,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kazakhstan_Western"{
             ld{""}
@@ -14983,6 +15672,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kizilorda"{
             ld{""}
@@ -14992,6 +15682,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Korea"{
             ld{""}
@@ -15001,6 +15692,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kosrae"{
             ld{""}
@@ -15010,6 +15702,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Krasnoyarsk"{
             ld{""}
@@ -15019,6 +15712,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kuybyshev"{
             ld{""}
@@ -15028,6 +15722,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kwajalein"{
             ld{""}
@@ -15037,6 +15732,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Kyrgystan"{
             ld{""}
@@ -15046,6 +15742,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Lanka"{
             ld{""}
@@ -15055,6 +15752,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Liberia"{
             ld{""}
@@ -15064,6 +15762,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Line_Islands"{
             ld{""}
@@ -15073,6 +15772,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Long_Shu"{
             ld{""}
@@ -15082,6 +15782,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Lord_Howe"{
             ld{""}
@@ -15091,6 +15792,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Macau"{
             ld{""}
@@ -15100,6 +15802,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Magadan"{
             ld{""}
@@ -15109,6 +15812,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Malaya"{
             ld{""}
@@ -15118,6 +15822,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Maldives"{
             ld{""}
@@ -15127,6 +15832,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Malaysia"{
             ld{""}
@@ -15136,6 +15842,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Marquesas"{
             ld{""}
@@ -15145,6 +15852,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Marshall_Islands"{
             ld{""}
@@ -15154,6 +15862,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Mauritius"{
             ld{""}
@@ -15163,6 +15872,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Mongolia"{
             ld{""}
@@ -15172,6 +15882,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Moscow"{
             ld{""}
@@ -15181,6 +15892,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Mawson"{
             ld{""}
@@ -15190,6 +15902,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Myanmar"{
             ld{""}
@@ -15199,6 +15912,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Nauru"{
             ld{""}
@@ -15208,6 +15922,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:New_Caledonia"{
             ld{""}
@@ -15217,6 +15932,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:New_Zealand"{
             ld{""}
@@ -15226,6 +15942,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Newfoundland"{
             ld{""}
@@ -15235,6 +15952,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Nepal"{
             ld{""}
@@ -15244,6 +15962,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Niue"{
             ld{""}
@@ -15253,6 +15972,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Norfolk"{
             ld{""}
@@ -15262,6 +15982,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Noronha"{
             ld{""}
@@ -15271,6 +15992,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:North_Mariana"{
             ld{""}
@@ -15280,6 +16002,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Novosibirsk"{
             ld{""}
@@ -15289,6 +16012,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Omsk"{
             ld{""}
@@ -15298,6 +16022,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Oral"{
             ld{""}
@@ -15307,6 +16032,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Palau"{
             ld{""}
@@ -15316,6 +16042,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Pakistan"{
             ld{""}
@@ -15325,6 +16052,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Papua_New_Guinea"{
             ld{""}
@@ -15334,6 +16062,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Paraguay"{
             ld{""}
@@ -15343,6 +16072,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Peru"{
             ld{""}
@@ -15352,6 +16082,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Philippines"{
             ld{""}
@@ -15361,6 +16092,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Phoenix_Islands"{
             ld{""}
@@ -15370,6 +16102,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Pierre_Miquelon"{
             ld{""}
@@ -15379,6 +16112,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Pitcairn"{
             ld{""}
@@ -15388,6 +16122,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Ponape"{
             ld{""}
@@ -15397,6 +16132,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Qyzylorda"{
             ld{""}
@@ -15406,6 +16142,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Reunion"{
             ld{""}
@@ -15415,6 +16152,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Rothera"{
             ld{""}
@@ -15424,6 +16162,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Sakhalin"{
             ld{""}
@@ -15433,6 +16172,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Samara"{
             ld{""}
@@ -15442,6 +16182,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Samarkand"{
             ld{""}
@@ -15451,6 +16192,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Samoa"{
             ld{""}
@@ -15460,6 +16202,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Seychelles"{
             ld{""}
@@ -15469,6 +16212,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Shevchenko"{
             ld{""}
@@ -15478,6 +16222,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Singapore"{
             ld{""}
@@ -15487,6 +16232,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Solomon"{
             ld{""}
@@ -15496,6 +16242,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:South_Georgia"{
             ld{""}
@@ -15505,6 +16252,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Suriname"{
             ld{""}
@@ -15514,6 +16262,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Sverdlovsk"{
             ld{""}
@@ -15523,6 +16272,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Syowa"{
             ld{""}
@@ -15532,6 +16282,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Tahiti"{
             ld{""}
@@ -15541,6 +16292,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Taipei"{
             ld{""}
@@ -15550,6 +16302,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Tajikistan"{
             ld{""}
@@ -15559,6 +16312,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Tashkent"{
             ld{""}
@@ -15568,6 +16322,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Tbilisi"{
             ld{""}
@@ -15577,6 +16332,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Tokelau"{
             ld{""}
@@ -15586,6 +16342,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Tonga"{
             ld{""}
@@ -15595,6 +16352,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Truk"{
             ld{""}
@@ -15604,6 +16362,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Turkey"{
             ld{""}
@@ -15613,6 +16372,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Turkmenistan"{
             ld{""}
@@ -15622,6 +16382,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Tuvalu"{
             ld{""}
@@ -15631,6 +16392,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Uralsk"{
             ld{""}
@@ -15640,6 +16402,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Uruguay"{
             ld{""}
@@ -15649,6 +16412,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Urumqi"{
             ld{""}
@@ -15658,6 +16422,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Uzbekistan"{
             ld{""}
@@ -15667,6 +16432,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Vanuatu"{
             ld{""}
@@ -15676,6 +16442,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Venezuela"{
             ld{""}
@@ -15685,6 +16452,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Vladivostok"{
             ld{""}
@@ -15694,6 +16462,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Volgograd"{
             ld{""}
@@ -15703,6 +16472,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Vostok"{
             ld{""}
@@ -15712,6 +16482,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Wake"{
             ld{""}
@@ -15721,6 +16492,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Wallis"{
             ld{""}
@@ -15730,6 +16502,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Yakutsk"{
             ld{""}
@@ -15739,6 +16512,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Yekaterinburg"{
             ld{""}
@@ -15748,6 +16522,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Yerevan"{
             ld{""}
@@ -15757,6 +16532,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
         "meta:Yukon"{
             ld{""}
@@ -15766,6 +16542,7 @@ structLocale:table(nofallback){
             sg{""}
             ss{""}
             //ec{""} // Metazones have no exemplar city
+            cu:int{0}
         }
     }
 }
