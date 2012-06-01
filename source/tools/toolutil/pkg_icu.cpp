@@ -1,5 +1,5 @@
 /******************************************************************************
- *   Copyright (C) 2008-2012, International Business Machines
+ *   Copyright (C) 2008-2009, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  *******************************************************************************
  */
@@ -56,8 +56,8 @@ isListTextFile(const char *listname) {
  * Otherwise, read the file itself as a single-item list.
  */
 U_CAPI Package * U_EXPORT2
-readList(const char *filesPath, const char *listname, UBool readContents, Package *listPkgIn) {
-    Package *listPkg = listPkgIn;
+readList(const char *filesPath, const char *listname, UBool readContents) {
+    Package *listPkg;
     FILE *file;
     const char *listNameEnd;
 
@@ -66,12 +66,10 @@ readList(const char *filesPath, const char *listname, UBool readContents, Packag
         return NULL;
     }
 
-    if (listPkg == NULL) {
-        listPkg=new Package();
-        if(listPkg==NULL) {
-            fprintf(stderr, "icupkg: not enough memory\n");
-            exit(U_MEMORY_ALLOCATION_ERROR);
-        }
+    listPkg=new Package();
+    if(listPkg==NULL) {
+        fprintf(stderr, "icupkg: not enough memory\n");
+        exit(U_MEMORY_ALLOCATION_ERROR);
     }
 
     listNameEnd=strchr(listname, 0);
@@ -160,7 +158,7 @@ writePackageDatFile(const char *outFilename, const char *outComment, const char 
             return U_MEMORY_ALLOCATION_ERROR;
         }
 
-        addListPkg = readList(sourcePath, addList, TRUE, NULL);
+        addListPkg = readList(sourcePath, addList, TRUE);
         if(addListPkg != NULL) {
             pkg->addItems(*addListPkg);
         } else {

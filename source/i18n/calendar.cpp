@@ -1984,24 +1984,22 @@ int32_t Calendar::fieldDifference(UDate targetMs, UCalendarDateFields field, UEr
                 return max;
             } else if (ms > targetMs) {
                 break;
-            } else if (max < INT32_MAX) {
+            } else {
                 min = max;
                 max <<= 1;
                 if (max < 0) {
-                    max = INT32_MAX;
-                }
-            } else {
-                // Field difference too large to fit into int32_t
+                    // Field difference too large to fit into int32_t
 #if defined (U_DEBUG_CAL)
-                fprintf(stderr, "%s:%d: ILLEGAL ARG because field %s's max too large for int32_t\n",
-                    __FILE__, __LINE__, fldName(field));
+                    fprintf(stderr, "%s:%d: ILLEGAL ARG because field %s's max too large for int32_t\n",
+                        __FILE__, __LINE__, fldName(field));
 #endif
-                ec = U_ILLEGAL_ARGUMENT_ERROR;
+                    ec = U_ILLEGAL_ARGUMENT_ERROR;
+                }
             }
         }
         // Do a binary search
         while ((max - min) > 1 && U_SUCCESS(ec)) {
-            int32_t t = min + (max - min)/2; // make sure intermediate values don't exceed INT32_MAX
+            int32_t t = (min + max) / 2;
             setTimeInMillis(startMs, ec);
             add(field, t, ec);
             double ms = getTimeInMillis(ec);
@@ -2039,7 +2037,7 @@ int32_t Calendar::fieldDifference(UDate targetMs, UCalendarDateFields field, UEr
         }
         // Do a binary search
         while ((min - max) > 1 && U_SUCCESS(ec)) {
-            int32_t t = min + (max - min)/2; // make sure intermediate values don't exceed INT32_MAX
+            int32_t t = (min + max) / 2;
             setTimeInMillis(startMs, ec);
             add(field, t, ec);
             double ms = getTimeInMillis(ec);
@@ -3199,6 +3197,7 @@ int32_t Calendar::handleGetExtendedYearFromWeekFields(int32_t yearWoy, int32_t w
             // we're not possibly in the last week -must be ywoy
             return yearWoy;
         }
+        break;
 
     case UCAL_DATE:
         if((internalGet(UCAL_MONTH)==0) &&
@@ -3218,10 +3217,18 @@ int32_t Calendar::handleGetExtendedYearFromWeekFields(int32_t yearWoy, int32_t w
             //within 1st week and in this month.. 
             //return yearWoy+1;
             return yearWoy;
+            break;
 
     default: // assume the year is appropriate
         return yearWoy;
+        break;
     }
+
+#if defined (U_DEBUG_CAL) 
+    fprintf(stderr, "%s:%d - forgot a return on field %s\n", __FILE__, __LINE__, fldName(bestField));
+#endif 
+
+    return yearWoy;
 }
 
 int32_t Calendar::handleGetMonthLength(int32_t extendedYear, int32_t month) const

@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2012, International Business Machines Corporation and
+ * Copyright (c) 1997-2011, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -28,7 +28,6 @@ private:
     void testGetSamples();
     void testWithin();
     void testGetAllKeywordValues();
-    void testOrdinal();
 
     void assertRuleValue(const UnicodeString& rule, double expected);
     void assertRuleKeyValue(const UnicodeString& rule, const UnicodeString& key,

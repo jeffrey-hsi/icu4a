@@ -73,7 +73,7 @@ const char *tokenNames[TOK_TOKEN_COUNT] =
 };
 
 /* Just to store "TRUE" */
-//static const UChar trueValue[] = {0x0054, 0x0052, 0x0055, 0x0045, 0x0000};
+static const UChar trueValue[] = {0x0054, 0x0052, 0x0055, 0x0045, 0x0000};
 
 typedef struct {
     struct Lookahead  lookahead[MAX_LOOKAHEAD + 1];
@@ -139,7 +139,7 @@ static void
 cleanupLookahead(ParseState* state)
 {
     uint32_t i;
-    for (i = 0; i <= MAX_LOOKAHEAD; i++)
+    for (i = 0; i < MAX_LOOKAHEAD; i++)
     {
         ustr_deinit(&state->lookahead[i].value);
         ustr_deinit(&state->lookahead[i].comment);
@@ -283,6 +283,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
     char              filename[256] = { '\0' };
     char              cs[128]       = { '\0' };
     uint32_t          line;
+    int               len=0;
     UBool quoted = FALSE;
     UCHARBUF *ucbuf=NULL;
     UChar32   c     = 0;
@@ -362,7 +363,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
              * append at the end of the loop
              */
             while(c != ENDCOMMAND) {
-                U_APPEND_CHAR32_ONLY(c, target);
+                U_APPEND_CHAR32(c, target,len);
                 c = ucbuf_getc(ucbuf, status);
             }
         }
@@ -395,7 +396,7 @@ parseUCARules(ParseState* state, char *tag, uint32_t startline, const struct USt
         /* Append UChar * after dissembling if c > 0xffff*/
         if (c != (UChar32)U_EOF)
         {
-            U_APPEND_CHAR32_ONLY(c, target);
+            U_APPEND_CHAR32(c, target,len);
         }
         else
         {
@@ -1763,8 +1764,6 @@ parseInclude(ParseState* state, char *tag, uint32_t startline, const struct UStr
 
     uBuffer = ucbuf_getBuffer(ucbuf,&len,status);
     result = string_open(state->bundle, tag, uBuffer, len, comment, status);
-
-    ucbuf_close(ucbuf);
 
     uprv_free(pTarget);
 

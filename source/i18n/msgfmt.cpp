@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2012, International Business Machines Corporation and
+ * Copyright (c) 1997-2011, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************
  *
@@ -230,8 +230,7 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
   defaultDateFormat(NULL),
   cachedFormatters(NULL),
   customFormatArgStarts(NULL),
-  pluralProvider(&fLocale, UPLURAL_TYPE_CARDINAL),
-  ordinalProvider(&fLocale, UPLURAL_TYPE_ORDINAL)
+  pluralProvider(&fLocale)
 {
     setLocaleIDs(fLocale.getName(), fLocale.getName());
     applyPattern(pattern, success);
@@ -252,8 +251,7 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
   defaultDateFormat(NULL),
   cachedFormatters(NULL),
   customFormatArgStarts(NULL),
-  pluralProvider(&fLocale, UPLURAL_TYPE_CARDINAL),
-  ordinalProvider(&fLocale, UPLURAL_TYPE_ORDINAL)
+  pluralProvider(&fLocale)
 {
     setLocaleIDs(fLocale.getName(), fLocale.getName());
     applyPattern(pattern, success);
@@ -275,8 +273,7 @@ MessageFormat::MessageFormat(const UnicodeString& pattern,
   defaultDateFormat(NULL),
   cachedFormatters(NULL),
   customFormatArgStarts(NULL),
-  pluralProvider(&fLocale, UPLURAL_TYPE_CARDINAL),
-  ordinalProvider(&fLocale, UPLURAL_TYPE_ORDINAL)
+  pluralProvider(&fLocale)
 {
     setLocaleIDs(fLocale.getName(), fLocale.getName());
     applyPattern(pattern, parseError, success);
@@ -297,8 +294,7 @@ MessageFormat::MessageFormat(const MessageFormat& that)
   defaultDateFormat(NULL),
   cachedFormatters(NULL),
   customFormatArgStarts(NULL),
-  pluralProvider(&fLocale, UPLURAL_TYPE_CARDINAL),
-  ordinalProvider(&fLocale, UPLURAL_TYPE_ORDINAL)
+  pluralProvider(&fLocale)
 {
     // This will take care of creating the hash tables (since they are NULL).
     UErrorCode ec = U_ZERO_ERROR;
@@ -442,7 +438,6 @@ MessageFormat::setLocale(const Locale& theLocale)
         fLocale = theLocale;
         setLocaleIDs(fLocale.getName(), fLocale.getName());
         pluralProvider.reset(&fLocale);
-        ordinalProvider.reset(&fLocale);
     }
 }
 
@@ -1062,17 +1057,15 @@ void MessageFormat::format(int32_t msgStart, double pluralNumber,
             int32_t subMsgStart = ChoiceFormat::findSubMessage(msgPattern, i, number);
             formatComplexSubMessage(subMsgStart, 0, arguments, argumentNames,
                                     cnt, appendTo, success);
-        } else if (UMSGPAT_ARG_TYPE_HAS_PLURAL_STYLE(argType)) {
+        } else if (argType == UMSGPAT_ARG_TYPE_PLURAL) {
             if (!arg->isNumeric()) {
                 success = U_ILLEGAL_ARGUMENT_ERROR;
                 return;
             }
-            const PluralFormat::PluralSelector &selector =
-                argType == UMSGPAT_ARG_TYPE_PLURAL ? pluralProvider : ordinalProvider;
             // We must use the Formattable::getDouble() variant with the UErrorCode parameter
             // because only this one converts non-double numeric types to double.
             double number = arg->getDouble(success);
-            int32_t subMsgStart = PluralFormat::findSubMessage(msgPattern, i, selector, number,
+            int32_t subMsgStart = PluralFormat::findSubMessage(msgPattern, i, pluralProvider, number,
                                                                success);
             double offset = msgPattern.getPluralOffset(i);
             formatComplexSubMessage(subMsgStart, number-offset, arguments, argumentNames,
@@ -1352,7 +1345,7 @@ MessageFormat::parse(int32_t msgStart,
             argResult.setDouble(choiceResult);
             haveArgResult = TRUE;
             sourceOffset = tempStatus.getIndex();
-        } else if(UMSGPAT_ARG_TYPE_HAS_PLURAL_STYLE(argType) || argType==UMSGPAT_ARG_TYPE_SELECT) {
+        } else if(argType==UMSGPAT_ARG_TYPE_PLURAL || argType==UMSGPAT_ARG_TYPE_SELECT) {
             // Parsing not supported.
             ec = U_UNSUPPORTED_ERROR;
             return NULL;
@@ -1531,7 +1524,6 @@ void MessageFormat::cacheExplicitFormats(UErrorCode& status) {
         }
         case UMSGPAT_ARG_TYPE_CHOICE:
         case UMSGPAT_ARG_TYPE_PLURAL:
-        case UMSGPAT_ARG_TYPE_SELECTORDINAL:
             formattableType = Formattable::kDouble;
             break;
         case UMSGPAT_ARG_TYPE_SELECT:
@@ -1734,28 +1726,9 @@ Format* MessageFormat::DummyFormat::clone() const {
     return new DummyFormat();
 }
 
-UnicodeString& MessageFormat::DummyFormat::format(const Formattable& obj,
-                          UnicodeString& appendTo,
-                          UErrorCode& status) const {
-    if (U_SUCCESS(status)) {
-        status = U_UNSUPPORTED_ERROR;
-    }
-    return appendTo;
-}
-
 UnicodeString& MessageFormat::DummyFormat::format(const Formattable&,
                           UnicodeString& appendTo,
                           FieldPosition&,
-                          UErrorCode& status) const {
-    if (U_SUCCESS(status)) {
-        status = U_UNSUPPORTED_ERROR;
-    }
-    return appendTo;
-}
-
-UnicodeString& MessageFormat::DummyFormat::format(const Formattable&,
-                          UnicodeString& appendTo,
-                          FieldPositionIterator* posIter,
                           UErrorCode& status) const {
     if (U_SUCCESS(status)) {
         status = U_UNSUPPORTED_ERROR;
@@ -1797,8 +1770,8 @@ FormatNameEnumeration::~FormatNameEnumeration() {
 }
 
 
-MessageFormat::PluralSelectorProvider::PluralSelectorProvider(const Locale* loc, UPluralType t)
-        : locale(loc), rules(NULL), type(t) {
+MessageFormat::PluralSelectorProvider::PluralSelectorProvider(const Locale* loc)
+        : locale(loc), rules(NULL) {
 }
 
 MessageFormat::PluralSelectorProvider::~PluralSelectorProvider() {
@@ -1812,7 +1785,7 @@ UnicodeString MessageFormat::PluralSelectorProvider::select(double number, UErro
     }
     MessageFormat::PluralSelectorProvider* t = const_cast<MessageFormat::PluralSelectorProvider*>(this);
     if(rules == NULL) {
-        t->rules = PluralRules::forLocale(*locale, type, ec);
+        t->rules = PluralRules::forLocale(*locale, ec);
         if (U_FAILURE(ec)) {
             return UnicodeString(FALSE, OTHER_STRING, 5);
         }

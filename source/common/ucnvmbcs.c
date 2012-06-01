@@ -1343,6 +1343,7 @@ reconstituteData(UConverterMBCSTable *mbcsTable,
                  UErrorCode *pErrorCode) {
     uint16_t *stage1;
     uint32_t *stage2;
+    uint8_t *bytes;
     uint32_t dataLength=stage1Length*2+fullStage2Length*4+mbcsTable->fromUBytesLength;
     mbcsTable->reconstitutedData=(uint8_t *)uprv_malloc(dataLength);
     if(mbcsTable->reconstitutedData==NULL) {
@@ -1361,7 +1362,7 @@ reconstituteData(UConverterMBCSTable *mbcsTable,
                 stage2Length*4);
 
     mbcsTable->fromUnicodeTable=stage1;
-    mbcsTable->fromUnicodeBytes=(uint8_t *)(stage2+fullStage2Length);
+    mbcsTable->fromUnicodeBytes=bytes=(uint8_t *)(stage2+fullStage2Length);
 
     /* indexes into stage 2 count from the bottom of the fromUnicodeTable */
     stage2=(uint32_t *)stage1;

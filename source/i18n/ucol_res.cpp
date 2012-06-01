@@ -453,8 +453,6 @@ ucol_openRulesForImport( const UChar        *rules,
             }
             result->hasRealData = TRUE;
             result->freeImageOnClose = TRUE;
-        } else {
-            goto cleanup;
         }
     } else { /* no rules, but no error either */
         // must be only options

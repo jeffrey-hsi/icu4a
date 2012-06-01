@@ -104,14 +104,13 @@ class NumberFormat;
  * <pre>
  * message = messageText (argument messageText)*
  * argument = noneArg | simpleArg | complexArg
- * complexArg = choiceArg | pluralArg | selectArg | selectordinalArg
+ * complexArg = choiceArg | pluralArg | selectArg
  *
  * noneArg = '{' argNameOrNumber '}'
  * simpleArg = '{' argNameOrNumber ',' argType [',' argStyle] '}'
  * choiceArg = '{' argNameOrNumber ',' "choice" ',' choiceStyle '}'
  * pluralArg = '{' argNameOrNumber ',' "plural" ',' pluralStyle '}'
  * selectArg = '{' argNameOrNumber ',' "select" ',' selectStyle '}'
- * selectordinalArg = '{' argNameOrNumber ',' "selectordinal" ',' pluralStyle '}'
  *
  * choiceStyle: see {@link ChoiceFormat}
  * pluralStyle: see {@link PluralFormat}
@@ -893,7 +892,7 @@ private:
       */
     class U_I18N_API PluralSelectorProvider : public PluralFormat::PluralSelector {
     public:
-        PluralSelectorProvider(const Locale* loc, UPluralType type);
+        PluralSelectorProvider(const Locale* loc);
         virtual ~PluralSelectorProvider();
         virtual UnicodeString select(double number, UErrorCode& ec) const;
 
@@ -901,7 +900,6 @@ private:
     private:
         const Locale* locale;
         PluralRules* rules;
-        UPluralType type;
     };
 
     /**
@@ -940,7 +938,6 @@ private:
     UHashtable* customFormatArgStarts;
 
     PluralSelectorProvider pluralProvider;
-    PluralSelectorProvider ordinalProvider;
 
     /**
      * Method to retrieve default formats (or NULL on failure).
@@ -1073,16 +1070,9 @@ private:
     public:
         virtual UBool operator==(const Format&) const;
         virtual Format* clone() const;
-        virtual UnicodeString& format(const Formattable& obj,
-                              UnicodeString& appendTo,
-                              UErrorCode& status) const;
         virtual UnicodeString& format(const Formattable&,
                                       UnicodeString& appendTo,
                                       FieldPosition&,
-                                      UErrorCode& status) const;
-        virtual UnicodeString& format(const Formattable& obj,
-                                      UnicodeString& appendTo,
-                                      FieldPositionIterator* posIter,
                                       UErrorCode& status) const;
         virtual void parseObject(const UnicodeString&,
                                  Formattable&,

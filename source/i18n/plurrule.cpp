@@ -1,16 +1,21 @@
 /*
 *******************************************************************************
-* Copyright (C) 2007-2012, International Business Machines Corporation and
+* Copyright (C) 2007-2011, International Business Machines Corporation and
 * others. All Rights Reserved.
 *******************************************************************************
 *
-* File plurrule.cpp
+* File PLURRULE.CPP
+*
+* Modification History:
+*
+*   Date        Name        Description
+*******************************************************************************
 */
+
 
 #include "unicode/utypes.h"
 #include "unicode/localpointer.h"
 #include "unicode/plurrule.h"
-#include "unicode/upluralrules.h"
 #include "unicode/ures.h"
 #include "cmemory.h"
 #include "cstring.h"
@@ -141,17 +146,8 @@ PluralRules::createDefaultRules(UErrorCode& status) {
 
 PluralRules* U_EXPORT2
 PluralRules::forLocale(const Locale& locale, UErrorCode& status) {
-    return forLocale(locale, UPLURAL_TYPE_CARDINAL, status);
-}
-
-PluralRules* U_EXPORT2
-PluralRules::forLocale(const Locale& locale, UPluralType type, UErrorCode& status) {
     RuleChain   rChain;
     if (U_FAILURE(status)) {
-        return NULL;
-    }
-    if (type >= UPLURAL_TYPE_COUNT) {
-        status = U_ILLEGAL_ARGUMENT_ERROR;
         return NULL;
     }
     PluralRules *newObj = new PluralRules(status);
@@ -159,7 +155,7 @@ PluralRules::forLocale(const Locale& locale, UPluralType type, UErrorCode& statu
         delete newObj;
         return NULL;
     }
-    UnicodeString locRule = newObj->getRuleFromResource(locale, type, status);
+    UnicodeString locRule = newObj->getRuleFromResource(locale, status);
     if ((locRule.length() != 0) && U_SUCCESS(status)) {
         newObj->parseDescription(locRule, rChain, status);
         if (U_SUCCESS(status)) {
@@ -664,48 +660,38 @@ PluralRules::addRules(RuleChain& rules) {
 }
 
 UnicodeString
-PluralRules::getRuleFromResource(const Locale& locale, UPluralType type, UErrorCode& errCode) {
+PluralRules::getRuleFromResource(const Locale& locale, UErrorCode& errCode) {
     UnicodeString emptyStr;
 
     if (U_FAILURE(errCode)) {
         return emptyStr;
     }
-    LocalUResourceBundlePointer rb(ures_openDirect(NULL, "plurals", &errCode));
+    UResourceBundle *rb=ures_openDirect(NULL, "plurals", &errCode);
     if(U_FAILURE(errCode)) {
+        /* total failure, not even root could be opened */
         return emptyStr;
     }
-    const char *typeKey;
-    switch (type) {
-    case UPLURAL_TYPE_CARDINAL:
-        typeKey = "locales";
-        break;
-    case UPLURAL_TYPE_ORDINAL:
-        typeKey = "locales_ordinals";
-        break;
-    default:
-        // Must not occur: The caller should have checked for valid types.
-        errCode = U_ILLEGAL_ARGUMENT_ERROR;
-        return emptyStr;
-    }
-    LocalUResourceBundlePointer locRes(ures_getByKey(rb.getAlias(), typeKey, NULL, &errCode));
+    UResourceBundle *locRes=ures_getByKey(rb, "locales", NULL, &errCode);
     if(U_FAILURE(errCode)) {
+        ures_close(rb);
         return emptyStr;
     }
     int32_t resLen=0;
     const char *curLocaleName=locale.getName();
-    const UChar* s = ures_getStringByKey(locRes.getAlias(), curLocaleName, &resLen, &errCode);
+    const UChar* s = ures_getStringByKey(locRes, curLocaleName, &resLen, &errCode);
 
     if (s == NULL) {
         // Check parent locales.
         UErrorCode status = U_ZERO_ERROR;
         char parentLocaleName[ULOC_FULLNAME_CAPACITY];
         const char *curLocaleName=locale.getName();
+        int32_t localeNameLen=0;
         uprv_strcpy(parentLocaleName, curLocaleName);
 
-        while (uloc_getParent(parentLocaleName, parentLocaleName,
-                                       ULOC_FULLNAME_CAPACITY, &status) > 0) {
+        while ((localeNameLen=uloc_getParent(parentLocaleName, parentLocaleName,
+                                       ULOC_FULLNAME_CAPACITY, &status)) > 0) {
             resLen=0;
-            s = ures_getStringByKey(locRes.getAlias(), parentLocaleName, &resLen, &status);
+            s = ures_getStringByKey(locRes, parentLocaleName, &resLen, &status);
             if (s != NULL) {
                 errCode = U_ZERO_ERROR;
                 break;
@@ -714,6 +700,8 @@ PluralRules::getRuleFromResource(const Locale& locale, UPluralType type, UErrorC
         }
     }
     if (s==NULL) {
+        ures_close(locRes);
+        ures_close(rb);
         return emptyStr;
     }
 
@@ -723,23 +711,28 @@ PluralRules::getRuleFromResource(const Locale& locale, UPluralType type, UErrorC
     // printf("\n PluralRule: %s\n", setKey);
 
 
-    LocalUResourceBundlePointer ruleRes(ures_getByKey(rb.getAlias(), "rules", NULL, &errCode));
+    UResourceBundle *ruleRes=ures_getByKey(rb, "rules", NULL, &errCode);
     if(U_FAILURE(errCode)) {
+        ures_close(locRes);
+        ures_close(rb);
         return emptyStr;
     }
     resLen=0;
-    LocalUResourceBundlePointer setRes(ures_getByKey(ruleRes.getAlias(), setKey, NULL, &errCode));
+    UResourceBundle *setRes = ures_getByKey(ruleRes, setKey, NULL, &errCode);
     if (U_FAILURE(errCode)) {
+        ures_close(ruleRes);
+        ures_close(locRes);
+        ures_close(rb);
         return emptyStr;
     }
 
-    int32_t numberKeys = ures_getSize(setRes.getAlias());
+    int32_t numberKeys = ures_getSize(setRes);
     char *key=NULL;
     int32_t len=0;
     for(int32_t i=0; i<numberKeys; ++i) {
         int32_t keyLen;
         resLen=0;
-        s=ures_getNextString(setRes.getAlias(), &resLen, (const char**)&key, &errCode);
+        s=ures_getNextString(setRes, &resLen, (const char**)&key, &errCode);
         keyLen = (int32_t)uprv_strlen(key);
         u_charsToUChars(key, result+len, keyLen);
         len += keyLen;
@@ -752,6 +745,10 @@ PluralRules::getRuleFromResource(const Locale& locale, UPluralType type, UErrorC
     u_UCharsToChars(result, setKey, len);
     // printf(" Rule: %s\n", setKey);
 
+    ures_close(setRes);
+    ures_close(ruleRes);
+    ures_close(locRes);
+    ures_close(rb);
     return UnicodeString(result);
 }
 
@@ -1291,6 +1288,7 @@ RuleParser::getNextToken(const UnicodeString& ruleData,
                     return;
                  }
              }
+             break;
          default:
              status = U_UNEXPECTED_TOKEN;
              return;

@@ -31,7 +31,7 @@
 
 U_NAMESPACE_BEGIN
 
-class IDNAInfo;
+class U_COMMON_API IDNAInfo;
 
 /**
  * Abstract base class for IDNA processing.

@@ -293,7 +293,7 @@ _CompoundTextOpen(UConverter *cnv, UConverterLoadArgs *pArgs, UErrorCode *errorC
             return;
         }
 
-        myConverterData->state = (COMPOUND_TEXT_CONVERTERS)0;
+        myConverterData->state = 0;
     } else {
         *errorCode = U_MEMORY_ALLOCATION_ERROR;
     }

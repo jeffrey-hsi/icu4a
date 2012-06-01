@@ -8,14 +8,8 @@
 #include "sieve.h"
 #include "unicode/utimer.h"
 #include "udbgutil.h"
-#include "unicode/ustring.h"
 #include "unicode/decimfmt.h"
 void runTests(void);
-
-#ifndef ITERATIONS
-#define ITERATIONS 5
-#endif
-
 
 FILE *out = NULL;
 UErrorCode setupStatus = U_ZERO_ERROR;
@@ -50,9 +44,7 @@ int main(int argc, const char* argv[]){
   
 
   if(out!=NULL) {
-#ifndef SKIP_INFO
     udbg_writeIcuInfo(out);
-#endif
     fprintf(out, "</tests>\n");
     fclose(out);
   }
@@ -77,8 +69,6 @@ protected:
   virtual int32_t run() = 0;
   virtual void warmup() {  run(); } 
 public:
-  virtual const char *getName() { return fName; }
-public:
   virtual int32_t runTest(double *subTime) {
     UTimer a,b;
     utimer_getTime(&a);
@@ -90,6 +80,7 @@ public:
 
   virtual int32_t runTests(double *subTime, double *marginOfError) {
     warmup(); /* warmup */
+    #define ITERATIONS 5
     double times[ITERATIONS];
     int subIterations = 0;
     for(int i=0;i<ITERATIONS;i++) {
@@ -110,8 +101,7 @@ public:
 };
 
 void runTestOn(HowExpensiveTest &t) {
-  if(U_FAILURE(setupStatus)) return; // silently
-  fprintf(stderr, "%s:%d: Running: %s\n", t.fFile, t.fLine, t.getName());
+  fprintf(stderr, "%s:%d: Running: %s\n", t.fFile, t.fLine, t.fName);
   double sieveTime = uprv_getSieveTime(NULL);
   double st;
   double me;
@@ -119,20 +109,16 @@ void runTestOn(HowExpensiveTest &t) {
   fflush(stdout);
   fflush(stderr);
   int32_t iter = t.runTests(&st,&me);
-  if(U_FAILURE(setupStatus)) {
-    fprintf(stderr, "Error in tests: %s\n", u_errorName(setupStatus));
-    return;
-  }
   fflush(stdout);
   fflush(stderr);
   
   double stn = st/sieveTime;
 
-  printf("%s\t%.9f\t%.9f +/- %.9f,  @ %d iter\n", t.getName(),stn,st,me,iter);
+  printf("%s\t%.9f\t%.9f +/- %.9f,  @ %d iter\n", t.fName,stn,st,me,iter);
 
   if(out!=NULL) {
     fprintf(out, "   <test name=\"%s\" standardizedTime=\"%f\" realDuration=\"%f\" marginOfError=\"%f\" iterations=\"%d\" />\n",
-            t.getName(),stn,st,me,iter);
+            t.fName,stn,st,me,iter);
     fflush(out);
   }
 }
@@ -502,29 +488,18 @@ public:
 
 // TODO: move, scope.
 static UChar pattern[] = { 0x23 }; // '#'
-static UChar strdot[] = { '2', '.', '0', 0 };
-static UChar strspc[] = { '2', ' ', 0 };
-static UChar strgrp[] = {'2',',','2','2','2', 0 };
-static UChar strbeng[] = {0x09E8,0x09E8,0x09E8,0x09E8, 0 };
 
 UNumberFormat *NumParseTest_fmt;
 
 // TODO: de-uglify.
 QuickTest(NumParseTest,{    static UChar pattern[] = { 0x23 };    NumParseTest_fmt = unum_open(UNUM_PATTERN_DECIMAL,         pattern,                    1,                    "en_US",                    0,                    &setupStatus);  },{    int32_t i;    static UChar str[] = { 0x31 };double val;    for(i=0;i<U_LOTS_OF_TIMES;i++) {      val=unum_parse(NumParseTest_fmt,str,1,NULL,&setupStatus);    }    return i;  },{unum_close(NumParseTest_fmt);})
 
-QuickTest(NumParseTestdot,{    static UChar pattern[] = { 0x23 };    NumParseTest_fmt = unum_open(UNUM_PATTERN_DECIMAL,         pattern,                    1,                    "en_US",                    0,                    &setupStatus);  },{    int32_t i;  double val;    for(i=0;i<U_LOTS_OF_TIMES;i++) {      val=unum_parse(NumParseTest_fmt,strdot,1,NULL,&setupStatus);    }    return i;  },{unum_close(NumParseTest_fmt);})
-QuickTest(NumParseTestspc,{    static UChar pattern[] = { 0x23 };    NumParseTest_fmt = unum_open(UNUM_PATTERN_DECIMAL,         pattern,                    1,                    "en_US",                    0,                    &setupStatus);  },{    int32_t i;    double val;    for(i=0;i<U_LOTS_OF_TIMES;i++) {      val=unum_parse(NumParseTest_fmt,strspc,1,NULL,&setupStatus);    }    return i;  },{unum_close(NumParseTest_fmt);})
-QuickTest(NumParseTestgrp,{    static UChar pattern[] = { 0x23 };    NumParseTest_fmt = unum_open(UNUM_PATTERN_DECIMAL,         pattern,                    1,                    "en_US",                    0,                    &setupStatus);  },{    int32_t i;    double val;    for(i=0;i<U_LOTS_OF_TIMES;i++) {      val=unum_parse(NumParseTest_fmt,strgrp,-1,NULL,&setupStatus);    }    return i;  },{unum_close(NumParseTest_fmt);})
-QuickTest(NumParseTestbeng,{    static UChar pattern[] = { 0x23 };    NumParseTest_fmt = unum_open(UNUM_PATTERN_DECIMAL,         pattern,                    1,                    "en_US",                    0,                    &setupStatus);  },{    int32_t i;    double val;    for(i=0;i<U_LOTS_OF_TIMES;i++) {      val=unum_parse(NumParseTest_fmt,strbeng,-1,NULL,&setupStatus);    }    return i;  },{unum_close(NumParseTest_fmt);})
-
 
 QuickTest(NullTest,{},{int j=U_LOTS_OF_TIMES;while(--j);return U_LOTS_OF_TIMES;},{})
 OpenCloseTest(pattern,unum,open,{},(UNUM_PATTERN_DECIMAL,pattern,1,"en_US",0,&setupStatus),{})
 OpenCloseTest(default,unum,open,{},(UNUM_DEFAULT,NULL,-1,"en_US",0,&setupStatus),{})
-#if !UCONFIG_NO_CONVERSION
 #include "unicode/ucnv.h"
 OpenCloseTest(gb18030,ucnv,open,{},("gb18030",&setupStatus),{})
-#endif
 #include "unicode/ures.h"
 OpenCloseTest(root,ures,open,{},(NULL,"root",&setupStatus),{})
 
@@ -537,33 +512,9 @@ void runTests() {
     NullTest t;
     runTestOn(t);
   }
-
-#ifndef SKIP_NUMPARSE_TESTS
   {
-    // parse tests
-
-    DO_NumTest("#","0",0.0);
-    DO_NumTest("#","2.0",2.0);
-    DO_NumTest("#","2 ",2);
-    DO_NumTest("#","-2 ",-2);
-    DO_NumTest("+#","+2",2);
-    DO_NumTest("#,###.0","2222.0",2222.0);
-
-    DO_NumTest("#.0","1.000000000000000000000000000000000000000000000000000000000000000000000000000000",1.0);
-
-    // attr
-#ifdef HAVE_UNUM_MAYBE
-    DO_AttrNumTest("#","0",0.0,UNUM_PARSE_ALL_INPUT,UNUM_YES);
-    DO_AttrNumTest("#","0",0.0,UNUM_PARSE_ALL_INPUT,UNUM_NO);
-    DO_AttrNumTest("#","0",0.0,UNUM_PARSE_ALL_INPUT,UNUM_MAYBE);
-    DO_TripleNumTest("#","2.0",2.0);
-    DO_AttrNumTest("#.0","1.000000000000000000000000000000000000000000000000000000000000000000000000000000",1.0,UNUM_PARSE_ALL_INPUT,UNUM_NO);
-#endif
-
-
-    //  {    NumParseTestgrp t;    runTestOn(t);  }
-    {    NumParseTestbeng t;    runTestOn(t);  }
-
+    NumParseTest t;
+    runTestOn(t);
   }
 #endif
 
@@ -606,12 +557,10 @@ void runTests() {
     Test_unum_opendefault t;
     runTestOn(t);
   }
-#if !UCONFIG_NO_CONVERSION
   {
     Test_ucnv_opengb18030 t;
     runTestOn(t);
   }
-#endif
   {
     Test_unum_openpattern t;
     runTestOn(t);
