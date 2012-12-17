@@ -270,6 +270,7 @@ void TestProperty()
     UChar *disName;
     int32_t len = 0;
     UChar source[12], target[12];
+    char sourceU8[36], targetU8[36];
     int32_t tempLength;
     UErrorCode status = U_ZERO_ERROR;
     /*
@@ -611,21 +612,21 @@ void TestDecomposition() {
     if (ucol_getAttribute(vi_VN, UCOL_NORMALIZATION_MODE, &status) != UCOL_ON ||
         U_FAILURE(status))
     {
-        log_err("ERROR: vi_VN collation did not have canonical decomposition for normalization!\n");
+        log_err("ERROR: vi_VN collation did not have cannonical decomposition for normalization!\n");
     }
 
     status = U_ZERO_ERROR;
     if (ucol_getAttribute(el_GR, UCOL_NORMALIZATION_MODE, &status) != UCOL_ON ||
         U_FAILURE(status))
     {
-        log_err("ERROR: el_GR collation did not have canonical decomposition for normalization!\n");
+        log_err("ERROR: el_GR collation did not have cannonical decomposition for normalization!\n");
     }
 
     status = U_ZERO_ERROR;
     if (ucol_getAttribute(en_US, UCOL_NORMALIZATION_MODE, &status) != UCOL_OFF ||
         U_FAILURE(status))
     {
-        log_err("ERROR: en_US collation had canonical decomposition for normalization!\n");
+        log_err("ERROR: en_US collation had cannonical decomposition for normalization!\n");
     }
 
     ucol_close(en_US);
@@ -1948,7 +1949,7 @@ void TestMergeSortKeys(void) {
        uint32_t reqLen = 0;
        log_verbose("testing buffer overflow\n");
        reqLen = ucol_mergeSortkeys(prefixKey, prefixKeyLen, suffixKey, suffixKeyLen, smallBuf, 3);
-       if(reqLen != (prefixKeyLen+suffixKeyLen)) {
+       if(reqLen != (prefixKeyLen+suffixKeyLen-1)) {
          log_err("Wrong preflight size for merged sortkey\n");
        }
      }

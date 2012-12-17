@@ -1140,15 +1140,8 @@ NumberFormat::isStyleSupported(UNumberFormatStyle style) {
 NumberFormat*
 NumberFormat::makeInstance(const Locale& desiredLocale,
                            UNumberFormatStyle style,
-                           UErrorCode& status) {
-  return makeInstance(desiredLocale, style, false, status);
-}
-
-NumberFormat*
-NumberFormat::makeInstance(const Locale& desiredLocale,
-                           UNumberFormatStyle style,
-                           UBool mustBeDecimalFormat,
-                           UErrorCode& status) {
+                           UErrorCode& status)
+{
     if (U_FAILURE(status)) return NULL;
 
     if (style < 0 || style >= UNUM_FORMAT_STYLE_COUNT) {
@@ -1168,34 +1161,33 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
     }
 
 #if U_PLATFORM_USES_ONLY_WIN32_API
-    if (!mustBeDecimalFormat) {
-        char buffer[8];
-        int32_t count = desiredLocale.getKeywordValue("compat", buffer, sizeof(buffer), status);
+    char buffer[8];
+    int32_t count = desiredLocale.getKeywordValue("compat", buffer, sizeof(buffer), status);
 
-        // if the locale has "@compat=host", create a host-specific NumberFormat
-        if (U_SUCCESS(status) && count > 0 && uprv_strcmp(buffer, "host") == 0) {
-            Win32NumberFormat *f = NULL;
-            UBool curr = TRUE;
+    // if the locale has "@compat=host", create a host-specific NumberFormat
+    if (U_SUCCESS(status) && count > 0 && uprv_strcmp(buffer, "host") == 0) {
+        Win32NumberFormat *f = NULL;
+        UBool curr = TRUE;
 
-            switch (style) {
-            case UNUM_DECIMAL:
-                curr = FALSE;
-                // fall-through
+        switch (style) {
+        case UNUM_DECIMAL:
+            curr = FALSE;
+            // fall-through
 
-            case UNUM_CURRENCY:
-            case UNUM_CURRENCY_ISO: // do not support plural formatting here
-            case UNUM_CURRENCY_PLURAL:
-                f = new Win32NumberFormat(desiredLocale, curr, status);
+        case UNUM_CURRENCY:
+        case UNUM_CURRENCY_ISO: // do not support plural formatting here
+        case UNUM_CURRENCY_PLURAL:
+            f = new Win32NumberFormat(desiredLocale, curr, status);
 
-                if (U_SUCCESS(status)) {
-                    return f;
-                }
-
-                delete f;
-                break;
-            default:
-                break;
+            if (U_SUCCESS(status)) {
+                return f;
             }
+
+            delete f;
+            break;
+
+        default:
+            break;
         }
     }
 #endif
@@ -1250,11 +1242,6 @@ NumberFormat::makeInstance(const Locale& desiredLocale,
 
     // check results of getting a numbering system
     if (U_FAILURE(status)) {
-        return NULL;
-    }
-
-    if (mustBeDecimalFormat && ns->isAlgorithmic()) {
-        status = U_UNSUPPORTED_ERROR;
         return NULL;
     }
 

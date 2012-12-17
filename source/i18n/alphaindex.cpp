@@ -38,6 +38,8 @@
 //#include <iostream>
 U_NAMESPACE_BEGIN
 
+UOBJECT_DEFINE_NO_RTTI_IMPLEMENTATION(AlphabeticIndex)
+
 // Forward Declarations
 static int32_t U_CALLCONV
 PreferenceComparator(const void *context, const void *left, const void *right);

@@ -5,9 +5,6 @@
 
 # TODO: Finish the rest of this port. This platform port is incomplete.
 
-# This file is similar to mh-mingw64
-# Any changes made here may also need to be made in mh-mingw64
-
 # We install sbin tools into the same bin directory because
 # pkgdata needs some of the tools in sbin, and we can't always depend on
 # icu-config working on Windows.

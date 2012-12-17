@@ -27,6 +27,7 @@ class ListFormatterTest : public IntlTest {
 
     void runIndexedTest(int32_t index, UBool exec, const char *&name, char *par=0);
 
+    void TestLocaleFallback();
     void TestRoot();
     void TestBogus();
     void TestEnglish();
@@ -40,13 +41,6 @@ class ListFormatterTest : public IntlTest {
     void CheckFormatting(const ListFormatter* formatter, UnicodeString data[], int32_t data_size, const UnicodeString& expected_result);
     void CheckFourCases(
         const char* locale_string,
-        UnicodeString one,
-        UnicodeString two,
-        UnicodeString three,
-        UnicodeString four,
-        UnicodeString results[4]);
-    UBool RecordFourCases(
-        const Locale& locale,
         UnicodeString one,
         UnicodeString two,
         UnicodeString three,
