@@ -202,7 +202,6 @@ void addNEWResourceBundleTest(TestNode** root)
     addTest(root, &TestDecodedBundle,         "tsutil/creststn/TestDecodedBundle");
     addTest(root, &TestResourceLevelAliasing, "tsutil/creststn/TestResourceLevelAliasing");
     addTest(root, &TestDirectAccess,          "tsutil/creststn/TestDirectAccess"); 
-    addTest(root, &TestTicket9804,            "tsutil/creststn/TestTicket9804"); 
     addTest(root, &TestXPath,                 "tsutil/creststn/TestXPath");
     addTest(root, &TestCLDRStyleAliases,      "tsutil/creststn/TestCLDRStyleAliases");
     addTest(root, &TestFallbackCodes,         "tsutil/creststn/TestFallbackCodes");
@@ -281,8 +280,8 @@ static void TestErrorCodes(void) {
   checkStatus(__LINE__, U_USING_DEFAULT_WARNING, status);
 
   /* we look up the resource which is aliased and at our level */
-  /* TODO: restore the following test when cldrbug 3058: is fixed - but CldrBug:3058 is WONTFIX */
-  if(U_SUCCESS(status) && r != NULL && isICUVersionAtLeast(51, 0, 2)) {
+  /* TODO: restore the following test when cldrbug 3058: is fixed */
+  if(U_SUCCESS(status) && r != NULL && isICUVersionAtLeast(51, 0, 0)) {
     status = U_USING_DEFAULT_WARNING;
     r2 = ures_getByKey(r, "Countries", r2, &status);
     checkStatus(__LINE__, U_USING_DEFAULT_WARNING, status);
@@ -2427,30 +2426,6 @@ static void TestDirectAccess(void) {
     status = U_ZERO_ERROR;
 
     ures_close(t2);
-    ures_close(t);
-}
-
-static void TestTicket9804(void) {
-    UErrorCode status = U_ZERO_ERROR;
-    UResourceBundle *t = NULL;
-    t = ures_open(NULL, "he", &status);
-    t = ures_getByKeyWithFallback(t, "calendar/islamic-civil/DateTime", t, &status);
-    if(U_SUCCESS(status)) {
-        log_err("This resource does not exist. How did it get here?\n");
-    }
-    status = U_ZERO_ERROR;
-    ures_close(t);
-    t = ures_open(NULL, "he", &status);
-    t = ures_getByKeyWithFallback(t, "calendar/islamic-civil/eras", t, &status);
-    if(U_FAILURE(status)) {
-        log_err_status(status, "Didn't get Eras. I know they are there!\n");
-    } else {
-        const char *locale = ures_getLocaleByType(t, ULOC_ACTUAL_LOCALE, &status);
-        if (uprv_strcmp("he", locale) != 0) {
-            log_err("Eras should be in the 'he' locale, but was in: %s", locale);
-        }
-    }
-    status = U_ZERO_ERROR;
     ures_close(t);
 }
 

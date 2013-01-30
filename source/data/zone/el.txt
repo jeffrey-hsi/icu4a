@@ -1,7 +1,7 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2013 International Business Machines
-// * Corporation and others. All Rights Reserved.
+// * Copyright (C) 2012 International Business Machines
+// * Corporation and others.  All Rights Reserved.
 // * Tool: org.unicode.cldr.icu.NewLdml2IcuConverter
 // * Source File: <path>/common/main/el.xml
 // *
@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/el.xml
  */
 el{
-    Version{"2.0.80.74"}
+    Version{"2.0.78.32"}
     zoneStrings{
         "Africa:Abidjan"{
             ec{"Αμπιτζάν"}
@@ -1288,6 +1288,11 @@ el{
             lg{"Ώρα Δυτικής Αφρικής"}
             ls{"Χειμερινή ώρα Δυτικής Αφρικής"}
         }
+        "meta:Aktyubinsk"{
+            ld{"Θερινή ώρα Ακτιουμπίνσκ"}
+            lg{"Ώρα Ακτιουμπίνσκ"}
+            ls{"Χειμερινή ώρα Ακτιουμπίνσκ"}
+        }
         "meta:Alaska"{
             ld{"Θερινή ώρα Αλάσκας"}
             lg{"Ώρα Αλάσκας"}
@@ -1377,6 +1382,11 @@ el{
             ld{"Θερινή ώρα Αζορών"}
             lg{"Ώρα Αζορών"}
             ls{"Χειμερινή ώρα Αζορών"}
+        }
+        "meta:Baku"{
+            ld{"Θερινή ώρα Μπακού"}
+            lg{"Ώρα Μπακού"}
+            ls{"Χειμερινή ώρα Μπακού"}
         }
         "meta:Bangladesh"{
             ld{"Θερινή ώρα Μπανγκλαντές"}
@@ -1616,6 +1626,9 @@ el{
             lg{"Ώρα Κρασνόγιαρσκ"}
             ls{"Χειμερινή ώρα Κρασνόγιαρσκ"}
         }
+        "meta:Kwajalein"{
+            ls{"Ώρα Κουαχαλέιν"}
+        }
         "meta:Kyrgystan"{
             ls{"Ώρα Κιργιστάν"}
         }
@@ -1775,9 +1788,7 @@ el{
             ls{"Χειμερινή ώρα Σάμαρας"}
         }
         "meta:Samoa"{
-            ld{"Θερινή ώρα Σαμόα"}
-            lg{"Ώρα Σαμόα"}
-            ls{"Χειμερινή ώρα Σαμόα"}
+            ls{"Ώρα Σαμόα"}
         }
         "meta:Seychelles"{
             ls{"Ώρα Σεϋχελλών"}
@@ -1790,6 +1801,9 @@ el{
         }
         "meta:South_Georgia"{
             ls{"Ώρα Νότιας Γεωργίας"}
+        }
+        "meta:Suriname"{
+            ls{"Ώρα Σουρινάμ"}
         }
         "meta:Syowa"{
             ls{"Ώρα Σίοβα"}
@@ -1805,6 +1819,11 @@ el{
         "meta:Tajikistan"{
             ls{"Ώρα Τατζικιστάν"}
         }
+        "meta:Tbilisi"{
+            ld{"Θερινή ώρα Τυφλίδας"}
+            lg{"Ώρα Τυφλίδας"}
+            ls{"Χειμερινή ώρα Τυφλίδας"}
+        }
         "meta:Tokelau"{
             ls{"Ώρα Τοκελάου"}
         }
@@ -1815,6 +1834,11 @@ el{
         }
         "meta:Truk"{
             ls{"Ώρα Τσουκ"}
+        }
+        "meta:Turkey"{
+            ld{"Θερινή ώρα Τουρκίας"}
+            lg{"Ώρα Τουρκίας"}
+            ls{"Χειμερινή ώρα Τουρκίας"}
         }
         "meta:Turkmenistan"{
             ld{"Θερινή ώρα Τουρκμενιστάν"}
@@ -1870,6 +1894,11 @@ el{
             ld{"Θερινή ώρα Γεκατερίνμπουργκ"}
             lg{"Ώρα Γεκατερίνμπουργκ"}
             ls{"Χειμερινή ώρα Γεκατερίνμπουργκ"}
+        }
+        "meta:Yerevan"{
+            ld{"Θερινή ώρα Ερεβάν"}
+            lg{"Ώρα Ερεβάν"}
+            ls{"Χειμερινή ώρα Ερεβάν"}
         }
         fallbackFormat{"{1} ({0})"}
         fallbackRegionFormat{"Ώρα {1} ({0})"}

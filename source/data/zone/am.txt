@@ -1,7 +1,7 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2013 International Business Machines
-// * Corporation and others. All Rights Reserved.
+// * Copyright (C) 2012 International Business Machines
+// * Corporation and others.  All Rights Reserved.
 // * Tool: org.unicode.cldr.icu.NewLdml2IcuConverter
 // * Source File: <path>/common/main/am.xml
 // *
@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/am.xml
  */
 am{
-    Version{"2.0.80.74"}
+    Version{"2.0.78.39"}
     zoneStrings{
         "Africa:Abidjan"{
             ec{"አቢጃን"}
@@ -1753,8 +1753,6 @@ am{
             ls{"የሳማራ መደበኛ ሰዓት አቆጣጠር"}
         }
         "meta:Samoa"{
-            ld{"የሳሞዋ የበጋ ሰዓት"}
-            lg{"የሳሞዋ ሰዓት"}
             ls{"የሳሞዋ መደበኛ ሰዓት"}
         }
         "meta:Seychelles"{
@@ -1768,6 +1766,9 @@ am{
         }
         "meta:South_Georgia"{
             ls{"የደቡብ ጂዮርጂያ ሰዓት"}
+        }
+        "meta:Suriname"{
+            ls{"የሱሪናም ሰዓት"}
         }
         "meta:Syowa"{
             ls{"የሲዮዋ ሰዓት"}

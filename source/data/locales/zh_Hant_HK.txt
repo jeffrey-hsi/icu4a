@@ -1,7 +1,7 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2013 International Business Machines
-// * Corporation and others. All Rights Reserved.
+// * Copyright (C) 2012 International Business Machines
+// * Corporation and others.  All Rights Reserved.
 // * Tool: org.unicode.cldr.icu.NewLdml2IcuConverter
 // * Source File: <path>/common/main/zh_Hant_HK.xml
 // *
@@ -14,7 +14,7 @@ zh_Hant_HK{
             }
         }
     }
-    Version{"2.0.80.73"}
+    Version{"2.0.78.47"}
     calendar{
         buddhist{
             availableFormats{
@@ -31,7 +31,7 @@ zh_Hant_HK{
                 "y年M月d日EEEE",
                 "y年M月d日",
                 "y年M月d日",
-                "d/M/yy",
+                "yy年M月d日",
                 "{1}{0}",
                 "{1} {0}",
                 "{1} {0}",
@@ -40,29 +40,29 @@ zh_Hant_HK{
             }
             availableFormats{
                 Ed{"d E"}
-                MEd{"E, d/M"}
-                Md{"d/M"}
+                MEd{"E, M-d"}
+                Md{"M-d"}
+            }
+            fields{
+                month{
+                    relative{
+                        "-1"{"上月"}
+                        "1"{"下月"}
+                    }
+                }
+                year{
+                    relative{
+                        "-1"{"上年"}
+                        "0"{"本年"}
+                        "1"{"下年"}
+                    }
+                }
             }
         }
         roc{
             availableFormats{
                 MEd{"d-M（E）"}
                 Md{"d-M"}
-            }
-        }
-    }
-    fields{
-        month{
-            relative{
-                "-1"{"上月"}
-                "1"{"下月"}
-            }
-        }
-        year{
-            relative{
-                "-1"{"上年"}
-                "0"{"本年"}
-                "1"{"下年"}
             }
         }
     }

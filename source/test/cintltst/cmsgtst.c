@@ -89,9 +89,6 @@ static void FreeStrings( void )
     strings_initialized = FALSE;
 }
 
-#if (U_PLATFORM == U_PF_LINUX) /* add platforms here .. */
-/* Keep the #if above in sync with the one below that has the same "add platforms here .." comment. */
-#else
 /* Platform dependent test to detect if this type will return NULL when interpreted as a pointer. */
 static UBool returnsNullForType(int firstParam, ...) {
     UBool isNULL;
@@ -101,7 +98,6 @@ static UBool returnsNullForType(int firstParam, ...) {
     va_end(marker);
     return isNULL;
 }
-#endif
 
 /* Test u_formatMessage() with various test patterns() */
 static void MessageFormatTest( void ) 

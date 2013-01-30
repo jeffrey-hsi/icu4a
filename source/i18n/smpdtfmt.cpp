@@ -1,6 +1,6 @@
 /*
 *******************************************************************************
-* Copyright (C) 1997-2013, International Business Machines Corporation and    *
+* Copyright (C) 1997-2012, International Business Machines Corporation and    *
 * others. All Rights Reserved.                                                *
 *******************************************************************************
 *
@@ -1343,7 +1343,6 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
         break;
 
     // for "ee" or "e", use local numeric day-of-the-week
-    // for "EEEEEE" or "eeeeee", write out the short day-of-the-week name
     // for "EEEEE" or "eeeee", write out the narrow day-of-the-week name
     // for "EEEE" or "eeee", write out the wide day-of-the-week name
     // for "EEE" or "EE" or "E" or "eee", write out the abbreviated day-of-the-week name
@@ -1368,10 +1367,6 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
             _appendSymbol(appendTo, value, fSymbols->fWeekdays,
                           fSymbols->fWeekdaysCount);
             capContextUsageType = DateFormatSymbols::kCapContextUsageDayFormat;
-        } else if (count == 6) {
-            _appendSymbol(appendTo, value, fSymbols->fShorterWeekdays,
-                          fSymbols->fShorterWeekdaysCount);
-            capContextUsageType = DateFormatSymbols::kCapContextUsageDayFormat;
         } else {
             _appendSymbol(appendTo, value, fSymbols->fShortWeekdays,
                           fSymbols->fShortWeekdaysCount);
@@ -1382,7 +1377,6 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
     // for "ccc", write out the abbreviated day-of-the-week name
     // for "cccc", write out the wide day-of-the-week name
     // for "ccccc", use the narrow day-of-the-week name
-    // for "ccccc", use the short day-of-the-week name
     case UDAT_STANDALONE_DAY_FIELD:
         if ( count < 3 ) {
             zeroPaddingNumber(currentNumberFormat,appendTo, value, 1, maxIntCount);
@@ -1401,10 +1395,6 @@ SimpleDateFormat::subFormat(UnicodeString &appendTo,
         } else if (count == 4) {
             _appendSymbol(appendTo, value, fSymbols->fStandaloneWeekdays,
                           fSymbols->fStandaloneWeekdaysCount);
-            capContextUsageType = DateFormatSymbols::kCapContextUsageDayStandalone;
-        } else if (count == 6) {
-            _appendSymbol(appendTo, value, fSymbols->fStandaloneShorterWeekdays,
-                          fSymbols->fStandaloneShorterWeekdaysCount);
             capContextUsageType = DateFormatSymbols::kCapContextUsageDayStandalone;
         } else { // count == 3
             _appendSymbol(appendTo, value, fSymbols->fStandaloneShortWeekdays,
@@ -2551,22 +2541,19 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
             && u_isdigit(text.charAt(start))
             && u_isdigit(text.charAt(start+1)))
         {
-        	// only adjust year for patterns less than 3.
-        	if(count < 3) {
-        		// Assume for example that the defaultCenturyStart is 6/18/1903.
-        		// This means that two-digit years will be forced into the range
-        		// 6/18/1903 to 6/17/2003.  As a result, years 00, 01, and 02
-        		// correspond to 2000, 2001, and 2002.  Years 04, 05, etc. correspond
-        		// to 1904, 1905, etc.  If the year is 03, then it is 2003 if the
-        		// other fields specify a date before 6/18, or 1903 if they specify a
-        		// date afterwards.  As a result, 03 is an ambiguous year.  All other
-        		// two-digit years are unambiguous.
-        		if(fHaveDefaultCentury) { // check if this formatter even has a pivot year
-        			int32_t ambiguousTwoDigitYear = fDefaultCenturyStartYear % 100;
-        			ambiguousYear[0] = (value == ambiguousTwoDigitYear);
-        			value += (fDefaultCenturyStartYear/100)*100 +
-        					(value < ambiguousTwoDigitYear ? 100 : 0);
-        		}
+            // Assume for example that the defaultCenturyStart is 6/18/1903.
+            // This means that two-digit years will be forced into the range
+            // 6/18/1903 to 6/17/2003.  As a result, years 00, 01, and 02
+            // correspond to 2000, 2001, and 2002.  Years 04, 05, etc. correspond
+            // to 1904, 1905, etc.  If the year is 03, then it is 2003 if the
+            // other fields specify a date before 6/18, or 1903 if they specify a
+            // date afterwards.  As a result, 03 is an ambiguous year.  All other
+            // two-digit years are unambiguous.
+          if(fHaveDefaultCentury) { // check if this formatter even has a pivot year
+              int32_t ambiguousTwoDigitYear = fDefaultCenturyStartYear % 100;
+              ambiguousYear[0] = (value == ambiguousTwoDigitYear);
+              value += (fDefaultCenturyStartYear/100)*100 +
+                (value < ambiguousTwoDigitYear ? 100 : 0);
             }
         }
         cal.set(UCAL_YEAR, value);
@@ -2699,7 +2686,7 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
                 a *= 10;
                 i--;
             }
-            value /= a;
+            value = (value + (a>>1)) / a;
         }
         cal.set(UCAL_MILLISECOND, value);
         return pos.getIndex();
@@ -2716,20 +2703,16 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
     case UDAT_DAY_OF_WEEK_FIELD:
         {
             // Want to be able to parse both short and long forms.
-            // Try count == 4 (EEEE) wide first:
+            // Try count == 4 (EEEE) first:
             int32_t newStart = 0;
             if ((newStart = matchString(text, start, UCAL_DAY_OF_WEEK,
                                       fSymbols->fWeekdays, fSymbols->fWeekdaysCount, NULL, cal)) > 0)
                 return newStart;
-            // EEEE wide failed, now try EEE abbreviated
+            // EEEE failed, now try EEE
             else if ((newStart = matchString(text, start, UCAL_DAY_OF_WEEK,
                                    fSymbols->fShortWeekdays, fSymbols->fShortWeekdaysCount, NULL, cal)) > 0)
                 return newStart;
-            // EEE abbreviated failed, now try EEEEEE short
-            else if ((newStart = matchString(text, start, UCAL_DAY_OF_WEEK,
-                                   fSymbols->fShorterWeekdays, fSymbols->fShorterWeekdaysCount, NULL, cal)) > 0)
-                return newStart;
-            // EEEEEE short failed, now try EEEEE narrow
+            // EEE failed, now try EEEEE
             else if ((newStart = matchString(text, start, UCAL_DAY_OF_WEEK,
                                    fSymbols->fNarrowWeekdays, fSymbols->fNarrowWeekdaysCount, NULL, cal)) > 0)
                 return newStart;
@@ -2755,9 +2738,6 @@ int32_t SimpleDateFormat::subParse(const UnicodeString& text, int32_t& start, UC
                 return newStart;
             else if ((newStart = matchString(text, start, UCAL_DAY_OF_WEEK,
                                           fSymbols->fStandaloneShortWeekdays, fSymbols->fStandaloneShortWeekdaysCount, NULL, cal)) > 0)
-                return newStart;
-            else if ((newStart = matchString(text, start, UCAL_DAY_OF_WEEK,
-                                          fSymbols->fStandaloneShorterWeekdays, fSymbols->fStandaloneShorterWeekdaysCount, NULL, cal)) > 0)
                 return newStart;
             else if (!lenient)
                 return newStart;

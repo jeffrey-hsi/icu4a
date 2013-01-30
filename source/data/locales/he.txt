@@ -1,7 +1,7 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2013 International Business Machines
-// * Corporation and others. All Rights Reserved.
+// * Copyright (C) 2012 International Business Machines
+// * Corporation and others.  All Rights Reserved.
 // * Tool: org.unicode.cldr.icu.NewLdml2IcuConverter
 // * Source File: <path>/common/main/he.xml
 // *
@@ -196,7 +196,7 @@ he{
         native{"latn"}
         traditional{"hebr"}
     }
-    Version{"2.0.80.74"}
+    Version{"2.0.78.38"}
     calendar{
         gregorian{
             AmPmMarkers{
@@ -323,6 +323,63 @@ he{
                 wide{
                     "לפני הספירה",
                     "לספירה",
+                }
+            }
+            fields{
+                day{
+                    dn{"יום"}
+                    relative{
+                        "-1"{"אתמול"}
+                        "-2"{"שלשום"}
+                        "0"{"היום"}
+                        "1"{"מחר"}
+                        "2"{"מחרתיים"}
+                    }
+                }
+                dayperiod{
+                    dn{"לפה״צ/אחה״צ"}
+                }
+                era{
+                    dn{"תקופה"}
+                }
+                hour{
+                    dn{"שעה"}
+                }
+                minute{
+                    dn{"דקה"}
+                }
+                month{
+                    dn{"חודש"}
+                    relative{
+                        "-1"{"חודש שעבר"}
+                        "0"{"החודש"}
+                        "1"{"חודש הבא"}
+                    }
+                }
+                second{
+                    dn{"שנייה"}
+                }
+                week{
+                    dn{"שבוע"}
+                    relative{
+                        "-1"{"שבוע שעבר"}
+                        "0"{"השבוע"}
+                        "1"{"שבוע הבא"}
+                    }
+                }
+                weekday{
+                    dn{"יום בשבוע"}
+                }
+                year{
+                    dn{"שנה"}
+                    relative{
+                        "-1"{"שנה שעברה"}
+                        "0"{"השנה"}
+                        "1"{"שנה הבאה"}
+                    }
+                }
+                zone{
+                    dn{"אזור"}
                 }
             }
             intervalFormats{
@@ -790,7 +847,7 @@ he{
                     "Daidō (806-810)",
                     "Kōnin (810-824)",
                     "Tenchō (824-834)",
-                    "Jōwa (834-848)",
+                    "Shōwa (834-848)",
                     "Kajō (848-851)",
                     "נינג׳ו",
                     "Saiko (854-857)",
@@ -1011,68 +1068,12 @@ he{
     delimiters{
         alternateQuotationEnd{"'"}
         alternateQuotationStart{"'"}
-        quotationEnd{"\u0022"}
-        quotationStart{"\u0022"}
-    }
-    fields{
-        day{
-            dn{"יום"}
-            relative{
-                "-1"{"אתמול"}
-                "-2"{"שלשום"}
-                "0"{"היום"}
-                "1"{"מחר"}
-                "2"{"מחרתיים"}
-            }
-        }
-        dayperiod{
-            dn{"לפה״צ/אחה״צ"}
-        }
-        era{
-            dn{"תקופה"}
-        }
-        hour{
-            dn{"שעה"}
-        }
-        minute{
-            dn{"דקה"}
-        }
-        month{
-            dn{"חודש"}
-            relative{
-                "-1"{"חודש שעבר"}
-                "0"{"החודש"}
-                "1"{"חודש הבא"}
-            }
-        }
-        second{
-            dn{"שנייה"}
-        }
-        week{
-            dn{"שבוע"}
-            relative{
-                "-1"{"שבוע שעבר"}
-                "0"{"השבוע"}
-                "1"{"שבוע הבא"}
-            }
-        }
-        weekday{
-            dn{"יום בשבוע"}
-        }
-        year{
-            dn{"שנה"}
-            relative{
-                "-1"{"שנה שעברה"}
-                "0"{"השנה"}
-                "1"{"שנה הבאה"}
-            }
-        }
-        zone{
-            dn{"אזור"}
-        }
+        quotationEnd{"\""}
+        quotationStart{"\""}
     }
     layout{
         characters{"right-to-left"}
+        lines{"top-to-bottom"}
     }
     listPattern{
         standard{

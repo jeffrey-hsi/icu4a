@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *                                                                            *
-* Copyright (C) 2003-2013, International Business Machines                   *
+* Copyright (C) 2003-2012, International Business Machines                   *
 *                Corporation and others. All Rights Reserved.                *
 *                                                                            *
 ******************************************************************************
@@ -102,8 +102,7 @@ ulocdata_getExemplarSet(ULocaleData *uld, USet *fillIn,
 
     static const char* const exemplarSetTypes[] = { "ExemplarCharacters", 
                                                     "AuxExemplarCharacters", 
-                                                    "ExemplarCharactersIndex",
-                                                    "ExemplarCharactersPunctuation"};
+                                                    "ExemplarCharactersIndex"};
     const UChar *exemplarChars = NULL;
     int32_t len = 0;
     UErrorCode localStatus = U_ZERO_ERROR;

@@ -1,7 +1,7 @@
 ﻿// ***************************************************************************
 // *
-// * Copyright (C) 2013 International Business Machines
-// * Corporation and others. All Rights Reserved.
+// * Copyright (C) 2012 International Business Machines
+// * Corporation and others.  All Rights Reserved.
 // * Tool: org.unicode.cldr.icu.NewLdml2IcuConverter
 // * Source File: <path>/common/main/fil.xml
 // *
@@ -10,7 +10,7 @@
  *  ICU <specials> source: <path>/xml/main/fil.xml
  */
 fil{
-    Version{"2.0.80.74"}
+    Version{"2.0.77.46"}
     zoneStrings{
         "America:Asuncion"{
             ec{"Asunción"}
@@ -526,9 +526,7 @@ fil{
             ls{"Standard na Oras sa Samara"}
         }
         "meta:Samoa"{
-            ld{"Panahon ng Tag-init sa Samoa"}
-            lg{"Oras sa Samoa"}
-            ls{"Standard na Oras sa Samoa"}
+            ls{"Samoa Standard Time"}
         }
         "meta:Seychelles"{
             ls{"Seychelles Time"}
@@ -541,6 +539,9 @@ fil{
         }
         "meta:South_Georgia"{
             ls{"South Georgia Time"}
+        }
+        "meta:Suriname"{
+            ls{"Suriname Time"}
         }
         "meta:Syowa"{
             ls{"Syowa Time"}

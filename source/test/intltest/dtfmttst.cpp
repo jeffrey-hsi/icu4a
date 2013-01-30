@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT:
- * Copyright (c) 1997-2013, International Business Machines
+ * Copyright (c) 1997-2012, International Business Machines
  * Corporation and others. All Rights Reserved.
  ********************************************************************/
 
@@ -73,7 +73,6 @@ void DateFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &nam
     TESTCASE_AUTO(TestHost);
     TESTCASE_AUTO(TestEras);
     TESTCASE_AUTO(TestNarrowNames);
-    TESTCASE_AUTO(TestShortDays);
     TESTCASE_AUTO(TestStandAloneDays);
     TESTCASE_AUTO(TestStandAloneMonths);
     TESTCASE_AUTO(TestQuarters);
@@ -598,7 +597,7 @@ void DateFormatTest::TestGeneral() {
         "y/M/d H:mm:ss.S", "fp", "2004 03 10 16:36:31.567", "2004/3/10 16:36:31.5", "2004 03 10 16:36:31.500",
         "y/M/d H:mm:ss.SS", "fp", "2004 03 10 16:36:31.567", "2004/3/10 16:36:31.56", "2004 03 10 16:36:31.560",
         "y/M/d H:mm:ss.SSS", "F", "2004 03 10 16:36:31.567", "2004/3/10 16:36:31.567",
-        "y/M/d H:mm:ss.SSSS", "pf", "2004/3/10 16:36:31.5679", "2004 03 10 16:36:31.567", "2004/3/10 16:36:31.5670",
+        "y/M/d H:mm:ss.SSSS", "pf", "2004/3/10 16:36:31.5679", "2004 03 10 16:36:31.568", "2004/3/10 16:36:31.5680",
     };
     expect(DATA, ARRAY_SIZE(DATA), Locale("en", "", ""));
 }
@@ -691,7 +690,7 @@ DateFormatTest::TestRunTogetherPattern985()
     logln(now);
     ParsePosition pos(0);
     UDate date2 = formatter->parse(now, pos);
-    if (date2 == 0) then = UnicodeString("Parse stopped at ") + pos.getIndex();
+    if (date2 == 0) then = "Parse stopped at " + pos.getIndex();
     else ((DateFormat*)formatter)->format(date2, then);
     logln(then);
     if (!(date2 == date1)) errln((UnicodeString)"FAIL");
@@ -1010,9 +1009,9 @@ static const char* const inputStrings[] = {
     "April 1, 1997", "April 1, 1997", "April 1 1997", "4/1/97", 0, 0, 0, "April 1", 0, 0,
     "Jan 1, 1970", "January 1, 1970", "January 1 1970", "1/1/70", 0, 0, 0, "January 1", 0, 0,
     "Jan 1 2037", "January 1, 2037", "January 1 2037", "1/1/37", 0, 0, 0, "January 1", 0, 0,
-    "1/1/70", "January 1, 0070", "January 1 0070", "1/1/70", "1 January, 0070", "1 January 0070", "1 January", "January 1", "0001", 0,
+    "1/1/70", "January 1, 1970", "January 1 1970", "1/1/70", "1 January, 1970", "1 January 1970", "1 January", "January 1", "0001", 0,
     "5 May 1997", 0, 0, 0, "5 May, 1997", "5 May 1997", "5 May", 0, "0005", 0,
-    "16 May", 0, 0, 0, 0, 0, "16 May", 0, "0016", 0,
+    "16 May", 0, 0, 0, 0, 0, "16 May", 0, "2016", 0,
     "April 30", 0, 0, 0, 0, 0, 0, "April 30", 0, 0,
     "1998", 0, 0, 0, 0, 0, 0, 0, "1998", 0,
     "1", 0, 0, 0, 0, 0, 0, 0, "0001", 0,
@@ -1615,30 +1614,6 @@ void DateFormatTest::TestStandAloneDays()
 
     expect(EN_DATA, ARRAY_SIZE(EN_DATA), Locale("en", "", ""));
     expect(CS_DATA, ARRAY_SIZE(CS_DATA), Locale("cs", "", ""));
-}
-
-void DateFormatTest::TestShortDays()
-{
-    const char *EN_DATA[] = {
-        "yyyy MM dd HH:mm:ss",
-
-        "EEEEEE, MMM d y", "fp", "2013 01 13 0:00:00", "Su, Jan 13 2013", "2013 01 13 0:00:00",
-        "EEEEEE, MMM d y", "fp", "2013 01 16 0:00:00", "We, Jan 16 2013", "2013 01 16 0:00:00",
-        "EEEEEE d",        "fp", "1970 01 17 0:00:00", "Sa 17",           "1970 01 17 0:00:00",
-        "cccccc d",        "fp", "1970 01 17 0:00:00", "Sa 17",           "1970 01 17 0:00:00",
-        "cccccc",          "fp", "1970 01 03 0:00:00", "Sa",              "1970 01 03 0:00:00",
-    };
-    const char *SV_DATA[] = {
-        "yyyy MM dd HH:mm:ss",
-
-        "EEEEEE d MMM y",  "fp", "2013 01 13 0:00:00", "s\\u00F6 13 jan 2013", "2013 01 13 0:00:00",
-        "EEEEEE d MMM y",  "fp", "2013 01 16 0:00:00", "on 16 jan 2013",       "2013 01 16 0:00:00",
-        "EEEEEE d",        "fp", "1970 01 17 0:00:00", "l\\u00F6 17",          "1970 01 17 0:00:00",
-        "cccccc d",        "fp", "1970 01 17 0:00:00", "L\\u00F6 17",          "1970 01 17 0:00:00",
-        "cccccc",          "fp", "1970 01 03 0:00:00", "L\\u00F6",             "1970 01 03 0:00:00",
-    };
-    expect(EN_DATA, ARRAY_SIZE(EN_DATA), Locale("en", "", ""));
-    expect(SV_DATA, ARRAY_SIZE(SV_DATA), Locale("sv", "", ""));
 }
 
 void DateFormatTest::TestNarrowNames()
@@ -2569,10 +2544,6 @@ void DateFormatTest::TestTimeZoneDisplayName()
         { "en", "Asia/Calcutta", "2004-07-15T00:00:00Z", "v", "India Time", "Asia/Calcutta" },
         { "en", "Asia/Calcutta", "2004-07-15T00:00:00Z", "vvvv", "India Standard Time", "Asia/Calcutta" },
 
-        // Proper CLDR primary zone support #9733
-        { "en", "Asia/Shanghai", "2013-01-01T00:00:00Z", "VVVV", "China Time", "Asia/Shanghai" },
-        { "en", "Asia/Harbin", "2013-01-01T00:00:00Z", "VVVV", "Harbin Time", "Asia/Harbin" },
-
         // ==========
 
         { "de", "America/Los_Angeles", "2004-01-15T00:00:00Z", "Z", "-0800", "-8:00" },
@@ -2788,10 +2759,6 @@ void DateFormatTest::TestTimeZoneDisplayName()
         { "zh", "Asia/Calcutta", "2004-07-15T00:00:00Z", "v", "\\u5370\\u5ea6\\u65f6\\u95f4", "Asia/Calcutta" },
         { "zh", "Asia/Calcutta", "2004-07-15T00:00:00Z", "vvvv", "\\u5370\\u5ea6\\u65f6\\u95f4", "Asia/Calcutta" },
 
-        // Proper CLDR primary zone support #9733
-        { "zh", "Asia/Shanghai", "2013-01-01T00:00:00Z", "VVVV", "\\u4e2d\\u56fd\\u65f6\\u95f4", "Asia/Shanghai" },
-        { "zh", "Asia/Harbin", "2013-01-01T00:00:00Z", "VVVV", "\\u54c8\\u5c14\\u6ee8\\u65f6\\u95f4", "Asia/Harbin" },
-
         // ==========
 
         { "hi", "America/Los_Angeles", "2004-01-15T00:00:00Z", "Z", "-0800", "-8:00" },
@@ -2868,8 +2835,8 @@ void DateFormatTest::TestTimeZoneDisplayName()
         { "hi", "Europe/London", "2004-07-15T00:00:00Z", "ZZZZ", "GMT+01:00", "+1:00" },
         { "hi", "Europe/London", "2004-07-15T00:00:00Z", "z", "GMT+01:00", "+1:00" },
         { "hi", "Europe/London", "2004-07-15T00:00:00Z", "zzzz", "GMT+01:00", "+1:00" },
-        { "hi", "Europe/London", "2004-07-15T00:00:00Z", "v", "\\u092C\\u094D\\u0930\\u093F\\u091F\\u0947\\u0928 \\u0938\\u092E\\u092F", "Europe/London" },
-        { "hi", "Europe/London", "2004-07-15T00:00:00Z", "vvvv", "\\u092C\\u094D\\u0930\\u093F\\u091F\\u0947\\u0928 \\u0938\\u092E\\u092F", "Europe/London" },
+        { "hi", "Europe/London", "2004-07-15T00:00:00Z", "v", "\\u092C\\u094D\\u0930\\u093F\\u0924\\u0928 \\u0938\\u092E\\u092F", "Europe/London" },
+        { "hi", "Europe/London", "2004-07-15T00:00:00Z", "vvvv", "\\u092C\\u094D\\u0930\\u093F\\u0924\\u0928 \\u0938\\u092E\\u092F", "Europe/London" },
 
         { "hi", "Etc/GMT+3", "2004-01-15T00:00:00Z", "Z", "-0300", "-3:00" },
         { "hi", "Etc/GMT+3", "2004-01-15T00:00:00Z", "ZZZZ", "GMT-03:00", "-3:00" },

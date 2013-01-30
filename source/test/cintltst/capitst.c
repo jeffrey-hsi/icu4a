@@ -1,5 +1,5 @@
 /********************************************************************
- * Copyright (c) 1997-2013, International Business Machines
+ * Copyright (c) 1997-2012, International Business Machines
  * Corporation and others. All Rights Reserved.
  ********************************************************************/
 /*****************************************************************************
@@ -270,6 +270,7 @@ void TestProperty()
     UChar *disName;
     int32_t len = 0;
     UChar source[12], target[12];
+    char sourceU8[36], targetU8[36];
     int32_t tempLength;
     UErrorCode status = U_ZERO_ERROR;
     /*
@@ -611,21 +612,21 @@ void TestDecomposition() {
     if (ucol_getAttribute(vi_VN, UCOL_NORMALIZATION_MODE, &status) != UCOL_ON ||
         U_FAILURE(status))
     {
-        log_err("ERROR: vi_VN collation did not have canonical decomposition for normalization!\n");
+        log_err("ERROR: vi_VN collation did not have cannonical decomposition for normalization!\n");
     }
 
     status = U_ZERO_ERROR;
     if (ucol_getAttribute(el_GR, UCOL_NORMALIZATION_MODE, &status) != UCOL_ON ||
         U_FAILURE(status))
     {
-        log_err("ERROR: el_GR collation did not have canonical decomposition for normalization!\n");
+        log_err("ERROR: el_GR collation did not have cannonical decomposition for normalization!\n");
     }
 
     status = U_ZERO_ERROR;
     if (ucol_getAttribute(en_US, UCOL_NORMALIZATION_MODE, &status) != UCOL_OFF ||
         U_FAILURE(status))
     {
-        log_err("ERROR: en_US collation had canonical decomposition for normalization!\n");
+        log_err("ERROR: en_US collation had cannonical decomposition for normalization!\n");
     }
 
     ucol_close(en_US);
@@ -1948,7 +1949,7 @@ void TestMergeSortKeys(void) {
        uint32_t reqLen = 0;
        log_verbose("testing buffer overflow\n");
        reqLen = ucol_mergeSortkeys(prefixKey, prefixKeyLen, suffixKey, suffixKeyLen, smallBuf, 3);
-       if(reqLen != (prefixKeyLen+suffixKeyLen)) {
+       if(reqLen != (prefixKeyLen+suffixKeyLen-1)) {
          log_err("Wrong preflight size for merged sortkey\n");
        }
      }
@@ -2325,36 +2326,36 @@ static void TestGetKeywordValuesForLocale(void) {
 #define PREFERRED_SIZE 16
 #define MAX_NUMBER_OF_KEYWORDS 9
     const char *PREFERRED[PREFERRED_SIZE][MAX_NUMBER_OF_KEYWORDS+1] = {
-            { "und",            "standard", "search", NULL, NULL, NULL, NULL, NULL, NULL },
-            { "en_US",          "standard", "search", NULL, NULL, NULL, NULL, NULL, NULL },
-            { "en_029",         "standard", "search", NULL, NULL, NULL, NULL, NULL, NULL },
-            { "de_DE",          "standard", "phonebook", "search", NULL, NULL, NULL, NULL, NULL },
-            { "de_Latn_DE",     "standard", "phonebook", "search", NULL, NULL, NULL, NULL, NULL },
+            { "und",            "standard", "ducet", "search", NULL, NULL, NULL, NULL, NULL },
+            { "en_US",          "standard", "ducet", "search", NULL, NULL, NULL, NULL, NULL },
+            { "en_029",         "standard", "ducet", "search", NULL, NULL, NULL, NULL, NULL },
+            { "de_DE",          "standard", "phonebook", "search", "ducet", NULL, NULL, NULL, NULL },
+            { "de_Latn_DE",     "standard", "phonebook", "search", "ducet", NULL, NULL, NULL, NULL },
 #if INCLUDE_UNIHAN_COLLATION
-            { "zh",             "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "unihan", "search", NULL },
-            { "zh_Hans",        "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "unihan", "search", NULL },
-            { "zh_CN",          "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "unihan", "search", NULL },
-            { "zh_Hant",        "stroke", "big5han", "gb2312han", "pinyin", "standard", "zhuyin", "unihan", "search", NULL },
-            { "zh_TW",          "stroke", "big5han", "gb2312han", "pinyin", "standard", "zhuyin", "unihan", "search", NULL },
-            { "zh__PINYIN",     "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "unihan", "search", NULL },
+            { "zh",             "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "unihan", "ducet", "search" },
+            { "zh_Hans",        "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "unihan", "ducet", "search" },
+            { "zh_CN",          "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "unihan", "ducet", "search" },
+            { "zh_Hant",        "stroke", "big5han", "gb2312han", "pinyin", "standard", "zhuyin", "unihan", "ducet", "search" },
+            { "zh_TW",          "stroke", "big5han", "gb2312han", "pinyin", "standard", "zhuyin", "unihan", "ducet", "search" },
+            { "zh__PINYIN",     "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "unihan", "ducet", "search" },
 #else
-            { "zh",             "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "search", NULL, NULL },
-            { "zh_Hans",        "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "search", NULL, NULL },
-            { "zh_CN",          "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "search", NULL, NULL },
-            { "zh_Hant",        "stroke", "big5han", "gb2312han", "pinyin", "standard", "zhuyin", "search", NULL, NULL },
-            { "zh_TW",          "stroke", "big5han", "gb2312han", "pinyin", "standard", "zhuyin", "search", NULL, NULL },
-            { "zh__PINYIN",     "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "search", NULL, NULL },
+            { "zh",             "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "ducet", "search", NULL },
+            { "zh_Hans",        "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "ducet", "search", NULL },
+            { "zh_CN",          "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "ducet", "search", NULL },
+            { "zh_Hant",        "stroke", "big5han", "gb2312han", "pinyin", "standard", "zhuyin", "ducet", "search", NULL },
+            { "zh_TW",          "stroke", "big5han", "gb2312han", "pinyin", "standard", "zhuyin", "ducet", "search", NULL },
+            { "zh__PINYIN",     "pinyin", "big5han", "gb2312han", "standard", "stroke", "zhuyin", "ducet", "search", NULL },
 #endif
-            { "es_ES",          "standard", "search", "traditional", NULL, NULL, NULL, NULL, NULL },
-            { "es__TRADITIONAL","traditional", "search", "standard", NULL, NULL, NULL, NULL, NULL },
-            { "und@collation=phonebook",    "standard", "search", NULL, NULL, NULL, NULL, NULL, NULL },
-            { "de_DE@collation=big5han",    "standard", "phonebook", "search", NULL, NULL, NULL, NULL, NULL },
-            { "zzz@collation=xxx",          "standard", "search", NULL, NULL, NULL, NULL, NULL, NULL }
+            { "es_ES",          "standard", "search", "traditional", "ducet", NULL, NULL, NULL, NULL },
+            { "es__TRADITIONAL","traditional", "search", "standard", "ducet", NULL, NULL, NULL, NULL },
+            { "und@collation=phonebook",    "standard", "ducet", "search", NULL, NULL, NULL, NULL, NULL },
+            { "de_DE@collation=big5han",    "standard", "phonebook", "search", "ducet", NULL, NULL, NULL, NULL },
+            { "zzz@collation=xxx",          "standard", "ducet", "search", NULL, NULL, NULL, NULL, NULL }
     };
 #if INCLUDE_UNIHAN_COLLATION
-    const int32_t expectedLength[PREFERRED_SIZE] = { 2, 2, 2, 3, 3, 8, 8, 8, 8, 8, 8, 3, 3, 2, 3, 2 };
+    const int32_t expectedLength[PREFERRED_SIZE] = { 3, 3, 3, 4, 4, 9, 9, 9, 9, 9, 9, 4, 4, 3, 4, 3 };
 #else
-    const int32_t expectedLength[PREFERRED_SIZE] = { 2, 2, 2, 3, 3, 7, 7, 7, 7, 7, 7, 3, 3, 2, 3, 2 };
+    const int32_t expectedLength[PREFERRED_SIZE] = { 3, 3, 3, 4, 4, 8, 8, 8, 8, 8, 8, 4, 4, 3, 4, 3 };
 #endif
 
     UErrorCode status = U_ZERO_ERROR;

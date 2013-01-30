@@ -24,10 +24,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bms.cpp">
+      <Filter>collation</Filter>
+    </ClCompile>
+    <ClCompile Include="bmsearch.cpp">
+      <Filter>collation</Filter>
+    </ClCompile>
     <ClCompile Include="coleitr.cpp">
       <Filter>collation</Filter>
     </ClCompile>
     <ClCompile Include="coll.cpp">
+      <Filter>collation</Filter>
+    </ClCompile>
+    <ClCompile Include="colldata.cpp">
       <Filter>collation</Filter>
     </ClCompile>
     <ClCompile Include="search.cpp">
@@ -486,13 +495,7 @@
     <ClCompile Include="tznames_impl.cpp">
       <Filter>formatting</Filter>
     </ClCompile>
-    <ClCompile Include="compactdecimalformat.cpp">
-      <Filter>formatting</Filter>
-    </ClCompile>
     <ClCompile Include="bocsu.cpp" />
-    <ClCompile Include="region.cpp">
-      <Filter>formatting</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bocsu.h">
@@ -783,12 +786,6 @@
     <ClInclude Include="selfmtimpl.h">
       <Filter>formatting</Filter>
     </ClInclude>
-    <ClInclude Include="region_impl.h">
-      <Filter>formatting</Filter>
-    </ClInclude>
-    <ClInclude Include="unicode\region.h">
-      <Filter>formatting</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="i18n.rc">
@@ -796,10 +793,19 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <CustomBuild Include="unicode\bms.h">
+      <Filter>collation</Filter>
+    </CustomBuild>
+    <CustomBuild Include="unicode\bmsearch.h">
+      <Filter>collation</Filter>
+    </CustomBuild>
     <CustomBuild Include="unicode\coleitr.h">
       <Filter>collation</Filter>
     </CustomBuild>
     <CustomBuild Include="unicode\coll.h">
+      <Filter>collation</Filter>
+    </CustomBuild>
+    <CustomBuild Include="unicode\colldata.h">
       <Filter>collation</Filter>
     </CustomBuild>
     <CustomBuild Include="unicode\search.h">
@@ -1011,9 +1017,6 @@
       <Filter>formatting</Filter>
     </CustomBuild>
     <CustomBuild Include="unicode\tznames.h">
-      <Filter>formatting</Filter>
-    </CustomBuild>
-    <CustomBuild Include="unicode\compactdecimalformat.h">
       <Filter>formatting</Filter>
     </CustomBuild>
   </ItemGroup>
