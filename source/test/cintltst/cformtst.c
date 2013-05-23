@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2007,2011,2013, International Business Machines
+ * Copyright (c) 1997-2007,2011, International Business Machines
  * Corporation and others. All Rights Reserved.
  ********************************************************************/
 /********************************************************************************
@@ -34,7 +34,6 @@ void addDtFrDepTest(TestNode**);
 void addUtmsTest(TestNode**);
 void addCurrencyTest(TestNode**);
 void addPluralRulesTest(TestNode**);
-void addURegionTest(TestNode** root);
 
 void addFormatTest(TestNode** root);
 
@@ -52,7 +51,6 @@ void addFormatTest(TestNode** root)
     addUtmsTest(root);
     addCurrencyTest(root);
     addPluralRulesTest(root);
-    addURegionTest(root);
 }
 /*Internal functions used*/
 

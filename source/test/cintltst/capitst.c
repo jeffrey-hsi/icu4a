@@ -310,7 +310,7 @@ void TestProperty()
      * rather than hardcoding (and updating each time) a particular UCA version. */
     u_getUnicodeVersion(versionUCDArray);
     ucol_getUCAVersion(col, versionUCAArray);
-    if (0!=uprv_memcmp(versionUCAArray, versionUCDArray, 4) /*TODO: remove the following once UCA is up to date, ticket:9101*/ && !(versionUCDArray[0]==6 && versionUCDArray[1]==3)) {
+    if (0!=uprv_memcmp(versionUCAArray, versionUCDArray, 4)) {
       log_err("Testing ucol_getUCAVersion() - unexpected result: %hu.%hu.%hu.%hu\n",
               versionUCAArray[0], versionUCAArray[1], versionUCAArray[2], versionUCAArray[3]);
     }
@@ -951,7 +951,6 @@ void TestOpenVsOpenRules(){
     uset_addRange(stdSet, 0x41, 0x5A);
     uset_addRange(stdSet, 0x30, 0x39);
     sizeOfStdSet = uset_size(stdSet);
-    (void)sizeOfStdSet;   /* Suppress set but not used warning. */
 
     adder = 1;
     if(getTestOption(QUICK_OPTION))
@@ -1302,7 +1301,6 @@ void TestElemIter()
     else{ log_verbose("PASS: Default collationElement iterator3 creation passed\n");}
 
     offset=ucol_getOffset(iterator1);
-    (void)offset;   /* Suppress set but not used warning. */
     ucol_setOffset(iterator1, 6, &status);
     if (U_FAILURE(status)) {
         log_err("Error in setOffset for UCollatorElements iterator.: %s\n", myErrorName(status));
@@ -1601,8 +1599,6 @@ void TestBounds() {
             for(j = i+1; j < arraySize; j++) {
                 lowerSize = ucol_getBound(tests[i].key, -1, UCOL_BOUND_LOWER, 1, lower, 512, &status);
                 upperSize = ucol_getBound(tests[j].key, -1, UCOL_BOUND_UPPER, 1, upper, 512, &status);
-                (void)lowerSize;    /* Suppress set but not used warning. */
-                (void)upperSize;
                 for(k = i; k <= j; k++) {
                     if(strcmp((const char *)lower, (const char *)tests[k].key) > 0) {
                         log_err("Problem with lower! j = %i (%s vs %s)\n", k, tests[k].original, tests[i].original);
@@ -2205,7 +2201,6 @@ TestGetContractionsAndUnsafes(void)
         }
 
         noConts = ucol_getUnsafeSet(coll, conts, &status);
-        (void)noConts;   /* Suppress set but not used warning */
         doSetsTest(tests[i].locale, conts, set, tests[i].unsafeCodeUnits, tests[i].safeCodeUnits, &status);
         setLen = uset_toPattern(conts, buffer, setBufferLen, TRUE, &status);
         if(U_SUCCESS(status)) {

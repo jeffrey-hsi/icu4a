@@ -681,7 +681,6 @@ extern U_IMPORT char *U_TZNAME[];
 #elif U_PLATFORM == U_PF_SOLARIS
 #define TZDEFAULT       "/etc/localtime"
 #define TZZONEINFO      "/usr/share/lib/zoneinfo/"
-#define TZZONEINFO2     "../usr/share/lib/zoneinfo/"
 #define TZ_ENV_CHECK    "localtime"
 #else
 #define TZDEFAULT       "/etc/localtime"
@@ -1042,17 +1041,6 @@ uprv_tzname(int n)
             {
                 return (gTimeZoneBufferPtr = gTimeZoneBuffer + tzZoneInfoLen);
             }
-#if U_PLATFORM == U_PF_SOLARIS
-            else
-            {
-                tzZoneInfoLen = uprv_strlen(TZZONEINFO2);
-                if (uprv_strncmp(gTimeZoneBuffer, TZZONEINFO2, tzZoneInfoLen) == 0
-                                && isValidOlsonID(gTimeZoneBuffer + tzZoneInfoLen))
-                {
-                    return (gTimeZoneBufferPtr = gTimeZoneBuffer + tzZoneInfoLen);
-                }
-            }
-#endif
         } else {
 #if defined(SEARCH_TZFILE)
             DefaultTZInfo* tzInfo = (DefaultTZInfo*)uprv_malloc(sizeof(DefaultTZInfo));
@@ -1154,6 +1142,7 @@ static UBool U_CALLCONV putil_cleanup(void)
 /*
  * Set the data directory.
  *    Make a copy of the passed string, and set the global data dir to point to it.
+ *    TODO:  see bug #2849, regarding thread safety.
  */
 U_CAPI void U_EXPORT2
 u_setDataDirectory(const char *directory) {
@@ -1186,11 +1175,13 @@ u_setDataDirectory(const char *directory) {
 #endif
     }
 
+    umtx_lock(NULL);
     if (gDataDirectory && *gDataDirectory) {
         uprv_free(gDataDirectory);
     }
     gDataDirectory = newDataDir;
     ucln_common_registerCleanup(UCLN_COMMON_PUTIL, putil_cleanup);
+    umtx_unlock(NULL);
 }
 
 U_CAPI UBool U_EXPORT2
@@ -1237,8 +1228,10 @@ u_getDataDirectory(void) {
 #endif
 
     /* if we have the directory, then return it immediately */
-    if(gDataDirectory) {
-        return gDataDirectory;
+    UMTX_CHECK(NULL, gDataDirectory, path);
+
+    if(path) {
+        return path;
     }
 
     /*

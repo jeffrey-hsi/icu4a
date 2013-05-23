@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2013, International Business Machines Corporation and
+ * Copyright (c) 1997-2012, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 /*****************************************************************************
@@ -253,6 +253,7 @@ static void TestConvert()
     UChar*                my_ucs_file_buffer; /*    [MAX_FILE_LEN] */
     UChar*                my_ucs_file_buffer_1;
     int8_t                ii                  =   0;
+    int32_t             j                   =   0;
     uint16_t            codepage_index      =   0;
     int32_t             cp                  =   0;
     UErrorCode          err                 =   U_ZERO_ERROR;
@@ -968,6 +969,7 @@ static void TestConvert()
 
         /*testing for ucnv_fromUnicode() and ucnv_toUnicode() */
         /*Clean up re-usable vars*/
+        j=0;
         log_verbose("Testing ucnv_fromUnicode().....\n");
         tmp_ucs_buf=ucs_file_buffer_use; 
         ucnv_fromUnicode(myConverter, &mytarget_1,
@@ -978,7 +980,6 @@ static void TestConvert()
                  TRUE,
                  &err);
         consumedUni = (UChar*)tmp_consumedUni;
-        (void)consumedUni;   /* Suppress set but not used warning. */
 
         if (U_FAILURE(err)) 
         {
@@ -2537,7 +2538,6 @@ static void testFromTruncatedUTF8(UConverter *utf8Cnv, UConverter *cnv, const ch
                        TRUE, TRUE, /* reset & flush */
                        &errorCode);
         outputLength=(int32_t)(target-output);
-        (void)outputLength;   /* Suppress set but not used warning. */
         if(errorCode!=U_TRUNCATED_CHAR_FOUND || pivotSource!=pivotBuffer) {
             log_err("unexpected error %s from %s badUTF8[%ld]\n", u_errorName(errorCode), converterName, (long)i);
             continue;

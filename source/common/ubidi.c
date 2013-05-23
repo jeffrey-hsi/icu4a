@@ -1,7 +1,7 @@
 /*
 ******************************************************************************
 *
-*   Copyright (C) 1999-2013, International Business Machines
+*   Copyright (C) 1999-2012, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 *
 ******************************************************************************
@@ -2364,11 +2364,9 @@ ubidi_getCustomizedClass(UBiDi *pBiDi, UChar32 c)
     if( pBiDi->fnClassCallback == NULL ||
         (dir = (*pBiDi->fnClassCallback)(pBiDi->coClassCallback, c)) == U_BIDI_CLASS_DEFAULT )
     {
-        dir = ubidi_getClass(pBiDi->bdp, c);
+        return ubidi_getClass(pBiDi->bdp, c);
+    } else {
+        return dir;
     }
-    if(dir > 18) {
-        // TODO: Implement Unicode 6.3 BiDi isolates in the ICU BiDi code.
-        dir = ON;
-    }
-    return dir;
 }
+

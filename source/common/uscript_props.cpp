@@ -202,8 +202,6 @@ const int32_t SCRIPT_PROPS[] = {
     0,
     0,
     0,
-    0,
-    0,
     // End copy-paste from parsescriptmetadata.py
 };
 

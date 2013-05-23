@@ -399,10 +399,7 @@ unum_clone(const UNumberFormat *fmt,
 * The integer will be formatted according to the UNumberFormat's locale.
 * @param fmt The formatter to use.
 * @param number The number to format.
-* @param result A pointer to a buffer to receive the NULL-terminated formatted number. If
-* the formatted number fits into dest but cannot be NULL-terminated (length == resultLength)
-* then the error code is set to U_STRING_NOT_TERMINATED_WARNING. If the formatted number
-* doesn't fit into result then the error code is set to U_BUFFER_OVERFLOW_ERROR.
+* @param result A pointer to a buffer to receive the formatted number.
 * @param resultLength The maximum size of result.
 * @param pos    A pointer to a UFieldPosition.  On input, position->field
 * is read.  On output, position->beginIndex and position->endIndex indicate
@@ -431,10 +428,7 @@ unum_format(    const    UNumberFormat*    fmt,
 * The int64 will be formatted according to the UNumberFormat's locale.
 * @param fmt The formatter to use.
 * @param number The number to format.
-* @param result A pointer to a buffer to receive the NULL-terminated formatted number. If
-* the formatted number fits into dest but cannot be NULL-terminated (length == resultLength)
-* then the error code is set to U_STRING_NOT_TERMINATED_WARNING. If the formatted number
-* doesn't fit into result then the error code is set to U_BUFFER_OVERFLOW_ERROR.
+* @param result A pointer to a buffer to receive the formatted number.
 * @param resultLength The maximum size of result.
 * @param pos    A pointer to a UFieldPosition.  On input, position->field
 * is read.  On output, position->beginIndex and position->endIndex indicate
@@ -462,10 +456,8 @@ unum_formatInt64(const UNumberFormat *fmt,
 * Format a double using a UNumberFormat.
 * The double will be formatted according to the UNumberFormat's locale.
 * @param fmt The formatter to use.
-* @param result A pointer to a buffer to receive the NULL-terminated formatted number. If
-* the formatted number fits into dest but cannot be NULL-terminated (length == resultLength)
-* then the error code is set to U_STRING_NOT_TERMINATED_WARNING. If the formatted number
-* doesn't fit into result then the error code is set to U_BUFFER_OVERFLOW_ERROR.
+* @param number The number to format.
+* @param result A pointer to a buffer to receive the formatted number.
 * @param resultLength The maximum size of result.
 * @param pos    A pointer to a UFieldPosition.  On input, position->field
 * is read.  On output, position->beginIndex and position->endIndex indicate
@@ -498,10 +490,7 @@ unum_formatDouble(    const    UNumberFormat*  fmt,
 * @param fmt The formatter to use.
 * @param number The number to format.
 * @param length The length of the input number, or -1 if the input is nul-terminated.
-* @param result A pointer to a buffer to receive the NULL-terminated formatted number. If
-* the formatted number fits into dest but cannot be NULL-terminated (length == resultLength)
-* then the error code is set to U_STRING_NOT_TERMINATED_WARNING. If the formatted number
-* doesn't fit into result then the error code is set to U_BUFFER_OVERFLOW_ERROR.
+* @param result A pointer to a buffer to receive the formatted number.
 * @param resultLength The maximum size of result.
 * @param pos    A pointer to a UFieldPosition.  On input, position->field
 *               is read.  On output, position->beginIndex and position->endIndex indicate
@@ -532,10 +521,7 @@ unum_formatDecimal(    const    UNumberFormat*  fmt,
  * @param fmt the formatter to use
  * @param number the number to format
  * @param currency the 3-letter null-terminated ISO 4217 currency code
- * @param result A pointer to a buffer to receive the NULL-terminated formatted number. If
- * the formatted number fits into dest but cannot be NULL-terminated (length == resultLength)
- * then the error code is set to U_STRING_NOT_TERMINATED_WARNING. If the formatted number
- * doesn't fit into result then the error code is set to U_BUFFER_OVERFLOW_ERROR.
+ * @param result a pointer to the buffer to receive the formatted number
  * @param resultLength the maximum number of UChars to write to result
  * @param pos a pointer to a UFieldPosition.  On input,
  * position->field is read.  On output, position->beginIndex and

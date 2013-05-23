@@ -1492,6 +1492,15 @@ DecimalFormat::_format(const DigitList &number,
     return subformat(appendTo, handler, adjustedNum, FALSE, status);
 }
 
+UnicodeString&
+DecimalFormat::format(  const Formattable& obj,
+                        UnicodeString& appendTo,
+                        FieldPosition& fieldPosition,
+                        UErrorCode& status) const
+{
+    return NumberFormat::format(obj, appendTo, fieldPosition, status);
+}
+
 /**
  * Return true if a grouping separator belongs at the given
  * position, based on whether grouping is in use and the values of
@@ -1802,14 +1811,6 @@ DecimalFormat::subformat(UnicodeString& appendTo,
             count = 0;
         }
 
-        // This handles the special case of formatting 0. For zero only, we count the
-        // zero to the left of the decimal point as one signficant digit. Ordinarily we
-        // do not count any leading 0's as significant. If the number we are formatting
-        // is not zero, then either sigCount or digits.getCount() will be non-zero.
-        if (sigCount == 0 && digits.getCount() == 0) {
-          sigCount = 1;
-        }
-
         for (i=0; i < count; ++i) {
             // Here is where we escape from the loop.  We escape
             // if we've output the maximum fraction digits
@@ -1898,6 +1899,14 @@ void DecimalFormat::addPadding(UnicodeString& appendTo,
 }
 
 //------------------------------------------------------------------------------
+
+void
+DecimalFormat::parse(const UnicodeString& text,
+                     Formattable& result,
+                     UErrorCode& status) const
+{
+    NumberFormat::parse(text, result, status);
+}
 
 void
 DecimalFormat::parse(const UnicodeString& text,

@@ -282,7 +282,7 @@ static void TestErrorCodes(void) {
 
   /* we look up the resource which is aliased and at our level */
   /* TODO: restore the following test when cldrbug 3058: is fixed - but CldrBug:3058 is WONTFIX */
-  if(U_SUCCESS(status) && r != NULL && isICUVersionAtLeast(52, 0, 2)) {
+  if(U_SUCCESS(status) && r != NULL && isICUVersionAtLeast(52, 0, 1)) {
     status = U_USING_DEFAULT_WARNING;
     r2 = ures_getByKey(r, "Countries", r2, &status);
     checkStatus(__LINE__, U_USING_DEFAULT_WARNING, status);
@@ -768,7 +768,7 @@ static void TestEmptyTypes() {
     int32_t len = 0;
     int32_t intResult = 0;
     const UChar *zeroString;
-    const int32_t *zeroIntVect = NULL;
+    const int32_t *zeroIntVect;
 
     strcpy(action, "Construction of testtypes bundle");
     testdatapath=loadTestData(&status);
@@ -843,7 +843,6 @@ static void TestEmptyTypes() {
     }
     else {
         zeroIntVect=ures_getIntVector(res, &len, &status);
-        (void)zeroIntVect;    /* Suppress set but not used warning. */
         if(!U_SUCCESS(status) || resArray != NULL || len != 0) {
             log_err("Shouldn't get emptyintv\n");
         }
@@ -860,7 +859,6 @@ static void TestEmptyTypes() {
     }
     else {
         binResult=ures_getBinary(res, &len, &status);
-        (void)binResult;      /* Suppress set but not used warning. */
         if(!U_SUCCESS(status) || len != 0) {
             log_err("Couldn't get emptybin, or it's not empty\n");
         }
@@ -966,7 +964,6 @@ static void TestBinaryCollationData(){
             CONFIRM_ErrorCode(status, U_ZERO_ERROR);
             CONFIRM_INT_EQ(ures_getType(binColl), URES_BINARY);
             binResult=(uint8_t*)ures_getBinary(binColl,  &len, &status);
-            (void)binResult;    /* Suppress set but not used warning. */
             if(U_SUCCESS(status)){
                 CONFIRM_ErrorCode(status, U_ZERO_ERROR);
                 CONFIRM_INT_GE(len, 1);
@@ -1059,7 +1056,6 @@ static void TestAPI() {
     teFillin=ures_getByKey(teRes, "tagged_array_in_te_te_IN", teFillin, &status);
     key=ures_getKey(teFillin);
     value=(UChar*)ures_getNextString(teFillin, &len, &key, &status);
-    (void)value;    /* Suppress set but not used warning. */
     ures_resetIterator(NULL);
     value=(UChar*)ures_getNextString(teFillin, &len, &key, &status);
     if(status !=U_INDEX_OUTOFBOUNDS_ERROR){
@@ -2039,7 +2035,6 @@ static void TestFallback()
     status = U_ZERO_ERROR;
     junk = tres_getString(fr_FR, -1, "LocaleID", &resultLen, &status);
     status = U_ZERO_ERROR;
-    (void)junk;    /* Suppress set but not used warning. */
 
     /* OK first one. This should be a Default value. */
     subResource = ures_getByKey(fr_FR, "MeasurementSystem", NULL, &status);
@@ -2634,7 +2629,6 @@ static void TestGetFunctionalEquivalent(void) {
         len = ures_getFunctionalEquivalent(equivLocale, 255, U_ICUDATA_COLL,
             "calendar", "calendar", "ar_EG@calendar=islamic", 
             &gotAvail, FALSE, &status);
-        (void)len;    /* Suppress set but not used warning. */
 
         if(status == U_MISSING_RESOURCE_ERROR) {
             log_verbose("PASS: Got expected U_MISSING_RESOURCE_ERROR\n");
@@ -2950,7 +2944,6 @@ TestGetUTF8String() {
     status = U_ZERO_ERROR;
     length8 = (int32_t)sizeof(buffer8);
     s8 = ures_getUTF8StringByKey(res, "string_only_in_Root", buffer8, &length8, FALSE, &status);
-    (void)s8;    /* Suppress set but not used warning. */
     if(status != U_ZERO_ERROR) {
         log_err("ures_getUTF8StringByKey(testdata/root string) malfunctioned - %s\n", u_errorName(status));
     }

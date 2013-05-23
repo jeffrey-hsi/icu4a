@@ -1,6 +1,6 @@
 /*
  **********************************************************************
- *   Copyright (C) 2003-2013, International Business Machines
+ *   Copyright (C) 2003-2008, International Business Machines
  *   Corporation and others.  All Rights Reserved.
  **********************************************************************
  */
@@ -15,9 +15,8 @@
 
 struct FontTableCacheEntry
 {
-  LETag tag;
-  const void *table;
-  size_t length;
+    LETag tag;
+    const void *table;
 };
 
 FontTableCache::FontTableCache()
@@ -33,7 +32,6 @@ FontTableCache::FontTableCache()
     for (int i = 0; i < fTableCacheSize; i += 1) {
         fTableCache[i].tag   = 0;
         fTableCache[i].table = NULL;
-        fTableCache[i].length = 0;
     }
 }
 
@@ -44,7 +42,6 @@ FontTableCache::~FontTableCache()
 
         fTableCache[i].tag   = 0;
         fTableCache[i].table = NULL;
-        fTableCache[i].length = 0;
     }
 
     fTableCacheCurr = 0;
@@ -57,23 +54,22 @@ void FontTableCache::freeFontTable(const void *table) const
     DELETE_ARRAY(table);
 }
 
-const void *FontTableCache::find(LETag tableTag, size_t &length) const
+const void *FontTableCache::find(LETag tableTag) const
 {
     for (int i = 0; i < fTableCacheCurr; i += 1) {
         if (fTableCache[i].tag == tableTag) {
-          length = fTableCache[i].length;
-          return fTableCache[i].table;
+            return fTableCache[i].table;
         }
     }
 
-    const void *table = readFontTable(tableTag, length);
+    const void *table = readFontTable(tableTag);
 
-    ((FontTableCache *) this)->add(tableTag, table, length);
+    ((FontTableCache *) this)->add(tableTag, table);
 
     return table;
 }
 
-void FontTableCache::add(LETag tableTag, const void *table, size_t length)
+void FontTableCache::add(LETag tableTag, const void *table)
 {
     if (fTableCacheCurr >= fTableCacheSize) {
         le_int32 newSize = fTableCacheSize + TABLE_CACHE_GROW;
@@ -83,7 +79,6 @@ void FontTableCache::add(LETag tableTag, const void *table, size_t length)
         for (le_int32 i = fTableCacheSize; i < newSize; i += 1) {
             fTableCache[i].tag   = 0;
             fTableCache[i].table = NULL;
-            fTableCache[i].length = 0;
         }
 
         fTableCacheSize = newSize;
@@ -91,7 +86,6 @@ void FontTableCache::add(LETag tableTag, const void *table, size_t length)
 
     fTableCache[fTableCacheCurr].tag   = tableTag;
     fTableCache[fTableCacheCurr].table = table;
-    fTableCache[fTableCacheCurr].length = length;
 
     fTableCacheCurr += 1;
 }

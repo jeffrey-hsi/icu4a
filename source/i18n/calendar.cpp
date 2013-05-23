@@ -2304,11 +2304,6 @@ Calendar::getDayOfWeekType(UCalendarDaysOfWeek dayOfWeek, UErrorCode &status) co
         status = U_ILLEGAL_ARGUMENT_ERROR;
         return UCAL_WEEKDAY;
     }
-	if (fWeekendOnset == fWeekendCease) {
-		if (dayOfWeek != fWeekendOnset)
-			return UCAL_WEEKDAY;
-		return (fWeekendOnsetMillis == 0) ? UCAL_WEEKEND : UCAL_WEEKEND_ONSET;
-	}
     if (fWeekendOnset < fWeekendCease) {
         if (dayOfWeek < fWeekendOnset || dayOfWeek > fWeekendCease) {
             return UCAL_WEEKDAY;
@@ -2322,7 +2317,7 @@ Calendar::getDayOfWeekType(UCalendarDaysOfWeek dayOfWeek, UErrorCode &status) co
         return (fWeekendOnsetMillis == 0) ? UCAL_WEEKEND : UCAL_WEEKEND_ONSET;
     }
     if (dayOfWeek == fWeekendCease) {
-        return (fWeekendCeaseMillis >= 86400000) ? UCAL_WEEKEND : UCAL_WEEKEND_CEASE;
+        return (fWeekendCeaseMillis == 0) ? UCAL_WEEKDAY : UCAL_WEEKEND_CEASE;
     }
     return UCAL_WEEKEND;
 }

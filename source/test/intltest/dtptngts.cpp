@@ -343,8 +343,7 @@ void IntlTestDateTimePatternGeneratorAPI::testAPI(/*char *par*/)
     UnicodeString newDateTimeFormat("{1} {0}");
     UErrorCode status = U_ZERO_ERROR;
     UnicodeString conflictingPattern;
-    UDateTimePatternConflict conflictingStatus = UDATPG_NO_CONFLICT;
-    (void)conflictingStatus;   // Suppress set but not used warning.
+    UDateTimePatternConflict conflictingStatus;
 
     // ======= Test CreateInstance with default locale
     logln("Testing DateTimePatternGenerator createInstance from default locale");
@@ -849,16 +848,6 @@ void IntlTestDateTimePatternGeneratorAPI::testOptions(/*char *par*/)
         { "be", "Hmm",  "H.mm",    UDATPG_MATCH_HOUR_FIELD_LENGTH },
         { "be", "HHmm", "HH.mm",   UDATPG_MATCH_HOUR_FIELD_LENGTH },
         { "be", "hhmm", "hh.mm a", UDATPG_MATCH_HOUR_FIELD_LENGTH },
-        //
-        { "en",                   "yyyy", "yyyy", UDATPG_MATCH_NO_OPTIONS },
-        { "en",                   "YYYY", "YYYY", UDATPG_MATCH_NO_OPTIONS },
-        { "en",                   "U",    "y",    UDATPG_MATCH_NO_OPTIONS },
-        { "en@calendar=japanese", "yyyy", "y G",  UDATPG_MATCH_NO_OPTIONS },
-        { "en@calendar=japanese", "YYYY", "Y G",  UDATPG_MATCH_NO_OPTIONS },
-        { "en@calendar=japanese", "U",    "y G",  UDATPG_MATCH_NO_OPTIONS },
-        { "en@calendar=chinese",  "yyyy", "U",    UDATPG_MATCH_NO_OPTIONS },
-        { "en@calendar=chinese",  "YYYY", "Y",    UDATPG_MATCH_NO_OPTIONS },
-        { "en@calendar=chinese",  "U",    "U",    UDATPG_MATCH_NO_OPTIONS },
     };
     
     int count = sizeof(testData) / sizeof(testData[0]);

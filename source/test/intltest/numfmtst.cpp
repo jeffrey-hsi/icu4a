@@ -118,7 +118,6 @@ void NumberFormatTest::runIndexedTest( int32_t index, UBool exec, const char* &n
   TESTCASE_AUTO(Test9087);
   TESTCASE_AUTO(TestFormatFastpaths);
   TESTCASE_AUTO(TestFormattableSize);
-  TESTCASE_AUTO(TestSignificantDigits);
   TESTCASE_AUTO_END;
 }
 
@@ -727,7 +726,6 @@ NumberFormatTest::TestCurrency(void)
     s.truncate(0);
     char loc[256]={0};
     int len = uloc_canonicalize("de_DE_PREEURO", loc, 256, &status);
-    (void)len;  // Suppress unused variable warning.
     currencyFmt = NumberFormat::createCurrencyInstance(Locale(loc),status);
     currencyFmt->format(1.50, s);
     logln((UnicodeString)"Un pauvre en Allemagne a.." + s);
@@ -6694,59 +6692,6 @@ void NumberFormatTest::TestFormattableSize(void) {
     logln("sizeof(FmtStackData)=%d, UNUM_INTERNAL_STACKARRAY_SIZE=%d\n",
         sizeof(FmtStackData), UNUM_INTERNAL_STACKARRAY_SIZE);
   }
-}
-
-void NumberFormatTest::TestSignificantDigits(void) {
-  double input[] = {
-        0, 0,
-        0.1, -0.1,
-        123, -123,
-        12345, -12345,
-        123.45, -123.45,
-        123.44501, -123.44501,
-        0.001234, -0.001234,
-        0.00000000123, -0.00000000123,
-        0.0000000000000000000123, -0.0000000000000000000123,
-        1.2, -1.2,
-        0.0000000012344501, -0.0000000012344501,
-        123445.01, -123445.01,
-        12344501000000000000000000000000000.0, -12344501000000000000000000000000000.0,
-    };
-    const char* expected[] = {
-        "0.00", "0.00",
-        "0.100", "-0.100",
-        "123", "-123",
-        "12345", "-12345",
-        "123.45", "-123.45",
-        "123.45", "-123.45",
-        "0.001234", "-0.001234",
-        "0.00000000123", "-0.00000000123",
-        "0.0000000000000000000123", "-0.0000000000000000000123",
-        "1.20", "-1.20",
-        "0.0000000012345", "-0.0000000012345",
-        "123450", "-123450",
-        "12345000000000000000000000000000000", "-12345000000000000000000000000000000",
-    };
-
-    UErrorCode status = U_ZERO_ERROR;
-    Locale locale("en_US");
-    DecimalFormat* numberFormat = static_cast<DecimalFormat*>(
-            NumberFormat::createInstance(locale, status));
-    numberFormat->setSignificantDigitsUsed(TRUE);
-    numberFormat->setMinimumSignificantDigits(3);
-    numberFormat->setMaximumSignificantDigits(5);
-    numberFormat->setGroupingUsed(false);
-    
-    UnicodeString result;
-    UnicodeString expectedResult;
-    for (int i = 0; i < sizeof(input)/sizeof(double); ++i) {
-        numberFormat->format(input[i], result);
-        UnicodeString expectedResult(expected[i]);
-        if (result != expectedResult) {
-          errln((UnicodeString)"Expected: '" + expectedResult + "' got '" + result);
-        }
-        result.remove();
-    }
 }
 
 #endif /* #if !UCONFIG_NO_FORMATTING */
