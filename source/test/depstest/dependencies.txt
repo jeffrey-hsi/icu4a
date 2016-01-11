@@ -140,7 +140,6 @@ library: common
     idna2003 stringprep
     stringenumeration
     unistr_props unistr_case unistr_case_locale unistr_titlecase_brkiter unistr_cnv
-    cstr
     uniset_core uniset_props uniset_closure usetiter uset uset_props
     uiter
     ucasemap ucasemap_titlecase_brkiter script_runs
@@ -351,11 +350,6 @@ group: unistr_cnv
   deps
     conversion
 
-group: cstr
-    cstr.o
-  deps
-    unistr_cnv
-
 group: uscript
     uscript.o  # uscript_getCode() accepts a locale ID and loads its script code data
   deps
@@ -565,7 +559,7 @@ group: ures_cnv  # ures_openU, path is a Unicode string
     conversion resourcebundle
 
 group: resourcebundle
-    resource.o resbund.o uresbund.o uresdata.o
+    resbund.o uresbund.o uresdata.o
     locavailable.o
     # uloc_tag.c and uloc_keytype.cpp convert between
     # old ICU/LDML/CLDR locale IDs and newer BCP 47 IDs.
@@ -899,7 +893,7 @@ group: format
     resourcebundle parsepos uvector32
 
 group: pluralrules
-    standardplural.o plurrule.o upluralrules.o
+    plurrule.o upluralrules.o
   deps
     digitlist  # plurals depend on decimals
     patternprops resourcebundle uvector uvector32 unifiedcache

@@ -1152,18 +1152,6 @@ int32_t MeasureUnit::getIndexCount() {
     return gIndexes[UPRV_LENGTHOF(gIndexes) - 1];
 }
 
-int32_t MeasureUnit::internalGetIndexForTypeAndSubtype(const char *type, const char *subtype) {
-    int32_t t = binarySearch(gTypes, 0, UPRV_LENGTHOF(gTypes), type);
-    if (t < 0) {
-        return t;
-    }
-    int32_t st = binarySearch(gSubTypes, gOffsets[t], gOffsets[t + 1], subtype);
-    if (st < 0) {
-        return st;
-    }
-    return gIndexes[t] + st - gOffsets[t];
-}
-
 MeasureUnit *MeasureUnit::resolveUnitPerUnit(
         const MeasureUnit &unit, const MeasureUnit &perUnit) {
     int32_t unitOffset = unit.getOffset();
@@ -1222,7 +1210,6 @@ void MeasureUnit::initCurrency(const char *isoCurrency) {
         fSubTypeId = result - gOffsets[fTypeId];
     } else {
         uprv_strncpy(fCurrency, isoCurrency, UPRV_LENGTHOF(fCurrency));
-        fCurrency[3] = 0;
     }
 }
 

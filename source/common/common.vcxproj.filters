@@ -343,10 +343,7 @@
     <ClCompile Include="uresbund.cpp">
       <Filter>locales &amp; resources</Filter>
     </ClCompile>
-    <ClCompile Include="uresdata.cpp">
-      <Filter>locales &amp; resources</Filter>
-    </ClCompile>
-    <ClCompile Include="resource.cpp">
+    <ClCompile Include="uresdata.c">
       <Filter>locales &amp; resources</Filter>
     </ClCompile>
     <ClCompile Include="caniter.cpp">
@@ -464,9 +461,6 @@
       <Filter>strings</Filter>
     </ClCompile>
     <ClCompile Include="cstring.c">
-      <Filter>strings</Filter>
-    </ClCompile>
-    <ClCompile Include="cstr.cpp">
       <Filter>strings</Filter>
     </ClCompile>
     <ClCompile Include="cwchar.c">
@@ -775,9 +769,6 @@
     <ClInclude Include="uresdata.h">
       <Filter>locales &amp; resources</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>locales &amp; resources</Filter>
-    </ClInclude>
     <ClInclude Include="uresimp.h">
       <Filter>locales &amp; resources</Filter>
     </ClInclude>
@@ -836,9 +827,6 @@
       <Filter>strings</Filter>
     </ClInclude>
     <ClInclude Include="cstring.h">
-      <Filter>strings</Filter>
-    </ClInclude>
-    <ClInclude Include="cstr.h">
       <Filter>strings</Filter>
     </ClInclude>
     <ClInclude Include="cwchar.h">

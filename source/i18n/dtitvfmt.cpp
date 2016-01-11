@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (C) 2008-2016, International Business Machines Corporation and
+* Copyright (C) 2008-2015, International Business Machines Corporation and
 * others. All Rights Reserved.
 *******************************************************************************
 *
@@ -17,19 +17,19 @@
 //TODO: put in compilation
 //#define DTITVFMT_DEBUG 1
 
+#include "cstring.h"
 #include "unicode/msgfmt.h"
 #include "unicode/dtptngen.h"
 #include "unicode/dtitvinf.h"
 #include "unicode/calendar.h"
-
-#include "cstring.h"
 #include "dtitv_impl.h"
-#include "gregoimp.h"
-#include "mutex.h"
 
 #ifdef DTITVFMT_DEBUG 
 #include <iostream>
+#include "cstring.h"
 #endif
+
+#include "gregoimp.h"
 
 U_NAMESPACE_BEGIN
 
@@ -63,10 +63,7 @@ static const UChar gEarlierFirstPrefix[] = {LOW_E, LOW_A, LOW_R, LOW_L, LOW_I, L
 
 UOBJECT_DEFINE_RTTI_IMPLEMENTATION(DateIntervalFormat)
 
-// Mutex, protects access to fDateFormat, fFromCalendar and fToCalendar. 
-//        Needed because these data members are modified by const methods of DateIntervalFormat.
 
-static UMutex gFormatterMutex = U_MUTEX_INITIALIZER;
 
 DateIntervalFormat* U_EXPORT2
 DateIntervalFormat::createInstance(const UnicodeString& skeleton, 
@@ -151,28 +148,25 @@ DateIntervalFormat::operator=(const DateIntervalFormat& itvfmt) {
         delete fDatePattern;
         delete fTimePattern;
         delete fDateTimeFormat;
-        {
-            Mutex lock(&gFormatterMutex);
-            if ( itvfmt.fDateFormat ) {
-                fDateFormat = (SimpleDateFormat*)itvfmt.fDateFormat->clone();
-            } else {
-                fDateFormat = NULL;
-            }
-            if ( itvfmt.fFromCalendar ) {
-                fFromCalendar = itvfmt.fFromCalendar->clone();
-            } else {
-                fFromCalendar = NULL;
-            }
-            if ( itvfmt.fToCalendar ) {
-                fToCalendar = itvfmt.fToCalendar->clone();
-            } else {
-                fToCalendar = NULL;
-            }
+        if ( itvfmt.fDateFormat ) {
+            fDateFormat = (SimpleDateFormat*)itvfmt.fDateFormat->clone();
+        } else {
+            fDateFormat = NULL;
         }
         if ( itvfmt.fInfo ) {
             fInfo = itvfmt.fInfo->clone();
         } else {
             fInfo = NULL;
+        }
+        if ( itvfmt.fFromCalendar ) {
+            fFromCalendar = itvfmt.fFromCalendar->clone();
+        } else {
+            fFromCalendar = NULL;
+        }
+        if ( itvfmt.fToCalendar ) {
+            fToCalendar = itvfmt.fToCalendar->clone();
+        } else {
+            fToCalendar = NULL;
         }
         fSkeleton = itvfmt.fSkeleton;
         int8_t i;
@@ -207,41 +201,50 @@ DateIntervalFormat::clone(void) const {
 
 UBool
 DateIntervalFormat::operator==(const Format& other) const {
-    if (typeid(*this) != typeid(other)) {return FALSE;}
-    const DateIntervalFormat* fmt = (DateIntervalFormat*)&other;
-    if (this == fmt) {return TRUE;}
-    if (!Format::operator==(other)) {return FALSE;}
-    if ((fInfo != fmt->fInfo) && (fInfo == NULL || fmt->fInfo == NULL)) {return FALSE;}
-    if (fInfo && fmt->fInfo && (*fInfo != *fmt->fInfo )) {return FALSE;}
-    {
-        Mutex lock(&gFormatterMutex);
-        if (fDateFormat != fmt->fDateFormat && (fDateFormat == NULL || fmt->fDateFormat == NULL)) {return FALSE;}
-        if (fDateFormat && fmt->fDateFormat && (*fDateFormat != *fmt->fDateFormat)) {return FALSE;}
-
-        // TODO: should operator == ignore the From and ToCalendar? They hold transient values during
-        //       formatting of a DateInterval.
-        if (fFromCalendar != fmt->fFromCalendar && (fFromCalendar == NULL || fmt->fFromCalendar == NULL)) {return FALSE;}
-        if (fFromCalendar && fmt->fFromCalendar && !fFromCalendar->isEquivalentTo(*fmt->fFromCalendar)) {return FALSE;}
-
-        if (fToCalendar != fmt->fToCalendar && (fToCalendar == NULL || fmt->fToCalendar == NULL)) {return FALSE;}
-        if (fToCalendar && fmt->fToCalendar && !fToCalendar->isEquivalentTo(*fmt->fToCalendar)) {return FALSE;}
-    }
-    if (fSkeleton != fmt->fSkeleton) {return FALSE;}
-    if (fDatePattern != fmt->fDatePattern && (fDatePattern == NULL || fmt->fDatePattern == NULL)) {return FALSE;}
-    if (fDatePattern && fmt->fDatePattern && (*fDatePattern != *fmt->fDatePattern)) {return FALSE;}
-    if (fTimePattern != fmt->fTimePattern && (fTimePattern == NULL || fmt->fTimePattern == NULL)) {return FALSE;}
-    if (fTimePattern && fmt->fTimePattern && (*fTimePattern != *fmt->fTimePattern)) {return FALSE;}
-    if (fDateTimeFormat != fmt->fDateTimeFormat && (fDateTimeFormat == NULL || fmt->fDateTimeFormat == NULL)) {return FALSE;}
-    if (fDateTimeFormat && fmt->fDateTimeFormat && (*fDateTimeFormat != *fmt->fDateTimeFormat)) {return FALSE;}
-    if (fLocale != fmt->fLocale) {return FALSE;}
-
-    for (int32_t i = 0; i< DateIntervalInfo::kIPI_MAX_INDEX; ++i ) {
-        if (fIntervalPatterns[i].firstPart != fmt->fIntervalPatterns[i].firstPart) {return FALSE;}
-        if (fIntervalPatterns[i].secondPart != fmt->fIntervalPatterns[i].secondPart ) {return FALSE;}
-        if (fIntervalPatterns[i].laterDateFirst != fmt->fIntervalPatterns[i].laterDateFirst) {return FALSE;}
-    }
-    return TRUE;
+    if (typeid(*this) == typeid(other)) {
+        const DateIntervalFormat* fmt = (DateIntervalFormat*)&other;
+#ifdef DTITVFMT_DEBUG
+    UBool equal;
+    equal = (this == fmt);
+    
+    equal = (*fInfo == *fmt->fInfo);
+    equal = (*fDateFormat == *fmt->fDateFormat);
+    equal = fFromCalendar->isEquivalentTo(*fmt->fFromCalendar) ;
+    equal = fToCalendar->isEquivalentTo(*fmt->fToCalendar) ;
+    equal = (fSkeleton == fmt->fSkeleton);
+    equal = ((fDatePattern == NULL && fmt->fDatePattern == NULL) || (fDatePattern && fmt->fDatePattern && *fDatePattern == *fmt->fDatePattern));
+    equal = ((fTimePattern == NULL && fmt->fTimePattern == NULL) || (fTimePattern && fmt->fTimePattern && *fTimePattern == *fmt->fTimePattern));
+    equal = ((fDateTimeFormat == NULL && fmt->fDateTimeFormat == NULL) || (fDateTimeFormat && fmt->fDateTimeFormat && *fDateTimeFormat == *fmt->fDateTimeFormat));
+#endif
+        UBool res;
+        res =  ( this == fmt ) ||
+               ( Format::operator==(other) && 
+                 fInfo && 
+                 ( *fInfo == *fmt->fInfo ) &&
+                 fDateFormat &&
+                 ( *fDateFormat == *fmt->fDateFormat ) &&
+                 fFromCalendar &&
+                 fFromCalendar->isEquivalentTo(*fmt->fFromCalendar) &&
+                 fToCalendar &&
+                 fToCalendar->isEquivalentTo(*fmt->fToCalendar) &&
+                 fSkeleton == fmt->fSkeleton &&
+                 ((fDatePattern == NULL && fmt->fDatePattern == NULL)       || (fDatePattern && fmt->fDatePattern && *fDatePattern == *fmt->fDatePattern)) &&
+                 ((fTimePattern == NULL && fmt->fTimePattern == NULL)       || (fTimePattern && fmt->fTimePattern && *fTimePattern == *fmt->fTimePattern)) &&
+                 ((fDateTimeFormat == NULL && fmt->fDateTimeFormat == NULL) || (fDateTimeFormat && fmt->fDateTimeFormat && *fDateTimeFormat == *fmt->fDateTimeFormat)) && fLocale == fmt->fLocale);
+        int8_t i;
+        for (i = 0; i< DateIntervalInfo::kIPI_MAX_INDEX && res == TRUE; ++i ) {
+            res =   ( fIntervalPatterns[i].firstPart ==
+                      fmt->fIntervalPatterns[i].firstPart) &&
+                    ( fIntervalPatterns[i].secondPart ==
+                      fmt->fIntervalPatterns[i].secondPart ) &&
+                    ( fIntervalPatterns[i].laterDateFirst ==
+                      fmt->fIntervalPatterns[i].laterDateFirst) ;
+        }
+        return res;
+    } 
+    return FALSE;
 }
+
 
 
 UnicodeString&
@@ -256,7 +259,7 @@ DateIntervalFormat::format(const Formattable& obj,
     if ( obj.getType() == Formattable::kObject ) {
         const UObject* formatObj = obj.getObject();
         const DateInterval* interval = dynamic_cast<const DateInterval*>(formatObj);
-        if (interval != NULL) {
+        if (interval != NULL){
             return format(interval, appendTo, fieldPosition, status);
         }
     }
@@ -273,31 +276,21 @@ DateIntervalFormat::format(const DateInterval* dtInterval,
     if ( U_FAILURE(status) ) {
         return appendTo;
     }
-    if (fFromCalendar == NULL || fToCalendar == NULL || fDateFormat == NULL || fInfo == NULL) {
-        status = U_INVALID_STATE_ERROR;
-        return appendTo;
-    }
 
-    Mutex lock(&gFormatterMutex);
-    fFromCalendar->setTime(dtInterval->getFromDate(), status);
-    fToCalendar->setTime(dtInterval->getToDate(), status);
-    return formatImpl(*fFromCalendar, *fToCalendar, appendTo,fieldPosition, status);
+    if ( fFromCalendar != NULL && fToCalendar != NULL && 
+         fDateFormat != NULL && fInfo != NULL ) {
+        fFromCalendar->setTime(dtInterval->getFromDate(), status);
+        fToCalendar->setTime(dtInterval->getToDate(), status);
+        if ( U_SUCCESS(status) ) {
+            return format(*fFromCalendar, *fToCalendar, appendTo,fieldPosition, status);
+        }
+    }
+    return appendTo;
 }
 
 
 UnicodeString&
 DateIntervalFormat::format(Calendar& fromCalendar,
-                           Calendar& toCalendar,
-                           UnicodeString& appendTo,
-                           FieldPosition& pos,
-                           UErrorCode& status) const {
-    Mutex lock(&gFormatterMutex);
-    return formatImpl(fromCalendar, toCalendar, appendTo, pos, status);
-}
- 
-
-UnicodeString&
-DateIntervalFormat::formatImpl(Calendar& fromCalendar,
                            Calendar& toCalendar,
                            UnicodeString& appendTo,
                            FieldPosition& pos,
@@ -443,7 +436,7 @@ DateIntervalFormat::setDateIntervalInfo(const DateIntervalInfo& newItvPattern,
     delete fDateTimeFormat;
     fDateTimeFormat = NULL;
 
-    if (fDateFormat) {
+    if ( fDateFormat ) {
         initializePattern(status);
     }
 }
@@ -494,7 +487,6 @@ const TimeZone&
 DateIntervalFormat::getTimeZone() const
 {
     if (fDateFormat != NULL) {
-        Mutex lock(&gFormatterMutex);
         return fDateFormat->getTimeZone();
     }
     // If fDateFormat is NULL (unexpected), create default timezone.
@@ -514,21 +506,37 @@ DateIntervalFormat::DateIntervalFormat(const Locale& locale,
     fTimePattern(NULL),
     fDateTimeFormat(NULL)
 {
-    LocalPointer<DateIntervalInfo> info(dtItvInfo, status);
-    LocalPointer<SimpleDateFormat> dtfmt(static_cast<SimpleDateFormat *>(
-            DateFormat::createInstanceForSkeleton(*skeleton, locale, status)), status);
-    if (U_FAILURE(status)) {
+    if ( U_FAILURE(status) ) {
+        delete dtItvInfo;
         return;
     }
-
+    SimpleDateFormat* dtfmt =
+        static_cast<SimpleDateFormat *>(
+            DateFormat::createInstanceForSkeleton(
+                *skeleton, locale, status));
+    if ( U_FAILURE(status) ) {
+        delete dtItvInfo;
+        delete dtfmt;
+        return;
+    }
+    if ( dtfmt == NULL || dtItvInfo == NULL) {
+        status = U_MEMORY_ALLOCATION_ERROR;
+        // safe to delete NULL
+        delete dtfmt;
+        delete dtItvInfo;
+        return;
+    }
     if ( skeleton ) {
         fSkeleton = *skeleton;
     }
-    fInfo = info.orphan();
-    fDateFormat = dtfmt.orphan();
-    if ( fDateFormat->getCalendar() ) {
-        fFromCalendar = fDateFormat->getCalendar()->clone();
-        fToCalendar = fDateFormat->getCalendar()->clone();
+    fInfo = dtItvInfo;
+    fDateFormat = dtfmt;
+    if ( dtfmt->getCalendar() ) {
+        fFromCalendar = dtfmt->getCalendar()->clone();
+        fToCalendar = dtfmt->getCalendar()->clone();
+    } else {
+        fFromCalendar = NULL;
+        fToCalendar = NULL;
     }
     initializePattern(status);
 }
@@ -763,7 +771,7 @@ DateIntervalFormat::initializePattern(UErrorCode& status) {
          * range expression for the time. 
          */
 
-        if ( fDateTimeFormat == NULL ) {
+        if ( fDateTimeFormat == 0 ) {
             // earlier failure getting dateTimeFormat
             return;
         }

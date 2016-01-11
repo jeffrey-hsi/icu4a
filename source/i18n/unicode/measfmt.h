@@ -327,19 +327,17 @@ class U_I18N_API MeasureFormat : public Format {
     // shared across instances.
     ListFormatter *listFormatter;
 
-    const SimplePatternFormatter *getFormatterOrNull(
-            const MeasureUnit &unit, UMeasureFormatWidth width, int32_t index) const;
+    const QuantityFormatter *getQuantityFormatter(
+            int32_t index,
+            int32_t widthIndex,
+            UErrorCode &status) const;
 
-    const SimplePatternFormatter *getFormatter(
-            const MeasureUnit &unit, UMeasureFormatWidth width, int32_t index,
-            UErrorCode &errorCode) const;
-
-    const SimplePatternFormatter *getPluralFormatter(
-            const MeasureUnit &unit, UMeasureFormatWidth width, int32_t index,
-            UErrorCode &errorCode) const;
+    const SimplePatternFormatter *getPerUnitFormatter(
+            int32_t index,
+            int32_t widthIndex) const;
 
     const SimplePatternFormatter *getPerFormatter(
-            UMeasureFormatWidth width,
+            int32_t widthIndex,
             UErrorCode &status) const;
 
     int32_t withPerUnitAndAppend(

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 1997-2016, International Business Machines Corporation
+ * Copyright (c) 1997-2015, International Business Machines Corporation
  * and others. All Rights Reserved.
  ***********************************************************************/
  
@@ -921,7 +921,7 @@ void NumberFormatRegressionTest::Test4070798 (void)
       delete formatter;
       return;
     }
-    failure(status, "NumberFormat::createInstance", loc);
+    failure(status, "NumberFormat::createNumberInstance", loc);
     tempString = formatter->format (-5789.9876, tempString);
 
     if (tempString == expectedDefault) {
@@ -990,7 +990,7 @@ void NumberFormatRegressionTest::Test4071005 (void)
 
     UErrorCode status = U_ZERO_ERROR;
     formatter = NumberFormat::createInstance(Locale::getCanadaFrench(), status);
-    if (failure(status, "NumberFormat::createInstance", Locale::getCanadaFrench(), TRUE)){
+    if (failure(status, "NumberFormat::createNumberInstance", Locale::getCanadaFrench(), TRUE)){
         delete formatter;
         return;
     };
@@ -1058,7 +1058,7 @@ void NumberFormatRegressionTest::Test4071014 (void)
     char loc[256]={0};
     uloc_canonicalize("de_DE_PREEURO", loc, 256, &status);
     formatter = NumberFormat::createInstance(Locale(loc), status);
-    if (failure(status, "NumberFormat::createInstance", loc, TRUE)){
+    if (failure(status, "NumberFormat::createNumberInstance", loc, TRUE)){
         delete formatter;
         return;
     }
@@ -2729,7 +2729,6 @@ void NumberFormatRegressionTest::TestJ691(void) {
     {                                                                     \
       char _msg[1000]; \
       int32_t len = sprintf (_msg,"File %s, line %d: Assertion Failed: " #x "==" #y "\n", __FILE__, __LINE__); \
-      (void)len;                                                         \
       U_ASSERT(len < (int32_t) sizeof(_msg));                            \
       assertEquals((const char*) _msg, x,y);                             \
     }

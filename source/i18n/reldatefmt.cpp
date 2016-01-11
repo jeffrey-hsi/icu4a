@@ -1,10 +1,10 @@
 /*
 ******************************************************************************
-* Copyright (C) 2014-2015, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 2014, International Business Machines Corporation and         
+* others. All Rights Reserved.                                                
 ******************************************************************************
-*
-* File reldatefmt.cpp
+*                                                                             
+* File RELDATEFMT.CPP                                                             
 ******************************************************************************
 */
 
@@ -186,7 +186,7 @@ static void initQuantityFormatter(
         if (!getString(pluralBundle.getAlias(), rawPattern, status)) {
             return;
         }
-        if (!formatter.addIfAbsent(
+        if (!formatter.add(
                 ures_getKey(pluralBundle.getAlias()),
                 rawPattern,
                 status)) {

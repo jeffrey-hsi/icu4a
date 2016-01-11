@@ -1,6 +1,6 @@
 /********************************************************************
  * COPYRIGHT: 
- * Copyright (c) 1997-2015, International Business Machines Corporation and
+ * Copyright (c) 1997-2014, International Business Machines Corporation and
  * others. All Rights Reserved.
  ********************************************************************/
 
@@ -249,8 +249,6 @@ public:
     void TestDFSCreateForLocaleNonGregorianLocale();
     void TestDFSCreateForLocaleWithCalendarInLocale();
     void TestChangeCalendar();
-
-    void TestPatternFromSkeleton();
 
 private:
     UBool showParse(DateFormat &format, const UnicodeString &formattedString);

@@ -1,7 +1,7 @@
 /*
 *******************************************************************************
-* Copyright (C) 2014-2016, International Business Machines Corporation and
-* others. All Rights Reserved.
+* Copyright (C) 2014, International Business Machines Corporation and         *
+* others. All Rights Reserved.                                                *
 *******************************************************************************
 *
 * File QUANTITYFORMATTERTEST.CPP
@@ -37,41 +37,41 @@ void QuantityFormatterTest::TestBasic() {
     QuantityFormatter fmt;
     assertFalse(
             "adding bad variant",
-            fmt.addIfAbsent("a bad variant", "{0} pounds", status));
+            fmt.add("a bad variant", "{0} pounds", status));
     assertEquals("adding bad variant status", U_ILLEGAL_ARGUMENT_ERROR, status);
     status = U_ZERO_ERROR;
     assertFalse(
             "Adding bad pattern",
-            fmt.addIfAbsent("other", "{0} {1} too many placeholders", status));
+            fmt.add("other", "{0} {1} too many placeholders", status));
     assertEquals("adding bad pattern status", U_ILLEGAL_ARGUMENT_ERROR, status);
     status = U_ZERO_ERROR;
     assertFalse("isValid with no patterns", fmt.isValid());
     assertTrue(
             "Adding good pattern with no placeholders",
-            fmt.addIfAbsent("zero", "no placeholder", status));
+            fmt.add("other", "no placeholder", status));
     assertTrue(
             "Adding good pattern",
-            fmt.addIfAbsent("other", "{0} pounds", status));
+            fmt.add("other", "{0} pounds", status));
     assertTrue("isValid with other", fmt.isValid());
     assertTrue(
             "Adding good pattern",
-            fmt.addIfAbsent("one", "{0} pound", status));
+            fmt.add("one", "{0} pound", status));
 
     assertEquals(
             "getByVariant",
-            fmt.getByVariant("bad variant")->getTextWithNoPlaceholders(),
+            fmt.getByVariant("bad variant")->getPatternWithNoPlaceholders(),
             " pounds");
     assertEquals(
             "getByVariant",
-            fmt.getByVariant("other")->getTextWithNoPlaceholders(),
+            fmt.getByVariant("other")->getPatternWithNoPlaceholders(),
             " pounds");
     assertEquals(
             "getByVariant",
-            fmt.getByVariant("one")->getTextWithNoPlaceholders(),
+            fmt.getByVariant("one")->getPatternWithNoPlaceholders(),
             " pound");
     assertEquals(
             "getByVariant",
-            fmt.getByVariant("few")->getTextWithNoPlaceholders(),
+            fmt.getByVariant("few")->getPatternWithNoPlaceholders(),
             " pounds");
 
     // Test copy constructor
@@ -79,15 +79,15 @@ void QuantityFormatterTest::TestBasic() {
         QuantityFormatter copied(fmt);
         assertEquals(
                 "copied getByVariant",
-                copied.getByVariant("other")->getTextWithNoPlaceholders(),
+                copied.getByVariant("other")->getPatternWithNoPlaceholders(),
                 " pounds");
         assertEquals(
                 "copied getByVariant",
-                copied.getByVariant("one")->getTextWithNoPlaceholders(),
+                copied.getByVariant("one")->getPatternWithNoPlaceholders(),
                 " pound");
         assertEquals(
                 "copied getByVariant",
-                copied.getByVariant("few")->getTextWithNoPlaceholders(),
+                copied.getByVariant("few")->getPatternWithNoPlaceholders(),
                 " pounds");
     }
         
@@ -97,15 +97,15 @@ void QuantityFormatterTest::TestBasic() {
         assigned = fmt;
         assertEquals(
                 "assigned getByVariant",
-                assigned.getByVariant("other")->getTextWithNoPlaceholders(),
+                assigned.getByVariant("other")->getPatternWithNoPlaceholders(),
                 " pounds");
         assertEquals(
                 "assigned getByVariant",
-                assigned.getByVariant("one")->getTextWithNoPlaceholders(),
+                assigned.getByVariant("one")->getPatternWithNoPlaceholders(),
                 " pound");
         assertEquals(
                 "assigned getByVariant",
-                assigned.getByVariant("few")->getTextWithNoPlaceholders(),
+                assigned.getByVariant("few")->getPatternWithNoPlaceholders(),
                 " pounds");
     }
 

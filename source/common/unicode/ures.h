@@ -1,6 +1,6 @@
 /*
 **********************************************************************
-*   Copyright (C) 1997-2016, International Business Machines
+*   Copyright (C) 1997-2012,2014, International Business Machines
 *   Corporation and others.  All Rights Reserved.
 **********************************************************************
 *
@@ -789,97 +789,82 @@ ures_getUTF8StringByKey(const UResourceBundle *resB,
 
 U_NAMESPACE_BEGIN
 /**
- * Returns the string value from a string resource bundle.
+ * returns a string from a string resource type
  *
- * @param resB    a resource, should have type URES_STRING
+ * @param resB    a resource
  * @param status: fills in the outgoing error code
  *                could be <TT>U_MISSING_RESOURCE_ERROR</TT> if the key is not found
  *                could be a non-failing error 
  *                e.g.: <TT>U_USING_FALLBACK_WARNING</TT>,<TT>U_USING_DEFAULT_WARNING </TT>
- * @return The string value, or a bogus string if there is a failure UErrorCode.
+ * @return        a UnicodeString object. If there is an error, string is bogus
  * @stable ICU 2.0
  */
-inline UnicodeString
-ures_getUnicodeString(const UResourceBundle *resB, UErrorCode* status) {
-    UnicodeString result;
+inline UnicodeString 
+ures_getUnicodeString(const UResourceBundle *resB, 
+                      UErrorCode* status) 
+{
     int32_t len = 0;
     const UChar *r = ures_getString(resB, &len, status);
-    if(U_SUCCESS(*status)) {
-        result.setTo(TRUE, r, len);
-    } else {
-        result.setToBogus();
-    }
-    return result;
+    return UnicodeString(TRUE, r, len);
 }
 
 /**
- * Returns the next string in a resource, or an empty string if there are no more resources
- * to iterate over.
- * Use ures_getNextString() instead to distinguish between
- * the end of the iteration and a real empty string value.
+ * Returns the next string in a resource or NULL if there are no more resources 
+ * to iterate over. 
  *
  * @param resB              a resource
  * @param key               fill in for key associated with this string
  * @param status            fills in the outgoing error code
- * @return The string value, or a bogus string if there is a failure UErrorCode.
+ * @return an UnicodeString object.
  * @stable ICU 2.0
  */
-inline UnicodeString
-ures_getNextUnicodeString(UResourceBundle *resB, const char ** key, UErrorCode* status) {
-    UnicodeString result;
+inline UnicodeString 
+ures_getNextUnicodeString(UResourceBundle *resB, 
+                          const char ** key, 
+                          UErrorCode* status) 
+{
     int32_t len = 0;
     const UChar* r = ures_getNextString(resB, &len, key, status);
-    if(U_SUCCESS(*status)) {
-        result.setTo(TRUE, r, len);
-    } else {
-        result.setToBogus();
-    }
-    return result;
+    return UnicodeString(TRUE, r, len);
 }
 
 /**
- * Returns the string in a given resource array or table at the specified index.
+ * Returns the string in a given resource at the specified index.
  *
  * @param resB              a resource
  * @param indexS            an index to the wanted string.
  * @param status            fills in the outgoing error code
- * @return The string value, or a bogus string if there is a failure UErrorCode.
+ * @return                  an UnicodeString object. If there is an error, string is bogus
  * @stable ICU 2.0
  */
-inline UnicodeString
-ures_getUnicodeStringByIndex(const UResourceBundle *resB, int32_t indexS, UErrorCode* status) {
-    UnicodeString result;
+inline UnicodeString 
+ures_getUnicodeStringByIndex(const UResourceBundle *resB, 
+                             int32_t indexS, 
+                             UErrorCode* status) 
+{
     int32_t len = 0;
     const UChar* r = ures_getStringByIndex(resB, indexS, &len, status);
-    if(U_SUCCESS(*status)) {
-        result.setTo(TRUE, r, len);
-    } else {
-        result.setToBogus();
-    }
-    return result;
+    return UnicodeString(TRUE, r, len);
 }
 
 /**
- * Returns a string in a resource that has a given key.
- * This procedure works only with table resources.
+ * Returns a string in a resource that has a given key. This procedure works only with table
+ * resources. 
  *
  * @param resB              a resource
  * @param key               a key associated with the wanted string
  * @param status            fills in the outgoing error code
- * @return The string value, or a bogus string if there is a failure UErrorCode.
+ * @return                  an UnicodeString object. If there is an error, string is bogus
  * @stable ICU 2.0
  */
-inline UnicodeString
-ures_getUnicodeStringByKey(const UResourceBundle *resB, const char* key, UErrorCode* status) {
-    UnicodeString result;
+inline UnicodeString 
+ures_getUnicodeStringByKey(const UResourceBundle *resB, 
+                           const char* key, 
+                           UErrorCode* status) 
+{
     int32_t len = 0;
     const UChar* r = ures_getStringByKey(resB, key, &len, status);
-    if(U_SUCCESS(*status)) {
-        result.setTo(TRUE, r, len);
-    } else {
-        result.setToBogus();
-    }
-    return result;
+    return UnicodeString(TRUE, r, len);
 }
 
 U_NAMESPACE_END
